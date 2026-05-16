@@ -154,4 +154,40 @@ Apply this to [[theme-bundle-format]] when drafted.
 
 ---
 
+### 2026-05-16 — Apple themes dropped; Kaleidoscope is the corpus, and the clean-room boundary is sharpened
+
+Strategic pivot recorded explicitly. The PRD's original positioning ("API-compatible re-implementation of the Mac OS 8/9 Appearance Manager") and the implied roadmap commitment to reproducing Apple's official themes (Hi-Tech, Drawing Board, Gizmo) are both dropped. The replacement framing: Aaron UI is a Kaleidoscope-style theme engine that loads and faithfully renders schemes from the Kaleidoscope corpus, prioritizing those whose authors explicitly licensed redistribution.
+
+**What forced the pivot:**
+
+1. **License friction with Apple's themes is real and not worth managing.** Even with clean-room re-authoring discipline, reproducing Hi-Tech / Drawing Board / Gizmo introduces ongoing legal risk and reduces our freedom in how we ship. Apple's enforcement record (the 32 schemes in `kaleidoscope_banned.zip` were all Aqua reproductions) shows they actively defend visual IP that matters to them currently. We don't need this distraction.
+2. **The Kaleidoscope corpus is large enough that we don't need Apple's themes.** ≈4,010 schemes on Macintosh Garden, many Platinum-faithful (mass:werk "7 Le" is one), many with explicit freeware-with-redistribution readmes. The headline "Platinum → alternate look → another alternate look" demo works just as well with mass:werk 7 Le → Dark ErgoBox 2 → a community classic.
+3. **The clean-room boundary is conceptually cleaner this way.** It's "we never use Kaleidoscope's *source code*" — same as any file-format reader is clean-room from the original engine that produced the files. We *do* use the compiled scheme assets, exactly as their freeware licenses permit. This is the right kind of distinction to make.
+
+**What this changes in the docs:**
+
+- PRD §North Star principle #3 rewritten — no more "Appearance Manager re-implementation"; now "Kaleidoscope-corpus theme engine, clean-room from Kaleidoscope itself."
+- PRD §What it is — Apple's official themes removed from starter theme library.
+- PRD §Phased delivery, Phase 4 — first non-Platinum theme is a Kaleidoscope scheme port (mass:werk 7 Le candidate), not Hi-Tech.
+- PRD §Open questions — Q3 (legal pass on theme reproductions) marked resolved.
+- PRD §Naming — added etymology note acknowledging the Aaron→Appearance-Manager connection is now looser.
+- README — lede paragraph updated; North Star paraphrase updated; etymology note added.
+
+**What this does NOT change:**
+
+- The default Platinum theme. Still ships, still hand-authored. Provenance is now triangulated cleanly from three public sources: Apple's HIG (documentation, not binary), period screenshots (public, abundant), mass:werk's "7 Le" scheme (freeware-licensed Platinum-faithful Kaleidoscope reference).
+- The window manager core (Phase 1).
+- The framework-agnostic, declarative-first positioning.
+- The Aaron UI name. The etymology is looser; the name stays — renaming costs are real and don't pay for themselves.
+
+**Application:**
+
+- When porting a Kaleidoscope scheme: extract its compiled assets, attribute the original author per readme terms, document provenance in `theme.json`, ship.
+- When asked "does Aaron UI support Hi-Tech?": no, and intentionally — see this entry.
+- When asked "is Aaron UI an Appearance Manager reimplementation?": no longer — it's a Kaleidoscope-style theme engine. The lineage to the Appearance Manager is the project's name etymology, not its scope.
+
+[[masswerk-7-le-deconstruction]] and [[masswerk-dark-ergobox2-deconstruction]] are the first two ports under the new framing.
+
+---
+
 *New learnings get appended below this line as the project ships.*

@@ -14,20 +14,21 @@
 4. **What does a real period theme bundle actually contain?** (Resource type inventory, asset categories.)
 5. **What's the smallest static HTML/CSS implementation that proves we can render a Platinum window faithfully?** (Tracer-bullet for Phase 2 chrome.)
 
-It does *not* answer: the final shape of Aaron UI's web bundle format (that's a Phase 4 design decision informed by this spike), any Phase 1 WM-core questions, or licensing for Apple's official themes (separate PRD open question #3).
+It does *not* answer: the final shape of Aaron UI's web bundle format (that's a Phase 4 design decision informed by this spike), or any Phase 1 WM-core questions.
+
+> **2026-05-16 update:** when this spike was originally written, Aaron UI's positioning still claimed Appearance Manager re-implementation, and the spike's "Kaleidoscope first, Apple later" framing was an order-of-operations choice. The project has since dropped Apple themes from scope entirely (LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus"). The spike's methodology is unchanged; the "format spine from Appearance Manager docs" framing below is superseded — the spine now comes from the Kaleidoscope SDK docs plus our own deconstruction findings, full stop.
 
 ---
 
-## Decision: Kaleidoscope `.ksc` as the primary deconstruction corpus
+## Decision: Kaleidoscope `.ksc` as the deconstruction corpus
 
-**Headline:** the PRD's positioning is unchanged — Aaron UI remains "an API-compatible re-implementation of the Mac OS 8/9 Appearance Manager." But the *artifact we dissect first* is a Kaleidoscope scheme, not an Apple `.afm`.
+The artifact we dissect — and the only artifact Aaron UI ports — is a Kaleidoscope scheme. Apple `.afm` files are out of scope per the LEARNINGS entry referenced above.
 
-Why the two aren't in conflict:
+Why Kaleidoscope is the right corpus:
 
-- **Format spine** comes from Apple's published Appearance Manager API documentation (`developer.apple.com/legacy/...`, mirrored on Wayback). We don't need to dissect a binary `.afm` to learn the format — Apple wrote the spec down. That keeps the PRD's compat claim honest.
-- **Corpus + visual reference** comes from Kaleidoscope, because (a) ~4,010 schemes exist on Macintosh Garden vs. a handful of `.afm` files; (b) many Kaleidoscope authors faithfully reproduced Platinum (mass:werk's "7 Le" is described as "Apple's System 7 with a touch of platinum"); (c) community provenance is cleaner than Apple's official theme artwork.
-
-Full reasoning lives in `LEARNINGS.md` (entry "Why Kaleidoscope is the primary deconstruction corpus, even though the spec spine is the Appearance Manager").
+- **Corpus + visual reference** comes from Kaleidoscope because (a) ~4,010 schemes exist on Macintosh Garden vs. a handful of `.afm` files; (b) many Kaleidoscope authors faithfully reproduced Platinum (mass:werk's "7 Le" is described as "Apple's System 7 with a touch of platinum"); (c) community provenance is cleaner — many schemes ship freeware-with-redistribution readmes.
+- **Format documentation** comes from the Kaleidoscope SDK / scheme-authoring guides (mirrored on Wayback from the defunct kaleidoscope.net). Combined with empirical deconstruction of representative schemes, that's enough to draft Aaron UI's bundle format.
+- **The clean-room boundary** is from Kaleidoscope's *source code* (which we never touch), not from the freeware-licensed scheme assets (which we do extract, with attribution).
 
 ---
 
@@ -109,7 +110,7 @@ The spike is done when:
 
 1. We have at least one Tier 1 scheme acquired locally, with resource fork inventory documented.
 2. We have at least one Tier 2 scheme similarly documented.
-3. `docs/THEME-FORMAT-REFERENCE.md` exists with a draft "Aaron UI web bundle format v0" derived from the inventory + Appearance Manager docs.
+3. `docs/THEME-FORMAT-REFERENCE.md` exists with a draft "Aaron UI web bundle format v0" derived from the Kaleidoscope scheme inventories + the published Kaleidoscope SDK documentation (Wayback).
 4. `demo/platinum-static.html` exists and renders a recognizable Platinum window in a modern browser, sourced from HIG + public screenshots (independent of the scheme deconstruction — proves we can render Platinum from public references alone, which is the floor of what's possible).
 5. A LEARNINGS entry captures any surprises from the deconstruction.
 
@@ -119,16 +120,15 @@ The spike does *not* need to ship working theme loading, runtime switching, or a
 
 ## Risks and open questions
 
-- **Format docs availability.** Apple's legacy developer site has been progressively gutted. Wayback coverage is the fallback; need to snapshot whatever we find locally, because links rot. Action: when we find good Appearance Manager docs, mirror them under `docs/external-references/` (with attribution + retrieval date).
-- **Resource fork survival.** If `kaleidoscope_schemes.zip` was repackaged through a non-Mac filesystem at some point, individual `.ksc` files inside may have lost their resource forks. The `.sit` originals are safer. Test this on a single scheme before downloading the 650 MB bulk pack.
-- **Kaleidoscope ≠ Appearance Manager format.** We must be disciplined that what we learn from `.ksc` informs our design but doesn't *become* our design verbatim. The PRD says we're re-implementing the Appearance Manager. If `.ksc` has a quirk that the Appearance Manager doesn't, we don't inherit the quirk.
-- **License posture per scheme.** Many Kaleidoscope schemes shipped with a readme; many didn't. Tier 1 (mass:werk) has a known author still reachable; Tier 2 may not. Action: only re-author from schemes whose authors had explicit "freeware, redistribute freely" terms OR who are reachable for permission, until we have a clearer license policy.
+- **Format docs availability.** Kaleidoscope's SDK and scheme-authoring docs lived on the now-defunct kaleidoscope.net; Wayback coverage is the fallback. Need to snapshot whatever we find locally because links rot. Action: when we find good docs, mirror them under `docs/external-references/` (with attribution + retrieval date).
+- **Resource fork survival.** If `kaleidoscope_schemes.zip` was repackaged through a non-Mac filesystem at some point, individual `.ksc` files inside may have lost their resource forks. The `.sit` originals are safer. Test this on a single scheme before downloading the 650 MB bulk pack. *Confirmed working on `masswerk7le.sit` and `masswerk_dark_ergobox2.sit` — both preserved resource forks through unar extraction.*
+- **License posture per scheme.** Many Kaleidoscope schemes shipped with a readme; many didn't. Tier 1 (mass:werk) has a known author still reachable; Tier 2 may not. Action: only port (extract assets + ship) from schemes whose authors had explicit "freeware, redistribute freely" terms. For schemes with vaguer or absent licenses, study privately but do not ship until rights are confirmed.
 
 ---
 
-## Out of scope for this spike
+## Out of scope for this spike — and for the project
 
 - Phase 1 WM core (drag, resize, z-order). Tracked separately in `README.md`.
 - Toolchain bootstrap (Vite, TypeScript, tests). Tracked separately.
-- Apple `.afm` deconstruction. Deferred — may revisit as a confirmation pass once the Kaleidoscope-derived format is drafted, but not blocking.
-- Legal pass on theme reproductions. That's PRD open question #3, separate workstream.
+- **Apple `.afm` deconstruction. Out of scope entirely** — not deferred, dropped. The 2026-05-16 LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus" records the decision; PRD updated to match. Apple's HIG remains valid public reference for re-authoring the default Platinum theme, but the `.afm` binaries themselves and the Hi-Tech / Drawing Board / Gizmo themes they contained are not part of Aaron UI's roadmap.
+- Legal pass on theme reproductions. **Resolved** by dropping Apple themes: Kaleidoscope-corpus schemes with explicit freeware-with-redistribution readmes are the only material we port, with author attribution preserved.
