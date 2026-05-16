@@ -53,6 +53,19 @@ The primary reference for any visual question is Apple's own Mac OS 8 Human Inte
 - A full AppKit / Carbon reproduction.
 - A mobile-first toolkit. This is desktop windowing.
 
+## A heads-up on hover
+
+Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Aaron UI's default Platinum theme honors this: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
+
+## What ported themes carry (and don't)
+
+The PRD describes theme bundles as ideally shipping chrome + controls + colors + desktop background + sounds + fonts. In practice, that depends on the theme's origin:
+
+- **Aaron UI first-party / preset themes** (Platinum, eventually Hi-Tech, etc.) — may include sounds and a desktop background as opt-in extras.
+- **Ported third-party themes** (Kaleidoscope-derived community schemes) — chrome + controls + colors only. Sounds, desktop background, and fonts are not part of what these themes carried in their native format, and Aaron UI doesn't fabricate them.
+
+So loading "mass:werk 7 Le" gets you the look; loading the "Platinum" preset gets you the look *plus* the period sounds, if you opt in.
+
 ## Documents
 
 - **[`PRD.md`](./PRD.md)** — what we're building and why.
