@@ -47,7 +47,7 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 <!-- Theme switching, declarative. -->
 <select data-aaron-theme-switcher>
   <option value="platinum">Platinum</option>
-  <option value="hi-tech">Hi-Tech</option>
+  <option value="masswerk-7-le">Hi-Tech</option>
   <option value="drawing-board">Drawing Board</option>
 </select>
 ```
@@ -59,7 +59,7 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 ```ts
 import { AaronWindow, loadTheme } from 'aaron-ui';
 
-await loadTheme('https://example.com/themes/hi-tech/');
+await loadTheme('https://example.com/themes/masswerk-7-le/');
 const win = new AaronWindow({
   title: 'Dynamic Window',
   x: 200, y: 200, width: 400, height: 300,
@@ -69,31 +69,25 @@ const win = new AaronWindow({
 
 **Architectural consequence:** the imperative API is the *foundation*; the declarative scanner is a thin layer on top that calls it. Same code path, two front doors.
 
-### 3. An API-compatible re-implementation of the Mac OS 8/9 Appearance Manager — from spec, never from decompile
+### 3. Kaleidoscope-corpus theme engine, clean-room from Kaleidoscope itself
 
-Aaron UI's **theme bundle format and runtime behavior aim to be conceptually compatible** with how Mac OS 8.5's Appearance Manager loaded themes (Platinum, Hi-Tech, Drawing Board, the Kaleidoscope third-party ecosystem). The goal is that period themes can be adapted into Aaron UI bundles with their *intent preserved* — chrome appearance, control bevels, color palette, desktop picture, system sounds — and rendered faithfully on web pages.
+Aaron UI is **a web-native theme engine for the Kaleidoscope-style theme genre.** Period themes authored as Kaleidoscope schemes (`.ksc` files) are the primary corpus — we extract their compiled assets (chrome bitmaps, color palettes, tileable patterns) from individual freeware-licensed schemes, re-implement the rendering entirely in our own CSS / SVG / JS, and ship Aaron UI theme bundles that recreate each scheme as faithfully as the web allows.
 
-**The implementation is independent and clean-room.** Sources for the re-implementation:
+**The clean-room boundary is from Kaleidoscope's source code, not from scheme assets.** This is the same distinction that holds for any reader of a file format: a Photoshop `.psd` parser can read files without touching Photoshop's source. Specifically:
 
-- Apple's published [Mac OS 8 Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html).
-- Archived Apple Appearance Manager API documentation (developer.apple.com legacy / Wayback Machine).
-- Period screenshots and visual references from Macintosh Garden, archive.org, and similar archives.
-- Public documentation of the Kaleidoscope and Apple theme-bundle formats.
-- The visible behavior of real Mac OS 8.5 + Kaleidoscope running under emulation, used as a behavioral oracle.
+- **We do** read and extract assets from Kaleidoscope scheme files (`.ksc`) whose original authors explicitly licensed them as freeware-with-redistribution. We use those assets as the *visual artifact* the Aaron UI theme bundle reproduces.
+- **We do** read Kaleidoscope's *published format documentation* (SDK docs, scheme-authoring guides — mirrored on Wayback) to understand the resource categories and what each one means.
+- **We do not** read Kaleidoscope's source code (the closed engine itself).
+- **We do not** read decompiled Mac OS Toolbox source or clean-room emulator implementations that have themselves derived from such material.
+- **Apple's own themes (`.afm`: Hi-Tech, Drawing Board, Gizmo) are out of scope.** License friction with Apple isn't worth the friction, and the Kaleidoscope corpus is large enough (≈4,010 schemes, many Platinum-faithful, many freeware) that we don't need them. Apple's published [Mac OS 8 Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html) remain valid public reference material for the default Platinum theme — the HIG is documentation, not a binary.
 
-**What we don't do:**
-
-- We do not look at decompiled Apple source.
-- We do not copy Apple's pixel artwork directly. Where period artwork is referenced (e.g., reproducing the Hi-Tech theme's look), we re-author from screenshots rather than extracting from binaries. When in doubt, we ship "inspired by" reinterpretations.
-- We do not copy code from leaked Mac OS sources or from clean-room emulator implementations that have themselves derived from such material.
-
-**Architectural consequence:** every visual decision in the default Platinum theme has a HIG citation in the commit message. Every theme port from a period source documents its provenance in `theme.json` (original author, year, source URL, license-of-origin, what we adapted vs. re-authored). The default Platinum theme is auditable from spec.
+**Architectural consequence:** every theme bundle Aaron UI ships documents its provenance in `theme.json` — original Kaleidoscope scheme author, year, source URL, the readme-stated license, and what assets were extracted vs. re-authored. The default Platinum theme is triangulated from three public sources: the HIG, period screenshots, and mass:werk's freeware "7 Le" scheme as a community-authored Platinum reference. No Apple binaries are touched at any stage.
 
 ---
 
 ## TL;DR
 
-Aaron UI is a standalone open-source library that gives any web page draggable, resizable windows with authentic Mac OS Appearance Manager chrome. The first-class architectural concept is **themes** (in the literal Mac OS 8.5 sense) — bundles that ship window chrome, controls, desktop background, and system sounds together — with Platinum as the default and a path to load Apple's other official themes, Kaleidoscope-era community themes, and our own.
+Aaron UI is a standalone open-source library that gives any web page draggable, resizable windows with authentic Mac OS-era chrome. The first-class architectural concept is **themes** — loadable bundles (chrome + controls + colors + optional desktop background + optional sounds + optional fonts) modeled on how Kaleidoscope shipped them in the classic Mac OS 7.x–9.x era. Platinum is the default; ported Kaleidoscope-derived community schemes are the path to more.
 
 [classic-vibe-mac](https://github.com/khawkins98/classic-vibe-mac) is the first consumer. It is never a privileged one.
 
@@ -105,7 +99,7 @@ Three things shifted at once:
 
 2. **AI-agent-assisted development changes the cost equation.** A custom WM is the most well-trodden algorithmic territory in UI history — drag, resize, z-order have been implemented in every windowing toolkit since Smalltalk. With AI assistance, the WM core is ~600-800 lines of TypeScript and a 1-2 day project, plus a week-ish of discovery polish across the following months for edge cases (iPad touch, IME composition, screen-reader semantics). That's a different calculus than the multi-week WM project this would have been in 2019.
 
-3. **The themes angle turns this from "another retro CSS framework" into a product.** Mac OS 8.5's Appearance Manager (an evolution of the 8.0/8.1 system) shipped Platinum as the default and was *designed* to load alternative themes — bundles of chrome + control appearance + desktop pictures + system sounds. Apple shipped a few (Hi-Tech, Drawing Board, Gizmo) though most were pulled before final release. The third-party [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) ecosystem produced thousands. A web library that ships the *theming engine* — not just one fixed look — is a genuinely interesting reproduction of how Mac OS appearance actually worked.
+3. **The themes angle turns this from "another retro CSS framework" into a product.** Mac OS 7.x–9.x had a rich theming ecosystem, anchored by the third-party [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) engine — chrome + controls + colors + (sometimes) sounds, packaged as loadable bundles. The community produced thousands of schemes across roughly a decade, archived now on Macintosh Garden and Mac Themes Garden. A web library that ships the *theming engine* — and ports a curated set of those schemes as web-native bundles with original-author attribution — is a genuinely interesting reproduction of how Mac OS appearance actually worked, with no IP friction from Apple's own themes (which we deliberately stay out of).
 
 ## What it is
 
@@ -120,10 +114,9 @@ Three things shifted at once:
   - Color palette
   - Font(s)
 - A starter theme library:
-  - **Platinum** — built-in default, hand-authored from the Mac OS 8 HIG.
-  - **Apple's official Mac OS 8.5 themes** (Hi-Tech, Drawing Board, Gizmo) — if we can reproduce them with a clean legal posture. "Inspired by" is the fallback.
-  - **Curated Kaleidoscope-era community themes** — many thousands exist on Macintosh Garden / ResExcellence archives; adapt a few as web bundles with original-author credit.
-  - **New themes** — eventually, our own and community-submitted.
+  - **Platinum** — built-in default. Hand-authored from the Mac OS 8 HIG + period screenshots + mass:werk's freeware "7 Le" scheme as a community-authored Platinum reference. No Apple binaries touched.
+  - **Curated Kaleidoscope-era community themes** — many thousands exist on Macintosh Garden / Mac Themes Garden archives. We adapt a few as web bundles with original-author credit, prioritizing schemes whose readmes explicitly license freeware redistribution. Tier-1 candidates include mass:werk's own schemes (single-author, reachable, explicit license).
+  - **New themes** — eventually, our own and community-submitted, authored against Aaron UI's bundle format directly.
 
 (Framework-agnostic, HIG-faithful, and the integration model are all spelled out in §North Star above; not repeated here to avoid drift.)
 
@@ -183,11 +176,11 @@ Two integration paths, declarative first per the North Star:
 ```html
 <!-- Tell the page which theme to use. Exact attribute syntax is
      a Phase 1 / Phase 4 design call; this is illustrative. -->
-<html data-aaron-theme="hi-tech">
+<html data-aaron-theme="masswerk-7-le">
   <head>
     <link rel="stylesheet" href="aaron-ui.css">
     <script type="module" src="aaron-ui.js"></script>
-    <link rel="aaron-theme" href="/themes/hi-tech/theme.json">
+    <link rel="aaron-theme" href="/themes/masswerk-7-le/theme.json">
   </head>
   <body>
     <div data-aaron-window data-aaron-title="Window">...</div>
@@ -200,11 +193,11 @@ Two integration paths, declarative first per the North Star:
 ```ts
 import { loadTheme, AaronWindow } from 'aaron-ui';
 
-await loadTheme('https://example.com/themes/hi-tech/');
+await loadTheme('https://example.com/themes/masswerk-7-le/');
 const win = new AaronWindow({ title: 'Window', html: '...' });
 ```
 
-Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under Platinum → Hi-Tech → Drawing Board → a community theme, one click each — declaratively, by changing a single `data-aaron-theme` attribute on `<html>`.
+Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under Platinum → mass:werk 7 Le → Dark ErgoBox 2 → another curated community scheme, one click each — declaratively, by changing a single `data-aaron-theme` attribute on `<html>`. (See `demo/themes.html` for an early walking skeleton of this.)
 
 ## Phased delivery
 
@@ -213,7 +206,7 @@ Sketch, not commitment. Maintainer may re-split.
 - **Phase 1 — WM core.** Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus, mount/unmount lifecycle. **Two integration surfaces:** the imperative TS class API (foundation), and the declarative `data-aaron-window` scanner that calls into it on `DOMContentLoaded` + `MutationObserver`. **API-compatible with WinBox** at the imperative call-site level so cv-mac can swap with minimal diff.
 - **Phase 2 — Platinum chrome (default theme).** Pinstripe title bar, paper title pill, ink-bordered close box (left), zoom + windowshade controls (right), integrated grow box, optional status bar, diagonal-stripe corner. Replace WinBox in cv-mac.
 - **Phase 3 — Core controls.** Buttons (push, default with thick black outline, popup-menu with arrow box), tabs (merged with content panel), group boxes/frames, fields, popup menus, checkboxes, radios.
-- **Phase 4 — Theme engine.** Theme bundle format, loader, runtime switching, sound triggering, desktop background mounting. The first non-Platinum theme (likely Hi-Tech or a curated Kaleidoscope-era community theme) lands here as the proof.
+- **Phase 4 — Theme engine.** Theme bundle format, loader, runtime switching, sound triggering, desktop background mounting. The first non-Platinum theme — a curated Kaleidoscope scheme port (mass:werk's "7 Le" is the current Tier-1 candidate per `docs/scheme-deconstruction/`) — lands here as the proof.
 - **Phase 5 — Dialogs & sheets.** Standard alert (note / caution / stop), modal dialog, sheet animations.
 - **Phase 6 — Polish.** Animations (zoom-to-icon close, windowshade roll-up), advanced theming hooks, demo site showcasing the theme library.
 
@@ -262,22 +255,25 @@ The right answer depends on how much we want Aaron UI used by closed-source proj
 
 1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1-4 (WM + Platinum theme + controls + theme engine) as the v1.0 target?
 2. **License** — see §License above. Resolve after Phase 1 ships.
-3. **Legal pass on theme reproductions.** Reproducing Apple's official Mac OS 8.5 themes (Hi-Tech, Drawing Board, etc.) needs a real licensing look. "Inspired by" reproductions are safest; literal artwork reproduction may have issues. Not blocking Phase 1-3; should be decided before Phase 4.
+3. ~~**Legal pass on theme reproductions.**~~ **Resolved 2026-05-16:** Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are out of scope entirely — license friction isn't worth it. Aaron UI focuses on Kaleidoscope-corpus schemes, prioritizing those with explicit freeware-with-redistribution readmes. See LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus."
 4. **Web Components alongside the class API** — yes from v1.0, or defer?
 
 ## Naming (decision recorded)
 
 **Chosen: Aaron UI.** After *Aaron*, the Apple internal codename for the Copland-era demo that previewed both the Appearance Manager and the Platinum default theme. The `UI` suffix sits in the established `[Name] UI` family (Material UI, Chakra UI, Shadcn UI) and is self-describing for newcomers who don't know the Aaron reference.
 
-Alternatives considered (preserved for posterity): Aaron alone (unsearchable), AaronKit (assumes knowledge of the reference), AaronJS (generic), Mac-Aaron (trademark exposure), Aaron Web UI ("Web" redundant next to "UI"), Appearance / AppearanceJS (technically clearest but unsearchable), Copland (failed-Apple-project baggage), PlatinumKit / Charcoal (tied to one theme — mismatched scope for a theme engine), Kaleidoscope (collides with the modern git-diff tool).
+**Etymology note (2026-05-16):** with the project's scope clarified to Kaleidoscope-corpus themes rather than Appearance Manager re-implementation, the connection to the original Aaron codename is now loose — poetic origin story rather than tight technical description. The name is retained because (a) renaming costs are real and (b) the `[Name] UI` family signals "UI library" cleanly. The README spells out the looser etymology so the gap doesn't surprise anyone.
+
+Alternatives considered (preserved for posterity): Aaron alone (unsearchable), AaronKit (assumes knowledge of the reference), AaronJS (generic), Mac-Aaron (trademark exposure), Aaron Web UI ("Web" redundant next to "UI"), Appearance / AppearanceJS (technically clearest but unsearchable), Copland (failed-Apple-project baggage), PlatinumKit / Charcoal (tied to one theme — mismatched scope for a theme engine), Kaleidoscope (collides with the modern git-diff tool), Collidoscope (a Kaleidoscope-flavored alternative considered at the pivot moment — fun but jokey).
 
 ## References
 
-- **Primary visual spec:** [Mac OS 8 HIG, Appearance chapter](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html)
+- **Primary visual spec (default Platinum theme):** [Mac OS 8 HIG, Appearance chapter](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html) — public documentation, used as reference for re-authoring; no Apple binaries touched.
 - **Upstream extraction ticket:** [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246)
 - **Per-element Platinum accuracy spec (Phase 2 acceptance):** [classic-vibe-mac #229](https://github.com/khawkins98/classic-vibe-mac/issues/229)
 - **First consumer:** [classic-vibe-mac](https://github.com/khawkins98/classic-vibe-mac)
 - **Comparison: WinBox** — <https://nextapps-de.github.io/winbox/> — the library Aaron UI replaces in cv-mac.
 - **Comparison: 98.css** — <https://jdan.github.io/98.css/> — the Windows 98 equivalent in spirit.
-- **Period reference: Kaleidoscope** — <https://en.wikipedia.org/wiki/Kaleidoscope_(software)> — the third-party theme engine for classic Mac OS that defined the genre.
-- **Inside Macintosh: Appearance Manager** — archived Apple developer documentation (search Wayback for `developer.apple.com/legacy/library/documentation/Carbon/Reference/Appearance_Manager/`).
+- **Period theme engine: Kaleidoscope** — <https://en.wikipedia.org/wiki/Kaleidoscope_(software)> — the third-party theme engine for classic Mac OS, and the corpus Aaron UI draws its theme bundles from.
+- **Kaleidoscope scheme archives:** [Macintosh Garden — Kaleidoscope](https://macintoshgarden.org/apps/kaleidoscope) (≈4,010 schemes), [Mac Themes Garden](https://macthemes.garden/) (curated, thumbnailed index).
+- **First scheme deconstruction reference:** [mass:werk schemes](https://www.masswerk.at/schemes.php) — N. Landsteiner's author-hosted set, including "7 Le" (Platinum-faithful) and "Dark ErgoBox 2" (BeOS-tab dark), both freeware-licensed.

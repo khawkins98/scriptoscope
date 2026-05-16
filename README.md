@@ -2,13 +2,13 @@
 
 A Mac OS Appearance-style window manager and theme engine for the web.
 
-Drop it into any page to get draggable, resizable windows that look and feel like System 7.5+ / Mac OS 8 — pinstripe title bars, paper title pills, ink-bordered close boxes, windowshade collapse, integrated grow boxes. Then swap themes at runtime to load Apple's other official Mac OS 8.5 looks (Hi-Tech, Drawing Board, Gizmo), Kaleidoscope-era community themes, or your own — themes carry chrome + controls + desktop background + system sounds together.
+Drop it into any page to get draggable, resizable windows that look and feel like System 7.5+ / Mac OS 8 — pinstripe title bars, paper title pills, ink-bordered close boxes, windowshade collapse, integrated grow boxes. Then swap themes at runtime to load curated [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software))-era community schemes — chrome, controls, colors, optional sounds, optional desktop background. The default Platinum theme is hand-authored from the Mac OS 8 HIG; alternate themes are ported from freeware-licensed Kaleidoscope schemes with original-author attribution.
 
 > ⚠️ **Status: pre-implementation.** This repo currently contains the project charter (see [`PRD.md`](./PRD.md)) and contribution conventions. No code yet. Phase 1 (WM core, API-compatible drop-in for [WinBox](https://nextapps-de.github.io/winbox/)) is the next step.
 
 ## North Star
 
-A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships an **API-compatible re-implementation of the Mac OS 8/9 Appearance Manager** capable of loading period theme packs and rendering them faithfully on the modern web.
+A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships a **Kaleidoscope-style theme engine** capable of loading freeware-licensed period theme bundles and rendering them faithfully on the modern web.
 
 Three principles do the load-bearing work:
 
@@ -29,7 +29,9 @@ Three principles do the load-bearing work:
    </div>
    ```
 
-3. **An API-compatible re-implementation of the Mac OS 8/9 Appearance Manager — from spec, never from decompile.** Aaron UI's theme bundle format and runtime behavior aim to be conceptually compatible with how Mac OS 8.5's Appearance Manager loaded themes (Platinum, Hi-Tech, Drawing Board, the Kaleidoscope ecosystem), so period themes can be adapted into Aaron UI bundles and rendered faithfully on web pages. **The implementation is independent.** We work from Apple's published [Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html), period screenshots, and the public theme-bundle format documentation — never from decompiled Apple source or copied artwork. The result is a clean-room re-implementation that's *behaviorally* and *aesthetically* faithful, but legally and technically our own work.
+3. **A Kaleidoscope-corpus theme engine, clean-room from Kaleidoscope's code.** Aaron UI loads and faithfully renders Kaleidoscope-style theme bundles. The corpus is the ≈4,010 community-authored schemes on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own CSS / SVG / JS** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope; the default Platinum theme is hand-authored from Apple's *published* [Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html), period screenshots, and mass:werk's freeware Platinum-faithful "7 Le" scheme as a community reference. No Apple binaries are touched at any stage. The result is a clean-room re-implementation that's *behaviorally* and *aesthetically* faithful, with every shipped theme bundle carrying provenance metadata (original author, source URL, license-of-origin).
+
+> The name "Aaron" comes from Apple's internal codename for the Copland-era demo that previewed the Appearance Manager and Platinum default theme. With the project's scope clarified to Kaleidoscope-corpus themes (rather than Appearance Manager re-implementation), the etymology is now poetic origin rather than tight description — and that's fine.
 
 ## Where the idea came from
 
@@ -61,8 +63,8 @@ Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**.
 
 The PRD describes theme bundles as ideally shipping chrome + controls + colors + desktop background + sounds + fonts. In practice, that depends on the theme's origin:
 
-- **Aaron UI first-party / preset themes** (Platinum, eventually Hi-Tech, etc.) — may include sounds and a desktop background as opt-in extras.
-- **Ported third-party themes** (Kaleidoscope-derived community schemes) — chrome + controls + colors only. Sounds, desktop background, and fonts are not part of what these themes carried in their native format, and Aaron UI doesn't fabricate them.
+- **Aaron UI first-party / preset themes** (Platinum, eventually a small curated set) — may include sounds and a desktop background as opt-in extras, hand-authored by us.
+- **Ported third-party themes** (Kaleidoscope-derived community schemes) — chrome + controls + colors only. Sounds, desktop background, and fonts are not part of what Kaleidoscope schemes carried in practice, and Aaron UI doesn't fabricate them when porting.
 
 So loading "mass:werk 7 Le" gets you the look; loading the "Platinum" preset gets you the look *plus* the period sounds, if you opt in.
 
