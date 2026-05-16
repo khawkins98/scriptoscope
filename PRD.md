@@ -124,8 +124,8 @@ Three things shifted at once:
   - **Apple's official Mac OS 8.5 themes** (Hi-Tech, Drawing Board, Gizmo) — if we can reproduce them with a clean legal posture. "Inspired by" is the fallback.
   - **Curated Kaleidoscope-era community themes** — many thousands exist on Macintosh Garden / ResExcellence archives; adapt a few as web bundles with original-author credit.
   - **New themes** — eventually, our own and community-submitted.
-- Framework-agnostic: vanilla TypeScript, no React/Vue/Solid/etc. dependency.
-- HIG-faithful by default. Primary spec: <https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html>.
+
+(Framework-agnostic, HIG-faithful, and the integration model are all spelled out in §North Star above; not repeated here to avoid drift.)
 
 ## What it isn't
 
@@ -133,7 +133,7 @@ Three things shifted at once:
 - A full AppKit / Carbon reproduction. No NSTextView, no NSScrollView, no view-controller hierarchy.
 - Mobile-first. Touch should work as a fallback but isn't the primary target.
 - A theme authoring tool (initially). Theme bundles are authored by hand or with external tooling. A theme-builder UI is a separate possible future project.
-- Coupled to cv-mac.
+- Tied to cv-mac. cv-mac is the first consumer; never a privileged one. No cv-mac-specific code, conventions, or assumptions leak into Aaron UI.
 
 ## Target consumers
 
@@ -181,7 +181,8 @@ Two integration paths, declarative first per the North Star:
 **Declarative (recommended for most consumers):**
 
 ```html
-<!-- Tell the page which theme to use. -->
+<!-- Tell the page which theme to use. Exact attribute syntax is
+     a Phase 1 / Phase 4 design call; this is illustrative. -->
 <html data-aaron-theme="hi-tech">
   <head>
     <link rel="stylesheet" href="aaron-ui.css">
@@ -228,10 +229,13 @@ Sketch, not commitment. Maintainer may re-split.
 
 These are suggestions, not decisions. Phase 1 will pin them down.
 
-- **Vanilla TS class API as the primary interface.** Optional web-component wrapper for declarative use.
+- **Two integration surfaces, declarative-first per the North Star:**
+  - **Primary:** declarative scanner — on `DOMContentLoaded` and via `MutationObserver`, the library scans for `[data-aaron-window]` / `[data-aaron-button]` / etc. and promotes them into Aaron UI controls. CSS class selectors (`.aaron-window`, …) accepted as a fallback.
+  - **Foundation:** imperative TypeScript class API (`new AaronWindow({...})`, `loadTheme(url)`) underneath. The scanner just calls into it. Both surfaces share one code path.
+  - Web-component wrapper as a *possible* additional layer — see Open Question 4 below; not yet committed.
 - **CSS custom properties drive the theme system.** Each theme defines its own values. The engine ships a documented property catalog (`--aaron-titlebar-bg`, `--aaron-default-button-outline-width`, etc.) that themes set.
 - **No JS dependencies in the core.** dev-deps (TypeScript, bundler) only.
-- **WinBox API-compatible drop-in** at boot time in cv-mac: a thin adapter so `new AaronWindow({title, x, y, width, height, html, onclose})` matches the current WinBox call signature. One-day swap in cv-mac with zero behavioral change at merge, then progressively use the new DOM control to unlock features in separate small PRs.
+- **WinBox compatibility shim is cv-mac's responsibility, not Aaron UI's.** cv-mac currently calls `new WinBox({title, x, y, width, height, html, onclose})` in many places. To enable a one-day swap, cv-mac will write a thin adapter wrapping Aaron UI's imperative API to match the WinBox signature. Aaron UI itself does *not* ship a WinBox-compat layer — that would couple it to a library it's replacing. This is an intentional separation.
 
 ## Success criteria
 
