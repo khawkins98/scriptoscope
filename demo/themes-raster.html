@@ -2,41 +2,28 @@
 <html lang="en" data-aaron-theme="7-le">
 <head>
   <meta charset="UTF-8">
-  <title>Aaron UI — raster-fidelity multi-theme demo</title>
+  <title>Aaron UI — Kaleidoscope-style scheme showcase</title>
   <!--
-    Raster-fidelity counterpart to themes.html.
+    Layout deliberately mirrors a "Kaleidoscope scheme preview" screenshot
+    (see assets/themes/*/README.md and the masswerk preview JPGs the
+    extraction was validated against):
 
-    Where themes.html proves the theme-switching ARCHITECTURE using
-    CSS-synthesized chrome (gradients + SVG primitives), this demo
-    proves the VISUAL FIDELITY by rendering the actual extracted
-    chrome bitmaps from each Kaleidoscope scheme. The PNGs in
-    assets/themes/* come from tools/scheme-extractor.
+      - menubar across top, with an open dropdown
+      - small inactive window
+      - small active "Hello" window
+      - larger main window with form controls inside (checkboxes, radios,
+        OK button) and a horizontal scrollbar at the bottom
+      - desktop icons (DataBox + Trash) at the right edges
 
-    The two themes happen to need different CSS rendering strategies,
-    which is a real Aaron UI lesson — themes can carry chrome in
-    different shapes, and the bundle format must accommodate both:
+    Same structural HTML for both themes; per-theme CSS swaps cicn /
+    ppat assets via data-aaron-theme. This gives us a true 1:1
+    comparison surface against the masswerk reference thumbnails.
 
-      7 Le         — Document Window cicn is a 74×25 widget strip;
-                     the demo uses pseudo-elements to clip left and
-                     right widget kits to the titlebar's edges,
-                     pinstripe pattern fills the middle (the cicn
-                     itself includes the pinstripe in its widget rows).
-
-      Dark ErgoBox — Document Window cicn is a 132×64 full-frame
-                     composite (titlebar + body together); the demo
-                     uses border-image 9-slice on the whole window
-                     so the chrome wraps the content area natively.
-
-    Both share the same data-aaron-theme switching machinery from
-    themes.html. Per-theme CSS is just overrides; structural HTML
-    is identical.
-
-    Provenance: see demo/assets/themes/*/README.md.
-    Licenses: both schemes are freeware-with-redistribution per their
-    authors' explicit readme terms.
+    All raster assets in demo/assets/themes/ are extracted from
+    freeware-licensed mass:werk Kaleidoscope schemes (N. Landsteiner)
+    via tools/scheme-extractor. See per-theme README for license terms.
   -->
   <style>
-    /* ─── shared layout ────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
 
@@ -44,73 +31,138 @@
       font-family: var(--aaron-font-system);
       font-size: var(--aaron-font-size);
       color: var(--aaron-text);
-      background: var(--aaron-desktop-bg);
-      padding: 56px 32px 32px;
+      background: var(--aaron-desktop-bg) var(--aaron-desktop-pattern, none);
+      padding: 0;
       transition: background-color 200ms ease;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
 
     .toolbar {
       position: fixed;
-      top: 12px; left: 12px; right: 12px;
-      display: flex; justify-content: space-between; align-items: center;
+      top: 8px; left: 8px; right: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      color: white;
-      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
       pointer-events: none;
-      z-index: 10;
+      z-index: 100;
     }
     .toolbar > * { pointer-events: auto; }
-    .toolbar__title { font-size: 13px; opacity: 0.95; }
+    .toolbar__title {
+      color: white;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+      font: 12px/1 -apple-system, sans-serif;
+      opacity: 0.85;
+    }
     .toolbar__switcher {
-      font-family: var(--aaron-font-system);
-      font-size: 12px;
-      padding: 2px 6px;
+      font: 12px/1 -apple-system, sans-serif;
+      padding: 3px 6px;
       background: white;
       color: black;
       border: 1px solid #333;
     }
 
-    .desktop-notes {
-      max-width: 64ch;
-      color: white;
-      font-size: 13px;
-      line-height: 1.55;
-      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
-      margin-bottom: 24px;
-    }
-    .desktop-notes code {
-      background: rgba(0,0,0,0.28);
-      padding: 1px 5px;
-      font-family: ui-monospace, "SF Mono", monospace;
-      font-size: 12px;
-    }
-    .desktop-notes a { color: #d3e2ff; }
+    /* ═══════════════════ desktop scene container ═══════════════════ */
 
-    .windows {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 28px;
-      align-items: start;
-    }
-
-    /* Image rendering: never smooth pixel-art assets. */
-    .aaron-window img,
-    .aaron-window .aaron-titlebar::before,
-    .aaron-window .aaron-titlebar::after,
-    .aaron-growbox {
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-    }
-
-    /* ─── structural window: shared shape, themed via custom props ── */
-    .aaron-window {
+    .scene {
       position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── menubar at top ────────────────────────────────────────── */
+
+    .aaron-menubar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 20px;
+      background: var(--aaron-menubar-bg, #fff);
+      color: var(--aaron-menubar-text, #000);
+      border-bottom: 1px solid var(--aaron-menubar-border, #000);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      gap: 14px;
+      font-size: 12px;
+      font-weight: 500;
+      z-index: 10;
+    }
+    .aaron-menu-item {
+      cursor: default;
+      padding: 0 6px;
+      line-height: 20px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .aaron-menu-item[data-state="open"] {
+      background: var(--aaron-menu-selected-bg, #000);
+      color: var(--aaron-menu-selected-text, #fff);
+    }
+
+    .aaron-menu-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 140px;
+      background: var(--aaron-menu-dropdown-bg, #fff);
+      color: var(--aaron-menu-dropdown-text, #000);
+      border: 1px solid var(--aaron-menu-dropdown-border, #000);
+      padding: 2px 0;
+      box-shadow: var(--aaron-menu-dropdown-shadow, 2px 2px 0 rgba(0,0,0,0.3));
+      font-weight: 400;
+      z-index: 20;
+    }
+    .aaron-menu-option {
+      padding: 2px 12px;
+      line-height: 16px;
+      cursor: default;
+    }
+    .aaron-menu-option[data-selected="true"] {
+      background: var(--aaron-menu-selected-bg, #000);
+      color: var(--aaron-menu-selected-text, #fff);
+    }
+    .aaron-menu-option[data-color] {
+      color: var(--aaron-menu-option-color, inherit);
+    }
+
+    /* ─── desktop icons (right side) ────────────────────────────── */
+
+    .desktop-icon {
+      position: absolute;
+      width: 60px;
+      text-align: center;
+      color: var(--aaron-desktop-icon-text, white);
+      font-size: 10px;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+      cursor: default;
+    }
+    .desktop-icon__glyph {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 2px;
+      background: var(--icon-bg, transparent) no-repeat center / contain;
+    }
+    .desktop-icon[data-name="databox"] {
+      top: 32px;
+      right: 18px;
+    }
+    .desktop-icon[data-name="trash"] {
+      bottom: 24px;
+      right: 18px;
+    }
+
+    /* ─── window: structural, themed via custom props ──────────── */
+
+    .aaron-window {
+      position: absolute;
       display: flex;
       flex-direction: column;
-      min-width: 320px;
-      background: var(--aaron-window-frame);
-      overflow: hidden;          /* chrome clips content to its bounds */
-      transition: background 200ms ease;
+      overflow: hidden;
+      transition: filter 200ms ease;
     }
 
     .aaron-titlebar {
@@ -120,7 +172,6 @@
       background: var(--aaron-titlebar-bg);
       user-select: none;
     }
-
     .aaron-titlebar__title {
       position: absolute;
       inset: 0;
@@ -131,9 +182,8 @@
       font-size: var(--aaron-font-size);
       font-weight: var(--aaron-title-weight, 400);
       pointer-events: none;
-      padding: 0 80px;     /* keep title from overlapping the widget kits */
+      padding: 0 var(--aaron-title-side-pad, 80px);
     }
-
     .aaron-titlebar__title span {
       background: var(--aaron-title-pill-bg, transparent);
       padding: 0 8px;
@@ -148,49 +198,110 @@
 
     .aaron-content {
       flex: 1;
-      background: var(--aaron-content-bg);
-      color: var(--aaron-content-text);
-      padding: 12px 14px;
+      background: var(--aaron-content-bg, #fff);
+      color: var(--aaron-content-text, #000);
+      padding: 8px 10px;
       position: relative;
       overflow: hidden;
-      min-height: 80px;
+      font-size: 11px;
     }
-    .aaron-content p { margin: 0 0 0.6em 0; }
-    .aaron-content p:last-child { margin-bottom: 0; }
 
     .aaron-statusbar {
-      height: var(--aaron-statusbar-height, 0);
+      height: 14px;
       background: var(--aaron-statusbar-bg, transparent);
-      color: var(--aaron-statusbar-text, inherit);
-      border-top: var(--aaron-statusbar-border, 0);
-      font-size: 10px;
-      padding: 0 8px;
+      color: var(--aaron-statusbar-text, #666);
+      border-top: var(--aaron-statusbar-border, 1px solid #888);
+      font-size: 9px;
+      padding: 0 6px;
       display: flex;
       align-items: center;
-      overflow: hidden;
     }
 
-    .aaron-growbox {
+    /* ─── form controls inside windows ─────────────────────────── */
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .aaron-checkbox,
+    .aaron-radio {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: var(--cicn-cb-off) no-repeat center;
+      vertical-align: middle;
+      flex: 0 0 16px;
+    }
+    .aaron-checkbox[data-checked="true"],
+    .aaron-radio[data-checked="true"] {
+      background-image: var(--cicn-cb-on);
+    }
+    .aaron-checkbox[data-disabled="true"] {
+      background-image: var(--cicn-cb-off-disabled);
+    }
+
+    /* OK / default button — theme-driven */
+    .aaron-button {
+      font: inherit;
+      padding: 2px 14px;
+      background: var(--aaron-button-bg, #ddd);
+      color: var(--aaron-button-text, #000);
+      border: var(--aaron-button-border, 1px solid #000);
+      border-radius: var(--aaron-button-radius, 0);
+      cursor: default;
+      font-size: 11px;
+    }
+    .aaron-button[data-default="true"] {
+      box-shadow: var(--aaron-button-default-outline, 0 0 0 2px #000);
+      font-weight: 500;
+    }
+    .aaron-button-row {
+      margin-top: 4px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* ─── horizontal scrollbar at window bottom ────────────────── */
+
+    .aaron-scrollbar-h {
+      display: flex;
+      align-items: center;
+      height: 16px;
+      border-top: var(--aaron-scrollbar-border, 1px solid #888);
+      background: var(--aaron-scrollbar-track-bg, #eee);
+    }
+    .aaron-scrollbar-arrow {
+      width: 16px;
+      height: 16px;
+      background: var(--cicn-scrollbar-arrow) no-repeat center;
+      background-size: contain;
+      flex: 0 0 16px;
+    }
+    .aaron-scrollbar-arrow[data-dir="right"] {
+      transform: scaleX(-1); /* mirror the left arrow */
+    }
+    .aaron-scrollbar-track {
+      flex: 1;
+      height: 100%;
+      background: var(--cicn-scrollbar-track) repeat-x center;
+      position: relative;
+    }
+    .aaron-scrollbar-thumb {
       position: absolute;
-      right: 0; bottom: 0;
-      width: var(--aaron-growbox-size, 15px);
-      height: var(--aaron-growbox-size, 15px);
-      background: var(--aaron-growbox-bg) no-repeat center / 100% 100%;
+      top: 0;
+      left: 30%;
+      width: 40%;
+      height: 100%;
+      background: var(--cicn-scrollbar-thumb) no-repeat center;
+      background-size: 100% 100%;
     }
 
-    .aaron-window[data-state="collapsed"] .aaron-content,
-    .aaron-window[data-state="collapsed"] .aaron-statusbar,
-    .aaron-window[data-state="collapsed"] .aaron-growbox {
-      display: none;
-    }
-
-    /* ════════════════════════════════════════════════════════════════════
-       THEME 1 — mass:werk 7 Le
-       Strategy: 74×25 titlebar cicn split into left/right widget kits
-       via pseudo-elements with offset background-positions. Pinstripe
-       (synthesized in CSS since the cicn embeds it in its widget rows
-       and a separate ppat for pure titlebar pinstripe doesn't exist).
-       ════════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════ THEME: mass:werk 7 Le ═════════════════════ */
 
     :root[data-aaron-theme="7-le"] {
       --aaron-font-system:
@@ -198,11 +309,22 @@
         "Lucida Grande", "Segoe UI", sans-serif;
       --aaron-font-size: 12px;
       --aaron-text: #000;
-      --aaron-desktop-bg: #5a7a96;
+      --aaron-desktop-bg: #7a92a8;
+
+      --aaron-menubar-bg: #ffffff;
+      --aaron-menubar-text: #000000;
+      --aaron-menubar-border: #000000;
+      --aaron-menu-selected-bg: #000000;
+      --aaron-menu-selected-text: #ffffff;
+      --aaron-menu-dropdown-bg: #ffffff;
+      --aaron-menu-dropdown-text: #000000;
+      --aaron-menu-dropdown-border: #000000;
+      --aaron-menu-dropdown-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+
+      --aaron-desktop-icon-text: #ffffff;
 
       --aaron-window-frame: #cccccc;
       --aaron-titlebar-height: 19px;
-      /* Visible pinstripe: 1px darker stripe every other row */
       --aaron-titlebar-bg: repeating-linear-gradient(
         to bottom,
         #f0f0f0 0 1px,
@@ -212,15 +334,29 @@
       --aaron-title-text: #000;
       --aaron-title-pill-bg: #fff;
       --aaron-title-pill-border: 1px solid #888;
+      --aaron-title-side-pad: 80px;
 
       --aaron-content-bg: #ffffff;
       --aaron-content-text: #000;
-      --aaron-content-border: 1px solid #000;
 
-      --aaron-growbox-size: 15px;
-      --aaron-growbox-bg: url('assets/themes/masswerk-7-le/cicn-n14333-active-grow-box.png');
+      --aaron-statusbar-bg: #eeeeee;
+      --aaron-statusbar-text: #444;
+      --aaron-statusbar-border: 1px solid #999;
 
-      --aaron-statusbar-height: 0;
+      --aaron-button-bg: #e8e8e8;
+      --aaron-button-border: 1px solid #000;
+      --aaron-button-radius: 0;
+      --aaron-button-default-outline: 0 0 0 2px #000;
+
+      --aaron-scrollbar-track-bg: #dddddd;
+
+      --cicn-cb-off: url('assets/themes/masswerk-7-le/cicn-n10166-normal-off-normal.png');
+      --cicn-cb-on: url('assets/themes/masswerk-7-le/cicn-n10163-normal-on-normal.png');
+      --cicn-cb-off-disabled: url('assets/themes/masswerk-7-le/cicn-n10167-normal-off-disabled.png');
+
+      --cicn-scrollbar-arrow: url('assets/themes/masswerk-7-le/cicn-n8286-normal-horizontal-scrollbar.png');
+      --cicn-scrollbar-track: url('assets/themes/masswerk-7-le/cicn-n8287-empty-horizontal-scrollbar.png');
+      --cicn-scrollbar-thumb: url('assets/themes/masswerk-7-le/cicn-n10206-horizontal-thumb.png');
 
       --_titlebar-cicn-active:   url('assets/themes/masswerk-7-le/cicn-n14335-active-document-window.png');
       --_titlebar-cicn-inactive: url('assets/themes/masswerk-7-le/cicn-n14336-inactive-document-window.png');
@@ -230,13 +366,12 @@
       --_widget-right-width: 44px;
     }
 
-    /* 7 Le: window frame is just a 1px dark border + drop shadow */
+    /* 7 Le windows: structural border + box-shadow */
     :root[data-aaron-theme="7-le"] .aaron-window {
+      background: var(--aaron-window-frame);
       border: 1px solid #000;
       box-shadow: 1px 1px 0 #555;
     }
-
-    /* 7 Le: titlebar widget pseudos */
     :root[data-aaron-theme="7-le"] .aaron-titlebar::before,
     :root[data-aaron-theme="7-le"] .aaron-titlebar::after {
       content: '';
@@ -255,48 +390,23 @@
     :root[data-aaron-theme="7-le"] .aaron-titlebar::after {
       right: 0;
       width: var(--_widget-right-width);
-      /* Offset so the cicn's right edge aligns with the pseudo's right edge */
       background-position: calc(-1 * (var(--_widget-cicn-width) - var(--_widget-right-width))) 0;
     }
     :root[data-aaron-theme="7-le"] .aaron-window[data-state="inactive"] .aaron-titlebar::before,
     :root[data-aaron-theme="7-le"] .aaron-window[data-state="inactive"] .aaron-titlebar::after {
       background-image: var(--_titlebar-cicn-inactive);
     }
-
-    /* 7 Le: inactive titlebar background goes flat (no pinstripe) */
     :root[data-aaron-theme="7-le"] .aaron-window[data-state="inactive"] .aaron-titlebar {
       background: #dddddd;
     }
     :root[data-aaron-theme="7-le"] .aaron-window[data-state="inactive"] .aaron-titlebar__title span {
       color: #666;
     }
-
-    /* 7 Le: content area gets the inner border treatment */
     :root[data-aaron-theme="7-le"] .aaron-content {
       border-top: 1px solid #000;
     }
 
-    /* 7 Le: inactive growbox */
-    :root[data-aaron-theme="7-le"] .aaron-window[data-state="inactive"] .aaron-growbox {
-      background-image: url('assets/themes/masswerk-7-le/cicn-n14334-inactive-grow-box.png');
-    }
-
-    /* ════════════════════════════════════════════════════════════════════
-       THEME 2 — mass:werk Dark ErgoBox 2
-       Strategy: render the Document Window cicn at native pixel size (2x
-       scale for visibility) so the BeOS-style projecting tab structure
-       survives. The cicn is a fixed 132×64 composite where the top-left
-       region is the tab (smaller width) and the bottom region is the
-       full-width body. Stretching with border-image destroys the tab,
-       so ErgoBox demo windows are fixed-size — pixel-faithful at the
-       cost of variable sizing.
-
-       Architectural truth this demonstrates: chrome composites that
-       carry layout shape (tab geometry, asymmetric borders) need either
-       a fixed window size, separate per-slice assets, or a richer-than-
-       9-slice border format. A real Phase 4 bundle would declare these
-       as separate "tab" and "frame" assets in theme.json.
-       ════════════════════════════════════════════════════════════════════ */
+    /* ═══════════════════ THEME: mass:werk Dark ErgoBox 2 ════════════ */
 
     :root[data-aaron-theme="dark-ergobox"] {
       --aaron-font-system:
@@ -305,212 +415,230 @@
       --aaron-text: #d8d8d8;
       --aaron-desktop-bg: #38424d;
 
+      --aaron-menubar-bg: #2e2e2e;
+      --aaron-menubar-text: #f0f0f0;
+      --aaron-menubar-border: #111;
+      --aaron-menu-selected-bg: #aaaaaa;
+      --aaron-menu-selected-text: #1a1a1a;
+      --aaron-menu-dropdown-bg: #555;
+      --aaron-menu-dropdown-text: #f0f0f0;
+      --aaron-menu-dropdown-border: #111;
+      --aaron-menu-dropdown-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+
+      --aaron-desktop-icon-text: #ffffff;
+
       --aaron-title-text: #f0f0f0;
       --aaron-title-pill-bg: transparent;
       --aaron-title-pill-border: 0;
       --aaron-title-weight: 600;
+      --aaron-title-side-pad: 30px;
 
       --aaron-content-bg: transparent;
       --aaron-content-text: #1a1a1a;
 
-      /* Cicn is 132x64; rendered at 2x = 264x128. image-rendering:pixelated
-         on the .aaron-window keeps the upscaled background crisp (Chrome
-         and Firefox both honor it on background-image as of 2023+). */
+      --aaron-statusbar-bg: rgba(40,40,40,0.85);
+      --aaron-statusbar-text: #ccc;
+      --aaron-statusbar-border: 1px solid #555;
+
+      --aaron-button-bg: linear-gradient(to bottom, #555 0%, #3a3a3a 100%);
+      --aaron-button-text: #f0f0f0;
+      --aaron-button-border: 1px solid #111;
+      --aaron-button-radius: 2px;
+      --aaron-button-default-outline: 0 0 0 1px #000;
+
+      --aaron-scrollbar-track-bg: #555;
+      --aaron-scrollbar-border: 1px solid #2a2a2a;
+
+      --cicn-cb-off: url('assets/themes/masswerk-dark-ergobox2/cicn-n10166-normal-off-normal.png');
+      --cicn-cb-on: url('assets/themes/masswerk-dark-ergobox2/cicn-n10163-normal-on-normal.png');
+      --cicn-cb-off-disabled: url('assets/themes/masswerk-dark-ergobox2/cicn-n10167-normal-off-disabled.png');
+
+      --cicn-scrollbar-arrow: url('assets/themes/masswerk-dark-ergobox2/cicn-n8286-normal-horizontal-scrollbar.png');
+      --cicn-scrollbar-track: url('assets/themes/masswerk-dark-ergobox2/cicn-n8287-empty-horizontal-scrollbar.png');
+      --cicn-scrollbar-thumb: url('assets/themes/masswerk-dark-ergobox2/cicn-n10206-scroll-thumbs-horizontal-active.png');
+
       --_doc-cicn-w: 132px;
       --_doc-cicn-h: 64px;
       --_doc-scale: 2;
-      /* Tab geometry within the cicn (eyeballed from the extracted bitmap) */
       --_tab-h-px: 15px;
       --_body-frame-px: 4px;
     }
 
-    /* ErgoBox: override structural assumptions from the shared CSS.
-       The window is sized to the cicn's native dimensions × 2.  */
+    /* ErgoBox windows: chrome from the Document Window cicn at 2x, plus
+       a multiply-blend gray overlay to approximate the runtime ppat
+       composition Kaleidoscope did to gray-tint the white cicn body. */
     :root[data-aaron-theme="dark-ergobox"] .aaron-window {
       width: calc(var(--_doc-cicn-w) * var(--_doc-scale));
       height: calc(var(--_doc-cicn-h) * var(--_doc-scale));
-      min-width: 0;
-      flex: 0 0 auto;
+      background-color: #888;
       background-image: url('assets/themes/masswerk-dark-ergobox2/cicn-n14335-document-window-active.png');
       background-repeat: no-repeat;
       background-size: 100% 100%;
       image-rendering: pixelated;
-      image-rendering: crisp-edges;
       box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
     }
-
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgb(180, 180, 180);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      z-index: 0;
+    }
+    :root[data-aaron-theme="dark-ergobox"] .aaron-titlebar,
+    :root[data-aaron-theme="dark-ergobox"] .aaron-content,
+    :root[data-aaron-theme="dark-ergobox"] .aaron-statusbar {
+      z-index: 1;
+    }
     :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="inactive"] {
       background-image: url('assets/themes/masswerk-dark-ergobox2/cicn-n14336-document-window-inactive.png');
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="inactive"] .aaron-titlebar__title {
       color: #888;
     }
-
-    /* ErgoBox titlebar: position the title text into the tab region (top-left). */
+    /* Position the title text into the tab region (top-left). */
     :root[data-aaron-theme="dark-ergobox"] .aaron-titlebar {
       position: absolute;
-      top: 4px; left: 6px;
+      top: 4px; left: 8px;
       width: calc(75px * var(--_doc-scale));
       height: calc(var(--_tab-h-px) * var(--_doc-scale));
       background: transparent;
-      overflow: hidden;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-titlebar__title {
-      position: absolute;
-      inset: 0;
-      padding: 0 4px 0 4px;
       justify-content: flex-start;
+      padding: 0 4px;
     }
-
-    /* ErgoBox content: positioned inside the cicn's body region. */
     :root[data-aaron-theme="dark-ergobox"] .aaron-content {
       position: absolute;
-      top: calc(var(--_tab-h-px) * var(--_doc-scale) + 6px);
-      left: calc(var(--_body-frame-px) * var(--_doc-scale));
-      right: calc(var(--_body-frame-px) * var(--_doc-scale));
-      bottom: calc(var(--_body-frame-px) * var(--_doc-scale));
+      top: calc(var(--_tab-h-px) * var(--_doc-scale) + 8px);
+      left: calc(var(--_body-frame-px) * var(--_doc-scale) + 2px);
+      right: calc(var(--_body-frame-px) * var(--_doc-scale) + 2px);
+      bottom: calc(var(--_body-frame-px) * var(--_doc-scale) + 14px);
       background: transparent;
       padding: 6px 8px;
       overflow: hidden;
-      font-size: 10px;
-      line-height: 1.35;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-statusbar {
       position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: calc(7px * var(--_doc-scale));
-      background: transparent;
-      color: #555;
-      font-size: 8px;
-      padding: 0 6px;
-    }
-    :root[data-aaron-theme="dark-ergobox"] .aaron-growbox {
-      width: calc(7px * var(--_doc-scale));
-      height: calc(7px * var(--_doc-scale));
-      bottom: calc(var(--_body-frame-px) * var(--_doc-scale));
+      left: calc(var(--_body-frame-px) * var(--_doc-scale));
       right: calc(var(--_body-frame-px) * var(--_doc-scale));
+      bottom: calc(var(--_body-frame-px) * var(--_doc-scale));
+      height: 14px;
+      background: rgba(180,180,180,0.4);
+      color: #1a1a1a;
+      font-size: 9px;
+      padding: 0 6px;
+      border: 0;
     }
-
-    /* ErgoBox: collapsed uses the dedicated Collapsed Document Window cicn (132×28) */
+    /* Collapsed dark ergobox uses Collapsed Document Window cicn (132x28) */
     :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] {
       height: calc(28px * var(--_doc-scale));
       background-image: url('assets/themes/masswerk-dark-ergobox2/cicn-n14331-document-window-collapsed-active.png');
     }
-    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] .aaron-titlebar {
-      width: calc(120px * var(--_doc-scale));
-    }
-
-    /* ─── theme-agnostic but useful: a sample button ─────────────────── */
-    .aaron-button {
-      font: inherit;
-      padding: 3px 14px;
-      background: var(--aaron-button-bg, #ddd);
-      color: var(--aaron-button-text, #000);
-      border: var(--aaron-button-border, 1px solid #000);
-      border-radius: var(--aaron-button-radius, 0);
-      cursor: default;
-    }
-    .aaron-button[data-default="true"] {
-      box-shadow: var(--aaron-button-default-outline, 0 0 0 2px #000);
-      font-weight: 500;
-    }
-    .aaron-button-row {
-      margin-top: 10px;
-      display: flex; gap: 8px; justify-content: flex-end;
-    }
-
-    :root[data-aaron-theme="dark-ergobox"] {
-      --aaron-button-bg: linear-gradient(to bottom, #555 0%, #3a3a3a 100%);
-      --aaron-button-text: #f0f0f0;
-      --aaron-button-border: 1px solid #111;
-      --aaron-button-radius: 2px;
-      --aaron-button-default-outline: 0 0 0 1px #000;
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] .aaron-content,
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] .aaron-statusbar {
+      display: none;
     }
   </style>
 </head>
 <body>
 
   <div class="toolbar">
-    <span class="toolbar__title">Aaron UI — raster-fidelity demo (themes-raster.html)</span>
+    <span class="toolbar__title">Aaron UI — Kaleidoscope-style scheme showcase</span>
     <select class="toolbar__switcher" data-aaron-theme-switcher>
       <option value="7-le">mass:werk 7 Le</option>
       <option value="dark-ergobox">mass:werk Dark ErgoBox 2</option>
     </select>
   </div>
 
-  <div class="desktop-notes">
-    Chrome rendered from real extracted bitmaps via
-    <a href="../tools/scheme-extractor/README.md">@aaron-ui/scheme-extractor</a>.
-    Each theme uses a different CSS strategy informed by what its native chrome
-    composite actually contains. <strong>7 Le's</strong> 74&times;25 widget-strip
-    cicn is positioned via pseudo-elements that clip left and right widget kits
-    to the titlebar's edges, pinstripe synthesized in CSS for the middle.
-    <strong>ErgoBox's</strong> 132&times;64 full-frame cicn renders at native
-    pixel size (3&times; scale) so the projecting BeOS-tab structure survives;
-    the trade-off is fixed-size windows — variable-size ErgoBox windows would
-    need a richer bundle format that separates tab geometry from body frame.
-    <em>You'll notice ErgoBox bodies render <strong>white</strong>, not the
-    medium gray of the masswerk reference thumbnail: this is faithful to the
-    cicn — Kaleidoscope composes a separate <code>ppat</code> over the body at
-    runtime to produce the gray, which our demo doesn't yet reproduce. Captured
-    as a bundle-format finding for Phase 4.</em>
-    Switch themes via the dropdown above. See
-    <a href="themes.html">themes.html</a> for the synthetic-CSS counterpart.
-  </div>
+  <div class="scene">
 
-  <div class="windows">
-
-    <div class="aaron-window" data-state="active">
-      <div class="aaron-titlebar">
-        <div class="aaron-titlebar__title"><span>Welcome</span></div>
-      </div>
-      <div class="aaron-content">
-        <p>This window's chrome is rendered from the actual scheme bitmaps —
-        no synthetic gradients, no SVG primitives. The close box, zoom box,
-        and windowshade arrow you see at the corners come straight from the
-        author's hand-pixeled artwork.</p>
-        <p>The two themes use different CSS strategies because their chrome
-        cicns ship in different shapes. 7 Le's is a 74×25 widget strip;
-        ErgoBox's is a 132×64 full-frame composite.</p>
-        <div class="aaron-statusbar">1 Object, 2 MB free</div>
-        <div class="aaron-growbox" aria-hidden="true"></div>
-      </div>
+    <!-- ─── menubar with open dropdown ───────────────────────────── -->
+    <div class="aaron-menubar">
+      <span class="aaron-menu-item">File</span>
+      <span class="aaron-menu-item">Edit</span>
+      <span class="aaron-menu-item" data-state="open">
+        Special
+        <div class="aaron-menu-dropdown">
+          <div class="aaron-menu-option">mass:werk</div>
+          <div class="aaron-menu-option" data-selected="true">Scheme Preview</div>
+          <div class="aaron-menu-option">Color Scheme…</div>
+        </div>
+      </span>
+      <span class="aaron-menu-item">Help</span>
     </div>
 
-    <div class="aaron-window" data-state="inactive">
+    <!-- ─── desktop icons ─────────────────────────────────────────── -->
+    <div class="desktop-icon" data-name="databox">
+      <div class="desktop-icon__glyph" style="--icon-bg: linear-gradient(135deg,#999,#666); border:1px solid #333; border-radius:3px;"></div>
+      DataBox
+    </div>
+    <div class="desktop-icon" data-name="trash">
+      <div class="desktop-icon__glyph" style="--icon-bg: linear-gradient(135deg,#aaa,#777); border:1px solid #333; border-radius:50% 50% 6px 6px;"></div>
+      Trash
+    </div>
+
+    <!-- ─── inactive small window (upper right) ───────────────────── -->
+    <div class="aaron-window" data-state="inactive" data-role="inactive-small"
+         style="top: 50px; left: 380px; width: 260px;">
       <div class="aaron-titlebar">
         <div class="aaron-titlebar__title"><span>Inactive</span></div>
       </div>
-      <div class="aaron-content">
-        <p>Inactive windows swap to the scheme's Inactive Document Window
-        composite. Notice 7 Le drops the pinstripe entirely; ErgoBox shifts
-        to its dimmer palette while keeping the frame intact.</p>
-        <div class="aaron-statusbar">Last activity: 4m ago</div>
-        <div class="aaron-growbox" aria-hidden="true"></div>
+      <div class="aaron-content" style="min-height: 24px;">
+        <span style="opacity:0.6">Inactive contents…</span>
       </div>
+      <div class="aaron-statusbar">1 Object, 2 MB free</div>
     </div>
 
-    <div class="aaron-window" data-state="active">
+    <!-- ─── small "Hello" window ──────────────────────────────────── -->
+    <div class="aaron-window" data-state="active" data-role="hello"
+         style="top: 130px; left: 80px; width: 240px;">
       <div class="aaron-titlebar">
-        <div class="aaron-titlebar__title"><span>Confirm</span></div>
+        <div class="aaron-titlebar__title"><span>Hello</span></div>
+      </div>
+      <div class="aaron-content" style="min-height: 18px;"></div>
+    </div>
+
+    <!-- ─── main showcase window with controls inside ─────────────── -->
+    <div class="aaron-window" data-state="active" data-role="main"
+         style="top: 210px; left: 160px; width: 360px; min-height: 200px;">
+      <div class="aaron-titlebar">
+        <div class="aaron-titlebar__title"><span data-theme-title>mass:werk 7 Le</span></div>
       </div>
       <div class="aaron-content">
-        <p>The default button below uses each theme's button conventions —
-        period-thick black outline for 7 Le, subtler bevel for ErgoBox.</p>
+
+        <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:10px;">
+          <!-- folder icon proxy -->
+          <div style="width:32px; height:28px; background:linear-gradient(135deg,#e4c87a,#b89643); border:1px solid #333; border-radius:2px; flex:0 0 32px;"></div>
+          <div style="flex:1;">
+            <div class="control-row">
+              <span class="aaron-radio" data-checked="false"></span>
+              <span class="aaron-radio" data-checked="true"></span>
+              <span class="aaron-checkbox" data-checked="false"></span>
+              <span class="aaron-checkbox" data-checked="true"></span>
+            </div>
+            <div class="control-row" style="margin-top:4px;">
+              <span style="font-size:10px; opacity:0.75">Radios + checkboxes</span>
+            </div>
+          </div>
+        </div>
+
         <div class="aaron-button-row">
           <button class="aaron-button">Cancel</button>
           <button class="aaron-button" data-default="true">OK</button>
         </div>
-        <div class="aaron-statusbar">Ready</div>
-        <div class="aaron-growbox" aria-hidden="true"></div>
-      </div>
-    </div>
 
-    <div class="aaron-window" data-state="collapsed">
-      <div class="aaron-titlebar">
-        <div class="aaron-titlebar__title"><span>Rolled up</span></div>
+        <div class="aaron-scrollbar-h" style="margin: 8px -10px 0;">
+          <div class="aaron-scrollbar-arrow" data-dir="left"></div>
+          <div class="aaron-scrollbar-track">
+            <div class="aaron-scrollbar-thumb"></div>
+          </div>
+          <div class="aaron-scrollbar-arrow" data-dir="right"></div>
+        </div>
+
       </div>
-      <div class="aaron-content"></div>
+      <div class="aaron-statusbar">1 Object, 2 MB free</div>
     </div>
 
   </div>
@@ -520,18 +648,20 @@
       const KEY = 'aaron-ui:demo-theme-raster';
       const root = document.documentElement;
       const switcher = document.querySelector('[data-aaron-theme-switcher]');
-      const saved = localStorage.getItem(KEY);
-      if (saved === '7-le' || saved === 'dark-ergobox') {
-        root.setAttribute('data-aaron-theme', saved);
-        switcher.value = saved;
-      } else {
-        switcher.value = root.getAttribute('data-aaron-theme') || '7-le';
-      }
-      switcher.addEventListener('change', () => {
-        const v = switcher.value;
+      const titleEl = document.querySelector('[data-theme-title]');
+      const labels = { '7-le': 'mass:werk 7 Le', 'dark-ergobox': 'mass:werk Dark ErgoBox 2' };
+
+      const apply = (v) => {
         root.setAttribute('data-aaron-theme', v);
+        switcher.value = v;
+        titleEl.textContent = labels[v] || v;
         localStorage.setItem(KEY, v);
-      });
+      };
+
+      const saved = localStorage.getItem(KEY);
+      apply(saved === 'dark-ergobox' ? 'dark-ergobox' : '7-le');
+
+      switcher.addEventListener('change', () => apply(switcher.value));
     })();
   </script>
 
