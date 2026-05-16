@@ -241,6 +241,8 @@ Surfaced while iterating `demo/themes-raster.html` with actual extracted cicn ra
 
 [[multi-theme-demo]] [[masswerk-dark-ergobox2-deconstruction]] [[theme-bundle-format]]
 
+**Addendum 2026-05-16 — never guess `border-image-slice` values, decode the cicn first.** My first attempt at 9-slicing the scrollbar thumb used a 4px slice, which cut INTO the grip-dot art and made the dots stretch with the thumb width. The fix was to actually decode the cicn pixels (via the scheme-extractor's PNG output, parsed back with pngjs, ASCII-printed one row at a time) and discover the grip dots sit at pixels 5/7/9/11 of the 17-wide cicn — so the correct slice is 8px from each side, leaving only the single solid-white pixel 8 to stretch. The discipline this teaches: for every 9-slice CSS rule we write against a Kaleidoscope cicn, inspect the pixels first, pick slice values that fall at color/value boundaries. Phase 4's bundle format should encode these slice positions per-asset in `theme.json` rather than re-deriving them every time, and the scheme-extractor manifest could plausibly compute and emit suggested slice positions automatically by detecting flat-color regions vs detail-rich regions.
+
 ---
 
 *New learnings get appended below this line as the project ships.*
