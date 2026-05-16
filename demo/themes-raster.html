@@ -355,6 +355,20 @@
       box-shadow: var(--aaron-button-default-outline, 0 0 0 2px #000);
       font-weight: 500;
     }
+    /* Functional press feedback — driven by JS toggling data-pressed. */
+    .aaron-button[data-pressed="true"] {
+      transform: translateY(1px);
+      filter: brightness(0.85);
+    }
+    /* Interactive controls also need hand cursor on hover */
+    .aaron-button,
+    .aaron-checkbox,
+    .aaron-radio,
+    .aaron-window__widget-hit,
+    .aaron-menu-item,
+    .aaron-menu-option {
+      cursor: pointer;
+    }
     .aaron-button-row {
       margin-top: 4px;
       display: flex;
@@ -362,34 +376,43 @@
       justify-content: flex-end;
     }
 
-    /* ─── progress bar (proper 9-slice composition) ────────────
-       The cicns ship as separate pieces matching how Kaleidoscope
-       composed at runtime:
-         - Progress Bar Track    → 9-slice border-image (fixed end caps)
-         - Progress Bar (fill)   → tile via background-repeat
-                                   (the barber-pole pattern is genuinely
-                                   periodic, so repeat is correct here) */
+    /* ─── progress bar (period-correct composition) ────────────
+       Pixel inspection of the cicns:
+         - Track  (9×14): top + bottom border lines, left engraved edge,
+                          right side empty — meant to be 9-sliced with
+                          the dark left-edge serving as the left cap.
+         - Fill   (12×10): pure diagonal barber-pole tile, designed to
+                           repeat horizontally with no scaling.
+         - Frame  (5×14): right-side end-cap with inner+outer border.
+                          (Not yet composed in — Phase 4 work.)
+       Bar height locked to native cicn height (10px) at 2× scale = 20px
+       so the barber-pole pattern renders pixel-perfect without
+       interpolation. */
 
     .aaron-progress {
       position: relative;
-      height: 14px;
-      /* Track as 9-slice: 1px slice keeps the engraved edges crisp
+      height: 20px;        /* 2× the fill cicn's native 10px height */
+      /* Track as 9-slice: 1px slice keeps engraved top/bottom + left edge
          while the middle stretches naturally. */
       border-style: solid;
       border-color: transparent;
-      border-width: 1px;
+      border-width: 2px;
       border-image-source: var(--cicn-progress-track);
-      border-image-slice: 1 fill;
-      border-image-width: 1px;
+      border-image-slice: 2 fill;
+      border-image-width: 2px;
       border-image-repeat: stretch;
       overflow: hidden;
       margin-top: 6px;
+      image-rendering: pixelated;
     }
     .aaron-progress__fill {
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      background: var(--cicn-progress-fill) repeat-x center;
-      background-size: auto 100%;
+      background-image: var(--cicn-progress-fill);
+      background-repeat: repeat-x;
+      background-position: 0 0;
+      background-size: 24px 20px;   /* native 12×10 × 2 — integer scale, no blur */
+      image-rendering: pixelated;
       transition: width 200ms ease;
     }
     .aaron-progress__label {
@@ -635,40 +658,31 @@
       --_body-frame-px: 4px;
     }
 
-    /* ErgoBox windows: chrome from the Document Window cicn at 2x.
-       Window dimensions are LOCKED to cicn-native × 2 — anything else
-       stretches the bitmap with browser interpolation = blurry chrome.
-       Per-window inline width/height are deliberately overridden.
-       Content must fit inside the fixed 264×128 frame.
-
-       Architectural truth this enforces: bitmap chrome cicns are
-       fixed-aspect by nature. Variable-size windows under bitmap
-       chrome need either separate per-region assets or the cinf
-       interaction-rect metadata Kaleidoscope used to compose at
-       runtime. Both are Phase 4 work. */
+    /* ErgoBox windows: chrome from the Document Window cicn, stretched
+       via background-size to whatever dimensions the inline style sets
+       (so windows match 7 Le's sizes and are resizable like them).
+       Trade-off: at non-2× scales the chrome interpolates with some
+       blur. image-rendering:pixelated mitigates it as much as the
+       browser allows. Proper fix is Phase 4 9-slice with cinf-derived
+       slice positions or separate per-region assets. */
     :root[data-aaron-theme="dark-ergobox"] .aaron-window {
-      width: calc(var(--_doc-cicn-w) * var(--_doc-scale)) !important;
-      height: calc(var(--_doc-cicn-h) * var(--_doc-scale)) !important;
-      min-width: 0 !important;
-      min-height: 0 !important;
       background-color: #888;
       background-image: url('assets/themes/masswerk-dark-ergobox2/cicn-n14335-document-window-active.png');
       background-repeat: no-repeat;
       background-size: 100% 100%;
       image-rendering: pixelated;
       box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+      /* All content is absolutely positioned for ErgoBox, so the window
+         won't auto-size from content. Default height matches the chrome
+         cicn aspect (132×64 × 2 scale = 264×128), but width/height
+         override via inline styles still wins to allow variable sizing. */
+      min-height: 128px;
     }
-    /* Reposition ErgoBox windows so the 264×128 fixed-size windows
-       don't all stack on top of each other (the per-window inline
-       top/left were tuned for 7 Le's larger windows). */
     :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="inactive-small"] {
-      top: 40px !important; left: 280px !important;
+      height: 100px;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="hello"] {
-      top: 200px !important; left: 30px !important;
-    }
-    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="main"] {
-      top: 250px !important; left: 200px !important;
+      height: 100px;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-window::before {
       content: '';
@@ -702,21 +716,27 @@
       justify-content: flex-start;
       padding: 0 4px;
     }
+    /* ErgoBox content area position derived from wnd# -14336 body
+       interior rect (top:26 left:6 bottom:57 right:125) inside the
+       132×64 cicn — expressed as percentages so it follows the window
+       regardless of size. */
     :root[data-aaron-theme="dark-ergobox"] .aaron-content {
       position: absolute;
-      top: calc(var(--_tab-h-px) * var(--_doc-scale) + 8px);
-      left: calc(var(--_body-frame-px) * var(--_doc-scale) + 2px);
-      right: calc(var(--_body-frame-px) * var(--_doc-scale) + 2px);
-      bottom: calc(var(--_body-frame-px) * var(--_doc-scale) + 14px);
+      top:    calc(26 / 64 * 100%);
+      left:   calc( 6 / 132 * 100%);
+      right:  calc( 7 / 132 * 100%);   /* 132 - 125 = 7 */
+      bottom: calc( 7 / 64 * 100%);    /* 64 - 57 = 7 */
       background: transparent;
-      padding: 6px 8px;
+      padding: 4px 6px;
       overflow: hidden;
+      font-size: 9px;
+      line-height: 1.3;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-statusbar {
       position: absolute;
-      left: calc(var(--_body-frame-px) * var(--_doc-scale));
-      right: calc(var(--_body-frame-px) * var(--_doc-scale));
-      bottom: calc(var(--_body-frame-px) * var(--_doc-scale));
+      left:   calc( 6 / 132 * 100%);
+      right:  calc( 7 / 132 * 100%);
+      bottom: calc( 7 / 64 * 100%);
       height: 14px;
       background: rgba(180,180,180,0.4);
       color: #1a1a1a;
@@ -871,174 +891,300 @@
 
   </div>
 
-  <script>
-    /* Tiny taste of Phase 1 WM behavior in the demo:
-         - click close box → hide window
-         - click windowshade → toggle collapsed state
-         - click zoom box → toggle width/height
-         - drag titlebar → move window
-         - drag corner handle → resize window
-         - "Reset windows" → restore all to initial positions/states
-       This is throwaway demo JS, not the real Aaron UI WM. */
-    (function () {
-      const KEY = 'aaron-ui:demo-theme-raster';
-      const root = document.documentElement;
-      const switcher = document.querySelector('[data-aaron-theme-switcher]');
-      const titleEl = document.querySelector('[data-theme-title]');
-      const referenceImg = document.querySelector('[data-reference-img]');
-      const labels = { '7-le': 'mass:werk 7 Le', 'dark-ergobox': 'mass:werk Dark ErgoBox 2' };
-      const refSrcs = {
-        '7-le': 'assets/references/masswerk-7-le.jpg',
-        'dark-ergobox': 'assets/references/masswerk-dark-ergobox2.jpg'
-      };
+  <script type="module">
+    /* Phase-1-flavored WM behavior + functional controls, driven by
+       theme.json data fetched at runtime — see docs/kaleidoscope-geometry-spec.md.
 
-      const apply = (v) => {
-        root.setAttribute('data-aaron-theme', v);
-        switcher.value = v;
-        titleEl.textContent = labels[v] || v;
-        referenceImg.src = refSrcs[v];
-        localStorage.setItem(KEY, v);
-        positionWidgetHits();
-      };
+       What's interactive:
+         - close box / windowshade / zoom box widgets (from wnd# parts)
+         - drag titlebar to move
+         - drag corner handle to resize
+         - checkboxes toggle on click
+         - radios select within group
+         - buttons depress visually on click
+         - reset button restores initial state
 
-      const saved = localStorage.getItem(KEY);
-      apply(saved === 'dark-ergobox' ? 'dark-ergobox' : '7-le');
-      switcher.addEventListener('change', () => apply(switcher.value));
+       Hit-target positions come from theme.json's wnd# parts data,
+       scaled to the current titlebar dimensions — no more hand-tuned
+       per-theme magic numbers. */
+    const KEY = 'aaron-ui:demo-theme-raster';
+    const root = document.documentElement;
+    const switcher = document.querySelector('[data-aaron-theme-switcher]');
+    const titleEl = document.querySelector('[data-theme-title]');
+    const referenceImg = document.querySelector('[data-reference-img]');
 
-      /* ─── window widget interactions ────────────────────────────── */
+    const THEMES = {
+      '7-le': {
+        label: 'mass:werk 7 Le',
+        themeJson: 'assets/themes/masswerk-7-le/theme.json',
+        referenceJpg: 'assets/references/masswerk-7-le.jpg',
+        // The Document Window key in chromeElements + windowTypes.
+        wndKey: 'document-window',
+        chromeKey: 'active-document-window',
+      },
+      'dark-ergobox': {
+        label: 'mass:werk Dark ErgoBox 2',
+        themeJson: 'assets/themes/masswerk-dark-ergobox2/theme.json',
+        referenceJpg: 'assets/references/masswerk-dark-ergobox2.jpg',
+        wndKey: 'document-window',
+        chromeKey: 'document-window-active',
+      },
+    };
 
-      // Theme-aware hit-target positioning. 7 Le's close box is at the
-      // far left of the titlebar; ErgoBox's widgets are clustered in the
-      // top-right of the tab area. We measure the titlebar and lay hits
-      // out accordingly. Rough approximations — Phase 1 will be exact.
-      function positionWidgetHits() {
-        const theme = root.getAttribute('data-aaron-theme');
-        document.querySelectorAll('.aaron-window').forEach(win => {
-          const tb = win.querySelector('.aaron-titlebar');
-          if (!tb) return;
-          const tbRect = tb.getBoundingClientRect();
-          const close = win.querySelector('[data-action="close"]');
-          const zoom = win.querySelector('[data-action="zoom"]');
-          const wshade = win.querySelector('[data-action="windowshade"]');
-          const drag = win.querySelector('.aaron-window__drag-zone');
-          if (theme === '7-le') {
-            // Close at left, zoom + windowshade at right of full-width tb
-            if (close)  Object.assign(close.style,  { top:'2px', left:'4px',   width:'14px', height:'14px' });
-            if (zoom)   Object.assign(zoom.style,   { top:'2px', right:'22px', left:'auto', width:'14px', height:'14px' });
-            if (wshade) Object.assign(wshade.style, { top:'2px', right:'4px',  left:'auto', width:'14px', height:'14px' });
-            if (drag)   Object.assign(drag.style,   { left:'22px', right:'42px', top:'0', width:'auto', height:'19px' });
+    /** Current loaded theme.json data, indexed by theme name. */
+    const themeData = {};
+
+    async function loadThemeData(name) {
+      if (themeData[name]) return themeData[name];
+      const t = THEMES[name];
+      try {
+        const resp = await fetch(t.themeJson);
+        themeData[name] = await resp.json();
+        return themeData[name];
+      } catch (e) {
+        console.warn(`Failed to load ${t.themeJson}:`, e);
+        return null;
+      }
+    }
+
+    async function applyTheme(name) {
+      const t = THEMES[name] || THEMES['7-le'];
+      root.setAttribute('data-aaron-theme', name);
+      switcher.value = name;
+      titleEl.textContent = t.label;
+      referenceImg.src = t.referenceJpg;
+      localStorage.setItem(KEY, name);
+      await loadThemeData(name);
+      requestAnimationFrame(() => requestAnimationFrame(positionWidgetHitsFromTheme));
+    }
+
+    /* ─── widget hit positioning, driven by wnd# parts data ─────────
+       For each window, look up the document-window wnd# in theme.json.
+       Parts have IDs we observed in spec §3:
+         partId 1 = close, 2 = zoom, 3 = windowshade
+       Each has a rect in cicn coordinates (top, left, bottom, right).
+       Scale those to current titlebar dimensions to position the hit
+       targets. Falls back to approximate positions if theme.json missing. */
+    function positionWidgetHitsFromTheme() {
+      const themeName = root.getAttribute('data-aaron-theme');
+      const data = themeData[themeName];
+      const wndType = data?.windowTypes?.[THEMES[themeName].wndKey];
+      const chromeEl = data?.chromeElements?.[THEMES[themeName].chromeKey];
+      if (!wndType || !chromeEl) {
+        positionWidgetHitsFallback(themeName);
+        return;
+      }
+
+      const cicnW = chromeEl.width;
+      const cicnH = chromeEl.height;
+      const partRects = {};
+      for (const p of wndType.parts) partRects[p.partId] = p.rect;
+
+      document.querySelectorAll('[data-aaron-window]').forEach(win => {
+        const winRect = win.getBoundingClientRect();
+        const place = (action, partId) => {
+          const el = win.querySelector(`[data-action="${action}"]`);
+          if (!el) return;
+          const r = partRects[partId];
+          if (!r) { el.style.display = 'none'; return; }
+          // Mac classic rect → CSS, scale to window size.
+          // The cicn fills the entire window (background-size 100% 100%
+          // for ErgoBox; for 7 Le where the cicn is just the titlebar
+          // strip, we scale to the titlebar height only).
+          const themeIs7Le = themeName === '7-le';
+          const wRef = winRect.width;
+          const hRef = themeIs7Le
+            ? (win.querySelector('.aaron-titlebar')?.offsetHeight || cicnH)
+            : winRect.height;
+          const left = (r.left   / cicnW) * wRef;
+          const top  = (r.top    / (themeIs7Le ? cicnH : cicnH)) * hRef;
+          const w    = ((r.right  - r.left) / cicnW) * wRef;
+          const h    = ((r.bottom - r.top ) / (themeIs7Le ? cicnH : cicnH)) * hRef;
+          el.style.display = 'block';
+          el.style.left   = left + 'px';
+          el.style.top    = top + 'px';
+          el.style.width  = w + 'px';
+          el.style.height = h + 'px';
+          el.style.right  = 'auto';
+          el.style.bottom = 'auto';
+        };
+        place('close', 1);
+        place('zoom', 2);
+        place('windowshade', 3);
+        // Drag zone: everything in the titlebar NOT covered by widget hits.
+        // Simplest: span the title-pill area between close and zoom.
+        const drag = win.querySelector('.aaron-window__drag-zone');
+        if (drag && partRects[1] && partRects[2]) {
+          const themeIs7Le = themeName === '7-le';
+          const wRef = winRect.width;
+          const hRef = themeIs7Le
+            ? (win.querySelector('.aaron-titlebar')?.offsetHeight || cicnH)
+            : winRect.height;
+          const dragLeft  = ((partRects[1].right + 2) / cicnW) * wRef;
+          const dragRight = ((cicnW - partRects[2].left + 2) / cicnW) * wRef;
+          drag.style.left  = dragLeft + 'px';
+          drag.style.right = dragRight + 'px';
+          drag.style.top   = '0';
+          drag.style.width = 'auto';
+          drag.style.height = (partRects[1].bottom / cicnH) * hRef + 6 + 'px';
+        }
+      });
+    }
+
+    function positionWidgetHitsFallback(theme) {
+      // Used only if theme.json couldn't be loaded.
+      document.querySelectorAll('[data-aaron-window]').forEach(win => {
+        const close  = win.querySelector('[data-action="close"]');
+        const zoom   = win.querySelector('[data-action="zoom"]');
+        const wshade = win.querySelector('[data-action="windowshade"]');
+        const drag   = win.querySelector('.aaron-window__drag-zone');
+        if (close)  Object.assign(close.style,  { top:'2px', left:'4px',   width:'14px', height:'14px' });
+        if (zoom)   Object.assign(zoom.style,   { top:'2px', right:'22px', left:'auto', width:'14px', height:'14px' });
+        if (wshade) Object.assign(wshade.style, { top:'2px', right:'4px',  left:'auto', width:'14px', height:'14px' });
+        if (drag)   Object.assign(drag.style,   { left:'22px', right:'42px', top:'0', width:'auto', height:'19px' });
+      });
+    }
+
+    window.addEventListener('resize', positionWidgetHitsFromTheme);
+
+    /* ─── window widget interactions (close, windowshade, zoom, drag, resize) ── */
+    document.querySelectorAll('[data-aaron-window]').forEach(win => {
+      win.addEventListener('mousedown', () => {
+        document.querySelectorAll('[data-aaron-window]').forEach(w => w.style.zIndex = 1);
+        win.style.zIndex = 10;
+      });
+      win.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        e.stopPropagation();
+        const action = target.dataset.action;
+        if (action === 'close') win.dataset.hidden = 'true';
+        else if (action === 'windowshade') {
+          win.dataset.state = win.dataset.state === 'collapsed' ? 'active' : 'collapsed';
+          requestAnimationFrame(positionWidgetHitsFromTheme);
+        } else if (action === 'zoom') {
+          if (!win.dataset.preZoom) {
+            win.dataset.preZoom = JSON.stringify({
+              top: win.style.top, left: win.style.left,
+              width: win.style.width, height: win.style.height,
+            });
+            win.style.top = '40px';
+            win.style.left = '40px';
+            win.style.width = 'calc(100% - 80px)';
+            win.style.height = 'calc(100% - 80px)';
           } else {
-            // ErgoBox: tab projects from top-left; widgets are in the
-            // tab area near pixels 40-72 of the tab (cicn coords) at 2x
-            if (close)  Object.assign(close.style,  { top:'4px', left:'4px',   width:'18px', height:'30px' });
-            if (zoom)   Object.assign(zoom.style,   { top:'4px', left:'120px', right:'auto', width:'18px', height:'30px' });
-            if (wshade) Object.assign(wshade.style, { top:'4px', left:'144px', right:'auto', width:'18px', height:'30px' });
-            if (drag)   Object.assign(drag.style,   { left:'22px', right:'auto', top:'4px', width:'94px', height:'30px' });
+            const prev = JSON.parse(win.dataset.preZoom);
+            Object.assign(win.style, prev);
+            delete win.dataset.preZoom;
           }
+          requestAnimationFrame(positionWidgetHitsFromTheme);
+        }
+      });
+
+      // Drag from titlebar
+      const dragZone = win.querySelector('.aaron-window__drag-zone');
+      if (dragZone) {
+        let dragging = null;
+        dragZone.addEventListener('mousedown', (e) => {
+          const rect = win.getBoundingClientRect();
+          const sceneRect = win.parentElement.getBoundingClientRect();
+          dragging = {
+            offX: e.clientX - rect.left,
+            offY: e.clientY - rect.top,
+            sceneLeft: sceneRect.left,
+            sceneTop: sceneRect.top,
+          };
+          e.preventDefault();
+        });
+        window.addEventListener('mousemove', (e) => {
+          if (!dragging) return;
+          win.style.left = Math.max(0, e.clientX - dragging.offX - dragging.sceneLeft) + 'px';
+          win.style.top  = Math.max(0, e.clientY - dragging.offY - dragging.sceneTop) + 'px';
+          win.style.right = 'auto'; win.style.bottom = 'auto';
+        });
+        window.addEventListener('mouseup', () => {
+          if (dragging) { dragging = null; positionWidgetHitsFromTheme(); }
         });
       }
-      window.addEventListener('resize', positionWidgetHits);
 
-      // Click handlers via event delegation
-      document.querySelectorAll('[data-aaron-window]').forEach(win => {
-        // Bring forward on any click
-        win.addEventListener('mousedown', () => {
-          document.querySelectorAll('[data-aaron-window]').forEach(w => w.style.zIndex = 1);
-          win.style.zIndex = 10;
+      // Resize handle
+      const resize = win.querySelector('[data-action="resize"]');
+      if (resize) {
+        let resizing = null;
+        resize.addEventListener('mousedown', (e) => {
+          const rect = win.getBoundingClientRect();
+          resizing = { startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height };
+          e.preventDefault(); e.stopPropagation();
         });
-
-        win.addEventListener('click', (e) => {
-          const target = e.target.closest('[data-action]');
-          if (!target) return;
-          e.stopPropagation();
-          const action = target.dataset.action;
-          if (action === 'close') {
-            win.dataset.hidden = 'true';
-          } else if (action === 'windowshade') {
-            win.dataset.state = win.dataset.state === 'collapsed' ? 'active' : 'collapsed';
-          } else if (action === 'zoom') {
-            // Toggle a "zoomed" preset size
-            if (!win.dataset.preZoom) {
-              win.dataset.preZoom = JSON.stringify({
-                top: win.style.top, left: win.style.left,
-                width: win.style.width, height: win.style.height,
-              });
-              win.style.top = '40px';
-              win.style.left = '40px';
-              win.style.width = 'calc(100% - 80px)';
-              win.style.height = 'calc(100% - 80px)';
-            } else {
-              const prev = JSON.parse(win.dataset.preZoom);
-              Object.assign(win.style, prev);
-              delete win.dataset.preZoom;
-            }
-          }
+        window.addEventListener('mousemove', (e) => {
+          if (!resizing) return;
+          win.style.width  = Math.max(120, resizing.startW + (e.clientX - resizing.startX)) + 'px';
+          win.style.height = Math.max(60,  resizing.startH + (e.clientY - resizing.startY)) + 'px';
         });
+        window.addEventListener('mouseup', () => {
+          if (resizing) { resizing = null; positionWidgetHitsFromTheme(); }
+        });
+      }
+    });
 
-        // Drag from titlebar
-        const dragZone = win.querySelector('.aaron-window__drag-zone');
-        if (dragZone) {
-          let dragging = null;
-          dragZone.addEventListener('mousedown', (e) => {
-            const rect = win.getBoundingClientRect();
-            const sceneRect = win.parentElement.getBoundingClientRect();
-            dragging = {
-              offX: e.clientX - rect.left,
-              offY: e.clientY - rect.top,
-              sceneLeft: sceneRect.left,
-              sceneTop: sceneRect.top,
-            };
-            e.preventDefault();
-          });
-          window.addEventListener('mousemove', (e) => {
-            if (!dragging) return;
-            const x = e.clientX - dragging.offX - dragging.sceneLeft;
-            const y = e.clientY - dragging.offY - dragging.sceneTop;
-            win.style.left = Math.max(0, x) + 'px';
-            win.style.top = Math.max(0, y) + 'px';
-            win.style.right = 'auto';
-            win.style.bottom = 'auto';
-          });
-          window.addEventListener('mouseup', () => { dragging = null; });
+    /* ─── functional form controls ───────────────────────────────────
+       Click a checkbox → toggle data-checked (CSS swaps the cicn URL).
+       Click a radio   → select within group (siblings → data-checked="false").
+       Click a button  → brief data-pressed for visual feedback. */
+    document.addEventListener('click', (e) => {
+      const cb = e.target.closest('.aaron-checkbox');
+      if (cb) {
+        cb.dataset.checked = cb.dataset.checked === 'true' ? 'false' : 'true';
+        return;
+      }
+      const radio = e.target.closest('.aaron-radio');
+      if (radio) {
+        const row = radio.closest('.control-row');
+        if (row) row.querySelectorAll('.aaron-radio').forEach(r => r.dataset.checked = 'false');
+        radio.dataset.checked = 'true';
+        return;
+      }
+      const btn = e.target.closest('.aaron-button');
+      if (btn) {
+        btn.dataset.pressed = 'true';
+        setTimeout(() => { delete btn.dataset.pressed; }, 150);
+        // Advance the progress bar a notch as a side effect — gives a
+        // visible "this clicked something" cue.
+        const win = btn.closest('[data-aaron-window]');
+        const fill = win?.querySelector('.aaron-progress__fill');
+        const label = win?.querySelector('.aaron-progress__label');
+        if (fill) {
+          const cur = parseInt(fill.style.width || '62', 10);
+          const next = btn.dataset.default === 'true' ? Math.min(cur + 7, 100) : Math.max(cur - 7, 0);
+          fill.style.width = next + '%';
+          if (label) label.textContent = `Loading…  ${next} %`;
         }
+      }
+    });
 
-        // Resize from corner handle (simple, demo only)
-        const resize = win.querySelector('[data-action="resize"]');
-        if (resize) {
-          let resizing = null;
-          resize.addEventListener('mousedown', (e) => {
-            const rect = win.getBoundingClientRect();
-            resizing = { startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height };
-            e.preventDefault();
-            e.stopPropagation();
-          });
-          window.addEventListener('mousemove', (e) => {
-            if (!resizing) return;
-            win.style.width = Math.max(120, resizing.startW + (e.clientX - resizing.startX)) + 'px';
-            win.style.height = Math.max(60, resizing.startH + (e.clientY - resizing.startY)) + 'px';
-          });
-          window.addEventListener('mouseup', () => { resizing = null; });
-        }
+    /* ─── reset ──────────────────────────────────────────────────────── */
+    const initialStates = new Map();
+    document.querySelectorAll('[data-aaron-window]').forEach(w => {
+      initialStates.set(w, { style: w.getAttribute('style'), state: w.dataset.state, hidden: w.dataset.hidden || 'false' });
+    });
+    const initialControls = [];
+    document.querySelectorAll('[data-checked]').forEach(c => initialControls.push({el: c, checked: c.dataset.checked}));
+    document.querySelector('[data-reset]').addEventListener('click', () => {
+      initialStates.forEach((init, w) => {
+        w.setAttribute('style', init.style);
+        w.dataset.state = init.state;
+        w.dataset.hidden = init.hidden;
+        delete w.dataset.preZoom;
       });
+      initialControls.forEach(c => c.el.dataset.checked = c.checked);
+      document.querySelectorAll('.aaron-progress__fill').forEach(f => f.style.width = '62%');
+      document.querySelectorAll('.aaron-progress__label').forEach(l => l.textContent = 'Loading…  62 %');
+      requestAnimationFrame(positionWidgetHitsFromTheme);
+    });
 
-      // Reset button
-      const initialStates = new Map();
-      document.querySelectorAll('[data-aaron-window]').forEach(w => {
-        initialStates.set(w, { style: w.getAttribute('style'), state: w.dataset.state, hidden: w.dataset.hidden || 'false' });
-      });
-      document.querySelector('[data-reset]').addEventListener('click', () => {
-        initialStates.forEach((init, w) => {
-          w.setAttribute('style', init.style);
-          w.dataset.state = init.state;
-          w.dataset.hidden = init.hidden;
-          delete w.dataset.preZoom;
-        });
-        positionWidgetHits();
-      });
-
-      // Initial positioning after layout settles
-      requestAnimationFrame(() => requestAnimationFrame(positionWidgetHits));
-    })();
+    switcher.addEventListener('change', () => applyTheme(switcher.value));
+    const saved = localStorage.getItem(KEY);
+    applyTheme(saved === 'dark-ergobox' ? 'dark-ergobox' : '7-le');
   </script>
 
 </body>
