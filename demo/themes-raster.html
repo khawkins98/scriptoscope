@@ -425,9 +425,20 @@
     .aaron-scrollbar-track {
       flex: 1;
       height: 100%;
-      background: var(--cicn-scrollbar-track) repeat-x center;
-      background-size: auto 100%;
+      /* 9-slice. Pixel inspection of Empty Horizontal Scrollbar (16×16)
+         shows engraved edges only at pixels 0 and 15 with white between —
+         so this cicn was designed as a stretchable bar, NOT a tile.
+         (Naively tile-repeating it would show a vertical dark line every
+         16px, which is wrong.) 1px slices keep the engraved ends crisp;
+         the white middle stretches to any track width. */
       position: relative;
+      border-style: solid;
+      border-color: transparent;
+      border-width: 0 1px;
+      border-image-source: var(--cicn-scrollbar-track);
+      border-image-slice: 0 1 fill;
+      border-image-width: 0 1px;
+      border-image-repeat: stretch;
       image-rendering: pixelated;
     }
     .aaron-scrollbar-thumb {
@@ -436,16 +447,21 @@
       left: 30%;
       width: 40%;
       height: 100%;
-      /* 9-slice with 4px end caps preserves the bevels at the ends while
-         the middle grip pattern can stretch to any thumb width. */
+      /* 9-slice with 8px end caps. Pixel inspection of the Horizontal
+         Thumb cicn (17×16) shows the grip dots are at pixels 5,7,9,11
+         and the bevels at pixels 0 and 16. Taking 8px from each side
+         keeps both bevels AND the entire grip pattern fixed; only the
+         single solid-white middle pixel stretches, so any thumb width
+         renders pixel-perfect. */
       border-style: solid;
       border-color: transparent;
-      border-width: 0 4px;
+      border-width: 0 8px;
       border-image-source: var(--cicn-scrollbar-thumb);
-      border-image-slice: 0 4 fill;
-      border-image-width: 0 4px;
+      border-image-slice: 0 8 fill;
+      border-image-width: 0 8px;
       border-image-repeat: stretch;
       image-rendering: pixelated;
+      min-width: 17px;
     }
 
     /* ═══════════════════ THEME: mass:werk 7 Le ═════════════════════ */
