@@ -362,6 +362,30 @@
       justify-content: flex-end;
     }
 
+    /* ─── progress bar (composed from track + fill cicns) ──────── */
+
+    .aaron-progress {
+      position: relative;
+      height: 14px;
+      background: var(--cicn-progress-track) repeat-x;
+      background-size: auto 100%;
+      border: 1px solid var(--aaron-progress-border, #888);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .aaron-progress__fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--cicn-progress-fill) repeat-x;
+      background-size: auto 100%;
+      transition: width 200ms ease;
+    }
+    .aaron-progress__label {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
     /* ─── horizontal scrollbar at window bottom ────────────────── */
 
     .aaron-scrollbar-h {
@@ -453,6 +477,10 @@
       --cicn-scrollbar-arrow: url('assets/themes/masswerk-7-le/cicn-n8286-normal-horizontal-scrollbar.png');
       --cicn-scrollbar-track: url('assets/themes/masswerk-7-le/cicn-n8287-empty-horizontal-scrollbar.png');
       --cicn-scrollbar-thumb: url('assets/themes/masswerk-7-le/cicn-n10206-horizontal-thumb.png');
+
+      --cicn-progress-track: url('assets/themes/masswerk-7-le/cicn-n10078-progress-bar-track-active.png');
+      --cicn-progress-fill: url('assets/themes/masswerk-7-le/cicn-n10079-progress-bar-active.png');
+      --aaron-progress-border: #555;
 
       --_titlebar-cicn-active:   url('assets/themes/masswerk-7-le/cicn-n14335-active-document-window.png');
       --_titlebar-cicn-inactive: url('assets/themes/masswerk-7-le/cicn-n14336-inactive-document-window.png');
@@ -552,6 +580,10 @@
       --cicn-scrollbar-arrow: url('assets/themes/masswerk-dark-ergobox2/cicn-n8286-normal-horizontal-scrollbar.png');
       --cicn-scrollbar-track: url('assets/themes/masswerk-dark-ergobox2/cicn-n8287-empty-horizontal-scrollbar.png');
       --cicn-scrollbar-thumb: url('assets/themes/masswerk-dark-ergobox2/cicn-n10206-scroll-thumbs-horizontal-active.png');
+
+      --cicn-progress-track: url('assets/themes/masswerk-dark-ergobox2/cicn-n10078-progress-bar-track-active.png');
+      --cicn-progress-fill: url('assets/themes/masswerk-dark-ergobox2/cicn-n10079-progress-bar-fill-active.png');
+      --aaron-progress-border: #222;
 
       --_doc-cicn-w: 132px;
       --_doc-cicn-h: 64px;
@@ -746,6 +778,11 @@
             </div>
           </div>
         </div>
+
+        <div class="aaron-progress">
+          <div class="aaron-progress__fill" style="width: 62%"></div>
+        </div>
+        <div class="aaron-progress__label">Loading…  62 %</div>
 
         <div class="aaron-button-row">
           <button class="aaron-button">Cancel</button>
