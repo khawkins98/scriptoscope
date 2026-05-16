@@ -6,7 +6,13 @@
 // Reads a DeRez .r file, decodes every cicn and ppat resource into a PNG,
 // and writes an extraction-manifest.json describing what was produced.
 //
-// Node-only file I/O lives here; lib/ stays browser-portable.
+// Why this is a CLI today: the input pipeline starts with macOS `DeRez`
+// decompiling a resource fork, so the workflow naturally runs locally on
+// a Mac. The actual decoders in lib/ are pure JS with no Node imports —
+// the same code runs in Node (via this CLI), as a Node module
+// (import from '@aaron-ui/scheme-extractor'), or in a browser once a
+// pure-JS resource-fork parser replaces the DeRez preprocessing step.
+// See README.md "Three modes, one decoder."
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, join, basename } from 'node:path';

@@ -27,6 +27,18 @@ Not yet supported:
 
 ---
 
+## Three modes, one decoder
+
+The actual decoding work lives in `lib/` and uses only `Uint8Array` and plain JS — **no Node-specific imports.** That means the same decoder runs in three places:
+
+| Mode | How it's wrapped | Status |
+|---|---|---|
+| **CLI** (`bin/extract.js`) | Node script: file I/O via `fs`, PNG encoding via `pngjs` | ✅ working — what you run today |
+| **Node API** (`import from '@aaron-ui/scheme-extractor'`) | Same `lib/` code, call programmatically, get RGBA buffers back, do what you want with them | ✅ working — already exposed via `package.json` `exports` |
+| **Browser** | Same `lib/` code, file input via the File API or paste-a-text-area, PNG encoding via Canvas `toBlob()` or pngjs (works in bundlers) | 🟡 not built — the path is clear, just no UI yet |
+
+The CLI is today's default because the input side currently relies on macOS `DeRez` to decompile resource forks, and macOS is where the source schemes naturally live. A pure-JS resource-fork parser (replacing the DeRez preprocessing step) is the missing piece for full browser portability — straightforward to write when wanted, not blocking anything today.
+
 ## Usage
 
 ### CLI
