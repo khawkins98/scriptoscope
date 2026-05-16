@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aaron UI — static Platinum chrome mockup</title>
+  <!--
+    Static, no-JS mockup of Mac OS 8 Platinum window chrome.
+
+    Purpose: prove we can render Platinum recognizably from public references
+    alone (HIG + screenshots), independent of any period theme deconstruction.
+    This is a Phase 2 (chrome) tracer-bullet — it does not drag, resize, or
+    behave. Phase 1 (WM core) will provide behavior; this provides the look.
+
+    Sources:
+    - Apple, Mac OS 8 Human Interface Guidelines, ch. 2 (Appearance):
+      https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html
+    - Public Platinum-era screenshots, used as visual reference only.
+
+    No artwork is extracted from Apple binaries. All visuals are CSS gradients
+    or hand-authored SVG. CSS custom properties are namespaced --aaron-* in
+    anticipation of the Phase 4 theme engine — a future Hi-Tech or Drawing
+    Board theme will override these without touching markup.
+  -->
+  <style>
+    :root {
+      /* Platinum palette — to be moved into themes/platinum/chrome.css later. */
+      --aaron-platinum-50:  #ffffff;
+      --aaron-platinum-100: #f4f4f4;
+      --aaron-platinum-200: #e8e8e8;
+      --aaron-platinum-300: #dddddd;
+      --aaron-platinum-400: #cccccc; /* canonical Platinum gray */
+      --aaron-platinum-500: #aaaaaa;
+      --aaron-platinum-600: #888888;
+      --aaron-platinum-700: #555555;
+      --aaron-platinum-900: #000000;
+
+      --aaron-desktop-bg:   #5a7a96; /* the classic teal-ish desktop */
+
+      /* Chrome geometry — these are the seams a future theme overrides. */
+      --aaron-titlebar-height: 19px;
+      --aaron-titlebar-pinstripe-light: var(--aaron-platinum-200);
+      --aaron-titlebar-pinstripe-dark:  var(--aaron-platinum-300);
+      --aaron-titlebar-pinstripe: repeating-linear-gradient(
+        to bottom,
+        var(--aaron-titlebar-pinstripe-light) 0 1px,
+        var(--aaron-titlebar-pinstripe-dark)  1px 2px
+      );
+      --aaron-titlebar-inactive-bg: var(--aaron-platinum-300);
+
+      --aaron-window-border:        var(--aaron-platinum-900);
+      --aaron-window-frame:         var(--aaron-platinum-400);
+      --aaron-window-content-bg:    var(--aaron-platinum-50);
+
+      --aaron-title-pill-bg:        var(--aaron-platinum-50);
+      --aaron-title-pill-padding-x: 8px;
+      --aaron-title-pill-border:    var(--aaron-platinum-600);
+
+      --aaron-control-size:         11px;
+      --aaron-control-stroke:       var(--aaron-platinum-900);
+      --aaron-control-fill:         var(--aaron-platinum-100);
+
+      /* Charcoal was the Mac OS 8 system font. Falls back gracefully. */
+      --aaron-font-system:
+        "Charcoal", "Chicago",
+        -apple-system, BlinkMacSystemFont,
+        "Lucida Grande", "Segoe UI", sans-serif;
+      --aaron-font-size: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--aaron-font-system);
+      font-size: var(--aaron-font-size);
+      color: var(--aaron-platinum-900);
+    }
+
+    body {
+      background: var(--aaron-desktop-bg);
+      padding: 32px;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: min-content;
+    }
+
+    /* ─── window ────────────────────────────────────────────────────────── */
+
+    .aaron-window {
+      background: var(--aaron-window-frame);
+      border: 1px solid var(--aaron-window-border);
+      box-shadow: 1px 1px 0 var(--aaron-platinum-700);
+      display: flex;
+      flex-direction: column;
+      width: 360px;
+    }
+
+    .aaron-window--wide  { width: 100%; max-width: 520px; }
+    .aaron-window--tall  { min-height: 240px; }
+
+    /* ─── title bar ─────────────────────────────────────────────────────── */
+
+    .aaron-titlebar {
+      height: var(--aaron-titlebar-height);
+      background: var(--aaron-titlebar-pinstripe);
+      border-bottom: 1px solid var(--aaron-window-border);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      padding: 0 4px;
+      gap: 4px;
+      user-select: none;
+    }
+
+    .aaron-window[data-state="inactive"] .aaron-titlebar {
+      background: var(--aaron-titlebar-inactive-bg);
+    }
+
+    .aaron-window[data-state="inactive"] .aaron-titlebar__title,
+    .aaron-window[data-state="inactive"] .aaron-control {
+      opacity: 0.55;
+    }
+
+    .aaron-titlebar__controls-left,
+    .aaron-titlebar__controls-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .aaron-titlebar__title-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .aaron-titlebar__title {
+      background: var(--aaron-title-pill-bg);
+      padding: 0 var(--aaron-title-pill-padding-x);
+      border-left:  1px solid var(--aaron-title-pill-border);
+      border-right: 1px solid var(--aaron-title-pill-border);
+      line-height: calc(var(--aaron-titlebar-height) - 2px);
+      font-size: var(--aaron-font-size);
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ─── window controls (close / zoom / windowshade) ──────────────────── */
+
+    .aaron-control {
+      width: var(--aaron-control-size);
+      height: var(--aaron-control-size);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: default;
+    }
+
+    .aaron-control svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ─── content area ──────────────────────────────────────────────────── */
+
+    .aaron-content {
+      flex: 1;
+      background: var(--aaron-window-content-bg);
+      border-top: 1px solid var(--aaron-platinum-500);
+      margin: 1px;
+      margin-top: 0;
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .aaron-content p { margin: 0 0 0.6em 0; }
+    .aaron-content p:last-child { margin-bottom: 0; }
+
+    /* ─── growbox (diagonal stripes, bottom-right) ──────────────────────── */
+
+    .aaron-growbox {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 15px;
+      height: 15px;
+      background:
+        linear-gradient(
+          135deg,
+          transparent 0 2px,
+          var(--aaron-platinum-600) 2px 3px,
+          transparent 3px 5px,
+          var(--aaron-platinum-600) 5px 6px,
+          transparent 6px 8px,
+          var(--aaron-platinum-600) 8px 9px,
+          transparent 9px 11px,
+          var(--aaron-platinum-600) 11px 12px,
+          transparent 12px 15px
+        ),
+        var(--aaron-platinum-200);
+      border-top:  1px solid var(--aaron-platinum-600);
+      border-left: 1px solid var(--aaron-platinum-600);
+    }
+
+    /* ─── windowshade (collapsed) state ─────────────────────────────────── */
+
+    .aaron-window[data-state="collapsed"] .aaron-content { display: none; }
+    .aaron-window[data-state="collapsed"] .aaron-titlebar { border-bottom: 0; }
+
+    /* ─── demo-only annotations ─────────────────────────────────────────── */
+
+    .desktop-note {
+      grid-column: 1 / -1;
+      color: white;
+      font-family: var(--aaron-font-system);
+      font-size: 13px;
+      line-height: 1.5;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+      max-width: 56ch;
+    }
+    .desktop-note code {
+      background: rgba(0,0,0,0.25);
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="desktop-note">
+    <strong>Aaron UI — static Platinum chrome mockup.</strong>
+    No JS, no build. Three windows below: active, inactive, and collapsed
+    (windowshade). All CSS lives in this file under <code>--aaron-*</code>
+    custom properties — the same seams a future theme bundle will override.
+  </p>
+
+  <!-- ─── window 1: active ─────────────────────────────────────────────── -->
+  <div class="aaron-window aaron-window--tall" data-state="active">
+    <div class="aaron-titlebar">
+      <div class="aaron-titlebar__controls-left">
+        <!-- close box: empty square; X appears on hover/press in real impl -->
+        <button class="aaron-control" aria-label="Close" title="Close">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="aaron-titlebar__title-wrap">
+        <span class="aaron-titlebar__title">Welcome</span>
+      </div>
+      <div class="aaron-titlebar__controls-right">
+        <!-- zoom box: nested squares -->
+        <button class="aaron-control" aria-label="Zoom" title="Zoom">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <rect x="2.5" y="2.5" width="6" height="6"
+                  fill="none"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+        <!-- windowshade: square with a horizontal line -->
+        <button class="aaron-control" aria-label="Collapse" title="Collapse">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <line x1="2" y1="5.5" x2="9" y2="5.5"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="aaron-content">
+      <p>This is what Aaron UI's default Platinum window will look like once
+      Phase 2 ships.</p>
+      <p>Right now it's a static mockup — the close box doesn't close, the
+      zoom box doesn't zoom, and the growbox is decorative. Phase 1 (the WM
+      core) will make this actually draggable, resizable, and focusable.</p>
+      <p>Notice the seams: pinstripe titlebar, paper title pill with vertical
+      hairlines, close box on the left, zoom + windowshade on the right,
+      diagonal-stripe growbox bottom-right.</p>
+      <div class="aaron-growbox" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- ─── window 2: inactive ───────────────────────────────────────────── -->
+  <div class="aaron-window" data-state="inactive">
+    <div class="aaron-titlebar">
+      <div class="aaron-titlebar__controls-left">
+        <button class="aaron-control" aria-label="Close" title="Close" disabled>
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="aaron-titlebar__title-wrap">
+        <span class="aaron-titlebar__title">Untitled — inactive</span>
+      </div>
+      <div class="aaron-titlebar__controls-right">
+        <button class="aaron-control" aria-label="Zoom" title="Zoom" disabled>
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <rect x="2.5" y="2.5" width="6" height="6"
+                  fill="none"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+        <button class="aaron-control" aria-label="Collapse" title="Collapse" disabled>
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <line x1="2" y1="5.5" x2="9" y2="5.5"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="aaron-content">
+      <p>An inactive window. Per Mac OS 8 HIG: titlebar loses its pinstripes,
+      goes flat gray; controls dim; window content is otherwise unchanged.</p>
+      <div class="aaron-growbox" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- ─── window 3: collapsed (windowshade) ────────────────────────────── -->
+  <div class="aaron-window" data-state="collapsed">
+    <div class="aaron-titlebar">
+      <div class="aaron-titlebar__controls-left">
+        <button class="aaron-control" aria-label="Close" title="Close">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+      <div class="aaron-titlebar__title-wrap">
+        <span class="aaron-titlebar__title">Rolled up — windowshade</span>
+      </div>
+      <div class="aaron-titlebar__controls-right">
+        <button class="aaron-control" aria-label="Zoom" title="Zoom">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <rect x="2.5" y="2.5" width="6" height="6"
+                  fill="none"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+        <button class="aaron-control" aria-label="Expand" title="Expand">
+          <svg viewBox="0 0 11 11" aria-hidden="true">
+            <rect x="0.5" y="0.5" width="10" height="10"
+                  fill="var(--aaron-control-fill)"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+            <line x1="2" y1="5.5" x2="9" y2="5.5"
+                  stroke="var(--aaron-control-stroke)" stroke-width="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- collapsed state hides .aaron-content via CSS -->
+    <div class="aaron-content"></div>
+  </div>
+
+</body>
+</html>
