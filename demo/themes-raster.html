@@ -31,29 +31,37 @@
       font-family: var(--aaron-font-system);
       font-size: var(--aaron-font-size);
       color: var(--aaron-text);
-      background: var(--aaron-desktop-bg) var(--aaron-desktop-pattern, none);
+      background: #2a2a2a;
       padding: 0;
       transition: background-color 200ms ease;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 36px 1fr;
+      height: 100vh;
     }
 
     .toolbar {
-      position: fixed;
-      top: 8px; left: 8px; right: 8px;
+      grid-column: 1 / -1;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 0 12px;
       gap: 12px;
-      pointer-events: none;
+      background: #1a1a1a;
+      color: #ddd;
+      border-bottom: 1px solid #000;
       z-index: 100;
-    }
-    .toolbar > * { pointer-events: auto; }
-    .toolbar__title {
-      color: white;
-      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
       font: 12px/1 -apple-system, sans-serif;
+    }
+    .toolbar__title {
       opacity: 0.85;
+    }
+    .toolbar__controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
     }
     .toolbar__switcher {
       font: 12px/1 -apple-system, sans-serif;
@@ -62,14 +70,62 @@
       color: black;
       border: 1px solid #333;
     }
+    .toolbar__reset {
+      font: 11px/1 -apple-system, sans-serif;
+      padding: 4px 10px;
+      background: #444;
+      color: #fff;
+      border: 1px solid #666;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .toolbar__reset:hover { background: #555; }
+    .toolbar__label { opacity: 0.6; font-size: 10px; }
 
-    /* ═══════════════════ desktop scene container ═══════════════════ */
+    /* ═══════════════════ reference panel (left half) ═══════════════ */
+
+    .reference-panel {
+      background: #38424d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      gap: 8px;
+      border-right: 1px solid #000;
+      position: relative;
+    }
+    .reference-panel__label {
+      font: 11px/1 -apple-system, sans-serif;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .reference-panel__img {
+      max-width: 100%;
+      max-height: calc(100% - 24px);
+      border: 1px solid #000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      image-rendering: auto;
+    }
+
+    /* ═══════════════════ desktop scene container (right half) ═══════ */
 
     .scene {
       position: relative;
-      width: 100vw;
-      height: 100vh;
       overflow: hidden;
+      background: var(--aaron-desktop-bg);
+    }
+    .scene__label {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      font: 11px/1 -apple-system, sans-serif;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      pointer-events: none;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
     }
 
     /* ─── menubar at top ────────────────────────────────────────── */
@@ -163,6 +219,46 @@
       flex-direction: column;
       overflow: hidden;
       transition: filter 200ms ease;
+    }
+    .aaron-window[data-hidden="true"] { display: none; }
+    /* Windowshade-collapsed: only the titlebar is visible. */
+    .aaron-window[data-state="collapsed"] .aaron-content,
+    .aaron-window[data-state="collapsed"] .aaron-statusbar,
+    .aaron-window[data-state="collapsed"] .aaron-window__resize {
+      display: none;
+    }
+    .aaron-window[data-state="collapsed"] {
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    /* ─── interactive widget hit-targets (overlay on cicn widgets) ── */
+    .aaron-window__widget-hit {
+      position: absolute;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      z-index: 5;
+    }
+    .aaron-window__widget-hit:focus { outline: 1px dotted rgba(0,0,0,0.4); outline-offset: -1px; }
+    .aaron-window__widget-hit:active { background: rgba(0,0,0,0.15); }
+    .aaron-window__drag-zone {
+      position: absolute;
+      top: 0;
+      height: var(--aaron-titlebar-height, 19px);
+      cursor: move;
+      z-index: 4;
+    }
+    /* Resize handle bottom-right */
+    .aaron-window__resize {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 14px;
+      height: 14px;
+      cursor: nwse-resize;
+      z-index: 6;
     }
 
     .aaron-titlebar {
@@ -545,12 +641,25 @@
 <body>
 
   <div class="toolbar">
-    <span class="toolbar__title">Aaron UI — Kaleidoscope-style scheme showcase</span>
-    <select class="toolbar__switcher" data-aaron-theme-switcher>
-      <option value="7-le">mass:werk 7 Le</option>
-      <option value="dark-ergobox">mass:werk Dark ErgoBox 2</option>
-    </select>
+    <span class="toolbar__title">
+      Aaron UI — scheme showcase
+      <span class="toolbar__label">(left: masswerk reference · right: live render)</span>
+    </span>
+    <div class="toolbar__controls">
+      <button class="toolbar__reset" data-reset>Reset windows</button>
+      <select class="toolbar__switcher" data-aaron-theme-switcher>
+        <option value="7-le">mass:werk 7 Le</option>
+        <option value="dark-ergobox">mass:werk Dark ErgoBox 2</option>
+      </select>
+    </div>
   </div>
+
+  <aside class="reference-panel">
+    <div class="reference-panel__label">Reference — author's preview thumbnail</div>
+    <img class="reference-panel__img" data-reference-img
+         src="assets/references/masswerk-7-le.jpg"
+         alt="masswerk reference thumbnail">
+  </aside>
 
   <div class="scene">
 
@@ -580,32 +689,46 @@
     </div>
 
     <!-- ─── inactive small window (upper right) ───────────────────── -->
-    <div class="aaron-window" data-state="inactive" data-role="inactive-small"
-         style="top: 50px; left: 380px; width: 260px;">
+    <div class="aaron-window" data-state="inactive" data-role="inactive-small" data-aaron-window
+         style="top: 40px; left: 220px; width: 240px;">
       <div class="aaron-titlebar">
         <div class="aaron-titlebar__title"><span>Inactive</span></div>
       </div>
+      <button class="aaron-window__widget-hit" data-action="close" aria-label="Close"></button>
+      <button class="aaron-window__widget-hit" data-action="zoom" aria-label="Zoom"></button>
+      <button class="aaron-window__widget-hit" data-action="windowshade" aria-label="Windowshade"></button>
+      <div class="aaron-window__drag-zone"></div>
       <div class="aaron-content" style="min-height: 24px;">
         <span style="opacity:0.6">Inactive contents…</span>
       </div>
       <div class="aaron-statusbar">1 Object, 2 MB free</div>
+      <div class="aaron-window__resize" data-action="resize"></div>
     </div>
 
     <!-- ─── small "Hello" window ──────────────────────────────────── -->
-    <div class="aaron-window" data-state="active" data-role="hello"
-         style="top: 130px; left: 80px; width: 240px;">
+    <div class="aaron-window" data-state="active" data-role="hello" data-aaron-window
+         style="top: 110px; left: 40px; width: 220px;">
       <div class="aaron-titlebar">
         <div class="aaron-titlebar__title"><span>Hello</span></div>
       </div>
+      <button class="aaron-window__widget-hit" data-action="close" aria-label="Close"></button>
+      <button class="aaron-window__widget-hit" data-action="zoom" aria-label="Zoom"></button>
+      <button class="aaron-window__widget-hit" data-action="windowshade" aria-label="Windowshade"></button>
+      <div class="aaron-window__drag-zone"></div>
       <div class="aaron-content" style="min-height: 18px;"></div>
+      <div class="aaron-window__resize" data-action="resize"></div>
     </div>
 
     <!-- ─── main showcase window with controls inside ─────────────── -->
-    <div class="aaron-window" data-state="active" data-role="main"
-         style="top: 210px; left: 160px; width: 360px; min-height: 200px;">
+    <div class="aaron-window" data-state="active" data-role="main" data-aaron-window
+         style="top: 180px; left: 90px; width: 340px; min-height: 190px;">
       <div class="aaron-titlebar">
         <div class="aaron-titlebar__title"><span data-theme-title>mass:werk 7 Le</span></div>
       </div>
+      <button class="aaron-window__widget-hit" data-action="close" aria-label="Close"></button>
+      <button class="aaron-window__widget-hit" data-action="zoom" aria-label="Zoom"></button>
+      <button class="aaron-window__widget-hit" data-action="windowshade" aria-label="Windowshade"></button>
+      <div class="aaron-window__drag-zone"></div>
       <div class="aaron-content">
 
         <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:10px;">
@@ -639,29 +762,180 @@
 
       </div>
       <div class="aaron-statusbar">1 Object, 2 MB free</div>
+      <div class="aaron-window__resize" data-action="resize"></div>
     </div>
+
+    <div class="scene__label">Live render — themes-raster.html</div>
 
   </div>
 
   <script>
+    /* Tiny taste of Phase 1 WM behavior in the demo:
+         - click close box → hide window
+         - click windowshade → toggle collapsed state
+         - click zoom box → toggle width/height
+         - drag titlebar → move window
+         - drag corner handle → resize window
+         - "Reset windows" → restore all to initial positions/states
+       This is throwaway demo JS, not the real Aaron UI WM. */
     (function () {
       const KEY = 'aaron-ui:demo-theme-raster';
       const root = document.documentElement;
       const switcher = document.querySelector('[data-aaron-theme-switcher]');
       const titleEl = document.querySelector('[data-theme-title]');
+      const referenceImg = document.querySelector('[data-reference-img]');
       const labels = { '7-le': 'mass:werk 7 Le', 'dark-ergobox': 'mass:werk Dark ErgoBox 2' };
+      const refSrcs = {
+        '7-le': 'assets/references/masswerk-7-le.jpg',
+        'dark-ergobox': 'assets/references/masswerk-dark-ergobox2.jpg'
+      };
 
       const apply = (v) => {
         root.setAttribute('data-aaron-theme', v);
         switcher.value = v;
         titleEl.textContent = labels[v] || v;
+        referenceImg.src = refSrcs[v];
         localStorage.setItem(KEY, v);
+        positionWidgetHits();
       };
 
       const saved = localStorage.getItem(KEY);
       apply(saved === 'dark-ergobox' ? 'dark-ergobox' : '7-le');
-
       switcher.addEventListener('change', () => apply(switcher.value));
+
+      /* ─── window widget interactions ────────────────────────────── */
+
+      // Theme-aware hit-target positioning. 7 Le's close box is at the
+      // far left of the titlebar; ErgoBox's widgets are clustered in the
+      // top-right of the tab area. We measure the titlebar and lay hits
+      // out accordingly. Rough approximations — Phase 1 will be exact.
+      function positionWidgetHits() {
+        const theme = root.getAttribute('data-aaron-theme');
+        document.querySelectorAll('.aaron-window').forEach(win => {
+          const tb = win.querySelector('.aaron-titlebar');
+          if (!tb) return;
+          const tbRect = tb.getBoundingClientRect();
+          const close = win.querySelector('[data-action="close"]');
+          const zoom = win.querySelector('[data-action="zoom"]');
+          const wshade = win.querySelector('[data-action="windowshade"]');
+          const drag = win.querySelector('.aaron-window__drag-zone');
+          if (theme === '7-le') {
+            // Close at left, zoom + windowshade at right of full-width tb
+            if (close)  Object.assign(close.style,  { top:'2px', left:'4px',   width:'14px', height:'14px' });
+            if (zoom)   Object.assign(zoom.style,   { top:'2px', right:'22px', left:'auto', width:'14px', height:'14px' });
+            if (wshade) Object.assign(wshade.style, { top:'2px', right:'4px',  left:'auto', width:'14px', height:'14px' });
+            if (drag)   Object.assign(drag.style,   { left:'22px', right:'42px', top:'0', width:'auto', height:'19px' });
+          } else {
+            // ErgoBox: tab projects from top-left; widgets are in the
+            // tab area near pixels 40-72 of the tab (cicn coords) at 2x
+            if (close)  Object.assign(close.style,  { top:'4px', left:'4px',   width:'18px', height:'30px' });
+            if (zoom)   Object.assign(zoom.style,   { top:'4px', left:'120px', right:'auto', width:'18px', height:'30px' });
+            if (wshade) Object.assign(wshade.style, { top:'4px', left:'144px', right:'auto', width:'18px', height:'30px' });
+            if (drag)   Object.assign(drag.style,   { left:'22px', right:'auto', top:'4px', width:'94px', height:'30px' });
+          }
+        });
+      }
+      window.addEventListener('resize', positionWidgetHits);
+
+      // Click handlers via event delegation
+      document.querySelectorAll('[data-aaron-window]').forEach(win => {
+        // Bring forward on any click
+        win.addEventListener('mousedown', () => {
+          document.querySelectorAll('[data-aaron-window]').forEach(w => w.style.zIndex = 1);
+          win.style.zIndex = 10;
+        });
+
+        win.addEventListener('click', (e) => {
+          const target = e.target.closest('[data-action]');
+          if (!target) return;
+          e.stopPropagation();
+          const action = target.dataset.action;
+          if (action === 'close') {
+            win.dataset.hidden = 'true';
+          } else if (action === 'windowshade') {
+            win.dataset.state = win.dataset.state === 'collapsed' ? 'active' : 'collapsed';
+          } else if (action === 'zoom') {
+            // Toggle a "zoomed" preset size
+            if (!win.dataset.preZoom) {
+              win.dataset.preZoom = JSON.stringify({
+                top: win.style.top, left: win.style.left,
+                width: win.style.width, height: win.style.height,
+              });
+              win.style.top = '40px';
+              win.style.left = '40px';
+              win.style.width = 'calc(100% - 80px)';
+              win.style.height = 'calc(100% - 80px)';
+            } else {
+              const prev = JSON.parse(win.dataset.preZoom);
+              Object.assign(win.style, prev);
+              delete win.dataset.preZoom;
+            }
+          }
+        });
+
+        // Drag from titlebar
+        const dragZone = win.querySelector('.aaron-window__drag-zone');
+        if (dragZone) {
+          let dragging = null;
+          dragZone.addEventListener('mousedown', (e) => {
+            const rect = win.getBoundingClientRect();
+            const sceneRect = win.parentElement.getBoundingClientRect();
+            dragging = {
+              offX: e.clientX - rect.left,
+              offY: e.clientY - rect.top,
+              sceneLeft: sceneRect.left,
+              sceneTop: sceneRect.top,
+            };
+            e.preventDefault();
+          });
+          window.addEventListener('mousemove', (e) => {
+            if (!dragging) return;
+            const x = e.clientX - dragging.offX - dragging.sceneLeft;
+            const y = e.clientY - dragging.offY - dragging.sceneTop;
+            win.style.left = Math.max(0, x) + 'px';
+            win.style.top = Math.max(0, y) + 'px';
+            win.style.right = 'auto';
+            win.style.bottom = 'auto';
+          });
+          window.addEventListener('mouseup', () => { dragging = null; });
+        }
+
+        // Resize from corner handle (simple, demo only)
+        const resize = win.querySelector('[data-action="resize"]');
+        if (resize) {
+          let resizing = null;
+          resize.addEventListener('mousedown', (e) => {
+            const rect = win.getBoundingClientRect();
+            resizing = { startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height };
+            e.preventDefault();
+            e.stopPropagation();
+          });
+          window.addEventListener('mousemove', (e) => {
+            if (!resizing) return;
+            win.style.width = Math.max(120, resizing.startW + (e.clientX - resizing.startX)) + 'px';
+            win.style.height = Math.max(60, resizing.startH + (e.clientY - resizing.startY)) + 'px';
+          });
+          window.addEventListener('mouseup', () => { resizing = null; });
+        }
+      });
+
+      // Reset button
+      const initialStates = new Map();
+      document.querySelectorAll('[data-aaron-window]').forEach(w => {
+        initialStates.set(w, { style: w.getAttribute('style'), state: w.dataset.state, hidden: w.dataset.hidden || 'false' });
+      });
+      document.querySelector('[data-reset]').addEventListener('click', () => {
+        initialStates.forEach((init, w) => {
+          w.setAttribute('style', init.style);
+          w.dataset.state = init.state;
+          w.dataset.hidden = init.hidden;
+          delete w.dataset.preZoom;
+        });
+        positionWidgetHits();
+      });
+
+      // Initial positioning after layout settles
+      requestAnimationFrame(() => requestAnimationFrame(positionWidgetHits));
     })();
   </script>
 
