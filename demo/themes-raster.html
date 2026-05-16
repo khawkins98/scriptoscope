@@ -202,10 +202,11 @@
 
       --aaron-window-frame: #cccccc;
       --aaron-titlebar-height: 19px;
+      /* Visible pinstripe: 1px darker stripe every other row */
       --aaron-titlebar-bg: repeating-linear-gradient(
         to bottom,
-        #e8e8e8 0 1px,
-        #dddddd 1px 2px
+        #f0f0f0 0 1px,
+        #b4b4b4 1px 2px
       );
 
       --aaron-title-text: #000;
@@ -312,10 +313,12 @@
       --aaron-content-bg: transparent;
       --aaron-content-text: #1a1a1a;
 
-      /* Asset dimensions (cicn is 132x64; displayed at 3x scale = 396x192) */
+      /* Cicn is 132x64; rendered at 2x = 264x128. image-rendering:pixelated
+         on the .aaron-window keeps the upscaled background crisp (Chrome
+         and Firefox both honor it on background-image as of 2023+). */
       --_doc-cicn-w: 132px;
       --_doc-cicn-h: 64px;
-      --_doc-scale: 3;
+      --_doc-scale: 2;
       /* Tab geometry within the cicn (eyeballed from the extracted bitmap) */
       --_tab-h-px: 15px;
       --_body-frame-px: 4px;
