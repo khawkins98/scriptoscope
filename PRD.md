@@ -6,6 +6,91 @@ This document is the project charter, ported from the upstream extraction ticket
 
 ---
 
+## North Star
+
+A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships an **API-compatible re-implementation of the Mac OS 8/9 Appearance Manager** capable of loading period theme packs and rendering them faithfully on the modern web.
+
+This compresses to three principles, each of which constrains downstream architecture:
+
+### 1. Framework-agnostic by default
+
+No React peer dep, no Vue plugin, no Solid integration layer. Aaron UI is plain TypeScript + CSS that works wherever HTML works:
+
+- Vanilla DOM apps.
+- Server-rendered HTML from any backend (Rails, Django, Laravel, PHP, Go templates, static-site generators).
+- Every modern JS framework, used as escape-hatch components.
+- htmx / Alpine / petite-vue and similar HTML-augmenting libraries.
+- A single `<script>` tag on an otherwise-static page.
+
+**Architectural consequence:** the core ships as ES modules with no JS dependencies. dev-deps only (TypeScript, bundler). The public API surface is HTML attributes + CSS custom properties first; an imperative TS class API exists but is not the primary integration story.
+
+### 2. Declarative-first integration via data attributes
+
+The primary integration path is markup-only. The library scans the DOM (on `DOMContentLoaded` and via a `MutationObserver` for dynamic additions) for elements bearing `data-aaron-*` attributes and promotes them into the right Aaron UI control. No one should *need* to write JS to use the library for the common case.
+
+```html
+<link rel="stylesheet" href="aaron-ui.css">
+<script type="module" src="aaron-ui.js"></script>
+
+<!-- A window. Title bar, drag, resize, close, focus all just work. -->
+<div data-aaron-window
+     data-aaron-title="Welcome"
+     data-aaron-x="100" data-aaron-y="80"
+     data-aaron-width="380" data-aaron-height="240">
+  <p>Window content here.</p>
+
+  <!-- A Platinum default button, declared inline. -->
+  <button data-aaron-button data-aaron-default>OK</button>
+  <button data-aaron-button>Cancel</button>
+</div>
+
+<!-- Theme switching, declarative. -->
+<select data-aaron-theme-switcher>
+  <option value="platinum">Platinum</option>
+  <option value="hi-tech">Hi-Tech</option>
+  <option value="drawing-board">Drawing Board</option>
+</select>
+```
+
+**CSS class hooks as a fallback.** Environments where data attributes are awkward (CSP-restricted, some CMSes, some template engines) can use class selectors instead — `.aaron-window`, `.aaron-button`, etc. — with the same semantics. Data attributes are the recommended path because they cleanly separate "this is configuration" from "this is a styling hook," but class fallback exists.
+
+**Imperative API stays available** for dynamic / programmatic cases:
+
+```ts
+import { AaronWindow, loadTheme } from 'aaron-ui';
+
+await loadTheme('https://example.com/themes/hi-tech/');
+const win = new AaronWindow({
+  title: 'Dynamic Window',
+  x: 200, y: 200, width: 400, height: 300,
+  html: '<p>Created in JS.</p>',
+});
+```
+
+**Architectural consequence:** the imperative API is the *foundation*; the declarative scanner is a thin layer on top that calls it. Same code path, two front doors.
+
+### 3. An API-compatible re-implementation of the Mac OS 8/9 Appearance Manager — from spec, never from decompile
+
+Aaron UI's **theme bundle format and runtime behavior aim to be conceptually compatible** with how Mac OS 8.5's Appearance Manager loaded themes (Platinum, Hi-Tech, Drawing Board, the Kaleidoscope third-party ecosystem). The goal is that period themes can be adapted into Aaron UI bundles with their *intent preserved* — chrome appearance, control bevels, color palette, desktop picture, system sounds — and rendered faithfully on web pages.
+
+**The implementation is independent and clean-room.** Sources for the re-implementation:
+
+- Apple's published [Mac OS 8 Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html).
+- Archived Apple Appearance Manager API documentation (developer.apple.com legacy / Wayback Machine).
+- Period screenshots and visual references from Macintosh Garden, archive.org, and similar archives.
+- Public documentation of the Kaleidoscope and Apple theme-bundle formats.
+- The visible behavior of real Mac OS 8.5 + Kaleidoscope running under emulation, used as a behavioral oracle.
+
+**What we don't do:**
+
+- We do not look at decompiled Apple source.
+- We do not copy Apple's pixel artwork directly. Where period artwork is referenced (e.g., reproducing the Hi-Tech theme's look), we re-author from screenshots rather than extracting from binaries. When in doubt, we ship "inspired by" reinterpretations.
+- We do not copy code from leaked Mac OS sources or from clean-room emulator implementations that have themselves derived from such material.
+
+**Architectural consequence:** every visual decision in the default Platinum theme has a HIG citation in the commit message. Every theme port from a period source documents its provenance in `theme.json` (original author, year, source URL, license-of-origin, what we adapted vs. re-authored). The default Platinum theme is auditable from spec.
+
+---
+
 ## TL;DR
 
 Aaron UI is a standalone open-source library that gives any web page draggable, resizable windows with authentic Mac OS Appearance Manager chrome. The first-class architectural concept is **themes** (in the literal Mac OS 8.5 sense) — bundles that ship window chrome, controls, desktop background, and system sounds together — with Platinum as the default and a path to load Apple's other official themes, Kaleidoscope-era community themes, and our own.
@@ -60,13 +145,14 @@ Three things shifted at once:
 
 ## Core principles
 
-1. **HIG-faithful or it doesn't ship** (for the engine and the default Platinum theme). Alternative themes are free to deviate — that's the point of themes.
-2. **Theme bundles are first-class.** Themes aren't CSS overrides on top of a Platinum baseline; they're complete bundles that fully describe a look. The engine loads themes; it doesn't bake one in.
-3. **Vanilla TS, no framework dep.** Consumers using React, Vue, vanilla DOM, htmx, or anything else can use Aaron UI without adding a framework to their stack.
-4. **DOM-light, CSS-heavy.** Chrome is CSS-driven so themes can be authored without forking the engine. JS only where it has to be (drag, focus, persistence, sound triggering, theme loading).
-5. **Accessibility considered from the start, not retrofitted.** Real keyboard nav, real ARIA, real focus management. Period-correct UX should not mean inaccessible.
-6. **Bundle-size honest.** Tree-shakeable; gzipped target for core WM + Platinum theme should be competitive with WinBox (~30 KB minified / ~10 KB gz).
-7. **No breaking changes after 1.0** without a major version bump.
+The North Star (above) is principles 1-3. The remaining four:
+
+4. **HIG-faithful or it doesn't ship** (for the engine and the default Platinum theme). Alternative themes are free to deviate — that's the point of themes.
+5. **Theme bundles are first-class.** Themes aren't CSS overrides on top of a Platinum baseline; they're complete bundles that fully describe a look (chrome + controls + desktop + sounds + colors + fonts). The engine loads themes; it doesn't bake one in.
+6. **DOM-light, CSS-heavy.** Chrome is CSS-driven so themes can be authored without forking the engine. JS only where it has to be (drag, focus, persistence, sound triggering, theme loading, the declarative scanner).
+7. **Accessibility considered from the start, not retrofitted.** Real keyboard nav, real ARIA, real focus management. Period-correct UX should not mean inaccessible.
+8. **Bundle-size honest.** Tree-shakeable; gzipped target for core WM + Platinum theme should be competitive with WinBox (~30 KB minified / ~10 KB gz).
+9. **No breaking changes after 1.0** without a major version bump.
 
 ## Theme system (the key architectural primitive)
 
@@ -90,23 +176,40 @@ my-theme/
   icons/              # window control glyphs (close, zoom, windowshade)
 ```
 
-API sketch (suggestive, not prescriptive):
+Two integration paths, declarative first per the North Star:
 
-```ts
-import { WM, loadTheme } from 'aaron-ui';
+**Declarative (recommended for most consumers):**
 
-await loadTheme('https://example.com/themes/hi-tech/');
-const wm = new WM({ theme: 'hi-tech' });
-wm.open({ title: 'Window', html: '...' });
+```html
+<!-- Tell the page which theme to use. -->
+<html data-aaron-theme="hi-tech">
+  <head>
+    <link rel="stylesheet" href="aaron-ui.css">
+    <script type="module" src="aaron-ui.js"></script>
+    <link rel="aaron-theme" href="/themes/hi-tech/theme.json">
+  </head>
+  <body>
+    <div data-aaron-window data-aaron-title="Window">...</div>
+  </body>
+</html>
 ```
 
-Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under Platinum → Hi-Tech → Drawing Board → a community theme, one click each.
+**Imperative (for dynamic / programmatic cases):**
+
+```ts
+import { loadTheme, AaronWindow } from 'aaron-ui';
+
+await loadTheme('https://example.com/themes/hi-tech/');
+const win = new AaronWindow({ title: 'Window', html: '...' });
+```
+
+Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under Platinum → Hi-Tech → Drawing Board → a community theme, one click each — declaratively, by changing a single `data-aaron-theme` attribute on `<html>`.
 
 ## Phased delivery
 
 Sketch, not commitment. Maintainer may re-split.
 
-- **Phase 1 — WM core.** Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus, mount/unmount lifecycle. **API-compatible with WinBox** at the call-site level so cv-mac can swap with minimal diff.
+- **Phase 1 — WM core.** Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus, mount/unmount lifecycle. **Two integration surfaces:** the imperative TS class API (foundation), and the declarative `data-aaron-window` scanner that calls into it on `DOMContentLoaded` + `MutationObserver`. **API-compatible with WinBox** at the imperative call-site level so cv-mac can swap with minimal diff.
 - **Phase 2 — Platinum chrome (default theme).** Pinstripe title bar, paper title pill, ink-bordered close box (left), zoom + windowshade controls (right), integrated grow box, optional status bar, diagonal-stripe corner. Replace WinBox in cv-mac.
 - **Phase 3 — Core controls.** Buttons (push, default with thick black outline, popup-menu with arrow box), tabs (merged with content panel), group boxes/frames, fields, popup menus, checkboxes, radios.
 - **Phase 4 — Theme engine.** Theme bundle format, loader, runtime switching, sound triggering, desktop background mounting. The first non-Platinum theme (likely Hi-Tech or a curated Kaleidoscope-era community theme) lands here as the proof.
