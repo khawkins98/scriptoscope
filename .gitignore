@@ -34,3 +34,4 @@ playwright/.cache/
 # Research scratch — period theme binaries kept locally for deconstruction.
 # See docs/RESEARCH-SPIKE-THEMES.md. Never committed to git.
 .scratch/
+.gstack/

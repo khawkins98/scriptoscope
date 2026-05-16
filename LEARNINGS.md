@@ -190,4 +190,22 @@ Strategic pivot recorded explicitly. The PRD's original positioning ("API-compat
 
 ---
 
+### 2026-05-16 — Chrome cicns alone don't reproduce a theme's full aesthetic; Kaleidoscope composites at runtime
+
+Surfaced while building `demo/themes-raster.html` with extracted raster assets and comparing to mass:werk's own preview JPGs. Two findings, both with bundle-format consequences:
+
+**1. ErgoBox's cicn body is white, not gray.** The Document Window cicn renders pixel-perfectly as a white-body chrome with a small projecting tab. The masswerk reference thumbnail shows the same window with a *medium-gray* body. Inspecting the cicn's pixel data (via the scheme-extractor decoder) confirms the cicn is genuinely white — the gray in the reference is runtime composition, almost certainly a `ppat` pattern resource overlaid on the body region by Kaleidoscope at draw time. We have 25 `ppat` resources extracted from ErgoBox but the bundle format hasn't yet encoded "which ppat layers over which cicn region."
+
+**2. Chrome shape can carry layout, but bitmap chrome can't natively reflow.** ErgoBox's tab-projecting titlebar is *encoded* in the cicn's pixel geometry (top-left has the tab; rest of top is transparent). When `border-image` 9-slice stretches the top slice horizontally, the tab geometry is destroyed. The demo's workaround — render the cicn at native pixel size only — gets pixel fidelity but loses variable window sizing. A real Aaron UI bundle format needs *either* separate per-region assets (tab.png + frame.png) or a richer descriptor than 9-slice.
+
+**Application:**
+
+- The Phase 4 theme bundle format must include a *runtime composition layer*: which `ppat` patterns get layered over which `cicn` regions, in which blend mode. Without this, ported themes will look "incomplete" vs their period-Kaleidoscope appearance.
+- The same format must declare *chrome geometry separately from chrome paint*: a "tab" element with its own size and origin, sliced from the source asset by explicit coordinates rather than CSS 9-slice. This is the price of supporting BeOS-tab and other non-rectangular chrome shapes.
+- For the demo, both findings are captured as visible artifacts. Pure-fidelity rendering of the extracted cicns is more honest than papering over with synthetic gray fills.
+
+[[multi-theme-demo]] [[masswerk-dark-ergobox2-deconstruction]]
+
+---
+
 *New learnings get appended below this line as the project ships.*
