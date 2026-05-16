@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" data-aaron-theme="7-le">
+<head>
+  <meta charset="UTF-8">
+  <title>Aaron UI — multi-theme demo (7 Le ↔ Dark ErgoBox 2)</title>
+  <!--
+    Multi-theme demo: load-and-switch between mass:werk 7 Le (Platinum-faithful)
+    and mass:werk Dark ErgoBox 2 (dark BeOS/Rhapsody/CDE hybrid with tab titlebars).
+
+    Purpose: prove the theme-switching architecture is workable as pure
+    declarative attribute swapping, and validate the bundle-format lessons
+    surfaced in docs/scheme-deconstruction/{masswerk-7-le,masswerk-dark-ergobox2}.md.
+
+    The single architectural seam this demo exercises:
+
+        :root[data-aaron-theme="7-le"]       { …custom-property values… }
+        :root[data-aaron-theme="dark-ergobox"]{ …custom-property values… }
+
+    Plus a few theme-scoped layout rules for ErgoBox's tab-projecting titlebar,
+    because — per the ErgoBox deconstruction — themes can carry layout, not just
+    paint. That's a Phase 4 bundle-format finding, demonstrated here.
+
+    No JS framework, no build step. ~30 lines of vanilla JS to wire the switcher
+    and persist the choice in localStorage.
+
+    Visual reference: schemes/masswerk7le.jpg and schemes/dark_ergobox.jpg from
+    https://www.masswerk.at/schemes.php (author's own preview thumbnails).
+    No pixels extracted — all CSS/SVG is re-authored from observation.
+
+    License of the source schemes: both freeware (N. Landsteiner). License of
+    Aaron UI artwork shown here: same as the project (currently undecided).
+  -->
+  <style>
+    /* ─── shared structural CSS (theme-agnostic) ──────────────────────── */
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      font-family: var(--aaron-font-system);
+      font-size: var(--aaron-font-size);
+      color: var(--aaron-text);
+      background: var(--aaron-desktop-bg);
+      padding: 56px 32px 32px;
+      transition: background-color 200ms ease;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 12px; left: 12px; right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--aaron-font-system);
+      color: white;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+      pointer-events: none;
+    }
+    .toolbar > * { pointer-events: auto; }
+    .toolbar__title { font-size: 13px; opacity: 0.95; }
+    .toolbar__switcher {
+      font-family: var(--aaron-font-system);
+      font-size: 12px;
+      padding: 2px 6px;
+      background: white;
+      color: black;
+      border: 1px solid #333;
+    }
+
+    .desktop-notes {
+      max-width: 60ch;
+      color: white;
+      font-size: 13px;
+      line-height: 1.55;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+      margin-bottom: 24px;
+    }
+    .desktop-notes code {
+      background: rgba(0,0,0,0.28);
+      padding: 1px 5px;
+      font-family: ui-monospace, "SF Mono", monospace;
+      font-size: 12px;
+    }
+    .desktop-notes em { font-style: normal; opacity: 0.85; }
+
+    .windows {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ─── window: structural, theme-agnostic ──────────────────────────── */
+
+    .aaron-window {
+      background: var(--aaron-window-frame);
+      border: var(--aaron-window-border-width) solid var(--aaron-window-border);
+      box-shadow: var(--aaron-window-shadow);
+      display: flex;
+      flex-direction: column;
+      min-width: 280px;
+      position: relative;
+      transition:
+        background-color 200ms ease,
+        border-color 200ms ease,
+        box-shadow 200ms ease;
+    }
+
+    .aaron-titlebar {
+      height: var(--aaron-titlebar-height);
+      background: var(--aaron-titlebar-bg);
+      border-bottom: 1px solid var(--aaron-titlebar-border);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      padding: 0 var(--aaron-titlebar-pad-x);
+      gap: 6px;
+      user-select: none;
+      color: var(--aaron-titlebar-text);
+      transition: background 200ms ease, color 200ms ease;
+    }
+
+    .aaron-window[data-state="inactive"] .aaron-titlebar {
+      background: var(--aaron-titlebar-inactive-bg);
+      color: var(--aaron-titlebar-inactive-text);
+    }
+
+    .aaron-titlebar__controls-left,
+    .aaron-titlebar__controls-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .aaron-titlebar__title-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .aaron-titlebar__title {
+      background: var(--aaron-title-pill-bg);
+      color: var(--aaron-title-pill-text);
+      padding: 0 8px;
+      border-left:  var(--aaron-title-pill-border);
+      border-right: var(--aaron-title-pill-border);
+      line-height: calc(var(--aaron-titlebar-height) - 2px);
+      font-size: var(--aaron-font-size);
+      font-weight: var(--aaron-title-weight, 400);
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .aaron-control {
+      width: 12px; height: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 0; padding: 0;
+      cursor: default;
+    }
+    .aaron-control svg { display: block; width: 100%; height: 100%; }
+
+    .aaron-window[data-state="inactive"] .aaron-control { opacity: 0.55; }
+
+    .aaron-content {
+      flex: 1;
+      background: var(--aaron-content-bg);
+      color: var(--aaron-content-text);
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+      transition: background 200ms ease, color 200ms ease;
+    }
+    .aaron-content p { margin: 0 0 0.6em 0; }
+    .aaron-content p:last-child { margin-bottom: 0; }
+
+    .aaron-statusbar {
+      height: var(--aaron-statusbar-height, 0);
+      background: var(--aaron-statusbar-bg, transparent);
+      color: var(--aaron-statusbar-text, inherit);
+      border-top: var(--aaron-statusbar-border, 0);
+      font-size: 10px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .aaron-growbox {
+      position: absolute;
+      right: 0; bottom: 0;
+      width: 15px; height: 15px;
+      background: var(--aaron-growbox-bg);
+      border-top:  var(--aaron-growbox-edge);
+      border-left: var(--aaron-growbox-edge);
+    }
+
+    /* default (collapsed) hides content + statusbar */
+    .aaron-window[data-state="collapsed"] .aaron-content,
+    .aaron-window[data-state="collapsed"] .aaron-statusbar {
+      display: none;
+    }
+    .aaron-window[data-state="collapsed"] .aaron-titlebar {
+      border-bottom: 0;
+    }
+
+    /* a tiny example button so theme buttons differ visibly */
+    .aaron-button {
+      font: inherit;
+      padding: 3px 14px;
+      background: var(--aaron-button-bg);
+      color: var(--aaron-button-text);
+      border: var(--aaron-button-border);
+      border-radius: var(--aaron-button-radius, 0);
+      cursor: default;
+    }
+    .aaron-button[data-default="true"] {
+      box-shadow: var(--aaron-button-default-outline);
+      font-weight: 500;
+    }
+
+    .aaron-button-row {
+      margin-top: 10px;
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       THEME 1 — mass:werk 7 Le  (Platinum-faithful, light)
+       Re-authored from masswerk7le.jpg observation.
+       ════════════════════════════════════════════════════════════════════ */
+
+    :root[data-aaron-theme="7-le"] {
+      --aaron-font-system:
+        "Charcoal", "Chicago", -apple-system, BlinkMacSystemFont,
+        "Lucida Grande", "Segoe UI", sans-serif;
+      --aaron-font-size: 12px;
+      --aaron-text: #000;
+
+      --aaron-desktop-bg: #5a7a96;
+
+      --aaron-window-frame:        #cccccc;
+      --aaron-window-border:       #000000;
+      --aaron-window-border-width: 1px;
+      --aaron-window-shadow:       1px 1px 0 #555555;
+
+      --aaron-titlebar-height: 19px;
+      --aaron-titlebar-pad-x:  4px;
+      --aaron-titlebar-bg: repeating-linear-gradient(
+        to bottom,
+        #e8e8e8 0 1px,
+        #dddddd 1px 2px
+      );
+      --aaron-titlebar-inactive-bg:   #dddddd;
+      --aaron-titlebar-text:          #000;
+      --aaron-titlebar-inactive-text: #666;
+      --aaron-titlebar-border:        #000;
+
+      --aaron-title-pill-bg:     #fff;
+      --aaron-title-pill-text:   #000;
+      --aaron-title-pill-border: 1px solid #888;
+
+      --aaron-content-bg:   #ffffff;
+      --aaron-content-text: #000;
+
+      --aaron-growbox-bg:
+        linear-gradient(
+          135deg,
+          transparent 0 2px, #888 2px 3px,
+          transparent 3px 5px, #888 5px 6px,
+          transparent 6px 8px, #888 8px 9px,
+          transparent 9px 11px, #888 11px 12px,
+          transparent 12px 15px
+        ), #e8e8e8;
+      --aaron-growbox-edge: 1px solid #888;
+
+      --aaron-button-bg:     #dddddd;
+      --aaron-button-text:   #000;
+      --aaron-button-border: 1px solid #000;
+      --aaron-button-radius: 0;
+      --aaron-button-default-outline: 0 0 0 2px #000;
+
+      /* 7 Le doesn't ship a status bar */
+      --aaron-statusbar-height: 0;
+    }
+
+    :root[data-aaron-theme="7-le"] .aaron-control svg rect.box {
+      fill: #f4f4f4; stroke: #000; stroke-width: 1;
+    }
+    :root[data-aaron-theme="7-le"] .aaron-control svg .glyph {
+      stroke: #000; stroke-width: 1; fill: none;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════
+       THEME 2 — mass:werk Dark ErgoBox 2  (dark, BeOS-tab titlebar)
+       Re-authored from dark_ergobox.jpg observation.
+       Demonstrates the bundle-format finding: themes carry layout, not
+       just paint. Tab-projecting titlebar is a layout change.
+       ════════════════════════════════════════════════════════════════════ */
+
+    :root[data-aaron-theme="dark-ergobox"] {
+      --aaron-font-system:
+        "Geneva", "Verdana", -apple-system, BlinkMacSystemFont, sans-serif;
+      --aaron-font-size: 11px;
+      --aaron-text: #d8d8d8;
+
+      --aaron-desktop-bg: #38424d;
+
+      --aaron-window-frame:        #3a3a3a;
+      --aaron-window-border:       #111;
+      --aaron-window-border-width: 1px;
+      --aaron-window-shadow:
+        0 0 0 1px #555 inset,    /* inner lighter stripe (composite border) */
+        2px 2px 0 rgba(0,0,0,0.4);
+
+      --aaron-titlebar-height: 18px;
+      --aaron-titlebar-pad-x:  6px;
+      --aaron-titlebar-bg: repeating-linear-gradient(
+        to bottom,
+        #444 0 1px,
+        #3a3a3a 1px 2px
+      );
+      --aaron-titlebar-inactive-bg:   #2e2e2e;
+      --aaron-titlebar-text:          #f0f0f0;
+      --aaron-titlebar-inactive-text: #888;
+      --aaron-titlebar-border:        #111;
+
+      --aaron-title-pill-bg:     transparent;
+      --aaron-title-pill-text:   #f0f0f0;
+      --aaron-title-pill-border: 0;
+      --aaron-title-weight: 600;
+
+      --aaron-content-bg:   #d4d4d4;
+      --aaron-content-text: #1a1a1a;
+
+      --aaron-growbox-bg:
+        linear-gradient(
+          135deg,
+          transparent 0 2px, #888 2px 3px,
+          transparent 3px 5px, #888 5px 6px,
+          transparent 6px 8px, #888 8px 9px,
+          transparent 9px 11px, #888 11px 12px,
+          transparent 12px 15px
+        ), #555;
+      --aaron-growbox-edge: 1px solid #111;
+
+      --aaron-button-bg: linear-gradient(to bottom, #555 0%, #3a3a3a 100%);
+      --aaron-button-text:   #f0f0f0;
+      --aaron-button-border: 1px solid #111;
+      --aaron-button-radius: 2px;
+      --aaron-button-default-outline: 0 0 0 1px #000;
+
+      /* ErgoBox ships a status bar — Mac OS 8 status-bar slot in active use */
+      --aaron-statusbar-height: 16px;
+      --aaron-statusbar-bg: #2e2e2e;
+      --aaron-statusbar-text: #aaa;
+      --aaron-statusbar-border: 1px solid #555;
+    }
+
+    :root[data-aaron-theme="dark-ergobox"] .aaron-control svg rect.box {
+      fill: #555; stroke: #f0f0f0; stroke-width: 1;
+    }
+    :root[data-aaron-theme="dark-ergobox"] .aaron-control svg .glyph {
+      stroke: #f0f0f0; stroke-width: 1; fill: none;
+    }
+
+    /* ─── ErgoBox's tab-projecting titlebar (LAYOUT, not paint) ─────────
+       The BE-style titlebar projects upward from the window's top-left
+       as a smaller rounded-top tab, rather than spanning full width.
+       This is the "themes can carry layout" finding from the ErgoBox
+       deconstruction made concrete.  ─────────────────────────────────── */
+
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window {
+      margin-top: 18px;            /* room for the projecting tab */
+      padding-top: 0;
+    }
+
+    :root[data-aaron-theme="dark-ergobox"] .aaron-titlebar {
+      position: absolute;
+      top: -18px;                  /* projects above the window */
+      left: -1px;                  /* aligns with window's outer border */
+      height: 19px;
+      width: auto;
+      min-width: 120px;
+      max-width: 80%;
+      padding: 0 8px;
+      border: 1px solid #111;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;  /* rounded top corners only */
+      grid-template-columns: auto 1fr auto;
+      column-gap: 6px;
+      background: linear-gradient(to bottom, #4a4a4a 0%, #333 100%);
+    }
+
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="inactive"] .aaron-titlebar {
+      background: linear-gradient(to bottom, #383838 0%, #2a2a2a 100%);
+    }
+
+    :root[data-aaron-theme="dark-ergobox"] .aaron-titlebar__title {
+      background: transparent;
+      border: 0;
+      padding: 0 4px;
+    }
+
+    /* When collapsed, only the tab is visible (no content / no statusbar). */
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] {
+      min-width: 0;
+      min-height: 0;
+      width: max-content;
+      padding-top: 18px;           /* keep the tab visible */
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-state="collapsed"] .aaron-titlebar {
+      position: static;
+      top: auto; left: auto;
+      border-bottom: 1px solid #111;
+      border-radius: 4px 4px 4px 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <span class="toolbar__title">Aaron UI — multi-theme demo</span>
+    <!-- Declarative theme switcher per PRD §North Star.
+         Wired to the data-aaron-theme attribute on <html>. -->
+    <select class="toolbar__switcher" data-aaron-theme-switcher>
+      <option value="7-le">mass:werk 7 Le (Platinum-faithful)</option>
+      <option value="dark-ergobox">mass:werk Dark ErgoBox 2 (BeOS-tab dark)</option>
+    </select>
+  </div>
+
+  <div class="desktop-notes">
+    Two re-authored themes loaded as CSS custom property sets keyed off
+    <code>:root[data-aaron-theme]</code>. Switch the dropdown to toggle live —
+    no reload, no rebuild. <em>Visual fidelity is intentionally approximate
+    (informed re-authoring, not pixel reproduction). The structural shift
+    between 7 Le's full-width titlebar and ErgoBox's projecting tab titlebar
+    proves themes carry layout, not just paint.</em>
+  </div>
+
+  <div class="windows">
+
+    <!-- Window 1 — active ────────────────────────────────────────────── -->
+    <div class="aaron-window" data-state="active">
+      <div class="aaron-titlebar">
+        <div class="aaron-titlebar__controls-left">
+          <button class="aaron-control" aria-label="Close" title="Close">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="aaron-titlebar__title-wrap">
+          <span class="aaron-titlebar__title">Welcome</span>
+        </div>
+        <div class="aaron-titlebar__controls-right">
+          <button class="aaron-control" aria-label="Zoom" title="Zoom">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <rect class="glyph" x="2.5" y="2.5" width="7" height="7"/>
+            </svg>
+          </button>
+          <button class="aaron-control" aria-label="Collapse" title="Collapse">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <line class="glyph" x1="2" y1="6" x2="10" y2="6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="aaron-content">
+        <p>This is the active window in the currently-selected theme.</p>
+        <p>Try the dropdown at the top: 7 Le keeps the classic Mac OS 8
+        Platinum layout — full-width pinstripe titlebar, paper title pill,
+        white content. Dark ErgoBox 2 reshapes the chrome into a
+        projecting tab, darkens the palette, and brings the period
+        status bar slot into use.</p>
+        <div class="aaron-statusbar">1 Object, 2 MB free</div>
+      </div>
+      <div class="aaron-growbox" aria-hidden="true"></div>
+    </div>
+
+    <!-- Window 2 — inactive ──────────────────────────────────────────── -->
+    <div class="aaron-window" data-state="inactive">
+      <div class="aaron-titlebar">
+        <div class="aaron-titlebar__controls-left">
+          <button class="aaron-control" aria-label="Close" title="Close" disabled>
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="aaron-titlebar__title-wrap">
+          <span class="aaron-titlebar__title">Inactive</span>
+        </div>
+        <div class="aaron-titlebar__controls-right">
+          <button class="aaron-control" aria-label="Zoom" title="Zoom" disabled>
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <rect class="glyph" x="2.5" y="2.5" width="7" height="7"/>
+            </svg>
+          </button>
+          <button class="aaron-control" aria-label="Collapse" title="Collapse" disabled>
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <line class="glyph" x1="2" y1="6" x2="10" y2="6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="aaron-content">
+        <p>Inactive windows lose pinstripe in 7 Le, lose contrast in
+        ErgoBox. Per the deconstruction finding, this is paired-palette
+        swapping, not opacity-dimming.</p>
+        <div class="aaron-statusbar">Inactive — last activity 4m ago</div>
+      </div>
+      <div class="aaron-growbox" aria-hidden="true"></div>
+    </div>
+
+    <!-- Window 3 — active dialog with default button ─────────────────── -->
+    <div class="aaron-window" data-state="active">
+      <div class="aaron-titlebar">
+        <div class="aaron-titlebar__controls-left">
+          <button class="aaron-control" aria-label="Close" title="Close">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="aaron-titlebar__title-wrap">
+          <span class="aaron-titlebar__title">Confirm</span>
+        </div>
+        <div class="aaron-titlebar__controls-right">
+          <button class="aaron-control" aria-label="Zoom" title="Zoom">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <rect class="glyph" x="2.5" y="2.5" width="7" height="7"/>
+            </svg>
+          </button>
+          <button class="aaron-control" aria-label="Collapse" title="Collapse">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <line class="glyph" x1="2" y1="6" x2="10" y2="6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="aaron-content">
+        <p>The default button below shows a real palette difference:
+        7 Le uses the period-thick black outline; ErgoBox uses a
+        subtler bevel.</p>
+        <div class="aaron-button-row">
+          <button class="aaron-button">Cancel</button>
+          <button class="aaron-button" data-default="true">OK</button>
+        </div>
+        <div class="aaron-statusbar">Ready</div>
+      </div>
+      <div class="aaron-growbox" aria-hidden="true"></div>
+    </div>
+
+    <!-- Window 4 — collapsed ─────────────────────────────────────────── -->
+    <div class="aaron-window" data-state="collapsed">
+      <div class="aaron-titlebar">
+        <div class="aaron-titlebar__controls-left">
+          <button class="aaron-control" aria-label="Close" title="Close">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="aaron-titlebar__title-wrap">
+          <span class="aaron-titlebar__title">Rolled up</span>
+        </div>
+        <div class="aaron-titlebar__controls-right">
+          <button class="aaron-control" aria-label="Expand" title="Expand">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect class="box" x="0.5" y="0.5" width="11" height="11"/>
+              <line class="glyph" x1="2" y1="6" x2="10" y2="6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="aaron-content"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ─── Theme switcher ─────────────────────────────────────────────────
+    // Tiny vanilla JS: ~20 lines. The PRD's declarative-first integration
+    // story is honored — the switcher itself is a plain <select> with
+    // data-aaron-theme-switcher; this script is the imperative wiring
+    // a full Aaron UI scanner would provide automatically.
+
+    (function () {
+      const STORAGE_KEY = 'aaron-ui:demo-theme';
+      const root = document.documentElement;
+      const switcher = document.querySelector('[data-aaron-theme-switcher]');
+
+      // Restore last-chosen theme if any.
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && (saved === '7-le' || saved === 'dark-ergobox')) {
+        root.setAttribute('data-aaron-theme', saved);
+        switcher.value = saved;
+      } else {
+        switcher.value = root.getAttribute('data-aaron-theme') || '7-le';
+      }
+
+      switcher.addEventListener('change', () => {
+        const next = switcher.value;
+        root.setAttribute('data-aaron-theme', next);
+        localStorage.setItem(STORAGE_KEY, next);
+      });
+    })();
+  </script>
+
+</body>
+</html>
