@@ -1,11 +1,13 @@
 {
   "source": "scheme.r",
-  "extractedAt": "2026-05-16T19:15:10.101Z",
+  "extractedAt": "2026-05-16T21:22:03.823Z",
   "counts": {
-    "total": 184,
-    "ok": 184,
+    "total": 251,
+    "ok": 251,
     "skipped": 0,
-    "errored": 0
+    "errored": 0,
+    "raster": 184,
+    "geometry": 67
   },
   "assets": [
     {
@@ -2553,6 +2555,1431 @@
       }
     },
     {
+      "type": "cinf",
+      "id": -12240,
+      "name": "Root Menu Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12239,
+      "name": "Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12238,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12237,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12236,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12235,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 1,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12234,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12228,
+      "name": "Pull-Down Menu Border",
+      "status": "ok",
+      "data": {
+        "cornerSize": 20,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12227,
+      "name": "Pull-Down Menu Border Shadow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 20,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12226,
+      "name": "Free Menu Border",
+      "status": "ok",
+      "data": {
+        "cornerSize": 20,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12225,
+      "name": "Free Menu Border Shadow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 20,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10144,
+      "name": "Inactive Down Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10143,
+      "name": "Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10142,
+      "name": "Pressed Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10132,
+      "name": "Inactive Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10131,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10130,
+      "name": "Pressed Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10128,
+      "name": "Inactive Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10127,
+      "name": "Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10126,
+      "name": "Pressed Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10116,
+      "name": "Inactive Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10115,
+      "name": "Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10114,
+      "name": "Pressed Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10080,
+      "name": "Progress Bar Frame Active",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10079,
+      "name": "Progress Bar Active",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10078,
+      "name": "Progress Bar Track Active",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10077,
+      "name": "Progress Bar Frame Inactive",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10076,
+      "name": "Progress Bar Inactive",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10075,
+      "name": "Progress Bar Track Inactive",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9984,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9983,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9982,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9981,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9980,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9978,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9977,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9976,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9975,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9974,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9973,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9972,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 12,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9568,
+      "name": "Inactive Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9567,
+      "name": "Active Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9552,
+      "name": "desktop icon label, col & text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9551,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9550,
+      "name": "list view, color and text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9549,
+      "name": "list view, sort column col",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9548,
+      "name": "list view separator line color",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8208,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8207,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8206,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8205,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8204,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8203,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8202,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 1
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8201,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 1
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8200,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 1
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
       "type": "ppat",
       "id": -10080,
       "name": "Indeterminate Progress",
@@ -2925,6 +4352,1376 @@
         "pixelSize": 1,
         "colorCount": 2,
         "rowBytes": 1
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 26,
+              "left": 6,
+              "bottom": 57,
+              "right": 125
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 3,
+              "left": 46,
+              "bottom": 21,
+              "right": 48
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 6,
+              "left": 4,
+              "bottom": 19,
+              "right": 17
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 6,
+              "left": 75,
+              "bottom": 19,
+              "right": 88
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 6,
+              "left": 91,
+              "bottom": 19,
+              "right": 104
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 2,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 42
+          },
+          {
+            "part": 6,
+            "border": 47
+          },
+          {
+            "part": 5,
+            "border": 48
+          },
+          {
+            "part": 6,
+            "border": 53
+          },
+          {
+            "part": 1,
+            "border": 74
+          },
+          {
+            "part": 3,
+            "border": 90
+          },
+          {
+            "part": 4,
+            "border": 104
+          },
+          {
+            "part": 1,
+            "border": 109
+          },
+          {
+            "part": 8,
+            "border": 110
+          },
+          {
+            "part": 1,
+            "border": 132
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 21
+          },
+          {
+            "part": 8,
+            "border": 22
+          },
+          {
+            "part": 0,
+            "border": 110
+          },
+          {
+            "part": 1,
+            "border": 132
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 26
+          },
+          {
+            "part": 8,
+            "border": 27
+          },
+          {
+            "part": 0,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 64
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 21
+          },
+          {
+            "part": 1,
+            "border": 41
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 64
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14332,
+      "name": "Collapsed Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 26,
+              "left": 6,
+              "bottom": 27,
+              "right": 125
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 3,
+              "left": 46,
+              "bottom": 21,
+              "right": 48
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 6,
+              "left": 4,
+              "bottom": 19,
+              "right": 17
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 6,
+              "left": 75,
+              "bottom": 19,
+              "right": 88
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 6,
+              "left": 91,
+              "bottom": 19,
+              "right": 104
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 2,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 42
+          },
+          {
+            "part": 6,
+            "border": 47
+          },
+          {
+            "part": 5,
+            "border": 48
+          },
+          {
+            "part": 6,
+            "border": 53
+          },
+          {
+            "part": 1,
+            "border": 74
+          },
+          {
+            "part": 3,
+            "border": 90
+          },
+          {
+            "part": 4,
+            "border": 104
+          },
+          {
+            "part": 1,
+            "border": 109
+          },
+          {
+            "part": 8,
+            "border": 110
+          },
+          {
+            "part": 1,
+            "border": 132
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 21
+          },
+          {
+            "part": 8,
+            "border": 22
+          },
+          {
+            "part": 0,
+            "border": 125
+          },
+          {
+            "part": 1,
+            "border": 132
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 26
+          },
+          {
+            "part": 8,
+            "border": 27
+          },
+          {
+            "part": 0,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 64
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 21
+          },
+          {
+            "part": 1,
+            "border": 41
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 0,
+            "border": 57
+          },
+          {
+            "part": 1,
+            "border": 64
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14328,
+      "name": "Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 4,
+              "left": 4,
+              "bottom": 5,
+              "right": 5
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 1,
+            "border": 10
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 1,
+            "border": 10
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 1,
+            "border": 10
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 1,
+            "border": 10
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 3,
+              "left": 3,
+              "bottom": 4,
+              "right": 4
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 8,
+            "border": 4
+          },
+          {
+            "part": 1,
+            "border": 8
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 8,
+            "border": 4
+          },
+          {
+            "part": 1,
+            "border": 8
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 8,
+            "border": 4
+          },
+          {
+            "part": 1,
+            "border": 8
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 8,
+            "border": 4
+          },
+          {
+            "part": 1,
+            "border": 8
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14324,
+      "name": "Movable Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 25,
+              "left": 3,
+              "bottom": 26,
+              "right": 22
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 4,
+              "left": 12,
+              "bottom": 20,
+              "right": 13
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 6
+          },
+          {
+            "part": 8,
+            "border": 7
+          },
+          {
+            "part": 6,
+            "border": 12
+          },
+          {
+            "part": 5,
+            "border": 13
+          },
+          {
+            "part": 6,
+            "border": 18
+          },
+          {
+            "part": 8,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 22
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 1,
+            "border": 30
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 1,
+            "border": 30
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 25,
+              "left": 3,
+              "bottom": 26,
+              "right": 22
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 4,
+              "left": 12,
+              "bottom": 20,
+              "right": 13
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 6
+          },
+          {
+            "part": 8,
+            "border": 7
+          },
+          {
+            "part": 6,
+            "border": 12
+          },
+          {
+            "part": 5,
+            "border": 13
+          },
+          {
+            "part": 6,
+            "border": 18
+          },
+          {
+            "part": 8,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 22
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 1,
+            "border": 30
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 1,
+            "border": 30
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14304,
+      "name": "Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 16,
+              "left": 4,
+              "bottom": 17,
+              "right": 99
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 3,
+              "left": 3,
+              "bottom": 13,
+              "right": 13
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 3,
+              "left": 79,
+              "bottom": 13,
+              "right": 89
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 3,
+              "left": 90,
+              "bottom": 13,
+              "right": 100
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 3,
+              "left": 39,
+              "bottom": 16,
+              "right": 56
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 2,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 11,
+            "border": 19
+          },
+          {
+            "part": 0,
+            "border": 33
+          },
+          {
+            "part": 6,
+            "border": 39
+          },
+          {
+            "part": 5,
+            "border": 56
+          },
+          {
+            "part": 6,
+            "border": 62
+          },
+          {
+            "part": 8,
+            "border": 65
+          },
+          {
+            "part": 0,
+            "border": 76
+          },
+          {
+            "part": 1,
+            "border": 79
+          },
+          {
+            "part": 3,
+            "border": 90
+          },
+          {
+            "part": 4,
+            "border": 100
+          },
+          {
+            "part": 1,
+            "border": 104
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 99
+          },
+          {
+            "part": 1,
+            "border": 104
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 16
+          },
+          {
+            "part": 11,
+            "border": 17
+          },
+          {
+            "part": 1,
+            "border": 22
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 16
+          },
+          {
+            "part": 11,
+            "border": 17
+          },
+          {
+            "part": 1,
+            "border": 22
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14300,
+      "name": "Collapsed Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 16,
+              "left": 4,
+              "bottom": 17,
+              "right": 99
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 3,
+              "left": 3,
+              "bottom": 13,
+              "right": 13
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 3,
+              "left": 78,
+              "bottom": 13,
+              "right": 88
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 3,
+              "left": 90,
+              "bottom": 13,
+              "right": 100
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 3,
+              "left": 39,
+              "bottom": 16,
+              "right": 56
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 2,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 11,
+            "border": 19
+          },
+          {
+            "part": 0,
+            "border": 33
+          },
+          {
+            "part": 6,
+            "border": 39
+          },
+          {
+            "part": 5,
+            "border": 56
+          },
+          {
+            "part": 6,
+            "border": 62
+          },
+          {
+            "part": 8,
+            "border": 65
+          },
+          {
+            "part": 0,
+            "border": 76
+          },
+          {
+            "part": 1,
+            "border": 79
+          },
+          {
+            "part": 3,
+            "border": 90
+          },
+          {
+            "part": 4,
+            "border": 100
+          },
+          {
+            "part": 1,
+            "border": 104
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 3
+          },
+          {
+            "part": 8,
+            "border": 4
+          },
+          {
+            "part": 0,
+            "border": 101
+          },
+          {
+            "part": 1,
+            "border": 104
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 4,
+              "left": 14,
+              "bottom": 66,
+              "right": 15
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 3,
+              "left": 2,
+              "bottom": 13,
+              "right": 12
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 46,
+              "left": 2,
+              "bottom": 56,
+              "right": 12
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 56,
+              "left": 2,
+              "bottom": 66,
+              "right": 12
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 2
+          },
+          {
+            "part": 15,
+            "border": 3
+          },
+          {
+            "part": 2,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 17
+          },
+          {
+            "part": 0,
+            "border": 44
+          },
+          {
+            "part": 3,
+            "border": 56
+          },
+          {
+            "part": 4,
+            "border": 67
+          },
+          {
+            "part": 17,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 66
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14292,
+      "name": "Collapsed Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 4,
+              "left": 14,
+              "bottom": 66,
+              "right": 15
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 3,
+              "left": 2,
+              "bottom": 13,
+              "right": 12
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 46,
+              "left": 2,
+              "bottom": 56,
+              "right": 12
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 56,
+              "left": 2,
+              "bottom": 66,
+              "right": 12
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 15
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 2
+          },
+          {
+            "part": 15,
+            "border": 3
+          },
+          {
+            "part": 2,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 17
+          },
+          {
+            "part": 0,
+            "border": 44
+          },
+          {
+            "part": 3,
+            "border": 56
+          },
+          {
+            "part": 4,
+            "border": 67
+          },
+          {
+            "part": 17,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 8,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 66
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ]
       }
     }
   ]
