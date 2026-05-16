@@ -208,4 +208,39 @@ Surfaced while building `demo/themes-raster.html` with extracted raster assets a
 
 ---
 
+### 2026-05-16 — Bitmap chrome rendering: 9-slice for variable elements, tile-repeat for periodic patterns, fixed-aspect for full-frame composites
+
+Surfaced while iterating `demo/themes-raster.html` with actual extracted cicn raster assets and validating against the masswerk reference thumbnails via headless Chromium. Three findings, each with bundle-format consequences for Phase 4.
+
+**1. CSS `background-image` stretching destroys bitmap chrome.** Stretching a 132×64 cicn to fill a 340×180 window via `background-size: 100% 100%` produces visible browser interpolation — 1px borders become fuzzy ~3px lines, widget glyphs blur, period crispness is lost. `image-rendering: pixelated` helps for integer scale multiples but does not save uneven stretch (2.58× horizontal vs 2.81× vertical is still bilinear-filtered in practice).
+
+**Right tool per category:**
+
+| Chrome category | Asset shape | Correct CSS render |
+|---|---|---|
+| Window-frame composite (full BeOS tab + body in one cicn) | Fixed-aspect bitmap | Fixed window size at integer scale (1×, 2×, 3×). Either lock the window to the cicn aspect, OR ship separate per-region assets (tab.png + frame.png) and assemble. |
+| Scrollbar track background | Periodic tile (e.g., 16×16 stippled pattern) | `background-repeat: repeat-x` — natural fit. |
+| Progress bar fill (barber pole) | Periodic tile (e.g., 12×10 diagonal stripes) | `background-repeat: repeat-x` — also natural fit. |
+| Scrollbar thumb | Fixed end-caps + middle grip | `border-image` 9-slice with end-cap-width slices; middle stretches. |
+| Progress bar track | Engraved frame, possibly with end caps | `border-image` 9-slice with 1px slices preserves the engraved edges crisp at any width. |
+| Window controls (close, zoom) | Fixed-size glyphs (~16×16) at fixed positions inside a larger composite | Pseudo-elements with `background-position` offsets to clip the relevant region. |
+
+**2. The cicn's "white body" is a runtime-composition issue.** mass:werk Dark ErgoBox 2's Document Window cicn body is genuinely white pixels (verified by parsing the PNG RGBA buffer directly). The reference thumbnail shows gray. Kaleidoscope must have layered a separate gray `ppat` over the body region at draw time. The demo fakes this with `mix-blend-mode: multiply` against a gray overlay (`#b4b4b4` ish), which produces the correct visual but is the wrong mechanism. Phase 4 needs to support **declared composition** in `theme.json`: which `ppat` overlays which `cicn` region, in which blend mode, masked to which sub-rectangle.
+
+**3. Bitmap chrome is inherently fixed-aspect.** A 132×64 cicn rendered at 2× gives a 264×128 window. To get variable-aspect windows under bitmap chrome (which the masswerk reference clearly does — inactive is wider but shorter than main), Kaleidoscope must have used the `cinf` interaction-rect metadata to declare WHICH regions stretch and WHICH stay fixed. Our scheme-extractor currently parses `cinf` but doesn't decode the rect data. For the demo we accepted uniform fixed-size ErgoBox windows; for Phase 4 the bundle format needs to translate `cinf` rects into 9-slice CSS rules (or a richer composition descriptor).
+
+**Application:**
+
+- **Demo / immediate:** the existing `demo/themes-raster.html` uses the right tool per category. Future control additions (sliders, popups, menubars) should follow the same per-category mapping.
+- **Phase 4 bundle format `theme.json` needs at minimum:**
+  - For each window-type entry: source cicn(s), 9-slice positions, OR separate-asset layout
+  - For tileable patterns: which patterns tile in which direction, repeat behavior
+  - For runtime composition: layer descriptors (cicn + optional ppat overlay + blend mode + masked region)
+  - For interaction-rect mapping: cinf-equivalent metadata so the WM knows where the close-box click target actually is
+- **scheme-extractor evolution:** add `cinf` rect decoding to the lib, surface interaction-rect data in the manifest alongside the PNG references.
+
+[[multi-theme-demo]] [[masswerk-dark-ergobox2-deconstruction]] [[theme-bundle-format]]
+
+---
+
 *New learnings get appended below this line as the project ships.*

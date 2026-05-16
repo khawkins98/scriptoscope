@@ -362,21 +362,33 @@
       justify-content: flex-end;
     }
 
-    /* ─── progress bar (composed from track + fill cicns) ──────── */
+    /* ─── progress bar (proper 9-slice composition) ────────────
+       The cicns ship as separate pieces matching how Kaleidoscope
+       composed at runtime:
+         - Progress Bar Track    → 9-slice border-image (fixed end caps)
+         - Progress Bar (fill)   → tile via background-repeat
+                                   (the barber-pole pattern is genuinely
+                                   periodic, so repeat is correct here) */
 
     .aaron-progress {
       position: relative;
       height: 14px;
-      background: var(--cicn-progress-track) repeat-x;
-      background-size: auto 100%;
-      border: 1px solid var(--aaron-progress-border, #888);
+      /* Track as 9-slice: 1px slice keeps the engraved edges crisp
+         while the middle stretches naturally. */
+      border-style: solid;
+      border-color: transparent;
+      border-width: 1px;
+      border-image-source: var(--cicn-progress-track);
+      border-image-slice: 1 fill;
+      border-image-width: 1px;
+      border-image-repeat: stretch;
       overflow: hidden;
       margin-top: 6px;
     }
     .aaron-progress__fill {
       position: absolute;
       left: 0; top: 0; bottom: 0;
-      background: var(--cicn-progress-fill) repeat-x;
+      background: var(--cicn-progress-fill) repeat-x center;
       background-size: auto 100%;
       transition: width 200ms ease;
     }
@@ -386,7 +398,11 @@
       margin-top: 2px;
     }
 
-    /* ─── horizontal scrollbar at window bottom ────────────────── */
+    /* ─── horizontal scrollbar at window bottom ────────────────────
+       Each piece composed properly:
+         - arrows  → fixed 16x16 native size, no stretch
+         - track   → tiled (Empty Scrollbar pattern is a periodic tile)
+         - thumb   → 9-slice so end-caps stay fixed, middle grip stretches */
 
     .aaron-scrollbar-h {
       display: flex;
@@ -399,17 +415,20 @@
       width: 16px;
       height: 16px;
       background: var(--cicn-scrollbar-arrow) no-repeat center;
-      background-size: contain;
+      background-size: 100% 100%;   /* arrow cicn is fixed 16x16, no stretch */
       flex: 0 0 16px;
+      image-rendering: pixelated;
     }
     .aaron-scrollbar-arrow[data-dir="right"] {
-      transform: scaleX(-1); /* mirror the left arrow */
+      transform: scaleX(-1);
     }
     .aaron-scrollbar-track {
       flex: 1;
       height: 100%;
       background: var(--cicn-scrollbar-track) repeat-x center;
+      background-size: auto 100%;
       position: relative;
+      image-rendering: pixelated;
     }
     .aaron-scrollbar-thumb {
       position: absolute;
@@ -417,8 +436,16 @@
       left: 30%;
       width: 40%;
       height: 100%;
-      background: var(--cicn-scrollbar-thumb) no-repeat center;
-      background-size: 100% 100%;
+      /* 9-slice with 4px end caps preserves the bevels at the ends while
+         the middle grip pattern can stretch to any thumb width. */
+      border-style: solid;
+      border-color: transparent;
+      border-width: 0 4px;
+      border-image-source: var(--cicn-scrollbar-thumb);
+      border-image-slice: 0 4 fill;
+      border-image-width: 0 4px;
+      border-image-repeat: stretch;
+      image-rendering: pixelated;
     }
 
     /* ═══════════════════ THEME: mass:werk 7 Le ═════════════════════ */
@@ -592,18 +619,40 @@
       --_body-frame-px: 4px;
     }
 
-    /* ErgoBox windows: chrome from the Document Window cicn at 2x, plus
-       a multiply-blend gray overlay to approximate the runtime ppat
-       composition Kaleidoscope did to gray-tint the white cicn body. */
+    /* ErgoBox windows: chrome from the Document Window cicn at 2x.
+       Window dimensions are LOCKED to cicn-native × 2 — anything else
+       stretches the bitmap with browser interpolation = blurry chrome.
+       Per-window inline width/height are deliberately overridden.
+       Content must fit inside the fixed 264×128 frame.
+
+       Architectural truth this enforces: bitmap chrome cicns are
+       fixed-aspect by nature. Variable-size windows under bitmap
+       chrome need either separate per-region assets or the cinf
+       interaction-rect metadata Kaleidoscope used to compose at
+       runtime. Both are Phase 4 work. */
     :root[data-aaron-theme="dark-ergobox"] .aaron-window {
-      width: calc(var(--_doc-cicn-w) * var(--_doc-scale));
-      height: calc(var(--_doc-cicn-h) * var(--_doc-scale));
+      width: calc(var(--_doc-cicn-w) * var(--_doc-scale)) !important;
+      height: calc(var(--_doc-cicn-h) * var(--_doc-scale)) !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
       background-color: #888;
       background-image: url('assets/themes/masswerk-dark-ergobox2/cicn-n14335-document-window-active.png');
       background-repeat: no-repeat;
       background-size: 100% 100%;
       image-rendering: pixelated;
       box-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+    }
+    /* Reposition ErgoBox windows so the 264×128 fixed-size windows
+       don't all stack on top of each other (the per-window inline
+       top/left were tuned for 7 Le's larger windows). */
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="inactive-small"] {
+      top: 40px !important; left: 280px !important;
+    }
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="hello"] {
+      top: 200px !important; left: 30px !important;
+    }
+    :root[data-aaron-theme="dark-ergobox"] .aaron-window[data-role="main"] {
+      top: 250px !important; left: 200px !important;
     }
     :root[data-aaron-theme="dark-ergobox"] .aaron-window::before {
       content: '';
