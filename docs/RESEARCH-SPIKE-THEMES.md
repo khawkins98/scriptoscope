@@ -74,6 +74,8 @@ No emulator required for the spike itself — we can extract resource structure 
 
 ## Deconstruction method
 
+> **Tooling note (2026-05-16):** the raster extraction half of this pipeline is now mechanized — see [`tools/scheme-extractor/`](../tools/scheme-extractor/README.md). One CLI command takes a DeRez `.r` file and produces PNGs for every `cicn` and `ppat` resource plus a JSON manifest. The lib/ is browser-portable; the longer-term path is a web-based extractor.
+
 For each candidate `.ksc`:
 
 1. **Acquire.** Download from confirmed source. Note URL, mirror, and date of download in the inventory.
