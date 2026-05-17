@@ -252,10 +252,63 @@ This document is the methodology applied to the current state. The next PR follo
 
 ---
 
-## 8. References
+## 8. Investigation 2026-05-17 — V1 attempt blocked on wnd# format understanding
+
+After this analysis shipped, I attempted a V1 of the wnd# side-recipe composer (#64.1). Approach: each `{at, part}` entry in the top-side recipe becomes one absolute-positioned div; each div renders the cicn pixels at its segment's x-range (via `background-position` negative offset + `background-repeat: repeat-x`).
+
+**Result:** visually WORSE than uniform stretch. The composer fragmented each titlebar into ~13 discrete rectangles (one per recipe entry), each showing a small misaligned crop of the cicn. Screenshots via `browse` confirmed the regression; reverted within the session.
+
+### What the V1 attempt revealed about the data
+
+Inspecting both canonical bundles' `wnd#` data exposed an understanding gap:
+
+```
+mass:werk 7 Le document-window:
+  rectangleList parts: part-0, part-1, part-2, part-3, part-4   (5 entries)
+  top recipe references: part-0, part-1, part-2, part-1, part-8, part-6, part-5, part-6, ...
+
+mass:werk Dark ErgoBox 2 document-window:
+  rectangleList parts: part-0, part-1, part-2, part-3, part-4   (5 entries)
+  top recipe references: part-0, part-1, part-2, part-1, part-6, part-5, part-6, part-1, ...
+```
+
+The top recipes reference part indices (5, 6, 8) that **are not in the rectangleList**. These are "special fill" codes baked into Kaleidoscope's renderer — out-of-band semantics not encoded in the wnd# data we extract. The geometry spec author also flagged this ("part 8 — unnamed — implicit 'edge fill'?").
+
+Without knowing what parts 5, 6, 8 *mean* (palette body fill? scheme pinstripe ppat? cicn pixels at the segment position?), the composer can't render those segments correctly. My pragmatic guess ("tile the cicn pixels at the segment's x-range") produced the discrete-rectangles regression because:
+
+- Each segment shows the cicn AT THE SEGMENT'S OFFSET, which means adjacent segments show OVERLAPPING cicn regions, but with visible div boundaries at the segment splits
+- CSS doesn't easily crop-and-tile a portion of a single image (would need `overflow: hidden` wrapper divs per segment, doubling DOM cost)
+- The fill regions need to use SCHEME-LEVEL fill artwork (likely a ppat from the Colr resource or implicit pinstripe in the cicn) which our extractor doesn't yet identify
+
+### What V1 was missing
+
+- **Kaleidoscope source-of-truth for special fill codes.** The kaleidoscope.net SDK docs (linked in the spec) are gone; Wayback may have them. Worth a research pass before another implementation attempt.
+- **Colr resource decoder** to identify the scheme's body pattern (the "default fill" for non-named segments).
+- **A different rendering strategy than per-segment background-image divs.** Pure CSS can't crop+tile a portion of a single image cleanly. Real options:
+  - **Canvas-rendered composite tiles**: walk the recipe in JS, draw onto an offscreen canvas at the target width, output as a data URL used as the titlebar background. Re-renders on resize but produces correct composition.
+  - **SVG patterns with clip-path**: define one `<pattern>` per segment, clip to its source range, tile. Possible but DOM-heavy.
+  - **Server/build-time pre-render**: bake the chrome per scheme at common window widths into PNG sprites. Loses runtime flexibility.
+
+### Updated recommendation
+
+**Issue #64 needs a research-first sub-task before another implementation attempt.** Specifically:
+
+1. **#64.0 (NEW): Investigate wnd# format completeness.** Mine Wayback for kaleidoscope.net SDK docs. Examine more schemes' wnd# data to see if part-5/6/8 patterns are universal or scheme-specific. Determine whether Kaleidoscope's renderer interprets these as references to scheme-level fill artwork (Colr-defined) or as in-cicn position references. Output: extended geometry spec with full semantic mapping.
+2. **#64.1 (existing): Top-side composer.** Implement once #64.0 establishes the semantics. Likely uses canvas-rendered composite tiles, not per-segment CSS divs.
+3. **#64.2, #64.3:** Same as before.
+
+Until #64.0 lands, **the visual-fidelity state stays at "honest uniform-stretch approximation"** (the post-PR-#62 state). The visible artifacts (control distortion, title overlap, weak window borders) remain documented limitations.
+
+**Methodology validation:** the gap analysis prevented me from continuing to ship broken renderers. The V1 attempt was honest investigation (typecheck-clean, didn't commit), didn't reach the user as another reactive PR, and produced a concrete data finding (the part-5/6/8 mystery) that's now in the spec. This is what the methodology change in §7 should look like: try things in branch, evaluate, ship findings even when the implementation didn't pan out.
+
+---
+
+## 9. References
 
 - [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — output contract; this gap analysis identifies where it's silent on side-recipe composition + title pill.
 - [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — input contract; the wnd# side recipe data described in §3 is what we need to start consuming.
 - LEARNINGS 2026-05-16 entries on chrome rendering, ppat composition, fixed-aspect constraints.
 - LEARNINGS 2026-05-17 entries on cicn-slice trick, 1px border-image approximation, gh-pages visual cut-throughs.
 - PRs #58, #59, #60 — the reactive sequence this document corrects.
+- PRs #61 (this doc, initial), #62 (Option A revert), #63 (legacy retire).
+- Issue #64 — the wnd# composer tracker; needs sub-task #64.0 for format research.
