@@ -548,4 +548,31 @@ First cut-through pass under the new CONTRIBUTING.md §"Periodic documentation c
 
 ---
 
+### 2026-05-17 — wnd# part rects convert to percent-positioned overlays for free-resize chrome
+
+Shipping [#42](https://github.com/khawkins98/aaron-ui/issues/42) (wnd#-driven hit targets). The rendering model from the architecture spec — "part rects expressed as percentage of the titlebar" — turned out to be near-trivial in practice once cinf 9-slice is already in place. Math:
+
+- Chrome cicn is rendered via `border-image`, which stretches the source bitmap to the box dimensions
+- A part rect `[left, top, right, bottom]` in chrome-cicn pixel coordinates becomes `(left/cicnWidth, top/cicnHeight, …)` percentages
+- Those percentages, applied as `style.left/top/width/height`, position the overlay correctly *at any rendered size* because both the cicn (via border-image) and the overlay percentages reflow proportionally
+
+The clean version: caller supplies the chrome cicn's native dimensions; helper writes percent-positioned divs. ~150 lines including options + clear + pure-CSS-text variant. No `requestAnimationFrame` throttle needed for normal resize because CSS handles it natively.
+
+**The exception flagged in the architecture spec** — fixed-aspect chrome (ErgoBox's projecting tab) where the cicn shouldn't stretch — still needs JS-driven recomputation per resize. That's not in #42; it's a future ticket once a real fixed-aspect scheme is being demo'd.
+
+**Application:** the percent-positioning pattern works for any wnd#-derived overlay (parts, edge insets, growbox hit area). When a future feature needs "absolute position inside chrome cicn coordinates," use the same `pct = (coord / cicnDimension) * 100` formula. Don't be tempted to compute absolute pixels — those don't survive resize without JS.
+
+### 2026-05-17 — jsdom strips trailing zeros from CSS percentage strings ("20.0000%" → "20%")
+
+Same kind of jsdom CSSOM normalization gotcha we've seen twice already (URL escapes #40, comma-separated multi-layer backgrounds #41). When `el.style.left = "20.0000%"` and you read it back, jsdom returns `"20%"`. Real browsers preserve the original string.
+
+**Two fixes layered together this time:**
+
+1. **`pct()` helper strips trailing zeros at write time** via `Number(value.toFixed(4))` so the emitted CSS is compact and matches jsdom's normalized read-back. (Also nicer for DevTools: `left: 20%` vs `left: 20.000000%`.)
+2. **Tests parse percentage strings into numbers** via a `parsePct()` helper and assert numerical equality (or `toBeCloseTo`) instead of string equality. Robust against future jsdom-or-browser quirks.
+
+**Application:** any future helper that emits CSS numeric values via `toFixed(N)` should pipe through `Number(...)` to strip trailing zeros. Tests that need to compare CSS values across helpers (e.g., "applyX writes what Xcss returns") should parse to numbers, not assert string equality. The `apply*` + `*Css` pure-helper pattern is now battle-tested across #40, #41, #42.
+
+---
+
 *New learnings get appended below this line as the project ships.*
