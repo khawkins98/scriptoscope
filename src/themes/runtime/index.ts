@@ -14,3 +14,10 @@ export {
   clearChromeElement,
   type ApplyChromeElementOptions,
 } from './applyChromeElement.js';
+export {
+  applyWindowParts,
+  clearWindowParts,
+  windowPartsCss,
+  type ApplyWindowPartsOptions,
+  type WindowPartInfo,
+} from './applyWindowParts.js';

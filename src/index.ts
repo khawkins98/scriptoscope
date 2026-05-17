@@ -51,8 +51,13 @@ export {
   applyChromeElement,
   chromeElementCss,
   clearChromeElement,
+  applyWindowParts,
+  clearWindowParts,
+  windowPartsCss,
   type ThemeRegistry,
   type ThemeChangeListener,
   type ThemeChangeEventDetail,
   type ApplyChromeElementOptions,
+  type ApplyWindowPartsOptions,
+  type WindowPartInfo,
 } from './themes/runtime/index.js';
