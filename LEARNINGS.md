@@ -830,4 +830,16 @@ The discriminator is "is the artwork present in canonical bundles?" — answer t
 
 ---
 
+### 2026-05-17 — Checkboxes + radios follow the CSS-drawn precedent too; native <input> stays in the tree
+
+The discriminator from the #71 pivot worked: ran `jq -r '.chromeElements | keys[]' themes/*/theme.json | grep -iE 'check|radio'` before designing #72, found zero matches in either bundle. Mac OS CDEFs drew form controls; Kaleidoscope themed surroundings. Same rendering path as push buttons applied: CSS + palette tinting + engine baseline.
+
+**Implementation detail worth keeping in mind:** the native `<input>` stays in the DOM tree, visually hidden via `opacity: 0` + `position: absolute` rather than `display: none` / `hidden`. The `hidden` attribute removes the input from the focus order and disables the change event in some edge cases. `display: none` similarly drops it out of the accessibility tree. Opacity-zero preserves all the native behaviour (`:checked`, `:focus-visible`, Space activation, form submission, screen reader announcement) while letting the sibling `<span class="aaron-checkbox__chrome">` paint the visible chrome. The chrome span gets `aria-hidden="true"` since the input is the a11y-meaningful element.
+
+**Checked-glyph period detail:** rendered the classic Mac **X** mark (two crossed strokes via `::before` + `::after`), not the NeXT/OS X checkmark. Mac OS 7-9 used X. Don't reach for the unicode checkmark muscle memory.
+
+**Cumulative count after #71 + #72:** push button, default button, checkbox, radio — four controls, all CSS-drawn. The pattern's confirmed; #73 (text fields) is likely the first cicn-rendered control since text-field bezels DO appear in `chromeElements` (`field-frame` variants in both bundles).
+
+---
+
 *New learnings get appended below this line as the project ships.*

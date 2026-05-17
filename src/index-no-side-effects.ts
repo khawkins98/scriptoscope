@@ -83,10 +83,16 @@ export {
 } from './themes/runtime/bundledDefault.js';
 
 // Phase 3 controls (#71+). Per-control classes + declarative scanner
-// helpers. Push buttons #71, more landing in subsequent tickets.
+// helpers. Push buttons #71, checkboxes + radios #72, more landing in
+// subsequent tickets.
 export {
   AaronButton,
   promoteButtons,
+  AaronCheckbox,
+  AaronRadio,
+  promoteCheckboxes,
+  promoteRadios,
   installEngineBaseline,
   type AaronButtonOptions,
+  type AaronCheckableOptions,
 } from './controls/index.js';

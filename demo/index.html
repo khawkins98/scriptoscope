@@ -222,6 +222,8 @@
       attachThemeToWindow,
       themeRegistry,
       promoteButtons,
+      promoteCheckboxes,
+      promoteRadios,
     } from '../src/index.ts';
 
     const desktop = document.getElementById('desktop');
@@ -297,6 +299,25 @@
           <p>See the developer fixtures at the bottom of the page.</p>
         `,
       },
+      {
+        title: 'Controls',
+        x: 520, y: 90, width: 360, height: 260,
+        html: `
+          <h3>Phase 3 controls</h3>
+          <p>Checkboxes + radios are CSS-drawn + palette-tinted (same
+          path as buttons — neither cicn'd by Kaleidoscope).</p>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+            <label><input type="checkbox" data-aaron-checkbox checked> Show invisibles</label>
+            <label><input type="checkbox" data-aaron-checkbox> Use scheme's body pattern</label>
+            <label><input type="checkbox" data-aaron-checkbox disabled> Disabled option</label>
+            <div style="display:flex;gap:14px;margin-top:6px;">
+              <label><input type="radio" name="demo-rg" data-aaron-radio value="seven" checked> 7 Le</label>
+              <label><input type="radio" name="demo-rg" data-aaron-radio value="ergo"> ErgoBox</label>
+              <label><input type="radio" name="demo-rg" data-aaron-radio value="other" disabled> Other</label>
+            </div>
+          </div>
+        `,
+      },
     ];
 
     for (const cfg of windows) {
@@ -305,10 +326,22 @@
       attachThemeToWindow(w.element, { windowTypeSlug: 'document-window' });
     }
 
-    // Phase 3 controls (#71) — promote declarative [data-aaron-button] markup
-    // inside window contents into AaronButton instances. Runs after windows
-    // mount so the button-bearing markup is in the DOM.
+    // Phase 3 controls (#71, #72) — promote declarative markup inside
+    // window contents. Runs after windows mount.
     promoteButtons(desktop);
+    promoteCheckboxes(desktop);
+    promoteRadios(desktop);
+
+    // Wire the Controls demo radio group to switch the scheme.
+    desktop.querySelectorAll('input[name="demo-rg"]').forEach((r) => {
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        if (r.value === 'seven') select.value = 'masswerk-7-le';
+        else if (r.value === 'ergo') select.value = 'masswerk-dark-ergobox2';
+        else return;
+        void loadTheme(`themes/${select.value}/`);
+      });
+    });
     const okBtn = document.getElementById('demo-ok-button');
     if (okBtn) {
       okBtn.addEventListener('click', () => {

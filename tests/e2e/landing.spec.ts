@@ -5,9 +5,10 @@ import { test, expect } from '@playwright/test';
 // chrome paints, the switcher swaps themes.
 
 test.describe('landing page (index.html)', () => {
-  test('mounts four AaronWindow instances', async ({ page }) => {
+  test('mounts five AaronWindow instances', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.aaron-window')).toHaveCount(4);
+    // About + README + Side-by-side + For developers + Controls.
+    await expect(page.locator('.aaron-window')).toHaveCount(5);
   });
 
   test('bundled default auto-loads + provenance bar shows the active scheme', async ({ page }) => {
@@ -21,7 +22,7 @@ test.describe('landing page (index.html)', () => {
     // V2 (#64.1) composer puts cicn URLs on segment child divs. Every
     // titlebar should have at least one segment referencing the bundled
     // 7 Le chrome.
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       const bg = await page
         .locator('.aaron-window')
         .nth(i)
