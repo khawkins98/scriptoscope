@@ -48,7 +48,11 @@ export {
   resolveAssetUrls,
   themeRegistry,
   THEME_CHANGE_EVENT,
+  applyChromeElement,
+  chromeElementCss,
+  clearChromeElement,
   type ThemeRegistry,
   type ThemeChangeListener,
   type ThemeChangeEventDetail,
+  type ApplyChromeElementOptions,
 } from './themes/runtime/index.js';
