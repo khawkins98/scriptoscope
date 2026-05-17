@@ -1,0 +1,17 @@
+// tsconfig used by `npm run build` to emit ONLY the public library
+// declarations into dist/types/, without test files or config files.
+// `npm run typecheck` continues to use the root tsconfig.json which
+// includes tests + configs so they're type-safe in development.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist/types",
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts", "node_modules"]
+}
