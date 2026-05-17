@@ -4,6 +4,8 @@
 
 **Status note (2026-05-17):** elevated from "informing Phase 4" to the central architectural contract following the 2026-05-17 Kaleidoscope-runtime pivot (LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author"). With Phase 2 dropped and Aaron UI explicitly *not* hand-authoring chrome, this spec defines what the runtime renders against. Phase 4 = ship the runtime that consumes this format.
 
+**Paired document:** this is the **input contract** (what's in a `.ksc`). The matching **output contract** — how Aaron UI's DOM/CSS composites the parsed `Theme` at runtime — is [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md). Read both together.
+
 **Source authority:** Kaleidoscope's own ResEdit templates (`TMPL` resources) embedded in every scheme file. These are the format specs Kaleidoscope itself reads and writes against, and we have full extracts of three of them: `TMPL 128` (Colr), `TMPL 129` (cinf), `TMPL 1240` (wnd#). The kaleidoscope.net SDK pages are gone — the domain is parked — but the TMPLs are sufficient because they're the runtime contract, not derivative documentation.
 
 **Empirical corpus:** [`docs/scheme-deconstruction/masswerk-7-le.md`](./scheme-deconstruction/masswerk-7-le.md) and [`masswerk-dark-ergobox2.md`](./scheme-deconstruction/masswerk-dark-ergobox2.md). Decoded `cinf`/`wnd#` values quoted below are from real bytes in those schemes.
