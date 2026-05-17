@@ -8,3 +8,9 @@ export {
   type ThemeChangeListener,
   type ThemeChangeEventDetail,
 } from './ThemeRegistry.js';
+export {
+  applyChromeElement,
+  chromeElementCss,
+  clearChromeElement,
+  type ApplyChromeElementOptions,
+} from './applyChromeElement.js';

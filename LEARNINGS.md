@@ -464,4 +464,29 @@ Options surveyed:
 
 ---
 
+### 2026-05-17 — Inline styles beat constructable stylesheets for per-element chrome (in #40, at least)
+
+The runtime rendering architecture spec (`docs/runtime-rendering-architecture.md` §5.1) prescribes a three-layer CSS cascade: engine baseline (static), theme-generated (constructable stylesheet, rebuilt per theme), per-window inline. Shipping [#40](https://github.com/khawkins98/aaron-ui/issues/40) (cinf-driven 9-slice), I had to decide where the cinf-derived `border-image` rules go: theme-generated stylesheet (one rule per chromeElement slug, targeted via `[data-aaron-cicn=<slug>]`) or per-element inline style.
+
+**Picked inline.** Reasons:
+
+- **Per-element chrome IS per-element.** A cicn URL is specific to one chromeElement entry; a window has dozens of chromed sub-regions (titlebar, body frame, growbox, every control inside). Generating "shared" rules to be `var(--aaron-cicn-url)`-driven from inline custom properties is one layer of indirection, but the cicn URL still has to live as a per-element inline anyway — so the indirection saves nothing in DOM bytes.
+- **Constructable stylesheets shine when many elements share one rule.** For per-window chrome, the "many elements" assumption doesn't hold: each window has its own per-state cicns, each control has its own per-state cicns. The 1:1 mapping defeats the stylesheet-sharing benefit.
+- **Debuggability.** Inline styles show up directly in DevTools' Computed → Inline rules. Stylesheet rules show up in the Sources panel under a generated `<style>` element. For chrome-rendering bugs, "click the broken element, see what got applied" is dramatically easier with inline.
+- **No stylesheet lifecycle management.** With inline, theme swap is just "re-apply" or "clear" per element. With stylesheets, you have to invalidate the old stylesheet (or maintain a per-theme stylesheet keyed map), risk leaving zombie rules around, etc.
+
+**When constructable stylesheets WILL win:** the *engine-baseline* CSS — the rules that don't change per theme (window mount/unmount transitions, focus-trap visuals, scrollbar layout boilerplate). That's static and can be a single adopted stylesheet attached once at library init. Different concern, different decision.
+
+**Application:** Phase 4.7 (#41 ppat overlay) and Phase 4.8 (#42 wnd# parts) should follow the same "inline-style first" rule. If a future profiling pass shows the inline-style approach is slow at 100+ windows, *then* hoist common rules into a generated stylesheet — but don't optimize prophylactically.
+
+### 2026-05-17 — jsdom's CSSOM rejects backslash-escaped quotes in `url()`
+
+Caught while testing asset-URL escape behavior. A CSS-valid `background-image: url("path/odd \"name\".png")` (backslash-escaped internal quotes) is rejected by jsdom's CSSOM parser — `el.style.backgroundImage` returns the empty string after the assignment. Real browsers (Chrome, Firefox, Safari) accept it fine.
+
+**Workaround:** the escape-correctness assertion was moved from a DOM round-trip test (`applyChromeElement` writes to `el.style`, test reads it back) to a pure-text test against `chromeElementCss` (no DOM, just generated CSS string). The text assertion is the more meaningful one anyway — escape correctness is a property of the generated string, not of how jsdom parses it back.
+
+**Application:** when a CSS feature works in real browsers but jsdom can't roundtrip it, prefer testing the *output text* (via a pure generator) over the *DOM-after-assignment* state. The pure test catches the same bugs without depending on jsdom's CSSOM faithfulness. Add a Playwright e2e test if real-browser confirmation matters.
+
+---
+
 *New learnings get appended below this line as the project ships.*
