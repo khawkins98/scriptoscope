@@ -4,9 +4,51 @@ A web-native runtime for [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidosco
 
 Drop it into any page to get draggable, resizable windows. Then load any freeware-licensed Kaleidoscope scheme — System 7, Platinum, BeOS-tab, anything in the ≈4,010-scheme corpus — and the windows render with its chrome, controls, and colors. Aaron UI doesn't hand-author a "Platinum theme." It reads `cicn` / `ppat` / `cinf` / `wnd#` resources out of `.ksc` files and renders them with CSS, SVG, and JS. The default look you get when you `import 'aaron-ui'` is mass:werk's freeware-licensed "7 Le" scheme — a community-authored Platinum-faithful Kaleidoscope theme, bundled.
 
-> **Status: Phase 1 shipped.** The window-manager core is in: `AaronWindow` class with drag, 8-direction resize, z-order, focus, programmatic API, declarative `[data-aaron-window]` scanner, ARIA + keyboard + focus-trap. 140 unit tests + 30 e2e tests, ~7 KB gzipped. Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status: Phase 1 + most of Phase 4 shipped.** WM core (drag, resize, z-order, focus, ARIA, declarative scanner) plus the full theme runtime — schema + extractor + canonical bundles + `loadTheme()` + cinf/ppat/wnd# renderers + theme switching + bundled-default auto-load. `import 'aaron-ui'` now triggers the bundled mass:werk 7 Le scheme to fetch + apply on `DOMContentLoaded`; opt out via `import 'aaron-ui/no-default'`. Live demo: <https://khawkins98.github.io/aaron-ui/>. CI status: <https://github.com/khawkins98/aaron-ui/actions>.
 >
 > **Phase 2 reframe (2026-05-17):** the original Phase 2 ("hand-author Platinum chrome from the HIG") is dropped. Aaron UI is a Kaleidoscope-compatibility runtime, not a theme re-authoring project — recreating Platinum from the HIG when mass:werk's "7 Le" already exists as freeware would duplicate work and weaken the product story. Phase 2 and Phase 4 collapse into one effort: ship the theme-engine runtime, with 7 Le as the bundled default. See [LEARNINGS.md](./LEARNINGS.md) for the full reasoning and [issue #23](https://github.com/khawkins98/aaron-ui/issues/23) for the work.
+
+## Quick start
+
+```sh
+npm install aaron-ui
+```
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="module">
+      // Default entry — auto-loads mass:werk 7 Le from `themes/masswerk-7-le/`.
+      // Make sure your web server is hosting that path (the npm package
+      // ships the files at `themes/masswerk-7-le/` for direct copying).
+      import { AaronWindow, attachThemeToWindow } from 'aaron-ui';
+      window.addEventListener('DOMContentLoaded', () => {
+        const w = new AaronWindow({ title: 'Hi', width: 320, height: 200 });
+        w.mount(document.body);
+        attachThemeToWindow(w.element); // chrome paints on first themechange
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
+```
+
+Opt out of the auto-load (own theme loading entirely):
+
+```js
+import { AaronWindow, loadTheme, attachThemeToWindow } from 'aaron-ui/no-default';
+await loadTheme('/path/to/your/scheme/');
+// ... same as above
+```
+
+Override where the default is fetched from (e.g., CDN hosting):
+
+```js
+import { setBundledDefaultUrl, AaronWindow } from 'aaron-ui';
+setBundledDefaultUrl('https://cdn.example.com/aaron/themes/masswerk-7-le/');
+// ... AaronWindow usage proceeds; auto-load fires against the new URL
+```
 
 ## North Star
 

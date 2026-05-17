@@ -35,3 +35,10 @@ export {
   enableThemeSwitching,
   type EnableThemeSwitchingOptions,
 } from './themeSwitcher.js';
+export {
+  BUNDLED_DEFAULT_SLUG,
+  enableBundledDefault,
+  loadBundledDefault,
+  setBundledDefaultUrl,
+  getBundledDefaultUrl,
+} from './bundledDefault.js';

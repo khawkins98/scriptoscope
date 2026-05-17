@@ -28,6 +28,8 @@ export default defineConfig({
         'theme-loader-fixture':   resolve(import.meta.dirname, 'demo/theme-loader-fixture.html'),
         // Phase 4.9 (#43) — visible runtime chrome rendering + theme swap.
         'theme-switcher-fixture': resolve(import.meta.dirname, 'demo/theme-switcher-fixture.html'),
+        // Phase 4.5 (#39) — bundled-default auto-load, no explicit loadTheme.
+        'auto-default-fixture':   resolve(import.meta.dirname, 'demo/auto-default-fixture.html'),
       },
     },
   },

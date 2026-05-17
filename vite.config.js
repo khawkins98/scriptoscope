@@ -47,17 +47,23 @@ export default defineConfig(({ command }) => {
       },
     };
   }
-  // Library build mode
+  // Library build mode — emits two entries:
+  //   dist/aaron-ui.js          — main entry, auto-loads bundled default
+  //   dist/no-default.js        — opt-out sub-entry, no auto-load
+  // Both share the same source modules; the difference is whether
+  // enableBundledDefault() is called at import time.
   return {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
       sourcemap: true,
       lib: {
-        entry: resolve(import.meta.dirname, 'src/index.ts'),
-        name: 'AaronUI',
+        entry: {
+          'aaron-ui':  resolve(import.meta.dirname, 'src/index.ts'),
+          'no-default': resolve(import.meta.dirname, 'src/no-default.ts'),
+        },
         formats: ['es'],
-        fileName: () => 'aaron-ui.js',
+        fileName: (_format, entryName) => `${entryName}.js`,
       },
       // No JS dependencies per PRD §Architecture — everything bundles in.
       rollupOptions: {
