@@ -8,4 +8,5 @@ export {
   promoteRadios,
   type AaronCheckableOptions,
 } from './AaronCheckable.js';
+export { AaronField, promoteFields, type AaronFieldOptions } from './AaronField.js';
 export { installEngineBaseline } from './engineBaseline.js';

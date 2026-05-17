@@ -203,6 +203,80 @@ const ENGINE_BASELINE_CSS = `
 .aaron-radio[aria-disabled="true"] > input:checked ~ .aaron-radio__chrome::after {
   background: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
 }
+
+/* ─── Text fields (input + textarea) ───────────────────────────────── */
+/* Same path as buttons / checkboxes (#71, #72): no field/frame cicn
+   slugs in either canonical bundle. CSS-drawn inset bezel, palette-
+   tinted. The native <input>/<textarea> is the focusable element —
+   the wrapping span is purely visual.
+   Period detail: classic Mac OS text fields had a 1px hairline border
+   that thickened to 2px black on focus. We mimic via box-shadow rather
+   than border to avoid layout reflow on focus. */
+
+.aaron-field {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--aaron-colr-control-bg, #fff);
+  border: 1px solid var(--aaron-colr-window-frame, #5a5a5a);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.12);
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--aaron-colr-fg, #000);
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.aaron-field--block {
+  display: flex;
+  width: 100%;
+}
+
+.aaron-field > input,
+.aaron-field > textarea {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 2px 4px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  width: 100%;
+  min-width: 0;
+  resize: none;
+}
+
+.aaron-field > textarea {
+  padding: 3px 4px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+/* Focus: thicker black inner ring (period Mac affordance, 1px → 2px) */
+.aaron-field:focus-within {
+  outline: 2px solid var(--aaron-colr-accent, #316ac5);
+  outline-offset: 0;
+}
+
+/* Disabled */
+.aaron-field[aria-disabled="true"] {
+  background: var(--aaron-colr-bg-disabled, #ececec);
+  color: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+  border-color: var(--aaron-colr-window-frame-disabled, #aaa);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.aaron-field[aria-disabled="true"] > input,
+.aaron-field[aria-disabled="true"] > textarea {
+  cursor: not-allowed;
+}
+
+/* Read-only — visually distinct from disabled (slight tint, normal cursor) */
+.aaron-field--readonly {
+  background: var(--aaron-colr-bg, #f4f4f4);
+}
 `;
 
 let sheet: CSSStyleSheet | null = null;

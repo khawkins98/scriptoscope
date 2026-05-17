@@ -842,4 +842,16 @@ The discriminator from the #71 pivot worked: ran `jq -r '.chromeElements | keys[
 
 ---
 
+### 2026-05-17 — Prediction was wrong: text fields are CSS-drawn too. All of Phase 3 form controls might be.
+
+In the #72 LEARNINGS I predicted text fields would be the first cicn-rendered Phase 3 control because both bundles ship `progress-bar-frame-*` slugs — surely they'd ship a field frame too. Wrong. Ran the discriminator before designing #73: `jq -r '.chromeElements | keys[]' themes/*/theme.json | grep -iE 'field|frame|input|text|edit'` — only matches were `progress-bar-frame-active/inactive` (progress bars, not fields) and `popup-menu-text-section` (the text half of popup menus). Zero `field` slugs.
+
+Three Phase 3 controls now confirmed CSS-drawn: push button, checkbox, radio, text field. Updated mental model: Mac OS Appearance schemes themed *chrome* (titlebars, scrollbars, popups, sliders, progress bars, group box dividers, disclosure triangles, grow boxes) — the things with substantial pixel-art geometry. They did NOT theme the simple form widgets (button, checkbox, radio, edit text), which were tiny CDEF-drawn primitives the system handled. Aaron UI matches that split.
+
+**Updated prediction for #74+:** popup-menu IS cicn-rendered (slugs confirmed: `popup-menu-text-section`, `pressed-popup-menu-text-section`, `inactive-popup-menu-text-section`, `inactive-large-popup-menu-arrow`). Sliders (`down-pointing-slider-thumbs`, `down-pointing-slider-track`, `horizontal-slider-tick`), scrollbars (`empty-horizontal-scrollbar`, `horizontal-thumb`, `horizontal-thumb-ghost`), and progress bars (`progress-bar-frame-*`) all confirmed cicn-rendered too. That's where `applyControlChrome` infrastructure (built in #70) finally gets a consumer — popup menu (#74) should be the first to exercise it.
+
+**Implementation detail for text fields:** native `<input type="text">` / `<textarea>` stays in tree, NOT hidden — it's the only thing the user sees inside the wrapper, since the wrapper just paints the inset bezel border. Used `:focus-within` on the wrapper for the focus affordance + `outline` (not border-width change) so focus doesn't reflow surrounding layout. `readOnly` gets its own visual treatment (slight tint, normal cursor) distinct from `disabled`.
+
+---
+
 *New learnings get appended below this line as the project ships.*

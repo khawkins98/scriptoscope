@@ -367,16 +367,21 @@ Brief specs for each control's DOM contract. Detailed implementation lives in ea
 
 Same architecture as checkbox; `<input type="radio">` with `name="..."` attribute for group behaviour (native browser handles deselection of siblings). Visual chrome is a 12×12 circle; checked state renders a filled inner dot via `::after`.
 
-### Text field (#3.4)
+### Text field (#3.4) — CSS-drawn (no cicn artwork)
 
 ```html
-<div class="aaron-control aaron-field" data-state="normal">
+<span class="aaron-control aaron-field">
   <input type="text" data-aaron-field>
-  <!-- chrome cicn renders as the inset frame around the input via inline border-image -->
-</div>
+</span>
 ```
 
-**State map:** `normal-field`, `focused-field`, `disabled-field`. Pressed state typically same as focused (text fields don't have a distinct "pressed" visual).
+`<textarea>` swaps in for `<input>`; same wrapper. Add `.aaron-field--block` to stretch full width, `.aaron-field--readonly` for read-only tint.
+
+**Rendering path:** CSS-drawn inset bezel + palette tint. **No chromeElements mapping** — discriminator check on both bundles turned up zero `field` / `frame` / `edit` slugs (only `progress-bar-frame-*` and `popup-menu-text-section`, both used for other controls). Mac OS edit-text was also CDEF-rendered.
+
+**Focus affordance** via `:focus-within` on the wrapper — period Mac OS thickened the field border to 2px on focus; we use `outline` instead of widening the border to avoid layout reflow.
+
+**State map:** none. Native `<input>:disabled` + `<input>:read-only` drive the styling via attribute selectors on the wrapper, kept in sync by `AaronField.syncAria()` whenever state changes via class API.
 
 ### Popup menu (#3.5)
 
