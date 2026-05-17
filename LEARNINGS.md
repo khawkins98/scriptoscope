@@ -301,4 +301,32 @@ Strategic pivot, recorded same day Phase 1 docs sync landed. The PRD's original 
 
 ---
 
+### 2026-05-17 — Hand-rolled validator beat zod for theme.json (bundle-weight discipline)
+
+Surfaced shipping [#35](https://github.com/khawkins98/aaron-ui/issues/35) (Phase 4.1, theme.json schema + runtime validator). The obvious choice for runtime JSON validation in 2026 is `zod` — declarative, well-typed, ergonomic. We didn't pick it.
+
+**Why hand-rolled won:**
+
+- **Bundle weight is a project constraint, not a vibe.** PRD §Success criteria #5 caps the WM core + theme runtime at ≤30 KB gzipped. zod is ~14 KB minified gz on its own. The theme schema is shallow (~7 nested shapes, no recursion, no discriminated unions worth speaking of). A ~250-line hand-rolled validator with `assertObject` / `assertString` / `assertNumber` / `assertBoolean` helpers does the same job for under 2 KB.
+- **The error-path UX we wanted is awkward in zod.** We wanted `theme.json.windowTypes.document.parts.close.rect[3]` — a dotted path the user can grep for. zod's `ZodError.issues[].path` is an array that needs joining at the call site; hand-rolling lets the path travel as a string from the entry point and arrive shaped exactly right.
+- **The validator is mostly forward-compat anyway.** Most of what zod buys (refinements, transforms, branded types) we don't need. We need "is this a Theme or not, and if not, where exactly is the problem."
+
+**The principle this teaches:** for a library with a bundle-size target, default to "can this be hand-rolled in ~200 lines" before reaching for a validation library. If yes, hand-roll. The validator code in `src/themes/schema/parseTheme.ts` is dull and obvious — no abstraction, no cleverness — which is the right shape for code that's going to be on the critical path of every theme load.
+
+### 2026-05-17 — Forward-compat on `ThemeOptions`: silently drop unknown keys
+
+Smaller decision recorded for honesty. `parseTheme()` accepts `{options: {newFutureFlag: true}}` and silently drops `newFutureFlag` rather than throwing. The reason: future Kaleidoscope-scheme bundles may carry option flags Aaron UI doesn't yet recognize (the scheme format is older than the runtime); rejecting the entire bundle for an unknown option would be the wrong failure mode.
+
+**Tradeoff accepted:** typos in option names (`menuHighlightOverlay` written as `menuHilightOverlay`) silently misbehave. We accept this because (a) the option set is small and stable, (b) the extractor populates these mechanically so typos at the bundle author's hand are rare, (c) the alternative — strict mode — is worse for the documented forward-compat use case.
+
+If Phase 4.2 (#36) extends the extractor to emit additional flags, those bundles will validate cleanly against the current schema. When the schema's `THEME_SCHEMA_VERSION` bumps to `"0.2"`, the validator throws a clear version error — so genuinely-breaking changes are caught loudly, not silently.
+
+### 2026-05-17 — `exactOptionalPropertyTypes` shapes the parser
+
+The tsconfig has `exactOptionalPropertyTypes: true`. This means `field?: T` permits *absence* but not explicit `undefined` — you can't write `out.author = obj.author` if `obj.author` might be `undefined`. The parser uses `'author' in obj` guards before every assignment, which makes the code slightly noisier but ensures the output Theme has fields exactly where present and absent where not (no `{author: undefined}` foot-guns for the runtime to handle later).
+
+This pattern travels: anywhere the schema grows new optional fields, the `'key' in obj` guard goes with it. Documented inline in `parseTheme.ts`.
+
+---
+
 *New learnings get appended below this line as the project ships.*
