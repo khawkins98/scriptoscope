@@ -46,6 +46,7 @@ export {
   composeTopEdge,
   clearChromeSegments,
   recipeToSegments,
+  findTitlePillBounds,
   type ComposeWindowChromeOptions,
 } from './composeWindowChrome.js';
 // Phase 3.1 — shared control infrastructure (#70). Per-control tickets

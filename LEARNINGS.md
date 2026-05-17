@@ -854,4 +854,16 @@ Three Phase 3 controls now confirmed CSS-drawn: push button, checkbox, radio, te
 
 ---
 
+### 2026-05-17 — Title pill via CSS custom properties pinned by the renderer
+
+For #64.2 (title-pill positioning), the cleanest interface between the runtime renderer and the consumer's CSS turned out to be **two CSS custom properties** stamped on the titlebar element: `--aaron-title-pill-left` and `--aaron-title-pill-right`. The renderer computes them from the wnd# top recipe (widest coalesced fill-segment run); the consumer's CSS reads them via `var()` with sensible fallbacks.
+
+**Why custom properties over inline `left:` / `right:` styles:** consumers retain full control over the title element's other styling (font, color, padding, focus treatment, etc.). The runtime contributes only the *constraint* — where the title is allowed to live. This matches the broader Aaron UI ethos that the runtime drives geometry, the consumer drives presentation.
+
+**Algorithm choice:** widest *coalesced* fill run, not single widest fill. A run of consecutive non-named parts (e.g., part-8 then part-6 then part-5) should be treated as one zone since they're all fillable; only a named part actually breaks the zone. Without coalescing, the 7 Le pill would have picked a 3-pixel single-fill segment instead of the 10-pixel run.
+
+**Known sharp edge:** the pill is computed in *cicn-pixel* space, not *titlebar-pixel* space. For schemes with narrow cicn widths (7 Le is 74px) and many named parts, the pill ends up small relative to typical title lengths, forcing ellipsization. A future refinement could recompute on resize in titlebar-pixel space, but the current implementation is strictly better than the prior "title overflows everything" state and ships without a ResizeObserver cost on every window. Document the limitation, ship, iterate from real consumer feedback.
+
+---
+
 *New learnings get appended below this line as the project ships.*
