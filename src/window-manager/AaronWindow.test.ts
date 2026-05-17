@@ -285,7 +285,182 @@ describe('AaronWindow', () => {
       expect(w.element!.classList.contains('qux')).toBe(true);
     });
 
-    it('cv-mac-style call site constructs and mounts without errors', () => {
+  });
+
+  describe('drag (issue #4)', () => {
+    // Helper: dispatch a pointer event. jsdom doesn't fully implement
+    // PointerEvent's constructor, so we synthesise one off MouseEvent and
+    // tack on the pointer-specific properties.
+    function pointer(type: string, target: EventTarget, opts: Partial<MouseEventInit & { pointerId: number }> = {}): void {
+      const { pointerId = 1, ...mouseOpts } = opts;
+      const e = new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        ...mouseOpts,
+      });
+      Object.defineProperty(e, 'pointerId', { value: pointerId });
+      target.dispatchEvent(e);
+    }
+
+    it('sets grab cursor on the titlebar', () => {
+      const w = new AaronWindow({ title: 'Drag' });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      expect(titlebar.style.cursor).toBe('grab');
+    });
+
+    it('pointerdown on titlebar starts drag; pointermove updates position', () => {
+      const w = new AaronWindow({ title: 'Drag', x: 100, y: 80, width: 320, height: 200 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      // Stub getBoundingClientRect since jsdom layout is zero-sized by default
+      vi.spyOn(w.element!, 'getBoundingClientRect').mockReturnValue({
+        x: 100, y: 80, left: 100, top: 80, right: 420, bottom: 280,
+        width: 320, height: 200, toJSON: () => ({}),
+      });
+      // Down at (200, 100) — grab offset = (200-100, 100-80) = (100, 20)
+      pointer('pointerdown', titlebar, { clientX: 200, clientY: 100 });
+      // Move to (300, 200) — new pos = (300-100, 200-20) = (200, 180)
+      pointer('pointermove', document, { clientX: 300, clientY: 200 });
+      expect(w.element!.style.left).toBe('200px');
+      expect(w.element!.style.top).toBe('180px');
+    });
+
+    it('pointerup ends drag; further pointermove does nothing', () => {
+      const w = new AaronWindow({ x: 100, y: 80 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      vi.spyOn(w.element!, 'getBoundingClientRect').mockReturnValue({
+        x: 100, y: 80, left: 100, top: 80, right: 420, bottom: 280,
+        width: 320, height: 200, toJSON: () => ({}),
+      });
+      pointer('pointerdown', titlebar, { clientX: 200, clientY: 100 });
+      pointer('pointermove', document, { clientX: 300, clientY: 200 });
+      pointer('pointerup', document);
+      // Move after up — should NOT update position
+      pointer('pointermove', document, { clientX: 500, clientY: 400 });
+      expect(w.element!.style.left).toBe('200px');
+      expect(w.element!.style.top).toBe('180px');
+      // Cursor restored
+      expect(titlebar.style.cursor).toBe('grab');
+    });
+
+    it('fires onmove with new coordinates during drag', () => {
+      const onmove = vi.fn();
+      const w = new AaronWindow({ x: 100, y: 80, onmove });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      vi.spyOn(w.element!, 'getBoundingClientRect').mockReturnValue({
+        x: 100, y: 80, left: 100, top: 80, right: 420, bottom: 280,
+        width: 320, height: 200, toJSON: () => ({}),
+      });
+      pointer('pointerdown', titlebar, { clientX: 200, clientY: 100 });
+      pointer('pointermove', document, { clientX: 250, clientY: 150 });
+      expect(onmove).toHaveBeenCalledWith(150, 130);
+    });
+
+    it('ignores non-primary buttons (right click etc.)', () => {
+      const w = new AaronWindow({ x: 100, y: 80 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      pointer('pointerdown', titlebar, { clientX: 200, clientY: 100, button: 2 });
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      // No drag should have started; left/top should remain unchanged
+      expect(w.element!.style.left).toBe('100px');
+    });
+
+    it('ignores pointerdown on editable child elements', () => {
+      const w = new AaronWindow({ x: 100, y: 80 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      const input = document.createElement('input');
+      titlebar.appendChild(input);
+      pointer('pointerdown', input, { clientX: 200, clientY: 100 });
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(w.element!.style.left).toBe('100px');
+    });
+
+    it('ignores pointerdown on a chrome widget ([data-action] element)', () => {
+      const w = new AaronWindow({ x: 100, y: 80 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      const closeBtn = document.createElement('button');
+      closeBtn.setAttribute('data-action', 'close');
+      titlebar.appendChild(closeBtn);
+      pointer('pointerdown', closeBtn, { clientX: 200, clientY: 100 });
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(w.element!.style.left).toBe('100px');
+    });
+
+    it('clamps the window position to stay onscreen', () => {
+      const w = new AaronWindow({ x: 100, y: 80, width: 320, height: 200 });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      vi.spyOn(w.element!, 'getBoundingClientRect').mockReturnValue({
+        x: 100, y: 80, left: 100, top: 80, right: 420, bottom: 280,
+        width: 320, height: 200, toJSON: () => ({}),
+      });
+      // jsdom default viewport is 1024x768. With window 320x200, max is (704, 568).
+      pointer('pointerdown', titlebar, { clientX: 100, clientY: 80 });
+      // Try to drag way off-screen to the right
+      pointer('pointermove', document, { clientX: 5000, clientY: 5000 });
+      const left = parseInt(w.element!.style.left, 10);
+      const top = parseInt(w.element!.style.top, 10);
+      expect(left).toBeLessThanOrEqual(704);
+      expect(top).toBeLessThanOrEqual(568);
+      // And negative direction
+      pointer('pointermove', document, { clientX: -1000, clientY: -1000 });
+      expect(parseInt(w.element!.style.left, 10)).toBe(0);
+      expect(parseInt(w.element!.style.top, 10)).toBe(0);
+    });
+
+    it('detaches drag listeners on unmount (no stale callbacks)', () => {
+      const onmove = vi.fn();
+      const w = new AaronWindow({ x: 100, y: 80, onmove });
+      w.mount();
+      const titlebar = w.element!.querySelector('.aaron-titlebar') as HTMLElement;
+      pointer('pointerdown', titlebar, { clientX: 200, clientY: 100 });
+      w.unmount();
+      // After unmount, a stray pointermove on document should not fire onmove
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(onmove).not.toHaveBeenCalled();
+    });
+
+    describe('programmatic move()', () => {
+      it('sets position and fires onmove', () => {
+        const onmove = vi.fn();
+        const w = new AaronWindow({ x: 100, y: 80, onmove });
+        w.mount();
+        w.move(150, 200);
+        expect(w.element!.style.left).toBe('150px');
+        expect(w.element!.style.top).toBe('200px');
+        expect(onmove).toHaveBeenCalledWith(150, 200);
+      });
+
+      it('clamps move() coordinates', () => {
+        const w = new AaronWindow({ x: 100, y: 80, width: 320, height: 200 });
+        w.mount();
+        w.move(-100, -100);
+        expect(w.element!.style.left).toBe('0px');
+        expect(w.element!.style.top).toBe('0px');
+      });
+
+      it('move() is a no-op before mount', () => {
+        const w = new AaronWindow();
+        expect(() => w.move(50, 50)).not.toThrow();
+      });
+
+      it('returns this for chaining', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.move(50, 50)).toBe(w);
+      });
+    });
+  });
+
+  describe('back-compat: cv-mac style call site', () => {
+    it('constructs and mounts without errors', () => {
       // Representative of the actual cv-mac call pattern from PRD §Architecture.
       const onclose = vi.fn();
       const oncreate = vi.fn();

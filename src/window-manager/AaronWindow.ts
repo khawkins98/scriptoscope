@@ -125,7 +125,11 @@ export class AaronWindow {
   /** Root window DOM element. `null` until mount(), back to `null` after unmount(). */
   private el: HTMLElement | null = null;
   private contentEl: HTMLElement | null = null;
+  private titlebarEl: HTMLElement | null = null;
   private mounted = false;
+
+  /** Active drag state, or null when not currently dragging. */
+  private dragState: { offX: number; offY: number; pointerId: number } | null = null;
 
   constructor(options: AaronWindowOptions = {}) {
     const normalised: NormalizedOptions = {
@@ -180,6 +184,7 @@ export class AaronWindow {
     this.el = this.createDom();
     target.appendChild(this.el);
     this.mounted = true;
+    this.attachDrag();
     this.options.oncreate.call(this);
     return this;
   }
@@ -190,10 +195,25 @@ export class AaronWindow {
    */
   unmount(): this {
     if (!this.mounted || this.el === null) return this;
+    this.detachDrag();
     this.el.remove();
     this.el = null;
     this.contentEl = null;
+    this.titlebarEl = null;
     this.mounted = false;
+    return this;
+  }
+
+  /**
+   * Programmatically move the window to (x, y). Clamped to keep the window
+   * onscreen. Fires `onmove` with the actual (post-clamp) coordinates.
+   */
+  move(x: number, y: number): this {
+    if (this.el === null) return this;
+    const [nx, ny] = this.clampPosition(x, y);
+    this.el.style.left = `${nx}px`;
+    this.el.style.top = `${ny}px`;
+    this.options.onmove.call(this, nx, ny);
     return this;
   }
 
@@ -236,7 +256,120 @@ export class AaronWindow {
     win.appendChild(titlebar);
     win.appendChild(content);
 
+    this.titlebarEl = titlebar;
     this.contentEl = content;
     return win;
   }
+
+  /* ─── drag (issue #4) ─────────────────────────────────────────────
+     Pointer Events unify mouse + touch + pen with a single API. We
+     attach pointerdown to the titlebar; pointermove/up listeners are
+     added to document.body for the duration of the drag so the pointer
+     can leave the window without losing the drag.
+
+     IME safety: pointerdown wouldn't fire from IME composition, but if
+     the titlebar ever becomes editable we still bail when the target
+     is an editable element. */
+
+  private attachDrag(): void {
+    if (this.titlebarEl === null) return;
+    this.titlebarEl.style.cursor = 'grab';
+    this.titlebarEl.style.touchAction = 'none'; // suppress browser pan-on-touch
+    this.titlebarEl.addEventListener('pointerdown', this.onPointerDown);
+  }
+
+  private detachDrag(): void {
+    if (this.titlebarEl !== null) {
+      this.titlebarEl.removeEventListener('pointerdown', this.onPointerDown);
+    }
+    // Belt-and-braces: clean up document listeners if mid-drag at unmount.
+    document.removeEventListener('pointermove', this.onPointerMove);
+    document.removeEventListener('pointerup', this.onPointerUp);
+    document.removeEventListener('pointercancel', this.onPointerUp);
+    this.dragState = null;
+  }
+
+  private readonly onPointerDown = (e: PointerEvent): void => {
+    // Primary button only (button 0 == left mouse / first touch / first pen).
+    if (e.button !== 0) return;
+    // Bail if the user clicked an editable element inside the titlebar
+    // (defensive — titlebars aren't editable by default but a consumer
+    // might make them so).
+    if (isEditable(e.target)) return;
+    // Bail if the click was on a chrome widget (close box etc.) — drag
+    // should not start when you're about to click a button. We detect
+    // this by looking for elements with `data-action` (the convention
+    // the demo + future widgets use).
+    if (this.isOnWidget(e.target)) return;
+    if (this.el === null || this.titlebarEl === null) return;
+
+    const rect = this.el.getBoundingClientRect();
+    this.dragState = {
+      offX: e.clientX - rect.left,
+      offY: e.clientY - rect.top,
+      pointerId: e.pointerId,
+    };
+    this.titlebarEl.style.cursor = 'grabbing';
+    document.addEventListener('pointermove', this.onPointerMove);
+    document.addEventListener('pointerup', this.onPointerUp);
+    document.addEventListener('pointercancel', this.onPointerUp);
+    e.preventDefault();
+  };
+
+  private readonly onPointerMove = (e: PointerEvent): void => {
+    if (this.dragState === null) return;
+    if (e.pointerId !== this.dragState.pointerId) return;
+    if (this.el === null) return;
+    const rawX = e.clientX - this.dragState.offX;
+    const rawY = e.clientY - this.dragState.offY;
+    const [nx, ny] = this.clampPosition(rawX, rawY);
+    this.el.style.left = `${nx}px`;
+    this.el.style.top = `${ny}px`;
+    this.options.onmove.call(this, nx, ny);
+  };
+
+  private readonly onPointerUp = (e: PointerEvent): void => {
+    if (this.dragState === null) return;
+    if (e.pointerId !== this.dragState.pointerId) return;
+    this.dragState = null;
+    if (this.titlebarEl !== null) {
+      this.titlebarEl.style.cursor = 'grab';
+    }
+    document.removeEventListener('pointermove', this.onPointerMove);
+    document.removeEventListener('pointerup', this.onPointerUp);
+    document.removeEventListener('pointercancel', this.onPointerUp);
+  };
+
+  /**
+   * Clamp a desired position so the window stays at least partially
+   * visible. Top-left can't go negative; bottom-right can't disappear
+   * past viewport. Keeps at least the titlebar reachable for re-drag.
+   */
+  private clampPosition(x: number, y: number): [number, number] {
+    if (this.el === null) return [x, y];
+    const winW = this.el.offsetWidth || this.options.width;
+    const winH = this.el.offsetHeight || this.options.height;
+    const viewW = window.innerWidth;
+    const viewH = window.innerHeight;
+    const maxX = Math.max(0, viewW - winW);
+    const maxY = Math.max(0, viewH - winH);
+    const nx = Math.min(Math.max(0, x), maxX);
+    const ny = Math.min(Math.max(0, y), maxY);
+    return [nx, ny];
+  }
+
+  /** True when the target is an interactive widget (button etc.) inside the titlebar. */
+  private isOnWidget(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) return false;
+    return target.closest('[data-action]') !== null
+      || target.closest('button') !== null;
+  }
+}
+
+function isEditable(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (target instanceof HTMLElement && target.isContentEditable) return true;
+  return false;
 }

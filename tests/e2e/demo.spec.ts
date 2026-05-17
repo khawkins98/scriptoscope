@@ -38,4 +38,35 @@ test.describe('themes-raster.html demo', () => {
     await cb.click();
     await expect(cb).toHaveAttribute('data-checked', 'true');
   });
+
+  test('drag a window by titlebar moves it (issue #4)', async ({ page }) => {
+    await page.goto('/themes-raster.html');
+    // Wait for theme.json + hit-zone positioning to settle.
+    await page.waitForTimeout(600);
+    const main = page.locator('[data-aaron-window][data-role="main"]');
+    await expect(main).toBeVisible();
+
+    // Capture initial position
+    const beforeBox = await main.boundingBox();
+    expect(beforeBox).not.toBeNull();
+
+    // Use the demo's drag-zone element (inside the titlebar, between widgets).
+    const dragZone = main.locator('.aaron-window__drag-zone');
+    const zoneBox = await dragZone.boundingBox();
+    expect(zoneBox).not.toBeNull();
+
+    // Drag 100px right + 50px down using Playwright's mouse API.
+    const startX = zoneBox!.x + zoneBox!.width / 2;
+    const startY = zoneBox!.y + zoneBox!.height / 2;
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 100, startY + 50, { steps: 5 });
+    await page.mouse.up();
+
+    // Window should have moved
+    const afterBox = await main.boundingBox();
+    expect(afterBox).not.toBeNull();
+    expect(afterBox!.x).toBeGreaterThan(beforeBox!.x + 50);
+    expect(afterBox!.y).toBeGreaterThan(beforeBox!.y + 25);
+  });
 });
