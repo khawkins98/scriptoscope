@@ -224,6 +224,7 @@
       promoteButtons,
       promoteCheckboxes,
       promoteRadios,
+      promoteFields,
     } from '../src/index.ts';
 
     const desktop = document.getElementById('desktop');
@@ -301,11 +302,11 @@
       },
       {
         title: 'Controls',
-        x: 520, y: 90, width: 360, height: 260,
+        x: 520, y: 90, width: 360, height: 380,
         html: `
           <h3>Phase 3 controls</h3>
-          <p>Checkboxes + radios are CSS-drawn + palette-tinted (same
-          path as buttons — neither cicn'd by Kaleidoscope).</p>
+          <p>Buttons, checkboxes, radios, fields — all CSS-drawn +
+          palette-tinted. None of these were cicn'd by Kaleidoscope.</p>
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
             <label><input type="checkbox" data-aaron-checkbox checked> Show invisibles</label>
             <label><input type="checkbox" data-aaron-checkbox> Use scheme's body pattern</label>
@@ -314,6 +315,21 @@
               <label><input type="radio" name="demo-rg" data-aaron-radio value="seven" checked> 7 Le</label>
               <label><input type="radio" name="demo-rg" data-aaron-radio value="ergo"> ErgoBox</label>
               <label><input type="radio" name="demo-rg" data-aaron-radio value="other" disabled> Other</label>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
+              <label style="display:flex;gap:6px;align-items:center;">
+                Name:
+                <input type="text" data-aaron-field value="Susan Kare" style="flex:1;">
+              </label>
+              <label style="display:flex;gap:6px;align-items:center;">
+                Email:
+                <input type="email" data-aaron-field placeholder="you@example.com" style="flex:1;">
+              </label>
+              <label style="display:flex;gap:6px;align-items:center;">
+                Locked:
+                <input type="text" data-aaron-field value="read-only" readonly style="flex:1;">
+              </label>
+              <textarea data-aaron-field rows="2" placeholder="Notes…" style="width:100%;"></textarea>
             </div>
           </div>
         `,
@@ -331,6 +347,7 @@
     promoteButtons(desktop);
     promoteCheckboxes(desktop);
     promoteRadios(desktop);
+    promoteFields(desktop);
 
     // Wire the Controls demo radio group to switch the scheme.
     desktop.querySelectorAll('input[name="demo-rg"]').forEach((r) => {
