@@ -744,4 +744,45 @@ Second time this session that visual feedback from the deployed demo caught a re
 
 ---
 
+### 2026-05-17 — Polish round 2: glyph crispness via the cicn-slice trick + 1px scheme-derived window border
+
+After the first polish PR fixed the titlebar full-width stretch, the next visible problem was: close/zoom/windowshade controls inside the titlebar were also stretching with the background, distorting them into elongated smudges.
+
+**Fix:** parts now render as **crisp slices of the cicn at native pixel size**, positioned at the part's rect's percentage location within the titlebar. The implementation:
+
+```ts
+el.style.left = pct(rect.left, cicnWidth);
+el.style.top = pct(rect.top, cicnHeight);
+el.style.width = `${rectWidth}px`;     // native px, not %
+el.style.height = `${rectHeight}px`;
+el.style.backgroundImage = `url("${cicnUrl}")`;
+el.style.backgroundPosition = `-${rect.left}px -${rect.top}px`;
+el.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+```
+
+The background-position negative offset is the trick: it shifts the cicn so that `(rect.left, rect.top)` of the cicn appears at `(0, 0)` of the overlay div. The overlay's native size (rectWidth × rectHeight) clips to just the part's region. Result: close box always renders 11×11 px at 12.16% from left, regardless of titlebar width. No stretching, no smudging.
+
+**The deeper lesson:** when stretching the background image distorts what should be crisp, slice it out at native size and re-overlay. Same idea as CSS sprites. The cicn already contains the crisp glyph; the trick is showing only that region at native scale.
+
+### 2026-05-17 — Scheme-derived 1px window border via cicn outer pixels
+
+For the "no themed borders" feedback: applied the chrome cicn as a 1px-slice border-image on the window root. The cicn's outermost edge pixels become the window's borders — gray for 7 Le, near-black for ErgoBox. Implementation in `applyChromeFromTheme`:
+
+```ts
+windowEl.style.borderImageSource = cssUrl(cicnUrl);
+windowEl.style.borderImageSlice = '1';
+windowEl.style.borderImageWidth = '1';
+windowEl.style.borderImageRepeat = 'stretch';
+windowEl.style.borderStyle = 'solid';
+windowEl.style.borderWidth = '1px';
+windowEl.style.borderColor = 'transparent';
+windowEl.style.boxSizing = 'border-box';
+```
+
+**What this is not:** full `wnd#` side-recipe composition. A real scheme-correct border would parse `wnd#`'s `topSide` / `bottomSide` / `leftSide` / `rightSide` recipes — sequences of `(part, position)` pairs that describe which cicn regions to stamp at which pixel offsets along each edge. That's much bigger work (probably a canvas-based compositor, or multi-layered absolute-positioned divs per region). The 1px approach is a useful approximation: every window gets a scheme-derived thin frame that visually unifies the chrome, without the architecture investment.
+
+**Known limitation introduced by this round:** title text now overlaps with the crisp control glyphs because the demo's `.aaron-titlebar__title` uses `inset: 0` (covers full titlebar) and the controls render at their wnd#-specified rect positions. Real schemes carry "title pill" geometry as a separate concept (or implicit in the cicn art) — needs scheme-data extension. Documented for future polish.
+
+---
+
 *New learnings get appended below this line as the project ships.*
