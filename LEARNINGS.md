@@ -575,4 +575,51 @@ Same kind of jsdom CSSOM normalization gotcha we've seen twice already (URL esca
 
 ---
 
+### 2026-05-17 — The runtime trio composes — `applyChromeFromTheme` is the seam
+
+Shipping [#43](https://github.com/khawkins98/aaron-ui/issues/43) (runtime theme switching) earned the prior tier's value: the four renderer primitives from #38 / #40 / #41 / #42 compose into a single per-window applier with ~60 lines of glue. The architecture-doc spec predicted this shape (§8 WM↔runtime seam) but it's worth recording that the prediction held — composition was easy, no per-primitive escape hatches needed.
+
+The seam pattern:
+
+```
+applyChromeFromTheme(windowEl, theme, opts?)
+  ├─ resolveWindowType(theme, opts?.windowTypeSlug)   // pick the windowType entry
+  ├─ deriveStateFromDom(windowEl, chrome)             // active/inactive/collapsed
+  ├─ findChromeElementByAsset(theme, cicnUrl)         // get cinf + bgPattern metadata
+  ├─ applyChromeElement(titlebar, chromeEntry, {theme})  // #40 + #41 baked in
+  └─ applyWindowParts(titlebar, windowType, {chromeWidth, chromeHeight, aria}) // #42
+```
+
+The function is ~100 lines including JSDoc and error cases. It doesn't import AaronWindow — it takes a DOM element and uses the `.aaron-titlebar` selector contract. That keeps the WM core fully un-coupled from theme code, which was the architecture spec's main design directive.
+
+**Application:** for any future per-window concern that crosses the WM↔runtime seam (theme swap, control state machinery, animation transitions), follow the same pattern: take an `HTMLElement`, use class-selector contracts, return a result + accept options. Don't import AaronWindow. The seam survives only if every helper respects it.
+
+### 2026-05-17 — `attachThemeToWindow` swallows applyChromeFromTheme errors by design
+
+The integration helper `attachThemeToWindow(windowEl, opts?)` wraps `applyChromeFromTheme` in a try/catch that, on failure, calls `clearChromeFromTheme(windowEl)` instead of letting the error propagate. Subjective call, recorded here so the choice doesn't get accidentally reverted:
+
+**Why swallow:** the subscription is asynchronous and runs across many windows. A theme that defines `chromeElements` but no `windowTypes` (or one whose windowType slug doesn't match) shouldn't crash the entire subscription chain — that would leave other windows un-styled too. The graceful degradation: this window goes un-themed (engine-baseline CSS) until the next theme change.
+
+**When this hides bugs:** consumer typos in `windowTypeSlug` (e.g., `'documnet-window'`) silently disable theming for the affected windows. The escape hatch is calling `applyChromeFromTheme` directly — it throws loudly on the same conditions.
+
+**Application:** keep error-swallowing only at the subscription boundary. Lower-level functions (`applyChromeFromTheme`, `applyChromeElement`, `applyWindowParts`) all throw on invalid input. Consumers who want strict behaviour skip `attachThemeToWindow` and wire their own subscription.
+
+### 2026-05-17 — MutationObserver tests must clean up observers across tests
+
+`enableThemeSwitching()` returns a teardown function for its `MutationObserver`. The first cut of the unit tests forgot to call this teardown between tests — each test installed its own observer, but observers from prior tests were still active and fired on later attribute mutations. Result: a test asserting "fetch was not called" failed because a prior test's observer triggered an unintended load.
+
+**Fix:** test-file-scoped `disables: Array<() => void>` array, with a `enable(opts)` wrapper that pushes the returned teardown. `afterEach` pops and invokes every teardown.
+
+**Application:** any helper that returns a teardown function needs a similar pattern in its tests. Without explicit cleanup, observers / event listeners / interval timers leak across the test suite and cause flaky cross-test interference. The wrapper-over-the-real-function pattern keeps test bodies readable without forgetting cleanup.
+
+### 2026-05-17 — gh-pages now shows visible runtime chrome, not just buttons
+
+Folded a visible runtime demo into #43 rather than waiting for #44 (demo refit). The new `theme-switcher-fixture.html` mounts a real `AaronWindow`, subscribes it to the theme registry via `attachThemeToWindow`, and provides swap buttons. The window's chrome — cicn 9-slice border-image + ppat overlay (none for these schemes today) + wnd# part overlays — visibly changes between 7 Le and ErgoBox 2.
+
+Before this PR, gh-pages had `theme-loader-fixture.html` (just buttons + palette assertions) but no page actually *rendered* a chromed window using the new runtime. Anyone visiting the deployed demo would have seen Phase 1 fixtures + the legacy raster demo, with no indication that Phase 4 had landed at all.
+
+**Application:** for any future tier that produces a visible UX change, ship a minimal visible-demo fixture in the same PR. Don't defer visible demonstration to a "demo refit" ticket — by the time that lands, multiple weeks may have passed where the deployed demo misrepresented the project. The CONTRIBUTING.md cut-through cadence catches this *after the fact*; in-PR fixtures catch it *as the work ships*.
+
+---
+
 *New learnings get appended below this line as the project ships.*

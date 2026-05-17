@@ -72,10 +72,15 @@
 
     <h2>Theme runtime fixtures (Phase 4, in flight)</h2>
     <div class="grid">
+      <a href="theme-switcher-fixture.html" class="card">
+        <span class="card__tag">fixture · runtime</span>
+        <h3>theme-switcher-fixture.html ★</h3>
+        <p>The visible runtime demo. Mounts a real <code>AaronWindow</code>, attaches it via <code>attachThemeToWindow</code>, swaps between bundled 7 Le and ErgoBox 2. Chrome <em>visibly</em> changes — the runtime trio (cinf 9-slice + ppat overlay + wnd# part overlays) all composed together.</p>
+      </a>
       <a href="theme-loader-fixture.html" class="card">
         <span class="card__tag">fixture · loadTheme</span>
         <h3>theme-loader-fixture.html</h3>
-        <p>Buttons that call <code>loadTheme()</code> against the canonical 7 Le and ErgoBox 2 bundles served from <code>/themes/&lt;slug&gt;/</code>. Asserts palette → <code>:root</code> custom properties + theme swap cleanup. Backs the Phase 4.4 e2e suite.</p>
+        <p>Lower-level: just <code>loadTheme()</code> and palette → <code>:root</code> assertions. Backs the Phase 4.4 e2e suite. The switcher fixture above is the human-facing visible version.</p>
       </a>
     </div>
 
