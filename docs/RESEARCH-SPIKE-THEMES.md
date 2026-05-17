@@ -1,6 +1,8 @@
 # Research spike — period theme deconstruction
 
 **Status: closed 2026-05-17.** Spike successful. The two original Tier 1/2 schemes (`mass:werk 7 Le`, `mass:werk Dark ErgoBox 2`) were deconstructed and the findings codified as [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — the canonical architecture artifact. The [scheme-extractor tool](../tools/scheme-extractor/) now decodes `cicn`, `ppat`, `cinf`, and `wnd#` from any Kaleidoscope `.ksc` and emits a draft `theme.json` per the spec's §7 schema. Phase 4 (theme engine) will consume this format directly. Document retained as the methodology record.
+
+**2026-05-17 follow-on pivot (post-spike):** the spike's success was load-bearing for a subsequent strategic pivot. With `cicn`/`ppat`/`cinf`/`wnd#` decoding mechanized, hand-authoring a competing first-party Platinum theme stopped making sense — mass:werk's freeware "7 Le" already provides Platinum-faithful chrome, and the runtime can render it directly. The original PRD's Phase 2 ("Platinum chrome") has been dropped; Phase 4 ("Theme engine") absorbed its scope; mass:werk 7 Le is now the *bundled default*. See the LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" for the full reasoning.
 **Date opened:** 2026-05-16
 **Why we're doing this:** the PRD assumes we'll deconstruct at least one period theme to inform Aaron UI's web bundle format design. The PRD doesn't say *which* theme, *where to get it*, or *how to extract it*. This document closes those gaps.
 
