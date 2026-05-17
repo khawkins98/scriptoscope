@@ -466,6 +466,22 @@ export class AaronWindow {
     win.appendChild(titlebar);
     win.appendChild(content);
 
+    // Edge containers for #64.3 side composition. The runtime composer
+    // appends segment divs to these on theme apply; they stay empty
+    // (and invisible) when no theme is active. Pure structure — visible
+    // styling comes from theme CSS + the composer's inline styles.
+    for (const side of ['left', 'right', 'bottom'] as const) {
+      const edge = document.createElement('div');
+      edge.className = `aaron-window__edge aaron-window__edge--${side}`;
+      edge.setAttribute('data-aaron-edge', side);
+      // Inline structural defaults so the edges exist as DOM but don't
+      // contribute visible chrome until the composer fills them.
+      edge.style.position = 'absolute';
+      edge.style.pointerEvents = 'none';
+      edge.style.overflow = 'hidden';
+      win.appendChild(edge);
+    }
+
     // Resize handles — 8 invisible zones positioned along edges + corners.
     // Pointerdown handlers wired in attachResize(); CSS positioning is
     // inline so the library doesn't ship a stylesheet (theme CSS owns

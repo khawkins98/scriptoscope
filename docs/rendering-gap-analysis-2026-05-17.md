@@ -315,7 +315,28 @@ Implemented in PR #85 (this PR). Approach:
 
 **Known limitation:** for schemes with narrow cicn widths and many named parts (7 Le is 74px wide with ~7 named parts), the resulting pill is narrow in titlebar pixel space, so most titles ellipsize. A future refinement could compute the pill in titlebar-pixel space (recomputing on resize) to pick the widest *visual* gap between rendered named parts rather than the widest *cicn-space* fill run. Tracked but not blocking — the truncated state is strictly better than the previous overlap state.
 
-## 10. References
+## §10. Sub-ticket #64.3 — side + bottom composition (LANDED)
+
+Implemented in PR #86 (this PR). Approach:
+
+1. New runtime composers — `composeBottomEdge`, `composeLeftEdge`, `composeRightEdge` — mirror `composeTopEdge` but anchor differently and sample from the appropriate cicn edges:
+   - **Bottom** — iterates X axis; fills sample from a "bottom strip" cicn row range (inferred from a thin-named-part heuristic, defaulting to `cicnHeight - 2`); named parts anchor to container *bottom* instead of *top*.
+   - **Left/right** — iterate Y axis; fills tile cicn pixels vertically (`repeat-y`), sampling from cicn column 0 (left) or column `cicnWidth - 1` (right); named parts anchor to the appropriate horizontal edge of the container.
+
+2. `AaronWindow` constructor adds three new container divs: `.aaron-window__edge--{bottom,left,right}` with `data-aaron-edge` attributes. Empty structural defaults until the composer fills them.
+
+3. `applyChromeFromTheme` (Path A) calls a new internal `composeEdgeIfPresent(windowEl, ...)` helper for each of bottom/left/right after composing the top. Path B / Path C clear any prior edge segments. Bare-DOM consumers without the edge container divs degrade gracefully.
+
+4. Demo CSS drops the placeholder `border: 1px solid` and replaces it with an `inset 0 0 0 1px var(--aaron-colr-window-frame)` shadow as a backstop for the un-themed flash. Once edges compose, the scheme-derived chrome paints over the backstop.
+
+**Visible result:** windows now carry scheme-derived chrome on **all four sides**, not just the top. The bottom strip shows the cicn's bottom-row pattern (e.g., 7 Le's solid 1px frame + corner accents); the left/right columns show the cicn's edge-column pattern (e.g., 7 Le's stippled vertical line).
+
+**Limitations + future iterations:**
+- The "bottom strip thickness" inference is heuristic — works for 7 Le's 1-pixel bottom strip and ErgoBox's similar bottom row. Schemes with thick beveled bottoms (BeOS tabs, drop shadows baked into the cicn) may need explicit thickness in the recipe or a more sophisticated heuristic.
+- Side edges currently sample a 1-2px column from the cicn. Schemes with multi-pixel side decorations (drop shadows, beveled frames) would benefit from sampling a wider strip — tracked but not blocking.
+- The titlebar's bottom edge is the chrome cicn rendering, so the side edges start at `top: 25px` to avoid overlap. If a future scheme has a non-25px titlebar height, the demo CSS needs to follow — this is consumer-side, the runtime doesn't enforce.
+
+## 11. References
 
 - [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — output contract; this gap analysis identifies where it's silent on side-recipe composition + title pill.
 - [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — input contract; the wnd# side recipe data described in §3 is what we need to start consuming.

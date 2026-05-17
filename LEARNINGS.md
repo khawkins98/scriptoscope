@@ -866,4 +866,18 @@ For #64.2 (title-pill positioning), the cleanest interface between the runtime r
 
 ---
 
+### 2026-05-17 — Side composition: same algorithm as top, just with the axes (and the anchor) swapped
+
+For #64.3 I extended the V2 top composer to bottom/left/right. The structural decision worth recording: **don't generalize over directions prematurely**. I wrote three near-duplicate functions (`composeBottomEdge`, `composeLeftEdge`, `composeRightEdge`) rather than one parameterized `composeEdge(side)` — the per-edge differences (which axis to iterate, which cicn region to sample for fills, which container edge to anchor named parts to) compound just enough that the parameterized version would have been a knot of conditionals.
+
+Later, I did factor `composeLeftEdge` + `composeRightEdge` into a private `composeVerticalEdge(..., side)` helper because they really are mirror images (only the sample column and anchor edge differ). But top + bottom stayed separate — anchoring to `top:0` vs `bottom:0` plus the cicn-sample-row inference for bottom made them more divergent than the left/right pair. Good rule of thumb: factor only the *true* mirror pairs; let the "similar but actually different" cases stay as separate functions until a third or fourth call site forces them together.
+
+**Container model:** the three new edge containers (`.aaron-window__edge--{bottom,left,right}`) added to `AaronWindow` are pure structural — `position: absolute; pointer-events: none; overflow: hidden` and nothing else. All visible styling (thickness, where they sit relative to the titlebar) lives in the consumer's CSS. This matches the pattern from #64.2 (CSS custom properties carry constraints, consumer carries presentation) and keeps the runtime contract narrow.
+
+**Heuristic risk:** the bottom-strip-start inference (look for a named part whose rect sits in the bottom 5px of the cicn) works for both canonical bundles but is brittle for schemes that don't follow the same convention. Documented as a known limitation; will iterate from real consumer feedback. Don't over-engineer the heuristic now — wait for a scheme that breaks it, then add explicit fallback or `edgeThickness` schema field.
+
+**Test discipline (jsdom gotcha):** writing tests for the side composer surfaced a jsdom behavior — the browser normalizes `-0px` to `0px` in serialized `style.backgroundPosition`. Cost me one failing assertion. Use string `.startsWith` checks for px values that might be zero, not strict equality with the `-0` form.
+
+---
+
 *New learnings get appended below this line as the project ships.*
