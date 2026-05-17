@@ -408,4 +408,60 @@ Caught preemptively before the first cross-OS contributor hit it: without an exp
 
 ---
 
+### 2026-05-17 — Asset-URL absolutization is a loadTheme concern, not a renderer concern
+
+Shipping [#38](https://github.com/khawkins98/aaron-ui/issues/38) (Phase 4.4, `loadTheme()` core), we had to decide *where* relative bundle paths (`cicns/cicn-n14335-active-document-window.png`) become absolute URLs that browsers can fetch (`http://localhost:5173/themes/masswerk-7-le/cicns/cicn-n14335-active-document-window.png`). Three layers could plausibly own it:
+
+1. **Renderer** — each Phase 4.6/4.7/4.8 ticket re-derives the bundle URL and resolves on demand
+2. **ThemeRegistry** — the singleton resolves on `replace()`
+3. **loadTheme** — resolves once, before handing off to the registry
+
+We picked **3 (loadTheme)** and made `resolveAssetUrls()` a pure exported function. Reasons:
+
+- **Single concern.** The bundle URL is loadTheme's input parameter; nobody else has it. Forcing renderers to track "the bundle URL of the currently-loaded theme" creates a hidden coupling between layers that should not need to know each other.
+- **Parsed Theme is the contract.** The `Theme` object handed to renderers should describe a *loaded* bundle in absolute terms — the same way a parsed `<img>` resolves `src` against the document base before exposing `.currentSrc`. Renderers downstream of loadTheme just consume URLs as strings.
+- **Testability.** `resolveAssetUrls` is pure: `(theme, themeJsonUrl) → theme`. Easy to unit-test all the edge cases (paths that escape the bundle root, already-absolute URLs, missing optional sections).
+- **Theme swap correctness.** When ThemeRegistry replaces theme A with theme B, the absolute URLs in B don't accidentally still point at A's bundle root — because B's URLs were resolved against B's bundle URL at fetch time, not against some stored "current bundle URL" on the registry.
+
+**Application:** for Phase 4.6/4.7/4.8 renderers, treat `chromeElements[*].asset` / `patterns[*].asset` / `windowTypes[*].chrome.*` as *opaque absolute URL strings*. Never try to derive them from the bundle URL — that's loadTheme's job. If a future feature needs the bundle root (e.g., a "reload this theme" button), expose it via `ThemeRegistry.currentBundleUrl()` or add it to the parsed Theme as a sealed field. Don't make renderers reach for `document.baseURI` or guess.
+
+### 2026-05-17 — `ThemeRegistry.reset()` must drop listeners *before* the final `replace(null)`
+
+Subtle bug caught by a unit test. The first draft of `reset()`:
+
+```ts
+reset(): void {
+  this.replace(null);     // ← calls listeners with null
+  this.#listeners.clear();
+}
+```
+
+This calls all subscribed listeners with `null` *as part of the test cleanup*. If a listener has stale references or fires assertions when the registry resets, the cleanup itself becomes a test failure. The fix:
+
+```ts
+reset(): void {
+  this.#listeners.clear();   // drop subscribers first
+  this.replace(null);        // then clear state — fires DOM event but no listeners left
+}
+```
+
+The DOM event still fires (any listeners attached via `document.addEventListener` get the `theme: null` event), but the internal subscribe-API listeners are gone. Test setup is symmetric: `beforeEach(() => themeRegistry.reset())` works as the natural "clean slate" hook.
+
+**Application:** in any future singleton with both an event-dispatch path and a subscribe-API path, the `reset()` method should clear the subscribe-API path *first*, then perform the state teardown. The two paths have different test lifecycles and shouldn't intermix.
+
+### 2026-05-17 — Vite dev needs a tiny middleware to serve repo-root `themes/` at `/themes/`
+
+The dev server has `root: 'demo'`, so by default `/themes/` resolves to nothing. The canonical bundles live at `<repoRoot>/themes/`, and Phase 4 runtime fetches them by absolute URL (`/themes/masswerk-7-le/`). We needed Vite to serve the parent dir's `themes/` under that URL prefix.
+
+Options surveyed:
+
+- **`publicDir: '../themes'`** — would serve files as `/masswerk-7-le/...`, not `/themes/masswerk-7-le/...`. Wrong URL shape.
+- **`server.fs.allow: ['..']` alone** — allows file imports across the boundary (needed for `<script src="../src/index.ts">` in demo fixtures), but doesn't expose static files at arbitrary URL paths.
+- **vite-plugin-static-copy** — would work but adds a dependency for ~15 lines of logic.
+- **Inline plugin with `configureServer`** — what we shipped. ~15 lines: intercept any URL starting with `/themes/`, resolve to the repo-root file, stream it. No dep.
+
+**Application:** for the production demo build (`vite.demo.config.js` → `dist/demo/`), `themes/` needs to be copied into the output via the existing `scripts/copy-demo-assets.mjs` pattern (next time we deploy gh-pages with a Phase 4 demo). Don't assume the dev middleware suffices — production-build assets are static-served from the dist root, not from a Node middleware.
+
+---
+
 *New learnings get appended below this line as the project ships.*
