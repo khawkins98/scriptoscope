@@ -7,4 +7,6 @@
 export const VERSION = '0.0.0';
 
 export { AaronWindow } from './window-manager/AaronWindow.js';
-export type { AaronWindowOptions } from './window-manager/AaronWindow.js';
+export type { AaronWindowOptions, ResizeDirection } from './window-manager/AaronWindow.js';
+export { windowManager } from './window-manager/WindowManager.js';
+export type { WindowManager } from './window-manager/WindowManager.js';

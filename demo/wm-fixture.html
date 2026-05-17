@@ -27,19 +27,17 @@
 </head>
 <body>
   <script type="module">
-    import { AaronWindow } from '../src/index.ts';
-    // Expose for tests
+    import { AaronWindow, windowManager } from '../src/index.ts';
     window.AaronWindow = AaronWindow;
-    // Mount a default window for resize/drag tests.
-    const w = new AaronWindow({
-      title: 'Test Window',
-      x: 100,
-      y: 100,
-      width: 320,
-      height: 200,
-    });
-    w.mount();
-    window.testWindow = w;
+    window.windowManager = windowManager;
+    // Three windows for z-order / focus tests
+    const a = new AaronWindow({ title: 'Window A', x: 100, y: 100, width: 320, height: 200 });
+    const b = new AaronWindow({ title: 'Window B', x: 200, y: 150, width: 320, height: 200 });
+    const c = new AaronWindow({ title: 'Window C', x: 300, y: 200, width: 320, height: 200 });
+    a.mount(); b.mount(); c.mount();
+    window.windows = { a, b, c };
+    // Back-compat for older tests that expect window.testWindow
+    window.testWindow = a;
   </script>
 </body>
 </html>

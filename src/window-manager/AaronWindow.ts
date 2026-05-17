@@ -114,6 +114,8 @@ interface NormalizedOptions {
 export type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 const RESIZE_DIRECTIONS: ResizeDirection[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 
+import { windowManager } from './WindowManager.js';
+
 const noop = (): void => undefined;
 
 function normalizeBorder(border: number | string | undefined): string | undefined {
@@ -210,6 +212,10 @@ export class AaronWindow {
     this.mounted = true;
     this.attachDrag();
     this.attachResize();
+    this.attachRaiseOnPointerDown();
+    // Register with the shared WM — this sets z-index, sets data-state to
+    // active, and fires onfocus.
+    windowManager.register(this);
     this.options.oncreate.call(this);
     return this;
   }
@@ -222,12 +228,29 @@ export class AaronWindow {
     if (!this.mounted || this.el === null) return this;
     this.detachDrag();
     this.detachResize();
+    this.detachRaiseOnPointerDown();
+    windowManager.unregister(this);
     this.el.remove();
     this.el = null;
     this.contentEl = null;
     this.titlebarEl = null;
     this.mounted = false;
     return this;
+  }
+
+  /**
+   * Raise the window to the top of the z-order + focus it. Fires onfocus
+   * (and onblur on whichever window was previously focused). No-op if
+   * already on top.
+   */
+  focus(): this {
+    if (this.mounted) windowManager.raise(this);
+    return this;
+  }
+
+  /** Is this the currently-focused window? */
+  get hasFocus(): boolean {
+    return windowManager.focusedWindow === this;
   }
 
   /**
@@ -565,6 +588,27 @@ export class AaronWindow {
     document.removeEventListener('pointerup', this.onResizePointerUp);
     document.removeEventListener('pointercancel', this.onResizePointerUp);
   };
+
+  /* ─── raise-on-click (issue #6) ─────────────────────────────────
+     Single capture-phase pointerdown handler on the window root —
+     fires before drag/resize handlers consume the event so click-to-
+     raise always wins. */
+
+  private readonly onRaisePointerDown = (_e: PointerEvent): void => {
+    windowManager.raise(this);
+  };
+
+  private attachRaiseOnPointerDown(): void {
+    if (this.el !== null) {
+      this.el.addEventListener('pointerdown', this.onRaisePointerDown, true);
+    }
+  }
+
+  private detachRaiseOnPointerDown(): void {
+    if (this.el !== null) {
+      this.el.removeEventListener('pointerdown', this.onRaisePointerDown, true);
+    }
+  }
 
   /** Clamp programmatic resize to min size + viewport. */
   private clampSize(width: number, height: number): [number, number] {
