@@ -17,12 +17,15 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       input: {
-        index:             resolve(import.meta.dirname, 'demo/index.html'),
-        'themes-raster':   resolve(import.meta.dirname, 'demo/themes-raster.html'),
-        themes:            resolve(import.meta.dirname, 'demo/themes.html'),
-        'platinum-static': resolve(import.meta.dirname, 'demo/platinum-static.html'),
-        'wm-fixture':      resolve(import.meta.dirname, 'demo/wm-fixture.html'),
-        'scanner-fixture': resolve(import.meta.dirname, 'demo/scanner-fixture.html'),
+        index:                  resolve(import.meta.dirname, 'demo/index.html'),
+        'themes-raster':        resolve(import.meta.dirname, 'demo/themes-raster.html'),
+        themes:                 resolve(import.meta.dirname, 'demo/themes.html'),
+        'platinum-static':      resolve(import.meta.dirname, 'demo/platinum-static.html'),
+        'wm-fixture':           resolve(import.meta.dirname, 'demo/wm-fixture.html'),
+        'scanner-fixture':      resolve(import.meta.dirname, 'demo/scanner-fixture.html'),
+        // Phase 4 runtime fixture (#38). Pairs with the themes/ copy in
+        // scripts/copy-demo-assets.mjs so loadTheme() resolves at gh-pages.
+        'theme-loader-fixture': resolve(import.meta.dirname, 'demo/theme-loader-fixture.html'),
       },
     },
   },

@@ -33,45 +33,54 @@
   <div class="container">
     <header>
       <h1>Aaron UI</h1>
-      <p>A Mac OS-style window manager + theme engine for the web. Loads freeware-licensed Kaleidoscope-derived chrome themes; ships Platinum as the default.</p>
-      <p>Pre-implementation. Phase 1 (WM core) just shipped. <a href="https://github.com/khawkins98/aaron-ui">GitHub repo</a>.</p>
+      <p>A web-native runtime for <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> themes — and the window manager that hosts them. Loads freeware-licensed Kaleidoscope schemes (chrome, controls, colors) and renders them with CSS, SVG, and JS. Ships <a href="https://www.masswerk.at/schemes.php">mass:werk's "7 Le"</a> as the bundled default.</p>
+      <p>Phase 1 (WM core) shipped. Phase 4 (theme engine) in flight — schema, extractor, canonical bundles, <code>loadTheme()</code>, and the cinf/ppat renderers have landed; the per-window chrome wiring (#42), bundled-default auto-load (#39), and demo refit (#44) are still open. See <a href="https://github.com/khawkins98/aaron-ui">GitHub repo</a> and the <a href="https://github.com/khawkins98/aaron-ui/issues/23">Phase 4 tracker</a> for what's done and what's next.</p>
     </header>
 
-    <h2>Showcase</h2>
+    <h2>Visual showcase</h2>
     <div class="grid">
       <a href="themes-raster.html" class="card">
         <span class="card__tag">demo · raster</span>
         <h3>themes-raster.html</h3>
-        <p>Side-by-side comparison: masswerk reference thumbnail vs our live render. Two themes (7 Le, Dark ErgoBox 2), interactive controls, raster-fidelity chrome.</p>
+        <p>Side-by-side comparison: mass:werk reference thumbnail vs. our live render. Two themes (7 Le, Dark ErgoBox 2), interactive controls. <em>Note:</em> reads the legacy draft <code>theme.json</code> shape from <code>demo/assets/</code>; the planned refit to consume the canonical <code>themes/&lt;slug&gt;/</code> bundles is <a href="https://github.com/khawkins98/aaron-ui/issues/44">issue #44</a>.</p>
       </a>
       <a href="themes.html" class="card">
         <span class="card__tag">demo · synthetic</span>
         <h3>themes.html</h3>
-        <p>Pre-raster theme switcher: pure CSS gradients + SVG primitives. The architecture proof-of-concept before raster extraction landed.</p>
+        <p>Pre-raster theme switcher: pure CSS gradients + SVG primitives. Historical proof-of-concept from before the raster pipeline landed; kept as a comparison point.</p>
       </a>
       <a href="platinum-static.html" class="card">
         <span class="card__tag">demo · reference</span>
         <h3>platinum-static.html</h3>
-        <p>Single-file, no-JS, no-build Platinum window mockup. Pure-CSS reference for Phase 2.</p>
+        <p>Single-file, no-JS Platinum window mockup. Pure-CSS reference authored when the original Phase 2 (hand-author Platinum) was still in scope; retained as historical context after that phase was <a href="https://github.com/khawkins98/aaron-ui/issues/21">dropped</a>.</p>
       </a>
     </div>
 
-    <h2>WM Core (Phase 1) fixtures</h2>
+    <h2>WM core fixtures (Phase 1)</h2>
     <div class="grid">
       <a href="wm-fixture.html" class="card">
         <span class="card__tag">fixture · imperative</span>
         <h3>wm-fixture.html</h3>
-        <p>Three AaronWindow instances mounted via the imperative API. Drag, resize, click-to-front, callback recording. Used by Playwright e2e tests.</p>
+        <p>Three <code>AaronWindow</code> instances mounted via the imperative API. Drag, resize, click-to-front, callback recording. Used by Playwright e2e tests.</p>
       </a>
       <a href="scanner-fixture.html" class="card">
         <span class="card__tag">fixture · declarative</span>
         <h3>scanner-fixture.html</h3>
-        <p>Pure-markup [data-aaron-window] divs that auto-promote into real windows on load. MutationObserver picks up dynamically-added ones. Phase 1 #8.</p>
+        <p>Pure-markup <code>[data-aaron-window]</code> divs that auto-promote into real windows on load. MutationObserver picks up dynamically-added ones.</p>
+      </a>
+    </div>
+
+    <h2>Theme runtime fixtures (Phase 4, in flight)</h2>
+    <div class="grid">
+      <a href="theme-loader-fixture.html" class="card">
+        <span class="card__tag">fixture · loadTheme</span>
+        <h3>theme-loader-fixture.html</h3>
+        <p>Buttons that call <code>loadTheme()</code> against the canonical 7 Le and ErgoBox 2 bundles served from <code>/themes/&lt;slug&gt;/</code>. Asserts palette → <code>:root</code> custom properties + theme swap cleanup. Backs the Phase 4.4 e2e suite.</p>
       </a>
     </div>
 
     <footer>
-      <p>Built with the Phase 1 WM core: 140 unit tests + 30 e2e tests, all green. ~7 KB gzipped.</p>
+      <p>Bundle stats live in <a href="https://github.com/khawkins98/aaron-ui/blob/main/README.md">README</a>; CI status on <a href="https://github.com/khawkins98/aaron-ui/actions">Actions</a>.</p>
       <p><a href="https://github.com/khawkins98/aaron-ui">github.com/khawkins98/aaron-ui</a> · <a href="https://github.com/khawkins98/aaron-ui/milestones">milestones</a> · <a href="https://github.com/khawkins98/aaron-ui/issues">issues</a></p>
     </footer>
   </div>

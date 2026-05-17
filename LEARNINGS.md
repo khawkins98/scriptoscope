@@ -525,4 +525,27 @@ So #41 is "renderer-side ready, encoder-side TBD." The unit tests cover the rend
 
 ---
 
+### 2026-05-17 — gh-pages cut-through: the landing page lied about the project state for ~4 PRs
+
+First cut-through pass under the new CONTRIBUTING.md §"Periodic documentation cut-throughs" section. Caught three categories of drift in `demo/index.html`:
+
+1. **Architectural claims that the pivot invalidated.** The lede said "ships Platinum as the default" — false since the 2026-05-17 Kaleidoscope-runtime pivot (we ship mass:werk 7 Le, not a hand-authored Platinum). Same paragraph said "Pre-implementation. Phase 1 (WM core) just shipped" — wrong tense, Phase 4 has shipped half its tickets since.
+2. **Card descriptions that referenced dropped phases.** `platinum-static.html`'s card called itself "Pure-CSS reference for Phase 2." Phase 2 was dropped; the file is now historical context.
+3. **Numbers that always go stale.** "140 unit tests + 30 e2e tests, all green" was true on the day Phase 1 shipped. Reframed as "stats live in README; CI status on Actions" — a link that stays current automatically.
+
+**Bigger discovery: the gh-pages build was missing the Phase 4 runtime fixture entirely.** `demo/theme-loader-fixture.html` (added for #38's e2e) wasn't in `vite.demo.config.js`'s input list, so it never made it into `dist/demo/` for the gh-pages deploy. Same for the canonical `themes/<slug>/` bundles — they were only served by the dev-only Vite middleware, never copied into the production demo. Both gaps would have surfaced as 404s for anyone clicking through the deployed demo.
+
+**Fix:**
+- Added `theme-loader-fixture` to `vite.demo.config.js` inputs
+- Added `themes/` subdir copy to `scripts/copy-demo-assets.mjs` so loader fixtures find their bundles at gh-pages
+- Switched the fixture's `loadTheme()` paths from absolute (`/themes/...`) to relative (`themes/...`) so the same fixture works under Vite dev root (`/`) AND gh-pages base (`/aaron-ui/`)
+
+**Application:**
+
+- **Audit gh-pages every time a new fixture or asset path lands.** The deploy is a separate codepath from CI tests; "all green locally" and "works on gh-pages" are not the same assertion. A test passes against `localhost:5173/...`; gh-pages serves at `khawkins98.github.io/aaron-ui/...`. Anything absolute breaks; anything not in the build inputs gets silently dropped.
+- **Prefer relative URLs in deployable artifacts.** Absolute paths in HTML or JS break under any non-root base path. The exception is when the consumer of the lib will own their own deploy — `loadTheme('/themes/foo/')` is fine in their app code, but our deploy fixtures should be relative.
+- **The cut-through cadence works.** This pass took ~20 minutes and surfaced both a stale lede and a missing deploy entry — neither of which any CI check could have caught. The "every phase milestone close, or after a pivot, or on any 'wait, that's not right' moment" rule from CONTRIBUTING.md earned its keep on its first invocation.
+
+---
+
 *New learnings get appended below this line as the project ships.*

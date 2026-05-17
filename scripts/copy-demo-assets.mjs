@@ -32,4 +32,17 @@ await copy(
   resolve(root, 'demo/assets/references'),
   resolve(outAssets, 'references'),
 );
+
+// Canonical theme bundles (themes/<slug>/) — served at /themes/ in dev via
+// the serveThemesPlugin in vite.config.js and copied verbatim here for the
+// gh-pages deploy so loadTheme('/themes/<slug>/') works at production URLs.
+const outThemes = resolve(root, 'dist/demo/themes');
+await mkdir(outThemes, { recursive: true });
+for (const slug of ['masswerk-7-le', 'masswerk-dark-ergobox2']) {
+  await copy(
+    resolve(root, 'themes', slug),
+    resolve(outThemes, slug),
+  );
+}
+
 console.log('Demo assets copied.');

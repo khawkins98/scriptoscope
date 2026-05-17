@@ -25,10 +25,13 @@
     const status = document.getElementById('status');
     const setStatus = (s) => { status.textContent = s; };
 
+    // Relative paths so the same fixture works under Vite dev root (`/`)
+    // and gh-pages base (`/aaron-ui/`). loadTheme resolves against
+    // document.baseURI.
     document.getElementById('load-7le').addEventListener('click', async () => {
       setStatus('loading-7le');
       try {
-        await loadTheme('/themes/masswerk-7-le/');
+        await loadTheme('themes/masswerk-7-le/');
         setStatus('loaded-7le');
       } catch (e) {
         setStatus(`error: ${e.message}`);
@@ -38,7 +41,7 @@
     document.getElementById('load-ergobox').addEventListener('click', async () => {
       setStatus('loading-ergobox');
       try {
-        await loadTheme('/themes/masswerk-dark-ergobox2/');
+        await loadTheme('themes/masswerk-dark-ergobox2/');
         setStatus('loaded-ergobox');
       } catch (e) {
         setStatus(`error: ${e.message}`);
