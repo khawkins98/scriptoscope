@@ -4,7 +4,7 @@ A Mac OS Appearance-style window manager and theme engine for the web.
 
 Drop it into any page to get draggable, resizable windows that look and feel like System 7.5+ / Mac OS 8 — pinstripe title bars, paper title pills, ink-bordered close boxes, windowshade collapse, integrated grow boxes. Then swap themes at runtime to load curated [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software))-era community schemes — chrome, controls, colors, optional sounds, optional desktop background. The default Platinum theme is hand-authored from the Mac OS 8 HIG; alternate themes are ported from freeware-licensed Kaleidoscope schemes with original-author attribution.
 
-> ⚠️ **Status: pre-implementation.** This repo currently contains the project charter (see [`PRD.md`](./PRD.md)) and contribution conventions. No code yet. Phase 1 (WM core, API-compatible drop-in for [WinBox](https://nextapps-de.github.io/winbox/)) is the next step.
+> **Status: Phase 1 shipped.** The window-manager core is in: `AaronWindow` class with drag, 8-direction resize, z-order, focus, programmatic API, declarative `[data-aaron-window]` scanner, ARIA + keyboard + focus-trap. 140 unit tests + 30 e2e tests, ~7 KB gzipped. Live demo: <https://khawkins98.github.io/aaron-ui/>. Phase 2 (default Platinum chrome) is next — see the [milestones](https://github.com/khawkins98/aaron-ui/milestones).
 
 ## North Star
 
