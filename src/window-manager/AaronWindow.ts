@@ -17,9 +17,13 @@
 // theme bundle). This class only emits the DOM with the documented class
 // names + data attributes. Themes do the rest.
 
-/** Public constructor options. All fields optional with sensible defaults. */
+/**
+ * Public constructor options. Accepts the WinBox option keys cv-mac uses
+ * (per PRD Success Criterion #1 and issue #3) so a one-line drop-in is
+ * possible. Documented differences in docs/winbox-compat.md.
+ */
 export interface AaronWindowOptions {
-  /** Title text shown in the titlebar. Defaults to empty string. */
+  /** Title text shown in the titlebar. Default `''`. */
   title?: string;
   /** x position in pixels, relative to the mount parent. Default 100. */
   x?: number;
@@ -31,24 +35,55 @@ export interface AaronWindowOptions {
   height?: number;
   /**
    * HTML content for the body area. Inserted via innerHTML — consumers are
-   * responsible for sanitising untrusted strings. This matches WinBox's
-   * `html` option for call-site compatibility (see issue #3).
+   * responsible for sanitising untrusted strings. WinBox compat.
    */
   html?: string;
   /**
    * DOM parent to append into. Falls back to `document.body` at mount time
-   * if not provided. Resolving lazily means importing the module in a
-   * non-browser environment (e.g. SSR) doesn't fail at import time.
+   * if not provided. Lazy resolution means SSR import won't fail.
+   * Aaron-UI native; corresponds to WinBox's `root`.
    */
   mount?: HTMLElement;
-  /** Fired when the window closes via the close button or .close(). */
-  onclose?: () => void;
+  /**
+   * WinBox alias for `mount`. If both are provided, `mount` wins. Present
+   * so cv-mac call sites that pass `root: ...` work unmodified.
+   */
+  root?: HTMLElement;
+  /**
+   * Optional CSS background applied to the window root via inline style.
+   * Per-window override; theme CSS is the default. WinBox compat.
+   */
+  background?: string;
+  /**
+   * Optional CSS border applied to the window root via inline style.
+   * Number → `${n}px solid`; string → used as-is. WinBox compat.
+   */
+  border?: number | string;
+  /**
+   * Extra class names (space-separated string or array) added to the
+   * window root alongside `.aaron-window`. WinBox compat.
+   */
+  class?: string | string[];
+
+  /** Fired after the window's DOM is created and appended. */
+  oncreate?: (this: AaronWindow) => void;
+  /** Fired when the window closes (placeholder until issue #7 wires .close()). */
+  onclose?: (this: AaronWindow) => void;
+  /** Fired when the window gains focus (placeholder until issue #6). */
+  onfocus?: (this: AaronWindow) => void;
+  /** Fired when the window loses focus (placeholder until issue #6). */
+  onblur?: (this: AaronWindow) => void;
+  /** Fired on move (placeholder until issue #4 wires drag). */
+  onmove?: (this: AaronWindow, x: number, y: number) => void;
+  /** Fired on resize (placeholder until issue #5 wires resize). */
+  onresize?: (this: AaronWindow, width: number, height: number) => void;
 }
 
 /**
- * Internal normalised options after defaults applied. Kept separate from
- * the public interface so we can encode the "always present" guarantees
- * without forcing consumers to pass everything.
+ * Internal normalised options after defaults applied. The "callbacks are
+ * always present" guarantee simplifies the call sites in the class body
+ * (no null checks); a no-op stand-in is used when the consumer didn't
+ * supply one.
  */
 interface NormalizedOptions {
   title: string;
@@ -58,10 +93,30 @@ interface NormalizedOptions {
   height: number;
   html: string;
   mount?: HTMLElement;
-  onclose: () => void;
+  background?: string;
+  border?: string;
+  class: string[];
+  oncreate: (this: AaronWindow) => void;
+  onclose: (this: AaronWindow) => void;
+  onfocus: (this: AaronWindow) => void;
+  onblur: (this: AaronWindow) => void;
+  onmove: (this: AaronWindow, x: number, y: number) => void;
+  onresize: (this: AaronWindow, width: number, height: number) => void;
 }
 
 const noop = (): void => undefined;
+
+function normalizeBorder(border: number | string | undefined): string | undefined {
+  if (border === undefined) return undefined;
+  if (typeof border === 'number') return `${border}px solid`;
+  return border;
+}
+
+function normalizeClass(cls: string | string[] | undefined): string[] {
+  if (cls === undefined) return [];
+  if (Array.isArray(cls)) return cls.filter(c => c.length > 0);
+  return cls.split(/\s+/).filter(c => c.length > 0);
+}
 
 export class AaronWindow {
   /** Normalised options (defaults applied). Frozen for immutability. */
@@ -80,9 +135,21 @@ export class AaronWindow {
       width: options.width ?? 320,
       height: options.height ?? 200,
       html: options.html ?? '',
+      class: normalizeClass(options.class),
+      oncreate: options.oncreate ?? noop,
       onclose: options.onclose ?? noop,
+      onfocus: options.onfocus ?? noop,
+      onblur: options.onblur ?? noop,
+      onmove: options.onmove ?? noop,
+      onresize: options.onresize ?? noop,
     };
-    if (options.mount !== undefined) normalised.mount = options.mount;
+    // `mount` is Aaron-UI native; `root` is the WinBox alias. mount wins
+    // if both provided to keep precedence predictable.
+    const parentRef = options.mount ?? options.root;
+    if (parentRef !== undefined) normalised.mount = parentRef;
+    if (options.background !== undefined) normalised.background = options.background;
+    const border = normalizeBorder(options.border);
+    if (border !== undefined) normalised.border = border;
     this.options = Object.freeze(normalised);
   }
 
@@ -113,6 +180,7 @@ export class AaronWindow {
     this.el = this.createDom();
     target.appendChild(this.el);
     this.mounted = true;
+    this.options.oncreate.call(this);
     return this;
   }
 
@@ -132,7 +200,7 @@ export class AaronWindow {
   /** Build the DOM tree per the documented chrome class structure. */
   private createDom(): HTMLElement {
     const win = document.createElement('div');
-    win.className = 'aaron-window';
+    win.classList.add('aaron-window', ...this.options.class);
     win.setAttribute('data-aaron-window', '');
     win.setAttribute('data-state', 'active');
     Object.assign(win.style, {
@@ -142,6 +210,12 @@ export class AaronWindow {
       width: `${this.options.width}px`,
       height: `${this.options.height}px`,
     });
+    if (this.options.background !== undefined) {
+      win.style.background = this.options.background;
+    }
+    if (this.options.border !== undefined) {
+      win.style.border = this.options.border;
+    }
 
     const titlebar = document.createElement('div');
     titlebar.className = 'aaron-titlebar';

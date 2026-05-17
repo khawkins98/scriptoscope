@@ -191,5 +191,124 @@ describe('AaronWindow', () => {
       w.unmount();
       expect(onclose).not.toHaveBeenCalled();
     });
+
+    it('fires oncreate after mount() succeeds', () => {
+      const oncreate = vi.fn();
+      const w = new AaronWindow({ title: 'Cre', oncreate });
+      expect(oncreate).not.toHaveBeenCalled();
+      w.mount();
+      expect(oncreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('oncreate fires only once per mount, even with double mount()', () => {
+      const oncreate = vi.fn();
+      const w = new AaronWindow({ oncreate });
+      w.mount();
+      w.mount();
+      expect(oncreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('oncreate is invoked with `this` bound to the AaronWindow', () => {
+      let captured: unknown = null;
+      const w = new AaronWindow({
+        oncreate(this: AaronWindow) {
+          captured = this;
+        },
+      });
+      w.mount();
+      expect(captured).toBe(w);
+    });
+
+    it('accepts onfocus/onblur/onmove/onresize options (placeholders for #4/#5/#6)', () => {
+      const onfocus = vi.fn();
+      const onblur = vi.fn();
+      const onmove = vi.fn();
+      const onresize = vi.fn();
+      const w = new AaronWindow({ onfocus, onblur, onmove, onresize });
+      expect(w.options.onfocus).toBe(onfocus);
+      expect(w.options.onblur).toBe(onblur);
+      expect(w.options.onmove).toBe(onmove);
+      expect(w.options.onresize).toBe(onresize);
+    });
+  });
+
+  describe('WinBox option compatibility (issue #3)', () => {
+    it('accepts root as an alias for mount', () => {
+      const parent = document.createElement('aside');
+      document.body.appendChild(parent);
+      const w = new AaronWindow({ root: parent });
+      w.mount();
+      expect(parent.contains(w.element)).toBe(true);
+    });
+
+    it('mount wins over root if both provided', () => {
+      const mountParent = document.createElement('aside');
+      const rootParent = document.createElement('section');
+      document.body.append(mountParent, rootParent);
+      const w = new AaronWindow({ mount: mountParent, root: rootParent });
+      w.mount();
+      expect(mountParent.contains(w.element)).toBe(true);
+      expect(rootParent.contains(w.element)).toBe(false);
+    });
+
+    it('applies background option as inline style', () => {
+      const w = new AaronWindow({ background: 'rgb(10, 20, 30)' });
+      w.mount();
+      expect(w.element!.style.background).toBe('rgb(10, 20, 30)');
+    });
+
+    it('applies numeric border as `Npx solid`', () => {
+      const w = new AaronWindow({ border: 3 });
+      w.mount();
+      // jsdom normalises border shorthand; check via cssText for robustness
+      expect(w.element!.style.cssText).toContain('border: 3px solid');
+    });
+
+    it('applies string border as-is', () => {
+      const w = new AaronWindow({ border: '2px dashed red' });
+      w.mount();
+      expect(w.element!.style.cssText).toContain('border: 2px dashed red');
+    });
+
+    it('accepts string class and adds class names', () => {
+      const w = new AaronWindow({ class: 'foo bar' });
+      w.mount();
+      expect(w.element!.classList.contains('foo')).toBe(true);
+      expect(w.element!.classList.contains('bar')).toBe(true);
+      expect(w.element!.classList.contains('aaron-window')).toBe(true);
+    });
+
+    it('accepts array class and adds class names', () => {
+      const w = new AaronWindow({ class: ['baz', 'qux'] });
+      w.mount();
+      expect(w.element!.classList.contains('baz')).toBe(true);
+      expect(w.element!.classList.contains('qux')).toBe(true);
+    });
+
+    it('cv-mac-style call site constructs and mounts without errors', () => {
+      // Representative of the actual cv-mac call pattern from PRD §Architecture.
+      const onclose = vi.fn();
+      const oncreate = vi.fn();
+      let w: AaronWindow | null = null;
+      expect(() => {
+        w = new AaronWindow({
+          title: 'Hello',
+          x: 100,
+          y: 80,
+          width: 380,
+          height: 240,
+          html: '<p>Created in JS.</p>',
+          onclose,
+          oncreate,
+          background: '#eeeeee',
+          border: 1,
+          class: 'cv-mac-window',
+        });
+        w.mount();
+      }).not.toThrow();
+      expect(w!.isMounted).toBe(true);
+      expect(oncreate).toHaveBeenCalledTimes(1);
+      expect(w!.element!.classList.contains('cv-mac-window')).toBe(true);
+    });
   });
 });
