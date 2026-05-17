@@ -622,4 +622,61 @@ Before this PR, gh-pages had `theme-loader-fixture.html` (just buttons + palette
 
 ---
 
+### 2026-05-17 — Bundled-default: ship-assets-separately + side-effect-on-import won the architectural call
+
+Shipping [#39](https://github.com/khawkins98/aaron-ui/issues/39) (Phase 4.5, bundled-default 7 Le auto-load). The ticket's original AC was strict ("no network request fires for the default theme"), which would have required inlining ~564 KB of PNG data as base64 in the JS bundle. Three viable approaches:
+
+1. **Inline PNGs + theme.json into the JS bundle as base64.** Truly zero-network. Cost: bundle gzip jumps past PRD §Success criteria #5's "≤30 KB gzipped" target by an order of magnitude.
+2. **Ship theme.json + PNGs as separate files in the npm package; consumer hosts them.** One-time deploy step. Bundle stays tiny. Cost: not truly zero-network — assets stream as the chrome references them.
+3. **Lazy fetch from CDN on first use.** Truly minimal bundle. Cost: tight coupling to a CDN we don't own; offline use broken.
+
+**We picked (2).** Reasons:
+
+- Bundle size constraint is a real PRD commitment. Blowing past 30 KB gz for a "convenience" feature is the wrong tradeoff.
+- Most consumer bundlers (Vite, esbuild, webpack with their default copy plugins) automatically resolve `import.meta.url`-anchored paths and emit referenced files in dist. The "one-time deploy step" is usually zero steps in practice.
+- Asset streaming is fine for the chrome use case: the WM can mount before chrome is fully painted, and the per-window theme application picks up the cicns as they arrive.
+- The fallback story is honest: `setBundledDefaultUrl()` lets consumers point at any hosting they want (CDN, S3, GitHub Pages, internal Artifactory).
+
+**Auto-load mechanism:** the main entry (`./index.ts`) calls `enableBundledDefault()` as a side-effect at import time. This schedules `loadBundledDefault()` to fire on `DOMContentLoaded`. The opt-out sub-entry (`./no-default.ts`) re-exports the same API *without* the side-effect call. Consumers who want full control of theme loading import from there.
+
+**Why side-effect on import (controversial):**
+
+- Library imports having side effects is generally a smell — they make tree-shaking unpredictable and surprise consumers.
+- Here, the side-effect IS the feature: "drop in `import 'aaron-ui'` and get a themed window." Without auto-load, the consumer has to wire up `loadTheme()` themselves, which contradicts the "drop-in" UX promise.
+- The opt-out sub-entry is a first-class peer (not an afterthought), so consumers who dislike side-effect imports have a clear documented path.
+- The auto-load is fire-and-forget on a `DOMContentLoaded` listener — it doesn't block module evaluation, doesn't throw if it fails (warns to console), and skips entirely if a theme is already loaded.
+
+**Bundle output:** Vite library mode with dual entry produces:
+- `dist/aaron-ui.js` (1.5 KB raw) — thin side-effect wrapper
+- `dist/no-default.js` (44 KB raw / 12 KB gzip) — the bulk of the code
+
+Consumers of either entry pull in the same shared chunk; the gzipped delta is negligible. PRD's "≤30 KB gz" target satisfied with headroom.
+
+### 2026-05-17 — Past-DCL auto-load needs a microtask defer for consumer-init ordering
+
+Subtle case in `enableBundledDefault()`. When library import happens AFTER `DOMContentLoaded` (e.g., dynamic import, late-injected script tag, test fixtures with `readyState === 'complete'`), there's no DOMContentLoaded event to fire — the auto-load would happen on the next tick.
+
+If we fire *synchronously* from `enableBundledDefault()`, the consumer can't intercept:
+
+```js
+// Won't work — auto-load fires before this line runs
+import { setBundledDefaultUrl } from 'aaron-ui';
+setBundledDefaultUrl('/custom/');
+```
+
+If we fire via `queueMicrotask`, the consumer's synchronous code runs first:
+
+```js
+// Works — setBundledDefaultUrl runs in the same sync chunk; auto-load
+// fires in the next microtask and sees the updated URL.
+import { setBundledDefaultUrl } from 'aaron-ui';
+setBundledDefaultUrl('/custom/');
+```
+
+The microtask defer is the difference between "auto-load is configurable" and "auto-load fights the consumer." Trivial code change, important behavior.
+
+**Application:** any side-effect that runs at import time should defer at least one microtask to give the consumer's sync code a chance to configure before it fires. Document the timing window so consumers know what's safe (sync calls work; async calls before DCL also work; async calls after DCL race with the auto-load).
+
+---
+
 *New learnings get appended below this line as the project ships.*
