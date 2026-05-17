@@ -15,7 +15,6 @@
   "keywords": [
     "mac-os",
     "platinum",
-    "appearance-manager",
     "window-manager",
     "ui",
     "theme",
@@ -24,5 +23,13 @@
     "mac-os-8",
     "kaleidoscope"
   ],
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
 }
