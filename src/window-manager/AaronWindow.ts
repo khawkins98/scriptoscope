@@ -143,6 +143,12 @@ export class AaronWindow {
   /** Active drag state, or null when not currently dragging. */
   private dragState: { offX: number; offY: number; pointerId: number } | null = null;
 
+  /** True when minimized (windowshade collapse). */
+  private collapsed = false;
+
+  /** Pre-maximize position/size — null when not maximized. */
+  private maximizedFrom: { left: string; top: string; width: string; height: string } | null = null;
+
   /** Active resize state, or null when not currently resizing. */
   private resizeState: {
     direction: ResizeDirection;
@@ -251,6 +257,96 @@ export class AaronWindow {
   /** Is this the currently-focused window? */
   get hasFocus(): boolean {
     return windowManager.focusedWindow === this;
+  }
+
+  /** Is this window currently collapsed (windowshade)? */
+  get isCollapsed(): boolean {
+    return this.collapsed;
+  }
+
+  /** Is this window currently maximized? */
+  get isMaximized(): boolean {
+    return this.maximizedFrom !== null;
+  }
+
+  /**
+   * Close the window: fires onclose, then unmounts. The window is gone
+   * from the DOM after this returns. (Compare to .unmount() which doesn't
+   * fire onclose — useful when the consumer is tearing down for other
+   * reasons.) Idempotent.
+   */
+  close(): this {
+    if (!this.mounted) return this;
+    this.options.onclose.call(this);
+    this.unmount();
+    return this;
+  }
+
+  /**
+   * Collapse to titlebar (windowshade). data-state becomes "collapsed",
+   * which theme CSS uses to hide .aaron-content + .aaron-statusbar.
+   * Idempotent.
+   */
+  minimize(): this {
+    if (!this.mounted || this.collapsed || this.el === null) return this;
+    this.collapsed = true;
+    this.el.setAttribute('data-state', 'collapsed');
+    return this;
+  }
+
+  /**
+   * Un-collapse from windowshade. data-state restored to active/inactive
+   * based on current focus. Idempotent — calling on a non-collapsed
+   * window is a no-op.
+   */
+  restore(): this {
+    if (!this.mounted || !this.collapsed || this.el === null) return this;
+    this.collapsed = false;
+    this.el.setAttribute('data-state', this.hasFocus ? 'active' : 'inactive');
+    return this;
+  }
+
+  /**
+   * Maximize: fill the viewport. Saves current position+size so
+   * unmaximize() can restore. Fires onresize with the new dimensions.
+   * Idempotent.
+   */
+  maximize(): this {
+    if (!this.mounted || this.el === null || this.maximizedFrom !== null) return this;
+    this.maximizedFrom = {
+      left: this.el.style.left,
+      top: this.el.style.top,
+      width: this.el.style.width,
+      height: this.el.style.height,
+    };
+    this.el.style.left = '0px';
+    this.el.style.top = '0px';
+    this.el.style.width = `${window.innerWidth}px`;
+    this.el.style.height = `${window.innerHeight}px`;
+    this.options.onmove.call(this, 0, 0);
+    this.options.onresize.call(this, window.innerWidth, window.innerHeight);
+    return this;
+  }
+
+  /**
+   * Restore from maximized to the previous position+size. Idempotent.
+   * Fires onmove + onresize with the restored dimensions.
+   */
+  unmaximize(): this {
+    if (!this.mounted || this.el === null || this.maximizedFrom === null) return this;
+    const prev = this.maximizedFrom;
+    this.el.style.left = prev.left;
+    this.el.style.top = prev.top;
+    this.el.style.width = prev.width;
+    this.el.style.height = prev.height;
+    this.maximizedFrom = null;
+    const numLeft = parseFloat(prev.left) || 0;
+    const numTop = parseFloat(prev.top) || 0;
+    const numW = parseFloat(prev.width) || this.options.width;
+    const numH = parseFloat(prev.height) || this.options.height;
+    this.options.onmove.call(this, numLeft, numTop);
+    this.options.onresize.call(this, numW, numH);
+    return this;
   }
 
   /**
