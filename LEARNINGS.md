@@ -329,4 +329,45 @@ This pattern travels: anywhere the schema grows new optional fields, the `'key' 
 
 ---
 
+### 2026-05-17 — Extractor → library schema sharing: dual-implementation with a parity test, not "build first"
+
+Surfaced shipping [#36](https://github.com/khawkins98/aaron-ui/issues/36) (Phase 4.2, scheme-extractor emits full theme.json per schema + `--validate` flag). The extractor lives in `tools/scheme-extractor/` (plain JS, intentionally browser-portable for the eventual web-based version) and needs to validate its `theme.json` output. The library's `parseTheme` validator from [#35](https://github.com/khawkins98/aaron-ui/issues/35) is TypeScript. Three ways to share:
+
+1. **Build-first.** Extractor dynamic-imports `dist/index.js`. Cost: end-user porters running `scheme-extract --validate` have to `npm run build` first. Friction.
+2. **Single source via `tsx` at runtime.** Extractor spawns a child process to run the TS validator via `tsx` or `node --experimental-strip-types`. Cost: adds a runtime dependency or experimental Node flag; spawn overhead per `--validate` call.
+3. **Dual-implement: TS for the library, JS mirror for the extractor, parity test enforces agreement.** Cost: 150 lines of duplicated assertion logic that have to be updated together.
+
+**We picked option 3.** Reasons:
+
+- The extractor and library are *conceptually different packages* (the extractor's `package.json` says `@aaron-ui/scheme-extractor`; the library has its own). Each having its own validator is consistent with normal multi-package conventions (protobuf/openapi schemas generate per-language bindings exactly this way).
+- The schema is shallow and stable at v0.1 — drift between two ~150-line validators is manageable.
+- The parity test (`tools/scheme-extractor/lib/buildThemeJson.test.js` → "mirrors parseTheme behavior on the canonical fixtures") runs both validators against the two committed mass:werk extraction manifests and asserts they reach the same yes/no verdict. Any divergence fails CI immediately.
+- End-user porters get `--validate` working out of the box with zero setup.
+
+**Application:** when shipping a new schema version (a 0.2 bump or any structural change), update *both* `src/themes/schema/parseTheme.ts` and `tools/scheme-extractor/lib/validateTheme.js`. The parity test will fail loudly if either is out of step.
+
+### 2026-05-17 — wnd# part IDs are scheme-relative integers, not a stable semantic enum
+
+Surfaced while mapping `wnd#` parts to schema's `Record<string, PartEntry>`. The wnd# rectangle list encodes each named part as a 2-byte integer (`part: int16`). Reading the spec, you'd hope these IDs map to a stable enum (`wInGoAway = 4`, `wInZoom = 5`, etc., like classic Mac OS WDEF part codes). They don't — different schemes assign different integers to "close box" vs "zoom box". Sometimes part 1 is the close box; sometimes it's a divider. The binding from integer → semantic role lives in the cicn name field of the *paired* cicn, not in the wnd# itself.
+
+For now the extractor emits part IDs as `"part-<n>"` string keys (a faithful preservation of what's in the resource fork). Phase 4.8 (#42, wnd#-driven hit targets) will need to either:
+- Heuristically classify parts by their rect dimensions + position (close-box-shaped square in the top-left corner = close box), or
+- Accept a sidecar mapping per scheme (`{ "part-1": "close", "part-2": "zoom" }` in the bundle's meta.json), or
+- Probe the *cicn* for graphical features (a tiny ⊠ glyph at the part's rect = close box).
+
+**Application:** when implementing #42, don't assume part IDs are universal. The runtime needs per-scheme classification. The extractor doesn't try — it preserves wnd#'s raw shape and defers semantic naming to a later layer.
+
+### 2026-05-17 — Sidecar `meta.json` is where Kaleidoscope-corpus provenance lives
+
+The binary `.ksc` carries chrome and geometry, not author/license. We needed somewhere to put that metadata. The choices were:
+1. **Force the porter to hand-edit theme.json after extraction** — what the previous version did. Brittle: regenerate the bundle, you lose the metadata.
+2. **Extract from the scheme's readme file via a separate text-parsing step** — ambitious but unreliable; readmes are unstructured prose.
+3. **Sidecar `meta.json` file the porter writes once, passed to the extractor via `--meta`** — what we shipped.
+
+The sidecar is durable (lives next to the source `.r`), regeneration-safe (next extraction reuses it), and unambiguous (the porter is asserting what the readme actually said). It's the right shape for the "port a freeware Kaleidoscope scheme" flow that CONTRIBUTING.md §"Adding a theme" describes.
+
+**Application:** when adding new bundle-level metadata fields (e.g., a `tags: string[]` for browse/search), put them in meta.json. The extractor doesn't synthesize provenance; it stamps what the porter declares.
+
+---
+
 *New learnings get appended below this line as the project ships.*

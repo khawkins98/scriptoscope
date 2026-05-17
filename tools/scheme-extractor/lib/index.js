@@ -9,6 +9,8 @@ export { decodeCicn } from './decoders/cicn.js';
 export { decodePpat } from './decoders/ppat.js';
 export { decodeCinf } from './decoders/cinf.js';
 export { decodeWnd }  from './decoders/wnd.js';
+export { buildThemeJson } from './buildThemeJson.js';
+export { validateTheme, ThemeValidationError } from './validateTheme.js';
 
 /**
  * Decode all decodable resources in a parsed DeRez record list.
