@@ -18,6 +18,7 @@ import type {
 } from '../schema/types.js';
 import { applyChromeElement, clearChromeElement } from './applyChromeElement.js';
 import { applyWindowParts, clearWindowParts, type WindowPartInfo } from './applyWindowParts.js';
+import { composeTopEdge, clearChromeSegments } from './composeWindowChrome.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -92,27 +93,43 @@ export function applyChromeFromTheme(
     asset: cicnUrl,
   };
 
-  // Window-type chrome cicns rarely have cinf paired (cinf is per-control;
-  // window chrome geometry lives in wnd# side recipes which we don't yet
-  // honour for proper edge composition). For the no-slice case, omit
-  // width/height so applyChromeElement doesn't render at native cicn size
-  // (~74px) in the top-left of a much wider titlebar — then force
-  // background-size 100% 100% so the cicn stretches across the titlebar's
-  // full rendered width. Pixelated image-rendering keeps the stretch
-  // crisp-ish.
+  // Render the titlebar chrome via one of three paths:
   //
-  // KNOWN LIMITATION: uniform stretching distorts the cicn's discrete
-  // features (control glyphs at fixed pixel positions, pinstripe rhythm)
-  // because the cicn was authored at a small reference size. The proper
-  // fix is wnd#-aware composition (see docs/rendering-gap-analysis-
-  // 2026-05-17.md). Until that ships, every titlebar shows a stretched
-  // approximation of the scheme's chrome — better than nothing, far from
-  // scheme-faithful.
-  const titlebarEntry: ChromeElementEntry = chromeEntry.slice
-    ? chromeEntry
-    : stripDimensions(chromeEntry);
-  applyChromeElement(titlebar, titlebarEntry, { theme });
-  if (!chromeEntry.slice) {
+  // Path A (preferred — #64.1 V2): wnd# side-recipe composition.
+  //   When the windowType has a top side recipe AND the chromeEntry has
+  //   native pixel dimensions, compose per spec §3's empirical algorithm:
+  //   named parts at native rect size at recipe positions, part 8 as
+  //   tiled fill, other special codes as part-8 fallback.
+  //
+  // Path B: cinf 9-slice (rare for window chrome).
+  //
+  // Path C: stretched-cicn fallback for bundles without recipe data.
+  const hasTopRecipe = !!(
+    windowType.edges?.top && windowType.edges.top.length > 0
+  );
+  const hasNativeDimensions =
+    chromeEntry.width != null && chromeEntry.height != null;
+
+  if (hasTopRecipe && hasNativeDimensions) {
+    // Path A. Clear any prior background so segment divs aren't drawn
+    // over a stretched copy.
+    titlebar.style.backgroundImage = '';
+    titlebar.style.backgroundSize = '';
+    titlebar.style.imageRendering = '';
+    composeTopEdge(titlebar, windowType, {
+      cicnWidth: chromeEntry.width as number,
+      cicnHeight: chromeEntry.height as number,
+      cicnUrl,
+    });
+  } else if (chromeEntry.slice) {
+    // Path B.
+    clearChromeSegments(titlebar);
+    applyChromeElement(titlebar, chromeEntry, { theme });
+  } else {
+    // Path C.
+    clearChromeSegments(titlebar);
+    const titlebarEntry: ChromeElementEntry = stripDimensions(chromeEntry);
+    applyChromeElement(titlebar, titlebarEntry, { theme });
     titlebar.style.backgroundSize = '100% 100%';
   }
 
@@ -158,6 +175,7 @@ export function clearChromeFromTheme(windowEl: HTMLElement): void {
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);
+  clearChromeSegments(titlebar);
   clearChromeElement(titlebar);
 }
 

@@ -42,3 +42,9 @@ export {
   setBundledDefaultUrl,
   getBundledDefaultUrl,
 } from './bundledDefault.js';
+export {
+  composeTopEdge,
+  clearChromeSegments,
+  recipeToSegments,
+  type ComposeWindowChromeOptions,
+} from './composeWindowChrome.js';
