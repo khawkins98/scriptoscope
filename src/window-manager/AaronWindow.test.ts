@@ -823,6 +823,175 @@ describe('AaronWindow', () => {
     });
   });
 
+  describe('a11y (issue #9)', () => {
+    describe('ARIA roles + attributes', () => {
+      it('document type → role=dialog, no aria-modal', () => {
+        const w = new AaronWindow({ title: 'Doc' });
+        w.mount();
+        expect(w.element!.getAttribute('role')).toBe('dialog');
+        expect(w.element!.hasAttribute('aria-modal')).toBe(false);
+      });
+
+      it('modal type → role=dialog + aria-modal=true', () => {
+        const w = new AaronWindow({ title: 'Modal', type: 'modal' });
+        w.mount();
+        expect(w.element!.getAttribute('role')).toBe('dialog');
+        expect(w.element!.getAttribute('aria-modal')).toBe('true');
+      });
+
+      it('alert type → role=alertdialog + aria-modal=true', () => {
+        const w = new AaronWindow({ title: 'Alert!', type: 'alert' });
+        w.mount();
+        expect(w.element!.getAttribute('role')).toBe('alertdialog');
+        expect(w.element!.getAttribute('aria-modal')).toBe('true');
+      });
+
+      it('utility type → role=dialog, no aria-modal', () => {
+        const w = new AaronWindow({ title: 'Util', type: 'utility' });
+        w.mount();
+        expect(w.element!.getAttribute('role')).toBe('dialog');
+        expect(w.element!.hasAttribute('aria-modal')).toBe(false);
+      });
+
+      it('aria-labelledby points at the titlebar text', () => {
+        const w = new AaronWindow({ title: 'Welcome' });
+        w.mount();
+        const labelledBy = w.element!.getAttribute('aria-labelledby');
+        expect(labelledBy).not.toBeNull();
+        const labelEl = document.getElementById(labelledBy!);
+        expect(labelEl?.textContent).toBe('Welcome');
+      });
+
+      it('window has tabindex=-1 for programmatic focus fallback', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.element!.getAttribute('tabindex')).toBe('-1');
+      });
+    });
+
+    describe('initial focus', () => {
+      it('focuses the first focusable element inside content on mount', () => {
+        const w = new AaronWindow({
+          title: 'Form',
+          html: '<input type="text" id="first" /><button>Cancel</button><button>OK</button>',
+        });
+        w.mount();
+        expect(document.activeElement?.id).toBe('first');
+      });
+
+      it('focuses the window itself when content has no focusables', () => {
+        const w = new AaronWindow({ title: 'Plain', html: '<p>Just text</p>' });
+        w.mount();
+        expect(document.activeElement).toBe(w.element);
+      });
+    });
+
+    describe('Escape key (modal/alert)', () => {
+      it('Escape closes a modal window', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ type: 'modal', onclose });
+        w.mount();
+        w.element!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(onclose).toHaveBeenCalledTimes(1);
+        expect(w.isMounted).toBe(false);
+      });
+
+      it('Escape closes an alert window', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ type: 'alert', onclose });
+        w.mount();
+        w.element!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(onclose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Escape on a document window does NOT close', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ type: 'document', onclose });
+        w.mount();
+        w.element!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(onclose).not.toHaveBeenCalled();
+        expect(w.isMounted).toBe(true);
+      });
+
+      it('Escape on a utility window does NOT close', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ type: 'utility', onclose });
+        w.mount();
+        w.element!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(onclose).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('focus trap (modal/alert)', () => {
+      it('Tab on last focusable wraps to first', () => {
+        const w = new AaronWindow({
+          type: 'modal',
+          html: '<button id="b1">1</button><button id="b2">2</button><button id="b3">3</button>',
+        });
+        w.mount();
+        const b3 = w.element!.querySelector<HTMLButtonElement>('#b3')!;
+        b3.focus();
+        const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+        w.element!.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(document.activeElement?.id).toBe('b1');
+      });
+
+      it('Shift+Tab on first focusable wraps to last', () => {
+        const w = new AaronWindow({
+          type: 'modal',
+          html: '<button id="b1">1</button><button id="b2">2</button><button id="b3">3</button>',
+        });
+        w.mount();
+        const b1 = w.element!.querySelector<HTMLButtonElement>('#b1')!;
+        b1.focus();
+        const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+        w.element!.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+        expect(document.activeElement?.id).toBe('b3');
+      });
+
+      it('Tab in middle of focus order is not trapped', () => {
+        const w = new AaronWindow({
+          type: 'modal',
+          html: '<button id="b1">1</button><button id="b2">2</button><button id="b3">3</button>',
+        });
+        w.mount();
+        const b2 = w.element!.querySelector<HTMLButtonElement>('#b2')!;
+        b2.focus();
+        const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+        w.element!.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+      });
+
+      it('document type does NOT trap Tab', () => {
+        const w = new AaronWindow({
+          type: 'document',
+          html: '<button id="b1">1</button><button id="b2">2</button>',
+        });
+        w.mount();
+        const b2 = w.element!.querySelector<HTMLButtonElement>('#b2')!;
+        b2.focus();
+        const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+        w.element!.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+      });
+    });
+
+    describe('cleanup', () => {
+      it('removes keydown listener on unmount', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ type: 'modal', onclose });
+        w.mount();
+        const el = w.element!;
+        w.unmount();
+        // Dispatch on the now-orphaned element — should not fire onclose
+        el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(onclose).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('back-compat: cv-mac style call site', () => {
     it('constructs and mounts without errors', () => {
       // Representative of the actual cv-mac call pattern from PRD §Architecture.
