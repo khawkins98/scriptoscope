@@ -57,9 +57,41 @@ Options:
 |---|---|---|---|
 | `--input <file>` | `-i` | — required | DeRez `.r` text file |
 | `--output <dir>` | `-o` | — required | Output directory (created if missing) |
-| `--types <list>` | `-t` | `cicn,ppat` | Comma-separated types to decode |
+| `--types <list>` | `-t` | `cicn,ppat,cinf,wnd#` | Comma-separated types to decode |
+| `--meta <file>` | `-m` | none | Sidecar JSON with bundle metadata (`name`, `author`, `origin`, `options`) merged into `theme.json` |
+| `--validate` | — | off | Run schema validation on the emitted `theme.json`. Exit non-zero on violation. |
 | `--verbose` | `-v` | off | Per-resource progress logging |
 | `--help` | `-h` | — | Show help |
+
+#### Sidecar metadata
+
+The binary `.ksc` doesn't carry author/license info — that lives in the scheme's readme. Supply it via `--meta path/to/meta.json`:
+
+```json
+{
+  "name": "mass:werk 7 Le",
+  "author": {
+    "name": "Norbert Landsteiner",
+    "url": "https://www.masswerk.at",
+    "year": 2001
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "freeware-with-attribution",
+    "originalReadme": "ReadMe-masswerk7Le",
+    "sourceUrl": "https://www.masswerk.at/schemes.php"
+  }
+}
+```
+
+The extractor merges this on top of the chrome/patterns sections it derives from the resource fork.
+
+#### Schema validation
+
+`--validate` runs the emitted `theme.json` through a runtime validator that mirrors the TypeScript schema in [`src/themes/schema/parseTheme.ts`](../../src/themes/schema/parseTheme.ts) (issue #35). Errors surface as a dotted path — e.g. `theme.json.windowTypes.document.parts.part-1.rect[3]: expected finite number` — so you can locate the offending field in the bundle.
+
+The JS-side validator lives at [`lib/validateTheme.js`](./lib/validateTheme.js). It's a slim mirror of the TS source-of-truth; the shared-fixture test at [`lib/buildThemeJson.test.js`](./lib/buildThemeJson.test.js) runs both validators against the canonical mass:werk fixtures and asserts they agree on every shape. If you change the TS schema, mirror the change here and the test will catch any drift.
 
 ### Programmatic
 
