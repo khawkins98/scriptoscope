@@ -4,7 +4,8 @@ import {
   chromeElementCss,
   clearChromeElement,
 } from './applyChromeElement.js';
-import type { ChromeElementEntry } from '../schema/types.js';
+import type { ChromeElementEntry, Theme } from '../schema/types.js';
+import { THEME_SCHEMA_VERSION } from '../schema/types.js';
 
 let el: HTMLElement;
 
@@ -197,6 +198,126 @@ describe('clearChromeElement', () => {
 
   it('is idempotent on a never-applied element', () => {
     expect(() => clearChromeElement(el)).not.toThrow();
+  });
+});
+
+describe('ppat overlay (bgPattern + theme)', () => {
+  const themeWithPpat: Theme = {
+    version: THEME_SCHEMA_VERSION,
+    patterns: {
+      'grey-body': { asset: 'ppats/ppat-n128-grey.png', repeat: 'both' },
+      'pinstripe-h': { asset: 'ppats/ppat-n129-pin.png', repeat: 'horizontal' },
+    },
+  };
+
+  describe('slice + bgPattern (cinf-driven chrome with body fill)', () => {
+    const entry: ChromeElementEntry = {
+      asset: 'cicns/window.png',
+      slice: { corner: 8, side: 8, tile: false },
+      bgPattern: 'grey-body',
+    };
+
+    it('drops `fill` from border-image-slice so the middle is empty', () => {
+      applyChromeElement(el, entry, { theme: themeWithPpat });
+      expect(el.style.borderImageSlice.trim()).toBe('8');
+    });
+
+    it('sets background-image to the ppat URL (the body fill)', () => {
+      applyChromeElement(el, entry, { theme: themeWithPpat });
+      expect(el.style.backgroundImage).toBe('url("ppats/ppat-n128-grey.png")');
+    });
+
+    it('sets background-repeat per pattern.repeat', () => {
+      applyChromeElement(el, entry, { theme: themeWithPpat });
+      expect(el.style.backgroundRepeat).toBe('repeat');
+    });
+
+    it('still draws border-image (corners + edges from cicn)', () => {
+      applyChromeElement(el, entry, { theme: themeWithPpat });
+      expect(el.style.borderImageSource).toBe('url("cicns/window.png")');
+      expect(el.style.borderImageWidth).toBe('8px');
+    });
+
+    it('falls back to cicn-fill when theme is not provided', () => {
+      applyChromeElement(el, entry);
+      expect(el.style.borderImageSlice.replace(/\s+/g, ' ')).toMatch(/^8 fill$|^8fill$/);
+      expect(el.style.backgroundImage).toBe('url("cicns/window.png")');
+    });
+
+    it('falls back to cicn-fill when bgPattern slug is missing from theme', () => {
+      applyChromeElement(el, { ...entry, bgPattern: 'nonexistent' }, { theme: themeWithPpat });
+      expect(el.style.borderImageSlice.replace(/\s+/g, ' ')).toMatch(/^8 fill$|^8fill$/);
+    });
+  });
+
+  describe('bgPattern only (no slice) — multi-layer background-image', () => {
+    const entry: ChromeElementEntry = {
+      asset: 'cicns/content-area.png',
+      bgPattern: 'pinstripe-h',
+    };
+
+    it('stacks ppat on top of cicn via multi-layer background-image', () => {
+      // Multi-layer rules: jsdom's CSSOM rejects the comma-separated form
+      // entirely (returns ''), so the multi-layer-text assertion lives in the
+      // pure chromeElementCss tests. We verify here that *some* background is set.
+      const css = chromeElementCss(entry, { theme: themeWithPpat });
+      expect(css).toContain(
+        'background-image: url("ppats/ppat-n129-pin.png"), url("cicns/content-area.png")',
+      );
+      expect(css).toContain('background-repeat: repeat-x, no-repeat');
+    });
+
+    it('does not set border-image (no slice path)', () => {
+      applyChromeElement(el, entry, { theme: themeWithPpat });
+      expect(el.style.borderImageSource).toBe('');
+      expect(el.style.borderStyle).toBe('');
+    });
+  });
+
+  describe('pattern.repeat defaults', () => {
+    it('treats missing repeat as `repeat` (both axes)', () => {
+      const theme: Theme = {
+        version: THEME_SCHEMA_VERSION,
+        patterns: { p: { asset: 'p.png' } },
+      };
+      // Tested via pure CSS text (jsdom rejects the comma form).
+      const css = chromeElementCss({ asset: 'a.png', bgPattern: 'p' }, { theme });
+      expect(css).toContain('background-repeat: repeat, no-repeat');
+    });
+  });
+});
+
+describe('chromeElementCss with bgPattern (pure)', () => {
+  const theme: Theme = {
+    version: THEME_SCHEMA_VERSION,
+    patterns: {
+      grey: { asset: 'ppats/grey.png', repeat: 'both' },
+    },
+  };
+
+  it('emits the slice + bgPattern combination correctly', () => {
+    const css = chromeElementCss(
+      {
+        asset: 'window.png',
+        slice: { corner: 8, side: 8, tile: false },
+        bgPattern: 'grey',
+      },
+      { theme },
+    );
+    expect(css).toContain('border-image-source: url("window.png")');
+    expect(css).toContain('border-image-slice: 8;');
+    expect(css).not.toContain(' fill');
+    expect(css).toContain('background-image: url("ppats/grey.png")');
+    expect(css).toContain('background-repeat: repeat');
+  });
+
+  it('emits the multi-layer no-slice combination correctly', () => {
+    const css = chromeElementCss(
+      { asset: 'a.png', bgPattern: 'grey' },
+      { theme },
+    );
+    expect(css).toContain('background-image: url("ppats/grey.png"), url("a.png")');
+    expect(css).toContain('background-repeat: repeat, no-repeat');
   });
 });
 

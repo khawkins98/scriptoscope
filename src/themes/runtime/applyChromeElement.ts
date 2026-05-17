@@ -1,9 +1,9 @@
 // Apply a parsed ChromeElementEntry as inline CSS on a DOM element.
 //
-// This is Phase 4.6's renderer primitive: given a `chromeElements[<slug>]`
-// entry from a loaded Theme, produce the background-image + cinf-derived
-// border-image rules that make the element render with that scheme's chrome
-// bitmap.
+// Phase 4.6/4.7 renderer primitive: given a `chromeElements[<slug>]` entry
+// from a loaded Theme, produce the background-image + cinf-derived
+// border-image + (Phase 4.7) ppat overlay rules that make the element
+// render with that scheme's chrome bitmap.
 //
 // Inline styles, not constructable stylesheets. The architecture doc's
 // stylesheet-per-theme strategy is for engine-baseline CSS (where many
@@ -13,7 +13,7 @@
 // shows the inline-style approach is slow, we can hoist common rules then;
 // don't optimize without measurement.
 
-import type { ChromeElementEntry } from '../schema/types.js';
+import type { ChromeElementEntry, Theme } from '../schema/types.js';
 
 export interface ApplyChromeElementOptions {
   /**
@@ -22,67 +22,88 @@ export interface ApplyChromeElementOptions {
    * be forced to 'repeat'. Ignored if `entry.slice` is provided (cinf wins).
    */
   defaultRepeat?: 'stretch' | 'repeat';
+  /**
+   * Loaded Theme for resolving `entry.bgPattern` slugs to ppat URLs. When
+   * omitted, `bgPattern` is silently ignored — the chrome renders cicn-only.
+   * Pass the same Theme that owns the entry.
+   */
+  theme?: Theme;
 }
 
 /**
  * Apply a ChromeElementEntry as inline CSS on `el`.
  *
- * Always sets:
- *   - background-image (the cicn URL)
- *   - image-rendering: pixelated (preserve hard pixels at any scale)
+ * Always sets `image-rendering: pixelated`.
  *
- * When `entry.slice` is present (cicn has cinf 9-slice metadata):
- *   - border-image-source / border-image-slice / border-image-width / border-image-repeat
- *   - border-style: solid, border-width, transparent border-color so the
- *     border-image has somewhere to render
+ * The rendering branches by combination of `slice`, `tile`, and `bgPattern`:
  *
- * When `entry.tile` is set (periodic pattern):
- *   - background-repeat per the declared direction
+ * | slice | bgPattern | Rendering |
+ * |-------|-----------|-----------|
+ * | yes   | yes       | border-image (no fill) + background-image = ppat tile filling the middle |
+ * | yes   | no        | border-image (with fill) for the whole chrome; background-image = cicn as fallback |
+ * | no    | yes       | Multi-layer background-image: ppat on top, cicn beneath (no border-image) |
+ * | no    | no, tile  | background-image = cicn, background-repeat per `tile` direction |
+ * | no    | no, none  | background-image = cicn, no-repeat, optional background-size from width/height |
  *
- * When neither slice nor tile is given:
- *   - background-repeat: no-repeat (single bitmap, scaled to box via
- *     background-size if `entry.width/height` are present, else natural size)
+ * `bgPattern` is resolved against `options.theme.patterns[<slug>].asset`. When
+ * `options.theme` is not provided, `bgPattern` is silently ignored.
  *
- * Reads neither `entry.bgPattern` (that's #41) nor part-rect data (that's #42).
+ * Reads neither part-rect data (that's #42) nor handles control state
+ * variants (those flip by attribute selector at a higher layer).
  *
- * Idempotent: re-applying the same entry yields the same styles.
+ * Idempotent: re-applying the same (entry, options) yields the same styles.
  */
 export function applyChromeElement(
   el: HTMLElement,
   entry: ChromeElementEntry,
   options: ApplyChromeElementOptions = {},
 ): void {
-  const url = cssUrl(entry.asset);
+  const cicnUrl = cssUrl(entry.asset);
+  const pattern = resolveBgPattern(entry, options.theme);
 
-  // Always: background-image + crisp pixel rendering.
-  el.style.backgroundImage = url;
   el.style.imageRendering = 'pixelated';
 
   if (entry.slice != null) {
-    // cinf 9-slice path. Decoded cinf carries cornerSize + sideThickness +
-    // tileSides flag. CSS:
-    //   border-image-slice: <corner> fill   — fill keeps the middle drawn
-    //   border-image-width: <side>px        — outer-edge width
-    //   border-image-repeat: stretch|repeat — from cinf.tileSides
-    // Plus a transparent solid border so the border-image has a box to draw.
     const { corner, side, tile } = entry.slice;
-    el.style.borderImageSource = url;
-    el.style.borderImageSlice = `${corner} fill`;
+    el.style.borderImageSource = cicnUrl;
+    // With bgPattern: drop `fill` so the cicn middle is left empty, and
+    // background-image (ppat tile) fills it. Without bgPattern: keep `fill`
+    // so the cicn middle draws as part of the border-image.
+    el.style.borderImageSlice = pattern
+      ? `${corner}`
+      : `${corner} fill`;
     el.style.borderImageWidth = `${side}px`;
     el.style.borderImageRepeat = tile ? 'repeat' : 'stretch';
     el.style.borderStyle = 'solid';
     el.style.borderWidth = `${side}px`;
     el.style.borderColor = 'transparent';
-    el.style.backgroundRepeat = 'no-repeat';
+
+    if (pattern) {
+      el.style.backgroundImage = cssUrl(pattern.asset);
+      el.style.backgroundRepeat = repeatForPattern(pattern.repeat);
+    } else {
+      el.style.backgroundImage = cicnUrl;
+      el.style.backgroundRepeat = 'no-repeat';
+    }
     return;
   }
 
+  // No slice path.
+
+  if (pattern) {
+    // Multi-layer background-image: ppat tile drawn first (= top of stack),
+    // cicn beneath. CSS background-image renders layers in source order,
+    // first = top. Matches the architecture doc §6 example.
+    el.style.backgroundImage = `${cssUrl(pattern.asset)}, ${cicnUrl}`;
+    el.style.backgroundRepeat = `${repeatForPattern(pattern.repeat)}, no-repeat`;
+    return;
+  }
+
+  el.style.backgroundImage = cicnUrl;
   if (entry.tile != null) {
     el.style.backgroundRepeat = repeatForTile(entry.tile);
     return;
   }
-
-  // Static single bitmap.
   el.style.backgroundRepeat = options.defaultRepeat === 'repeat' ? 'repeat' : 'no-repeat';
   if (entry.width != null && entry.height != null) {
     el.style.backgroundSize = `${entry.width}px ${entry.height}px`;
@@ -99,30 +120,45 @@ export function chromeElementCss(
   entry: ChromeElementEntry,
   options: ApplyChromeElementOptions = {},
 ): string {
-  const url = cssUrl(entry.asset);
-  const decls: string[] = [
-    `background-image: ${url}`,
-    `image-rendering: pixelated`,
-  ];
+  const cicnUrl = cssUrl(entry.asset);
+  const pattern = resolveBgPattern(entry, options.theme);
+  const decls: string[] = [`image-rendering: pixelated`];
 
   if (entry.slice != null) {
     const { corner, side, tile } = entry.slice;
     decls.push(
-      `border-image-source: ${url}`,
-      `border-image-slice: ${corner} fill`,
+      `border-image-source: ${cicnUrl}`,
+      `border-image-slice: ${corner}${pattern ? '' : ' fill'}`,
       `border-image-width: ${side}px`,
       `border-image-repeat: ${tile ? 'repeat' : 'stretch'}`,
       `border-style: solid`,
       `border-width: ${side}px`,
       `border-color: transparent`,
-      `background-repeat: no-repeat`,
     );
-  } else if (entry.tile != null) {
-    decls.push(`background-repeat: ${repeatForTile(entry.tile)}`);
+    if (pattern) {
+      decls.push(
+        `background-image: ${cssUrl(pattern.asset)}`,
+        `background-repeat: ${repeatForPattern(pattern.repeat)}`,
+      );
+    } else {
+      decls.push(`background-image: ${cicnUrl}`, `background-repeat: no-repeat`);
+    }
+  } else if (pattern) {
+    decls.push(
+      `background-image: ${cssUrl(pattern.asset)}, ${cicnUrl}`,
+      `background-repeat: ${repeatForPattern(pattern.repeat)}, no-repeat`,
+    );
   } else {
-    decls.push(`background-repeat: ${options.defaultRepeat === 'repeat' ? 'repeat' : 'no-repeat'}`);
-    if (entry.width != null && entry.height != null) {
-      decls.push(`background-size: ${entry.width}px ${entry.height}px`);
+    decls.push(`background-image: ${cicnUrl}`);
+    if (entry.tile != null) {
+      decls.push(`background-repeat: ${repeatForTile(entry.tile)}`);
+    } else {
+      decls.push(
+        `background-repeat: ${options.defaultRepeat === 'repeat' ? 'repeat' : 'no-repeat'}`,
+      );
+      if (entry.width != null && entry.height != null) {
+        decls.push(`background-size: ${entry.width}px ${entry.height}px`);
+      }
     }
   }
 
@@ -155,8 +191,13 @@ export function clearChromeElement(el: HTMLElement): void {
 
 // ─── Internals ─────────────────────────────────────────────────────────
 
+function resolveBgPattern(entry: ChromeElementEntry, theme: Theme | undefined) {
+  if (entry.bgPattern == null) return null;
+  if (!theme?.patterns) return null;
+  return theme.patterns[entry.bgPattern] ?? null;
+}
+
 function cssUrl(asset: string): string {
-  // Escape double quotes inside URLs (rare, but the asset path is user-supplied).
   const escaped = asset.replace(/"/g, '\\"');
   return `url("${escaped}")`;
 }
@@ -165,4 +206,10 @@ function repeatForTile(tile: 'horizontal' | 'vertical' | 'both'): string {
   return tile === 'horizontal' ? 'repeat-x'
        : tile === 'vertical'   ? 'repeat-y'
        : 'repeat';
+}
+
+function repeatForPattern(repeat: 'horizontal' | 'vertical' | 'both' | undefined): string {
+  if (repeat === 'horizontal') return 'repeat-x';
+  if (repeat === 'vertical')   return 'repeat-y';
+  return 'repeat'; // default 'both' (or unspecified)
 }

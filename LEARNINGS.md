@@ -487,6 +487,42 @@ Caught while testing asset-URL escape behavior. A CSS-valid `background-image: u
 
 **Application:** when a CSS feature works in real browsers but jsdom can't roundtrip it, prefer testing the *output text* (via a pure generator) over the *DOM-after-assignment* state. The pure test catches the same bugs without depending on jsdom's CSSOM faithfulness. Add a Playwright e2e test if real-browser confirmation matters.
 
+### 2026-05-17 — `border-image-slice: <N> fill` is mutually exclusive with a separate ppat body fill
+
+Shipping [#41](https://github.com/khawkins98/aaron-ui/issues/41) (ppat overlay), the CSS for "9-slice chrome with a body pattern" turned out to require dropping the `fill` keyword from `border-image-slice`. The reasoning:
+
+- `border-image-slice: <N> fill` tells the browser to *include* the source image's middle region in the border-image rendering — i.e., the cicn middle draws as part of the border-image, covering the box's content area.
+- `background-image` is rendered *behind* the border-image's content area when `fill` is set. The browser renders `background-image` first, then `border-image` (including the filled middle) on top.
+
+So if we set `background-image: url(ppat)` and `border-image-slice: 8 fill`, the cicn middle (drawn by the border-image) covers the ppat tile. The user sees the cicn middle, not the ppat. Wrong outcome.
+
+The fix: when bgPattern is present, drop `fill`. The border-image then draws only corners + edges (4 slices, no middle); the cicn body region is *not* drawn. The ppat tile (via `background-image`) fills the box content area instead. This is what the architecture doc §6 was getting at without spelling it out.
+
+```css
+/* No bgPattern: cicn fills everything */
+border-image-slice: 8 fill;
+background-image: url(cicn.png);   /* fallback, hidden by fill */
+
+/* With bgPattern: ppat fills the middle */
+border-image-slice: 8;             /* no fill */
+background-image: url(ppat.png);   /* shows through */
+background-repeat: repeat;
+```
+
+**Application:** any future renderer that combines `border-image` with a separate body fill must drop `fill`. If we later want both the cicn middle AND a ppat overlay (e.g., for translucent overlays), that needs a child overlay element — CSS doesn't compose border-image-fill with background-image on the same element.
+
+### 2026-05-17 — Canonical bundles don't yet carry bgPattern; #41 ships the mechanism ahead of the data
+
+Both shipped scheme bundles (mass:werk 7 Le + Dark ErgoBox 2) have `cinf.bgPatternId === 0` for every extracted cinf — no chromeElement currently references a ppat overlay. The ppat-overlay rendering still ships in #41 because:
+
+- The mechanism is small (~40 lines in `applyChromeElement`).
+- The architecture spec calls for it explicitly (§6 composition layers).
+- We've already documented in earlier LEARNINGS (2026-05-16 "Chrome cicns alone don't reproduce a theme's full aesthetic") that ErgoBox's gray window body really is supposed to be a ppat overlay — but the extractor's path to *encoding* that hasn't been built yet (it needs Colr decoding plus a window-type→bodyPattern mapping, neither of which is in #36).
+
+So #41 is "renderer-side ready, encoder-side TBD." The unit tests cover the rendering paths against synthetic Themes; once Colr decoding lands and ErgoBox's bundle includes the bgPatternId, no #41 work needs to be revisited.
+
+**Application:** when a future ticket adds Colr decoding or extends the extractor's bgPatternId resolution, no changes to `applyChromeElement` should be needed. The visible-rendering payoff (ErgoBox body actually renders gray) happens at that ticket's PR, not this one's.
+
 ---
 
 *New learnings get appended below this line as the project ships.*
