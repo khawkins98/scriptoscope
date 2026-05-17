@@ -30,9 +30,8 @@ const config: PlaywrightTestConfig = {
   ],
   webServer: {
     command: 'npm run dev -- --port 5173 --strictPort',
-    // Use a known-good page for the readiness probe — vite's root returns
-    // 404 because demo/ has no index.html (themes-raster.html is the entry).
-    url: 'http://localhost:5173/themes-raster.html',
+    // demo/index.html is the landing page; serves at root.
+    url: 'http://localhost:5173/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },

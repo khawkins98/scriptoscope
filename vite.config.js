@@ -42,7 +42,7 @@ export default defineConfig(({ command }) => {
       plugins: [serveThemesPlugin()],
       server: {
         port: 5173,
-        open: '/themes-raster.html',
+        open: '/',
         fs: { allow: ['..'] }, // allow imports from src/, themes/, etc.
       },
     };
