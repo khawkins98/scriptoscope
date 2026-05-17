@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Aaron UI.
 
-> **Status:** Phase 1 (WM core) shipped. The contribution flow below is the real flow now — `npm install`, run tests, open a PR. Phase 2 work (default Platinum chrome) is in flight; see [milestones](https://github.com/khawkins98/aaron-ui/milestones) for what's open.
+> **Status:** Phase 1 (WM core) shipped. The contribution flow below is the real flow now — `npm install`, run tests, open a PR. Phase 4 (theme engine, which absorbed the former Phase 2 / Platinum chrome after the 2026-05-17 Kaleidoscope-runtime pivot) is in flight; see [milestones](https://github.com/khawkins98/aaron-ui/milestones) and the [Phase 4 child tickets under #23](https://github.com/khawkins98/aaron-ui/issues/23) for what's open.
 
 ## Your first code contribution
 
@@ -122,6 +122,34 @@ feat(api)!: rename AaronWindow constructor option `theme` to `themeId`
 - Update [`PRD.md`](./PRD.md) if behavior or architecture changed.
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
+
+## Periodic documentation cut-throughs
+
+Docs and LEARNINGS rot. The faster the project moves, the faster they rot. Stale guidance is worse than no guidance — a future contributor reading a confidently-worded paragraph that hasn't been true for three months will burn an afternoon before realising. To keep that from happening, schedule deliberate cut-through passes:
+
+**When to run a cut-through:**
+
+- At every phase milestone close (Phase 1 done → review everything once; Phase 4 done → same).
+- After any strategic pivot (a North Star change, a scope drop, a renaming) — pivot in-the-moment, then a wider sweep within the week to catch every doc the pivot ricocheted into.
+- On any "wait, that's not right anymore" moment while reading docs in normal work. Stop, fix, commit. Don't carry the discrepancy.
+
+**What to review, in order:**
+
+1. **[`README.md`](./README.md)** — does the lede still describe the project accurately? Is the status sentence current? Are linked URLs alive?
+2. **[`PRD.md`](./PRD.md)** — does §Phased delivery match what's shipped vs. open? Are §Success criteria still the right targets? Are tracker issue links current?
+3. **[`LEARNINGS.md`](./LEARNINGS.md)** — each entry: is this still true? Is it superseded by a later entry? If superseded, add a "**Superseded YYYY-MM-DD by [other entry]**" header at the top of the stale entry — *don't delete it*; the historical record matters.
+4. **[`docs/`](./docs/) artifacts** — each spec/architecture/spike doc: does it still describe how the system works? If a spec has drifted from implementation, either fix the spec (preferred) or update the implementation to match (when the spec was right).
+5. **This file** — does the contribution flow it describes still match how PRs actually get landed? Are the commit-message examples still representative?
+
+**Tactics for an honest cut-through:**
+
+- **Read each doc as if you've never seen it.** The fastest way to spot stale guidance is to ask "does this match what I'd see if I cloned the repo today?" at every paragraph.
+- **Cross-check claims against the code.** "The library exports `X`" — does it? `grep` it. "Phase N has shipped" — has it? Check the milestone.
+- **Distinguish drift from supersession.** Drift = the doc was right at the time, code changed, doc didn't follow → update the doc. Supersession = a later decision invalidated an earlier one → mark the older entry as superseded, link to the newer, preserve the historical context.
+- **Prefer many small commits over one massive sweep.** "docs(cut-through): update README + PRD §Phased delivery for Phase 4 close" is a better commit than "docs: review everything." Smaller commits make the reviewer's job easier and the changelog more useful.
+- **Open a single PR for each cut-through.** Title pattern: `docs(cut-through): post-Phase-N review` or `docs(cut-through): post-pivot review YYYY-MM-DD`. Body summarises what was found and what was changed.
+
+A cut-through is not optional polish — it's part of how the project stays trustworthy. If you're reading this and the project's recent history shows zero cut-through PRs, that's a smell: it means accumulated drift is waiting to bite the next contributor. Run one.
 
 ## Adding a theme (porting a Kaleidoscope scheme)
 
