@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { VERSION, __aaronUiToolchainCheck } from './index.js';
+import { VERSION, AaronWindow } from './index.js';
 
-describe('aaron-ui toolchain smoke', () => {
+describe('aaron-ui index exports', () => {
   it('exports a string VERSION', () => {
     expect(typeof VERSION).toBe('string');
     expect(VERSION).toMatch(/^\d+\.\d+\.\d+/);
   });
 
-  it('exports a callable toolchain check', () => {
-    expect(__aaronUiToolchainCheck()).toBe(true);
+  it('exports AaronWindow', () => {
+    expect(typeof AaronWindow).toBe('function');
+    expect(new AaronWindow().options.width).toBe(320);
   });
 });
