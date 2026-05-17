@@ -1,10 +1,12 @@
 # Aaron UI
 
-A Mac OS Appearance-style window manager and theme engine for the web.
+A web-native runtime for [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) themes — and the window manager that hosts them.
 
-Drop it into any page to get draggable, resizable windows that look and feel like System 7.5+ / Mac OS 8 — pinstripe title bars, paper title pills, ink-bordered close boxes, windowshade collapse, integrated grow boxes. Then swap themes at runtime to load curated [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software))-era community schemes — chrome, controls, colors, optional sounds, optional desktop background. The default Platinum theme is hand-authored from the Mac OS 8 HIG; alternate themes are ported from freeware-licensed Kaleidoscope schemes with original-author attribution.
+Drop it into any page to get draggable, resizable windows. Then load any freeware-licensed Kaleidoscope scheme — System 7, Platinum, BeOS-tab, anything in the ≈4,010-scheme corpus — and the windows render with its chrome, controls, and colors. Aaron UI doesn't hand-author a "Platinum theme." It reads `cicn` / `ppat` / `cinf` / `wnd#` resources out of `.ksc` files and renders them with CSS, SVG, and JS. The default look you get when you `import 'aaron-ui'` is mass:werk's freeware-licensed "7 Le" scheme — a community-authored Platinum-faithful Kaleidoscope theme, bundled.
 
-> **Status: Phase 1 shipped.** The window-manager core is in: `AaronWindow` class with drag, 8-direction resize, z-order, focus, programmatic API, declarative `[data-aaron-window]` scanner, ARIA + keyboard + focus-trap. 140 unit tests + 30 e2e tests, ~7 KB gzipped. Live demo: <https://khawkins98.github.io/aaron-ui/>. Phase 2 (default Platinum chrome) is next — see the [milestones](https://github.com/khawkins98/aaron-ui/milestones).
+> **Status: Phase 1 shipped.** The window-manager core is in: `AaronWindow` class with drag, 8-direction resize, z-order, focus, programmatic API, declarative `[data-aaron-window]` scanner, ARIA + keyboard + focus-trap. 140 unit tests + 30 e2e tests, ~7 KB gzipped. Live demo: <https://khawkins98.github.io/aaron-ui/>.
+>
+> **Phase 2 reframe (2026-05-17):** the original Phase 2 ("hand-author Platinum chrome from the HIG") is dropped. Aaron UI is a Kaleidoscope-compatibility runtime, not a theme re-authoring project — recreating Platinum from the HIG when mass:werk's "7 Le" already exists as freeware would duplicate work and weaken the product story. Phase 2 and Phase 4 collapse into one effort: ship the theme-engine runtime, with 7 Le as the bundled default. See [LEARNINGS.md](./LEARNINGS.md) for the full reasoning and [issue #23](https://github.com/khawkins98/aaron-ui/issues/23) for the work.
 
 ## North Star
 
@@ -29,9 +31,9 @@ Three principles do the load-bearing work:
    </div>
    ```
 
-3. **A Kaleidoscope-corpus theme engine, clean-room from Kaleidoscope's code.** Aaron UI loads and faithfully renders Kaleidoscope-style theme bundles. The corpus is the ≈4,010 community-authored schemes on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own CSS / SVG / JS** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope; the default Platinum theme is hand-authored from Apple's *published* [Human Interface Guidelines](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html), period screenshots, and mass:werk's freeware Platinum-faithful "7 Le" scheme as a community reference. No Apple binaries are touched at any stage. The result is a clean-room re-implementation that's *behaviorally* and *aesthetically* faithful, with every shipped theme bundle carrying provenance metadata (original author, source URL, license-of-origin).
+3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Aaron UI is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly via the [scheme-extractor](./tools/scheme-extractor/) pipeline and renders them with CSS, SVG, and JS per [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md). The corpus is the ≈4,010 community-authored schemes on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Aaron UI does not hand-author chrome from the HIG** — for the Platinum look, we ship mass:werk's freeware "7 Le" scheme bundled as the default. Every shipped theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Aaron UI produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
-> The name "Aaron" comes from Apple's internal codename for the Copland-era demo that previewed the Appearance Manager and Platinum default theme. With the project's scope clarified to Kaleidoscope-corpus themes (rather than Appearance Manager re-implementation), the etymology is now poetic origin rather than tight description — and that's fine.
+> The name "Aaron" comes from Apple's internal codename for the Copland-era demo that previewed the Appearance Manager and Platinum default theme. With the project now scoped as a *Kaleidoscope-compatibility runtime* (not Appearance Manager re-implementation, not Platinum re-author), the etymology is poetic origin rather than tight description — and that's fine.
 
 ## Where the idea came from
 
@@ -57,16 +59,13 @@ The primary reference for any visual question is Apple's own Mac OS 8 Human Inte
 
 ## A heads-up on hover
 
-Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Aaron UI's default Platinum theme honors this: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
+Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Kaleidoscope schemes ship `cicn` artwork only for those three states, so Aaron UI renders them faithfully: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
 
-## What ported themes carry (and don't)
+## What loaded themes carry (and don't)
 
-The PRD describes theme bundles as ideally shipping chrome + controls + colors + desktop background + sounds + fonts. In practice, that depends on the theme's origin:
+Aaron UI loads what Kaleidoscope schemes actually shipped: **chrome + controls + colors.** Empirically, after deconstructing the corpus, almost no Kaleidoscope scheme carried sounds, desktop backgrounds, or fonts — the OS supplied those. Aaron UI doesn't fabricate them.
 
-- **Aaron UI first-party / preset themes** (Platinum, eventually a small curated set) — may include sounds and a desktop background as opt-in extras, hand-authored by us.
-- **Ported third-party themes** (Kaleidoscope-derived community schemes) — chrome + controls + colors only. Sounds, desktop background, and fonts are not part of what Kaleidoscope schemes carried in practice, and Aaron UI doesn't fabricate them when porting.
-
-So loading "mass:werk 7 Le" gets you the look; loading the "Platinum" preset gets you the look *plus* the period sounds, if you opt in.
+If a consumer wants period sounds or a desktop picture alongside a loaded scheme, that's a host-page concern: drop in your own `<audio>` and CSS `background-image`. Aaron UI may eventually add an opt-in `extras/` sidecar concept for bundling sounds with a scheme bundle, but it's not a runtime built-in — and there is no "first-party preset theme that ships sounds." Every theme Aaron UI ships is a port of an existing Kaleidoscope scheme with the original author's attribution.
 
 ## Documents
 

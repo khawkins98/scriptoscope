@@ -265,4 +265,40 @@ Closing out Phase 1 of the PRD's phased delivery. All 10 issues in the [Phase 1 
 
 ---
 
+### 2026-05-17 — Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author
+
+Strategic pivot, recorded same day Phase 1 docs sync landed. The PRD's original Phase 2 — hand-author a first-party Platinum theme from the Mac OS 8 HIG — is dropped. Phase 2 collapses into Phase 4. The bundled default theme is mass:werk's freeware "7 Le" scheme, loaded through the same runtime as every other Kaleidoscope scheme.
+
+**What forced the pivot.** Three things stacked up:
+
+1. **mass:werk's "7 Le" already exists, is freeware-with-redistribution-licensed, and is explicitly Platinum-faithful.** Hand-authoring a competing Platinum from the HIG would duplicate work that's already been done — and done well, by an author with deeper Mac OS 8 fluency than we'll acquire on the side. The freeware-licensed Platinum is *right there*.
+2. **"Hand-authored first-party Platinum + runtime for everyone else's Kaleidoscope themes" is a confused product story.** Two rendering paths, two authoring disciplines, two sets of bugs. "Aaron UI is the runtime; schemes are the format" is a much sharper story — one code path, one mental model, one boundary to defend.
+3. **The pivot makes classic-Mac authoring tools live again.** Because Aaron UI honours `.ksc` as the input format (not a new web-native bundle format), anyone with ResEdit + the Kaleidoscope SDK on a real classic Mac or under SheepShaver can author a new theme that Aaron UI loads. The long-dormant Kaleidoscope authoring toolchain becomes a live authoring path for the modern web — a genuinely interesting consequence of the pivot, not just an architectural simplification.
+
+**What it changes in scope.** Phase 2 (Platinum chrome) is gone. Phase 4 (theme engine) absorbs its scope and becomes the critical path. Issue #21 (Phase 2 epic) closes as not-planned with a pointer to this entry. Phase 4 milestone gains the "bundled-default scheme = 7 Le" deliverable, plus an "at least one externally-loaded scheme" deliverable that proves the runtime end-to-end. Phase 3 (controls) is unchanged structurally but is now wired against `cicn` state-variant artwork from the loaded scheme, not against first-party CSS primitives.
+
+**What it changes in tradeoffs.** Risk goes up before it goes down:
+
+- **The runtime is now on the critical path before any visible chrome can ship.** Previously, Phase 2 could have delivered a visible Platinum window with hand-authored CSS while Phase 4 worked on the engine in parallel. Now nothing renders chrome until the runtime + a loaded scheme work together. The `docs/kaleidoscope-geometry-spec.md` foundation makes this less scary than it sounds, but the dependency is real.
+- **No fallback if `cicn`/`ppat`/`cinf`/`wnd#` rendering hits hard problems.** Previously, "first-party Platinum CSS" was a fallback that didn't depend on the format-faithful runtime. That fallback is now gone — if 9-slice composition under `cinf` rules can't render a tab-projecting titlebar correctly, the bug has to be solved, not designed-around.
+- **Bundle size accounting splits.** "WM core ≤30 KB gzipped" was the original target. Bundled-default scheme PNGs (cicns + ppats for 7 Le) push the unconditional download up. Acceptance criterion now distinguishes "runtime ≤30 KB gz" from "+bundled scheme assets" so the headline number stays honest.
+
+**What it does NOT change.**
+
+- The window manager core (Phase 1). Still shipped, still good.
+- The framework-agnostic, declarative-first positioning.
+- The clean-room boundary from Kaleidoscope's source code (sharpened, not relaxed — we still never read the closed engine).
+- The Aaron UI name. Already loose etymologically after the 2026-05-16 "Apple themes dropped" pivot; one notch looser now. Renaming costs are real and don't pay for themselves.
+
+**Application:**
+
+- When someone asks "where's the hand-authored Platinum theme?" — there isn't one, intentionally. The answer is "load mass:werk 7 Le, which is Platinum-faithful and freeware-licensed."
+- When designing a new control in Phase 3: do not author CSS that renders the control's chrome directly. Wire it to consume `cicn` state-variant artwork from the loaded scheme via the runtime, the way Phase 1's checkboxes/radios/buttons already do in `demo/themes-raster.html`.
+- When evaluating new theme contributions: the contribution is a `.ksc` plus a license-of-origin note, not CSS. If a contributor wants to author something new, the recommended path is "open ResEdit under SheepShaver, use the Kaleidoscope SDK." (We may eventually ship a web-based scheme builder — that's a much later project.)
+- When reading older docs that say "default Platinum theme is hand-authored": they're stale. Update if encountered.
+
+[[masswerk-7-le-deconstruction]] is the bundled default. [[kaleidoscope-geometry-spec]] is the contract. The cv-mac swap (Success Criterion #1) now arrives via Phase 4 instead of Phase 2.
+
+---
+
 *New learnings get appended below this line as the project ships.*
