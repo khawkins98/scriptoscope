@@ -10,3 +10,10 @@ export { AaronWindow } from './window-manager/AaronWindow.js';
 export type { AaronWindowOptions, ResizeDirection } from './window-manager/AaronWindow.js';
 export { windowManager } from './window-manager/WindowManager.js';
 export type { WindowManager } from './window-manager/WindowManager.js';
+export {
+  scanForWindows,
+  promoteElement,
+  parseOptions,
+  startScanner,
+  stopScanner,
+} from './window-manager/scanner.js';

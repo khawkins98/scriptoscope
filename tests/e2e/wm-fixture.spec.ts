@@ -68,6 +68,28 @@ test.describe('AaronWindow direct (wm-fixture.html)', () => {
     toBeCloseToLoose(afterBox!.y, beforeBox!.y + 40);
   });
 
+  test('declarative scanner promotes [data-aaron-window] on load (issue #8)', async ({ page }) => {
+    await page.goto('/scanner-fixture.html');
+    // Source divs should be gone; promoted windows in their place.
+    await expect(page.locator('[data-aaron-window][data-aaron-promoted]')).toHaveCount(3);
+    // Titles preserved
+    const titles = await page.locator('.aaron-titlebar__title span').allTextContents();
+    expect(titles).toEqual(['Alpha', 'Beta', 'Gamma']);
+    // Body content preserved
+    const alphaP = page.locator('.aaron-window').first().locator('.aaron-content p');
+    await expect(alphaP).toHaveText('Alpha content.');
+  });
+
+  test('MutationObserver promotes dynamically-added windows (issue #8)', async ({ page }) => {
+    await page.goto('/scanner-fixture.html');
+    await expect(page.locator('.aaron-window')).toHaveCount(3);
+    await page.locator('#add-dynamic').click();
+    await expect(page.locator('.aaron-window')).toHaveCount(4);
+    // The new one has the runtime-added content
+    const dynamic = page.locator('.aaron-window').nth(3);
+    await expect(dynamic.locator('.aaron-content p')).toHaveText('Added at runtime.');
+  });
+
   test('click on a buried window raises it (issue #6)', async ({ page }) => {
     await page.goto('/wm-fixture.html');
     const a = page.locator('.aaron-window').first();      // Window A — bottom of stack

@@ -381,6 +381,9 @@ export class AaronWindow {
     const win = document.createElement('div');
     win.classList.add('aaron-window', ...this.options.class);
     win.setAttribute('data-aaron-window', '');
+    // data-aaron-promoted is the scanner's sentinel: prevents re-scan
+    // of already-rendered windows (which also have data-aaron-window).
+    win.setAttribute('data-aaron-promoted', '');
     win.setAttribute('data-state', 'active');
     Object.assign(win.style, {
       position: 'absolute',

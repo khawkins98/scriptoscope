@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scanner Fixture</title>
+  <!--
+    Declarative-scanner fixture: just the markup, no per-page JS. Loading
+    the library auto-starts the scanner (issue #8), which promotes each
+    [data-aaron-window] element into a real AaronWindow on DOMContentLoaded
+    and watches for dynamic additions via MutationObserver.
+  -->
+  <style>
+    body { margin: 0; padding: 0; font: 14px sans-serif; background: #888; }
+    .aaron-window {
+      background: white;
+      border: 1px solid black;
+    }
+    .aaron-titlebar {
+      background: linear-gradient(to bottom, #eee, #ccc);
+      border-bottom: 1px solid #888;
+      padding: 4px 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div data-aaron-window
+       data-aaron-title="Alpha"
+       data-aaron-x="40"
+       data-aaron-y="40"
+       data-aaron-width="300"
+       data-aaron-height="180">
+    <p>Alpha content.</p>
+  </div>
+
+  <div data-aaron-window
+       data-aaron-title="Beta"
+       data-aaron-x="380"
+       data-aaron-y="40"
+       data-aaron-width="300"
+       data-aaron-height="180">
+    <p>Beta content.</p>
+  </div>
+
+  <div data-aaron-window
+       data-aaron-title="Gamma"
+       data-aaron-x="720"
+       data-aaron-y="40"
+       data-aaron-width="300"
+       data-aaron-height="180">
+    <p>Gamma content.</p>
+  </div>
+
+  <button id="add-dynamic" style="position: fixed; bottom: 20px; right: 20px; padding: 8px 16px;">
+    Add dynamic window
+  </button>
+
+  <script type="module">
+    // Just importing the library is enough — scanner auto-starts.
+    import { windowManager } from '../src/index.ts';
+    window.windowManager = windowManager;
+
+    document.getElementById('add-dynamic')?.addEventListener('click', () => {
+      const div = document.createElement('div');
+      div.setAttribute('data-aaron-window', '');
+      div.setAttribute('data-aaron-title', `Dynamic ${windowManager.all.length + 1}`);
+      div.setAttribute('data-aaron-x', '200');
+      div.setAttribute('data-aaron-y', '300');
+      div.setAttribute('data-aaron-width', '300');
+      div.setAttribute('data-aaron-height', '180');
+      div.innerHTML = '<p>Added at runtime.</p>';
+      document.body.appendChild(div);
+    });
+  </script>
+</body>
+</html>
