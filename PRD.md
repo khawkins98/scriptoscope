@@ -235,7 +235,7 @@ Items that don't map cleanly to a single phase:
 
 ## Architecture sketches
 
-These were suggestions when written; Phase 1 has now shipped and pinned them down. See [`src/window-manager/`](./src/window-manager/) for the actual implementation choices.
+These were suggestions when written; Phase 1 has now shipped and pinned them down. See [`src/window-manager/`](./src/window-manager/) for the actual implementation choices, and [`docs/runtime-rendering-architecture.md`](./docs/runtime-rendering-architecture.md) for the canonical output-contract spec covering DOM model, CSS strategy, composition layers, control state machine, WM↔runtime seam, and lifecycle sequences — the artifact Phase 4 tickets build against.
 
 - **Two integration surfaces, declarative-first per the North Star:**
   - **Primary:** declarative scanner — on `DOMContentLoaded` and via `MutationObserver`, the library scans for `[data-aaron-window]` / `[data-aaron-button]` / etc. and promotes them into Aaron UI controls. CSS class selectors (`.aaron-window`, …) accepted as a fallback.
