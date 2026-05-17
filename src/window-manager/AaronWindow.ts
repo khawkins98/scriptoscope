@@ -38,6 +38,20 @@ export interface AaronWindowOptions {
   /** Minimum height (px) when resizing. Default 60. */
   minHeight?: number;
   /**
+   * Window-type for ARIA + behavior. Default 'document'.
+   *
+   *   'document' — role=dialog, aria-modal=false, no focus trap. Default.
+   *   'modal'    — role=dialog, aria-modal=true, focus trapped inside,
+   *                Escape closes.
+   *   'alert'    — role=alertdialog, aria-modal=true, focus trap +
+   *                Escape closes.
+   *   'utility'  — role=dialog, aria-modal=false, no focus trap.
+   *                (Floating utility / tool palette window.)
+   *
+   * Issue #9.
+   */
+  type?: 'document' | 'modal' | 'alert' | 'utility';
+  /**
    * HTML content for the body area. Inserted via innerHTML — consumers are
    * responsible for sanitising untrusted strings. WinBox compat.
    */
@@ -98,6 +112,7 @@ interface NormalizedOptions {
   minWidth: number;
   minHeight: number;
   html: string;
+  type: 'document' | 'modal' | 'alert' | 'utility';
   mount?: HTMLElement;
   background?: string;
   border?: string;
@@ -109,6 +124,16 @@ interface NormalizedOptions {
   onmove: (this: AaronWindow, x: number, y: number) => void;
   onresize: (this: AaronWindow, width: number, height: number) => void;
 }
+
+/** Sets of focusable selectors for the focus trap. */
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
 
 /** 8 resize directions matching CSS cursor names. */
 export type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -143,6 +168,10 @@ export class AaronWindow {
   /** Active drag state, or null when not currently dragging. */
   private dragState: { offX: number; offY: number; pointerId: number } | null = null;
 
+  /** Module-level counter for unique title element IDs. */
+  private static nextId = 0;
+  private nextTitleId = AaronWindow.nextId++;
+
   /** True when minimized (windowshade collapse). */
   private collapsed = false;
 
@@ -171,6 +200,7 @@ export class AaronWindow {
       minWidth: options.minWidth ?? 120,
       minHeight: options.minHeight ?? 60,
       html: options.html ?? '',
+      type: options.type ?? 'document',
       class: normalizeClass(options.class),
       oncreate: options.oncreate ?? noop,
       onclose: options.onclose ?? noop,
@@ -219,9 +249,13 @@ export class AaronWindow {
     this.attachDrag();
     this.attachResize();
     this.attachRaiseOnPointerDown();
+    this.attachKeyboard();
     // Register with the shared WM — this sets z-index, sets data-state to
     // active, and fires onfocus.
     windowManager.register(this);
+    // Initial focus → first focusable in content, falling back to the
+    // window root. Issue #9.
+    this.placeInitialFocus();
     this.options.oncreate.call(this);
     return this;
   }
@@ -235,6 +269,7 @@ export class AaronWindow {
     this.detachDrag();
     this.detachResize();
     this.detachRaiseOnPointerDown();
+    this.detachKeyboard();
     windowManager.unregister(this);
     this.el.remove();
     this.el = null;
@@ -385,6 +420,14 @@ export class AaronWindow {
     // of already-rendered windows (which also have data-aaron-window).
     win.setAttribute('data-aaron-promoted', '');
     win.setAttribute('data-state', 'active');
+    // ARIA per window type (issue #9).
+    const isAlert = this.options.type === 'alert';
+    const isModal = this.options.type === 'modal' || isAlert;
+    win.setAttribute('role', isAlert ? 'alertdialog' : 'dialog');
+    if (isModal) win.setAttribute('aria-modal', 'true');
+    // tabindex makes the window itself focusable as a fallback when no
+    // focusable content exists. -1 means programmatic-only focus.
+    win.setAttribute('tabindex', '-1');
     Object.assign(win.style, {
       position: 'absolute',
       left: `${this.options.x}px`,
@@ -405,9 +448,14 @@ export class AaronWindow {
     const titleWrap = document.createElement('div');
     titleWrap.className = 'aaron-titlebar__title';
     const titleSpan = document.createElement('span');
+    // Stable ID so aria-labelledby on the window can point at this span.
+    const titleId = `aaron-window-title-${++this.nextTitleId}`;
+    titleSpan.id = titleId;
     titleSpan.textContent = this.options.title;
     titleWrap.appendChild(titleSpan);
     titlebar.appendChild(titleWrap);
+    // aria-labelledby on the window root → titlebar text.
+    win.setAttribute('aria-labelledby', titleId);
 
     const content = document.createElement('div');
     content.className = 'aaron-content';
@@ -707,6 +755,79 @@ export class AaronWindow {
     if (this.el !== null) {
       this.el.removeEventListener('pointerdown', this.onRaisePointerDown, true);
     }
+  }
+
+  /* ─── keyboard / a11y (issue #9) ──────────────────────────────────
+     Handles Escape (closes modal/alert types) and Tab (focus trap on
+     modal/alert). Bound at mount, removed at unmount. */
+
+  private readonly onKeyDown = (e: KeyboardEvent): void => {
+    if (this.el === null) return;
+    const isModal = this.options.type === 'modal' || this.options.type === 'alert';
+
+    if (e.key === 'Escape' && isModal) {
+      e.stopPropagation();
+      this.close();
+      return;
+    }
+
+    if (e.key === 'Tab' && isModal) {
+      const focusables = this.getFocusables();
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      const active = document.activeElement;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
+  private attachKeyboard(): void {
+    if (this.el !== null) {
+      this.el.addEventListener('keydown', this.onKeyDown);
+    }
+  }
+
+  private detachKeyboard(): void {
+    if (this.el !== null) {
+      this.el.removeEventListener('keydown', this.onKeyDown);
+    }
+  }
+
+  /**
+   * Place initial focus on the first focusable element inside content.
+   * Falls back to the window itself (tabindex=-1) when content has no
+   * focusable children. Issue #9.
+   */
+  private placeInitialFocus(): void {
+    if (this.el === null) return;
+    const focusables = this.getFocusables();
+    if (focusables.length > 0) {
+      focusables[0]!.focus();
+    } else {
+      this.el.focus();
+    }
+  }
+
+  /**
+   * Return all focusable elements inside the content area, in tab order.
+   * We filter by aria-hidden and disabled (via the selector), but NOT by
+   * visibility — jsdom doesn't compute layout, so `offsetParent` checks
+   * would break tests. Browsers naturally skip display:none / hidden
+   * elements during focus operations anyway.
+   */
+  private getFocusables(): HTMLElement[] {
+    if (this.contentEl === null) return [];
+    return Array.from(this.contentEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+      .filter(el => el.getAttribute('aria-hidden') !== 'true');
   }
 
   /** Clamp programmatic resize to min size + viewport. */
