@@ -317,7 +317,7 @@ A single CSS rule (added once via the engine baseline stylesheet) applies the fo
 
 Brief specs for each control's DOM contract. Detailed implementation lives in each per-control ticket; this section is the contract those tickets satisfy.
 
-### Push button (#3.2)
+### Push button (#3.2) — CSS-drawn (no cicn artwork)
 
 ```html
 <button class="aaron-control aaron-button" data-aaron-button data-state="normal">
@@ -325,9 +325,13 @@ Brief specs for each control's DOM contract. Detailed implementation lives in ea
 </button>
 ```
 
-**chromeElements mapping:** `normal-push-button`, `pressed-push-button`, `disabled-push-button` (slug naming TBD per scheme inspection — Phase 3.2 implementation maps the actual slugs).
+**Rendering path:** CSS-drawn via engine-baseline stylesheet (`src/controls/engineBaseline.ts`), tinted with `--aaron-colr-*` palette custom properties. **No chromeElements mapping** — wired with `wireControlStateMachine` rather than `applyControlChrome`.
 
-**Behavior:** standard button. Space + Enter activate. Disabled blocks events.
+**Why CSS, not cicn:** inspection of both canonical bundles (mass:werk 7 Le, Dark ErgoBox 2) found **no push-button chromeElements entries**. In real Mac OS Appearance, push buttons were drawn by the system CDEF (Control DEFinition), not by Kaleidoscope schemes — schemes themed the surroundings (titlebars, scrollbars, frames), and buttons inherited the system rendering. Aaron UI matches that division by drawing buttons in CSS, tinted by the scheme's palette.
+
+**State flips** via `data-state` attribute selectors in CSS. `aria-disabled="true"` adds a separate disabled style.
+
+**Behavior:** standard button. Space + Enter activate (via `wireControlStateMachine`). Disabled blocks events. No `:hover` (period-faithful, per §8).
 
 ### Default button (#3.2)
 
@@ -337,7 +341,9 @@ Brief specs for each control's DOM contract. Detailed implementation lives in ea
 </button>
 ```
 
-**Visual difference from push button:** 2px black outline + slight outer glow per HIG. Achieved via CSS overlay (not a separate cicn — most schemes don't ship a "default button" cicn variant; the outline is universal Mac OS chrome).
+**Visual difference from push button:** 2px black outline added via `box-shadow: 0 0 0 2px var(--aaron-colr-default-button-outline)`. Same CSS-drawn path as the regular push button; the variant just adds the outer outline.
+
+**Rendering precedent:** push buttons + default buttons + group boxes (and likely tab strips for some schemes) go CSS-drawn. Checkbox, radio, popup, slider, scrollbar arrows go cicn-rendered (chromeElements present in canonical bundles). Each per-control ticket confirms the path by inspecting the canonical bundles first.
 
 ### Checkbox (#3.3)
 

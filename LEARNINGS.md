@@ -812,6 +812,22 @@ V2 moved the cicn background-image from `.aaron-titlebar` itself to child `[data
 
 **Application:** when refactoring the renderer in future PRs, search the e2e suite for hard-coded `.aaron-titlebar` style assertions and update them at the same time. CI breakages from this pattern are predictable — anticipate and batch.
 
+### 2026-05-17 — Push buttons are CSS-drawn, not cicn-rendered (Kaleidoscope didn't ship button artwork)
+
+Started Phase 3.2 / #71 expecting to map push-button states to chromeElements slugs the way #3.1 wired the universal state machine. Inspection of both canonical bundles (mass:werk 7 Le: 119 entries, Dark ErgoBox 2: 159 entries) found **zero push-button cicn entries**.
+
+This isn't an oversight in either scheme — it's faithful to how Mac OS Appearance Manager actually worked. The CDEF (Control DEFinition resource) drew push buttons; schemes themed the *surroundings* (titlebars, scrollbars, frames, dividers) and let buttons inherit the system rendering. Kaleidoscope schemes followed the same division.
+
+**Architectural pivot:** controls split into two rendering paths:
+- **cicn-rendered** (checkbox, radio, popup, slider, scrollbar arrows) — use `applyControlChrome` with a per-state chromeElements map
+- **CSS-drawn** (push button, default button, group box, likely tabs for some schemes) — use the new `wireControlStateMachine` helper for state machine wiring only, and style via engine-baseline CSS tinted by `--aaron-colr-*` palette custom properties
+
+The discriminator is "is the artwork present in canonical bundles?" — answer that *first* per per-control ticket, then choose the path. Don't assume cicn-rendered just because the spec listed a chromeElements mapping.
+
+**Knock-on:** `applyControlChrome` was split — `wireControlStateMachine` (state machine only, no rendering) is the new primitive. `applyControlChrome` keeps wrapping it for cicn controls.
+
+**Application:** when implementing the remaining control tickets (#72–#77), the first step is `grep "<slug>" themes/*/theme.json` to confirm artwork exists. If not, route through `wireControlStateMachine` + engine-baseline CSS. The decision belongs in §9 of the control architecture doc per control, with the empirical evidence cited.
+
 ---
 
 *New learnings get appended below this line as the project ships.*

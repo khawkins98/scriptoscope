@@ -67,6 +67,34 @@ export interface ApplyControlChromeOptions {
 /** Teardown function returned by `applyControlChrome`. Idempotent. */
 export type TeardownFn = () => void;
 
+export interface WireControlStateMachineOptions {
+  /**
+   * Called when the control should activate (click within bounds, or
+   * Space/Enter key while focused). Default: dispatches `click` event.
+   */
+  onActivate?: (el: HTMLElement) => void;
+}
+
+/**
+ * Wire the universal control state machine on an element WITHOUT applying
+ * any cicn chrome rendering. Use this for CSS-drawn controls (push buttons,
+ * group boxes) where the visual styling comes from CSS using palette custom
+ * properties, not from per-state cicn artwork.
+ *
+ * For controls that DO have cicn artwork (checkbox, radio, popup, slider,
+ * scrollbar), use `applyControlChrome` instead — it wires this state machine
+ * AND renders the per-state cicn.
+ *
+ * Returns a teardown function.
+ */
+export function wireControlStateMachine(
+  el: HTMLElement,
+  options: WireControlStateMachineOptions = {},
+): TeardownFn {
+  const { onActivate = defaultActivate } = options;
+  return wireInteractionStateMachine(el, () => onActivate(el));
+}
+
 /**
  * Apply themed chrome + interaction state machine to a control element.
  *
