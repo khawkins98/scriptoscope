@@ -25,7 +25,9 @@ export default defineConfig({
         'scanner-fixture':      resolve(import.meta.dirname, 'demo/scanner-fixture.html'),
         // Phase 4 runtime fixture (#38). Pairs with the themes/ copy in
         // scripts/copy-demo-assets.mjs so loadTheme() resolves at gh-pages.
-        'theme-loader-fixture': resolve(import.meta.dirname, 'demo/theme-loader-fixture.html'),
+        'theme-loader-fixture':   resolve(import.meta.dirname, 'demo/theme-loader-fixture.html'),
+        // Phase 4.9 (#43) — visible runtime chrome rendering + theme swap.
+        'theme-switcher-fixture': resolve(import.meta.dirname, 'demo/theme-switcher-fixture.html'),
       },
     },
   },

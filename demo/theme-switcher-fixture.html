@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aaron UI — theme switcher fixture (Phase 4.9)</title>
+  <!--
+    Visible runtime demo for Phase 4.9 (#43). Mounts a real AaronWindow,
+    attaches it to themeRegistry via attachThemeToWindow, and provides a
+    swap mechanism (both buttons and the declarative data-aaron-theme
+    attribute on <html>) so the chrome visibly changes.
+
+    This is the first gh-pages-deployed page that demonstrates the runtime
+    tier rendering end-to-end. The themes-raster.html legacy demo will be
+    replaced by #44 (demo refit).
+  -->
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", sans-serif;
+      background: var(--aaron-colr-bg, #cccccc);
+      color: var(--aaron-colr-fg, #000);
+      min-height: 100vh;
+    }
+    .controls {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button, select {
+      padding: 6px 12px;
+      font: inherit;
+    }
+    #status {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 12px;
+      padding: 4px 8px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 3px;
+    }
+    .aaron-window {
+      background: var(--aaron-colr-bg, white);
+      border: 1px solid var(--aaron-colr-window-frame, #888);
+    }
+    .aaron-titlebar {
+      position: relative;
+      height: 25px;
+      min-height: 25px;
+    }
+    .aaron-titlebar__title {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      pointer-events: none;
+    }
+    .aaron-content {
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <strong>Theme:</strong>
+    <button id="load-7le">mass:werk 7 Le</button>
+    <button id="load-ergobox">Dark ErgoBox 2</button>
+    <button id="unload">Unload</button>
+    <span id="status">idle</span>
+  </div>
+
+  <p style="font-size: 13px; opacity: 0.75; margin-top: 0;">
+    Click a theme to load it. The window below uses
+    <code>attachThemeToWindow()</code> + the renderer trio — its chrome
+    visibly changes between schemes.
+  </p>
+
+  <script type="module">
+    import {
+      AaronWindow,
+      loadTheme,
+      attachThemeToWindow,
+      themeRegistry,
+    } from '../src/index.ts';
+
+    const status = document.getElementById('status');
+    const setStatus = (s) => { status.textContent = s; };
+
+    // Create one AaronWindow mounted in the page.
+    const win = new AaronWindow({
+      title: 'Hello — themed window',
+      x: 24,
+      y: 120,
+      width: 400,
+      height: 240,
+      html: '<p>This window\'s chrome comes from a loaded Kaleidoscope scheme.</p><p>Click a theme above to swap.</p>',
+    });
+    win.mount(document.body);
+
+    // Subscribe the window to the theme registry so chrome re-renders on swap.
+    attachThemeToWindow(win.element, { windowTypeSlug: 'document-window' });
+
+    async function load(slug) {
+      setStatus(`loading-${slug}`);
+      try {
+        await loadTheme(`themes/${slug}/`);
+        setStatus(`loaded-${slug}`);
+      } catch (e) {
+        setStatus(`error: ${e.message}`);
+      }
+    }
+
+    document.getElementById('load-7le').addEventListener('click', () => load('masswerk-7-le'));
+    document.getElementById('load-ergobox').addEventListener('click', () => load('masswerk-dark-ergobox2'));
+    document.getElementById('unload').addEventListener('click', () => {
+      themeRegistry.replace(null);
+      setStatus('unloaded');
+    });
+
+    // Expose for test inspection.
+    window.__aaronTheme = { win, loadTheme, themeRegistry };
+  </script>
+</body>
+</html>

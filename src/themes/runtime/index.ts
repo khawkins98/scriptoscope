@@ -21,3 +21,17 @@ export {
   type ApplyWindowPartsOptions,
   type WindowPartInfo,
 } from './applyWindowParts.js';
+export {
+  applyChromeFromTheme,
+  clearChromeFromTheme,
+  type ApplyChromeFromThemeOptions,
+  type ApplyChromeFromThemeResult,
+} from './applyChromeFromTheme.js';
+export {
+  attachThemeToWindow,
+  type AttachThemeToWindowOptions,
+} from './attachThemeToWindow.js';
+export {
+  enableThemeSwitching,
+  type EnableThemeSwitchingOptions,
+} from './themeSwitcher.js';
