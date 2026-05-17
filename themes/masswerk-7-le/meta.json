@@ -1,0 +1,16 @@
+{
+  "name": "mass:werk 7 Le",
+  "author": {
+    "name": "Norbert Landsteiner",
+    "email": "info@masswerk.at",
+    "url": "https://www.masswerk.at",
+    "year": 2001
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "Freeware. Distribute as long as with this readme file.",
+    "originalReadme": "ReadMe-masswerk7Le",
+    "sourceUrl": "https://www.masswerk.at/schemes.php"
+  }
+}

@@ -370,4 +370,42 @@ The sidecar is durable (lives next to the source `.r`), regeneration-safe (next 
 
 ---
 
+### 2026-05-17 — `meta.json` + `PROVENANCE.md` carry the same facts in two forms, and that's deliberate
+
+Shipping [#37](https://github.com/khawkins98/aaron-ui/issues/37) (canonical theme bundles), we ended up with two files per bundle that say overlapping things:
+
+- `themes/<slug>/meta.json` — structured JSON: `{name, author, origin: {kind, originalLicense, sourceUrl, ...}}`. Fed to the extractor; gets merged into `theme.json` on regeneration.
+- `themes/<slug>/PROVENANCE.md` — human-readable markdown: author bio, readme excerpt, license interpretation, why the scheme is in the corpus.
+
+The temptation was to pick one — either generate the markdown from the JSON, or extract the JSON from the markdown. We picked **dual-source-of-truth with a precedence rule:** if they drift, `PROVENANCE.md` is authoritative (it's the curated human record) and `meta.json` is corrected to match.
+
+**Why two:**
+
+- The JSON is what tooling needs — the loader, the extractor, the bundle-rebuild script. Machine-parseable.
+- The markdown is what *people* need — a contributor evaluating "can we ship this scheme?" reads the prose, not the JSON. License interpretation, scheme history, and the "why we picked this" narrative don't survive flattening into structured fields.
+- Auto-generating either direction loses something. Markdown-from-JSON produces sterile prose. JSON-from-markdown requires NLP-grade parsing of free-form author readmes.
+
+**Application:** when a new bundle is added, both files are hand-authored. The `scripts/build-theme-bundles.mjs` script reads `meta.json` (so the structured side wins for the loader) but does not touch `PROVENANCE.md`. When facts change (a scheme moves to a new URL, the author's email changes), update both — and if they ever conflict, the markdown wins and the JSON is the one with the bug.
+
+### 2026-05-17 — Bundle PNGs live next to the canonical bundle; demo PNGs are a fixture
+
+There are now *two* copies of every extracted PNG on disk:
+
+- `demo/assets/themes/<slug>/cicn-...png` — flat, alongside the old-shape `theme.json` and the `extraction-manifest.json`. Consumed by the current `demo/themes-raster.html` and serves as the regeneration source.
+- `themes/<slug>/cicns/cicn-...png` and `themes/<slug>/ppats/ppat-...png` — subdir-organized, alongside the new schema-conformant `theme.json`. Consumed by Phase 4 runtime tickets (#38+) and the future demo refit (#44).
+
+We could deduplicate by symlinking, but that breaks Windows checkouts and the build script. We could put the canonical bundles under `demo/assets/` to share assets, but that mixes "runtime contract" with "demo scaffolding" and they have different lifecycles.
+
+**Decision:** keep them duplicated. ~1.4 MB total for 309 PNGs in the canonical bundles is small enough that the duplication cost is acceptable; the conceptual cleanliness of "canonical bundles are their own thing under `themes/`" pays for itself in clarity. When #44 (demo refit) lands, the demo will switch to consuming `themes/<slug>/` and `demo/assets/themes/` can be deleted in the same PR.
+
+**Application:** treat `themes/<slug>/` as the source of truth for any Phase 4 runtime work. `demo/assets/themes/` is a soon-to-be-removed legacy fixture; don't add new code that consumes it.
+
+### 2026-05-17 — `.gitattributes` keeps PNG bundle assets binary-safe
+
+Caught preemptively before the first cross-OS contributor hit it: without an explicit `*.png binary` rule, git's CRLF normalization on Windows checkouts can corrupt PNG files in unpredictable ways (depending on the exact byte sequence inside the IDAT chunk). Added `*.png binary` to `.gitattributes` along with `themes/**/*.json text eol=lf` to lock JSON line endings too.
+
+**Application:** when adding a new binary asset type to a bundle (sounds, fonts, archive sidecars), add it to `.gitattributes` in the same commit. The cost of forgetting is silent corruption that surfaces months later when a Windows user opens an issue.
+
+---
+
 *New learnings get appended below this line as the project ships.*
