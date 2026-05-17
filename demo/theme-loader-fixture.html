@@ -20,7 +20,10 @@
   <button id="unload">Unload</button>
 
   <script type="module">
-    import { loadTheme, themeRegistry } from '../src/index.ts';
+    // no-default entry: skips the bundled-default auto-load. This fixture
+    // tests loadTheme in isolation, so we don't want the auto-load racing
+    // with the test's "dispatches themechange" assertion.
+    import { loadTheme, themeRegistry } from '../src/no-default.ts';
 
     const status = document.getElementById('status');
     const setStatus = (s) => { status.textContent = s; };

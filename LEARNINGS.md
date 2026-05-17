@@ -679,4 +679,40 @@ The microtask defer is the difference between "auto-load is configurable" and "a
 
 ---
 
+### 2026-05-17 — Auto-load on import races with fixtures that assert "first event"
+
+Hit this immediately after shipping #39 (bundled-default auto-load): the `theme-loader-fixture.html` e2e test "dispatches aaron:themechange on document" started flaking under parallel Playwright load. The test pattern was:
+
+```js
+await page.goto('/theme-loader-fixture.html');
+await page.evaluate(() => {
+  window.__themeChanges = [];
+  document.addEventListener('aaron:themechange', (e) => {
+    window.__themeChanges.push((e as CustomEvent).detail.theme?.name ?? null);
+  });
+});
+await page.locator('#load-7le').click();
+// expects __themeChanges === ['mass:werk 7 Le']
+```
+
+Pre-#39 this was deterministic — the page imported `aaron-ui` and idled until the click. Post-#39, `aaron-ui` auto-loads the bundled default on DOMContentLoaded. Under parallel 5-worker load with slower page settles, the auto-load sometimes fires BEFORE the listener install, sometimes AFTER. When AFTER, `__themeChanges` has two entries (`'mass:werk 7 Le'` from auto-load + `'mass:werk 7 Le'` from the click), and the strict equality fails.
+
+**Fix:** the fixture switched to `import { loadTheme } from '../src/no-default.ts'`. The fixture's purpose is testing `loadTheme` in isolation; the bundled-default auto-load is a separate concern with its own dedicated fixture (`auto-default-fixture.html` from #39).
+
+**Application:** any fixture whose tests assert specific event sequences should use the `no-default` sub-entry. Tests that assert "the bundled default loads" should use the default entry. Mix them and the auto-load WILL race with assertions. The two-entry pattern from #39 isn't just for end-users; it's testing infrastructure too.
+
+### 2026-05-17 — Landing demo: real windows + provenance + per-scheme thumbnail = the whole product story on one page
+
+Shipping [#44](https://github.com/khawkins98/aaron-ui/issues/44) (Phase 4.10, landing demo refit). The pre-#44 landing page was a card directory: dark page with links to fixtures. The new landing page IS the product: four `AaronWindow` instances on a desktop, themed by the bundled mass:werk 7 Le at first paint, with a `<select>` to swap to ErgoBox 2.
+
+Three design choices worth recording:
+
+1. **The page body picks up `--aaron-colr-*` palette colors.** When the bundled-default theme loads, the topbar background changes to match the scheme's `titlebar-active-bg`. The whole page tints itself with the loaded scheme. Cheap visual win that makes the auto-load feel intentional rather than incidental.
+2. **The provenance bar names the original author and license verbatim.** This is the *clean-room boundary* made human-visible: every visitor sees that this scheme is freeware from Norbert Landsteiner at mass:werk. The corpus's legitimacy is part of the demo, not buried in a `LICENSE` file.
+3. **Side-by-side "original preview vs. live render" is one of the four windows.** Visitors can immediately judge fidelity: if our render diverges from the scheme's own preview, you see the difference at first glance. Beats text claims of "pixel-faithful."
+
+**Application:** for any future visible-tier ticket, ask "what's the single page that tells the whole story?" not "what fixture demonstrates this feature?" The fixtures live on for dev/test use, but the landing page should be the product, not a sitemap of dev tooling. The CONTRIBUTING.md cut-through discipline catches drift; making the *first* page actively demonstrate the value prop catches the bigger failure mode.
+
+---
+
 *New learnings get appended below this line as the project ships.*

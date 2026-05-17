@@ -163,8 +163,10 @@ Phase 4 work is in progress under [tracker #23](https://github.com/khawkins98/aa
    - **`meta.json`** — bundle metadata the binary scheme doesn't carry: `name`, `author`, `origin` (with the readme-stated license verbatim). See [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md) for the schema.
    - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/masswerk-7-le/PROVENANCE.md` as the canonical example.
 4. **Materialize the canonical bundle.** Run `node scripts/build-theme-bundles.mjs <slug>` — the script copies PNGs into `themes/<slug>/cicns/` and `ppats/`, merges your `meta.json`, runs the extractor's `buildThemeJson`, validates against the schema, and writes `theme.json`. Validation failures abort the build.
-5. **Smoke test.** Load the theme in the demo (once #44 lands), confirm the WM still drags + resizes, confirm windows render with the new chrome.
+5. **Smoke test locally.** `npm run dev` and open the landing page; the switcher's `<select>` can be extended to include your slug, or load via the JS console: `await loadTheme('themes/<your-slug>/')`.
 6. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
+
+The complete step-by-step walk-through (with troubleshooting for common pitfalls) is in [`docs/porting-a-kaleidoscope-scheme.md`](./docs/porting-a-kaleidoscope-scheme.md).
 
 Hand-authoring CSS or SVG chrome as a "first-party Aaron UI theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
 
