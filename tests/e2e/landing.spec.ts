@@ -18,11 +18,15 @@ test.describe('landing page (index.html)', () => {
   test('chrome renders on each window after auto-load', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk 7 Le');
-    const titlebars = page.locator('.aaron-window .aaron-titlebar');
-    // Every titlebar got the bundled-default chrome cicn applied.
+    // V2 (#64.1) composer puts cicn URLs on segment child divs. Every
+    // titlebar should have at least one segment referencing the bundled
+    // 7 Le chrome.
     for (let i = 0; i < 4; i++) {
-      const bg = await titlebars
+      const bg = await page
+        .locator('.aaron-window')
         .nth(i)
+        .locator('.aaron-titlebar [data-aaron-chrome-segment]')
+        .first()
         .evaluate((el) => (el as HTMLElement).style.backgroundImage);
       expect(bg).toContain('themes/masswerk-7-le/cicns/');
     }
@@ -34,10 +38,11 @@ test.describe('landing page (index.html)', () => {
 
     await page.locator('#scheme-switcher').selectOption('masswerk-dark-ergobox2');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk Dark ErgoBox 2');
+    await page.waitForTimeout(100);
 
     // All windows updated to the new chrome path.
     const bg = await page
-      .locator('.aaron-window .aaron-titlebar')
+      .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
       .first()
       .evaluate((el) => (el as HTMLElement).style.backgroundImage);
     expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');

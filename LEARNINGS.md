@@ -785,4 +785,33 @@ windowEl.style.boxSizing = 'border-box';
 
 ---
 
+### 2026-05-17 — wnd# composer V2 ships: named parts at native size, part 8 as fill
+
+After PR #66's research and PR #67's canonical spec roll-up, V2 of the wnd# composer ([#64.1](https://github.com/khawkins98/aaron-ui/issues/64)) is now in place. Distinguishes:
+
+- **Named parts** (in rectangleList): render the rect at native pixel size, positioned at the recipe's `at` coordinate. Close box, zoom box, windowshade, divider stay crisp regardless of titlebar width.
+- **Part 8** (universal stretchable fill code from research): tile cicn pixels at the segment's x-range across the segment's rendered width. Preserves pinstripe rhythm.
+- **Other unknown codes** (5, 6, 10, 11, 15, 17): treat as fill (same as part 8). Best-guess fallback; refinement is per-code polish.
+
+The V1 attempt (PR #65, reverted) failed because it treated all parts as fills — including the rectangleList parts (close, zoom, etc.). That stretched the control glyphs into smears and produced visible fragmentation between segments. V2 fixes it by using rectList membership to distinguish "discrete visual element" (named) from "fill region" (everything else).
+
+**Visual result** (verified via `browse` against `localhost:5173`): named control glyphs render crisp at scheme-relative positions; fills tile the cicn's pinstripe between them. Much closer to Kaleidoscope's actual rendering than uniform stretch (PR #62) or the V1 attempt (PR #65 findings).
+
+**Remaining gaps** (tracked as sub-tickets):
+- Title-pill positioning (#64.2) — title text still overlaps with named parts in the center of the titlebar
+- Bottom/left/right side composition (#64.3) — still CSS placeholder window borders
+- Per-code refinement for parts 5, 6, 10, etc. — visual comparison against mass:werk reference thumbnails to determine if they need distinct rendering
+
+**Application:** for any future wnd#-driven rendering, follow the same "named vs fill" distinction. The rectList membership is the discriminator. When schemes introduce new fill codes (which they likely do as we port more bundles), default behavior should be "treat as part-8 equivalent" until a specific visual difference forces refinement.
+
+### 2026-05-17 — E2E tests checking element styles need to follow architecture changes
+
+V2 moved the cicn background-image from `.aaron-titlebar` itself to child `[data-aaron-chrome-segment]` divs. Five e2e tests broke that were checking `titlebar.style.backgroundImage` directly. Fix: update selectors to `.aaron-titlebar [data-aaron-chrome-segment]`.
+
+**Pattern observed:** every visible-tier architecture change (Phase 4 rendering rework, segment composer) breaks at least one selector-based e2e assertion. The tests are correct in WHAT they assert (the theme is loaded, the chrome is applied) but wrong in HOW they check (specific DOM element holds the style). Need to factor brittle selectors into shared helpers per fixture so the architecture-change updates are one-place edits, not five.
+
+**Application:** when refactoring the renderer in future PRs, search the e2e suite for hard-coded `.aaron-titlebar` style assertions and update them at the same time. CI breakages from this pattern are predictable — anticipate and batch.
+
+---
+
 *New learnings get appended below this line as the project ships.*
