@@ -3,96 +3,348 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aaron UI — demos</title>
+  <title>Aaron UI — a web-native runtime for Kaleidoscope themes</title>
+  <meta name="description" content="Drop-in window manager + theme engine. Loads freeware-licensed Kaleidoscope schemes (cicn/ppat/cinf/wnd#) and renders them with CSS, SVG, and JS.">
   <style>
     :root {
-      --bg: #2a2a2a;
-      --panel: #3a3a3a;
-      --text: #e8e8e8;
-      --muted: #999;
-      --accent: #5a7a96;
+      /* Themed colors come from --aaron-colr-* (set by loadTheme). These
+         are fallbacks for the un-themed flash before the bundled default
+         finishes loading. */
+      --bg: var(--aaron-colr-bg, #cccccc);
+      --fg: var(--aaron-colr-fg, #1a1a1a);
+      --accent: var(--aaron-colr-accent, #316ac5);
+      --topbar-bg: var(--aaron-colr-titlebar-active-bg, #cccccc);
+      --topbar-fg: var(--aaron-colr-titlebar-active-fg, #000000);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-    .container { max-width: 960px; margin: 0 auto; padding: 60px 32px; }
-    header h1 { font-size: 32px; margin: 0 0 8px; font-weight: 600; }
-    header p { color: var(--muted); margin: 0 0 8px; line-height: 1.5; }
-    header a { color: var(--accent); }
-    h2 { font-size: 18px; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #444; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .card { display: block; padding: 20px; background: var(--panel); border: 1px solid #555; border-radius: 6px; text-decoration: none; color: inherit; transition: border-color 150ms; }
-    .card:hover { border-color: var(--accent); }
-    .card h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
-    .card p { font-size: 13px; color: var(--muted); line-height: 1.45; margin: 0; }
-    .card__tag { display: inline-block; font-size: 10px; padding: 2px 7px; background: #555; border-radius: 3px; color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    footer { margin-top: 80px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-    footer a { color: var(--accent); }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", "Charcoal", sans-serif;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+    }
+    body { display: flex; flex-direction: column; }
+
+    .topbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 16px;
+      background: var(--topbar-bg);
+      color: var(--topbar-fg);
+      border-bottom: 1px solid #888;
+      font-size: 13px;
+    }
+    .topbar h1 { margin: 0; font-size: 16px; font-weight: 700; }
+    .topbar .byline { opacity: 0.7; font-size: 12px; }
+    .topbar .spacer { flex: 1; }
+    .topbar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .topbar select { padding: 2px 6px; font: inherit; }
+    .topbar a { color: inherit; text-decoration: underline; }
+
+    .desktop {
+      flex: 1 1 auto;
+      position: relative;
+      min-height: 580px;
+      /* Subtle desktop pattern below the windows. */
+      background-image:
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* AaronWindow visual treatment — the chrome cicn paints over these
+       fallbacks via inline styles the runtime writes. */
+    .aaron-window {
+      background: white;
+      border: 1px solid var(--aaron-colr-window-frame, #888);
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    }
+    .aaron-titlebar {
+      position: relative;
+      height: 25px;
+      min-height: 25px;
+      border-bottom: 1px solid #888;
+    }
+    .aaron-titlebar__title {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      pointer-events: none;
+      color: var(--aaron-colr-titlebar-active-fg, currentColor);
+    }
+    .aaron-window[data-state="inactive"] .aaron-titlebar__title {
+      color: var(--aaron-colr-titlebar-inactive-fg, #888);
+    }
+    .aaron-content { padding: 14px; line-height: 1.45; overflow: auto; }
+    .aaron-content p { margin: 0 0 0.7em; }
+    .aaron-content p:last-child { margin-bottom: 0; }
+    .aaron-content a { color: var(--accent); }
+    .aaron-content code {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 12px;
+      padding: 1px 4px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 2px;
+    }
+    .aaron-content h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; }
+    .aaron-content .sidebyside {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+    .aaron-content .sidebyside figure { margin: 0; }
+    .aaron-content .sidebyside figcaption {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+    .aaron-content .sidebyside img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #aaa;
+      image-rendering: pixelated;
+    }
+
+    .infobar {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.06);
+      border-top: 1px solid #888;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .infobar .provenance { flex: 1; opacity: 0.85; }
+    .infobar a { color: inherit; }
+    .infobar details summary {
+      cursor: pointer;
+      font-weight: 700;
+      list-style: none;
+    }
+    .infobar details summary::after { content: ' ▼'; opacity: 0.6; }
+    .infobar details[open] summary::after { content: ' ▲'; }
+    .infobar details > div {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #888;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+    }
+    .infobar details > div h4 {
+      margin: 0 0 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.7;
+    }
+    .infobar details > div p { margin: 0; }
+    .infobar details > div a { display: inline-block; margin-right: 6px; }
   </style>
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h1>Aaron UI</h1>
-      <p>A web-native runtime for <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> themes — and the window manager that hosts them. Loads freeware-licensed Kaleidoscope schemes (chrome, controls, colors) and renders them with CSS, SVG, and JS. Ships <a href="https://www.masswerk.at/schemes.php">mass:werk's "7 Le"</a> as the bundled default.</p>
-      <p>Phase 1 (WM core) shipped. Phase 4 (theme engine) in flight — schema, extractor, canonical bundles, <code>loadTheme()</code>, and the cinf/ppat renderers have landed; the per-window chrome wiring (#42), bundled-default auto-load (#39), and demo refit (#44) are still open. See <a href="https://github.com/khawkins98/aaron-ui">GitHub repo</a> and the <a href="https://github.com/khawkins98/aaron-ui/issues/23">Phase 4 tracker</a> for what's done and what's next.</p>
-    </header>
-
-    <h2>Visual showcase</h2>
-    <div class="grid">
-      <a href="themes-raster.html" class="card">
-        <span class="card__tag">demo · raster</span>
-        <h3>themes-raster.html</h3>
-        <p>Side-by-side comparison: mass:werk reference thumbnail vs. our live render. Two themes (7 Le, Dark ErgoBox 2), interactive controls. <em>Note:</em> reads the legacy draft <code>theme.json</code> shape from <code>demo/assets/</code>; the planned refit to consume the canonical <code>themes/&lt;slug&gt;/</code> bundles is <a href="https://github.com/khawkins98/aaron-ui/issues/44">issue #44</a>.</p>
-      </a>
-      <a href="themes.html" class="card">
-        <span class="card__tag">demo · synthetic</span>
-        <h3>themes.html</h3>
-        <p>Pre-raster theme switcher: pure CSS gradients + SVG primitives. Historical proof-of-concept from before the raster pipeline landed; kept as a comparison point.</p>
-      </a>
-      <a href="platinum-static.html" class="card">
-        <span class="card__tag">demo · reference</span>
-        <h3>platinum-static.html</h3>
-        <p>Single-file, no-JS Platinum window mockup. Pure-CSS reference authored when the original Phase 2 (hand-author Platinum) was still in scope; retained as historical context after that phase was <a href="https://github.com/khawkins98/aaron-ui/issues/21">dropped</a>.</p>
-      </a>
-    </div>
-
-    <h2>WM core fixtures (Phase 1)</h2>
-    <div class="grid">
-      <a href="wm-fixture.html" class="card">
-        <span class="card__tag">fixture · imperative</span>
-        <h3>wm-fixture.html</h3>
-        <p>Three <code>AaronWindow</code> instances mounted via the imperative API. Drag, resize, click-to-front, callback recording. Used by Playwright e2e tests.</p>
-      </a>
-      <a href="scanner-fixture.html" class="card">
-        <span class="card__tag">fixture · declarative</span>
-        <h3>scanner-fixture.html</h3>
-        <p>Pure-markup <code>[data-aaron-window]</code> divs that auto-promote into real windows on load. MutationObserver picks up dynamically-added ones.</p>
-      </a>
-    </div>
-
-    <h2>Theme runtime fixtures (Phase 4, in flight)</h2>
-    <div class="grid">
-      <a href="auto-default-fixture.html" class="card">
-        <span class="card__tag">fixture · auto-load</span>
-        <h3>auto-default-fixture.html ★</h3>
-        <p>The "just <code>import 'aaron-ui'</code>" demo. No <code>loadTheme()</code> call, no <code>data-aaron-theme</code> attribute — the bundled mass:werk 7 Le scheme auto-loads on <code>DOMContentLoaded</code> and themes the window.</p>
-      </a>
-      <a href="theme-switcher-fixture.html" class="card">
-        <span class="card__tag">fixture · runtime</span>
-        <h3>theme-switcher-fixture.html</h3>
-        <p>Mounts a real <code>AaronWindow</code>, attaches it via <code>attachThemeToWindow</code>, swaps between bundled 7 Le and ErgoBox 2. Chrome <em>visibly</em> changes — the runtime trio (cinf 9-slice + ppat overlay + wnd# part overlays) all composed.</p>
-      </a>
-      <a href="theme-loader-fixture.html" class="card">
-        <span class="card__tag">fixture · loadTheme</span>
-        <h3>theme-loader-fixture.html</h3>
-        <p>Lower-level: just <code>loadTheme()</code> and palette → <code>:root</code> assertions. Backs the Phase 4.4 e2e suite.</p>
-      </a>
-    </div>
-
-    <footer>
-      <p>Bundle stats live in <a href="https://github.com/khawkins98/aaron-ui/blob/main/README.md">README</a>; CI status on <a href="https://github.com/khawkins98/aaron-ui/actions">Actions</a>.</p>
-      <p><a href="https://github.com/khawkins98/aaron-ui">github.com/khawkins98/aaron-ui</a> · <a href="https://github.com/khawkins98/aaron-ui/milestones">milestones</a> · <a href="https://github.com/khawkins98/aaron-ui/issues">issues</a></p>
-    </footer>
+<body data-aaron-theme="">
+  <div class="topbar">
+    <h1>Aaron UI</h1>
+    <span class="byline">A web-native runtime for Kaleidoscope themes</span>
+    <span class="spacer"></span>
+    <label>
+      Scheme:
+      <select id="scheme-switcher">
+        <option value="masswerk-7-le">mass:werk 7 Le (Platinum-faithful)</option>
+        <option value="masswerk-dark-ergobox2">mass:werk Dark ErgoBox 2 (dark, BeOS tab)</option>
+      </select>
+    </label>
+    <a href="https://github.com/khawkins98/aaron-ui">GitHub ↗</a>
   </div>
+
+  <div class="desktop" id="desktop"></div>
+
+  <div class="infobar">
+    <div class="provenance">
+      Currently rendering <strong id="active-scheme-name">…</strong> by
+      <a id="active-scheme-author" href="#"><span></span></a>.
+      <span id="active-scheme-license"></span>
+    </div>
+    <details>
+      <summary>For developers</summary>
+      <div>
+        <div>
+          <h4>Runtime fixtures (Phase 4)</h4>
+          <p>
+            <a href="auto-default-fixture.html">auto-default</a>
+            <a href="theme-switcher-fixture.html">theme-switcher</a>
+            <a href="theme-loader-fixture.html">theme-loader</a>
+          </p>
+        </div>
+        <div>
+          <h4>WM core fixtures (Phase 1)</h4>
+          <p>
+            <a href="wm-fixture.html">wm</a>
+            <a href="scanner-fixture.html">scanner</a>
+          </p>
+        </div>
+        <div>
+          <h4>Legacy / historical</h4>
+          <p>
+            <a href="themes-raster.html">themes-raster</a>
+            <a href="themes.html">themes</a>
+            <a href="platinum-static.html">platinum-static</a>
+          </p>
+        </div>
+        <div>
+          <h4>Docs</h4>
+          <p>
+            <a href="https://github.com/khawkins98/aaron-ui/blob/main/README.md">README</a>
+            <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/porting-a-kaleidoscope-scheme.md">Porting guide</a>
+            <a href="https://github.com/khawkins98/aaron-ui/blob/main/LEARNINGS.md">LEARNINGS</a>
+          </p>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <script type="module">
+    import {
+      AaronWindow,
+      loadTheme,
+      attachThemeToWindow,
+      themeRegistry,
+    } from '../src/index.ts';
+
+    const desktop = document.getElementById('desktop');
+
+    // Define the four windows that populate the desktop. Positions are
+    // staggered + sized so they're all simultaneously visible on a
+    // reasonable viewport without overlap dominating the first paint.
+    const windows = [
+      {
+        title: 'About Aaron UI',
+        x: 40, y: 32, width: 380, height: 220,
+        html: `
+          <h3>What is this?</h3>
+          <p>Aaron UI is a web-native runtime for <strong>Kaleidoscope</strong>
+          themes — the third-party Mac OS chrome engine that ran on
+          System 7 through Mac OS 9. The window you're reading is a real
+          <code>AaronWindow</code> instance; its chrome comes from
+          decoding <code>cicn</code> + <code>ppat</code> + <code>cinf</code>
+          + <code>wnd#</code> resources out of a <code>.ksc</code> file.</p>
+          <p>Drag the titlebar. Resize from any edge. Pick a different
+          scheme above. The chrome changes; the window keeps its
+          contents.</p>
+        `,
+      },
+      {
+        title: 'README · scheme provenance',
+        x: 440, y: 80, width: 380, height: 280,
+        html: `
+          <h3 id="readme-title">…</h3>
+          <p id="readme-desc">…</p>
+          <p><a id="readme-source" href="#">source</a> · freeware,
+          redistributed with the original author's permission. The full
+          per-bundle <code>PROVENANCE.md</code> lives in
+          <a href="https://github.com/khawkins98/aaron-ui/tree/main/themes">themes/&lt;slug&gt;/</a>
+          in the repo.</p>
+        `,
+      },
+      {
+        title: 'Side-by-side fidelity',
+        x: 40, y: 280, width: 460, height: 280,
+        html: `
+          <div class="sidebyside">
+            <figure>
+              <figcaption>Original scheme preview</figcaption>
+              <img id="reference-img" alt="reference thumbnail">
+            </figure>
+            <figure>
+              <figcaption>Aaron UI render (this page)</figcaption>
+              <p style="font-size:12px;opacity:0.7;">The other three
+              windows on this page are the live render — same scheme,
+              same chrome bitmaps, composited at runtime instead of by
+              Kaleidoscope itself.</p>
+            </figure>
+          </div>
+        `,
+      },
+      {
+        title: 'For developers',
+        x: 520, y: 380, width: 380, height: 190,
+        html: `
+          <h3>Three configuration paths</h3>
+          <p><code>import 'aaron-ui'</code> — auto-loads the bundled
+          default (this page).</p>
+          <p><code>import 'aaron-ui/no-default'</code> — same API, no
+          auto-load. You own theme loading.</p>
+          <p><code>setBundledDefaultUrl('/path/')</code> — override
+          where the default fetches from.</p>
+          <p>See the developer fixtures at the bottom of the page.</p>
+        `,
+      },
+    ];
+
+    for (const cfg of windows) {
+      const w = new AaronWindow(cfg);
+      w.mount(desktop);
+      attachThemeToWindow(w.element, { windowTypeSlug: 'document-window' });
+    }
+
+    // Theme switcher — both <select> change and the data-aaron-theme
+    // attribute path are supported. The attribute is the declarative
+    // version (PRD §Theme system); the <select> is the imperative.
+    const select = document.getElementById('scheme-switcher');
+    select.addEventListener('change', () => {
+      void loadTheme(`themes/${select.value}/`);
+    });
+
+    // Provenance display updates whenever the theme changes.
+    function refreshProvenance(theme) {
+      if (!theme) return;
+      document.getElementById('active-scheme-name').textContent = theme.name ?? 'unknown';
+      const authorEl = document.getElementById('active-scheme-author');
+      authorEl.querySelector('span').textContent = theme.author?.name ?? 'unknown';
+      if (theme.author?.url) authorEl.href = theme.author.url;
+      const licenseEl = document.getElementById('active-scheme-license');
+      licenseEl.textContent = theme.origin?.originalLicense
+        ? `License: ${theme.origin.originalLicense}`
+        : '';
+
+      // README window content.
+      const readmeTitle = document.getElementById('readme-title');
+      const readmeDesc = document.getElementById('readme-desc');
+      const readmeSource = document.getElementById('readme-source');
+      readmeTitle.textContent = theme.name ?? '';
+      readmeDesc.textContent = theme.author
+        ? `By ${theme.author.name}${theme.author.year ? `, ${theme.author.year}` : ''}.`
+        : '';
+      if (theme.origin?.sourceUrl) readmeSource.href = theme.origin.sourceUrl;
+
+      // Side-by-side reference thumbnail — derive from the loaded theme's
+      // slug (we know our convention; this isn't a runtime feature, just
+      // a demo convenience).
+      const slug = theme.name?.toLowerCase().includes('ergobox')
+        ? 'masswerk-dark-ergobox2'
+        : 'masswerk-7-le';
+      document.getElementById('reference-img').src = `assets/references/${slug}.jpg`;
+
+      // Reflect in the switcher in case the change came from elsewhere.
+      if (select.value !== slug) select.value = slug;
+    }
+    themeRegistry.subscribe(refreshProvenance);
+    refreshProvenance(themeRegistry.current());
+
+    // Expose for in-page debugging from the JS console.
+    window.__aaronTheme = { loadTheme, themeRegistry };
+  </script>
 </body>
 </html>
