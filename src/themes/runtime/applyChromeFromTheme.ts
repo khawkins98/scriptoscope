@@ -18,7 +18,7 @@ import type {
 } from '../schema/types.js';
 import { applyChromeElement, clearChromeElement } from './applyChromeElement.js';
 import { applyWindowParts, clearWindowParts, type WindowPartInfo } from './applyWindowParts.js';
-import { composeTopEdge, clearChromeSegments } from './composeWindowChrome.js';
+import { composeTopEdge, clearChromeSegments, findTitlePillBounds } from './composeWindowChrome.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -121,16 +121,31 @@ export function applyChromeFromTheme(
       cicnHeight: chromeEntry.height as number,
       cicnUrl,
     });
+    // Title-pill positioning (#64.2) — find the widest fill-segment run
+    // in the recipe and expose its bounds as custom properties so the
+    // title text can be constrained to that safe zone in CSS.
+    const pill = findTitlePillBounds(windowType, chromeEntry.width as number);
+    if (pill) {
+      titlebar.style.setProperty('--aaron-title-pill-left', `${pill.leftPct.toFixed(4)}%`);
+      titlebar.style.setProperty('--aaron-title-pill-right', `${pill.rightPct.toFixed(4)}%`);
+    } else {
+      titlebar.style.removeProperty('--aaron-title-pill-left');
+      titlebar.style.removeProperty('--aaron-title-pill-right');
+    }
   } else if (chromeEntry.slice) {
     // Path B.
     clearChromeSegments(titlebar);
     applyChromeElement(titlebar, chromeEntry, { theme });
+    titlebar.style.removeProperty('--aaron-title-pill-left');
+    titlebar.style.removeProperty('--aaron-title-pill-right');
   } else {
     // Path C.
     clearChromeSegments(titlebar);
     const titlebarEntry: ChromeElementEntry = stripDimensions(chromeEntry);
     applyChromeElement(titlebar, titlebarEntry, { theme });
     titlebar.style.backgroundSize = '100% 100%';
+    titlebar.style.removeProperty('--aaron-title-pill-left');
+    titlebar.style.removeProperty('--aaron-title-pill-right');
   }
 
   // Hit-target overlays for wnd# parts (close, zoom, windowshade, etc.) —

@@ -79,15 +79,33 @@
       image-rendering: pixelated;
     }
     .aaron-titlebar__title {
+      /* Title-pill positioning (#64.2): when the runtime detects the
+         widest fill-segment run in the wnd# top recipe, it stamps
+         --aaron-title-pill-{left,right} as %. We use those to keep the
+         title inside that safe zone so it doesn't overlap close-box /
+         zoom-box / divider decorations. Defaults to inset:0 when the
+         runtime didn't set the props (no recipe, or no fill run). */
       position: absolute;
-      inset: 0;
+      left: var(--aaron-title-pill-left, 0);
+      right: var(--aaron-title-pill-right, 0);
+      top: 0;
+      bottom: 0;
+      padding: 0 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
       font-weight: 700;
       pointer-events: none;
+      overflow: hidden;
+      white-space: nowrap;
       color: var(--aaron-colr-titlebar-active-fg, currentColor);
+      z-index: 2; /* above chrome segments */
+    }
+    .aaron-titlebar__title > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
     .aaron-window[data-state="inactive"] .aaron-titlebar__title {
       color: var(--aaron-colr-titlebar-inactive-fg, #888);

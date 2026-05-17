@@ -129,3 +129,58 @@ export function recipeToSegments(
 function pct(numerator: number, denominator: number): string {
   return `${Number(((numerator / denominator) * 100).toFixed(4))}%`;
 }
+
+/**
+ * Find the "title pill" zone in a windowType's top recipe — the segment
+ * (or contiguous run of segments) suitable for the window's title text.
+ *
+ * Algorithm (#64.2):
+ *   1. Iterate recipe segments.
+ *   2. A segment is a "fill" if its part code is NOT in `windowType.parts`.
+ *      Fill segments accept tiling and don't carry decorative geometry.
+ *   3. Coalesce adjacent fills into runs (a divider between two fills is
+ *      a named part and breaks the run; consecutive fills of different
+ *      codes — e.g. part 8 then part 5 — coalesce since both are fillable).
+ *   4. Return the widest run as a percentage of cicn width.
+ *
+ * Returns null if the recipe is empty or has no fill segments.
+ *
+ * Used by the renderer to constrain the title text to a safe horizontal
+ * zone so it doesn't overlap close-box / zoom-box / divider decorations.
+ */
+export function findTitlePillBounds(
+  windowType: WindowTypeEntry,
+  cicnWidth: number,
+): { leftPct: number; rightPct: number } | null {
+  const recipe = windowType.edges?.top;
+  if (!recipe || recipe.length === 0 || cicnWidth <= 0) return null;
+  const namedParts = windowType.parts ?? {};
+
+  const segments = recipeToSegments(recipe, cicnWidth);
+
+  // Coalesce runs of consecutive fill segments.
+  type Run = { start: number; end: number };
+  const runs: Run[] = [];
+  let cur: Run | null = null;
+  for (const seg of segments) {
+    const isFill = !(seg.partSlug in namedParts);
+    if (isFill) {
+      if (cur === null) cur = { start: seg.cicnStart, end: seg.cicnEnd };
+      else cur.end = seg.cicnEnd;
+    } else if (cur !== null) {
+      runs.push(cur);
+      cur = null;
+    }
+  }
+  if (cur !== null) runs.push(cur);
+  if (runs.length === 0) return null;
+
+  let widest = runs[0]!;
+  for (const r of runs) {
+    if (r.end - r.start > widest.end - widest.start) widest = r;
+  }
+  return {
+    leftPct: (widest.start / cicnWidth) * 100,
+    rightPct: ((cicnWidth - widest.end) / cicnWidth) * 100,
+  };
+}

@@ -52,13 +52,25 @@
     }
     .aaron-titlebar__title {
       position: absolute;
-      inset: 0;
+      left: var(--aaron-title-pill-left, 0);
+      right: var(--aaron-title-pill-right, 0);
+      top: 0;
+      bottom: 0;
+      padding: 0 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 12px;
       font-weight: bold;
       pointer-events: none;
+      overflow: hidden;
+      white-space: nowrap;
+      z-index: 2;
+    }
+    .aaron-titlebar__title > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
     .aaron-content {
       padding: 16px;

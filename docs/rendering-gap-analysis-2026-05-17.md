@@ -303,7 +303,19 @@ Until #64.0 lands, **the visual-fidelity state stays at "honest uniform-stretch 
 
 ---
 
-## 9. References
+## §9. Sub-ticket #64.2 — title pill (LANDED)
+
+Implemented in PR #85 (this PR). Approach:
+
+1. New runtime helper `findTitlePillBounds(windowType, cicnWidth)` — walks the top recipe, identifies segments whose part code is NOT in `windowType.parts` (i.e., fill segments), coalesces adjacent fills into runs, returns the widest run as `{ leftPct, rightPct }` percentages of cicn width.
+2. After `composeTopEdge` runs, `applyChromeFromTheme` calls the helper and stamps the result onto the titlebar as two CSS custom properties: `--aaron-title-pill-left`, `--aaron-title-pill-right`.
+3. Demo CSS for `.aaron-titlebar__title` consumes those properties: `left: var(--aaron-title-pill-left, 0); right: var(--aaron-title-pill-right, 0);` with `overflow: hidden; white-space: nowrap; text-overflow: ellipsis` for graceful truncation.
+
+**Visible result:** title text is now confined to the recipe's fill zone (e.g., 33.78%–47.30% of titlebar width for 7 Le's document-window). When the title doesn't fit, it ellipsizes (`Abo…`, `Side-…`, `Con…`) instead of bleeding over close-box / zoom-box / divider decorations.
+
+**Known limitation:** for schemes with narrow cicn widths and many named parts (7 Le is 74px wide with ~7 named parts), the resulting pill is narrow in titlebar pixel space, so most titles ellipsize. A future refinement could compute the pill in titlebar-pixel space (recomputing on resize) to pick the widest *visual* gap between rendered named parts rather than the widest *cicn-space* fill run. Tracked but not blocking — the truncated state is strictly better than the previous overlap state.
+
+## 10. References
 
 - [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — output contract; this gap analysis identifies where it's silent on side-recipe composition + title pill.
 - [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — input contract; the wnd# side recipe data described in §3 is what we need to start consuming.
