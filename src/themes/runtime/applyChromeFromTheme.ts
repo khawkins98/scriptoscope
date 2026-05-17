@@ -107,6 +107,20 @@ export function applyChromeFromTheme(
     titlebar.style.backgroundSize = '100% 100%';
   }
 
+  // Scheme-derived window border: slice 1px from the cicn's outermost
+  // pixels and use as border-image on the window root. Gives every window
+  // a thin themed border (frame color comes from the scheme's chrome
+  // edges, not a CSS placeholder). The full wnd# side-recipe composition
+  // for thicker per-side rendering is a future polish ticket.
+  windowEl.style.borderImageSource = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  windowEl.style.borderImageSlice = '1';
+  windowEl.style.borderImageWidth = '1';
+  windowEl.style.borderImageRepeat = 'stretch';
+  windowEl.style.borderStyle = 'solid';
+  windowEl.style.borderWidth = '1px';
+  windowEl.style.borderColor = 'transparent';
+  windowEl.style.boxSizing = 'border-box';
+
   const partsAria = options.partsAria ?? 'hidden';
   let parts: WindowPartInfo[] = [];
   if (windowType.parts && Object.keys(windowType.parts).length > 0) {
@@ -120,6 +134,10 @@ export function applyChromeFromTheme(
         chromeWidth: width,
         chromeHeight: height,
         aria: partsAria,
+        // Pass the cicn so parts render as crisp glyphs (sliced from the
+        // cicn at their rect) instead of distorting with the stretched
+        // titlebar background. Close/zoom/windowshade icons stay sharp.
+        glyphCicnUrl: cicnUrl,
       });
     }
   }
@@ -141,6 +159,19 @@ export function applyChromeFromTheme(
  * that hasn't been themed.
  */
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
+  // Clear the scheme-derived window border applied to the root.
+  for (const prop of [
+    'borderImageSource',
+    'borderImageSlice',
+    'borderImageWidth',
+    'borderImageRepeat',
+    'borderStyle',
+    'borderWidth',
+    'borderColor',
+    'boxSizing',
+  ] as const) {
+    windowEl.style[prop] = '';
+  }
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);

@@ -44,6 +44,18 @@ export interface ApplyWindowPartsOptions {
    *   pick this if these are the only interactive elements for the part.
    */
   aria?: 'hidden' | 'button';
+  /**
+   * When set, each part renders a crisp slice of this cicn at the part's
+   * rect — useful for control glyphs (close/zoom/windowshade) that would
+   * otherwise visually stretch with the titlebar's background. The slice
+   * is positioned via `background-position`, sized to the part's native
+   * pixel rect (not the percentage), and stays crisp at any titlebar
+   * width.
+   *
+   * Without this, parts are transparent hit-target overlays (the prior
+   * behaviour, still used for non-glyph parts).
+   */
+  glyphCicnUrl?: string;
 }
 
 export interface WindowPartInfo {
@@ -106,10 +118,28 @@ export function applyWindowParts(
       el.setAttribute('tabindex', '0');
     }
     el.style.position = 'absolute';
-    el.style.left = pct(left, chromeWidth);
-    el.style.top = pct(top, chromeHeight);
-    el.style.width = pct(widthPx, chromeWidth);
-    el.style.height = pct(heightPx, chromeHeight);
+
+    if (options.glyphCicnUrl) {
+      // Crisp-glyph mode: position at the rect's % location but size in
+      // native pixels (so close/zoom/windowshade don't stretch with the
+      // titlebar). background-position negative offset crops the cicn
+      // down to just this part's pixel region.
+      el.style.left = pct(left, chromeWidth);
+      el.style.top = pct(top, chromeHeight);
+      el.style.width = `${widthPx}px`;
+      el.style.height = `${heightPx}px`;
+      el.style.backgroundImage = `url("${options.glyphCicnUrl.replace(/"/g, '\\"')}")`;
+      el.style.backgroundPosition = `-${left}px -${top}px`;
+      el.style.backgroundSize = `${chromeWidth}px ${chromeHeight}px`;
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.imageRendering = 'pixelated';
+    } else {
+      // Transparent hit-target mode (original behaviour).
+      el.style.left = pct(left, chromeWidth);
+      el.style.top = pct(top, chromeHeight);
+      el.style.width = pct(widthPx, chromeWidth);
+      el.style.height = pct(heightPx, chromeHeight);
+    }
 
     container.appendChild(el);
     mounted.push({ partSlug, el });
