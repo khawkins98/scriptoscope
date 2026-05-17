@@ -19,8 +19,7 @@ export {
 } from './window-manager/scanner.js';
 
 // Theme schema (Phase 4.1 / issue #35) — types + runtime validator for
-// theme.json bundles per docs/kaleidoscope-geometry-spec.md §7. Foundation
-// for the loadTheme() runtime that lands in Phase 4.4.
+// theme.json bundles per docs/kaleidoscope-geometry-spec.md §7.
 export {
   THEME_SCHEMA_VERSION,
   parseTheme,
@@ -38,3 +37,18 @@ export {
   type SliceSpec,
   type PatternEntry,
 } from './themes/schema/index.js';
+
+// Theme runtime (Phase 4.4 / issue #38) — loadTheme() + ThemeRegistry singleton.
+// Fetches a bundle, validates via parseTheme, resolves asset URLs, applies the
+// Colr palette to :root, and broadcasts aaron:themechange. Foundation for the
+// per-window rendering tickets (#40 cinf 9-slice, #41 ppat overlay, #42 wnd#
+// parts) that consume the parsed Theme via the registry.
+export {
+  loadTheme,
+  resolveAssetUrls,
+  themeRegistry,
+  THEME_CHANGE_EVENT,
+  type ThemeRegistry,
+  type ThemeChangeListener,
+  type ThemeChangeEventDetail,
+} from './themes/runtime/index.js';
