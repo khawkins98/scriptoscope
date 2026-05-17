@@ -16,7 +16,9 @@
 // vs fill parts based on the canonical spec — named parts stay at native size
 // so control glyphs (close, zoom, windowshade, divider) don't distort.
 //
-// Currently implements TOP side only. Bottom/left/right are #64.3 scope.
+// Implements all four sides (#64.3). Top + bottom iterate the X axis;
+// left + right iterate the Y axis. Same "named at native size at
+// recipe.at" / "fill tiles cicn pixels" algorithm in each direction.
 
 import type { WindowTypeEntry, EdgeRecipe, PartEntry } from '../schema/types.js';
 
@@ -96,6 +98,199 @@ export function composeTopEdge(
 
     titlebar.appendChild(div);
   }
+}
+
+/**
+ * Compose the BOTTOM edge of a window-type chrome onto `container`.
+ *
+ * Same algorithm as composeTopEdge but mirrored vertically — the segment
+ * background is sampled from the BOTTOM rows of the cicn (so the bottom
+ * border decoration shows through). `container` is typically the
+ * `.aaron-window__edge--bottom` div positioned at the window's bottom.
+ *
+ * The container is expected to be a thin horizontal strip; height is set
+ * by the caller's CSS (e.g., 2-3px or a derived value).
+ */
+export function composeBottomEdge(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeWindowChromeOptions,
+): void {
+  clearChromeSegments(container);
+  const recipe = windowType.edges?.bottom;
+  if (!recipe || recipe.length === 0) return;
+
+  const { cicnWidth, cicnHeight, cicnUrl } = options;
+  if (cicnWidth <= 0 || cicnHeight <= 0) return;
+
+  const namedParts: Record<string, PartEntry> = windowType.parts ?? {};
+  const cicnUrlCss = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  // Bottom strip in cicn-Y space. For schemes with a "bottom border"
+  // named part, use its top edge; otherwise default to (cicnHeight - 2)
+  // so the strip samples the cicn's bottom-most rows.
+  const bottomStripStart = inferBottomStripStart(windowType, cicnHeight);
+
+  for (let i = 0; i < recipe.length; i++) {
+    const entry = recipe[i]!;
+    const segCicnStart = entry.at;
+    const next = recipe[i + 1];
+    const segCicnEnd = next ? next.at : cicnWidth;
+    const segCicnWidth = segCicnEnd - segCicnStart;
+    if (segCicnWidth <= 0) continue;
+
+    const named: PartEntry | undefined = namedParts[entry.part];
+    const div = container.ownerDocument.createElement('div');
+    div.setAttribute(SEGMENT_ATTR, 'bottom');
+    div.setAttribute('data-segment-part', entry.part);
+    div.style.position = 'absolute';
+    div.style.pointerEvents = 'none';
+    div.style.imageRendering = 'pixelated';
+    div.style.backgroundImage = cicnUrlCss;
+    div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+
+    if (named) {
+      const [rectLeft, rectTop, rectRight, rectBottom] = named.rect;
+      const rectW = rectRight - rectLeft;
+      const rectH = rectBottom - rectTop;
+      div.style.left = pct(segCicnStart, cicnWidth);
+      // Anchor to bottom: position relative to bottom of container so
+      // the rect's bottom edge sits at the container's bottom edge.
+      div.style.bottom = '0';
+      div.style.width = `${rectW}px`;
+      div.style.height = `${rectH}px`;
+      div.style.backgroundPosition = `-${rectLeft}px -${rectTop}px`;
+      div.style.backgroundRepeat = 'no-repeat';
+      div.style.zIndex = '1';
+    } else {
+      // Fill: full container height (the bottom strip), tile horizontally,
+      // sample from cicn's bottom rows.
+      div.style.left = pct(segCicnStart, cicnWidth);
+      div.style.top = '0';
+      div.style.width = pct(segCicnWidth, cicnWidth);
+      div.style.height = '100%';
+      div.style.backgroundPosition = `-${segCicnStart}px -${bottomStripStart}px`;
+      div.style.backgroundRepeat = 'repeat-x';
+      div.style.zIndex = '0';
+    }
+
+    container.appendChild(div);
+  }
+}
+
+/**
+ * Compose the LEFT edge of a window-type chrome onto `container`.
+ *
+ * Vertical strip down the left side of the window. Recipe `at` values
+ * are Y coordinates in cicn space; segments tile vertically (repeat-y).
+ */
+export function composeLeftEdge(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeWindowChromeOptions,
+): void {
+  composeVerticalEdge(container, windowType, options, 'left');
+}
+
+/**
+ * Compose the RIGHT edge of a window-type chrome onto `container`.
+ *
+ * Mirror of composeLeftEdge — samples from the cicn's right-most columns.
+ */
+export function composeRightEdge(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeWindowChromeOptions,
+): void {
+  composeVerticalEdge(container, windowType, options, 'right');
+}
+
+function composeVerticalEdge(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeWindowChromeOptions,
+  side: 'left' | 'right',
+): void {
+  clearChromeSegments(container);
+  const recipe = windowType.edges?.[side];
+  if (!recipe || recipe.length === 0) return;
+
+  const { cicnWidth, cicnHeight, cicnUrl } = options;
+  if (cicnWidth <= 0 || cicnHeight <= 0) return;
+
+  const namedParts: Record<string, PartEntry> = windowType.parts ?? {};
+  const cicnUrlCss = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  // Sample column in cicn-X space. Left edge = column 0; right edge =
+  // last column. A future refinement could derive a thicker strip if
+  // a "side border" named part exists.
+  const stripX = side === 'left' ? 0 : Math.max(0, cicnWidth - 1);
+
+  for (let i = 0; i < recipe.length; i++) {
+    const entry = recipe[i]!;
+    const segCicnStart = entry.at; // Y coordinate
+    const next = recipe[i + 1];
+    const segCicnEnd = next ? next.at : cicnHeight;
+    const segCicnHeight = segCicnEnd - segCicnStart;
+    if (segCicnHeight <= 0) continue;
+
+    const named: PartEntry | undefined = namedParts[entry.part];
+    const div = container.ownerDocument.createElement('div');
+    div.setAttribute(SEGMENT_ATTR, side);
+    div.setAttribute('data-segment-part', entry.part);
+    div.style.position = 'absolute';
+    div.style.pointerEvents = 'none';
+    div.style.imageRendering = 'pixelated';
+    div.style.backgroundImage = cicnUrlCss;
+    div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+
+    if (named) {
+      const [rectLeft, rectTop, rectRight, rectBottom] = named.rect;
+      const rectW = rectRight - rectLeft;
+      const rectH = rectBottom - rectTop;
+      // Anchor to the appropriate horizontal edge of the container.
+      if (side === 'left') div.style.left = '0';
+      else div.style.right = '0';
+      div.style.top = pct(segCicnStart, cicnHeight);
+      div.style.width = `${rectW}px`;
+      div.style.height = `${rectH}px`;
+      div.style.backgroundPosition = `-${rectLeft}px -${rectTop}px`;
+      div.style.backgroundRepeat = 'no-repeat';
+      div.style.zIndex = '1';
+    } else {
+      // Fill: full container width (the side strip), tile vertically,
+      // sample from cicn's edge column.
+      if (side === 'left') div.style.left = '0';
+      else div.style.right = '0';
+      div.style.top = pct(segCicnStart, cicnHeight);
+      div.style.width = '100%';
+      div.style.height = pct(segCicnHeight, cicnHeight);
+      div.style.backgroundPosition = `-${stripX}px -${segCicnStart}px`;
+      div.style.backgroundRepeat = 'repeat-y';
+      div.style.zIndex = '0';
+    }
+
+    container.appendChild(div);
+  }
+}
+
+/**
+ * Derive the cicn-Y coordinate where the "bottom strip" begins, used to
+ * sample the bottom edge's fill background. Heuristic: if any named part
+ * has its rect on the bottom row of the cicn (top within 3px of the
+ * bottom), use that top; otherwise default to `cicnHeight - 2`.
+ */
+function inferBottomStripStart(
+  windowType: WindowTypeEntry,
+  cicnHeight: number,
+): number {
+  let best: number | null = null;
+  for (const part of Object.values(windowType.parts ?? {})) {
+    const [, top, , bottom] = part.rect;
+    // Looking for thin horizontal strips near the cicn bottom.
+    if (bottom - top <= 3 && top >= cicnHeight - 5) {
+      if (best === null || top < best) best = top;
+    }
+  }
+  return best ?? Math.max(0, cicnHeight - 2);
 }
 
 /** Remove every segment div this composer added. */

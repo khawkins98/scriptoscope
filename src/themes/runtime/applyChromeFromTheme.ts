@@ -18,7 +18,14 @@ import type {
 } from '../schema/types.js';
 import { applyChromeElement, clearChromeElement } from './applyChromeElement.js';
 import { applyWindowParts, clearWindowParts, type WindowPartInfo } from './applyWindowParts.js';
-import { composeTopEdge, clearChromeSegments, findTitlePillBounds } from './composeWindowChrome.js';
+import {
+  composeTopEdge,
+  composeBottomEdge,
+  composeLeftEdge,
+  composeRightEdge,
+  clearChromeSegments,
+  findTitlePillBounds,
+} from './composeWindowChrome.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -116,11 +123,12 @@ export function applyChromeFromTheme(
     titlebar.style.backgroundImage = '';
     titlebar.style.backgroundSize = '';
     titlebar.style.imageRendering = '';
-    composeTopEdge(titlebar, windowType, {
+    const composeOpts = {
       cicnWidth: chromeEntry.width as number,
       cicnHeight: chromeEntry.height as number,
       cicnUrl,
-    });
+    };
+    composeTopEdge(titlebar, windowType, composeOpts);
     // Title-pill positioning (#64.2) — find the widest fill-segment run
     // in the recipe and expose its bounds as custom properties so the
     // title text can be constrained to that safe zone in CSS.
@@ -132,12 +140,21 @@ export function applyChromeFromTheme(
       titlebar.style.removeProperty('--aaron-title-pill-left');
       titlebar.style.removeProperty('--aaron-title-pill-right');
     }
+    // Side + bottom composition (#64.3) — compose each remaining edge if
+    // the windowType has a recipe for it AND the window has the
+    // [data-aaron-edge] container divs (AaronWindow adds them; bare
+    // consumers without the container divs simply skip the side
+    // rendering and fall back to the consumer's CSS borders).
+    composeEdgeIfPresent(windowEl, windowType, 'bottom', composeOpts);
+    composeEdgeIfPresent(windowEl, windowType, 'left', composeOpts);
+    composeEdgeIfPresent(windowEl, windowType, 'right', composeOpts);
   } else if (chromeEntry.slice) {
     // Path B.
     clearChromeSegments(titlebar);
     applyChromeElement(titlebar, chromeEntry, { theme });
     titlebar.style.removeProperty('--aaron-title-pill-left');
     titlebar.style.removeProperty('--aaron-title-pill-right');
+    clearAllEdges(windowEl);
   } else {
     // Path C.
     clearChromeSegments(titlebar);
@@ -146,6 +163,7 @@ export function applyChromeFromTheme(
     titlebar.style.backgroundSize = '100% 100%';
     titlebar.style.removeProperty('--aaron-title-pill-left');
     titlebar.style.removeProperty('--aaron-title-pill-right');
+    clearAllEdges(windowEl);
   }
 
   // Hit-target overlays for wnd# parts (close, zoom, windowshade, etc.) —
@@ -255,4 +273,37 @@ function findChromeElementByAsset(theme: Theme, assetUrl: string): ChromeElement
 function stripDimensions(entry: ChromeElementEntry): ChromeElementEntry {
   const { width: _w, height: _h, ...rest } = entry;
   return rest;
+}
+
+/**
+ * Find the `[data-aaron-edge="<side>"]` container under `windowEl` and
+ * compose that edge's chrome into it, if both the recipe and the container
+ * are present. Skips silently when either is missing so bare-DOM consumers
+ * (no edge containers) and theme bundles with partial recipes both degrade
+ * gracefully to whatever the consumer's CSS already provides.
+ */
+function composeEdgeIfPresent(
+  windowEl: HTMLElement,
+  windowType: WindowTypeEntry,
+  side: 'bottom' | 'left' | 'right',
+  options: { cicnWidth: number; cicnHeight: number; cicnUrl: string },
+): void {
+  const container = windowEl.querySelector<HTMLElement>(`[data-aaron-edge="${side}"]`);
+  if (!container) return;
+  const recipe = windowType.edges?.[side];
+  if (!recipe || recipe.length === 0) {
+    clearChromeSegments(container);
+    return;
+  }
+  if (side === 'bottom') composeBottomEdge(container, windowType, options);
+  else if (side === 'left') composeLeftEdge(container, windowType, options);
+  else composeRightEdge(container, windowType, options);
+}
+
+/** Clear segment children from all three side edges (Path B / Path C). */
+function clearAllEdges(windowEl: HTMLElement): void {
+  for (const side of ['bottom', 'left', 'right'] as const) {
+    const container = windowEl.querySelector<HTMLElement>(`[data-aaron-edge="${side}"]`);
+    if (container) clearChromeSegments(container);
+  }
 }

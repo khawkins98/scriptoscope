@@ -44,6 +44,9 @@ export {
 } from './bundledDefault.js';
 export {
   composeTopEdge,
+  composeBottomEdge,
+  composeLeftEdge,
+  composeRightEdge,
   clearChromeSegments,
   recipeToSegments,
   findTitlePillBounds,
