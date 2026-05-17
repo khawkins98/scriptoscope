@@ -67,6 +67,32 @@ describe('applyChromeFromTheme', () => {
       expect(titlebar.style.borderImageSource).toBe('url("cicns/active.png")');
       expect(titlebar.style.borderImageWidth).toBe('4px');
     });
+
+    it('stretches the titlebar bg via background-size 100% when chrome has no cinf', () => {
+      // Real window-type chrome cicns don't get cinf paired by the extractor.
+      // Without this fix, the chrome bitmap renders at native size in the
+      // top-left of the titlebar (the "small tab" bug from the gh-pages
+      // visual cut-through, 2026-05-17).
+      const noSliceTheme: Theme = {
+        version: THEME_SCHEMA_VERSION,
+        windowTypes: {
+          'document-window': {
+            chrome: { active: 'cicns/window.png' },
+          },
+        },
+        chromeElements: {
+          'active-window': {
+            asset: 'cicns/window.png',
+            width: 74, height: 25, // native cicn dims — without the fix,
+            // these would force background-size to 74px 25px.
+          },
+        },
+      };
+      applyChromeFromTheme(windowEl, noSliceTheme);
+      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
+      expect(titlebar.style.backgroundSize).toBe('100% 100%');
+      expect(titlebar.style.backgroundImage).toBe('url("cicns/window.png")');
+    });
   });
 
   describe('state derivation from DOM data-state', () => {
