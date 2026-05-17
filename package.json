@@ -31,13 +31,19 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/aaron-ui.js"
+    },
+    "./no-default": {
+      "types": "./dist/types/no-default.d.ts",
+      "import": "./dist/no-default.js"
     }
   },
   "files": [
     "dist",
     "src",
+    "themes/masswerk-7-le",
     "README.md",
-    "PRD.md"
+    "PRD.md",
+    "LEARNINGS.md"
   ],
   "scripts": {
     "dev": "vite",

@@ -72,15 +72,20 @@
 
     <h2>Theme runtime fixtures (Phase 4, in flight)</h2>
     <div class="grid">
+      <a href="auto-default-fixture.html" class="card">
+        <span class="card__tag">fixture · auto-load</span>
+        <h3>auto-default-fixture.html ★</h3>
+        <p>The "just <code>import 'aaron-ui'</code>" demo. No <code>loadTheme()</code> call, no <code>data-aaron-theme</code> attribute — the bundled mass:werk 7 Le scheme auto-loads on <code>DOMContentLoaded</code> and themes the window.</p>
+      </a>
       <a href="theme-switcher-fixture.html" class="card">
         <span class="card__tag">fixture · runtime</span>
-        <h3>theme-switcher-fixture.html ★</h3>
-        <p>The visible runtime demo. Mounts a real <code>AaronWindow</code>, attaches it via <code>attachThemeToWindow</code>, swaps between bundled 7 Le and ErgoBox 2. Chrome <em>visibly</em> changes — the runtime trio (cinf 9-slice + ppat overlay + wnd# part overlays) all composed together.</p>
+        <h3>theme-switcher-fixture.html</h3>
+        <p>Mounts a real <code>AaronWindow</code>, attaches it via <code>attachThemeToWindow</code>, swaps between bundled 7 Le and ErgoBox 2. Chrome <em>visibly</em> changes — the runtime trio (cinf 9-slice + ppat overlay + wnd# part overlays) all composed.</p>
       </a>
       <a href="theme-loader-fixture.html" class="card">
         <span class="card__tag">fixture · loadTheme</span>
         <h3>theme-loader-fixture.html</h3>
-        <p>Lower-level: just <code>loadTheme()</code> and palette → <code>:root</code> assertions. Backs the Phase 4.4 e2e suite. The switcher fixture above is the human-facing visible version.</p>
+        <p>Lower-level: just <code>loadTheme()</code> and palette → <code>:root</code> assertions. Backs the Phase 4.4 e2e suite.</p>
       </a>
     </div>
 
