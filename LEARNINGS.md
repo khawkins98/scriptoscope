@@ -249,4 +249,20 @@ Surfaced while iterating `demo/themes-raster.html` with actual extracted cicn ra
 
 ---
 
+### 2026-05-17 — Phase 1 shipped: the implementation actually works the way the planning said it would
+
+Closing out Phase 1 of the PRD's phased delivery. All 10 issues in the [Phase 1 — WM core](https://github.com/khawkins98/aaron-ui/milestone/1) milestone landed in 10 PRs over a single working session: toolchain (TS strict + Vite library + Vitest + Playwright + CI), AaronWindow class with full lifecycle + options + WinBox option-key parity, drag with Pointer Events, 8-direction resize with proper min-size clamping, WindowManager singleton for z-order + focus + raise-on-click, programmatic close/minimize/restore/maximize, declarative `[data-aaron-window]` scanner with MutationObserver, ARIA + keyboard + focus-trap on modals + axe-core in CI, and a behavioral test suite. Final shape: 140 unit + 30 e2e tests, all green; ~7 KB gzipped bundle (well under PRD's 30 KB target); live demo at <https://khawkins98.github.io/aaron-ui/>.
+
+**What the planning got right:** the PRD's Phase 1 description was sufficient to drive 10 issues that decomposed cleanly into one-PR-each work. The "imperative API is the foundation; declarative scanner is a thin layer on top" architectural call from §North Star principle #2 held up — the scanner is genuinely thin and shares the same code path. The WinBox option-key parity (issue #3) costs almost nothing and unblocks the cv-mac swap (Success Criterion #1).
+
+**What the planning didn't anticipate** (so worth noting):
+
+- **The WindowManager singleton.** The PRD doesn't mention one, but z-order + focus + raise-on-click naturally cluster into a shared registry. Introduced in issue #6 as a module-level singleton with explicit `reset()` for tests. If multi-WM scenarios surface later (embedded apps?) we factor out a `createWindowManager()` constructor; for now one shared instance suffices.
+- **The data-aaron-promoted sentinel.** The scanner needs to skip already-rendered windows or it infinite-loops (the rendered window also has `data-aaron-window`). The PRD didn't surface this; obvious in retrospect.
+- **jsdom's PointerEvent gap.** jsdom doesn't constructor-ify `PointerEvent`. The test helper synthesises one off `MouseEvent` + `Object.defineProperty(pointerId)`. Documented in the test file.
+
+**Application for Phase 2-6:** the per-phase tracker-issue pattern works — 10 right-sized issues per phase, opened in advance with acceptance criteria, then worked sequentially with one PR per issue. Each PR ~15-30 minutes to write + ~45 seconds CI. Use this cadence for Phase 2 onwards. Trackers for Phase 2-6 + cross-cutting concerns are already open at issues [#21-31](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic).
+
+---
+
 *New learnings get appended below this line as the project ships.*

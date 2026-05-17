@@ -2,11 +2,11 @@
 
 Thanks for your interest in contributing to Aaron UI.
 
-> **Status note:** the repo is pre-implementation. The instructions below describe the *intended* contribution flow once Phase 1 lands. While we're still bootstrapping, the "first contribution" recipe is to read [`PRD.md`](./PRD.md), open an issue with proposed scope, and PR against `main`. The rest of this document is the convention we're aiming for.
+> **Status:** Phase 1 (WM core) shipped. The contribution flow below is the real flow now — `npm install`, run tests, open a PR. Phase 2 work (default Platinum chrome) is in flight; see [milestones](https://github.com/khawkins98/aaron-ui/milestones) for what's open.
 
 ## Your first code contribution
 
-Aaron UI is plain TypeScript with no framework dependency. Once Phase 1 ships:
+Aaron UI is plain TypeScript with no framework dependency.
 
 1. **Fork and clone.**
    ```sh
@@ -21,10 +21,17 @@ Aaron UI is plain TypeScript with no framework dependency. Once Phase 1 ships:
    npm run dev        # http://localhost:5173 — opens the demo page
    ```
 
-3. **Make a change.** Safe first targets once we're up and running:
-   - Tweak a CSS custom property in the default Platinum theme.
-   - Add a missing keyboard shortcut for a chrome control.
+3. **Run the test suite.**
+   ```sh
+   npm run typecheck  # tsc --noEmit
+   npm run test:unit  # Vitest with jsdom (140+ tests)
+   npm run test:e2e   # Playwright against the dev server (30+ tests)
+   ```
+
+4. **Make a change.** Pick from the open milestones or browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) for context. Safe first-time targets:
+   - Implement a single ticket within an open milestone.
    - Improve a JSDoc comment that confused you the first time you read it.
+   - Add a missing test case to an existing spec file.
 
 4. **Push to a feature branch on your fork.**
    ```sh

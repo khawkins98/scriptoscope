@@ -201,14 +201,25 @@ Themes are **switchable at runtime**. The headline marketing artifact is a demo 
 
 ## Phased delivery
 
-Sketch, not commitment. Maintainer may re-split.
+Sketch, not commitment. Maintainer may re-split. Each phase has a GitHub milestone + a tracker epic issue with full acceptance criteria.
 
-- **Phase 1 — WM core.** Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus, mount/unmount lifecycle. **Two integration surfaces:** the imperative TS class API (foundation), and the declarative `data-aaron-window` scanner that calls into it on `DOMContentLoaded` + `MutationObserver`. **API-compatible with WinBox** at the imperative call-site level so cv-mac can swap with minimal diff.
-- **Phase 2 — Platinum chrome (default theme).** Pinstripe title bar, paper title pill, ink-bordered close box (left), zoom + windowshade controls (right), integrated grow box, optional status bar, diagonal-stripe corner. Replace WinBox in cv-mac.
-- **Phase 3 — Core controls.** Buttons (push, default with thick black outline, popup-menu with arrow box), tabs (merged with content panel), group boxes/frames, fields, popup menus, checkboxes, radios.
-- **Phase 4 — Theme engine.** Theme bundle format, loader, runtime switching, sound triggering, desktop background mounting. The first non-Platinum theme — a curated Kaleidoscope scheme port (mass:werk's "7 Le" is the current Tier-1 candidate per `docs/scheme-deconstruction/`) — lands here as the proof.
-- **Phase 5 — Dialogs & sheets.** Standard alert (note / caution / stop), modal dialog, sheet animations.
-- **Phase 6 — Polish.** Animations (zoom-to-icon close, windowshade roll-up), advanced theming hooks, demo site showcasing the theme library.
+- ✅ **Phase 1 — WM core.** *Shipped.* Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus/minimize/maximize, mount/unmount lifecycle, declarative `data-aaron-window` scanner, ARIA + keyboard + focus-trap on modals. Live at https://khawkins98.github.io/aaron-ui/. [Milestone](https://github.com/khawkins98/aaron-ui/milestone/1) · 10 issues, all closed · 140 unit + 30 e2e tests · ~7 KB gzipped.
+- **Phase 2 — Platinum chrome (default theme).** Pinstripe title bar, paper title pill, ink-bordered close box (left), zoom + windowshade controls (right), integrated grow box, optional status bar, diagonal-stripe corner. Replace WinBox in cv-mac. [Tracker issue #21](https://github.com/khawkins98/aaron-ui/issues/21).
+- **Phase 3 — Core controls.** Buttons (push, default with thick black outline, popup-menu with arrow box), tabs (merged with content panel), group boxes/frames, fields, popup menus, checkboxes, radios, sliders, progress bars, scrollbars. [Tracker issue #22](https://github.com/khawkins98/aaron-ui/issues/22).
+- **Phase 4 — Theme engine.** Theme bundle format, loader, runtime switching, ppat composition, sound triggering, desktop background mounting. The first non-Platinum theme — a curated Kaleidoscope scheme port (mass:werk's "7 Le" is the current Tier-1 candidate per `docs/scheme-deconstruction/`) — lands here as the proof. See also [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md) for the canonical architecture. [Tracker issue #23](https://github.com/khawkins98/aaron-ui/issues/23).
+- **Phase 5 — Dialogs & sheets.** Standard alert (note / caution / stop), modal dialog, sheet animations. [Tracker issue #24](https://github.com/khawkins98/aaron-ui/issues/24).
+- **Phase 6 — Polish.** Animations (zoom-to-icon close, windowshade roll-up), advanced theming hooks, demo site showcasing the theme library. [Tracker issue #25](https://github.com/khawkins98/aaron-ui/issues/25).
+
+### Cross-cutting tracker issues
+
+Items that don't map cleanly to a single phase:
+
+- [License decision](https://github.com/khawkins98/aaron-ui/issues/26) (PRD §License + §Open questions Q2)
+- [cv-mac integration / WinBox swap](https://github.com/khawkins98/aaron-ui/issues/27) (Success Criterion #1)
+- [npm publish + distribution](https://github.com/khawkins98/aaron-ui/issues/28)
+- [Web Components alongside class API decision](https://github.com/khawkins98/aaron-ui/issues/29) (Open question Q4)
+- [scheme-extractor browser version](https://github.com/khawkins98/aaron-ui/issues/30)
+- ✅ [GitHub Pages deploy](https://github.com/khawkins98/aaron-ui/issues/31) — *Shipped.*
 
 ## Non-goals (worth restating)
 
@@ -220,7 +231,7 @@ Sketch, not commitment. Maintainer may re-split.
 
 ## Architecture sketches
 
-These are suggestions, not decisions. Phase 1 will pin them down.
+These were suggestions when written; Phase 1 has now shipped and pinned them down. See [`src/window-manager/`](./src/window-manager/) for the actual implementation choices.
 
 - **Two integration surfaces, declarative-first per the North Star:**
   - **Primary:** declarative scanner — on `DOMContentLoaded` and via `MutationObserver`, the library scans for `[data-aaron-window]` / `[data-aaron-button]` / etc. and promotes them into Aaron UI controls. CSS class selectors (`.aaron-window`, …) accepted as a fallback.
@@ -249,14 +260,14 @@ These are suggestions, not decisions. Phase 1 will pin them down.
 
 The right answer depends on how much we want Aaron UI used by closed-source projects. There is no defaulting to "match the upstream family" here, because this isn't a fork or extension of cv-mac — it's a separate sibling that may have a different lifecycle and consumer base.
 
-**Decision deferred until after Phase 1 ships** and we have a sense of who's actually picking it up.
+**Decision still deferred** but now actionable — Phase 1 has shipped. Tracked at [issue #26](https://github.com/khawkins98/aaron-ui/issues/26), which carries a non-binding recommendation (MIT) for discussion before Phase 4 (theme engine) ships.
 
 ## Open questions for v1.0
 
-1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1-4 (WM + Platinum theme + controls + theme engine) as the v1.0 target?
-2. **License** — see §License above. Resolve after Phase 1 ships.
+1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1-4 (WM + Platinum theme + controls + theme engine) as the v1.0 target? *(Phase 1 has now shipped; npm-publish tracker [#28](https://github.com/khawkins98/aaron-ui/issues/28) will revisit.)*
+2. **License** — see §License above. Tracker: [#26](https://github.com/khawkins98/aaron-ui/issues/26).
 3. ~~**Legal pass on theme reproductions.**~~ **Resolved 2026-05-16:** Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are out of scope entirely — license friction isn't worth it. Aaron UI focuses on Kaleidoscope-corpus schemes, prioritizing those with explicit freeware-with-redistribution readmes. See LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus."
-4. **Web Components alongside the class API** — yes from v1.0, or defer?
+4. **Web Components alongside the class API** — yes from v1.0, or defer? Tracker: [#29](https://github.com/khawkins98/aaron-ui/issues/29) (non-binding recommendation: defer).
 
 ## Naming (decision recorded)
 

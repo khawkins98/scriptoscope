@@ -1,6 +1,6 @@
 # Research spike — period theme deconstruction
 
-**Status:** active spike, pre-implementation. Not yet pushed anywhere public.
+**Status: closed 2026-05-17.** Spike successful. The two original Tier 1/2 schemes (`mass:werk 7 Le`, `mass:werk Dark ErgoBox 2`) were deconstructed and the findings codified as [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — the canonical architecture artifact. The [scheme-extractor tool](../tools/scheme-extractor/) now decodes `cicn`, `ppat`, `cinf`, and `wnd#` from any Kaleidoscope `.ksc` and emits a draft `theme.json` per the spec's §7 schema. Phase 4 (theme engine) will consume this format directly. Document retained as the methodology record.
 **Date opened:** 2026-05-16
 **Why we're doing this:** the PRD assumes we'll deconstruct at least one period theme to inform Aaron UI's web bundle format design. The PRD doesn't say *which* theme, *where to get it*, or *how to extract it*. This document closes those gaps.
 
