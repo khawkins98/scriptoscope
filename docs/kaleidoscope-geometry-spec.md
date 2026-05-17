@@ -2,6 +2,8 @@
 
 **Purpose:** the canonical Aaron UI reference for how Kaleidoscope structures its scheme files, what each resource encodes, the runtime composition model, and the mapping table from Kaleidoscope concepts to Aaron UI's HTML/CSS primitives. This document drives both the immediate raster-demo work and the Phase 4 bundle format design.
 
+**Status note (2026-05-17):** elevated from "informing Phase 4" to the central architectural contract following the 2026-05-17 Kaleidoscope-runtime pivot (LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author"). With Phase 2 dropped and Aaron UI explicitly *not* hand-authoring chrome, this spec defines what the runtime renders against. Phase 4 = ship the runtime that consumes this format.
+
 **Source authority:** Kaleidoscope's own ResEdit templates (`TMPL` resources) embedded in every scheme file. These are the format specs Kaleidoscope itself reads and writes against, and we have full extracts of three of them: `TMPL 128` (Colr), `TMPL 129` (cinf), `TMPL 1240` (wnd#). The kaleidoscope.net SDK pages are gone — the domain is parked — but the TMPLs are sufficient because they're the runtime contract, not derivative documentation.
 
 **Empirical corpus:** [`docs/scheme-deconstruction/masswerk-7-le.md`](./scheme-deconstruction/masswerk-7-le.md) and [`masswerk-dark-ergobox2.md`](./scheme-deconstruction/masswerk-dark-ergobox2.md). Decoded `cinf`/`wnd#` values quoted below are from real bytes in those schemes.

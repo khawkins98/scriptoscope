@@ -123,18 +123,20 @@ feat(api)!: rename AaronWindow constructor option `theme` to `themeId`
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 
-## Adding a theme
+## Adding a theme (porting a Kaleidoscope scheme)
 
-Once the theme engine (Phase 4) lands, adding a theme will be the most accessible contribution path. The intended flow:
+Aaron UI is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
-1. Create a directory under `themes/<theme-name>/` following the bundle layout in PRD §Theme system.
-2. Author chrome.css + controls.css against the documented CSS custom property catalog.
-3. Add sounds, desktop, fonts, icons as needed (`themes/<name>/sounds/`, etc.).
-4. Add a `theme.json` with metadata, including original-author attribution if the theme is adapted from a period source.
-5. Add a smoke test that loads the theme and asserts the WM still drags + resizes correctly under it.
-6. PR with a screenshot of the theme rendered in the demo page.
+Once the theme engine (Phase 4, [tracker #23](https://github.com/khawkins98/aaron-ui/issues/23)) lands, the intended flow:
 
-For themes adapted from period sources (Kaleidoscope schemes, Apple's official Mac OS 8.5 themes, etc.), include provenance in `theme.json` — original author/year/source URL — and confirm the source's license permits redistribution. When in doubt, ship an "inspired by" reinterpretation rather than a literal artwork reproduction.
+1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. Mass:werk's schemes are explicit ("freeware, redistribute freely"). When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
+2. **Run the scheme through the extractor.** `tools/scheme-extractor` decodes `cicn` / `ppat` / `cinf` / `wnd#` / `Colr` resources from the `.ksc` and emits a draft `theme.json` per [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md) §7.
+3. **Stage the bundle under `themes/<scheme-slug>/`** — the extracted PNGs plus the generated `theme.json`.
+4. **Fill in provenance** in `theme.json`: original author, year, source URL, the readme-stated license verbatim.
+5. **Smoke test.** Load the theme in the demo, confirm the WM still drags + resizes, confirm windows render with the new chrome.
+6. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
+
+Hand-authoring CSS or SVG chrome as a "first-party Aaron UI theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
 
 ## Reporting bugs
 
@@ -148,6 +150,8 @@ Open an issue with:
 
 For accessibility issues, please flag explicitly — those jump the queue.
 
-## Reporting HIG inaccuracies
+## Reporting scheme-fidelity issues
 
-If a Platinum chrome detail is wrong vs. the [Mac OS 8 HIG](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html), open an issue citing the specific HIG section and (if possible) a side-by-side screenshot of Aaron UI vs. a period-correct reference (a Mac OS 8 screenshot from Macintosh Garden / archive.org is ideal). HIG fidelity for the default theme is a project-level commitment, not a nice-to-have.
+If Aaron UI is rendering a loaded Kaleidoscope scheme *differently from how Kaleidoscope itself renders that scheme*, that's a runtime bug — open an issue with a side-by-side screenshot of Aaron UI's render vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or a period screenshot if the scheme shipped one). Scheme fidelity is the project's central commitment.
+
+Issues of the form "this scheme doesn't look like the Mac OS 8 HIG" are a separate category — they're authorial choices of the *scheme*, not bugs in Aaron UI. If you want HIG-faithful chrome, load a HIG-faithful scheme (mass:werk's "7 Le" is the bundled default for exactly this reason).
