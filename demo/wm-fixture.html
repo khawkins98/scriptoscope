@@ -30,14 +30,28 @@
     import { AaronWindow, windowManager } from '../src/index.ts';
     window.AaronWindow = AaronWindow;
     window.windowManager = windowManager;
-    // Three windows for z-order / focus tests
-    const a = new AaronWindow({ title: 'Window A', x: 100, y: 100, width: 320, height: 200 });
+
+    // Event recorder so tests can verify callback firing order/timing
+    // without coupling to internal class state.
+    window.events = [];
+    const record = (type, name) => () => window.events.push({ type, window: name });
+
+    const a = new AaronWindow({
+      title: 'Window A', x: 100, y: 100, width: 320, height: 200,
+      oncreate: record('create', 'a'),
+      onclose:  record('close',  'a'),
+      onfocus:  record('focus',  'a'),
+      onblur:   record('blur',   'a'),
+      onmove:   (x, y) => window.events.push({ type: 'move', window: 'a', x, y }),
+      onresize: (w, h) => window.events.push({ type: 'resize', window: 'a', w, h }),
+    });
     const b = new AaronWindow({ title: 'Window B', x: 200, y: 150, width: 320, height: 200 });
     const c = new AaronWindow({ title: 'Window C', x: 300, y: 200, width: 320, height: 200 });
     a.mount(); b.mount(); c.mount();
     window.windows = { a, b, c };
-    // Back-compat for older tests that expect window.testWindow
     window.testWindow = a;
+    // Test helper: clear the event log between assertions
+    window.clearEvents = () => { window.events = []; };
   </script>
 </body>
 </html>
