@@ -155,13 +155,15 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 Aaron UI is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
-Once the theme engine (Phase 4, [tracker #23](https://github.com/khawkins98/aaron-ui/issues/23)) lands, the intended flow:
+Phase 4 work is in progress under [tracker #23](https://github.com/khawkins98/aaron-ui/issues/23). The porting flow as currently implemented:
 
 1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. Mass:werk's schemes are explicit ("freeware, redistribute freely"). When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
-2. **Run the scheme through the extractor.** `tools/scheme-extractor` decodes `cicn` / `ppat` / `cinf` / `wnd#` / `Colr` resources from the `.ksc` and emits a draft `theme.json` per [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md) §7.
-3. **Stage the bundle under `themes/<scheme-slug>/`** — the extracted PNGs plus the generated `theme.json`.
-4. **Fill in provenance** in `theme.json`: original author, year, source URL, the readme-stated license verbatim.
-5. **Smoke test.** Load the theme in the demo, confirm the WM still drags + resizes, confirm windows render with the new chrome.
+2. **Run the scheme through the extractor.** `tools/scheme-extractor/bin/extract.js` decodes `cicn` / `ppat` / `cinf` / `wnd#` resources from the `.ksc` and emits PNG assets plus an `extraction-manifest.json`. See [`tools/scheme-extractor/README.md`](./tools/scheme-extractor/README.md).
+3. **Create `themes/<scheme-slug>/` with two hand-authored files:**
+   - **`meta.json`** — bundle metadata the binary scheme doesn't carry: `name`, `author`, `origin` (with the readme-stated license verbatim). See [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md) for the schema.
+   - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/masswerk-7-le/PROVENANCE.md` as the canonical example.
+4. **Materialize the canonical bundle.** Run `node scripts/build-theme-bundles.mjs <slug>` — the script copies PNGs into `themes/<slug>/cicns/` and `ppats/`, merges your `meta.json`, runs the extractor's `buildThemeJson`, validates against the schema, and writes `theme.json`. Validation failures abort the build.
+5. **Smoke test.** Load the theme in the demo (once #44 lands), confirm the WM still drags + resizes, confirm windows render with the new chrome.
 6. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
 
 Hand-authoring CSS or SVG chrome as a "first-party Aaron UI theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.

@@ -1,0 +1,16 @@
+{
+  "name": "mass:werk Dark ErgoBox 2",
+  "author": {
+    "name": "Norbert Landsteiner",
+    "email": "info@masswerk.at",
+    "url": "https://www.masswerk.at",
+    "year": 2011
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "Freeware.",
+    "originalReadme": "Dark ErgoBox 2 - Read Me",
+    "sourceUrl": "https://www.masswerk.at/schemes.php"
+  }
+}

@@ -1,0 +1,7 @@
+# Treat PNG bundle assets as binary so git doesn't try to LF-normalize them.
+# The canonical theme bundles under themes/<slug>/cicns/ and ppats/ are
+# pixel-faithful chrome that must round-trip byte-for-byte.
+*.png binary
+
+# JSON theme bundle output: keep LF only, no auto-CRLF on Windows checkouts.
+themes/**/*.json text eol=lf
