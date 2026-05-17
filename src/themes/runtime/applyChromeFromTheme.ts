@@ -92,7 +92,20 @@ export function applyChromeFromTheme(
     asset: cicnUrl,
   };
 
-  applyChromeElement(titlebar, chromeEntry, { theme });
+  // Window-type chrome cicns rarely have cinf paired (cinf is per-control;
+  // window chrome geometry lives in wnd# side recipes which we don't yet
+  // honour for border composition). For the no-slice case, omit width/height
+  // so applyChromeElement doesn't render at native cicn size (~74px) in
+  // the top-left of a much wider titlebar — then force background-size
+  // 100% 100% so the cicn stretches across the titlebar's full rendered
+  // width. Pixelated image-rendering keeps the stretch crisp-ish.
+  const titlebarEntry: ChromeElementEntry = chromeEntry.slice
+    ? chromeEntry
+    : stripDimensions(chromeEntry);
+  applyChromeElement(titlebar, titlebarEntry, { theme });
+  if (!chromeEntry.slice) {
+    titlebar.style.backgroundSize = '100% 100%';
+  }
 
   const partsAria = options.partsAria ?? 'hidden';
   let parts: WindowPartInfo[] = [];
@@ -181,4 +194,18 @@ function findChromeElementByAsset(theme: Theme, assetUrl: string): ChromeElement
     if (entry.asset === assetUrl) return entry;
   }
   return null;
+}
+
+/**
+ * Return a copy of `entry` with the `width` and `height` fields omitted.
+ * Used for window-type chrome where we want the cicn to stretch across the
+ * full titlebar rather than render at native pixel size.
+ *
+ * Hand-pluck the keys (rather than `{...entry, width: undefined}`) because
+ * the schema has `exactOptionalPropertyTypes: true` — assigning `undefined`
+ * to an optional field is a type error; only omission is permitted.
+ */
+function stripDimensions(entry: ChromeElementEntry): ChromeElementEntry {
+  const { width: _w, height: _h, ...rest } = entry;
+  return rest;
 }

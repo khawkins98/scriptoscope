@@ -715,4 +715,33 @@ Three design choices worth recording:
 
 ---
 
+### 2026-05-17 — Visible chrome bug: window-type cicns have no cinf, so applyChromeElement painted them at native size
+
+Visual cut-through from gh-pages after the Phase 4 close caught a real rendering bug: chrome titlebars rendered as small ~74×25 tabs in the top-left of each window instead of stretching to fill. Diagnosed via the canonical bundle:
+
+```
+Document window chrome states (theme.json):
+  active:  cicns/cicn-n14335-active-document-window.png  (74×25 native)
+  inactive: ...
+Matching chromeElements: slice=None for all four states
+```
+
+Root cause: the extractor pairs `cinf` only with **control-level** cicns (buttons, scrollbars, etc.). Window-type chrome cicns get a `chromeElements` entry with `width` + `height` but **no `slice`**. With no slice, `applyChromeElement` falls through to the static-bitmap branch, which respects `entry.width`/`height` as `background-size`. Combined with `background-repeat: no-repeat`, the cicn rendered at its native 74×25 in the top-left corner of titlebars that were 400+ pixels wide. Hence "small tab at top-left."
+
+Fix landed in `applyChromeFromTheme`: for chrome entries without `slice`, omit `width`/`height` before passing to `applyChromeElement`, then explicitly set `background-size: 100% 100%` after. The cicn stretches to fill the titlebar width; `image-rendering: pixelated` on the titlebar CSS keeps the stretch crisp-ish.
+
+**The deeper missing piece:** Kaleidoscope schemes carry per-side rendering recipes in `wnd#` (top/bottom/left/right edges as `(part, position)` lists describing which pixels to stamp where). Aaron UI's runtime doesn't honor those yet — we render the chrome cicn as a single stretched background, which works for the titlebar but doesn't give the scheme's actual side/bottom window borders. Tracked as a future polish ticket.
+
+**Application:** when the runtime renders a Kaleidoscope concept, ask "what does the scheme provide vs. what does Aaron UI need to synthesize?" The chromeElement→cinf pairing handles control-level chrome; window-type chrome needs `wnd#`-aware composition for full fidelity. The two paths shouldn't share assumptions about whether `slice` data is present.
+
+### 2026-05-17 — Run visual cut-throughs on gh-pages after every visible-tier ship
+
+Second time this session that visual feedback from the deployed demo caught a real bug invisible to CI. First time (#54): missing fixture + bundle assets in dist. This time: rendering bug that all unit + e2e tests passed but the user immediately spotted on the live page.
+
+**Pattern:** unit tests assert *that values are set*; e2e tests assert *that elements exist*. Neither asserts *that the rendered output looks right*. Visual regression tools (Percy, Chromatic, Playwright snapshots) can close part of the gap, but the human "does this look like a Mac OS window?" judgment is the real check.
+
+**Application:** for any phase that ends with visible UX, add a "visual cut-through" step to the close-out checklist: deploy to gh-pages, open the live URL, screenshot the result, compare against intent. The CONTRIBUTING.md "Periodic documentation cut-throughs" section should add a sister entry on visual cut-throughs (next time someone touches CONTRIBUTING). For now the discipline lives in this LEARNINGS entry.
+
+---
+
 *New learnings get appended below this line as the project ships.*
