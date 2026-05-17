@@ -33,6 +33,10 @@ export interface AaronWindowOptions {
   width?: number;
   /** Window height in pixels. Default 200. */
   height?: number;
+  /** Minimum width (px) when resizing. Default 120. */
+  minWidth?: number;
+  /** Minimum height (px) when resizing. Default 60. */
+  minHeight?: number;
   /**
    * HTML content for the body area. Inserted via innerHTML — consumers are
    * responsible for sanitising untrusted strings. WinBox compat.
@@ -91,6 +95,8 @@ interface NormalizedOptions {
   y: number;
   width: number;
   height: number;
+  minWidth: number;
+  minHeight: number;
   html: string;
   mount?: HTMLElement;
   background?: string;
@@ -103,6 +109,10 @@ interface NormalizedOptions {
   onmove: (this: AaronWindow, x: number, y: number) => void;
   onresize: (this: AaronWindow, width: number, height: number) => void;
 }
+
+/** 8 resize directions matching CSS cursor names. */
+export type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+const RESIZE_DIRECTIONS: ResizeDirection[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 
 const noop = (): void => undefined;
 
@@ -131,6 +141,18 @@ export class AaronWindow {
   /** Active drag state, or null when not currently dragging. */
   private dragState: { offX: number; offY: number; pointerId: number } | null = null;
 
+  /** Active resize state, or null when not currently resizing. */
+  private resizeState: {
+    direction: ResizeDirection;
+    startClientX: number;
+    startClientY: number;
+    startLeft: number;
+    startTop: number;
+    startWidth: number;
+    startHeight: number;
+    pointerId: number;
+  } | null = null;
+
   constructor(options: AaronWindowOptions = {}) {
     const normalised: NormalizedOptions = {
       title: options.title ?? '',
@@ -138,6 +160,8 @@ export class AaronWindow {
       y: options.y ?? 100,
       width: options.width ?? 320,
       height: options.height ?? 200,
+      minWidth: options.minWidth ?? 120,
+      minHeight: options.minHeight ?? 60,
       html: options.html ?? '',
       class: normalizeClass(options.class),
       oncreate: options.oncreate ?? noop,
@@ -185,6 +209,7 @@ export class AaronWindow {
     target.appendChild(this.el);
     this.mounted = true;
     this.attachDrag();
+    this.attachResize();
     this.options.oncreate.call(this);
     return this;
   }
@@ -196,11 +221,26 @@ export class AaronWindow {
   unmount(): this {
     if (!this.mounted || this.el === null) return this;
     this.detachDrag();
+    this.detachResize();
     this.el.remove();
     this.el = null;
     this.contentEl = null;
     this.titlebarEl = null;
     this.mounted = false;
+    return this;
+  }
+
+  /**
+   * Programmatically resize the window to (width, height). Clamped to
+   * min size and viewport. Fires `onresize` with the actual (post-clamp)
+   * dimensions.
+   */
+  resize(width: number, height: number): this {
+    if (this.el === null) return this;
+    const [nw, nh] = this.clampSize(width, height);
+    this.el.style.width = `${nw}px`;
+    this.el.style.height = `${nh}px`;
+    this.options.onresize.call(this, nw, nh);
     return this;
   }
 
@@ -256,9 +296,44 @@ export class AaronWindow {
     win.appendChild(titlebar);
     win.appendChild(content);
 
+    // Resize handles — 8 invisible zones positioned along edges + corners.
+    // Pointerdown handlers wired in attachResize(); CSS positioning is
+    // inline so the library doesn't ship a stylesheet (theme CSS owns
+    // visible styling; these zones are functional only).
+    for (const dir of RESIZE_DIRECTIONS) {
+      const handle = document.createElement('div');
+      handle.className = 'aaron-window__resize';
+      handle.setAttribute('data-handle', dir);
+      Object.assign(handle.style, this.resizeHandleStyle(dir));
+      win.appendChild(handle);
+    }
+
     this.titlebarEl = titlebar;
     this.contentEl = content;
     return win;
+  }
+
+  private resizeHandleStyle(dir: ResizeDirection): Partial<CSSStyleDeclaration> {
+    const base: Partial<CSSStyleDeclaration> = {
+      position: 'absolute',
+      background: 'transparent',
+      touchAction: 'none',
+    };
+    // Corners draw on top of edges (z-index) so click priority goes to
+    // them when overlapping. SE is bigger for the growbox click target.
+    const edgeThickness = '4px';
+    const cornerSize = '8px';
+    const seSize = '16px';
+    switch (dir) {
+      case 'n':  return { ...base, top: '0', left: cornerSize, right: cornerSize, height: edgeThickness, cursor: 'n-resize' };
+      case 's':  return { ...base, bottom: '0', left: cornerSize, right: seSize, height: edgeThickness, cursor: 's-resize' };
+      case 'e':  return { ...base, right: '0', top: cornerSize, bottom: seSize, width: edgeThickness, cursor: 'e-resize' };
+      case 'w':  return { ...base, left: '0', top: cornerSize, bottom: cornerSize, width: edgeThickness, cursor: 'w-resize' };
+      case 'ne': return { ...base, top: '0', right: '0', width: cornerSize, height: cornerSize, cursor: 'ne-resize', zIndex: '2' };
+      case 'nw': return { ...base, top: '0', left: '0', width: cornerSize, height: cornerSize, cursor: 'nw-resize', zIndex: '2' };
+      case 'se': return { ...base, bottom: '0', right: '0', width: seSize, height: seSize, cursor: 'se-resize', zIndex: '2' };
+      case 'sw': return { ...base, bottom: '0', left: '0', width: cornerSize, height: cornerSize, cursor: 'sw-resize', zIndex: '2' };
+    }
   }
 
   /* ─── drag (issue #4) ─────────────────────────────────────────────
@@ -363,6 +438,146 @@ export class AaronWindow {
     if (!(target instanceof Element)) return false;
     return target.closest('[data-action]') !== null
       || target.closest('button') !== null;
+  }
+
+  /* ─── resize (issue #5) ───────────────────────────────────────────
+     Eight invisible handles positioned along edges and corners. Same
+     Pointer Events pattern as drag — pointerdown on a handle, then
+     document-level pointermove/up. Math per direction encoded once. */
+
+  private attachResize(): void {
+    if (this.el === null) return;
+    const handles = this.el.querySelectorAll<HTMLElement>('.aaron-window__resize');
+    for (const handle of handles) {
+      handle.addEventListener('pointerdown', this.onResizePointerDown);
+    }
+  }
+
+  private detachResize(): void {
+    if (this.el !== null) {
+      const handles = this.el.querySelectorAll<HTMLElement>('.aaron-window__resize');
+      for (const handle of handles) {
+        handle.removeEventListener('pointerdown', this.onResizePointerDown);
+      }
+    }
+    document.removeEventListener('pointermove', this.onResizePointerMove);
+    document.removeEventListener('pointerup', this.onResizePointerUp);
+    document.removeEventListener('pointercancel', this.onResizePointerUp);
+    this.resizeState = null;
+  }
+
+  private readonly onResizePointerDown = (e: PointerEvent): void => {
+    if (e.button !== 0) return;
+    if (this.el === null) return;
+    const target = e.currentTarget as HTMLElement | null;
+    if (target === null) return;
+    const direction = target.getAttribute('data-handle') as ResizeDirection | null;
+    if (direction === null) return;
+
+    const rect = this.el.getBoundingClientRect();
+    this.resizeState = {
+      direction,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      startWidth: rect.width || this.options.width,
+      startHeight: rect.height || this.options.height,
+      pointerId: e.pointerId,
+    };
+    document.addEventListener('pointermove', this.onResizePointerMove);
+    document.addEventListener('pointerup', this.onResizePointerUp);
+    document.addEventListener('pointercancel', this.onResizePointerUp);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  private readonly onResizePointerMove = (e: PointerEvent): void => {
+    if (this.resizeState === null) return;
+    if (e.pointerId !== this.resizeState.pointerId) return;
+    if (this.el === null) return;
+    const r = this.resizeState;
+    const dx = e.clientX - r.startClientX;
+    const dy = e.clientY - r.startClientY;
+    let newLeft = r.startLeft;
+    let newTop = r.startTop;
+    let newWidth = r.startWidth;
+    let newHeight = r.startHeight;
+
+    if (r.direction.includes('w')) {
+      newLeft = r.startLeft + dx;
+      newWidth = r.startWidth - dx;
+    }
+    if (r.direction.includes('e')) {
+      newWidth = r.startWidth + dx;
+    }
+    if (r.direction.includes('n')) {
+      newTop = r.startTop + dy;
+      newHeight = r.startHeight - dy;
+    }
+    if (r.direction.includes('s')) {
+      newHeight = r.startHeight + dy;
+    }
+
+    // Enforce min size — if we'd go below min while dragging from a
+    // top/left edge, freeze position so the window doesn't slide.
+    if (newWidth < this.options.minWidth) {
+      if (r.direction.includes('w')) {
+        newLeft = r.startLeft + (r.startWidth - this.options.minWidth);
+      }
+      newWidth = this.options.minWidth;
+    }
+    if (newHeight < this.options.minHeight) {
+      if (r.direction.includes('n')) {
+        newTop = r.startTop + (r.startHeight - this.options.minHeight);
+      }
+      newHeight = this.options.minHeight;
+    }
+
+    // Viewport clamp — keep window within bounds.
+    if (newLeft < 0) {
+      newWidth += newLeft;
+      newLeft = 0;
+    }
+    if (newTop < 0) {
+      newHeight += newTop;
+      newTop = 0;
+    }
+    if (newLeft + newWidth > window.innerWidth) {
+      newWidth = window.innerWidth - newLeft;
+    }
+    if (newTop + newHeight > window.innerHeight) {
+      newHeight = window.innerHeight - newTop;
+    }
+
+    this.el.style.left = `${newLeft}px`;
+    this.el.style.top = `${newTop}px`;
+    this.el.style.width = `${newWidth}px`;
+    this.el.style.height = `${newHeight}px`;
+    this.options.onresize.call(this, newWidth, newHeight);
+  };
+
+  private readonly onResizePointerUp = (e: PointerEvent): void => {
+    if (this.resizeState === null) return;
+    if (e.pointerId !== this.resizeState.pointerId) return;
+    this.resizeState = null;
+    document.removeEventListener('pointermove', this.onResizePointerMove);
+    document.removeEventListener('pointerup', this.onResizePointerUp);
+    document.removeEventListener('pointercancel', this.onResizePointerUp);
+  };
+
+  /** Clamp programmatic resize to min size + viewport. */
+  private clampSize(width: number, height: number): [number, number] {
+    let w = Math.max(width, this.options.minWidth);
+    let h = Math.max(height, this.options.minHeight);
+    if (this.el !== null) {
+      const rect = this.el.getBoundingClientRect();
+      const left = rect.left || this.options.x;
+      const top = rect.top || this.options.y;
+      w = Math.min(w, window.innerWidth - left);
+      h = Math.min(h, window.innerHeight - top);
+    }
+    return [Math.max(this.options.minWidth, w), Math.max(this.options.minHeight, h)];
   }
 }
 

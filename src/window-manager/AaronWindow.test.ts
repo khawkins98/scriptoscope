@@ -459,6 +459,197 @@ describe('AaronWindow', () => {
     });
   });
 
+  describe('resize (issue #5)', () => {
+    function pointer(type: string, target: EventTarget, opts: Partial<MouseEventInit & { pointerId: number }> = {}): void {
+      const { pointerId = 1, ...mouseOpts } = opts;
+      const e = new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, ...mouseOpts });
+      Object.defineProperty(e, 'pointerId', { value: pointerId });
+      target.dispatchEvent(e);
+    }
+    function mockRect(el: HTMLElement, rect: { x: number; y: number; w: number; h: number }): void {
+      vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+        x: rect.x, y: rect.y, left: rect.x, top: rect.y,
+        width: rect.w, height: rect.h,
+        right: rect.x + rect.w, bottom: rect.y + rect.h,
+        toJSON: () => ({}),
+      });
+    }
+
+    it('creates 8 resize handles with correct cursors and data-handle attributes', () => {
+      const w = new AaronWindow({ title: 'Rz' });
+      w.mount();
+      const handles = w.element!.querySelectorAll('.aaron-window__resize');
+      expect(handles).toHaveLength(8);
+      const dirs = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+      for (const dir of dirs) {
+        const h = w.element!.querySelector(`[data-handle="${dir}"]`) as HTMLElement;
+        expect(h).not.toBeNull();
+        expect(h.style.cursor).toBe(`${dir}-resize`);
+      }
+    });
+
+    it('SE drag enlarges width and height', () => {
+      const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
+      w.mount();
+      mockRect(w.element!, { x: 100, y: 80, w: 300, h: 200 });
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 400, clientY: 280 });
+      pointer('pointermove', document, { clientX: 500, clientY: 350 });
+      expect(w.element!.style.width).toBe('400px');
+      expect(w.element!.style.height).toBe('270px');
+    });
+
+    it('NW drag adjusts left/top + width/height (inverse)', () => {
+      const w = new AaronWindow({ x: 200, y: 200, width: 400, height: 300 });
+      w.mount();
+      mockRect(w.element!, { x: 200, y: 200, w: 400, h: 300 });
+      const nw = w.element!.querySelector('[data-handle="nw"]') as HTMLElement;
+      pointer('pointerdown', nw, { clientX: 200, clientY: 200 });
+      // Drag NW 50px right + down → window shrinks 50px on each axis,
+      // and left/top move 50px right + down.
+      pointer('pointermove', document, { clientX: 250, clientY: 250 });
+      expect(w.element!.style.left).toBe('250px');
+      expect(w.element!.style.top).toBe('250px');
+      expect(w.element!.style.width).toBe('350px');
+      expect(w.element!.style.height).toBe('250px');
+    });
+
+    it('S drag changes only height (no width or position change)', () => {
+      const w = new AaronWindow({ x: 100, y: 100, width: 300, height: 200 });
+      w.mount();
+      mockRect(w.element!, { x: 100, y: 100, w: 300, h: 200 });
+      const s = w.element!.querySelector('[data-handle="s"]') as HTMLElement;
+      pointer('pointerdown', s, { clientX: 250, clientY: 300 });
+      pointer('pointermove', document, { clientX: 250, clientY: 350 });
+      expect(w.element!.style.height).toBe('250px');
+      expect(w.element!.style.width).toBe('300px');
+      expect(w.element!.style.left).toBe('100px');
+    });
+
+    it('W drag adjusts left + width', () => {
+      const w = new AaronWindow({ x: 200, y: 100, width: 400, height: 200 });
+      w.mount();
+      mockRect(w.element!, { x: 200, y: 100, w: 400, h: 200 });
+      const wHandle = w.element!.querySelector('[data-handle="w"]') as HTMLElement;
+      pointer('pointerdown', wHandle, { clientX: 200, clientY: 200 });
+      // Drag west handle 50px right → window shrinks 50px wide, left moves +50
+      pointer('pointermove', document, { clientX: 250, clientY: 200 });
+      expect(w.element!.style.left).toBe('250px');
+      expect(w.element!.style.width).toBe('350px');
+    });
+
+    it('enforces minWidth/minHeight from options', () => {
+      const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150, minWidth: 150, minHeight: 100 });
+      w.mount();
+      mockRect(w.element!, { x: 100, y: 100, w: 200, h: 150 });
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 300, clientY: 250 });
+      // Try to shrink way below min
+      pointer('pointermove', document, { clientX: 100, clientY: 100 });
+      expect(w.element!.style.width).toBe('150px');
+      expect(w.element!.style.height).toBe('100px');
+    });
+
+    it('enforces defaults minWidth=120 / minHeight=60', () => {
+      const w = new AaronWindow({ x: 100, y: 100, width: 300, height: 200 });
+      w.mount();
+      expect(w.options.minWidth).toBe(120);
+      expect(w.options.minHeight).toBe(60);
+    });
+
+    it('NW shrink stops left/top from sliding once min reached', () => {
+      const w = new AaronWindow({ x: 200, y: 200, width: 300, height: 200, minWidth: 120, minHeight: 60 });
+      w.mount();
+      mockRect(w.element!, { x: 200, y: 200, w: 300, h: 200 });
+      const nw = w.element!.querySelector('[data-handle="nw"]') as HTMLElement;
+      pointer('pointerdown', nw, { clientX: 200, clientY: 200 });
+      // Drag NW far enough to hit min on both axes.
+      pointer('pointermove', document, { clientX: 1000, clientY: 1000 });
+      // After hitting min, left should be at startLeft + (startWidth - minWidth)
+      // = 200 + (300 - 120) = 380; same arithmetic for top = 200 + 140 = 340.
+      expect(w.element!.style.width).toBe('120px');
+      expect(w.element!.style.height).toBe('60px');
+      expect(w.element!.style.left).toBe('380px');
+      expect(w.element!.style.top).toBe('340px');
+    });
+
+    it('fires onresize during resize with new dimensions', () => {
+      const onresize = vi.fn();
+      const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150, onresize });
+      w.mount();
+      mockRect(w.element!, { x: 100, y: 100, w: 200, h: 150 });
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 300, clientY: 250 });
+      pointer('pointermove', document, { clientX: 350, clientY: 280 });
+      expect(onresize).toHaveBeenCalledWith(250, 180);
+    });
+
+    it('pointerup ends resize; further move does nothing', () => {
+      const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150 });
+      w.mount();
+      mockRect(w.element!, { x: 100, y: 100, w: 200, h: 150 });
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 300, clientY: 250 });
+      pointer('pointermove', document, { clientX: 350, clientY: 280 });
+      pointer('pointerup', document);
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(w.element!.style.width).toBe('250px');
+      expect(w.element!.style.height).toBe('180px');
+    });
+
+    it('non-primary button does not start resize', () => {
+      const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150 });
+      w.mount();
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 300, clientY: 250, button: 2 });
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(w.element!.style.width).toBe('200px');
+    });
+
+    it('detaches resize listeners on unmount', () => {
+      const onresize = vi.fn();
+      const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150, onresize });
+      w.mount();
+      const se = w.element!.querySelector('[data-handle="se"]') as HTMLElement;
+      pointer('pointerdown', se, { clientX: 300, clientY: 250 });
+      w.unmount();
+      pointer('pointermove', document, { clientX: 500, clientY: 500 });
+      expect(onresize).not.toHaveBeenCalled();
+    });
+
+    describe('programmatic resize()', () => {
+      it('sets width/height and fires onresize', () => {
+        const onresize = vi.fn();
+        const w = new AaronWindow({ x: 100, y: 100, width: 200, height: 150, onresize });
+        w.mount();
+        mockRect(w.element!, { x: 100, y: 100, w: 200, h: 150 });
+        w.resize(300, 250);
+        expect(w.element!.style.width).toBe('300px');
+        expect(w.element!.style.height).toBe('250px');
+        expect(onresize).toHaveBeenCalledWith(300, 250);
+      });
+
+      it('clamps below min', () => {
+        const w = new AaronWindow({ width: 200, height: 150, minWidth: 100, minHeight: 80 });
+        w.mount();
+        w.resize(50, 50);
+        expect(w.element!.style.width).toBe('100px');
+        expect(w.element!.style.height).toBe('80px');
+      });
+
+      it('resize() is a no-op before mount', () => {
+        const w = new AaronWindow();
+        expect(() => w.resize(300, 200)).not.toThrow();
+      });
+
+      it('returns this for chaining', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.resize(300, 200)).toBe(w);
+      });
+    });
+  });
+
   describe('back-compat: cv-mac style call site', () => {
     it('constructs and mounts without errors', () => {
       // Representative of the actual cv-mac call pattern from PRD §Architecture.

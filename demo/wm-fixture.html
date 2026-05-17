@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WM Core Fixture</title>
+  <!--
+    Minimal harness for Playwright e2e tests against the AaronWindow
+    class itself (not the demo's inline JS). Loads via Vite dev server,
+    which compiles src/index.ts on the fly. When issue #10 lands the
+    proper WM-core test fixture, this can graduate to
+    tests/e2e/fixtures/wm-core.html and the playwright config gets
+    pointed at it explicitly.
+  -->
+  <style>
+    body { margin: 0; padding: 0; font: 14px sans-serif; background: #888; }
+    .aaron-window {
+      background: white;
+      border: 1px solid black;
+    }
+    .aaron-titlebar {
+      background: linear-gradient(to bottom, #eee, #ccc);
+      border-bottom: 1px solid #888;
+      padding: 4px 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <script type="module">
+    import { AaronWindow } from '../src/index.ts';
+    // Expose for tests
+    window.AaronWindow = AaronWindow;
+    // Mount a default window for resize/drag tests.
+    const w = new AaronWindow({
+      title: 'Test Window',
+      x: 100,
+      y: 100,
+      width: 320,
+      height: 200,
+    });
+    w.mount();
+    window.testWindow = w;
+  </script>
+</body>
+</html>
