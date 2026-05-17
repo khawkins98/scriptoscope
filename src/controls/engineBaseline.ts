@@ -89,6 +89,120 @@ const ENGINE_BASELINE_CSS = `
   box-shadow:
     0 0 0 2px var(--aaron-colr-default-button-outline-disabled, rgba(0, 0, 0, 0.3));
 }
+
+/* ─── Checkboxes + radios ──────────────────────────────────────────── */
+/* Same architectural path as push buttons (#71): canonical Kaleidoscope
+   bundles ship no checkbox/radio cicn artwork — these were system CDEF
+   controls. CSS-drawn, palette-tinted; native <input> handles activation
+   and a11y, visually hidden behind a chrome span.
+   Period note: classic Mac OS used an X mark in checkboxes (not the
+   checkmark popularised by NeXT/OS X). We render the X. */
+
+.aaron-checkbox,
+.aaron-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--aaron-colr-fg, #000);
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+}
+
+.aaron-checkbox > input,
+.aaron-radio > input {
+  /* Visually hidden but still focusable + a11y-discoverable.
+     Sized + positioned over the chrome span so click/touch hit-area
+     matches what the user sees. */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: default;
+}
+
+.aaron-checkbox__chrome,
+.aaron-radio__chrome {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: var(--aaron-colr-control-bg, #fff);
+  border: 1px solid var(--aaron-colr-window-frame, #5a5a5a);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.08);
+  flex: 0 0 auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.aaron-checkbox__chrome { border-radius: 2px; }
+.aaron-radio__chrome    { border-radius: 50%; }
+
+/* Checked checkbox: classic Mac X glyph (two crossed strokes) */
+.aaron-checkbox > input:checked ~ .aaron-checkbox__chrome::before,
+.aaron-checkbox > input:checked ~ .aaron-checkbox__chrome::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 1.5px;
+  background: var(--aaron-colr-fg, #000);
+}
+.aaron-checkbox > input:checked ~ .aaron-checkbox__chrome::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.aaron-checkbox > input:checked ~ .aaron-checkbox__chrome::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* Checked radio: filled inner dot */
+.aaron-radio > input:checked ~ .aaron-radio__chrome::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: var(--aaron-colr-fg, #000);
+  border-radius: 50%;
+}
+
+/* Focus ring on the chrome (since input itself is invisible) */
+.aaron-checkbox > input:focus-visible ~ .aaron-checkbox__chrome,
+.aaron-radio > input:focus-visible ~ .aaron-radio__chrome {
+  outline: 2px solid var(--aaron-colr-accent, #316ac5);
+  outline-offset: 1px;
+}
+
+/* Pressed state — native :active fires while mouse held down */
+.aaron-checkbox:active .aaron-checkbox__chrome,
+.aaron-radio:active .aaron-radio__chrome {
+  background: var(--aaron-colr-button-pressed-bottom, #c0c0c0);
+}
+
+/* Disabled */
+.aaron-checkbox[aria-disabled="true"],
+.aaron-radio[aria-disabled="true"] {
+  color: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+  cursor: not-allowed;
+}
+.aaron-checkbox[aria-disabled="true"] .aaron-checkbox__chrome,
+.aaron-radio[aria-disabled="true"] .aaron-radio__chrome {
+  border-color: var(--aaron-colr-window-frame-disabled, #aaa);
+  background: var(--aaron-colr-bg-disabled, #ececec);
+  box-shadow: none;
+}
+.aaron-checkbox[aria-disabled="true"] > input:checked ~ .aaron-checkbox__chrome::before,
+.aaron-checkbox[aria-disabled="true"] > input:checked ~ .aaron-checkbox__chrome::after,
+.aaron-radio[aria-disabled="true"] > input:checked ~ .aaron-radio__chrome::after {
+  background: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+}
 `;
 
 let sheet: CSSStyleSheet | null = null;

@@ -345,21 +345,27 @@ Brief specs for each control's DOM contract. Detailed implementation lives in ea
 
 **Rendering precedent:** push buttons + default buttons + group boxes (and likely tab strips for some schemes) go CSS-drawn. Checkbox, radio, popup, slider, scrollbar arrows go cicn-rendered (chromeElements present in canonical bundles). Each per-control ticket confirms the path by inspecting the canonical bundles first.
 
-### Checkbox (#3.3)
+### Checkbox (#3.3) — CSS-drawn (no cicn artwork)
 
 ```html
 <label class="aaron-control aaron-checkbox" data-state="normal">
-  <input type="checkbox" data-aaron-checkbox hidden> 
+  <input type="checkbox" data-aaron-checkbox>
   <span class="aaron-checkbox__chrome" aria-hidden="true"></span>
   <span class="aaron-checkbox__label">I agree</span>
 </label>
 ```
 
-**State map:** `normal-off-normal`, `normal-off-pressed`, `normal-off-disabled` (unchecked); `normal-on-*` (checked). Size variants (`small-*`, `large-*`) selected via `data-aaron-checkbox-size`.
+**Rendering path:** CSS-drawn via the engine-baseline stylesheet, palette-tinted. **No chromeElements mapping.** Native `<input>` handles activation, focus, keyboard (Space toggles), and form submission; it's visually hidden via `opacity: 0` (not `display: none` / `hidden`) so it stays focusable + in the tab order.
 
-### Radio button (#3.3)
+**Why CSS:** same finding as push buttons (#71) — neither canonical bundle (mass:werk 7 Le, Dark ErgoBox 2) ships checkbox cicn artwork. These were CDEF-rendered on Mac OS; Kaleidoscope themed surroundings, not form controls.
 
-Same shape as checkbox but with `<input type="radio">`. Within a `<fieldset>` or shared `name` attribute, clicking one radio unchecks the others.
+**Checked glyph:** classic Mac X (two crossed strokes via `::before` + `::after`), **not** the NeXT/OS X checkmark. Period-faithful for System 7 through OS 9.
+
+**State flips** via native `:checked` pseudoclass on the input + sibling combinator (`input:checked ~ .aaron-checkbox__chrome`). Disabled via `aria-disabled` mirror of the input's `disabled` attribute.
+
+### Radio button (#3.3) — CSS-drawn
+
+Same architecture as checkbox; `<input type="radio">` with `name="..."` attribute for group behaviour (native browser handles deselection of siblings). Visual chrome is a 12×12 circle; checked state renders a filled inner dot via `::after`.
 
 ### Text field (#3.4)
 
