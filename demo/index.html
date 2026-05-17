@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aaron UI — demos</title>
+  <style>
+    :root {
+      --bg: #2a2a2a;
+      --panel: #3a3a3a;
+      --text: #e8e8e8;
+      --muted: #999;
+      --accent: #5a7a96;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 960px; margin: 0 auto; padding: 60px 32px; }
+    header h1 { font-size: 32px; margin: 0 0 8px; font-weight: 600; }
+    header p { color: var(--muted); margin: 0 0 8px; line-height: 1.5; }
+    header a { color: var(--accent); }
+    h2 { font-size: 18px; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #444; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .card { display: block; padding: 20px; background: var(--panel); border: 1px solid #555; border-radius: 6px; text-decoration: none; color: inherit; transition: border-color 150ms; }
+    .card:hover { border-color: var(--accent); }
+    .card h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+    .card p { font-size: 13px; color: var(--muted); line-height: 1.45; margin: 0; }
+    .card__tag { display: inline-block; font-size: 10px; padding: 2px 7px; background: #555; border-radius: 3px; color: var(--text); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    footer { margin-top: 80px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Aaron UI</h1>
+      <p>A Mac OS-style window manager + theme engine for the web. Loads freeware-licensed Kaleidoscope-derived chrome themes; ships Platinum as the default.</p>
+      <p>Pre-implementation. Phase 1 (WM core) just shipped. <a href="https://github.com/khawkins98/aaron-ui">GitHub repo</a>.</p>
+    </header>
+
+    <h2>Showcase</h2>
+    <div class="grid">
+      <a href="themes-raster.html" class="card">
+        <span class="card__tag">demo · raster</span>
+        <h3>themes-raster.html</h3>
+        <p>Side-by-side comparison: masswerk reference thumbnail vs our live render. Two themes (7 Le, Dark ErgoBox 2), interactive controls, raster-fidelity chrome.</p>
+      </a>
+      <a href="themes.html" class="card">
+        <span class="card__tag">demo · synthetic</span>
+        <h3>themes.html</h3>
+        <p>Pre-raster theme switcher: pure CSS gradients + SVG primitives. The architecture proof-of-concept before raster extraction landed.</p>
+      </a>
+      <a href="platinum-static.html" class="card">
+        <span class="card__tag">demo · reference</span>
+        <h3>platinum-static.html</h3>
+        <p>Single-file, no-JS, no-build Platinum window mockup. Pure-CSS reference for Phase 2.</p>
+      </a>
+    </div>
+
+    <h2>WM Core (Phase 1) fixtures</h2>
+    <div class="grid">
+      <a href="wm-fixture.html" class="card">
+        <span class="card__tag">fixture · imperative</span>
+        <h3>wm-fixture.html</h3>
+        <p>Three AaronWindow instances mounted via the imperative API. Drag, resize, click-to-front, callback recording. Used by Playwright e2e tests.</p>
+      </a>
+      <a href="scanner-fixture.html" class="card">
+        <span class="card__tag">fixture · declarative</span>
+        <h3>scanner-fixture.html</h3>
+        <p>Pure-markup [data-aaron-window] divs that auto-promote into real windows on load. MutationObserver picks up dynamically-added ones. Phase 1 #8.</p>
+      </a>
+    </div>
+
+    <footer>
+      <p>Built with the Phase 1 WM core: 140 unit tests + 30 e2e tests, all green. ~7 KB gzipped.</p>
+      <p><a href="https://github.com/khawkins98/aaron-ui">github.com/khawkins98/aaron-ui</a> · <a href="https://github.com/khawkins98/aaron-ui/milestones">milestones</a> · <a href="https://github.com/khawkins98/aaron-ui/issues">issues</a></p>
+    </footer>
+  </div>
+</body>
+</html>

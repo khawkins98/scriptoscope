@@ -42,6 +42,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && tsc -p tsconfig.build.json",
+    "build:demo": "vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run test:unit && npm run test:e2e",
