@@ -53,6 +53,7 @@ export {
   clearChromeFromTheme,
   attachThemeToWindow,
   enableThemeSwitching,
+  applyControlChrome,
   type ThemeRegistry,
   type ThemeChangeListener,
   type ThemeChangeEventDetail,
@@ -63,6 +64,10 @@ export {
   type ApplyChromeFromThemeResult,
   type AttachThemeToWindowOptions,
   type EnableThemeSwitchingOptions,
+  type ApplyControlChromeOptions,
+  type ControlState,
+  type ControlCheckedState,
+  type StateChromeMap,
 } from './themes/runtime/index.js';
 
 // Bundled-default helpers (Phase 4.5 / issue #39). The main entry calls

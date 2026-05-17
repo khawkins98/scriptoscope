@@ -48,3 +48,14 @@ export {
   recipeToSegments,
   type ComposeWindowChromeOptions,
 } from './composeWindowChrome.js';
+// Phase 3.1 — shared control infrastructure (#70). Per-control tickets
+// (#71 onwards) call this; consumers can use it directly for custom
+// controls outside the standard set.
+export {
+  applyControlChrome,
+  type ApplyControlChromeOptions,
+  type ControlState,
+  type ControlCheckedState,
+  type StateChromeMap,
+  type TeardownFn,
+} from './applyControlChrome.js';
