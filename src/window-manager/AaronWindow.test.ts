@@ -650,6 +650,179 @@ describe('AaronWindow', () => {
     });
   });
 
+  describe('programmatic API (issue #7)', () => {
+    describe('close()', () => {
+      it('fires onclose then unmounts', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ onclose });
+        w.mount();
+        const el = w.element;
+        w.close();
+        expect(onclose).toHaveBeenCalledTimes(1);
+        expect(w.isMounted).toBe(false);
+        expect(document.body.contains(el)).toBe(false);
+      });
+
+      it('onclose has `this` bound to the AaronWindow', () => {
+        let captured: unknown = null;
+        const w = new AaronWindow({
+          onclose(this: AaronWindow) { captured = this; },
+        });
+        w.mount();
+        w.close();
+        expect(captured).toBe(w);
+      });
+
+      it('is idempotent — calling on unmounted is a no-op', () => {
+        const onclose = vi.fn();
+        const w = new AaronWindow({ onclose });
+        w.mount();
+        w.close();
+        w.close();
+        expect(onclose).toHaveBeenCalledTimes(1);
+      });
+
+      it('returns this for chaining', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.close()).toBe(w);
+      });
+    });
+
+    describe('minimize() / restore()', () => {
+      it('minimize() sets data-state="collapsed" and isCollapsed=true', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.isCollapsed).toBe(false);
+        w.minimize();
+        expect(w.isCollapsed).toBe(true);
+        expect(w.element!.getAttribute('data-state')).toBe('collapsed');
+      });
+
+      it('restore() returns data-state to "active" for focused window', () => {
+        const w = new AaronWindow();
+        w.mount();
+        w.minimize();
+        w.restore();
+        expect(w.isCollapsed).toBe(false);
+        expect(w.element!.getAttribute('data-state')).toBe('active');
+      });
+
+      it('restore() returns data-state to "inactive" for unfocused window', () => {
+        const a = new AaronWindow();
+        const b = new AaronWindow();
+        a.mount(); b.mount(); // b is focused
+        a.minimize();
+        a.restore();
+        expect(a.element!.getAttribute('data-state')).toBe('inactive');
+      });
+
+      it('minimize() is idempotent', () => {
+        const w = new AaronWindow();
+        w.mount();
+        w.minimize();
+        w.minimize();
+        expect(w.isCollapsed).toBe(true);
+      });
+
+      it('restore() is idempotent on non-collapsed window', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(() => w.restore()).not.toThrow();
+        expect(w.isCollapsed).toBe(false);
+      });
+
+      it('returns this for chaining', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.minimize()).toBe(w);
+        expect(w.restore()).toBe(w);
+      });
+
+      it('minimize() before mount is a no-op', () => {
+        const w = new AaronWindow();
+        expect(() => w.minimize()).not.toThrow();
+        expect(w.isCollapsed).toBe(false);
+      });
+    });
+
+    describe('maximize() / unmaximize()', () => {
+      it('maximize() sets window to viewport size', () => {
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
+        w.mount();
+        w.maximize();
+        expect(w.element!.style.left).toBe('0px');
+        expect(w.element!.style.top).toBe('0px');
+        expect(w.element!.style.width).toBe(`${window.innerWidth}px`);
+        expect(w.element!.style.height).toBe(`${window.innerHeight}px`);
+        expect(w.isMaximized).toBe(true);
+      });
+
+      it('unmaximize() restores previous position+size', () => {
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
+        w.mount();
+        w.maximize();
+        w.unmaximize();
+        expect(w.element!.style.left).toBe('100px');
+        expect(w.element!.style.top).toBe('80px');
+        expect(w.element!.style.width).toBe('300px');
+        expect(w.element!.style.height).toBe('200px');
+        expect(w.isMaximized).toBe(false);
+      });
+
+      it('maximize() fires onresize and onmove with viewport dimensions', () => {
+        const onmove = vi.fn();
+        const onresize = vi.fn();
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200, onmove, onresize });
+        w.mount();
+        w.maximize();
+        expect(onmove).toHaveBeenCalledWith(0, 0);
+        expect(onresize).toHaveBeenCalledWith(window.innerWidth, window.innerHeight);
+      });
+
+      it('unmaximize() fires onmove and onresize with restored dimensions', () => {
+        const onmove = vi.fn();
+        const onresize = vi.fn();
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200, onmove, onresize });
+        w.mount();
+        w.maximize();
+        onmove.mockClear();
+        onresize.mockClear();
+        w.unmaximize();
+        expect(onmove).toHaveBeenCalledWith(100, 80);
+        expect(onresize).toHaveBeenCalledWith(300, 200);
+      });
+
+      it('maximize is idempotent', () => {
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
+        w.mount();
+        w.maximize();
+        w.maximize();
+        expect(w.element!.style.width).toBe(`${window.innerWidth}px`);
+      });
+
+      it('unmaximize on non-maximized window is a no-op', () => {
+        const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
+        w.mount();
+        expect(() => w.unmaximize()).not.toThrow();
+        expect(w.element!.style.left).toBe('100px');
+      });
+
+      it('returns this for chaining', () => {
+        const w = new AaronWindow();
+        w.mount();
+        expect(w.maximize()).toBe(w);
+        expect(w.unmaximize()).toBe(w);
+      });
+
+      it('maximize before mount is a no-op', () => {
+        const w = new AaronWindow();
+        expect(() => w.maximize()).not.toThrow();
+        expect(w.isMaximized).toBe(false);
+      });
+    });
+  });
+
   describe('back-compat: cv-mac style call site', () => {
     it('constructs and mounts without errors', () => {
       // Representative of the actual cv-mac call pattern from PRD §Architecture.
