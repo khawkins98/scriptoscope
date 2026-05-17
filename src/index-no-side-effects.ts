@@ -54,6 +54,7 @@ export {
   attachThemeToWindow,
   enableThemeSwitching,
   applyControlChrome,
+  wireControlStateMachine,
   type ThemeRegistry,
   type ThemeChangeListener,
   type ThemeChangeEventDetail,
@@ -65,6 +66,7 @@ export {
   type AttachThemeToWindowOptions,
   type EnableThemeSwitchingOptions,
   type ApplyControlChromeOptions,
+  type WireControlStateMachineOptions,
   type ControlState,
   type ControlCheckedState,
   type StateChromeMap,
@@ -79,3 +81,12 @@ export {
   setBundledDefaultUrl,
   getBundledDefaultUrl,
 } from './themes/runtime/bundledDefault.js';
+
+// Phase 3 controls (#71+). Per-control classes + declarative scanner
+// helpers. Push buttons #71, more landing in subsequent tickets.
+export {
+  AaronButton,
+  promoteButtons,
+  installEngineBaseline,
+  type AaronButtonOptions,
+} from './controls/index.js';

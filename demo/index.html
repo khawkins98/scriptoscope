@@ -221,6 +221,7 @@
       loadTheme,
       attachThemeToWindow,
       themeRegistry,
+      promoteButtons,
     } from '../src/index.ts';
 
     const desktop = document.getElementById('desktop');
@@ -231,7 +232,7 @@
     const windows = [
       {
         title: 'About Aaron UI',
-        x: 40, y: 32, width: 380, height: 220,
+        x: 40, y: 32, width: 380, height: 360,
         html: `
           <h3>What is this?</h3>
           <p>Aaron UI is a web-native runtime for <strong>Kaleidoscope</strong>
@@ -243,6 +244,11 @@
           <p>Drag the titlebar. Resize from any edge. Pick a different
           scheme above. The chrome changes; the window keeps its
           contents.</p>
+          <p style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+            <button data-aaron-button>Cancel</button>
+            <button data-aaron-button disabled>Help</button>
+            <button data-aaron-button-default id="demo-ok-button">OK</button>
+          </p>
         `,
       },
       {
@@ -260,7 +266,7 @@
       },
       {
         title: 'Side-by-side fidelity',
-        x: 40, y: 280, width: 460, height: 280,
+        x: 40, y: 410, width: 460, height: 280,
         html: `
           <div class="sidebyside">
             <figure>
@@ -297,6 +303,18 @@
       const w = new AaronWindow(cfg);
       w.mount(desktop);
       attachThemeToWindow(w.element, { windowTypeSlug: 'document-window' });
+    }
+
+    // Phase 3 controls (#71) — promote declarative [data-aaron-button] markup
+    // inside window contents into AaronButton instances. Runs after windows
+    // mount so the button-bearing markup is in the DOM.
+    promoteButtons(desktop);
+    const okBtn = document.getElementById('demo-ok-button');
+    if (okBtn) {
+      okBtn.addEventListener('click', () => {
+        // Demo activation handler — just log so people can see it works.
+        console.info('[demo] OK clicked');
+      });
     }
 
     // Theme switcher — both <select> change and the data-aaron-theme

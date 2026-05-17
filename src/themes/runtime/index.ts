@@ -53,7 +53,9 @@ export {
 // controls outside the standard set.
 export {
   applyControlChrome,
+  wireControlStateMachine,
   type ApplyControlChromeOptions,
+  type WireControlStateMachineOptions,
   type ControlState,
   type ControlCheckedState,
   type StateChromeMap,
