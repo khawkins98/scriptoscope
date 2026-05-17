@@ -61,14 +61,13 @@
        fallbacks via inline styles the runtime writes. */
     .aaron-window {
       background: white;
-      /* More visible window-frame border. Scheme-defined frames via
-         wnd#-driven border composition are a future polish ticket;
-         until then this CSS approximation gives each window a clear
-         edge. */
+      /* Placeholder window frame — the scheme's actual side/bottom
+         borders come from wnd# side-recipe composition which isn't
+         yet implemented (see docs/rendering-gap-analysis-2026-05-17.md
+         for the proper path). This CSS gives every window a visible
+         edge in the meantime. */
       border: 1px solid var(--aaron-colr-window-frame, #666);
-      box-shadow:
-        0 0 0 1px rgba(0,0,0,0.06),
-        2px 3px 12px rgba(0,0,0,0.25);
+      box-shadow: 2px 3px 12px rgba(0,0,0,0.25);
     }
     .aaron-titlebar {
       position: relative;

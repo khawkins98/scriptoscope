@@ -94,11 +94,20 @@ export function applyChromeFromTheme(
 
   // Window-type chrome cicns rarely have cinf paired (cinf is per-control;
   // window chrome geometry lives in wnd# side recipes which we don't yet
-  // honour for border composition). For the no-slice case, omit width/height
-  // so applyChromeElement doesn't render at native cicn size (~74px) in
-  // the top-left of a much wider titlebar — then force background-size
-  // 100% 100% so the cicn stretches across the titlebar's full rendered
-  // width. Pixelated image-rendering keeps the stretch crisp-ish.
+  // honour for proper edge composition). For the no-slice case, omit
+  // width/height so applyChromeElement doesn't render at native cicn size
+  // (~74px) in the top-left of a much wider titlebar — then force
+  // background-size 100% 100% so the cicn stretches across the titlebar's
+  // full rendered width. Pixelated image-rendering keeps the stretch
+  // crisp-ish.
+  //
+  // KNOWN LIMITATION: uniform stretching distorts the cicn's discrete
+  // features (control glyphs at fixed pixel positions, pinstripe rhythm)
+  // because the cicn was authored at a small reference size. The proper
+  // fix is wnd#-aware composition (see docs/rendering-gap-analysis-
+  // 2026-05-17.md). Until that ships, every titlebar shows a stretched
+  // approximation of the scheme's chrome — better than nothing, far from
+  // scheme-faithful.
   const titlebarEntry: ChromeElementEntry = chromeEntry.slice
     ? chromeEntry
     : stripDimensions(chromeEntry);
@@ -107,26 +116,15 @@ export function applyChromeFromTheme(
     titlebar.style.backgroundSize = '100% 100%';
   }
 
-  // Scheme-derived window border: slice 1px from the cicn's outermost
-  // pixels and use as border-image on the window root. Gives every window
-  // a thin themed border (frame color comes from the scheme's chrome
-  // edges, not a CSS placeholder). The full wnd# side-recipe composition
-  // for thicker per-side rendering is a future polish ticket.
-  windowEl.style.borderImageSource = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
-  windowEl.style.borderImageSlice = '1';
-  windowEl.style.borderImageWidth = '1';
-  windowEl.style.borderImageRepeat = 'stretch';
-  windowEl.style.borderStyle = 'solid';
-  windowEl.style.borderWidth = '1px';
-  windowEl.style.borderColor = 'transparent';
-  windowEl.style.boxSizing = 'border-box';
-
+  // Hit-target overlays for wnd# parts (close, zoom, windowshade, etc.) —
+  // invisible by default. The actual visible glyphs are part of the
+  // stretched titlebar background; these overlays exist so future PRs
+  // can attach click handlers. Per the 2026-05-17 gap analysis, the
+  // crisp-glyph mode from PR #60 was removed because it double-rendered
+  // controls (once stretched in the bg, once crisp as overlay).
   const partsAria = options.partsAria ?? 'hidden';
   let parts: WindowPartInfo[] = [];
   if (windowType.parts && Object.keys(windowType.parts).length > 0) {
-    // Need chrome cicn dimensions for percent-positioning. Fall back to the
-    // titlebar's current rendered size if the catalog doesn't carry them
-    // (degraded but still functional for fixed-aspect renders).
     const width = chromeEntry.width ?? titlebar.clientWidth;
     const height = chromeEntry.height ?? titlebar.clientHeight;
     if (width > 0 && height > 0) {
@@ -134,10 +132,8 @@ export function applyChromeFromTheme(
         chromeWidth: width,
         chromeHeight: height,
         aria: partsAria,
-        // Pass the cicn so parts render as crisp glyphs (sliced from the
-        // cicn at their rect) instead of distorting with the stretched
-        // titlebar background. Close/zoom/windowshade icons stay sharp.
-        glyphCicnUrl: cicnUrl,
+        // No glyphCicnUrl: parts are transparent hit-target overlays only.
+        // See gap analysis for why glyph slicing was reverted.
       });
     }
   }
@@ -159,19 +155,6 @@ export function applyChromeFromTheme(
  * that hasn't been themed.
  */
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
-  // Clear the scheme-derived window border applied to the root.
-  for (const prop of [
-    'borderImageSource',
-    'borderImageSlice',
-    'borderImageWidth',
-    'borderImageRepeat',
-    'borderStyle',
-    'borderWidth',
-    'borderColor',
-    'boxSizing',
-  ] as const) {
-    windowEl.style[prop] = '';
-  }
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);
