@@ -169,6 +169,64 @@ The pattern: as the renderer walks from x=0 to the right edge, it switches which
 
 Only 2 named parts (no close/zoom/windowshade — modal dialogs are minimal), with a different but structurally identical top-side recipe.
 
+### Empirical semantics of recipe parts (from #64.0 multi-scheme analysis)
+
+The kaleidoscope.net SDK reference is gone; the original wnd# format semantics were never available in published form. The semantics below are derived empirically from analyzing wnd# data across **13 windowType entries** in both canonical bundles (mass:werk 7 Le + Dark ErgoBox 2). See [`docs/wnd-recipe-semantics-2026-05-17.md`](./wnd-recipe-semantics-2026-05-17.md) for the full investigation methodology, raw data, and confidence levels.
+
+| Part code | Semantic | Confidence | Renderer behavior |
+|---|---|---|---|
+| 0-4 (in rectList) | Named parts — discrete visual elements (close box, zoom box, windowshade, divider, bottom strip) | High (defined by rectList) | Render the rect's pixels at native size, positioned at the recipe's `at` |
+| **8** | **Universal stretchable fill** — appears in every bottom/left/right recipe of every windowType | **High** (no exceptions across 13 windowTypes) | Tile the cicn pixels at the segment's x-range across the segment's rendered width |
+| 5, 6 | Divider-decoration codes — always cluster at the divider position in top recipes | Medium-high (position pattern consistent) | Best-guess: part 6 = divider edge pixel (1px lead-in/out); part 5 = divider middle. Treat as fill (same as part 8) until visual comparison against reference thumbnails refines. |
+| 10, 11, 15, 17 | Scheme-specific decoration variants — each appears in only one windowType (7 Le Document, ErgoBox Utility, ErgoBox Side Floating Utility respectively) | Low (single-scheme observation) | Treat as fill (same as part 8) by default. Visible differences from references can be addressed per-code in future polish. |
+| Any other unknown | Future scheme-specific codes | Unknown | Treat as fill (same as part 8) — safe fallback |
+
+### Renderer algorithm (consumes the table above)
+
+For each `{at, part}` entry in a side recipe:
+
+```
+segCicnStart = entry.at
+segCicnEnd   = next entry's `at`, or cicnW/cicnH for the last entry
+segCicnWidth = segCicnEnd - segCicnStart
+
+if part is in rectList (named, 0-4):
+  # Render the named part's rect at native pixel size at the recipe position
+  rect = rectList[part]
+  rectW, rectH = rect.right - rect.left, rect.bottom - rect.top
+  div.left   = pct(segCicnStart, cicnW)
+  div.top    = pct(rect.top, cicnH)
+  div.width  = `${rectW}px`        # NATIVE px, no stretch
+  div.height = `${rectH}px`        # NATIVE px
+  div.background = cicn, position: `-${rect.left}px -${rect.top}px`, size: native, no-repeat
+
+elif part == 8 (universal fill):
+  # Tile cicn pixels at the segment's x-range to fill the segment's width
+  div.left   = pct(segCicnStart, cicnW)
+  div.top    = 0
+  div.width  = pct(segCicnWidth, cicnW)   # stretches with titlebar
+  div.height = 100%
+  div.background = cicn, position: `-${segCicnStart}px 0px`, size: native, repeat-x
+
+else (5, 6, 10, 11, 15, 17, ...):
+  # Best-guess: treat as fill, same as part 8
+  # Visible differences from references can refine per-code later
+  (same as part 8)
+```
+
+### The named-part position ambiguity
+
+When a recipe references a named part, `recipe.at` and `rect.left` sometimes match and sometimes don't:
+
+- 7 Le Document Window topSide: `at=5 part=1` but rectList part-1 has `rect.left=9` (off by 4)
+- ErgoBox Document Window topSide: `at=4 part=1` matches `rect.left=4` exactly; `at=19 part=2` does NOT match `rect.left=75` (off by 56)
+
+The mismatch isn't a consistent offset, so neither interpretation ("recipe.at is render position" vs "recipe.at is rect-reference position") is universally right. The renderer should TRY one interpretation and visually compare against the mass:werk reference thumbnails, then refine. The empirical research recommends "recipe.at is render position" as the first interpretation (matches the simpler "walk left-to-right placing parts" mental model).
+
+### Pointer to canonical research
+
+[`docs/wnd-recipe-semantics-2026-05-17.md`](./wnd-recipe-semantics-2026-05-17.md) holds the raw multi-scheme dump and the full reasoning. Kept as audit trail; this spec section is the prescriptive reference for implementations.
+
 ### Aaron UI mapping
 
 `wnd#` is essentially **per-window-type geometry**. For each Aaron UI window-type entry:
