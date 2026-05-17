@@ -17,3 +17,24 @@ export {
   startScanner,
   stopScanner,
 } from './window-manager/scanner.js';
+
+// Theme schema (Phase 4.1 / issue #35) — types + runtime validator for
+// theme.json bundles per docs/kaleidoscope-geometry-spec.md §7. Foundation
+// for the loadTheme() runtime that lands in Phase 4.4.
+export {
+  THEME_SCHEMA_VERSION,
+  parseTheme,
+  ThemeValidationError,
+  type Theme,
+  type ThemeAuthor,
+  type ThemeOrigin,
+  type ThemeOptions,
+  type WindowTypeEntry,
+  type WindowChromeStates,
+  type PartEntry,
+  type WindowEdges,
+  type EdgeRecipe,
+  type ChromeElementEntry,
+  type SliceSpec,
+  type PatternEntry,
+} from './themes/schema/index.js';
