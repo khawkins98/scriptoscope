@@ -10,15 +10,40 @@
 
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
+import { existsSync, statSync, createReadStream } from 'node:fs';
+
+// Tiny middleware to serve canonical theme bundles from `themes/<slug>/` at
+// `/themes/<slug>/...` during dev. Phase 4 runtime (`loadTheme()`) fetches
+// bundles by URL; this makes the repo-root `themes/` dir reachable from the
+// demo's dev server (where Vite's root is `demo/`).
+const serveThemesPlugin = () => ({
+  name: 'serve-themes-dir',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (!req.url || !req.url.startsWith('/themes/')) return next();
+      const url = req.url.split('?')[0];
+      const filepath = resolve(import.meta.dirname, '.' + url);
+      if (!existsSync(filepath) || !statSync(filepath).isFile()) return next();
+      const ext = (filepath.split('.').pop() ?? '').toLowerCase();
+      const mime = ext === 'json' ? 'application/json'
+                 : ext === 'png'  ? 'image/png'
+                 : 'application/octet-stream';
+      res.setHeader('Content-Type', mime);
+      createReadStream(filepath).pipe(res);
+    });
+  },
+});
 
 export default defineConfig(({ command }) => {
   if (command === 'serve') {
     return {
       root: 'demo',
       publicDir: false, // demo/assets/ is already under root
+      plugins: [serveThemesPlugin()],
       server: {
         port: 5173,
         open: '/themes-raster.html',
+        fs: { allow: ['..'] }, // allow imports from src/, themes/, etc.
       },
     };
   }

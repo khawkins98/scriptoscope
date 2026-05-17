@@ -148,11 +148,14 @@ export function buildThemeJson(manifest, options = {}) {
       'Schema per docs/kaleidoscope-geometry-spec.md §7.',
   };
 
-  // Merge sidecar meta (name, author, origin, options) on top.
+  // Merge sidecar meta (name, author, origin, options, palette) on top.
+  // palette is sidecar-supplied pending a Colr decoder (#36 didn't ship one).
+  // Once Colr decoding lands, this merge will defer to the extracted palette.
   if (meta.name != null)    theme.name = meta.name;
   if (meta.author != null)  theme.author = meta.author;
   if (meta.origin != null)  theme.origin = meta.origin;
   if (meta.options != null) theme.options = meta.options;
+  if (meta.palette != null) theme.palette = meta.palette;
 
   // Then the extracted-resource sections — only emit non-empty ones to
   // keep the JSON honest about what was found in the scheme.
