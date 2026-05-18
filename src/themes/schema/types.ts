@@ -138,14 +138,40 @@ export interface ChromeElementEntry {
   sourceCinfId?: number | null;
 }
 
+/** Canonical per-region resize behavior from cinf, per Scheme Factory
+ *  MENU 139. See docs/kaleidoscope-geometry-spec.md §11.
+ *  - `stretch-*` family: stretch the fill (whole region or one side)
+ *  - `repeat-*` family: tile the fill (whole region or one side)
+ *  - `anchor-*` family: pin without resize (encoding 10-14 unverified) */
+export type ResizeBehavior =
+  | 'stretch-whole'
+  | 'stretch-top'
+  | 'stretch-left'
+  | 'stretch-bottom'
+  | 'stretch-right'
+  | 'repeat-whole'
+  | 'repeat-top'
+  | 'repeat-left'
+  | 'repeat-bottom'
+  | 'repeat-right'
+  | 'anchor-center'
+  | 'anchor-top-left'
+  | 'anchor-top-right'
+  | 'anchor-bottom-left'
+  | 'anchor-bottom-right';
+
 /** 9-slice composition geometry derived from cinf. */
 export interface SliceSpec {
   /** Corner inset in pixels. CSS: `border-image-slice`. */
   corner: number;
   /** Edge thickness in pixels. CSS: `border-width` + `border-image-width`. */
   side: number;
-  /** When true, the middle stretches tile-repeat instead of stretch. */
+  /** When true, the middle stretches tile-repeat instead of stretch.
+   *  Kept for back-compat; prefer `resizeBehavior` for full fidelity. */
   tile: boolean;
+  /** Full 15-value resize behavior from cinf's (tileSides, patternAnchor)
+   *  bytes. See ResizeBehavior + docs/kaleidoscope-geometry-spec.md §11. */
+  resizeBehavior?: ResizeBehavior;
 }
 
 /** A ppat tile available for composition. */
