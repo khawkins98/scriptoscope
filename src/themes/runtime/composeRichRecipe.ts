@@ -15,6 +15,7 @@
 
 import type { WindowTypeEntry } from '../schema/types.js';
 import { deriveFrameGeometry } from './deriveFrameColor.js';
+import { classifyPartCode, isPinnedBehavior } from './partCodeBehavior.js';
 
 const RICH_FRAME_ATTR = 'data-aaron-rich-recipe' as const;
 
@@ -188,13 +189,14 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
   // Build segment specs first so we can identify the first + last fill
   // segments (corner anchors). Corners pin at native cicn-px size like
   // CSS border-image; only interior fills grow with window resize.
-  type Spec = { start: number; end: number; span: number; part: string; isNamedWidget: boolean };
+  type Spec = { start: number; end: number; span: number; part: string; isNamedWidget: boolean; isPinnedByPartCode: boolean };
   const specs: Spec[] = [];
   for (let i = 0; i < cursor.length - 1; i++) {
     const cur = cursor[i]!;
     const next = cursor[i + 1]!;
     const span = next.at - cur.at;
     if (span <= 0) continue;
+    const behavior = classifyPartCode(cur.part, parts);
     specs.push({
       start: cur.at,
       end: next.at,
@@ -202,6 +204,10 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
       part: cur.part,
       // Treat part-0 (body marker) as fill — see BODY_PART comment above.
       isNamedWidget: cur.part !== BODY_PART && cur.part in parts,
+      // Honor part-code semantics — parts 5/6 (divider sandwich) pin
+      // even though they're not in the rectList.
+      // See src/themes/runtime/partCodeBehavior.ts.
+      isPinnedByPartCode: isPinnedBehavior(behavior) && behavior !== 'named-widget',
     });
   }
   // Pin the first + last FILL segments as corners. Named widgets already
@@ -229,24 +235,26 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
   }
 
   specs.forEach((spec, i) => {
-    const { start, end, span, part, isNamedWidget } = spec;
-    const isCornerFill = !isNamedWidget && (i === firstFillIdx || i === lastFillIdx);
+    const { start, end, span, part, isNamedWidget, isPinnedByPartCode } = spec;
+    const isCornerFill = !isNamedWidget && !isPinnedByPartCode && (i === firstFillIdx || i === lastFillIdx);
     // Static-graphic detection: a fill segment whose cicn axis-range
     // overlaps a part rect lives in a zone containing widget pixels
     // (e.g., 1990's close/zoom widgets at cicn x=46..64). Tile-repeating
     // such a slice produces multiple copies of the widget across the
     // edge — the bug the per-segment inspector surfaced. Pin them.
-    const isStaticFill = !isNamedWidget && !isCornerFill && overlapsPartRange(start, end);
+    const isStaticFill = !isNamedWidget && !isCornerFill && !isPinnedByPartCode && overlapsPartRange(start, end);
 
     const seg = document.createElement('div');
     seg.style.imageRendering = 'pixelated';
     const segKind = isNamedWidget
       ? `widget:${part}`
-      : isCornerFill
-        ? 'corner'
-        : isStaticFill
-          ? `static:overlaps-part`
-          : 'fill';
+      : isPinnedByPartCode
+        ? `divider:${part}`
+        : isCornerFill
+          ? 'corner'
+          : isStaticFill
+            ? `static:overlaps-part`
+            : 'fill';
     seg.setAttribute(`${RICH_FRAME_ATTR}-segment`, segKind);
 
     // The actual pixels for any segment come from the cicn at the segment's
@@ -271,7 +279,7 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     //   interior fill    → grow proportional to cicn span (absorbs window
     //                      resize, mirroring how border-image stretches
     //                      its center fill zone)
-    if (isNamedWidget || isCornerFill || isStaticFill) {
+    if (isNamedWidget || isCornerFill || isStaticFill || isPinnedByPartCode) {
       seg.style.flex = `0 0 ${span}px`;
     } else {
       seg.style.flex = `${span} ${span} auto`;
