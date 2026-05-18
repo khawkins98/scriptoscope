@@ -417,7 +417,51 @@
     const select = document.getElementById('scheme-switcher');
     select.addEventListener('change', () => {
       void loadTheme(`themes/${select.value}/`);
+      // Keep the URL in sync so reloads + sharing preserve the picked scheme.
+      const u = new URL(location.href);
+      u.searchParams.set('theme', select.value);
+      history.replaceState(null, '', u.toString());
     });
+
+    // ?theme=<slug> deep-link: load the requested scheme on page load
+    // (instead of the bundled default). Useful for sharing a specific
+    // scheme + for Playwright screenshot workflows.
+    //
+    // Implementation: the bundled-default import is a side effect that
+    // fires before this script runs, so we can't pre-empt it. Instead,
+    // subscribe to the registry and swap when the bundled default
+    // settles. The swap then becomes the *last* load → wins the race.
+    const urlParams = new URLSearchParams(location.search);
+    const requested = urlParams.get('theme');
+    if (requested) {
+      const validOptions = new Set(
+        Array.from(select.options).map((o) => o.value),
+      );
+      if (!validOptions.has(requested)) {
+        console.warn(`[demo] ?theme=${requested} is not a known scheme; ignoring.`);
+      } else if (requested === select.value) {
+        // Already what the bundled default loads — nothing to do.
+      } else {
+        select.value = requested;
+        // Defer until the bundled default's first settled load lands.
+        let applied = false;
+        const tryApply = () => {
+          if (applied) return;
+          applied = true;
+          void loadTheme(`themes/${requested}/`);
+        };
+        // Either the registry already has the bundled default (synced)
+        // or it'll arrive on the next subscribe callback.
+        if (themeRegistry.current()) {
+          tryApply();
+        } else {
+          const unsub = themeRegistry.subscribe(() => {
+            tryApply();
+            unsub();
+          });
+        }
+      }
+    }
 
     // Provenance display updates whenever the theme changes.
     function refreshProvenance(theme) {

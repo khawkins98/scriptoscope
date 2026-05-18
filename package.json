@@ -51,6 +51,7 @@
     "build:demo": "vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "screenshots": "node tools/scheme-screenshots.mjs",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
