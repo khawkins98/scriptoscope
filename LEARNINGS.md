@@ -994,4 +994,25 @@ Phase 3 lands: every bundled scheme now has a `scheme.rsrc` file (the raw Mac OS
 
 ---
 
+### 2026-05-18 — Phase 4a: recipe-driven top-edge composer (what Kaleidoscope itself did)
+
+Replaces the CSS `border-image` shortcut for the titlebar top with a faithful walk of `wnd#.edges.top` + `parts` rects. Same algorithm Kaleidoscope's renderer used: for each `{at, part}` segment, if `part` is named → cut the part's cicn rect at native size + paint at PIXEL position `at` from the appropriate side edge; if fill → tile cicn pixels between named parts.
+
+**Key correction over PR #65/#68 V1/V2:** those used **proportional** positioning (`left: X%`). As windows grew, close-boxes drifted inward proportionally. The fix is **pixel-anchored** positioning from the matching screen edge — `cicn center.x < cicnWidth/2 → anchor LEFT (offset = at px from left)`, else `anchor RIGHT (offset = (cicnWidth - at - partWidth) px from right)`. Close-box stays pinned to left, zoom-box pinned to right, middle fills absorb the slack as the titlebar widens.
+
+**Hybrid path for Kind B schemes:** the recipe path handles only the top edge in this phase. For schemes like ErgoBox (full-window cicns), the classifier still dispatches the 9-slice on the window root in parallel — that handles the side+bottom borders the recipe path doesn't yet cover. Title pill bounds come from the recipe's middle-fill cicn-pixel zone (`leftClusterCicnEnd .. rightClusterCicnStart`), exposed as `--aaron-title-pill-{left,right}` custom properties same as before.
+
+**Visual results across 7 schemes** (`docs/screenshots/`):
+- mass:werk 7 Le — clean titlebar with close+zoom pinned, pinstripe tiled in the middle ✓
+- mass:werk Dark ErgoBox 2 — recipe handles top widgets, 9-slice handles dark frame on sides+bottom ✓
+- Big Blue (#1984) — Apple-tab silhouette widgets visible at corners (the iconic chrome) ✓
+- Acid (#1022) — titlebars cleaner than before, but the elaborate lego-block decoration in the cicn's middle is lost (Kind C scheme — the cicn isn't actually a slice template, it's a bitmap; the loss is faithful to "this scheme's design can't tile") ⚠️
+- 1990, evolution — similar story to Acid; widgets visible at corners, decoration in cicn middle is gone
+
+**Honest trade-off recorded:** for Kind C schemes the recipe path produces "cleaner" but less decorated chrome. The previous CSS-border-image rendering of these schemes was a *broken* attempt at faithful — it tiled decoration that wasn't designed to tile. The recipe path is *honest* about what the scheme actually specifies. Future phase: Kind C schemes could render via a centered/scaled bitmap mode that respects the design intent.
+
+**Phase 4b/c queued:** bottom + side recipe handling. Once those land, the border-image fallbacks become entirely unused (kept as dead code for one cycle, then deleted).
+
+---
+
 *New learnings get appended below this line as the project ships.*
