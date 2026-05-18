@@ -284,9 +284,19 @@
           await loadThemeFromRsrc(rsrcUrl);
           return;
         }
-      } catch { /* fall through */ }
+      } catch (err) {
+        // Surface .rsrc failures so debugging is possible — silent
+        // failure here used to manifest as a dropdown/registry drift
+        // where the dropdown showed the requested slug but the footer
+        // + render showed the bundled default.
+        console.warn(`[demo] scheme.rsrc decode failed for ${slug}; falling back to bundle:`, err);
+      }
       // Bundle fallback (theme.json + PNGs).
-      await loadTheme(`themes/${slug}/`);
+      try {
+        await loadTheme(`themes/${slug}/`);
+      } catch (err) {
+        console.error(`[demo] both .rsrc and bundle paths failed for ${slug}:`, err);
+      }
     }
 
     const desktop = document.getElementById('desktop');
@@ -485,10 +495,34 @@
       }
     }
 
+    // Map theme.name → slug so refreshProvenance can keep the dropdown
+    // synced to the ACTUALLY-LOADED scheme (not the user's last request).
+    // This prevents the "dropdown shows X, footer shows Y" drift that
+    // happens when a load fails silently.
+    const SCHEME_NAME_TO_SLUG = {
+      'mass:werk 7 Le': 'masswerk-7-le',
+      'mass:werk Dark ErgoBox 2': 'masswerk-dark-ergobox2',
+      'Acid': 'acid',
+      '1138': '1138',
+      'Big Blue is Watching': 'big-blue',
+      '1990': '1990',
+      '1991 evolution': 'evolution',
+    };
+
     // Provenance display updates whenever the theme changes.
     function refreshProvenance(theme) {
       if (!theme) return;
       document.getElementById('active-scheme-name').textContent = theme.name ?? 'unknown';
+      // Sync the dropdown + URL to whatever's ACTUALLY loaded (vs what
+      // was last requested). If the registry shows scheme X, the
+      // dropdown must show X — anything else is a confusing drift.
+      const actualSlug = SCHEME_NAME_TO_SLUG[theme.name];
+      if (actualSlug && actualSlug !== select.value) {
+        select.value = actualSlug;
+        const u = new URL(location.href);
+        u.searchParams.set('theme', actualSlug);
+        history.replaceState(null, '', u.toString());
+      }
       const authorEl = document.getElementById('active-scheme-author');
       authorEl.querySelector('span').textContent = theme.author?.name ?? 'unknown';
       if (theme.author?.url) authorEl.href = theme.author.url;
