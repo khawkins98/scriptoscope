@@ -47,16 +47,24 @@ export const RESIZE_BEHAVIOR_LABELS = /** @type {const} */ ([
 
 /**
  * Resolve (tileSides, patternAnchor) bytes into one of the 15 canonical
- * resize behavior labels. Returns 'stretch-whole' as a safe default for
- * out-of-range values.
+ * resize behavior labels.
+ *
+ * Only behaviors 0-9 (stretch-* + repeat-* families) are decoded from the
+ * (tileSides ∈ {0,1}, patternAnchor ∈ {0..4}) pair via the formula
+ * `tileSides * 5 + patternAnchor`. The anchor-* family (indices 10-14)
+ * IS NOT YET KNOWN to be encoded via this formula — `tileSides ≥ 2` is
+ * not observed in the corpus, so the formula could match or not. Until
+ * confirmed empirically, treat any input outside the (0-1, 0-4) range
+ * as 'stretch-whole' (safe default).
  *
  * @param {number} tileSides
  * @param {number} patternAnchor
  * @returns {typeof RESIZE_BEHAVIOR_LABELS[number]}
  */
 export function resizeBehavior(tileSides, patternAnchor) {
-  const idx = tileSides * 5 + patternAnchor;
-  return RESIZE_BEHAVIOR_LABELS[idx] ?? 'stretch-whole';
+  if (tileSides < 0 || tileSides > 1) return 'stretch-whole';
+  if (patternAnchor < 0 || patternAnchor > 4) return 'stretch-whole';
+  return RESIZE_BEHAVIOR_LABELS[tileSides * 5 + patternAnchor];
 }
 
 /**

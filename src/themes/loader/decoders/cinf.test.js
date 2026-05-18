@@ -37,9 +37,13 @@ describe('resizeBehavior', () => {
     expect(resizeBehavior(1, 4)).toBe('repeat-right');
   });
 
-  it('returns stretch-whole as safe default for out-of-range (no encoding known yet for anchor-* family)', () => {
+  it('returns stretch-whole as safe default for out-of-range bytes', () => {
+    // anchor-* family encoding is unverified — we treat tileSides ≥ 2 as
+    // "unknown" until proven, since the corpus only shows tileSides ∈ {0,1}.
     expect(resizeBehavior(2, 0)).toBe('stretch-whole');
     expect(resizeBehavior(0, 99)).toBe('stretch-whole');
+    expect(resizeBehavior(-1, 0)).toBe('stretch-whole');
+    expect(resizeBehavior(0, -1)).toBe('stretch-whole');
   });
 
   it('publishes all 15 canonical labels', () => {
