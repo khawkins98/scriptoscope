@@ -160,22 +160,40 @@ export function applyChromeFromTheme(
     // hit-target overlays) but not for visual rendering.
     clearRecipeSegments(titlebar);
     clearAllEdges(windowEl); // strip any prior recipe segments from edges
+    // Dispatch — see docs/chrome-rendering-architecture.md §7.
+    //
+    // The classifier (pixel-scan) distinguishes Kind A (thin titlebar) from
+    // not-thin. For not-thin cicns, structure comes from the wnd# parts
+    // table: a published `part-0` body rect is unambiguous proof of where the
+    // body region lives, independent of whether the cicn pixels look like a
+    // tidy 9-slice frame. Acid + evolution have busy "Mondrian" interiors
+    // that defeat the pixel-scan body detector but they DO publish part-0 +
+    // a rich recipe — exactly the same structural shape as 1990 — so they
+    // route to the composer too.
+    const rich = recipeDensity(windowType) === 'rich';
+    const hasBodyRect = !!windowType.parts?.['part-0'];
     void classifyChromeCicn(cicnUrl).then((kind) => {
-      if (kind === 'full-window') {
-        clear3Slice(titlebar);
-        // Dispatch on recipe density (see docs/chrome-rendering-architecture.md §7.1):
-        //   rich   → composeRichRecipe paints per-segment divs (e.g., 1990 — 9+ fill segs)
-        //   simple → applyWindowAs9Slice uses CSS border-image (ErgoBox / Big Blue / 1138)
-        // border-image and the rich composer are mutually exclusive on the
-        // window root, so clear the other path before applying.
-        if (recipeDensity(windowType) === 'rich') {
-          clearWindow9Slice(windowEl);
-          void composeRichRecipe(windowEl, windowType, composeOpts);
-        } else {
-          clearRichRecipe(windowEl);
-          void applyWindowAs9Slice(windowEl, windowType, composeOpts);
-        }
+      if (kind === 'titlebar-only') {
+        // Kind A — chrome lives entirely in the 3-slice titlebar path.
+        clearWindow9Slice(windowEl);
+        clearRichRecipe(windowEl);
+        return;
+      }
+      clear3Slice(titlebar);
+      if (rich && hasBodyRect) {
+        // Rich-recipe composer beats both 9-slice AND the fixed-bitmap
+        // fallback — works for Kind B + Kind C alike when the structure
+        // is published via wnd# (parts + edges).
+        clearWindow9Slice(windowEl);
+        void composeRichRecipe(windowEl, windowType, composeOpts);
+      } else if (kind === 'full-window') {
+        // Simple-recipe Kind B → CSS border-image 9-slice.
+        clearRichRecipe(windowEl);
+        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
       } else {
+        // Kind C without rich+body → fall back to Kind A treatment
+        // (the chrome will look stretched but at least won't crash).
+        // Future: canvas-composite for these.
         clearWindow9Slice(windowEl);
         clearRichRecipe(windowEl);
       }
