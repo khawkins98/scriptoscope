@@ -43,10 +43,11 @@ test.describe('theme switcher (e2e)', () => {
 
     await page.locator('#load-ergobox').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-dark-ergobox2');
-    // Titlebar border-image-source updates to point at the new scheme.
+    // ErgoBox is classified as full-window (Kind B per chrome architecture
+    // doc) — border-image lands on the WINDOW root, not the titlebar.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window .aaron-titlebar')
+        .locator('.aaron-window')
         .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');

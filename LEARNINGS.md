@@ -922,4 +922,25 @@ The extractor pre-fills `theme.palette.window-frame` with a generic gray (`#888`
 
 ---
 
+### 2026-05-18 — Chrome cicns split into 3 kinds; classifier dispatches 3-slice vs 9-slice rendering
+
+After importing 5 exotic Kaleidoscope schemes from the archive (#89), the gallery exposed that **chrome cicns aren't structurally uniform** — they fall into three kinds:
+
+- **Kind A (titlebar-only):** thin horizontal strip, e.g., 7 Le 74×25. Render as 3-slice on the titlebar element + a 1px hairline derived frame for the rest of the window.
+- **Kind B (full-window):** encodes the WHOLE window frame including sides + bottom + corners, e.g., ErgoBox 132×64, Big Blue 89×82, 1990 170×170. Render as **9-slice via CSS border-image on the window ROOT** — corners pinned, sides tile, center fills the content box.
+- **Kind C (fixed-bitmap):** elaborate decoration that doesn't tile cleanly (Acid's lego blocks, evolution's metallic pipes). Fall back to Kind A treatment — distortion accepted as the documented limitation.
+
+New `classifyChromeCicn(url)` helper detects the kind by inspecting the cicn:
+1. Height ≤ 30 → titlebar-only
+2. Center 4×4 sample grid is mostly body-like (transparent or near-white) → full-window
+3. Otherwise → fixed-bitmap
+
+`applyChromeFromTheme` dispatches based on the classifier result — 9-slice apply runs on the window root for Kind B (`applyChromeAs9Slice.ts`); existing 3-slice on titlebar runs for Kinds A and C.
+
+**Subtle test infrastructure gotcha:** the gallery's `attachThemeToWindow` subscribed each window to a global registry, so loading scheme N's theme would re-render windows 0..N-1 with scheme N's chrome. The fix was to bypass `loadTheme` (which always publishes) and instead fetch + parse + resolve manually per-window, then call `applyChromeFromTheme` directly. The registry is the right model for single-active-theme apps; the gallery is a multi-active-theme view that needs per-window apply.
+
+**Schematics + decision rules** documented in `docs/chrome-rendering-architecture.md`. New per-PR pattern: when shipping a renderer change, the architecture doc gets a new section with ASCII diagrams of the slice geometry, not just code-level comments.
+
+---
+
 *New learnings get appended below this line as the project ships.*

@@ -166,7 +166,20 @@
   <div id="gallery"></div>
 
   <script type="module">
-    import { AaronWindow, loadTheme, attachThemeToWindow, themeRegistry } from '../src/index.ts';
+    import { AaronWindow, applyChromeFromTheme } from '../src/index.ts';
+    import { parseTheme } from '../src/themes/schema/index.ts';
+    import { resolveAssetUrls } from '../src/themes/runtime/loadTheme.ts';
+
+    // Bypass loadTheme (which publishes to the global registry and would
+    // make every gallery window re-render whenever a different scheme
+    // loads). Fetch + parse + resolve manually, apply per-window.
+    async function loadThemeBundleLocal(slug) {
+      const url = new URL(`../themes/${slug}/theme.json`, location.href).toString();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+      const parsed = parseTheme(await res.json());
+      return resolveAssetUrls(parsed, url);
+    }
 
     const schemes = [
       { slug: 'masswerk-7-le',           name: 'mass:werk 7 Le',          author: 'Norbert Landsteiner', year: 2001, dark: false },
@@ -216,7 +229,7 @@
 
       // Load the theme + create an AaronWindow inside this host
       const host = block.querySelector(`#host-${scheme.slug}`);
-      const theme = await loadTheme(`../themes/${scheme.slug}/`);
+      const theme = await loadThemeBundleLocal(scheme.slug);
       const w = new AaronWindow({
         title: `${scheme.name} window`,
         x: 8, y: 8,
@@ -227,11 +240,12 @@
         `,
       });
       w.mount(host);
-      attachThemeToWindow(w.element, { windowTypeSlug: 'document-window', theme });
+      try {
+        applyChromeFromTheme(w.element, theme, { windowTypeSlug: 'document-window' });
+      } catch (e) {
+        console.warn('apply failed for', scheme.slug, e);
+      }
     }
-
-    // Subscribe so theme switches between scheme loads re-apply.
-    themeRegistry.subscribe(() => {/* noop, per-host attach already wired */});
   </script>
 </body>
 </html>
