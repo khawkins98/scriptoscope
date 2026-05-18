@@ -1156,3 +1156,23 @@ The fix (V3): pin the **first and last fill segments of each edge** as `flex: 0 
 **Why it matters:** CSS `border-image` corners pin automatically (the slice values define them; the corners aren't subject to repeat). A hand-rolled segment composer has no implicit corner concept — corners must be marked explicitly or the decoration that lives in them gets stretched. The "first + last fill of each edge" heuristic worked across the corpus because recipe authors consistently put corner-zone graphics as the first/last fill segments. If a future scheme breaks that convention, the heuristic needs revisiting; the safer long-term move is deriving the corner extents from the body rect (cinf-equivalent) and synthesizing dedicated corner segments rather than relying on recipe ordering.
 
 **How to apply:** any time we replace `border-image` with a hand-rolled composer, audit what implicit properties of `border-image` we're losing. Corners-don't-stretch was the headline one here; others (slice-aware caching, etc.) will surface as the composer hits more schemes.
+
+
+## 2026-05-18 — "Missing spec" was actually a slice-math bug (#120)
+
+The 1990 scheme had two visible chrome issues that I diagnosed (over multiple PRs) as fundamental format limitations:
+
+1. Bottom-left of every rich-recipe window showed colored squares that don't exist in the cicn's bottom band
+2. The bottom-right star was missing entirely
+
+I built elaborate explanations: "Kaleidoscope authors drew chrome assuming near-native render dimensions," "the format has no per-segment static metadata," "there's a missing geometry/sprite mapping technique." Wrote three PRs (#116 part-overlap pinning, #117 period window constraints, #119 part-code dispatcher) that each chipped at the surface symptoms.
+
+The actual bug: `composeRichRecipe`'s `border-image-slice` math always cropped the cicn's **TOP band** for non-vertical edges. The `isVertical` branch handled left vs right correctly; the non-vertical branch quietly applied top-edge slice values to BOTH top and bottom edges. So the bottom edge rendered top-row pixels (including the close/zoom widgets at cicn x=46-64) at the bottom of the window. The star at bottom-right was missing because we were sampling top-right pixels there (which is just background pattern).
+
+The user finally surfaced it by pixel-sampling the cicn directly: `cicn(60, 145) = pure gray`, yet the rendered window showed colored squares there. There was no missing format field; the renderer was just looking in the wrong place.
+
+**Why it matters:** I had spent multiple PRs working around a bug I'd misclassified as an unfixable format limitation. The pattern was: I'd notice the visual artifact, build a theory about why the format couldn't represent the intent, then PR a workaround that targeted the theory. Each workaround did real-but-marginal good while the actual bug persisted.
+
+**How to apply:** when a visual artifact persists across multiple fix attempts, the next step is ALWAYS to pixel-sample the source. If the rendered output doesn't match what's actually in the source bitmap at that position, the bug is in the renderer's pixel-source math, not in the format's expressiveness. Don't theorize about format limitations before confirming the renderer is reading from the right pixels.
+
+Meta-lesson on user feedback: the user's repeated "this looks wrong" pushback, even after multiple targeted fixes, should have triggered "is my theory wrong?" earlier. Every time they said "the close buttons are still repeating" I added more pinning heuristics — when the right move was to question the slice math. Persistent user disagreement with my framing is information; treat it as a debugging signal, not a UX complaint to mitigate.
