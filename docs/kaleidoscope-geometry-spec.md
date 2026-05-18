@@ -478,6 +478,114 @@ Every field above maps **directly** to either a cinf field, a wnd# entry, a cicn
 
 ---
 
+## 11. The 15 resize behaviors — recovered from Scheme Factory
+
+**Recovered 2026-05-18** by parsing Scheme Factory v1.0PR2's resource fork. The editor's `MENU 139` enumerates the complete vocabulary of per-region resize behaviors:
+
+| # | Menu label | Meaning |
+|---:|---|---|
+| 0 | Stretch to new size | Stretch the whole fill region to fit |
+| 1 | Stretch along top side | Stretch only the top edge (sides anchor) |
+| 2 | Stretch along left side | Stretch only the left edge |
+| 3 | Stretch along bottom side | Stretch only the bottom edge |
+| 4 | Stretch along right side | Stretch only the right edge |
+| 5 | Repeat to fill new size | Tile the whole region |
+| 6 | Repeat along top side | Tile only the top edge |
+| 7 | Repeat along left side | Tile only the left edge |
+| 8 | Repeat along bottom side | Tile only the bottom edge |
+| 9 | Repeat along right side | Tile only the right edge |
+| 10 | Anchor to center | No resize — center the fill |
+| 11 | Anchor to top left corner | Pin to top-left |
+| 12 | Anchor to top right corner | Pin to top-right |
+| 13 | Anchor to bottom left corner | Pin to bottom-left |
+| 14 | Anchor to bottom right corner | Pin to bottom-right |
+
+### 11.1 Where cinf encodes this
+
+The cinf bytes we already decode as `(tileSides ∈ {0,1}, patternAnchor ∈ {0,1,2,3,4})` map to behaviors 0–9:
+
+```
+behavior_id = tileSides * 5 + patternAnchor
+```
+
+So:
+- (0, 0) = 0 = "Stretch to new size" (default)
+- (0, 1) = 1 = "Stretch along top side"
+- (1, 0) = 5 = "Repeat to fill new size"
+- (1, 3) = 8 = "Repeat along bottom side"
+- etc.
+
+Distribution across 1990's 91 cinfs: 61× behavior 0 (stretch whole), 21× behavior 5 (repeat whole), rest = directional variants. **We've been honoring `tileSides` as boolean but ignoring `patternAnchor`** — fixing this is a runtime change, not a format change.
+
+The 5 "Anchor to corner" behaviors (10–14) likely encode via a value range we haven't yet seen in the corpus — possibly `tileSides ≥ 2` or a combined byte. Empirically pending.
+
+### 11.2 No cinf = default behavior for window chrome
+
+For window chrome cicns (the wnd# series, IDs in the -14xxx range), **no cinf exists** in any of the 7 schemes audited. So Kaleidoscope must have applied an implicit default — empirically this looks like behavior 5 ("Repeat to fill new size"), since that matches the multiplying-static-graphics artifact we observe (1990's plaque tiles 3× at 380px window width).
+
+**The 1990 author had no way to mark the plaque as "Anchor to bottom-left corner"** because the format restricts that knob to control elements (cinf-paired), not window chrome. This is a format gap, not a renderer bug.
+
+For Aaron UI to render faithfully at arbitrary window sizes, we may need to either (a) constrain windows to near-native size as Kaleidoscope effectively did (#117 partial), or (b) introduce a curation layer that adds synthetic anchor metadata for known static graphics (deferred).
+
+---
+
+## 12. WDEF protocol — the rendering CONTEXT Kaleidoscope implemented
+
+**Recovered 2026-05-18 via the WDEF research spike** (see [`LEARNINGS.md`](../LEARNINGS.md) entry of same date).
+
+Kaleidoscope is a **Window Definition Procedure (WDEF) replacement**. It hooks into Apple's Window Manager + Appearance Manager and overrides the per-window-type WDEF. The Window Manager dispatches messages — `wDraw`, `wHit`, `wCalcRgns`, `wGrow`, `wDrawGIcon` — and Kaleidoscope's WDEF responds by reading the loaded scheme's resources (cicn / cinf / wnd# / ppat / Colr) and rendering accordingly.
+
+This means **the rendering CONTEXT is Apple's documented WDEF protocol**, even though Kaleidoscope's scheme FORMAT was Greg Landweber's own design.
+
+### 11.1 Apple's window part codes (Inside Macintosh)
+
+A WDEF responds to `wHit` by returning one of these constants from Apple's `WindowPartCode` enum:
+
+| Constant | Value | Region |
+|---|---:|---|
+| `wNoHit` | 0 | Missed (no hit) |
+| `wInContent` | 1 | Content area |
+| `wInDrag` | 2 | Titlebar drag zone |
+| `wInGrow` | 3 | Resize handle |
+| `wInGoAway` | 4 | Close box |
+| `wInZoomIn` | 5 | Zoom box (zoomed-in state) |
+| `wInZoomOut` | 6 | Zoom box (zoomed-out state) |
+| `wInCollapseBox` | 7 | Windowshade (Mac OS 8.0+) |
+| `wInCollapseBoxAll` | 8 | Windowshade-all (Mac OS 8.0+) |
+| `wInProxyIcon` | 9 | Document proxy icon |
+
+A WDEF responds to `wDraw` by painting the chrome at the window's current size. The Window Manager passes the current `WindowRecord` (with size, title, state flags); the WDEF draws into the current graphics port.
+
+### 11.2 Kaleidoscope's `part` field is NOT Apple's part codes
+
+Cross-checking 7 Le's rectList:
+- part-1 visually = close box → would be `wInGoAway`=4 in Apple's codes
+- part-2 visually = zoom → `wInZoomIn`/`wInZoomOut`=5/6
+- part-3 visually = windowshade → `wInCollapseBox`=7
+
+**Kaleidoscope's `part` field in wnd# uses scheme-internal sequential indices**, not Apple's `wInXxx` constants. The match of our observed parts 5/6 to Apple's `wInZoomIn`/`Out` is coincidence; the cross-scheme audit (see §3) confirms parts 5/6 are author-convention divider-decoration markers, not zoom regions.
+
+A Kaleidoscope WDEF must therefore maintain an INTERNAL mapping from scheme-internal part index → Apple `wInXxx` code at runtime, to respond correctly to `wHit`. The mapping is implicit in the rectList order (e.g., "rectList[1] is the close box → return `wInGoAway` for clicks inside it").
+
+### 11.3 Implications for Aaron UI
+
+1. **For chrome PAINTING:** we have everything we need in cicn + cinf + wnd# + Colr. Apple's WDEF protocol doesn't add new fields — it's the calling convention, not a data extension.
+2. **For hit-test → DOM events:** if Aaron UI eventually wires the chrome to interactive close/zoom/windowshade actions, the mapping is `(click position) → (Kaleidoscope part index from recipe) → (Apple wInXxx via scheme-author convention) → (DOM event like 'aaron-close')`. Future work.
+3. **The recipe may be primarily hit-test data, not paint data.** This is the open architectural question — see §6's Aaron UI mapping discussion and the [open spike branch].
+
+### 11.4 The Kaleidoscope SDK is unrecoverable
+
+Confirmed during the 2026-05-18 research:
+
+- kaleidoscope.net SDK pages are gone; Apple's Wayback snapshots don't cover the SDK era usefully
+- Scheme Factory (the official scheme editor) was abandoned in pre-release with no developer docs distributed
+- Damien Erambert's [Mac Themes Garden](https://macthemes.garden/) — the 4,000-scheme archive — renders previews by running real Kaleidoscope in a Mac OS 9 VM via UTM; there is no third-party rendering library in existence
+- Apple "released little documentation" for competing theme formats (Wikipedia, [Kaleidoscope (software)](https://en.wikipedia.org/wiki/Kaleidoscope_(software)))
+
+**Aaron UI's runtime is the only third-party Kaleidoscope renderer ever shipped outside Classic Mac OS.** Cross-scheme empirical audit IS the spec for the bits the TMPL resources don't cover.
+
+---
+
 ## References
 
 - `src/themes/loader/` — the decoder library (cicn, ppat, cinf, wnd# decoders, plus theme.json builder). Runtime-importable.
@@ -489,3 +597,7 @@ Every field above maps **directly** to either a cinf field, a wnd# entry, a cicn
 - mass:werk preview thumbnails at `demo/assets/references/` — the visual ground truth.
 - Lloyd Wood's "The Kaleidoscope Way" — period scheme-author guide (link in [`docs/RESEARCH-SPIKE-THEMES.md`](./RESEARCH-SPIKE-THEMES.md)); points to the wider context but the deep technical details are in the TMPLs.
 - *kaleidoscope.net SDK pages* — domain parked; original SDK content gone. The TMPL resources in every scheme are the authoritative spec we use instead.
+- [Mac OS 8 Window Manager Reference (Inside Macintosh archive)](https://dev.os9.ca/techpubs/new/WindowMgr8Ref/WindowMgrRef.1.html) — the WDEF protocol Kaleidoscope implements.
+- [Inside Macintosh: Macintosh Toolbox Essentials PDF](https://developer.apple.com/library/archive/documentation/mac/pdf/MacintoshToolboxEssentials.pdf) — Window Manager chapter, source of the `wInXxx` part code constants.
+- [Mac Themes Garden](https://macthemes.garden/) — 4,000-scheme archive. Previews via UTM-VM, not third-party renderer.
+- [Scheme Factory v1.0PR2 on Macintosh Repository](https://www.macintoshrepository.org/11058-scheme-factory-kaleidoscope-editor-) — official Kaleidoscope scheme editor (Stenger + Rose). Its resource fork (STR# 128, MENU 139, cnfo, PCS#) is the recovered spec for region naming + resize behaviors. See §11 + the 2026-05-18 LEARNINGS entry "Scheme Factory's resource fork is the missing spec".

@@ -1176,3 +1176,103 @@ The user finally surfaced it by pixel-sampling the cicn directly: `cicn(60, 145)
 **How to apply:** when a visual artifact persists across multiple fix attempts, the next step is ALWAYS to pixel-sample the source. If the rendered output doesn't match what's actually in the source bitmap at that position, the bug is in the renderer's pixel-source math, not in the format's expressiveness. Don't theorize about format limitations before confirming the renderer is reading from the right pixels.
 
 Meta-lesson on user feedback: the user's repeated "this looks wrong" pushback, even after multiple targeted fixes, should have triggered "is my theory wrong?" earlier. Every time they said "the close buttons are still repeating" I added more pinning heuristics — when the right move was to question the slice math. Persistent user disagreement with my framing is information; treat it as a debugging signal, not a UX complaint to mitigate.
+
+
+## 2026-05-18 — Kaleidoscope is a WDEF replacement; format docs are unrecoverable but the rendering CONTEXT is Apple's
+
+Research spike (sources at end). Three load-bearing findings:
+
+**1. Kaleidoscope IS a WDEF (Window Definition Procedure) replacement.** It hooks into Apple's Window Manager + Appearance Manager and overrides the per-window-type WDEF. The Window Manager dispatches `wDraw`, `wHit`, `wCalcRgns`, `wGrow` messages; Kaleidoscope responds by reading the loaded scheme's cicn / cinf / wnd# / ppat / Colr resources and rendering accordingly. So the rendering CONTEXT is Apple's documented WDEF protocol, even though Kaleidoscope's scheme FORMAT was Greg Landweber's own design.
+
+**2. Apple's window part codes are documented** (Inside Macintosh: Macintosh Toolbox Essentials, Window Manager chapter):
+
+  | const | value | region |
+  |---|---:|---|
+  | wNoHit | 0 | missed |
+  | wInContent | 1 | content area |
+  | wInDrag | 2 | titlebar drag |
+  | wInGrow | 3 | resize handle |
+  | wInGoAway | 4 | close box |
+  | wInZoomIn | 5 | zoom box (state 1) |
+  | wInZoomOut | 6 | zoom box (state 2) |
+  | wInCollapseBox | 7 | windowshade (8.0+) |
+  | wInCollapseBoxAll | 8 | windowshade-all (8.0+) |
+  | wInProxyIcon | 9 | doc proxy icon |
+
+**BUT Kaleidoscope's `part` field in wnd# is NOT Apple's part codes verbatim.** Cross-checking 7 Le's rectList: part-1 is the close box (Apple's wInGoAway=4); part-2 is zoom (5/6); part-3 is windowshade (7). Kaleidoscope uses scheme-internal sequential indices, then translates to Apple's wInXxx codes at runtime for the WDEF's wHit response. The match of our observed parts 5/6 to Apple's wInZoomIn/Out is coincidence; cross-scheme audit shows 5/6 are author-convention divider-decoration markers, not zoom regions.
+
+**3. No third-party Kaleidoscope renderer exists.** Confirmed:
+  - kaleidoscope.net SDK pages are gone; Apple's Wayback snapshots don't cover the SDK era
+  - Scheme Factory (official scheme editor) was abandoned in pre-release with no docs
+  - Damien Erambert's Mac Themes Garden (4,000-scheme archive) renders previews by running real Kaleidoscope in a Mac OS 9 VM via UTM — there is no third-party rendering library in existence
+  - Apple "released little documentation" for competing theme formats (per Wikipedia)
+
+Aaron UI's runtime is the only third-party Kaleidoscope renderer ever shipped outside Classic Mac OS. That's exciting and validates the diagnostics-first approach — we don't have anyone to copy from, so empirical cross-scheme audit IS the spec.
+
+### What this changes
+
+- **Our part-code dispatcher (#119) was right in spirit.** Parts 5/6 are scheme-internal divider markers, not Apple's zoom codes. Cross-scheme empirical audit was the correct method.
+- **The recipe may be primarily hit-test data, not paint data.** Kaleidoscope's WDEF needed both — paint at scaled positions + hit-test at scheme-defined zones mapping to Apple codes. We've leaned heavily on the recipe for paint; a simpler 9-slice paint path (cinf-derived geometry only) might match Kaleidoscope's actual behavior better. To test.
+- **Click-handling becomes tractable.** With Apple's codes documented + Kaleidoscope's part indices visible in rectList, we can map (click) → (Kaleidoscope part) → (Apple wInXxx) → (DOM event). Close-box click could trigger AaronWindow.close() correctly per-scheme.
+
+### How to apply
+
+When a format is undocumented and the renderer is unrecoverable, **cross-scheme empirical audit + period-protocol research** is the highest-leverage research move. Don't try to find a missing spec doc that may not exist; instead, audit what the format ACTUALLY contains across the corpus, then cross-reference with the period APIs the format was designed to feed.
+
+### Sources (audit trail)
+
+- [Mac OS 8 Window Manager Reference (Inside Macintosh archive)](https://dev.os9.ca/techpubs/new/WindowMgr8Ref/WindowMgrRef.1.html)
+- [Inside Macintosh: Macintosh Toolbox Essentials PDF](https://developer.apple.com/library/archive/documentation/mac/pdf/MacintoshToolboxEssentials.pdf)
+- [Mac Themes Garden — 4,000-scheme archive](https://macthemes.garden/about/)
+- [Damien Erambert on Mac Themes Garden's UTM-VM preview workflow](https://damien.zone/introducing-mac-themes-garden/)
+- [Low End Mac on Kaleidoscope's Appearance Manager hooking](https://lowendmac.com/2001/change-your-classic-macs-appearance-with-kaleidoscope-and-custom-icons/)
+
+## 2026-05-18 — Scheme Factory's resource fork is the missing spec
+
+User downloaded [Scheme Factory v1.0PR2](https://www.macintoshrepository.org/11058-scheme-factory-kaleidoscope-editor-) — the OFFICIAL Kaleidoscope scheme editor by Joe Stenger + Arlo Rose — and we parsed its 361KB resource fork. Two finds that change everything:
+
+### Find 1: STR# 128 — canonical 127-entry region vocabulary
+
+The editor stores its UI labels in a `STR#` resource that enumerates **every editable region of a Kaleidoscope scheme** in 127 named entries: 14 window types, 14 menu region kinds, 10+ popup-menu states, 30+ buttons (push, default ring, bevel × size × state), 14 tab/header/placard kinds, 25+ slider/progress regions, color/pattern slots.
+
+**This is the missing canonical vocabulary we'd been reverse-engineering from filenames.** The vocabulary we built in `docs/kaleidoscope-asset-catalog.md` was correct in spirit but missing the precise control naming — Scheme Factory's STR# 128 is now the authoritative source.
+
+### Find 2: MENU 139 — 15 per-region resize behaviors
+
+Scheme Factory's "resize" menu lists exactly 15 options that can apply to each fill region:
+
+```
+Stretch to new size              Repeat to fill new size              Anchor to center
+Stretch along top side           Repeat along top side                Anchor to top left corner
+Stretch along left side          Repeat along left side               Anchor to top right corner
+Stretch along bottom side        Repeat along bottom side             Anchor to bottom left corner
+Stretch along right side         Repeat along right side              Anchor to bottom right corner
+```
+
+**Exactly the per-region behavior encoding the user intuited had to exist.** Cinf bytes encode it via `(tileSides ∈ {0,1}, patternAnchor ∈ {0,1,2,3,4})` — stretch-vs-tile × whole/top/left/bottom/right. Distribution across 1990's 91 cinfs: 61× (0,0) "Stretch whole", 21× (1,0) "Repeat whole", rest = directional variants. **We've been honoring `tileSides` as a boolean but completely ignoring `patternAnchor`** — that's the side-anchor that selects which 5 of the 15 behaviors apply.
+
+The 5 "Anchor to corner" options (pin to a corner, no stretch/tile) likely encode via a value range we haven't yet identified — possibly `tileSides=2+` or a combined byte.
+
+### Critical implication for window chrome
+
+For **window chrome** cicns (1990, Acid, evolution — the wnd# series), **cinf doesn't exist at all** (confirmed earlier — cicn -14336 has no matching cinf in any scheme). So Kaleidoscope must have applied a **default resize behavior** to window chrome — probably "Repeat to fill new size", which matches the multiplying-plaque artifact we observe. **The 1990 author had no way to mark the plaque as "Anchor to bottom-left corner" because the format gives that knob only to control elements (cinf-paired), not to window chrome (wnd#-only).**
+
+### Other resources of interest
+
+- **`cnfo` (14 resources)** — Scheme Factory's UI-panel metadata. Contains labels like "End Caps:", "Top Cap:", "Top & Bottom Caps:", "Tile Center" — confirms the cinf edit UI organizes behaviors as caps (corners) + center (fill).
+- **`PCS#` (13 resources)** — "Part Code Sets," one per window type, IDs match wnd# IDs. Probably maps Kaleidoscope-internal part indices to Apple's `wInXxx` codes for hit-testing. Yet to fully decode.
+- **`MENU 134` "wnd# edit"** — confirms wnd# structure: Content & Controls (= rectList), Top of the Window, Bottom of the Window, Left Side, Right Side (= the 4 side recipes). Matches our decoder.
+- **`MENU 136` "cinf edit"** — cinf has three sections: Corners & Sides, Text, Background. Confirms our decoder coverage.
+- **`MENU 137` "cinf fill"** — three fill TYPES: No Fill, Pattern Fill, Color Icon Fill. We've been treating fill uniformly; really there are three modes with different rendering.
+
+### What to do with this
+
+1. **Update the cinf decoder** to extract the full 15-value resize behavior enum, not a `tileSides: boolean`. Honor `patternAnchor` everywhere.
+2. **Update `kaleidoscope-geometry-spec.md`** §2 with the canonical 15-behavior table.
+3. **For window chrome rendering**, the format doesn't encode per-region static anchors. Stretching the chrome (vs repeating) is the closest "Kaleidoscope-faithful" rendering at large widths — the plaque distorts but appears once, vs tiling 3×.
+4. **For Phase 3 controls**, honoring the full 15-value resize behavior is critical — without it every cicn-driven control will get the wrong stretch behavior.
+5. **Decode PCS#** to recover the part-index → `wInXxx` mapping so future click-handling can dispatch to the correct AaronWindow events.
+
+### Process meta-lesson
+
+When the spec docs are unrecoverable, **the editor's binary IS the spec**. Scheme Factory's STR#/MENU resources literally enumerate the editor's vocabulary — which IS the format's vocabulary, since the editor's UI maps 1:1 to scheme fields. **20 minutes of parsing the editor's binary recovered more spec than 2 hours of web research.** If we hit another undocumented format in the future: find the official authoring tool, parse its resource fork, read its UI strings + menu items.
