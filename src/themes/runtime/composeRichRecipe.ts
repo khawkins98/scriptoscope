@@ -267,12 +267,39 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     //   widget → pin at native cicn-px width (no stretch)
     //   fill   → grow proportional to cicn-span so the window-resize math
     //            distributes available space the way the author intended.
-    const sliceTop = isVertical ? start : 0;
-    const sliceBottom = isVertical
-      ? cicnHeight - end
-      : cicnHeight - sideThickness;
-    const sliceLeft = isVertical ? 0 : start;
-    const sliceRight = isVertical ? cicnWidth - sideThickness : cicnWidth - end;
+    // Per-edge slice math — the source rect inside the cicn varies by
+    // which edge we're rendering AND by the segment's axis position.
+    //   top edge:    cicn[start..end,    0..sideThickness]      (top band)
+    //   bottom edge: cicn[start..end,    cicnH-side..cicnH]     (bottom band)
+    //   left edge:   cicn[0..sideThk,    start..end]            (left band)
+    //   right edge:  cicn[cicnW-side..W, start..end]            (right band)
+    //
+    // border-image-slice values are (top, right, bottom, left) insets from
+    // the corresponding source-image edge — i.e., "how many pixels to cut OFF
+    // each side to reach the center region we want to paint".
+    let sliceTop: number, sliceRight: number, sliceBottom: number, sliceLeft: number;
+    if (side === 'top') {
+      sliceTop = 0;
+      sliceBottom = cicnHeight - sideThickness;
+      sliceLeft = start;
+      sliceRight = cicnWidth - end;
+    } else if (side === 'bottom') {
+      sliceTop = cicnHeight - sideThickness;
+      sliceBottom = 0;
+      sliceLeft = start;
+      sliceRight = cicnWidth - end;
+    } else if (side === 'left') {
+      sliceTop = start;
+      sliceBottom = cicnHeight - end;
+      sliceLeft = 0;
+      sliceRight = cicnWidth - sideThickness;
+    } else {
+      // right edge
+      sliceTop = start;
+      sliceBottom = cicnHeight - end;
+      sliceLeft = cicnWidth - sideThickness;
+      sliceRight = 0;
+    }
     // Flex behavior:
     //   widget or corner → pin at native cicn-px (no stretch — preserves
     //                      the author's discrete graphics + corner anchors)
