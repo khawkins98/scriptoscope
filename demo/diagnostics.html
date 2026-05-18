@@ -227,6 +227,10 @@
         </div>
       </div>
 
+      <h2>Reference</h2>
+      <p class="subtitle">Period rendering of the scheme — what the author actually saw on the classic Mac. mass:werk schemes have curated thumbnails on file; exotic schemes link out to the Kaleidoscope Scheme Archive where you can browse the original previews.</p>
+      <div id="reference-host" class="panel" style="padding: 12px;"></div>
+
       <h2>Classifier verdict</h2>
       <div id="verdict-host"></div>
 
@@ -251,6 +255,22 @@
       <h2>Parts (named cicn rects)</h2>
       <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
       <div id="parts-host"></div>
+
+      <h2>Full chromeElements catalog (all extracted rasters)</h2>
+      <p class="subtitle">
+        Every <code>cicn</code> the extractor decoded from the scheme's resource fork —
+        not just the document-window chrome above. Confirms which controls have
+        artwork in this scheme (scrollbars, buttons, sliders, popup arrows, etc.)
+        vs. which Aaron UI renders via CSS / palette tinting. Click any thumb to
+        open the raw PNG.
+      </p>
+      <div class="toggles">
+        <label>Filter:
+          <input id="t-cat-filter" type="text" placeholder="scrollbar, button, slider, …" style="font: inherit; padding: 4px 8px; background: #1c1c1f; border: 1px solid #44444a; border-radius: 4px; color: #e0e0e0;">
+        </label>
+        <span id="t-cat-count" style="font-family: ui-monospace, Menlo, monospace; font-size: 12px; opacity: 0.7;"></span>
+      </div>
+      <div id="catalog-host" class="panel" style="padding: 12px;"></div>
     </div>
 
     <div class="right">
@@ -258,7 +278,11 @@
       <p class="subtitle">Real <code>AaronWindow</code> with the scheme applied. Stays pinned while you scroll the data on the left.</p>
       <div class="toggles">
         <label><input type="checkbox" id="t-highlight"> Highlight</label>
+        <button id="t-native" style="font: inherit; padding: 4px 8px; background: #1c1c1f; border: 1px solid #44444a; border-radius: 4px; color: #9bd; cursor: pointer;">Lock to native cicn width</button>
       </div>
+      <p class="subtitle" style="font-size: 11px; margin: 6px 0 4px;">
+        "Lock to native" sets window width = cicn-native-width. For Kind C schemes this is the only size where chrome doesn't distort.
+      </p>
       <div class="toggles" style="margin-top: 4px;">
         <label style="flex: 1;">Width
           <input type="range" id="t-width" min="180" max="800" value="380" style="width:100%;">
@@ -295,6 +319,45 @@
 
     function fmtRect(rect) { return `[${rect.join(', ')}]`; }
 
+    // Map slug → reference jpg (when curated) + always-available archive link.
+    const REFERENCE_JPGS = {
+      'masswerk-7-le': 'assets/references/masswerk-7-le.jpg',
+      'masswerk-dark-ergobox2': 'assets/references/masswerk-dark-ergobox2.jpg',
+    };
+    // Archive search URLs — kaleidoscope.hryjksn.com lets you find the
+    // scheme + see its dynamically-rendered preview. Per-scheme deep links
+    // aren't stable, so we link to the search instead.
+    const ARCHIVE_SEARCH = 'https://kaleidoscope.hryjksn.com/';
+
+    function renderReference(slug, theme) {
+      const host = document.getElementById('reference-host');
+      host.innerHTML = '';
+      const jpg = REFERENCE_JPGS[slug];
+      if (jpg) {
+        const img = document.createElement('img');
+        img.src = jpg;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.borderRadius = '4px';
+        img.style.imageRendering = 'auto';
+        img.alt = `${theme.name} — period reference rendering`;
+        host.appendChild(img);
+        const caption = document.createElement('div');
+        caption.style.opacity = '0.6';
+        caption.style.fontSize = '11px';
+        caption.style.marginTop = '6px';
+        caption.textContent = `Curated reference for ${theme.name}.`;
+        host.appendChild(caption);
+      } else {
+        const id = theme.origin?.originalSchemeId;
+        host.innerHTML = `
+          <p style="margin: 0 0 8px;">No curated reference image on file for this scheme.</p>
+          <p style="margin: 0 0 8px;">Browse the <a href="${ARCHIVE_SEARCH}" target="_blank" style="color:#9bd;">Kaleidoscope Scheme Archive</a> ${id ? `(scheme #${id})` : ''} for a dynamic preview rendered from the same resource fork data.</p>
+          <p style="margin: 0; opacity: 0.6; font-size: 11px;">For now, the "Chrome cicns" section below shows the raw cicn bitmaps that <em>are</em> the visual ground truth.</p>
+        `;
+      }
+    }
+
     function renderMeta(theme) {
       document.getElementById('meta-name').textContent = theme.name ?? '—';
       const a = theme.author;
@@ -326,7 +389,14 @@
       const desc = {
         'titlebar-only': 'Thin cicn → 3-slice on titlebar element. Recipe-driven per-segment composition (Phase 4a-c). Side+bottom rendered as recipe-driven segments inside <code>[data-aaron-edge]</code> containers, sized by derived frame geometry.',
         'full-window': '9-slice border-image on the WINDOW ROOT (border-top/right/bottom/left widths from derived geometry). Recipe segments cleared to avoid double-rendering on top of the 9-slice border.',
-        'fixed-bitmap': 'Falls back to titlebar-only treatment (renderer can\'t faithfully reproduce decorative non-tileable cicns at arbitrary sizes; Kind C is the documented limitation).',
+        'fixed-bitmap': `Falls back to 3-slice titlebar treatment. <br><br>
+          <strong>Why "limited":</strong> the cicn's middle region is decoration (e.g., elaborate corner ornaments, body patterns) that wasn't designed to tile. 3-slice tiles the cicn's middle horizontally — for non-tileable middles this produces visible seams or repetition.<br><br>
+          <strong>Workarounds you can try in the live render pane:</strong>
+          <ul style="margin: 6px 0 0 18px; padding: 0; line-height: 1.5;">
+            <li><strong>Lock to native size</strong> — set the width slider to the cicn's native width. The chrome renders at its authored dimensions; no stretching artifacts. Caveat: window can't resize beyond that.</li>
+            <li><strong>Use the scheme for fixed-size apps only</strong> — splash screens, About boxes, dialog windows that don't need to grow. Period Kaleidoscope schemes were typically used by apps that respected these constraints.</li>
+            <li><strong>Future option (not built):</strong> canvas-composite render that decodes the cicn at runtime + paints at the window's exact size with intelligent stretching (treating decorative islands as fixed-position, growing only known-tileable backgrounds). Significant implementation effort; deferred until a real consumer demands it.</li>
+          </ul>`,
       };
       div.innerHTML = `<strong>Classifier kind:</strong> <code>${kind}</code><br><br>${desc[kind] ?? ''}`;
       host.appendChild(div);
@@ -566,6 +636,19 @@
       const widthRange = document.getElementById('t-width');
       const widthDisplay = document.getElementById('t-width-display');
       const highlight = document.getElementById('t-highlight');
+      const lockBtn = document.getElementById('t-native');
+      // "Lock to native" — find document-window cicn's native width + set slider.
+      lockBtn.onclick = () => {
+        const wt = theme.windowTypes?.['document-window'];
+        const cicnUrl = wt?.chrome?.active ?? wt?.chrome?.inactive;
+        if (!cicnUrl) return;
+        const ce = Object.values(theme.chromeElements ?? {}).find((e) => e.asset === cicnUrl);
+        const nativeW = ce?.width;
+        if (nativeW) {
+          widthRange.value = String(nativeW);
+          widthRange.dispatchEvent(new Event('input'));
+        }
+      };
       const mountWindow = () => {
         live.innerHTML = '';
         const w = parseInt(widthRange.value, 10);
@@ -588,14 +671,103 @@
       highlight.addEventListener('change', () => live.classList.toggle('highlight', highlight.checked));
     }
 
+    function renderCatalog(theme) {
+      const host = document.getElementById('catalog-host');
+      const countEl = document.getElementById('t-cat-count');
+      const filterEl = document.getElementById('t-cat-filter');
+      const all = Object.entries(theme.chromeElements ?? {});
+      const pats = Object.entries(theme.patterns ?? {});
+
+      function render() {
+        const q = filterEl.value.trim().toLowerCase();
+        const filteredCicns = all.filter(([slug]) => !q || slug.toLowerCase().includes(q));
+        const filteredPats = pats.filter(([slug]) => !q || slug.toLowerCase().includes(q));
+        countEl.textContent = `${filteredCicns.length} cicns + ${filteredPats.length} ppats (${all.length}+${pats.length} total)`;
+
+        host.innerHTML = '';
+        const grid = document.createElement('div');
+        grid.style.display = 'grid';
+        grid.style.gap = '10px';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+        host.appendChild(grid);
+
+        for (const [slug, entry] of filteredCicns) {
+          const card = document.createElement('a');
+          card.href = entry.asset;
+          card.target = '_blank';
+          card.style.background = '#1c1c1f';
+          card.style.border = '1px solid #44444a';
+          card.style.borderRadius = '4px';
+          card.style.padding = '8px';
+          card.style.display = 'flex';
+          card.style.flexDirection = 'column';
+          card.style.alignItems = 'center';
+          card.style.gap = '6px';
+          card.style.color = '#e0e0e0';
+          card.style.textDecoration = 'none';
+          card.style.fontSize = '11px';
+          const img = document.createElement('img');
+          img.src = entry.asset;
+          img.style.imageRendering = 'pixelated';
+          img.style.maxWidth = '120px';
+          img.style.maxHeight = '60px';
+          img.style.background = 'repeating-conic-gradient(#333 0% 25%, #1c1c1f 0% 50%) 50%/8px 8px';
+          card.appendChild(img);
+          const lbl = document.createElement('div');
+          lbl.style.fontFamily = 'ui-monospace, Menlo, monospace';
+          lbl.style.opacity = '0.85';
+          lbl.style.wordBreak = 'break-all';
+          lbl.style.textAlign = 'center';
+          lbl.textContent = slug;
+          card.appendChild(lbl);
+          const dim = document.createElement('div');
+          dim.style.opacity = '0.5';
+          dim.textContent = `${entry.width ?? '?'}×${entry.height ?? '?'}`;
+          card.appendChild(dim);
+          grid.appendChild(card);
+        }
+
+        if (filteredPats.length > 0) {
+          const sep = document.createElement('h3');
+          sep.textContent = `Patterns (ppat) — ${filteredPats.length}`;
+          sep.style.gridColumn = '1 / -1';
+          sep.style.marginTop = '14px';
+          grid.appendChild(sep);
+          for (const [slug, entry] of filteredPats) {
+            const card = document.createElement('a');
+            card.href = entry.asset;
+            card.target = '_blank';
+            card.style.cssText = 'background:#1c1c1f;border:1px solid #44444a;border-radius:4px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#e0e0e0;text-decoration:none;font-size:11px;';
+            const swatch = document.createElement('div');
+            swatch.style.width = '100px';
+            swatch.style.height = '40px';
+            swatch.style.backgroundImage = `url("${entry.asset}")`;
+            swatch.style.backgroundRepeat = 'repeat';
+            swatch.style.imageRendering = 'pixelated';
+            card.appendChild(swatch);
+            const lbl = document.createElement('div');
+            lbl.style.fontFamily = 'ui-monospace, Menlo, monospace';
+            lbl.style.opacity = '0.85';
+            lbl.textContent = slug;
+            card.appendChild(lbl);
+            grid.appendChild(card);
+          }
+        }
+      }
+      render();
+      filterEl.oninput = render;
+    }
+
     async function loadAndRender(slug) {
       const theme = await loadSchemeData(slug);
       const wt = theme.windowTypes?.['document-window'];
+      renderReference(slug, theme);
       renderMeta(theme);
       await renderVerdict(theme, wt);
       renderCicnStacks(theme, wt);
       renderRecipes(theme, wt);
       renderParts(theme, wt);
+      renderCatalog(theme);
       await renderLive(theme, slug);
     }
 
