@@ -71,7 +71,7 @@ const win = new AaronWindow({
 
 ### 3. Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope itself
 
-Aaron UI is **a web-native runtime for the Kaleidoscope theme genre — not a re-authoring project.** Period themes authored as Kaleidoscope schemes (`.ksc` files) are the corpus *and* the input format. We read their compiled resources (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly, via the [scheme-extractor](./tools/scheme-extractor/) pipeline, and re-implement the *rendering* entirely in our own CSS / SVG / JS — Aaron UI never uses Kaleidoscope's source code, but it does honour Kaleidoscope's data layout.
+Aaron UI is **a web-native runtime for the Kaleidoscope theme genre — not a re-authoring project.** Period themes authored as Kaleidoscope schemes (`.ksc` files) are the corpus *and* the input format. We read their compiled resources (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly. The decoders live in [`src/themes/loader/`](./src/themes/loader/) — pure-JS, browser-portable — so the runtime can decode any well-formed scheme on the fly, the way Kaleidoscope itself did. Build-time bundles ([scheme-extractor CLI](./tools/scheme-extractor/) → `theme.json` + PNG cache) remain as a performance optimisation. We re-implement the *rendering* entirely in our own CSS / SVG / JS — Aaron UI never uses Kaleidoscope's source code, but it does honour Kaleidoscope's data layout.
 
 **A consequence worth naming: classic-Mac Kaleidoscope authoring tools become Aaron UI authoring tools.** Anyone with ResEdit + the period Kaleidoscope SDK (or a modern emulator running them) can produce a `.ksc` that Aaron UI will load. The format is the contract; the runtime is incidental.
 
@@ -119,7 +119,7 @@ Three things shifted at once:
   - *Not* desktop background, system sounds, or fonts — Kaleidoscope schemes in practice didn't carry these; Aaron UI doesn't fabricate them.
 - A starter theme library:
   - **Bundled default: mass:werk's "7 Le"** — Platinum-faithful, freeware-licensed, single-author provenance. Shipped inside the npm package so `import 'aaron-ui'` renders something immediately, with no extra fetch.
-  - **Loadable Kaleidoscope schemes from the wider corpus** — ≈4,010 schemes on Macintosh Garden / Mac Themes Garden archives. Any with explicit freeware-with-redistribution readmes can be loaded via the extractor → `theme.json` pipeline, then served from any URL.
+  - **Loadable Kaleidoscope schemes from the wider corpus** — ≈4,010 schemes on Macintosh Garden / Mac Themes Garden / [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/). Any with explicit freeware-with-redistribution readmes can be loaded directly by the runtime (phase-2 `loadKaleidoscopeScheme(bytes)`) or pre-extracted via the CLI for caching, then served from any URL.
   - **Newly-authored schemes** — produced via period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK, on classic Mac OS or under emulation) and dropped into Aaron UI directly. Because we honour Kaleidoscope's format as the contract, the long-dormant authoring toolchain becomes a live authoring path again.
 
 (Framework-agnostic, HIG-faithful, and the integration model are all spelled out in §North Star above; not repeated here to avoid drift.)

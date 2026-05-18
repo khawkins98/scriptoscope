@@ -66,8 +66,11 @@ Same outer DOM. Drastically different rendering model. **The DOM is the contract
 
 ```mermaid
 flowchart LR
-    A[".ksc file"] -->|tools/scheme-extractor| B["theme.json + PNG assets"]
+    A[".ksc file"] -->|tools/scheme-extractor<br/>(build-time, today)| B["theme.json + PNG assets"]
+    A2[".rsrc bytes"] -.->|src/themes/loader<br/>(runtime, phase 2+)| C2["in-memory Theme"]
     B -->|loadTheme url| C["parseTheme(json)"]
+    C2 --> D
+    C --> D
     C --> D["ThemeRegistry.replace(theme)"]
     D --> E["root --aaron-colr-* custom props"]
     D --> F["document.adoptedStyleSheets:<br/>cinf-derived border-image rules"]

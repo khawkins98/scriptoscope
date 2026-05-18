@@ -480,7 +480,8 @@ Every field above maps **directly** to either a cinf field, a wnd# entry, a cicn
 
 ## References
 
-- `tools/scheme-extractor/` — the extractor itself and its README.
+- `src/themes/loader/` — the decoder library (cicn, ppat, cinf, wnd# decoders, plus theme.json builder). Runtime-importable.
+- `tools/scheme-extractor/` — Node CLI wrapper around `src/themes/loader/`, plus the DeRez-text preprocessing step.
 - `docs/scheme-deconstruction/masswerk-7-le.md` — empirical observations + provenance for the 7 Le scheme.
 - `docs/scheme-deconstruction/masswerk-dark-ergobox2.md` — same for ErgoBox.
 - `docs/RESEARCH-SPIKE-THEMES.md` — the spike that started this whole workstream.
