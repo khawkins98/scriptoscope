@@ -46,12 +46,12 @@ test.describe('theme switcher (e2e)', () => {
 
     await page.locator('#load-ergobox').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-dark-ergobox2');
-    // Recipe segments in the titlebar now reference the new scheme's cicn.
+    // ErgoBox is Kind B → 9-slice border-image on the window root.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
+        .locator('.aaron-window')
         .first()
-        .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
     }).toPass({ timeout: 2000 });
   });

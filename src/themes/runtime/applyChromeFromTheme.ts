@@ -25,7 +25,7 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
-import { composeTopRecipe, composeBottomRecipe, composeSideRecipe } from './composeRecipeBased.js';
+import { composeTopRecipe, composeBottomRecipe, composeSideRecipe, clearRecipeSegments } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
@@ -154,19 +154,26 @@ export function applyChromeFromTheme(
       const bottomContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="bottom"]');
       const leftContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="left"]');
       const rightContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="right"]');
-      let bottomOk = false;
-      let leftOk = false;
-      let rightOk = false;
-      if (bottomContainer) bottomOk = composeBottomRecipe(bottomContainer, windowType, composeOpts).applied;
-      if (leftContainer) leftOk = composeSideRecipe(leftContainer, windowType, composeOpts, 'left').applied;
-      if (rightContainer) rightOk = composeSideRecipe(rightContainer, windowType, composeOpts, 'right').applied;
+      if (bottomContainer) composeBottomRecipe(bottomContainer, windowType, composeOpts);
+      if (leftContainer) composeSideRecipe(leftContainer, windowType, composeOpts, 'left');
+      if (rightContainer) composeSideRecipe(rightContainer, windowType, composeOpts, 'right');
 
-      // 9-slice on the window root is now a final fallback — only fires
-      // for Kind B schemes that DIDN'T get all four sides recipe-handled.
-      // With phase 4c, that's rare for well-formed schemes.
-      const allRecipeSidesOk = bottomOk && leftOk && rightOk;
+      // Kind B (full-window cicn — e.g., ErgoBox) handles the entire
+      // frame via 9-slice border-image on the window root: the top
+      // border IS the titlebar visual; sides + bottom carry the bevel.
+      // For Kind B we CLEAR the recipe segments (they'd double-render
+      // on top of the 9-slice's top border) and let 9-slice own the
+      // whole frame.
+      // For Kind A (titlebar-only cicn), the recipe segments ARE the
+      // titlebar chrome; no 9-slice runs.
       void classifyChromeCicn(cicnUrl).then((kind) => {
-        if (kind === 'full-window' && !allRecipeSidesOk) {
+        if (kind === 'full-window') {
+          // Clear the recipe segments from titlebar + edge containers —
+          // 9-slice handles everything.
+          clearRecipeSegments(titlebar);
+          if (bottomContainer) clearRecipeSegments(bottomContainer);
+          if (leftContainer) clearRecipeSegments(leftContainer);
+          if (rightContainer) clearRecipeSegments(rightContainer);
           void applyWindowAs9Slice(windowEl, windowType, composeOpts);
         } else {
           clearWindow9Slice(windowEl);

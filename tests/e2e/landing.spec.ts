@@ -40,13 +40,14 @@ test.describe('landing page (index.html)', () => {
 
     await page.locator('#scheme-switcher').selectOption('masswerk-dark-ergobox2');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk Dark ErgoBox 2');
-    // Recipe segments in the titlebar should now reference the new
-    // scheme's cicn.
+    // ErgoBox is Kind B (full-window cicn) — 9-slice border-image
+    // on the window root paints the frame; recipe segments are
+    // cleared (would otherwise double-render).
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
+        .locator('.aaron-window')
         .first()
-        .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
     }).toPass({ timeout: 2000 });
   });
