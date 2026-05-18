@@ -82,7 +82,16 @@ export function buildThemeJson(manifest, options = {}) {
       width: cicn.width,
       height: cicn.height,
       slice: cd
-        ? { corner: cd.cornerSize, side: cd.sideThickness, tile: cd.tileSides !== 0 }
+        ? {
+            corner: cd.cornerSize,
+            side: cd.sideThickness,
+            tile: cd.tileSides !== 0,
+            // The full 15-value resize behavior per Scheme Factory MENU 139.
+            // See docs/kaleidoscope-geometry-spec.md §11. Surfaced here so the
+            // runtime can honor per-region behavior (e.g., 'repeat-bottom')
+            // rather than treating `tile` as a boolean.
+            resizeBehavior: cd.resizeBehavior,
+          }
         : null,
       bgPattern: cd && cd.bgPatternId !== 0
         ? (ppatSlugById[cd.bgPatternId] ?? null)
