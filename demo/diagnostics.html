@@ -406,21 +406,62 @@
       const host = document.getElementById('cicn-stacks');
       host.innerHTML = '';
       if (!windowType?.chrome) return;
-      const states = Object.entries(windowType.chrome);
+      const states = Object.entries(windowType.chrome).filter(([, url]) => typeof url === 'string');
       const parts = windowType.parts ?? {};
       const recipes = windowType.edges ?? {};
-      const grid = document.createElement('div');
-      grid.style.display = 'grid';
-      grid.style.gap = '20px';
-      grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(360px, 1fr))';
-      host.appendChild(grid);
 
-      for (const [state, cicnUrl] of states) {
-        if (typeof cicnUrl !== 'string') continue;
+      // Tab bar (active / inactive / ...) — saves vertical + horizontal
+      // space vs the prior side-by-side grid, especially for full-window
+      // (Kind B) schemes where each cicn is hundreds of px tall.
+      const tabBar = document.createElement('div');
+      tabBar.style.display = 'flex';
+      tabBar.style.gap = '4px';
+      tabBar.style.marginBottom = '12px';
+      tabBar.style.borderBottom = '1px solid #2a2a35';
+      host.appendChild(tabBar);
+      const panels = document.createElement('div');
+      host.appendChild(panels);
+
+      const tabButtons = [];
+      const tabPanels = [];
+
+      function selectTab(idx) {
+        tabButtons.forEach((b, i) => {
+          const sel = i === idx;
+          b.style.background = sel ? '#3a3a45' : 'transparent';
+          b.style.color = sel ? '#fff' : '#aaa';
+          b.style.borderBottom = sel ? '2px solid #6af' : '2px solid transparent';
+        });
+        tabPanels.forEach((p, i) => { p.style.display = i === idx ? '' : 'none'; });
+      }
+
+      states.forEach(([state, cicnUrl], stateIdx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = state;
+        btn.style.background = 'transparent';
+        btn.style.color = '#aaa';
+        btn.style.border = '0';
+        btn.style.borderBottom = '2px solid transparent';
+        btn.style.padding = '8px 14px';
+        btn.style.cursor = 'pointer';
+        btn.style.font = 'inherit';
+        btn.style.fontSize = '13px';
+        btn.style.textTransform = 'uppercase';
+        btn.style.letterSpacing = '0.04em';
+        btn.onclick = () => selectTab(stateIdx);
+        tabBar.appendChild(btn);
+        tabButtons.push(btn);
+
         const card = document.createElement('div');
         card.className = 'panel';
-        card.innerHTML = `<h3>${state}</h3>`;
-        grid.appendChild(card);
+        panels.appendChild(card);
+        tabPanels.push(card);
+      });
+      selectTab(0);
+
+      states.forEach(([state, cicnUrl], stateIdx) => {
+        const card = tabPanels[stateIdx];
 
         const img = document.createElement('img');
         img.src = cicnUrl;
@@ -528,8 +569,9 @@
           dim.textContent = `${w}×${h} px`;
           card.appendChild(dim);
 
-          // Parts legend (only on first card)
-          if (state === states[0][0] && partsEntries.length > 0) {
+          // Parts legend (each tab gets its own so the legend isn't hidden
+          // when user clicks the inactive tab).
+          if (partsEntries.length > 0) {
             const legend = document.createElement('div');
             legend.className = 'legend';
             legend.style.marginTop = '12px';
@@ -546,7 +588,7 @@
             card.appendChild(legend);
           }
         };
-      }
+      });
     }
 
     function updateOverlayVisibility() {

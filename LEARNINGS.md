@@ -1101,3 +1101,26 @@ The 3-slice via CSS `border-image` approach from Phase 3 (#87) does this correct
 ---
 
 *New learnings get appended below this line as the project ships.*
+
+---
+
+## 2026-05-18 — Display gaps look identical to extraction gaps (#105)
+
+User reported that mass:werk 7 Le "only shows titlebar assets but no scrollbar/buttons" and suspected the loader wasn't extracting everything. The loader was actually extracting everything (119 cicns + 6 ppats for 7 Le). The diagnostics page just didn't show them — it only rendered the four document-window chrome states because that's what the renderer consumes.
+
+**Lesson:** when a user reports "missing data," distinguish three failure modes before debugging:
+1. Loader didn't extract → check `themes/<slug>/cicns/` directory size + `chromeElements` count
+2. Theme JSON drops it → diff `chromeElements` keys against on-disk cicn filenames
+3. Renderer doesn't use it → that's what was happening here
+
+Fix: added a full chromeElements catalog grid to the diagnostics page so all extracted rasters are visible regardless of which the runtime consumes. Now extraction-vs-display is a glance, not an investigation.
+
+**Meta-lesson:** the diagnostics page is the right place to make EVERY extracted-vs-rendered comparison visible — if a category of assets isn't currently rendered, show it anyway so the gap is obvious. The page's value compounds with each section added.
+
+## 2026-05-18 — Kind C has reasonable workarounds; don't treat it as "broken" (#105)
+
+When the chrome classifier returns "fixed-bitmap" (Kind C), I had been describing it as a hard limitation. It's actually a soft one: period Mac apps that used these schemes typically were fixed-size (splash screens, About boxes), so the constraint matches the original usage pattern.
+
+**Lesson:** the diagnostics page's verdict text should explain WHAT can be done about each limitation, not just that the limitation exists. Added three workaround options to the Kind C verdict (lock to native size, fixed-size-apps-only usage, future canvas-composite) plus a "Lock to native cicn width" button in the live render pane that snaps the slider to the cicn's authored width.
+
+**How to apply:** every classifier verdict should answer "now what?" with concrete actions, not just "this is the situation." Pure diagnosis without remediation paths makes the tool less useful.
