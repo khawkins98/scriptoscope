@@ -87,7 +87,13 @@ function applyBorderImage(
   el.style.borderBottomWidth = `${cfg.bottom}px`;
   el.style.borderLeftWidth = `${cfg.left}px`;
   el.style.borderImageSource = cicnUrlCss;
-  el.style.borderImageSlice = `${cfg.top} ${cfg.right} ${cfg.bottom} ${cfg.left} fill`;
+  // No `fill` keyword: the cicn's CENTER region is discarded so the
+  // element's own background (or window contents) shows through. The
+  // cicn's body region is a placeholder for the actual window body —
+  // never the intended visual. With `fill`, the center pixels tile
+  // across the content box producing visible repetition (e.g., Big
+  // Blue's icon stamped across the body, 1990's grunge tiled).
+  el.style.borderImageSlice = `${cfg.top} ${cfg.right} ${cfg.bottom} ${cfg.left}`;
   el.style.borderImageWidth = `${cfg.top}px ${cfg.right}px ${cfg.bottom}px ${cfg.left}px`;
   el.style.borderImageRepeat = 'round';
   el.style.imageRendering = 'pixelated';

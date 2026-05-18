@@ -205,8 +205,17 @@
     <label>
       Scheme:
       <select id="scheme-switcher">
-        <option value="masswerk-7-le">mass:werk 7 Le (Platinum-faithful)</option>
-        <option value="masswerk-dark-ergobox2">mass:werk Dark ErgoBox 2 (dark, BeOS tab)</option>
+        <optgroup label="Platinum-faithful (default test schemes)">
+          <option value="masswerk-7-le">mass:werk 7 Le — Norbert Landsteiner</option>
+          <option value="masswerk-dark-ergobox2">mass:werk Dark ErgoBox 2 — Norbert Landsteiner</option>
+        </optgroup>
+        <optgroup label="Exotic (from Kaleidoscope Scheme Archive)">
+          <option value="acid">Acid (#1022) — SHIOCOP</option>
+          <option value="1138">1138 — Erik Ekengren</option>
+          <option value="big-blue">Big Blue is Watching (#1984) — Geoffrey Hamilton</option>
+          <option value="1990">1990 — SHIOCOP</option>
+          <option value="evolution">1991 evolution — SHIOCOP</option>
+        </optgroup>
       </select>
     </label>
     <a href="https://github.com/khawkins98/aaron-ui">GitHub ↗</a>
@@ -433,15 +442,25 @@
       if (theme.origin?.sourceUrl) readmeSource.href = theme.origin.sourceUrl;
 
       // Side-by-side reference thumbnail — derive from the loaded theme's
-      // slug (we know our convention; this isn't a runtime feature, just
-      // a demo convenience).
-      const slug = theme.name?.toLowerCase().includes('ergobox')
-        ? 'masswerk-dark-ergobox2'
-        : 'masswerk-7-le';
-      document.getElementById('reference-img').src = `assets/references/${slug}.jpg`;
-
-      // Reflect in the switcher in case the change came from elsewhere.
-      if (select.value !== slug) select.value = slug;
+      // slug. For schemes with a dedicated reference jpg (the two mass:werk
+      // bundles), use it. For the exotic bundles from the Kaleidoscope
+      // archive, fall back to the chrome cicn itself at 4× scale, which is
+      // what the dedicated themes-gallery.html page shows.
+      const slug = select.value;
+      const ref = document.getElementById('reference-img');
+      const dedicatedRefs = new Set(['masswerk-7-le', 'masswerk-dark-ergobox2']);
+      if (dedicatedRefs.has(slug)) {
+        ref.src = `assets/references/${slug}.jpg`;
+        ref.style.imageRendering = 'pixelated';
+      } else {
+        // Use the chrome cicn — it's the author's design intent at native size.
+        const active = theme.windowTypes?.['document-window']?.chrome?.active;
+        if (active) {
+          // active is already a resolved absolute URL after loadTheme.
+          ref.src = active;
+          ref.style.imageRendering = 'pixelated';
+        }
+      }
     }
     themeRegistry.subscribe(refreshProvenance);
     refreshProvenance(themeRegistry.current());
