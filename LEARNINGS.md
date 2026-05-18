@@ -1029,4 +1029,29 @@ Mirror of `composeTopRecipe` for the bottom-edge container. Same logic with vert
 
 ---
 
+### 2026-05-18 — Phase 4c: recipe-driven left + right edges (loader rewrite complete)
+
+`composeSideRecipe(container, windowType, options, 'left' | 'right')` mirrors top + bottom with axes swapped:
+- Recipe `at` values are Y coordinates (positions down the side, not across)
+- Named parts anchor `top` or `bottom` based on cicn-Y half center
+- Fills tile vertically (`repeat-y`), sampling cicn's leftmost column (left edge) or rightmost column (right edge)
+
+**Dispatch in `applyChromeFromTheme`:** when top recipe applies, also run bottom + left + right recipes (each on their `[data-aaron-edge]` container if present). Only fall back to 9-slice-on-window for Kind B schemes that DIDN'T get all four sides recipe-handled. For well-formed schemes that's now rare.
+
+**Visible across schemes:** the side widgets/decoration that 1990, evolution, ErgoBox encode in their side recipes now show as thin vertical strips down the windows. Big Blue's silhouette stays at top + bottom (it has no side decoration in its wnd# data — faithful).
+
+**Phase 4 plan complete:** all four sides driven by `wnd#` recipes + `parts` rects, the way Kaleidoscope itself rendered. The CSS-`border-image` paths (`applyTitlebarAs3Slice`, `applyWindowAs9Slice`) remain in the tree as fallbacks for schemes without recipe data — dead code for now since every bundled scheme ships recipes. Will deprecate + delete in a follow-up cycle once stability is confirmed.
+
+**Loader rewrite cumulative scope** (across Phases 1–4):
+- Phase 1: move decoders from `tools/scheme-extractor/lib/` to `src/themes/loader/` (#93)
+- Phase 2: pure-JS resource fork parser + `loadKaleidoscopeScheme(bytes|url|Blob)` (#94)
+- Phase 3: distribute themes as `.rsrc` blobs + canonical Mac OS wnd# slug fallback table (#95)
+- Phase 4a: recipe-driven top edge (#96)
+- Phase 4b: recipe-driven bottom edge (#97)
+- Phase 4c: recipe-driven left + right edges (this entry)
+
+End state: drop any well-formed `.ksc` URL into `loadKaleidoscopeScheme()` → faithful Kaleidoscope-style rendering on all 4 sides via per-segment composition. No build step, no per-scheme patches, no CSS `border-image` shortcuts for schemes that ship recipes.
+
+---
+
 *New learnings get appended below this line as the project ships.*

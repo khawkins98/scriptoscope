@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { composeTopRecipe, composeBottomRecipe, clearRecipeSegments } from './composeRecipeBased.js';
+import { composeTopRecipe, composeBottomRecipe, composeSideRecipe, clearRecipeSegments } from './composeRecipeBased.js';
 import type { WindowTypeEntry } from '../schema/types.js';
 
 const W = 74;
@@ -9,7 +9,7 @@ const OPTS = { cicnWidth: W, cicnHeight: H, cicnUrl: 'cicns/test.png' };
 function makeWindowType(
   edges: { at: number; part: string }[],
   parts: Record<string, [number, number, number, number]> = {},
-  side: 'top' | 'bottom' = 'top',
+  side: 'top' | 'bottom' | 'left' | 'right' = 'top',
 ): WindowTypeEntry {
   const partsMap: Record<string, { rect: [number, number, number, number] }> = {};
   for (const [k, v] of Object.entries(parts)) partsMap[k] = { rect: v };
@@ -154,6 +154,57 @@ describe('composeTopRecipe', () => {
     expect(middle).not.toBeNull();
     // backgroundPositionY should be 'bottom' so cicn's bottom rows show.
     expect(middle.style.backgroundPosition).toContain('bottom');
+  });
+
+  it('composeSideRecipe returns applied=false when no recipe', () => {
+    const wt = { chrome: { active: {} }, edges: {}, parts: {} } as unknown as WindowTypeEntry;
+    expect(composeSideRecipe(el, wt, OPTS, 'left').applied).toBe(false);
+    expect(composeSideRecipe(el, wt, OPTS, 'right').applied).toBe(false);
+  });
+
+  it('composeSideRecipe left edge: named at top-Y anchors to top, fill tiles vertically', () => {
+    const wt = makeWindowType(
+      [{ at: 0, part: 'p0' }, { at: 5, part: 'p8' }],
+      { p0: [0, 0, 2, 5] }, // top half of cicn
+      'left',
+    );
+    const r = composeSideRecipe(el, wt, OPTS, 'left');
+    expect(r.applied).toBe(true);
+    const named = el.querySelector('[data-aaron-recipe-segment="left-named"]') as HTMLElement;
+    expect(named.style.left).toBe('0px');
+    expect(named.style.top).toBe('0px'); // at=0, top half → anchor top
+    const middle = el.querySelector('[data-aaron-recipe-segment="left-middle-fill"]') as HTMLElement;
+    if (middle) {
+      expect(middle.style.left).toBe('0px');
+      expect(middle.style.backgroundRepeat).toBe('repeat-y');
+    }
+  });
+
+  it('composeSideRecipe right edge: samples cicn rightmost column', () => {
+    const wt = makeWindowType(
+      [{ at: 0, part: 'p8' }],
+      {},
+      'right',
+    );
+    const r = composeSideRecipe(el, wt, OPTS, 'right');
+    expect(r.applied).toBe(true);
+    const fill = el.querySelector('[data-aaron-recipe-segment="right-fill"]') as HTMLElement;
+    expect(fill.style.right).toBe('0px');
+    expect(fill.style.backgroundPosition).toContain(`-${W - 1}px`);
+    expect(fill.style.backgroundRepeat).toBe('repeat-y');
+  });
+
+  it('composeSideRecipe named at bottom-Y anchors to bottom', () => {
+    const wt = makeWindowType(
+      [{ at: 22, part: 'p0' }, { at: 23, part: 'p8' }],
+      { p0: [0, 22, 2, 25] }, // bottom half of cicn (Y center = 23.5, halfH = 12.5)
+      'left',
+    );
+    const r = composeSideRecipe(el, wt, OPTS, 'left');
+    expect(r.applied).toBe(true);
+    const named = el.querySelector('[data-aaron-recipe-segment="left-named"]') as HTMLElement;
+    expect(named.style.bottom).toBe('0px'); // cicnHeight 25 - at 22 - height 3 = 0
+    expect(named.style.top).toBe('');
   });
 
   it('re-applying clears prior segments (idempotent)', () => {

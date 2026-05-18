@@ -25,7 +25,7 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
-import { composeTopRecipe, composeBottomRecipe } from './composeRecipeBased.js';
+import { composeTopRecipe, composeBottomRecipe, composeSideRecipe } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
@@ -149,23 +149,25 @@ export function applyChromeFromTheme(
       // Recipe drew the top. Clear any prior 3-slice border-image on
       // the titlebar (recipe paints absolute children, not border-image).
       clear3Slice(titlebar);
-      // Phase 4b: bottom edge via recipe too, if the [data-aaron-edge="bottom"]
-      // container is present.
+      // Phase 4b/4c: bottom + side edges via recipe too, if the
+      // [data-aaron-edge] containers are present.
       const bottomContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="bottom"]');
-      let bottomRecipeOk = false;
-      if (bottomContainer) {
-        bottomRecipeOk = composeBottomRecipe(bottomContainer, windowType, composeOpts).applied;
-      }
-      // For Kind B (full-window) schemes, fall back to 9-slice on the
-      // window root if the bottom recipe didn't apply — handles
-      // side+bottom borders the recipe path doesn't yet cover.
+      const leftContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="left"]');
+      const rightContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="right"]');
+      let bottomOk = false;
+      let leftOk = false;
+      let rightOk = false;
+      if (bottomContainer) bottomOk = composeBottomRecipe(bottomContainer, windowType, composeOpts).applied;
+      if (leftContainer) leftOk = composeSideRecipe(leftContainer, windowType, composeOpts, 'left').applied;
+      if (rightContainer) rightOk = composeSideRecipe(rightContainer, windowType, composeOpts, 'right').applied;
+
+      // 9-slice on the window root is now a final fallback — only fires
+      // for Kind B schemes that DIDN'T get all four sides recipe-handled.
+      // With phase 4c, that's rare for well-formed schemes.
+      const allRecipeSidesOk = bottomOk && leftOk && rightOk;
       void classifyChromeCicn(cicnUrl).then((kind) => {
-        if (kind === 'full-window' && !bottomRecipeOk) {
+        if (kind === 'full-window' && !allRecipeSidesOk) {
           void applyWindowAs9Slice(windowEl, windowType, composeOpts);
-        } else if (bottomRecipeOk) {
-          // Bottom recipe handled the bottom. Clear 9-slice from window
-          // (which would otherwise also draw the bottom border).
-          clearWindow9Slice(windowEl);
         } else {
           clearWindow9Slice(windowEl);
         }

@@ -372,6 +372,170 @@ function appendBottomStripMiddleFill(
   container.appendChild(div);
 }
 
+/**
+ * Compose a VERTICAL edge (left or right) of a windowType's chrome.
+ *
+ * Mirror of composeTopRecipe with axes swapped: the recipe `at` values
+ * are Y coordinates in cicn space (positions down the side, not across
+ * the top). Named parts anchor to TOP / BOTTOM of the container based
+ * on cicn-Y half. Fills tile vertically (repeat-y), sampling cicn's
+ * leftmost or rightmost columns depending on the side.
+ *
+ * Container is the [data-aaron-edge="left"|"right"] strip; consumer
+ * CSS sizes it (width = --aaron-frame-{left,right}-px derived from
+ * cicn at runtime).
+ */
+export function composeSideRecipe(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeRecipeOptions,
+  side: 'left' | 'right',
+): { applied: boolean } {
+  clearRecipeSegments(container);
+  const recipe = windowType.edges?.[side];
+  if (!recipe || recipe.length === 0) return { applied: false };
+  const { cicnWidth, cicnHeight, cicnUrl } = options;
+  if (cicnWidth <= 0 || cicnHeight <= 0) return { applied: false };
+
+  const namedParts = windowType.parts ?? {};
+  const halfH = cicnHeight / 2;
+
+  // For vertical edges, named parts are placed at recipe.at (Y coord)
+  // and anchored TOP / BOTTOM based on which half of cicn-Y their rect
+  // sits in. The horizontal alignment is to the container's LEFT (for
+  // left edge) or RIGHT (for right edge) — i.e., the part renders flush
+  // with the visible side of the window.
+  interface VerticalPlacement {
+    at: number;
+    rect: [number, number, number, number];
+    anchor: 'top' | 'bottom';
+    offsetPx: number;
+    width: number;
+    height: number;
+  }
+  const placements: VerticalPlacement[] = [];
+  for (const entry of recipe) {
+    const part = namedParts[entry.part];
+    if (!part) continue;
+    const [rl, rt, rr, rb] = part.rect;
+    const centerY = (rt + rb) / 2;
+    const anchor: 'top' | 'bottom' = centerY < halfH ? 'top' : 'bottom';
+    const partHeight = rb - rt;
+    placements.push({
+      at: entry.at,
+      rect: [rl, rt, rr, rb],
+      anchor,
+      offsetPx: anchor === 'top' ? entry.at : Math.max(0, cicnHeight - entry.at - partHeight),
+      width: rr - rl,
+      height: partHeight,
+    });
+  }
+
+  if (placements.length === 0) {
+    // Full-edge fill — tile cicn's edge column vertically.
+    appendSideFill(container, cicnUrl, cicnWidth, cicnHeight, 0, cicnHeight, side);
+    return { applied: true };
+  }
+
+  let topClusterEnd = 0;
+  for (const p of placements.filter((p) => p.anchor === 'top')) {
+    topClusterEnd = Math.max(topClusterEnd, p.at + p.height);
+  }
+  let bottomClusterStart = cicnHeight;
+  for (const p of placements.filter((p) => p.anchor === 'bottom')) {
+    bottomClusterStart = Math.min(bottomClusterStart, p.at);
+  }
+
+  for (const p of placements) {
+    const div = container.ownerDocument.createElement('div');
+    div.setAttribute(SEGMENT_ATTR, `${side}-named`);
+    div.style.position = 'absolute';
+    div.style.pointerEvents = 'none';
+    div.style.imageRendering = 'pixelated';
+    if (side === 'left') div.style.left = '0';
+    else div.style.right = '0';
+    if (p.anchor === 'top') div.style.top = `${p.offsetPx}px`;
+    else div.style.bottom = `${p.offsetPx}px`;
+    div.style.width = `${p.width}px`;
+    div.style.height = `${p.height}px`;
+    div.style.backgroundImage = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+    div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+    div.style.backgroundPosition = `-${p.rect[0]}px -${p.rect[1]}px`;
+    div.style.backgroundRepeat = 'no-repeat';
+    div.style.zIndex = '2';
+    container.appendChild(div);
+  }
+
+  if (bottomClusterStart > topClusterEnd) {
+    appendSideMiddleFill(
+      container, cicnUrl, cicnWidth, cicnHeight,
+      topClusterEnd, bottomClusterStart, side,
+    );
+  }
+  return { applied: true };
+}
+
+function appendSideFill(
+  container: HTMLElement,
+  cicnUrl: string,
+  cicnWidth: number,
+  cicnHeight: number,
+  cicnStart: number,
+  _cicnEnd: number,
+  side: 'left' | 'right',
+): void {
+  const div = container.ownerDocument.createElement('div');
+  div.setAttribute(SEGMENT_ATTR, `${side}-fill`);
+  div.style.position = 'absolute';
+  div.style.top = '0';
+  div.style.bottom = '0';
+  if (side === 'left') div.style.left = '0';
+  else div.style.right = '0';
+  // Full container width (the side strip), sample full cicn height
+  // tiled vertically.
+  div.style.width = '100%';
+  div.style.backgroundImage = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+  // Sample the appropriate edge column.
+  const xPos = side === 'left' ? '0' : `-${cicnWidth - 1}px`;
+  div.style.backgroundPosition = `${xPos} -${cicnStart}px`;
+  div.style.backgroundRepeat = 'repeat-y';
+  div.style.imageRendering = 'pixelated';
+  div.style.pointerEvents = 'none';
+  div.style.zIndex = '1';
+  container.appendChild(div);
+}
+
+function appendSideMiddleFill(
+  container: HTMLElement,
+  cicnUrl: string,
+  cicnWidth: number,
+  cicnHeight: number,
+  cicnStart: number,
+  cicnEnd: number,
+  side: 'left' | 'right',
+): void {
+  const div = container.ownerDocument.createElement('div');
+  div.setAttribute(SEGMENT_ATTR, `${side}-middle-fill`);
+  div.style.position = 'absolute';
+  if (side === 'left') div.style.left = '0';
+  else div.style.right = '0';
+  div.style.width = '100%';
+  // The middle fill stretches between top and bottom clusters in
+  // cicn-Y space. Pin its top + bottom in container Y pixels.
+  div.style.top = `${cicnStart}px`;
+  div.style.bottom = `${cicnHeight - cicnEnd}px`;
+  div.style.backgroundImage = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+  const xPos = side === 'left' ? '0' : `-${cicnWidth - 1}px`;
+  div.style.backgroundPosition = `${xPos} -${cicnStart}px`;
+  div.style.backgroundRepeat = 'repeat-y';
+  div.style.imageRendering = 'pixelated';
+  div.style.pointerEvents = 'none';
+  div.style.zIndex = '1';
+  container.appendChild(div);
+}
+
 export function clearRecipeSegments(container: HTMLElement): void {
   const existing = container.querySelectorAll(`[${SEGMENT_ATTR}]`);
   for (const el of Array.from(existing)) {
