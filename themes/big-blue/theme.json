@@ -2,7 +2,7 @@
   "version": "0.1",
   "source": "1984.r",
   "generatedAt": "2026-05-18T05:38:43.484Z",
-  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/kaleidoscope-geometry-spec.md \u00a77.",
+  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/kaleidoscope-geometry-spec.md §7.",
   "name": "Big Blue is Watching",
   "author": {
     "name": "Geoffrey Hamilton",
@@ -1268,7 +1268,8 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1289,7 +1290,8 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": "aqua-this-blur",
       "textAnchor": [
@@ -1310,7 +1312,8 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": "aqua-this-blur",
       "textAnchor": [
@@ -1331,7 +1334,8 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": "aqua-hey",
       "textAnchor": [
@@ -1352,7 +1356,8 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1527,7 +1532,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1614,7 +1620,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1635,7 +1642,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1656,7 +1664,8 @@
       "slice": {
         "corner": 6,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1787,7 +1796,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1808,7 +1818,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1829,7 +1840,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1850,7 +1862,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1871,7 +1884,8 @@
       "slice": {
         "corner": 11,
         "side": 11,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1892,7 +1906,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -1913,7 +1928,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2077,7 +2093,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2098,7 +2115,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2119,7 +2137,8 @@
       "slice": {
         "corner": 9,
         "side": 9,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2140,7 +2159,8 @@
       "slice": {
         "corner": 9,
         "side": 9,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2161,7 +2181,8 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2182,7 +2203,8 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2203,7 +2225,8 @@
       "slice": {
         "corner": 8,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2224,7 +2247,8 @@
       "slice": {
         "corner": 9,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2245,7 +2269,8 @@
       "slice": {
         "corner": 8,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2266,7 +2291,8 @@
       "slice": {
         "corner": 8,
         "side": 0,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2419,7 +2445,8 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2440,7 +2467,8 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2461,7 +2489,8 @@
       "slice": {
         "corner": 18,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2482,7 +2511,8 @@
       "slice": {
         "corner": 18,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2503,7 +2533,8 @@
       "slice": {
         "corner": 18,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2524,7 +2555,8 @@
       "slice": {
         "corner": 14,
         "side": 5,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2545,7 +2577,8 @@
       "slice": {
         "corner": 14,
         "side": 5,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2566,7 +2599,8 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2587,7 +2621,8 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2608,7 +2643,8 @@
       "slice": {
         "corner": 14,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2629,7 +2665,8 @@
       "slice": {
         "corner": 14,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2650,7 +2687,8 @@
       "slice": {
         "corner": 12,
         "side": 5,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2671,7 +2709,8 @@
       "slice": {
         "corner": 12,
         "side": 5,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2692,7 +2731,8 @@
       "slice": {
         "corner": 14,
         "side": 3,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2735,7 +2775,8 @@
       "slice": {
         "corner": 6,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2756,7 +2797,8 @@
       "slice": {
         "corner": 6,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2777,7 +2819,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2798,7 +2841,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2819,7 +2863,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2840,7 +2885,8 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2905,7 +2951,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2926,7 +2973,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2947,7 +2995,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2968,7 +3017,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -2989,7 +3039,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3010,7 +3061,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3031,7 +3083,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3052,7 +3105,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3117,7 +3171,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3149,7 +3204,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3170,7 +3226,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3191,7 +3248,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3212,7 +3270,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3233,7 +3292,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3254,7 +3314,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3275,7 +3336,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3296,7 +3358,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3317,7 +3380,8 @@
       "slice": {
         "corner": 10,
         "side": 16,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3899,7 +3963,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [
@@ -3986,7 +4051,8 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
       },
       "bgPattern": null,
       "textAnchor": [

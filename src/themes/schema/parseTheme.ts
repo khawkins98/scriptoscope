@@ -282,13 +282,30 @@ function parseChromeElement(value: unknown, path: string): ChromeElementEntry {
   return entry;
 }
 
+const RESIZE_BEHAVIORS = new Set([
+  'stretch-whole', 'stretch-top', 'stretch-left', 'stretch-bottom', 'stretch-right',
+  'repeat-whole', 'repeat-top', 'repeat-left', 'repeat-bottom', 'repeat-right',
+  'anchor-center', 'anchor-top-left', 'anchor-top-right', 'anchor-bottom-left', 'anchor-bottom-right',
+]);
+
 function parseSlice(value: unknown, path: string): SliceSpec {
   const obj = assertObject(value, path);
-  return {
+  const slice: SliceSpec = {
     corner: assertNumber(obj['corner'], `${path}.corner`),
     side: assertNumber(obj['side'], `${path}.side`),
     tile: assertBoolean(obj['tile'], `${path}.tile`),
   };
+  if ('resizeBehavior' in obj && obj['resizeBehavior'] != null) {
+    const rb = assertString(obj['resizeBehavior'], `${path}.resizeBehavior`);
+    if (!RESIZE_BEHAVIORS.has(rb)) {
+      throw new ThemeValidationError(
+        `expected one of ${[...RESIZE_BEHAVIORS].join(', ')}, got ${JSON.stringify(rb)}`,
+        `${path}.resizeBehavior`,
+      );
+    }
+    slice.resizeBehavior = rb as NonNullable<SliceSpec['resizeBehavior']>;
+  }
+  return slice;
 }
 
 function parsePair(value: unknown, path: string): [number, number] {
