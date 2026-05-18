@@ -17,6 +17,11 @@ import {
   type ApplyChromeFromThemeOptions,
 } from './applyChromeFromTheme.js';
 import { themeRegistry } from './ThemeRegistry.js';
+import {
+  periodWindowConstraints,
+  applyConstraintsToElement,
+  clearConstraintsFromElement,
+} from './periodWindowConstraints.js';
 
 export interface AttachThemeToWindowOptions extends ApplyChromeFromThemeOptions {
   /**
@@ -47,6 +52,12 @@ export function attachThemeToWindow(
     if (theme) {
       try {
         applyChromeFromTheme(windowEl, theme, applyOpts);
+        // Period-authentic window-size bounds — see ./periodWindowConstraints.ts.
+        // Kaleidoscope authors drew chrome assuming near-native window dimensions;
+        // applying CSS min/max here keeps stretched-rendering artifacts in check.
+        const constraints = periodWindowConstraints(theme, applyOpts.windowTypeSlug);
+        if (constraints) applyConstraintsToElement(windowEl, constraints);
+        else clearConstraintsFromElement(windowEl);
       } catch {
         // Theme doesn't define a usable chrome for this window — leave the
         // window un-themed (engine-baseline rendering) rather than throw.
@@ -54,9 +65,11 @@ export function attachThemeToWindow(
         // the slug. Caller can opt into stricter behaviour by calling
         // applyChromeFromTheme directly.
         clearChromeFromTheme(windowEl);
+        clearConstraintsFromElement(windowEl);
       }
     } else {
       clearChromeFromTheme(windowEl);
+      clearConstraintsFromElement(windowEl);
     }
   };
 
@@ -66,5 +79,6 @@ export function attachThemeToWindow(
   return () => {
     unsubscribe();
     clearChromeFromTheme(windowEl);
+    clearConstraintsFromElement(windowEl);
   };
 }
