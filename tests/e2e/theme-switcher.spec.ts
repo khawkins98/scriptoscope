@@ -10,16 +10,13 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#load-7le').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
-    // Phase 4a recipe-driven rendering: the titlebar contains
-    // [data-aaron-recipe-segment] children whose backgroundImage points
-    // at the loaded scheme's cicn.
-    const segment = page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
-      .first();
-    await expect(segment).toBeAttached();
-    const bg = await segment.evaluate((el) => (el as HTMLElement).style.backgroundImage);
-    expect(bg).toContain('themes/masswerk-7-le/cicns/');
-    expect(bg).toMatch(/document-window/);
+    // 3-slice rendering: titlebar carries the cicn as border-image-source.
+    const titlebarBg = await page
+      .locator('.aaron-window .aaron-titlebar')
+      .first()
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
+    expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
+    expect(titlebarBg).toMatch(/document-window/);
   });
 
   test('mounts wnd# part overlays inside the titlebar', async ({ page }) => {
@@ -39,9 +36,9 @@ test.describe('theme switcher (e2e)', () => {
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
     const firstBg = await page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
+      .locator('.aaron-window .aaron-titlebar')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(firstBg).toContain('themes/masswerk-7-le/cicns/');
 
     await page.locator('#load-ergobox').click();

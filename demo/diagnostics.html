@@ -131,14 +131,30 @@
     .aaron-window__edge--left { left: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px); width: var(--aaron-frame-left-px, 1px); position: absolute; overflow: hidden; }
     .aaron-window__edge--right { right: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px); width: var(--aaron-frame-right-px, 1px); position: absolute; overflow: hidden; }
 
-    /* Highlight segment outlines for the live render diagnostic mode */
-    .live-render.highlight [data-aaron-recipe-segment] {
+    /* Highlight outlines for the live render diagnostic mode. Covers
+       both rendering paths the runtime uses:
+       - Kind A (titlebar-only cicns like 7 Le): 3-slice border-image
+         on the .aaron-titlebar element → outline the titlebar in yellow.
+       - Kind B (full-window cicns like ErgoBox): 9-slice border-image
+         on the .aaron-window root → outline the window in cyan.
+       - Recipe segments (currently unused since the Phase 4 revert) —
+         pink + blue if present, for future per-segment work. */
+    .live-render.highlight .aaron-titlebar[style*="border-image-source"] {
       outline: 2px solid #ff0;
       outline-offset: -1px;
     }
-    .live-render.highlight [data-aaron-recipe-segment="top-named"] { outline-color: #f5a; }
+    .live-render.highlight .aaron-window[data-aaron-chrome-9slice] {
+      outline: 2px solid #0ff;
+      outline-offset: -1px;
+    }
+    .live-render.highlight [data-aaron-recipe-segment] {
+      outline: 2px solid #f5a;
+      outline-offset: -1px;
+    }
     .live-render.highlight [data-aaron-recipe-segment$="-fill"],
-    .live-render.highlight [data-aaron-recipe-segment$="-middle-fill"] { outline-color: #5af; }
+    .live-render.highlight [data-aaron-recipe-segment$="-middle-fill"] {
+      outline-color: #5af;
+    }
 
     .nothing { opacity: 0.6; font-style: italic; }
     code { background: #1c1c1f; padding: 2px 4px; border-radius: 2px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
@@ -206,8 +222,9 @@
   <div id="parts-host"></div>
 
   <h2>Live render</h2>
-  <p class="subtitle">A real <code>AaronWindow</code> with this scheme applied. Toggle "Highlight segments" to outline each
-    recipe-rendered piece in the rendered chrome (named parts in pink; fill segments in blue).</p>
+  <p class="subtitle">A real <code>AaronWindow</code> with this scheme applied. Toggle "Highlight segments" to outline the
+    chrome-rendered regions: <span style="color:#ff0;">yellow</span> = 3-slice titlebar (Kind A);
+    <span style="color:#0ff;">cyan</span> = 9-slice window root (Kind B); <span style="color:#f5a;">pink</span>/<span style="color:#5af;">blue</span> = recipe segments (currently unused).</p>
   <div class="toggles">
     <label><input type="checkbox" id="t-highlight"> Highlight segments</label>
     <label>Window width:

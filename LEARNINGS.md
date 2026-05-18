@@ -1075,4 +1075,29 @@ The page shows, per scheme:
 
 ---
 
+### 2026-05-18 — Phase 4 reverted: wnd# recipe entries are slice-boundary markers, not render commands
+
+The user spotted a structural bug in the recipe-driven composer (#96/#97/#98). For 7 Le, the live render showed **7 widgets** clustered across the titlebar; the cicn template clearly has only **3**.
+
+Root cause: I'd interpreted each `{at, part}` recipe entry as "render this part's rect at position `at`." For schemes where the same named part appears at multiple recipe positions (7 Le has `part-1` at `at=5, 24, 35, 74`), the composer duplicated widgets.
+
+**Correct interpretation:** recipe entries are markers that the renderer USES to determine WHERE the fill zone (stretchable middle) is. They are NOT individual paint commands. The actual widgets are at their cicn-native positions (per the `parts` map's rects); the recipe just tells you what's on each side of the fill so you can slice the cicn into left/middle/right correctly.
+
+The 3-slice via CSS `border-image` approach from Phase 3 (#87) does this correctly:
+- Slice the cicn at the fill-zone boundaries
+- Pin left slice (cicn pixels [0..fillStart]) to titlebar left at native size — includes the close-box-area
+- Pin right slice (cicn pixels [fillEnd..cicnW]) to titlebar right — includes the zoom-area
+- Tile middle slice across the gap
+
+**Reverted scope:** dispatch in `applyChromeFromTheme` no longer calls `composeTopRecipe`/`composeBottomRecipe`/`composeSideRecipe`. Returns to: Kind A → `applyTitlebarAs3Slice`; Kind B → `applyWindowAs9Slice` on window root. The recipe-based composer code stays in tree (might be useful for future hit-target overlay positioning — that IS a per-entry concern).
+
+**Diagnostics highlight extended** to cover the now-active rendering modes:
+- Yellow outline on `.aaron-titlebar[style*="border-image-source"]` (Kind A 3-slice)
+- Cyan outline on `.aaron-window[data-aaron-chrome-9slice]` (Kind B 9-slice)
+- Pink/blue on `[data-aaron-recipe-segment]` (currently unused; for future)
+
+**Meta-lesson:** the diagnostics page (#102) paid for itself within a session — it surfaced the duplicate-widget bug in the live render immediately by comparison to the cicn-with-overlays. Without the page I'd have spent more cycles speculating. New project pattern: when a renderer behaves unexpectedly, the diagnostics view is the first check.
+
+---
+
 *New learnings get appended below this line as the project ships.*

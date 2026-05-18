@@ -19,17 +19,15 @@ test.describe('landing page (index.html)', () => {
   test('chrome renders on each window after auto-load', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk 7 Le');
-    // Phase 4a recipe-driven rendering: the titlebar contains
-    // [data-aaron-recipe-segment] children whose backgroundImage points
-    // at the bundled 7 Le chrome.
+    // 3-slice rendering (post-Phase-4-revert): the titlebar itself
+    // carries the cicn as border-image-source. Every titlebar should
+    // reference the bundled 7 Le chrome.
     for (let i = 0; i < 5; i++) {
-      const segment = page
+      const bg = await page
         .locator('.aaron-window')
         .nth(i)
-        .locator('.aaron-titlebar [data-aaron-recipe-segment]')
-        .first();
-      await expect(segment).toBeAttached();
-      const bg = await segment.evaluate((el) => (el as HTMLElement).style.backgroundImage);
+        .locator('.aaron-titlebar')
+        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-7-le/cicns/');
     }
   });

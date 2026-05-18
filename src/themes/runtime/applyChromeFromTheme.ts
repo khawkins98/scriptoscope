@@ -25,7 +25,7 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
-import { composeTopRecipe, composeBottomRecipe, composeSideRecipe, clearRecipeSegments } from './composeRecipeBased.js';
+import { clearRecipeSegments } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
@@ -137,73 +137,45 @@ export function applyChromeFromTheme(
       cicnUrl,
     };
 
-    // Phase 4a: try the recipe-driven per-segment composer FIRST. If it
-    // succeeds (windowType has a usable top recipe + parts), we use it
-    // — it's the faithful Kaleidoscope rendering: named parts pinned at
-    // cicn-pixel positions from the appropriate side edge; fills tile
-    // between. Falls back to the classifier+3/9-slice path if the
-    // recipe is absent or empty.
-    const recipeResult = composeTopRecipe(titlebar, windowType, composeOpts);
-
-    if (recipeResult.applied) {
-      // Recipe drew the top. Clear any prior 3-slice border-image on
-      // the titlebar (recipe paints absolute children, not border-image).
-      clear3Slice(titlebar);
-      // Phase 4b/4c: bottom + side edges via recipe too, if the
-      // [data-aaron-edge] containers are present.
-      const bottomContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="bottom"]');
-      const leftContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="left"]');
-      const rightContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="right"]');
-      if (bottomContainer) composeBottomRecipe(bottomContainer, windowType, composeOpts);
-      if (leftContainer) composeSideRecipe(leftContainer, windowType, composeOpts, 'left');
-      if (rightContainer) composeSideRecipe(rightContainer, windowType, composeOpts, 'right');
-
-      // Kind B (full-window cicn — e.g., ErgoBox) handles the entire
-      // frame via 9-slice border-image on the window root: the top
-      // border IS the titlebar visual; sides + bottom carry the bevel.
-      // For Kind B we CLEAR the recipe segments (they'd double-render
-      // on top of the 9-slice's top border) and let 9-slice own the
-      // whole frame.
-      // For Kind A (titlebar-only cicn), the recipe segments ARE the
-      // titlebar chrome; no 9-slice runs.
-      void classifyChromeCicn(cicnUrl).then((kind) => {
-        if (kind === 'full-window') {
-          // Clear the recipe segments from titlebar + edge containers —
-          // 9-slice handles everything.
-          clearRecipeSegments(titlebar);
-          if (bottomContainer) clearRecipeSegments(bottomContainer);
-          if (leftContainer) clearRecipeSegments(leftContainer);
-          if (rightContainer) clearRecipeSegments(rightContainer);
-          void applyWindowAs9Slice(windowEl, windowType, composeOpts);
-        } else {
-          clearWindow9Slice(windowEl);
-        }
-      });
-    } else {
-      // No recipe → keep the classifier-dispatched 3-slice / 9-slice
-      // fallback for schemes that don't ship wnd# data.
-      void classifyChromeCicn(cicnUrl).then((kind) => {
-        if (kind === 'full-window') {
-          clear3Slice(titlebar);
-          clearAllEdges(windowEl);
-          void applyWindowAs9Slice(windowEl, windowType, composeOpts);
-        } else {
-          clearWindow9Slice(windowEl);
-        }
-      });
-    }
-    const slice = recipeResult.applied ? null : applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
+    // Phase 4 reverted (2026-05-18) — the recipe-driven per-segment
+    // composer (composeTopRecipe etc.) misinterpreted wnd# entries as
+    // render commands when they're actually slice-boundary markers.
+    // For schemes where a named part appears at MULTIPLE recipe
+    // positions (e.g., 7 Le's part-1 at at=5, 24, 35, 74), it produced
+    // duplicate widgets across the titlebar instead of pinning the
+    // single visible widget. Diagnostics page (`/diagnostics.html`)
+    // surfaced this — recipe entries don't enumerate widgets to paint.
+    //
+    // Correct interpretation (3-slice via border-image):
+    // - Slice boundaries derived from the recipe's widest fill-segment run
+    // - Left slice = cicn[0..fillStart] pinned to titlebar left (carries
+    //   close-box-area), at native pixel size
+    // - Right slice = cicn[fillEnd..cicnW] pinned to right (zoom-area)
+    // - Middle slice = cicn[fillStart..fillEnd] tiled across the gap
+    //
+    // The recipe-driven composer (composeRecipeBased.ts) stays in tree
+    // but unused — useful for future per-cell positioning work (e.g.,
+    // hit-target overlays) but not for visual rendering.
+    clearRecipeSegments(titlebar);
+    clearAllEdges(windowEl); // strip any prior recipe segments from edges
+    void classifyChromeCicn(cicnUrl).then((kind) => {
+      if (kind === 'full-window') {
+        clear3Slice(titlebar);
+        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+      } else {
+        clearWindow9Slice(windowEl);
+      }
+    });
+    const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
     // Title-pill positioning (#64.2) — with the 3-slice model the pill
     // is exactly the middle border-image region, i.e. titlebar pixel
     // bounds [leftSlicePx .. titlebarWidth - rightSlicePx]. Stamp the
     // slice values as CSS custom properties for the consumer's title CSS.
-    // Title pill bounds: from the recipe path's middle fill zone, or
-    // from the 3-slice's right/left slice if the recipe didn't apply.
-    const pillL = recipeResult.applied ? recipeResult.titlePillLeftPx : slice?.leftSlicePx ?? null;
-    const pillR = recipeResult.applied ? recipeResult.titlePillRightPx : slice?.rightSlicePx ?? null;
-    if (pillL != null && pillR != null) {
-      titlebar.style.setProperty('--aaron-title-pill-left', `${pillL}px`);
-      titlebar.style.setProperty('--aaron-title-pill-right', `${pillR}px`);
+    // Title pill bounds = the 3-slice's left/right pixel widths.
+    // (The middle border-image region is the title pill zone.)
+    if (slice) {
+      titlebar.style.setProperty('--aaron-title-pill-left', `${slice.leftSlicePx}px`);
+      titlebar.style.setProperty('--aaron-title-pill-right', `${slice.rightSlicePx}px`);
     } else {
       titlebar.style.removeProperty('--aaron-title-pill-left');
       titlebar.style.removeProperty('--aaron-title-pill-right');
