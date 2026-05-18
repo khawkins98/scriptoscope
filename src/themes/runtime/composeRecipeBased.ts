@@ -252,6 +252,126 @@ function appendMiddleFill(
   container.appendChild(div);
 }
 
+/**
+ * Compose the BOTTOM edge — mirror of composeTopRecipe with vertical
+ * positioning flipped (named parts anchor to container bottom; fills
+ * sample from the cicn's bottom rows so the bottom strip's frame line
+ * shows in the rendered bottom edge container).
+ *
+ * Same horizontal anchoring logic for named parts: left-half cicn →
+ * anchor LEFT, right-half → anchor RIGHT.
+ */
+export function composeBottomRecipe(
+  container: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: ComposeRecipeOptions,
+): { applied: boolean } {
+  clearRecipeSegments(container);
+  const recipe = windowType.edges?.bottom;
+  if (!recipe || recipe.length === 0) return { applied: false };
+  const { cicnWidth, cicnHeight, cicnUrl } = options;
+  if (cicnWidth <= 0 || cicnHeight <= 0) return { applied: false };
+
+  const namedParts = windowType.parts ?? {};
+  const halfW = cicnWidth / 2;
+
+  const namedPlacements: NamedPlacement[] = [];
+  for (const entry of recipe) {
+    const part = namedParts[entry.part];
+    if (!part) continue;
+    const [rl, rt, rr, rb] = part.rect;
+    const centerX = (rl + rr) / 2;
+    const anchor: 'left' | 'right' = centerX < halfW ? 'left' : 'right';
+    const partWidth = rr - rl;
+    namedPlacements.push({
+      at: entry.at,
+      rect: [rl, rt, rr, rb],
+      anchor,
+      offsetPx: anchor === 'left' ? entry.at : Math.max(0, cicnWidth - entry.at - partWidth),
+      width: partWidth,
+      height: rb - rt,
+    });
+  }
+
+  if (namedPlacements.length === 0) {
+    // Full-edge fill — bottom strip of cicn tiled across container.
+    appendBottomStripFill(container, cicnUrl, cicnWidth, cicnHeight, 0, cicnWidth);
+    return { applied: true };
+  }
+
+  let leftClusterCicnEnd = 0;
+  for (const p of namedPlacements.filter((p) => p.anchor === 'left')) {
+    leftClusterCicnEnd = Math.max(leftClusterCicnEnd, p.at + p.width);
+  }
+  let rightClusterCicnStart = cicnWidth;
+  for (const p of namedPlacements.filter((p) => p.anchor === 'right')) {
+    rightClusterCicnStart = Math.min(rightClusterCicnStart, p.at);
+  }
+
+  for (const p of namedPlacements) {
+    appendNamedPart(container, cicnUrl, cicnWidth, cicnHeight, p, 'bottom');
+  }
+  if (rightClusterCicnStart > leftClusterCicnEnd) {
+    appendBottomStripMiddleFill(
+      container, cicnUrl, cicnWidth, cicnHeight,
+      leftClusterCicnEnd, rightClusterCicnStart,
+    );
+  }
+  return { applied: true };
+}
+
+function appendBottomStripFill(
+  container: HTMLElement,
+  cicnUrl: string,
+  cicnWidth: number,
+  cicnHeight: number,
+  cicnStart: number,
+  _cicnEnd: number,
+): void {
+  const div = container.ownerDocument.createElement('div');
+  div.setAttribute(SEGMENT_ATTR, 'bottom-fill');
+  div.style.position = 'absolute';
+  div.style.left = '0';
+  div.style.right = '0';
+  div.style.top = '0';
+  div.style.bottom = '0';
+  div.style.backgroundImage = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+  // Align the cicn so its BOTTOM aligns with the container's bottom
+  // (we want to sample cicn's bottom rows, not its top).
+  div.style.backgroundPosition = `-${cicnStart}px bottom`;
+  div.style.backgroundRepeat = 'repeat-x';
+  div.style.imageRendering = 'pixelated';
+  div.style.pointerEvents = 'none';
+  div.style.zIndex = '1';
+  container.appendChild(div);
+}
+
+function appendBottomStripMiddleFill(
+  container: HTMLElement,
+  cicnUrl: string,
+  cicnWidth: number,
+  cicnHeight: number,
+  cicnStart: number,
+  cicnEnd: number,
+): void {
+  const div = container.ownerDocument.createElement('div');
+  div.setAttribute(SEGMENT_ATTR, 'bottom-middle-fill');
+  div.style.position = 'absolute';
+  div.style.left = `${cicnStart}px`;
+  div.style.right = `${cicnWidth - cicnEnd}px`;
+  div.style.top = '0';
+  div.style.bottom = '0';
+  div.style.backgroundImage = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
+  div.style.backgroundSize = `${cicnWidth}px ${cicnHeight}px`;
+  div.style.backgroundPosition = `-${cicnStart}px bottom`;
+  div.style.backgroundRepeat = 'repeat-x';
+  div.style.imageRendering = 'pixelated';
+  div.style.pointerEvents = 'none';
+  div.style.zIndex = '1';
+  container.appendChild(div);
+}
+
 export function clearRecipeSegments(container: HTMLElement): void {
   const existing = container.querySelectorAll(`[${SEGMENT_ATTR}]`);
   for (const el of Array.from(existing)) {
