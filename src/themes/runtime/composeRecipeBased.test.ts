@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { composeTopRecipe, clearRecipeSegments } from './composeRecipeBased.js';
+import { composeTopRecipe, composeBottomRecipe, clearRecipeSegments } from './composeRecipeBased.js';
 import type { WindowTypeEntry } from '../schema/types.js';
 
 const W = 74;
@@ -9,12 +9,13 @@ const OPTS = { cicnWidth: W, cicnHeight: H, cicnUrl: 'cicns/test.png' };
 function makeWindowType(
   edges: { at: number; part: string }[],
   parts: Record<string, [number, number, number, number]> = {},
+  side: 'top' | 'bottom' = 'top',
 ): WindowTypeEntry {
   const partsMap: Record<string, { rect: [number, number, number, number] }> = {};
   for (const [k, v] of Object.entries(parts)) partsMap[k] = { rect: v };
   return {
     chrome: { active: { asset: 'x.png', width: W, height: H, slice: null } } as any,
-    edges: { top: edges },
+    edges: { [side]: edges },
     parts: partsMap,
   } as unknown as WindowTypeEntry;
 }
@@ -119,6 +120,40 @@ describe('composeTopRecipe', () => {
     clearRecipeSegments(el);
     expect(el.children).toHaveLength(1);
     expect(el.children[0]).toBe(sibling);
+  });
+
+  it('composeBottomRecipe returns applied=false when no recipe', () => {
+    const wt = { chrome: { active: {} }, edges: {}, parts: {} } as unknown as WindowTypeEntry;
+    const r = composeBottomRecipe(el, wt, OPTS);
+    expect(r.applied).toBe(false);
+  });
+
+  it('composeBottomRecipe anchors named parts to container bottom', () => {
+    const wt = makeWindowType(
+      [{ at: 0, part: 'p0' }, { at: 10, part: 'p8' }],
+      { p0: [0, 22, 10, 25] }, // bottom 3 rows of cicn
+      'bottom',
+    );
+    const r = composeBottomRecipe(el, wt, OPTS);
+    expect(r.applied).toBe(true);
+    const named = el.querySelector('[data-aaron-recipe-segment="bottom-named"]') as HTMLElement;
+    expect(named.style.bottom).toBe('0px'); // cicnHeight (25) - rect.bottom (25) = 0
+    expect(named.style.left).toBe('0px');
+    expect(named.style.height).toBe('3px');
+  });
+
+  it('composeBottomRecipe middle fill samples from cicn bottom rows', () => {
+    const wt = makeWindowType(
+      [{ at: 0, part: 'p0' }, { at: 10, part: 'p8' }, { at: 60, part: 'p1' }],
+      { p0: [0, 22, 10, 25], p1: [55, 22, 65, 25] },
+      'bottom',
+    );
+    const r = composeBottomRecipe(el, wt, OPTS);
+    expect(r.applied).toBe(true);
+    const middle = el.querySelector('[data-aaron-recipe-segment="bottom-middle-fill"]') as HTMLElement;
+    expect(middle).not.toBeNull();
+    // backgroundPositionY should be 'bottom' so cicn's bottom rows show.
+    expect(middle.style.backgroundPosition).toContain('bottom');
   });
 
   it('re-applying clears prior segments (idempotent)', () => {

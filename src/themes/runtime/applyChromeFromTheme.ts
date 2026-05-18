@@ -25,7 +25,7 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
-import { composeTopRecipe } from './composeRecipeBased.js';
+import { composeTopRecipe, composeBottomRecipe } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
@@ -147,14 +147,25 @@ export function applyChromeFromTheme(
 
     if (recipeResult.applied) {
       // Recipe drew the top. Clear any prior 3-slice border-image on
-      // the titlebar (the recipe paints with absolute children, not
-      // border-image). For Kind B (full-window) schemes, ALSO run the
-      // 9-slice on the window root in parallel — that handles the
-      // side+bottom borders that the recipe path doesn't yet cover.
+      // the titlebar (recipe paints absolute children, not border-image).
       clear3Slice(titlebar);
+      // Phase 4b: bottom edge via recipe too, if the [data-aaron-edge="bottom"]
+      // container is present.
+      const bottomContainer = windowEl.querySelector<HTMLElement>('[data-aaron-edge="bottom"]');
+      let bottomRecipeOk = false;
+      if (bottomContainer) {
+        bottomRecipeOk = composeBottomRecipe(bottomContainer, windowType, composeOpts).applied;
+      }
+      // For Kind B (full-window) schemes, fall back to 9-slice on the
+      // window root if the bottom recipe didn't apply — handles
+      // side+bottom borders the recipe path doesn't yet cover.
       void classifyChromeCicn(cicnUrl).then((kind) => {
-        if (kind === 'full-window') {
+        if (kind === 'full-window' && !bottomRecipeOk) {
           void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+        } else if (bottomRecipeOk) {
+          // Bottom recipe handled the bottom. Clear 9-slice from window
+          // (which would otherwise also draw the bottom border).
+          clearWindow9Slice(windowEl);
         } else {
           clearWindow9Slice(windowEl);
         }
