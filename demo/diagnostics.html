@@ -185,6 +185,40 @@
 
     .nothing { opacity: 0.6; font-style: italic; }
     code { background: #1c1c1f; padding: 2px 4px; border-radius: 2px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+
+    /* Info marker + JS tooltip — hover/focus reveals rich explanation */
+    .info {
+      display: inline-block;
+      width: 14px; height: 14px;
+      line-height: 14px;
+      text-align: center;
+      border-radius: 50%;
+      background: #2a2a35;
+      color: #9bd;
+      font-size: 10px;
+      cursor: help;
+      user-select: none;
+      margin-left: 2px;
+    }
+    .info:hover { background: #3a3a55; color: #cdf; }
+    #tooltip-layer {
+      position: fixed;
+      z-index: 1000;
+      max-width: 320px;
+      padding: 10px 12px;
+      background: #1c1c1f;
+      border: 1px solid #44444a;
+      border-radius: 4px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      color: #e0e0e0;
+      font-size: 12px;
+      line-height: 1.5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 100ms;
+    }
+    #tooltip-layer.visible { opacity: 1; }
+    #tooltip-layer code { font-size: 11px; }
   </style>
 </head>
 <body>
@@ -235,11 +269,11 @@
       <div id="verdict-host"></div>
 
       <h2>Chrome cicns</h2>
-      <p class="subtitle">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap.</p>
+      <p class="subtitle">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap. Hover the ⓘ icons for what each overlay shows and why it matters.</p>
       <div class="toggles">
-        <label><input type="checkbox" id="t-parts" checked> Parts rects</label>
-        <label><input type="checkbox" id="t-recipe"> Recipe positions</label>
-        <label><input type="checkbox" id="t-half"> Half-line (anchor split)</label>
+        <label><input type="checkbox" id="t-parts" checked> Parts rects <span class="info" data-tip="Colored rectangles = the named `parts` from the wnd# resource (close box, zoom box, title pill, windowshade, etc.). These are sub-rects of the cicn bitmap that the renderer crops out and positions as hit targets. If a part rect doesn't enclose the visible widget pixels, the click target will be wrong even when the chrome looks right.">ⓘ</span></label>
+        <label><input type="checkbox" id="t-recipe"> Recipe positions <span class="info" data-tip="Cyan/white tick marks at each `{at}` value from a wnd# side recipe. White = the entry references a named part; cyan = it's a fill segment (tiled cicn pixels). Recipe entries are slice-boundary markers, NOT per-widget render commands — they tell the renderer where to cut the cicn into stretchable vs. fixed-width zones.">ⓘ</span></label>
+        <label><input type="checkbox" id="t-half"> Half-line (anchor split) <span class="info" data-tip="Dashed yellow lines at cicn width/2 and height/2. Some renderers split the cicn at these anchors when computing left/right (or top/bottom) halves — useful for debugging mirror-symmetric chrome. Mainly diagnostic; not load-bearing in Aaron UI's current 3-slice / 9-slice paths.">ⓘ</span></label>
       </div>
       <div id="cicn-stacks"></div>
 
@@ -305,6 +339,8 @@
     </div>
   </div>
 
+  <div id="tooltip-layer" role="tooltip" aria-hidden="true"></div>
+
   <script type="module">
     import { AaronWindow, applyChromeFromTheme } from '../src/index.ts';
     import { parseTheme } from '../src/themes/schema/index.ts';
@@ -315,6 +351,54 @@
     const PART_COLORS = ['#f55','#5f5','#55f','#fa5','#5af','#a5f','#5fa','#fa5','#aa5','#5aa'];
 
     function getColor(idx) { return PART_COLORS[idx % PART_COLORS.length]; }
+
+    // Tooltip — any element with [data-tip] shows its text on hover/focus.
+    // Backtick-quoted `phrases` get rendered as inline <code>.
+    const tooltipLayer = document.getElementById('tooltip-layer');
+    function showTooltip(el) {
+      const raw = el.dataset.tip;
+      if (!raw) return;
+      const html = raw
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      tooltipLayer.innerHTML = html;
+      tooltipLayer.classList.add('visible');
+      tooltipLayer.setAttribute('aria-hidden', 'false');
+      const r = el.getBoundingClientRect();
+      // Position below + slightly right of the marker; clamp to viewport.
+      const tipW = tooltipLayer.offsetWidth;
+      const tipH = tooltipLayer.offsetHeight;
+      let left = r.left;
+      let top = r.bottom + 6;
+      if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+      if (top + tipH > window.innerHeight - 8) top = r.top - tipH - 6;
+      tooltipLayer.style.left = `${Math.max(8, left)}px`;
+      tooltipLayer.style.top = `${Math.max(8, top)}px`;
+    }
+    function hideTooltip() {
+      tooltipLayer.classList.remove('visible');
+      tooltipLayer.setAttribute('aria-hidden', 'true');
+    }
+    document.addEventListener('mouseover', (e) => {
+      const t = e.target.closest('[data-tip]');
+      if (t) showTooltip(t);
+    });
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest('[data-tip]')) hideTooltip();
+    });
+    document.addEventListener('focusin', (e) => {
+      const t = e.target.closest('[data-tip]');
+      if (t) showTooltip(t);
+    });
+    document.addEventListener('focusout', (e) => {
+      if (e.target.closest('[data-tip]')) hideTooltip();
+    });
+    // Make info markers keyboard-focusable.
+    for (const el of document.querySelectorAll('.info[data-tip]')) {
+      el.tabIndex = 0;
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', 'More info');
+    }
 
     async function loadSchemeData(slug) {
       const url = new URL(`../themes/${slug}/theme.json`, location.href).toString();
