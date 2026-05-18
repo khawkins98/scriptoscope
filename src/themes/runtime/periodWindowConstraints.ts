@@ -23,7 +23,6 @@
 // See docs/chrome-rendering-architecture.md §7 for dispatch context.
 
 import type { Theme } from '../schema/types.js';
-import { recipeDensity } from './recipeDensity.js';
 
 export interface PeriodWindowConstraints {
   /** Minimum window width in px. CSS `min-width`. */
@@ -42,7 +41,6 @@ export interface PeriodWindowConstraints {
 
 const PERIOD_MIN_WIDTH = 120;
 const PERIOD_MIN_HEIGHT = 60;
-const COMPOSER_MAX_SCALE = 1.5;
 
 export function periodWindowConstraints(
   theme: Theme,
@@ -59,25 +57,14 @@ export function periodWindowConstraints(
   const cicnH = chromeEntry?.height ?? 0;
   if (cicnW <= 0 || cicnH <= 0) return null;
 
-  // Three cases drive the constraints (see header comment for rationale):
-  // composer-route (rich recipe + body rect), 9-slice (Kind B simple), or
-  // Kind A (thin titlebar).
-  const isComposerRoute = recipeDensity(wt) === 'rich' && !!wt.parts?.['part-0'];
+  // Two cases now (post-2026-05-18 composer cleanup):
+  //   - Kind A (thin titlebar): period default min, no max
+  //   - Body-rect-bearing (faithful composer): min = cicn native; no max
+  //     (composer uses border-image-stretch which scales cleanly to any size)
   const isTitlebarOnly = cicnH <= 30;
-
   const naturalWidth = Math.max(PERIOD_MIN_WIDTH, cicnW);
   const naturalHeight = Math.max(PERIOD_MIN_HEIGHT, cicnH);
 
-  if (isComposerRoute) {
-    return {
-      minWidth: cicnW,
-      minHeight: cicnH,
-      maxWidth: Math.round(cicnW * COMPOSER_MAX_SCALE),
-      maxHeight: Math.round(cicnH * COMPOSER_MAX_SCALE),
-      naturalWidth,
-      naturalHeight,
-    };
-  }
   if (isTitlebarOnly) {
     return {
       minWidth: PERIOD_MIN_WIDTH,
@@ -86,8 +73,6 @@ export function periodWindowConstraints(
       naturalHeight: 200,
     };
   }
-  // Kind B simple — 9-slice scales cleanly, only enforce min so corners
-  // don't overlap.
   return {
     minWidth: cicnW,
     minHeight: cicnH,

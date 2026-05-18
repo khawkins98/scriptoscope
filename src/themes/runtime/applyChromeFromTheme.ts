@@ -25,10 +25,11 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
-import { clearRecipeSegments } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
-import { composeRichRecipe, clearRichRecipe } from './composeRichRecipe.js';
-import { recipeDensity } from './recipeDensity.js';
+import {
+  composeKaleidoscopeFaithful,
+  clearKaleidoscopeFaithful,
+} from './composeKaleidoscopeFaithful.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
 
@@ -139,63 +140,38 @@ export function applyChromeFromTheme(
       cicnUrl,
     };
 
-    // Phase 4 reverted (2026-05-18) — the recipe-driven per-segment
-    // composer (composeTopRecipe etc.) misinterpreted wnd# entries as
-    // render commands when they're actually slice-boundary markers.
-    // For schemes where a named part appears at MULTIPLE recipe
-    // positions (e.g., 7 Le's part-1 at at=5, 24, 35, 74), it produced
-    // duplicate widgets across the titlebar instead of pinning the
-    // single visible widget. Diagnostics page (`/diagnostics.html`)
-    // surfaced this — recipe entries don't enumerate widgets to paint.
-    //
-    // Correct interpretation (3-slice via border-image):
-    // - Slice boundaries derived from the recipe's widest fill-segment run
-    // - Left slice = cicn[0..fillStart] pinned to titlebar left (carries
-    //   close-box-area), at native pixel size
-    // - Right slice = cicn[fillEnd..cicnW] pinned to right (zoom-area)
-    // - Middle slice = cicn[fillStart..fillEnd] tiled across the gap
-    //
-    // The recipe-driven composer (composeRecipeBased.ts) stays in tree
-    // but unused — useful for future per-cell positioning work (e.g.,
-    // hit-target overlays) but not for visual rendering.
-    clearRecipeSegments(titlebar);
-    clearAllEdges(windowEl); // strip any prior recipe segments from edges
+    clearAllEdges(windowEl); // strip any prior 3-slice edge segments
     // Dispatch — see docs/chrome-rendering-architecture.md §7.
     //
-    // The classifier (pixel-scan) distinguishes Kind A (thin titlebar) from
-    // not-thin. For not-thin cicns, structure comes from the wnd# parts
-    // table: a published `part-0` body rect is unambiguous proof of where the
-    // body region lives, independent of whether the cicn pixels look like a
-    // tidy 9-slice frame. Acid + evolution have busy "Mondrian" interiors
-    // that defeat the pixel-scan body detector but they DO publish part-0 +
-    // a rich recipe — exactly the same structural shape as 1990 — so they
-    // route to the composer too.
-    const rich = recipeDensity(windowType) === 'rich';
+    // Two paths exist now (post-2026-05-18 cleanup):
+    //   - Kind A (thin titlebar): 3-slice via border-image on the titlebar.
+    //   - Everything else with a body rect: composeKaleidoscopeFaithful
+    //     (CSS border-image 9-slice from part-0 geometry).
+    //
+    // The per-segment composer (composeRichRecipe) + its 4 pinning
+    // heuristics + the recipe-density gate + the part-code dispatcher are
+    // all retired — the recipe is hit-test data per the WDEF research
+    // (kept in theme.json for future click-handler wiring, not used for
+    // paint). See LEARNINGS 2026-05-18 entries on "Scheme Factory's
+    // resource fork is the missing spec" and "WDEF research".
     const hasBodyRect = !!windowType.parts?.['part-0'];
     void classifyChromeCicn(cicnUrl).then((kind) => {
       if (kind === 'titlebar-only') {
         // Kind A — chrome lives entirely in the 3-slice titlebar path.
         clearWindow9Slice(windowEl);
-        clearRichRecipe(windowEl);
+        clearKaleidoscopeFaithful(windowEl);
         return;
       }
       clear3Slice(titlebar);
-      if (rich && hasBodyRect) {
-        // Rich-recipe composer beats both 9-slice AND the fixed-bitmap
-        // fallback — works for Kind B + Kind C alike when the structure
-        // is published via wnd# (parts + edges).
+      if (hasBodyRect) {
         clearWindow9Slice(windowEl);
-        void composeRichRecipe(windowEl, windowType, composeOpts);
-      } else if (kind === 'full-window') {
-        // Simple-recipe Kind B → CSS border-image 9-slice.
-        clearRichRecipe(windowEl);
-        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+        composeKaleidoscopeFaithful(windowEl, windowType, composeOpts);
       } else {
-        // Kind C without rich+body → fall back to Kind A treatment
-        // (the chrome will look stretched but at least won't crash).
-        // Future: canvas-composite for these.
-        clearWindow9Slice(windowEl);
-        clearRichRecipe(windowEl);
+        // No body rect → defensive fallback to the legacy pixel-scan 9-slice.
+        // None of the 7 schemes in the corpus hit this path; we keep it for
+        // forward-compat with future schemes that omit part-0.
+        clearKaleidoscopeFaithful(windowEl);
+        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
       }
     });
     const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
@@ -239,7 +215,7 @@ export function applyChromeFromTheme(
     // Path B.
     clearChromeSegments(titlebar);
     clear3Slice(titlebar);
-    clearRichRecipe(windowEl);
+    clearKaleidoscopeFaithful(windowEl);
     applyChromeElement(titlebar, chromeEntry, { theme });
     titlebar.style.removeProperty('--aaron-title-pill-left');
     titlebar.style.removeProperty('--aaron-title-pill-right');
@@ -248,7 +224,7 @@ export function applyChromeFromTheme(
     // Path C.
     clearChromeSegments(titlebar);
     clear3Slice(titlebar);
-    clearRichRecipe(windowEl);
+    clearKaleidoscopeFaithful(windowEl);
     const titlebarEntry: ChromeElementEntry = stripDimensions(chromeEntry);
     applyChromeElement(titlebar, titlebarEntry, { theme });
     titlebar.style.backgroundSize = '100% 100%';
@@ -296,7 +272,7 @@ export function applyChromeFromTheme(
  * that hasn't been themed.
  */
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
-  clearRichRecipe(windowEl);
+  clearKaleidoscopeFaithful(windowEl);
   clearWindow9Slice(windowEl);
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
