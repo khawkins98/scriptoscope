@@ -75,7 +75,8 @@ describe('applyWindowAs9Slice', () => {
     expect(result!.bottom).toBe(7);
     expect(result!.left).toBe(6);
     expect(el.style.borderImageSource).toContain('ergobox.png');
-    expect(el.style.borderImageSlice).toContain('fill');
+    // No `fill` — content box stays transparent so window body shows through.
+    expect(el.style.borderImageSlice).not.toContain('fill');
     expect(el.style.borderImageRepeat).toBe('round');
     expect(el.style.borderLeftWidth).toBe('6px');
     expect(el.style.borderRightWidth).toBe('6px');
