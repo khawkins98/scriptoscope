@@ -476,7 +476,108 @@ The most complex composite. See [issue #77](https://github.com/khawkins98/aaron-
 
 ---
 
-## 11. Decisions log
+## 11. Control family dispatch — applying the chrome lessons
+
+The window-chrome work (PRs #103–#117) produced a dispatcher model that generalizes to every control family. Before each per-control ticket reinvents it, document the shape here.
+
+### 11.1 What chrome taught us
+
+| Lesson | Where it bit us | The fix |
+|---|---|---|
+| Recipe entries are *slice-boundary markers*, not paint commands | PR #103 (Phase 4 revert) | Treat `{at, part}` as boundaries; segments between them get the rendering |
+| The classifier (pixel-scan) and the published structure (wnd# parts) can disagree; the published structure wins | PR #114 (Acid + evolution routed wrong) | Three-axis dispatch: classifier kind, recipe density, body-rect presence |
+| Body-rect (`part-0`) is the most reliable source of frame geometry | PR #112 | Derive edge thicknesses from body rect, not from `deriveFrameGeometry` pixel scans |
+| Corners must be explicitly anchored; segment composers have no implicit corner concept | PR #112 V3 | First + last fill of each edge → pin native (`isCornerFill`) |
+| Part rects identify hit-test zones; using them as render sources misplaces graphics | PR #116 V2 | Crop cicn at segment EDGE position, not at part-rect position |
+| Authors drew assuming near-native render dimensions; arbitrary stretch breaks visual intent | PR #117 | CSS-level min/max constraints per scheme |
+| Per-segment static-vs-tile metadata doesn't exist in the format | Open (still investigating for #116's plaque/star case) | Either curation step or pixel-variance auto-detection |
+
+### 11.2 The control-family dispatcher contract
+
+Every control family should expose the same shape:
+
+```ts
+// In src/themes/runtime/controlFamilies/<family>.ts
+export interface ControlFamilyComposer {
+  /** Identifies "what kind of layout this control's cicns describe" — e.g.,
+   *  scrollbar might be 'split-arrows' vs 'unified-track'; tab might be
+   *  'lsf' vs 'ssf' (large/small standard form). */
+  classify(theme: Theme, slugs: string[]): ControlKind;
+
+  /** Paint a control instance into a DOM element. */
+  apply(el: HTMLElement, theme: Theme, opts: ApplyControlChromeOptions): void;
+
+  /** Clear any inline styles + child nodes this composer added. */
+  clear(el: HTMLElement): void;
+}
+```
+
+And a top-level dispatcher:
+
+```ts
+// src/themes/runtime/applyControlChromeV2.ts
+function applyControl(el: HTMLElement, family: ControlFamily, opts: ...) {
+  const composer = COMPOSERS[family];
+  composer.apply(el, theme, opts);
+}
+```
+
+This factors the chrome learnings (kind classifier + dispatcher + composer) into a per-control shape. Each per-control ticket implements one `ControlFamilyComposer` and registers it; the architectural decisions don't get reinvented per family.
+
+### 11.3 Per-family structural shapes
+
+Survey of what each control family's cicns describe — for sizing the work and for the classifier design.
+
+| Family | Cicn shape | Cinf usage | Composer kind | Status |
+|---|---|---|---|---|
+| **Push button** | 1 cicn per state (normal/pressed/disabled), one rect | cornerSize + sideThickness — true 9-slice | `applyChromeElement` (existing) | Implemented (CSS-drawn fallback today) |
+| **Checkbox / radio** | 1 cicn per state × size × on/off — up to 18 cicns per family | cinf typically null (single-shot bitmap) | Crop-and-place — `<img>` or `background-image` at native size | Implemented (CSS-drawn) |
+| **Bevel button** | Same shape as push button, different naming | cornerSize + sideThickness | Same as push button | Not started |
+| **Sliders** | 2 cicns: track (tileable) + thumb (single sprite). 4 directional variants × active/inactive/pressed | Track has cornerSize+side for 3-slice; thumb is native | Two-element composite: 3-slice track + positioned thumb | Not started |
+| **Scrollbars** | 3-5 cicns: track, thumb, optional arrows (2 or 4) | Track 3-slice; arrows native | Composite: track (3-slice horizontal/vertical) + thumb (draggable) + optional arrow buttons | Not started |
+| **Progress bars** | 3 cicns: track + fill + frame; barber-pole variant uses a ppat | Track + frame 9-slice; fill stretchable | Layered composite | Not started |
+| **Tabs** | 4-6 cicns: front-tab, rear-tab, pane (large + small variants) | 9-slice for tab body | Tab strip composer (per-tab + pane background) | Not started |
+| **Popup menus** | 3-4 cicns: button body, arrow section, text section, arrow glyph | Composite | Multi-cell button (text + arrow regions) + open menu (separate composer) | Not started |
+| **Menus** | Backgrounds (pull-down, standalone, solo) + selected items + dividers | Backgrounds 9-slice; items native | Container + N rows with selected-state swap | Not started |
+| **Disclosure triangles** | 2 cicns (down + right) × pressed/inactive | None | Single-cicn crop-and-place; rotate via SVG transform OR use both | Not started |
+| **Cursors** | `crsr` resource (different format than cicn) | n/a | CSS `cursor: url(...)` per scheme | Not started |
+
+### 11.4 Per-family classifier patterns
+
+Like Kind A/B/C for chrome, most control families have variants that need a classifier:
+
+| Family | Kinds to classify | Source of truth |
+|---|---|---|
+| Scrollbar | split-arrows (Mac OS 8 default) vs unified-track (Colr `unifiedScrollbarTrack` flag) | Theme's `Colr` resource (we extract this) |
+| Slider | tick-marked vs plain track; 4 directions vs non-directional | Per-cicn naming + slider's `direction` property in DOM |
+| Tab | lsf (large standard form, 16px) vs ssf (small, 12px) | Tab's `size` property in DOM |
+| Push button | with-ring (default button) vs without-ring | Two separate cicn families in catalog |
+| Progress | determinate (track + fill + frame) vs indeterminate (track + ppat barber-pole + frame) | Component's `value` (number) vs (null/undefined) |
+
+### 11.5 Diagnostics integration
+
+The existing diagnostics page surfaces window-chrome internals (parts overlay, recipe segments, segment inspector). For control families, the equivalent diagnostic would be:
+
+- **Per-family inspector**: pick a control family, render every instance the scheme provides at its various states, side-by-side. Click an instance to see its cicn + cinf data, classifier verdict, and would-be DOM output.
+- **Coverage panel** (already exists in #108): now per-family — "scheme provides scrollbar assets but Aaron UI doesn't consume them yet → conformance L2 not L3."
+
+Both reuse the same patterns as the chrome inspector (#115). Per-family inspectors are cheap once the dispatcher contract exists.
+
+### 11.6 Roadmap implications
+
+Reordering Phase 3 against this architecture (was: one ticket per control; now: dispatcher first, then families fall into shape):
+
+1. **#3.0a** — `ControlFamilyComposer` interface + `applyControl` dispatcher + per-family directory structure. This PR's natural follow-up.
+2. **#3.0b** — Per-family inspector in diagnostics (one tab per family showing every cicn the scheme provides).
+3. **#3.1** — `applyControlChrome` shared infrastructure (state machine — exists today, refactor into the dispatcher shape).
+4. **#3.2–#3.8** — One PR per family, implementing its `ControlFamilyComposer`. Order by complexity: push button → checkbox/radio → bevel → tab → slider → progress → scrollbar → popup menu → menu.
+5. **#3.9** — Gallery + conformance tests.
+
+Skipping straight from window chrome to "implement scrollbar" without this dispatcher work would re-derive everything inline in `applyScrollbar.ts`. Doing the dispatcher first means each per-family PR is shape-bounded.
+
+---
+
+## 12. Decisions log
 
 Non-obvious calls, with reasons, for future reviewers:
 
@@ -494,7 +595,7 @@ Non-obvious calls, with reasons, for future reviewers:
 
 ---
 
-## 12. References
+## 13. References
 
 - [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — window-level pair
 - [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — cinf 9-slice + chromeElements catalog
