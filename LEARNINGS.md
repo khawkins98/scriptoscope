@@ -1124,3 +1124,35 @@ When the chrome classifier returns "fixed-bitmap" (Kind C), I had been describin
 **Lesson:** the diagnostics page's verdict text should explain WHAT can be done about each limitation, not just that the limitation exists. Added three workaround options to the Kind C verdict (lock to native size, fixed-size-apps-only usage, future canvas-composite) plus a "Lock to native cicn width" button in the live render pane that snaps the slider to the cicn's authored width.
 
 **How to apply:** every classifier verdict should answer "now what?" with concrete actions, not just "this is the situation." Pure diagnosis without remediation paths makes the tool less useful.
+
+## 2026-05-18 — Doc-first locked in a fictional threshold before code shipped (#111)
+
+For the rich-recipe composer dispatch, I wrote `docs/chrome-rendering-architecture.md §7.1` (the threshold rule + per-scheme table) before implementing. My first-draft table had **fictional numbers** — 7 Le at "4 max segments per edge", ErgoBox at "3", 1990 at "22". I'd eyeballed them from the segment overlay screenshots.
+
+Then I ran `jq` against every `themes/*/theme.json` to verify before committing. Real numbers: 7 Le = 13, ErgoBox = 13, Big Blue = 11, 1138 = 8, 1990 = 21. My proposed `> 6` threshold on *total entries* would flag everything as rich.
+
+The fix: the discriminator should be **fill segments per edge** (entries whose part is NOT in the parts table), not total entries. Named widgets don't strain border-image; only fill spans do. Real fill counts: Kind B simple = 4-5; 1990 = 9 — clean gap.
+
+**Why it matters:** had I built the composer first and documented after, the threshold would have been hardcoded against vibes. The doc-first phase forced quantitative justification and caught the mistake when it cost 30 seconds to fix instead of a follow-up PR.
+
+**How to apply:** when proposing thresholds, default-values, or empirical ranges in any spec, run the discriminating query against the actual corpus inline in the doc. "I think it's around X" is fine in conversation; in a doc it's a future bug.
+
+## 2026-05-18 — Part rects are hit-test metadata, NOT render geometry (#112)
+
+V1 of `composeRichRecipe` cropped named-widget segments to their part rect: "segment references part-1 → display cicn[part-1.rect]". For 1990's top edge this looked correct (close-box pixels appeared at the close-box position). On the bottom edge it produced visible mismapping — part-1 is referenced 7× on the bottom recipe but part-1's rect is at cicn y=11..19 (top region). Painting top-row widget pixels onto the bottom edge gave a scattered widget look.
+
+The fix (V2): **every segment crops the cicn at its own edge position**, regardless of whether it's named. The only thing that varies between widget vs fill is flex behavior (widget pins at native width; fill grows proportional to span). The part rect is metadata for *hit-testing* (which we may wire later as a click-target overlay), not for *rendering*.
+
+**Why it matters:** this is the same flavor of mistake as the #103 Phase 4 revert — interpreting wnd# entries as paint commands instead of as boundary markers. Same lesson, different angle. The wnd# `part` field on a recipe entry identifies what KIND of segment lives at that boundary (widget anchor vs fill zone); it doesn't specify where to source pixels.
+
+**How to apply:** when designing renderers from the wnd#/cinf data, ask "is this geometry metadata for rendering, or topology metadata for behavior?" before using it. Most rect-like fields in Kaleidoscope's format are the latter.
+
+## 2026-05-18 — Corner pinning is non-optional for recipe composers (#112)
+
+V2 of the composer rendered all fill segments with `flex: span span auto` (grow proportional to recipe span). The result for 1990 at 380px window width: the top-left corner zone (containing distinctive red/blue/yellow widget squares) stretched to 2.2× cicn width, scattering the widgets across the top edge.
+
+The fix (V3): pin the **first and last fill segments of each edge** as `flex: 0 0 spanPx` (no stretch). Named widgets already pinned. Only interior fills grow.
+
+**Why it matters:** CSS `border-image` corners pin automatically (the slice values define them; the corners aren't subject to repeat). A hand-rolled segment composer has no implicit corner concept — corners must be marked explicitly or the decoration that lives in them gets stretched. The "first + last fill of each edge" heuristic worked across the corpus because recipe authors consistently put corner-zone graphics as the first/last fill segments. If a future scheme breaks that convention, the heuristic needs revisiting; the safer long-term move is deriving the corner extents from the body rect (cinf-equivalent) and synthesizing dedicated corner segments rather than relying on recipe ordering.
+
+**How to apply:** any time we replace `border-image` with a hand-rolled composer, audit what implicit properties of `border-image` we're losing. Corners-don't-stretch was the headline one here; others (slice-aware caching, etc.) will surface as the composer hits more schemes.
