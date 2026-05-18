@@ -959,4 +959,20 @@ After importing 5 exotic schemes (#89) and seeing the gallery expose fidelity ga
 
 ---
 
+### 2026-05-18 — Pure-JS Mac OS resource fork parser + runtime scheme loader (Phase 2)
+
+Phase 2 of the loader rewrite: added `parseResourceFork(bytes)` and `loadKaleidoscopeScheme(bytes|url|Blob|ArrayBuffer)`. The runtime can now decode any well-formed Kaleidoscope `.ksc` or raw `.rsrc` blob into a complete `Theme` matching `docs/kaleidoscope-geometry-spec.md §7` — without `DeRez`, without a build step, without per-scheme manual patches.
+
+**Parser:** ~190 lines, pure JS (`src/themes/loader/resource-fork.js`). Implements the Inside Macintosh: Resource Manager format. Validated against the Acid (#1022) scheme's actual resource fork: parses 666 resources in single-digit milliseconds with type/id/name/data fields matching what `DeRez` produces. Synthetic single-resource fixture covers the structural happy path.
+
+**Runtime loader (`loadKaleidoscopeScheme.js`):** ties parser + per-type decoders + `buildThemeJson` + `validateTheme`. Accepts Uint8Array, ArrayBuffer, SharedArrayBuffer, Blob, or a URL string (fetches it). Optional `assetUrlFactory` for caller-controlled blob URL encoding (default uses `OffscreenCanvas.convertToBlob` in browsers). `meta` option supplies provenance the binary doesn't carry (author, license, source URL).
+
+**Validation result:** loading 1022.rsrc through the runtime produces the SAME 10 windowTypes + 190 chromeElements + 2 patterns + correctly-mapped `document-window` chrome (active=cicn -14335, inactive=cicn -14336) as the build-time bundle in `themes/acid/theme.json`. End-to-end parity confirmed.
+
+**SharedArrayBuffer gotcha (Node):** `Buffer.buffer` in some Node configurations is a `SharedArrayBuffer`, not `ArrayBuffer`. `slice()` preserves the type. So `instanceof ArrayBuffer` checks miss it. Switched to duck-typing on `byteLength` + `!ArrayBuffer.isView(input)` for the input normalizer. Trivial but easy to miss.
+
+**What this enables:** Phase 3 can drop the `.rsrc` files directly into `themes/<slug>/` (or fetch them on demand from an archive URL), retiring the build-time `theme.json` bundles as the source of truth. The `theme.json` files we currently ship become an optional cache, not a contract.
+
+---
+
 *New learnings get appended below this line as the project ships.*

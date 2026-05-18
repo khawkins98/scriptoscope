@@ -5,6 +5,8 @@
 // a browser (web-based extractor is the long-term goal).
 
 export { parseDerezText } from './derez-parser.js';
+export { parseResourceFork } from './resource-fork.js';
+export { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 export { decodeCicn } from './decoders/cicn.js';
 export { decodePpat } from './decoders/ppat.js';
 export { decodeCinf } from './decoders/cinf.js';
