@@ -1,0 +1,16 @@
+{
+  "name": "1990",
+  "author": {
+    "name": "SHIOCOP",
+    "url": "http://www.os.xaxon.ne.jp/~shiocop/hp/index.html",
+    "year": "1999"
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalSchemeId": "1990",
+    "originalLicense": "Distributed as freeware via Kaleidoscope (kaleidoscope.net) circa 1999-2003. Site no longer reachable; archived copy via kaleidoscope.hryjksn.com.",
+    "sourceUrl": "https://kaleidoscope.hryjksn.com/",
+    "sourceArchive": "https://web.archive.org/web/20140226161241im_/http://www.kaleidoscope.net/schemes/schemes/1990.sit"
+  }
+}

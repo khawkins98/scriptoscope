@@ -1,0 +1,6928 @@
+{
+  "source": "1138.r",
+  "extractedAt": "2026-05-18T05:38:43.320Z",
+  "counts": {
+    "total": 316,
+    "ok": 316,
+    "skipped": 0,
+    "errored": 0,
+    "raster": 234,
+    "geometry": 82
+  },
+  "assets": [
+    {
+      "type": "cicn",
+      "id": -10208,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10208-unnamed.png",
+      "width": 16,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10207,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10207-unnamed.png",
+      "width": 16,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8272,
+      "name": "Vertical Thumb Ghost",
+      "status": "ok",
+      "file": "cicn-n8272-vertical-thumb-ghost.png",
+      "width": 16,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10206,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10206-unnamed.png",
+      "width": 17,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10205,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10205-unnamed.png",
+      "width": 17,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8271,
+      "name": "Horizontal Ghost Thumb",
+      "status": "ok",
+      "file": "cicn-n8271-horizontal-ghost-thumb.png",
+      "width": 17,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14305,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14305-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10240,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10240-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10239,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10239-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10238,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10238-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10232,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10232-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10231,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n10231-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8288,
+      "name": "Inactive Horizontal Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8288-inactive-horizontal-scroll-bar-track.png",
+      "width": 5,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8287,
+      "name": "Horzontal Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8287-horzontal-nothing-to-scroll-track.png",
+      "width": 33,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8286,
+      "name": "Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8286-horizontal-scroll-bar-track-arrows.png",
+      "width": 33,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8285,
+      "name": "Pressed Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8285-pressed-horizontal-scroll-bar-track-arrows.png",
+      "width": 33,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8280,
+      "name": "Inactive Vertical Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8280-inactive-vertical-scroll-bar-track.png",
+      "width": 16,
+      "height": 5,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8279,
+      "name": "Vertical Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8279-vertical-nothing-to-scroll-track.png",
+      "width": 16,
+      "height": 33,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8278,
+      "name": "Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8278-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 33,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8277,
+      "name": "Pressed Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8277-pressed-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 33,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14334,
+      "name": "inactive grow box",
+      "status": "ok",
+      "file": "cicn-n14334-inactive-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14330,
+      "name": "Pressed Window Widgets",
+      "status": "ok",
+      "file": "cicn-n14330-pressed-window-widgets.png",
+      "width": 24,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10176,
+      "name": "Small Off Disabled",
+      "status": "ok",
+      "file": "cicn-n10176-small-off-disabled.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10175,
+      "name": "Small Off Normal",
+      "status": "ok",
+      "file": "cicn-n10175-small-off-normal.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10174,
+      "name": "Small Off Pressed",
+      "status": "ok",
+      "file": "cicn-n10174-small-off-pressed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10173,
+      "name": "Small On Disabled",
+      "status": "ok",
+      "file": "cicn-n10173-small-on-disabled.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10172,
+      "name": "Small On Normal",
+      "status": "ok",
+      "file": "cicn-n10172-small-on-normal.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10171,
+      "name": "Small On Pressed",
+      "status": "ok",
+      "file": "cicn-n10171-small-on-pressed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10167,
+      "name": "Normal Off Disabled",
+      "status": "ok",
+      "file": "cicn-n10167-normal-off-disabled.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10166,
+      "name": "Normal Off Normal",
+      "status": "ok",
+      "file": "cicn-n10166-normal-off-normal.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10165,
+      "name": "Normal Off Pressed",
+      "status": "ok",
+      "file": "cicn-n10165-normal-off-pressed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10164,
+      "name": "Normal On Disabled",
+      "status": "ok",
+      "file": "cicn-n10164-normal-on-disabled.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10163,
+      "name": "Normal On Normal",
+      "status": "ok",
+      "file": "cicn-n10163-normal-on-normal.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10162,
+      "name": "Normal On Pressed",
+      "status": "ok",
+      "file": "cicn-n10162-normal-on-pressed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10158,
+      "name": "Large Off Disabled",
+      "status": "ok",
+      "file": "cicn-n10158-large-off-disabled.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "file": "cicn-n12320-popup-window.png",
+      "width": 41,
+      "height": 58,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14335,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14335-unnamed.png",
+      "width": 103,
+      "height": 42,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 52,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14333,
+      "name": "Active Grow Box",
+      "status": "ok",
+      "file": "cicn-n14333-active-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14336,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14336-unnamed.png",
+      "width": 103,
+      "height": 42,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 52,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14328,
+      "name": "Inactive Dialog",
+      "status": "ok",
+      "file": "cicn-n14328-inactive-dialog.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14327,
+      "name": "Active Dialog",
+      "status": "ok",
+      "file": "cicn-n14327-active-dialog.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14326,
+      "name": "Inactive Alert",
+      "status": "ok",
+      "file": "cicn-n14326-inactive-alert.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14325,
+      "name": "Active Alert",
+      "status": "ok",
+      "file": "cicn-n14325-active-alert.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14324,
+      "name": "Inactive Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14324-inactive-movable-modal.png",
+      "width": 41,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14323,
+      "name": "Active Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14323-active-movable-modal.png",
+      "width": 41,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14322,
+      "name": "Inactive Movable Alert",
+      "status": "ok",
+      "file": "cicn-n14322-inactive-movable-alert.png",
+      "width": 41,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14321,
+      "name": "Active Movable Dialog",
+      "status": "ok",
+      "file": "cicn-n14321-active-movable-dialog.png",
+      "width": 41,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12240,
+      "name": "Menu Bar",
+      "status": "ok",
+      "file": "cicn-n12240-menu-bar.png",
+      "width": 15,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12239,
+      "name": "Menu Item",
+      "status": "ok",
+      "file": "cicn-n12239-menu-item.png",
+      "width": 15,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12238,
+      "name": "Selected Menu Item",
+      "status": "ok",
+      "file": "cicn-n12238-selected-menu-item.png",
+      "width": 15,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12237,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12237-pull-down-menu-background.png",
+      "width": 21,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12236,
+      "name": "Selected Menu Item",
+      "status": "ok",
+      "file": "cicn-n12236-selected-menu-item.png",
+      "width": 21,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "file": "cicn-n12235-divider-line.png",
+      "width": 11,
+      "height": 5,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12234,
+      "name": "Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n12234-solo-menu-background.png",
+      "width": 21,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14287,
+      "name": "Active No Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14287-active-no-title-utility-window.png",
+      "width": 47,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14298,
+      "name": "Pressed Utility Window Widgets",
+      "status": "ok",
+      "file": "cicn-n14298-pressed-utility-window-widgets.png",
+      "width": 24,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14290,
+      "name": "Side Floating Utility Window Down State Widgets",
+      "status": "ok",
+      "file": "cicn-n14290-side-floating-utility-window-down-state-widgets.png",
+      "width": 24,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14332,
+      "name": "Collapsed Inactive Document Window",
+      "status": "ok",
+      "file": "cicn-n14332-collapsed-inactive-document-window.png",
+      "width": 103,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 52,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14331,
+      "name": "Collapsed Active Document Window",
+      "status": "ok",
+      "file": "cicn-n14331-collapsed-active-document-window.png",
+      "width": 103,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 52,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14304,
+      "name": "Inactive Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14304-inactive-titled-utility-window.png",
+      "width": 56,
+      "height": 24,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14303,
+      "name": "Active Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14303-active-titled-utility-window.png",
+      "width": 56,
+      "height": 24,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14295,
+      "name": "Side FLoating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14295-side-floating-utility-window.png",
+      "width": 20,
+      "height": 45,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14296,
+      "name": "Disabled Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14296-disabled-side-floating-utility-window.png",
+      "width": 20,
+      "height": 45,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14288,
+      "name": "Inactive No Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14288-inactive-no-title-utility-window.png",
+      "width": 47,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8208,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8208-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8207,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8207-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8206,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8206-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8205,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8205-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8204,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8204-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8203,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8203-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8202,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8202-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8201,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8201-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8200,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n8200-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8199,
+      "name": "Inactive Large Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8199-inactive-large-popup-arrow-glyph.png",
+      "width": 9,
+      "height": 12,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8198,
+      "name": "Active Large Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8198-active-large-popup-arrow-glyph.png",
+      "width": 9,
+      "height": 12,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8197,
+      "name": "Pressed Large Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8197-pressed-large-popup-arrow-glyph.png",
+      "width": 9,
+      "height": 12,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8196,
+      "name": "Inactive Small Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8196-inactive-small-popup-arrow-glyph.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8195,
+      "name": "Active Small Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8195-active-small-popup-arrow-glyph.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8194,
+      "name": "Pressed Small Popup Arrow Glyph",
+      "status": "ok",
+      "file": "cicn-n8194-pressed-small-popup-arrow-glyph.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9550,
+      "name": "List View Background And Text",
+      "status": "ok",
+      "file": "cicn-n9550-list-view-background-and-text.png",
+      "width": 2,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9549,
+      "name": "Sort Column Background",
+      "status": "ok",
+      "file": "cicn-n9549-sort-column-background.png",
+      "width": 1,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9548,
+      "name": "List View Seperator Line",
+      "status": "ok",
+      "file": "cicn-n9548-list-view-seperator-line.png",
+      "width": 1,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9776,
+      "name": "Active Dialog/Alert Box Colors",
+      "status": "ok",
+      "file": "cicn-n9776-active-dialog-alert-box-colors.png",
+      "width": 2,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9775,
+      "name": "Inactive Dialog/Alert Box Colors",
+      "status": "ok",
+      "file": "cicn-n9775-inactive-dialog-alert-box-colors.png",
+      "width": 2,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10048,
+      "name": "Inactive Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10048-inactive-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10047,
+      "name": "Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10047-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10046,
+      "name": "Pressed Up Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10046-pressed-up-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10045,
+      "name": "Pressed Down Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10045-pressed-down-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10080,
+      "name": "Progress Indicator Frame",
+      "status": "ok",
+      "file": "cicn-n10080-progress-indicator-frame.png",
+      "width": 5,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10079,
+      "name": "Full Progress Indicator Section",
+      "status": "ok",
+      "file": "cicn-n10079-full-progress-indicator-section.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10078,
+      "name": "Progress Indicator Track",
+      "status": "ok",
+      "file": "cicn-n10078-progress-indicator-track.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10077,
+      "name": "Inactive Progress Indicator Frame",
+      "status": "ok",
+      "file": "cicn-n10077-inactive-progress-indicator-frame.png",
+      "width": 5,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10076,
+      "name": "Inactive Full Progress Indicator Section",
+      "status": "ok",
+      "file": "cicn-n10076-inactive-full-progress-indicator-section.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10075,
+      "name": "Inactive Progress Indicator Track",
+      "status": "ok",
+      "file": "cicn-n10075-inactive-progress-indicator-track.png",
+      "width": 7,
+      "height": 10,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9568,
+      "name": "Inactive Finder Header",
+      "status": "ok",
+      "file": "cicn-n9568-inactive-finder-header.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9567,
+      "name": "Finder Header",
+      "status": "ok",
+      "file": "cicn-n9567-finder-header.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10144,
+      "name": "Inactive Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10144-inactive-down-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10143,
+      "name": "Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10143-down-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10142,
+      "name": "Pressed Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10142-pressed-down-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10141,
+      "name": "Down Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10141-down-pointing-slider-thumbs.png",
+      "width": 15,
+      "height": 64,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10134,
+      "name": "Inactive Up Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10134-inactive-up-pointing-slider-tick.png",
+      "width": 5,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10133,
+      "name": "Up Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10133-up-pointing-slider-tick.png",
+      "width": 5,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10138,
+      "name": "Up Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10138-up-down-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10137,
+      "name": "Up Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10137-up-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10136,
+      "name": "Pressed Up Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10136-pressed-up-pointing-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10135,
+      "name": "Up Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10135-up-pointing-slider-thumbs.png",
+      "width": 15,
+      "height": 64,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10132,
+      "name": "Inactive Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10132-inactive-non-directional-horizontal-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10131,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10131-non-directional-horizontal-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10130,
+      "name": "Pressed Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10130-pressed-non-directional-horizontal-slider-track.png",
+      "width": 49,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10129,
+      "name": "Non-Directional Horizontal Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10129-non-directional-horizontal-slider-thumbs.png",
+      "width": 15,
+      "height": 64,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10128,
+      "name": "Inactive Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10128-inactive-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10127,
+      "name": "Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10127-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10126,
+      "name": "Pressed Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10126-pressed-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10125,
+      "name": "Right Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10125-right-pointing-slider-thumbs.png",
+      "width": 64,
+      "height": 15,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10118,
+      "name": "Inactive Left Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10118-inactive-left-pointing-slider-tick.png",
+      "width": 7,
+      "height": 5,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10117,
+      "name": "Left Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10117-left-pointing-slider-tick.png",
+      "width": 7,
+      "height": 5,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10122,
+      "name": "Inactive Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10122-inactive-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10121,
+      "name": "Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10121-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10120,
+      "name": "Pressed Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10120-pressed-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10119,
+      "name": "Left Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10119-left-pointing-slider-thumbs.png",
+      "width": 64,
+      "height": 15,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10116,
+      "name": "Inactive Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10116-inactive-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10115,
+      "name": "Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10115-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10114,
+      "name": "Pressed Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10114-pressed-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 49,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10113,
+      "name": "Vertical Non-Directional Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10113-vertical-non-directional-slider-thumbs.png",
+      "width": 64,
+      "height": 15,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14286,
+      "name": "Inactive Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14286-inactive-small-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14285,
+      "name": "Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14285-small-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10112,
+      "name": "Inactive Right Pointing Disclosure Tringle",
+      "status": "ok",
+      "file": "cicn-n10112-inactive-right-pointing-disclosure-tringle.png",
+      "width": 11,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10111,
+      "name": "Right Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10111-right-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10110,
+      "name": "Pressed Right Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10110-pressed-right-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10104,
+      "name": "Inactive Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10104-inactive-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10103,
+      "name": "Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10103-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10102,
+      "name": "Pressed Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10102-pressed-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9504,
+      "name": "Inactive Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9504-inactive-un-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9503,
+      "name": "Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9503-un-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9502,
+      "name": "Pressed Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9502-pressed-un-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9501,
+      "name": "Inactive Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9501-inactive-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9500,
+      "name": "Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9500-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9499,
+      "name": "Pressed Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9499-pressed-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9498,
+      "name": "Inactive Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9498-inactive-mixed-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9497,
+      "name": "Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9497-mixed-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9496,
+      "name": "Pressed Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9496-pressed-mixed-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9495,
+      "name": "Checked Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9495-checked-alternate-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9494,
+      "name": "Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9494-alternate-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9493,
+      "name": "Pressed Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9493-pressed-alternate-checked-check-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9492,
+      "name": "Inactive Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9492-inactive-off-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9491,
+      "name": "Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9491-off-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9490,
+      "name": "Pressed Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9490-pressed-off-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9489,
+      "name": "Inactive On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9489-inactive-on-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9488,
+      "name": "On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9488-on-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9487,
+      "name": "Pressed On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9487-pressed-on-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9486,
+      "name": "Inactive Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9486-inactive-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9485,
+      "name": "Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9485-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9484,
+      "name": "Pressed Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9484-pressed-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8283,
+      "name": "Double Headed Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8283-double-headed-nothing-to-scroll.png",
+      "width": 65,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 36,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8282,
+      "name": "Doubled Headed Horizontal Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8282-doubled-headed-horizontal-scroll-bar.png",
+      "width": 63,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8275,
+      "name": "Vertical Double Headed Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8275-vertical-double-headed-nothing-to-scroll.png",
+      "width": 16,
+      "height": 65,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8274,
+      "name": "Vertical Double Headed Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8274-vertical-double-headed-scroll-bar.png",
+      "width": 16,
+      "height": 63,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8273,
+      "name": "Pressed Vertical Double Headed Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8273-pressed-vertical-double-headed-scroll-bar.png",
+      "width": 16,
+      "height": 63,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8270,
+      "name": "Inactive Small Horizontal Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8270-inactive-small-horizontal-nothing-to-scroll.png",
+      "width": 5,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8269,
+      "name": "Small Horizontal Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8269-small-horizontal-nothing-to-scroll.png",
+      "width": 25,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8268,
+      "name": "Small Horizontal Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8268-small-horizontal-scroll-bar.png",
+      "width": 25,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8267,
+      "name": "Pressed Small Horizontal Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8267-pressed-small-horizontal-scroll-bar.png",
+      "width": 25,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8265,
+      "name": "Small Doubled Headed Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8265-small-doubled-headed-nothing-to-scroll.png",
+      "width": 45,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8264,
+      "name": "Small Doubled Headed Horizontal Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8264-small-doubled-headed-horizontal-scroll-bar.png",
+      "width": 43,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8263,
+      "name": "Pressed Small Doubled Headed Horizontal Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8263-pressed-small-doubled-headed-horizontal-scroll-bar.png",
+      "width": 43,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8262,
+      "name": "Inactive Small Vertical Nothing To Scroll",
+      "status": "ok",
+      "file": "cicn-n8262-inactive-small-vertical-nothing-to-scroll.png",
+      "width": 11,
+      "height": 5,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8261,
+      "name": "Small Vertical Nothing to Scroll",
+      "status": "ok",
+      "file": "cicn-n8261-small-vertical-nothing-to-scroll.png",
+      "width": 11,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8260,
+      "name": "Small Vertical Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8260-small-vertical-scroll-bar-track.png",
+      "width": 11,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8259,
+      "name": "Pressed Small Vertical Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8259-pressed-small-vertical-scroll-bar-track.png",
+      "width": 11,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8257,
+      "name": "Small Nothing To Scroll Double Headed",
+      "status": "ok",
+      "file": "cicn-n8257-small-nothing-to-scroll-double-headed.png",
+      "width": 11,
+      "height": 45,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8256,
+      "name": "Small Double Vertical Headed Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8256-small-double-vertical-headed-scroll-bar.png",
+      "width": 11,
+      "height": 43,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8255,
+      "name": "Pressed Small Vertical Double Headed Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8255-pressed-small-vertical-double-headed-scroll-bar.png",
+      "width": 11,
+      "height": 43,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8254,
+      "name": "Small Vertical Thumb Ghost",
+      "status": "ok",
+      "file": "cicn-n8254-small-vertical-thumb-ghost.png",
+      "width": 10,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8253,
+      "name": "Small Horizontal Thumb Ghost",
+      "status": "ok",
+      "file": "cicn-n8253-small-horizontal-thumb-ghost.png",
+      "width": 14,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8252,
+      "name": "Small Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n8252-small-vertical-thumb.png",
+      "width": 10,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8251,
+      "name": "Pressed Small Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n8251-pressed-small-vertical-thumb.png",
+      "width": 10,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8250,
+      "name": "Small Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n8250-small-horizontal-thumb.png",
+      "width": 14,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8249,
+      "name": "Pressed Small Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n8249-pressed-small-horizontal-thumb.png",
+      "width": 14,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 1,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-1-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 0,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-0-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 2,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-2-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14302,
+      "name": "Inactive Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14302-inactive-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14301,
+      "name": "Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14301-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14300,
+      "name": "Inactive Collapsed Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14300-inactive-collapsed-titled-utility-window.png",
+      "width": 56,
+      "height": 19,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14299,
+      "name": "Collapsed Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14299-collapsed-titled-utility-window.png",
+      "width": 56,
+      "height": 19,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14292,
+      "name": "Inactive Collapsed Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14292-inactive-collapsed-side-floating-utility-window.png",
+      "width": 15,
+      "height": 45,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14291,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14291-side-floating-utility-window.png",
+      "width": 15,
+      "height": 45,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12233,
+      "name": "Selected Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n12233-selected-solo-menu-background.png",
+      "width": 21,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9984,
+      "name": "LSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9984-lsf-disabled-rear-tab.png",
+      "width": 27,
+      "height": 21,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9983-lsf-rear-tab.png",
+      "width": 27,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9982-lsf-pressed-rear-tab.png",
+      "width": 27,
+      "height": 21,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9981,
+      "name": "LSF Front Disabled Tab",
+      "status": "ok",
+      "file": "cicn-n9981-lsf-front-disabled-tab.png",
+      "width": 27,
+      "height": 25,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9980-lsf-front-tab.png",
+      "width": 27,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9978,
+      "name": "LSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9978-lsf-disabled-tab-pane.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9977,
+      "name": "LSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9977-lsf-tab-pane.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9976-ssf-disabled-rear-tab.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9975-ssf-rear-tab.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9974,
+      "name": "Pressed SSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9974-pressed-ssf-rear-tab.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9973,
+      "name": "SSF Front Disabled Tab",
+      "status": "ok",
+      "file": "cicn-n9973-ssf-front-disabled-tab.png",
+      "width": 23,
+      "height": 20,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9972-ssf-front-tab.png",
+      "width": 23,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9970,
+      "name": "SSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9970-ssf-disabled-tab-pane.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9969,
+      "name": "SSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9969-ssf-tab-pane.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9551,
+      "name": "Icon View Background Color",
+      "status": "ok",
+      "file": "cicn-n9551-icon-view-background-color.png",
+      "width": 2,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14310,
+      "name": "Inactive Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14310-inactive-movable-modal-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14309,
+      "name": "Active Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14309-active-movable-modal-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12230,
+      "name": "Pressed Application Menu Grip",
+      "status": "ok",
+      "file": "cicn-n12230-pressed-application-menu-grip.png",
+      "width": 6,
+      "height": 19,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12231,
+      "name": "Application Menu Grip",
+      "status": "ok",
+      "file": "cicn-n12231-application-menu-grip.png",
+      "width": 6,
+      "height": 19,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14329,
+      "name": "Alternate Zoom Box Widgets",
+      "status": "ok",
+      "file": "cicn-n14329-alternate-zoom-box-widgets.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14297,
+      "name": "Utility Window Alternate Zoom Box Widgets",
+      "status": "ok",
+      "file": "cicn-n14297-utility-window-alternate-zoom-box-widgets.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14294,
+      "name": "Inactive Side Floating Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14294-inactive-side-floating-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14293,
+      "name": "Side Floating Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14293-side-floating-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14289,
+      "name": "Side Floating Utility Window Alternate Zoom Box Widgets",
+      "status": "ok",
+      "file": "cicn-n14289-side-floating-utility-window-alternate-zoom-box-widgets.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14283,
+      "name": "Collapsed No Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14283-collapsed-no-title-utility-window.png",
+      "width": 47,
+      "height": 18,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14284,
+      "name": "Inactive Collapsed No Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14284-inactive-collapsed-no-title-utility-window.png",
+      "width": 47,
+      "height": 18,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14278,
+      "name": "Inactive Small Side Floating Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14278-inactive-small-side-floating-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14277,
+      "name": "Small Side Floating Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14277-small-side-floating-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10140,
+      "name": "Inactive Down Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10140-inactive-down-pointing-slider-tick.png",
+      "width": 5,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10139,
+      "name": "Down Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10139-down-pointing-slider-tick.png",
+      "width": 5,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9552,
+      "name": "Desktop Text Color And Background",
+      "status": "ok",
+      "file": "cicn-n9552-desktop-text-color-and-background.png",
+      "width": 2,
+      "height": 1,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10124,
+      "name": "Inactive Right Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10124-inactive-right-pointing-slider-tick.png",
+      "width": 7,
+      "height": 5,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10123,
+      "name": "Right Pointing Slider Tick",
+      "status": "ok",
+      "file": "cicn-n10123-right-pointing-slider-tick.png",
+      "width": 7,
+      "height": 5,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8281,
+      "name": "Pressed Horizontal Doubled Headed Scroll Bar",
+      "status": "ok",
+      "file": "cicn-n8281-pressed-horizontal-doubled-headed-scroll-bar.png",
+      "width": 63,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 128,
+      "name": "Pressed Window Widgets",
+      "status": "ok",
+      "file": "cicn-128-pressed-window-widgets.png",
+      "width": 24,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -14311,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-n14311-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 17,
+      "name": "Desktop Pattern",
+      "status": "ok",
+      "file": "ppat-17-desktop-pattern.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 42,
+      "name": "Utility Pattern",
+      "status": "ok",
+      "file": "ppat-42-utility-pattern.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10080,
+      "name": "Indeterminate Progress Step 1",
+      "status": "ok",
+      "file": "ppat-n10080-indeterminate-progress-step-1.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10079,
+      "name": "Indeterminate Progress Step 2",
+      "status": "ok",
+      "file": "ppat-n10079-indeterminate-progress-step-2.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10078,
+      "name": "Indeterminate Progress Step 3",
+      "status": "ok",
+      "file": "ppat-n10078-indeterminate-progress-step-3.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10077,
+      "name": "Indeterminate Progress Step 4",
+      "status": "ok",
+      "file": "ppat-n10077-indeterminate-progress-step-4.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10072,
+      "name": "Inactive Indeterminate Progress Step 1",
+      "status": "ok",
+      "file": "ppat-n10072-inactive-indeterminate-progress-step-1.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10071,
+      "name": "Inactive Indeterminate Progress Step 2",
+      "status": "ok",
+      "file": "ppat-n10071-inactive-indeterminate-progress-step-2.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10070,
+      "name": "Inactive Indeterminate Progress Step 3",
+      "status": "ok",
+      "file": "ppat-n10070-inactive-indeterminate-progress-step-3.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10069,
+      "name": "Inactive Indeterminate Progress Step 4",
+      "status": "ok",
+      "file": "ppat-n10069-inactive-indeterminate-progress-step-4.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 20,
+              "left": 11,
+              "bottom": 26,
+              "right": 92
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 6,
+              "left": 8,
+              "bottom": 15,
+              "right": 16
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 6,
+              "left": 75,
+              "bottom": 15,
+              "right": 83
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 6,
+              "left": 87,
+              "bottom": 15,
+              "right": 95
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 46,
+              "bottom": 18,
+              "right": 47
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 1
+          },
+          {
+            "part": 1,
+            "border": 35
+          },
+          {
+            "part": 11,
+            "border": 36
+          },
+          {
+            "part": 6,
+            "border": 46
+          },
+          {
+            "part": 5,
+            "border": 47
+          },
+          {
+            "part": 6,
+            "border": 55
+          },
+          {
+            "part": 8,
+            "border": 56
+          },
+          {
+            "part": 1,
+            "border": 102
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 30
+          },
+          {
+            "part": 11,
+            "border": 31
+          },
+          {
+            "part": 0,
+            "border": 73
+          },
+          {
+            "part": 1,
+            "border": 103
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 26
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14324,
+      "name": "Movable Modal",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 24,
+              "left": 7,
+              "bottom": 25,
+              "right": 34
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 19,
+              "bottom": 17,
+              "right": 22
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 12
+          },
+          {
+            "part": 11,
+            "border": 13
+          },
+          {
+            "part": 6,
+            "border": 19
+          },
+          {
+            "part": 5,
+            "border": 22
+          },
+          {
+            "part": 6,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 19
+          },
+          {
+            "part": 11,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 24
+          },
+          {
+            "part": 8,
+            "border": 25
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 24
+          },
+          {
+            "part": 8,
+            "border": 25
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14328,
+      "name": "Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 7,
+              "left": 7,
+              "bottom": 9,
+              "right": 9
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 16
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 16
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 9
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 9
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 28,
+              "left": 4,
+              "bottom": 54,
+              "right": 37
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 19,
+              "bottom": 21,
+              "right": 22
+            }
+          },
+          {
+            "part": 5,
+            "rect": {
+              "top": 28,
+              "left": 4,
+              "bottom": 38,
+              "right": 14
+            }
+          },
+          {
+            "part": 6,
+            "rect": {
+              "top": 28,
+              "left": 27,
+              "bottom": 38,
+              "right": 36
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 6
+          },
+          {
+            "part": 11,
+            "border": 7
+          },
+          {
+            "part": 6,
+            "border": 20
+          },
+          {
+            "part": 5,
+            "border": 21
+          },
+          {
+            "part": 6,
+            "border": 34
+          },
+          {
+            "part": 8,
+            "border": 35
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 11,
+            "border": 5
+          },
+          {
+            "part": 0,
+            "border": 37
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 54
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 54
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14304,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 18,
+              "left": 5,
+              "bottom": 19,
+              "right": 51
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 5,
+              "left": 9,
+              "bottom": 13,
+              "right": 17
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 5,
+              "left": 28,
+              "bottom": 13,
+              "right": 36
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 5,
+              "left": 39,
+              "bottom": 13,
+              "right": 47
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 21,
+              "bottom": 17,
+              "right": 24
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 15,
+            "border": 8
+          },
+          {
+            "part": 2,
+            "border": 18
+          },
+          {
+            "part": 11,
+            "border": 19
+          },
+          {
+            "part": 6,
+            "border": 22
+          },
+          {
+            "part": 5,
+            "border": 23
+          },
+          {
+            "part": 6,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 16,
+            "border": 27
+          },
+          {
+            "part": 3,
+            "border": 37
+          },
+          {
+            "part": 1,
+            "border": 38
+          },
+          {
+            "part": 10,
+            "border": 48
+          },
+          {
+            "part": 1,
+            "border": 56
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 11,
+            "border": 6
+          },
+          {
+            "part": 0,
+            "border": 51
+          },
+          {
+            "part": 1,
+            "border": 56
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 8,
+            "border": 19
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 8,
+            "border": 19
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 5,
+              "left": 13,
+              "bottom": 40,
+              "right": 15
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 7,
+              "left": 4,
+              "bottom": 15,
+              "right": 12
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 19,
+              "left": 4,
+              "bottom": 27,
+              "right": 12
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 30,
+              "left": 4,
+              "bottom": 38,
+              "right": 12
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 13
+          },
+          {
+            "part": 11,
+            "border": 14
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 13
+          },
+          {
+            "part": 11,
+            "border": 14
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 5
+          },
+          {
+            "part": 15,
+            "border": 6
+          },
+          {
+            "part": 2,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 17
+          },
+          {
+            "part": 16,
+            "border": 18
+          },
+          {
+            "part": 3,
+            "border": 28
+          },
+          {
+            "part": 1,
+            "border": 29
+          },
+          {
+            "part": 10,
+            "border": 39
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 6
+          },
+          {
+            "part": 0,
+            "border": 40
+          },
+          {
+            "part": 1,
+            "border": 45
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14288,
+      "name": "No Title Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 17,
+              "left": 5,
+              "bottom": 18,
+              "right": 42
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 8,
+              "bottom": 12,
+              "right": 16
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 20,
+              "bottom": 12,
+              "right": 28
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 4,
+              "left": 31,
+              "bottom": 12,
+              "right": 39
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 6
+          },
+          {
+            "part": 15,
+            "border": 7
+          },
+          {
+            "part": 2,
+            "border": 17
+          },
+          {
+            "part": 11,
+            "border": 18
+          },
+          {
+            "part": 16,
+            "border": 19
+          },
+          {
+            "part": 3,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 30
+          },
+          {
+            "part": 10,
+            "border": 40
+          },
+          {
+            "part": 1,
+            "border": 47
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 11,
+            "border": 6
+          },
+          {
+            "part": 0,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 47
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 17
+          },
+          {
+            "part": 8,
+            "border": 18
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 17
+          },
+          {
+            "part": 8,
+            "border": 18
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 7,
+              "left": 7,
+              "bottom": 9,
+              "right": 9
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 16
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 16
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 9
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 7
+          },
+          {
+            "part": 8,
+            "border": 8
+          },
+          {
+            "part": 1,
+            "border": 9
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 24,
+              "left": 7,
+              "bottom": 25,
+              "right": 34
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 19,
+              "bottom": 17,
+              "right": 22
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 12
+          },
+          {
+            "part": 11,
+            "border": 13
+          },
+          {
+            "part": 6,
+            "border": 19
+          },
+          {
+            "part": 5,
+            "border": 22
+          },
+          {
+            "part": 6,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 19
+          },
+          {
+            "part": 11,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 41
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 24
+          },
+          {
+            "part": 8,
+            "border": 25
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 24
+          },
+          {
+            "part": 8,
+            "border": 25
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14300,
+      "name": "Collapsed Titled Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 18,
+              "left": 5,
+              "bottom": 19,
+              "right": 51
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 5,
+              "left": 9,
+              "bottom": 13,
+              "right": 17
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 5,
+              "left": 28,
+              "bottom": 13,
+              "right": 36
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 5,
+              "left": 39,
+              "bottom": 13,
+              "right": 47
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 21,
+              "bottom": 17,
+              "right": 24
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 7
+          },
+          {
+            "part": 15,
+            "border": 8
+          },
+          {
+            "part": 2,
+            "border": 18
+          },
+          {
+            "part": 11,
+            "border": 19
+          },
+          {
+            "part": 6,
+            "border": 22
+          },
+          {
+            "part": 5,
+            "border": 23
+          },
+          {
+            "part": 6,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 16,
+            "border": 27
+          },
+          {
+            "part": 3,
+            "border": 37
+          },
+          {
+            "part": 1,
+            "border": 38
+          },
+          {
+            "part": 10,
+            "border": 48
+          },
+          {
+            "part": 1,
+            "border": 56
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14292,
+      "name": "Collapsed Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 5,
+              "left": 13,
+              "bottom": 40,
+              "right": 15
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 7,
+              "left": 4,
+              "bottom": 15,
+              "right": 12
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 19,
+              "left": 4,
+              "bottom": 27,
+              "right": 12
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 30,
+              "left": 4,
+              "bottom": 38,
+              "right": 12
+            }
+          }
+        ],
+        "topSide": [],
+        "bottomSide": [],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 15,
+            "border": 6
+          },
+          {
+            "part": 2,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 17
+          },
+          {
+            "part": 16,
+            "border": 18
+          },
+          {
+            "part": 3,
+            "border": 28
+          },
+          {
+            "part": 1,
+            "border": 29
+          },
+          {
+            "part": 10,
+            "border": 39
+          },
+          {
+            "part": 1,
+            "border": 45
+          }
+        ],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14284,
+      "name": "Collapsed No Title Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 17,
+              "left": 5,
+              "bottom": 18,
+              "right": 42
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 8,
+              "bottom": 12,
+              "right": 16
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 20,
+              "bottom": 12,
+              "right": 28
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 4,
+              "left": 31,
+              "bottom": 12,
+              "right": 39
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 6
+          },
+          {
+            "part": 15,
+            "border": 7
+          },
+          {
+            "part": 2,
+            "border": 17
+          },
+          {
+            "part": 11,
+            "border": 18
+          },
+          {
+            "part": 16,
+            "border": 19
+          },
+          {
+            "part": 3,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 30
+          },
+          {
+            "part": 10,
+            "border": 40
+          },
+          {
+            "part": 1,
+            "border": 47
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14332,
+      "name": "Collapsed Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 20,
+              "left": 11,
+              "bottom": 26,
+              "right": 92
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 6,
+              "left": 8,
+              "bottom": 15,
+              "right": 16
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 6,
+              "left": 75,
+              "bottom": 15,
+              "right": 83
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 6,
+              "left": 87,
+              "bottom": 15,
+              "right": 95
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 46,
+              "bottom": 18,
+              "right": 47
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 1
+          },
+          {
+            "part": 1,
+            "border": 35
+          },
+          {
+            "part": 11,
+            "border": 36
+          },
+          {
+            "part": 6,
+            "border": 46
+          },
+          {
+            "part": 5,
+            "border": 47
+          },
+          {
+            "part": 6,
+            "border": 55
+          },
+          {
+            "part": 8,
+            "border": 56
+          },
+          {
+            "part": 1,
+            "border": 102
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12240,
+      "name": "Root Menu Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 7
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12239,
+      "name": "Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 7
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12238,
+      "name": "Selected Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 7
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12237,
+      "name": "Pull Down Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 9
+        },
+        "textPixel": {
+          "x": 10,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10239,
+      "name": "Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 7,
+        "sideThickness": 7,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 8
+        },
+        "textPixel": {
+          "x": 8,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10238,
+      "name": "Pressed Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 7,
+        "sideThickness": 7,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 8
+        },
+        "textPixel": {
+          "x": 8,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10232,
+      "name": "Inactive Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10231,
+      "name": "Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10240,
+      "name": "Inactive Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 7,
+        "sideThickness": 7,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 8
+        },
+        "textPixel": {
+          "x": 8,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8208,
+      "name": "Disabled Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8207,
+      "name": "Normal Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8206,
+      "name": "Pressed Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8205,
+      "name": "Disabled Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8204,
+      "name": "Normal Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8203,
+      "name": "Pressed Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8202,
+      "name": "Disabled Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8201,
+      "name": "Normal Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8200,
+      "name": "Pressed Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 6,
+          "y": 7
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9550,
+      "name": "List View Background And Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9549,
+      "name": "Sort Column Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9548,
+      "name": "List View Seperator Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9776,
+      "name": "Active Dialog/Alert Box Colors",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 2,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9775,
+      "name": "Inactive Dialog/Alert Box Colors",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10080,
+      "name": "Progress Indicator Frame",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10079,
+      "name": "Progress Indicator Fill",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10078,
+      "name": "Progress Indicator Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10077,
+      "name": "Inactive Progress Indicator Frame",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10076,
+      "name": "Inactive Progress Indicator Fill",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10075,
+      "name": "Inactive Progress Indicator Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10144,
+      "name": "Inactive Down Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10143,
+      "name": "Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10142,
+      "name": "Pressed Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10138,
+      "name": "Inactive Up Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10137,
+      "name": "Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10136,
+      "name": "Pressed Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10132,
+      "name": "Inactive Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10131,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10130,
+      "name": "Pressed Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10128,
+      "name": "Inactive Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10127,
+      "name": "Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10126,
+      "name": "Pressed Right Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10122,
+      "name": "Inactive Left Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10121,
+      "name": "Left Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10120,
+      "name": "Pressed Left Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10116,
+      "name": "Inactive Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10115,
+      "name": "Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10114,
+      "name": "Pressed Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 5,
+        "sideThickness": 16,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9567,
+      "name": "Active Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9568,
+      "name": "Inactive Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9984,
+      "name": "LSF Disabled Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 12,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 10
+        },
+        "textPixel": {
+          "x": 13,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 12,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 10
+        },
+        "textPixel": {
+          "x": 13,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 12,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 10
+        },
+        "textPixel": {
+          "x": 13,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9981,
+      "name": "LSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 12,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 10
+        },
+        "textPixel": {
+          "x": 13,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 12,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 10
+        },
+        "textPixel": {
+          "x": 13,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9978,
+      "name": "LSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9977,
+      "name": "LSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 11,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 11,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9974,
+      "name": "SSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 11,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9973,
+      "name": "SSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 11,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 11,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9970,
+      "name": "SSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9969,
+      "name": "SSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9551,
+      "name": "Icon View Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12236,
+      "name": "Selected Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 9
+        },
+        "textPixel": {
+          "x": 10,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12234,
+      "name": "Solo Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 9
+        },
+        "textPixel": {
+          "x": 10,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12233,
+      "name": "Selected Solo Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 10,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 10,
+          "y": 9
+        },
+        "textPixel": {
+          "x": 10,
+          "y": 10
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9552,
+      "name": "Desktop Text Color And Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 1,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  ]
+}
