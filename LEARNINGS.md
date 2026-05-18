@@ -1015,4 +1015,18 @@ Replaces the CSS `border-image` shortcut for the titlebar top with a faithful wa
 
 ---
 
+### 2026-05-18 — Phase 4b: recipe-driven bottom edge
+
+Mirror of `composeTopRecipe` for the bottom-edge container. Same logic with vertical anchoring flipped (named parts anchor to container *bottom* via `bottom: (cicnHeight - rect.bottom)`), and fills sample from the cicn's bottom rows via `background-position-y: bottom` so the bottom-strip frame line / decoration shows in the rendered bottom edge.
+
+**Wiring:** when the top recipe applies + a `[data-aaron-edge="bottom"]` container exists, we also run the bottom recipe. If bottom recipe applies → 9-slice on window root is *not* dispatched (would otherwise double-render). If bottom recipe doesn't apply but the cicn is Kind B → 9-slice still runs as before for sides + bottom.
+
+**Visible:** Big Blue's iconic Apple-tab silhouettes now visible at window *bottoms* too (previously only top corners). 1990 + evolution show their bottom frame decorations. 7 Le + ErgoBox unchanged from before — they were already clean.
+
+**Demo CSS observation:** the bottom-edge container is sized by `--aaron-frame-bottom-px` (derived from cicn, typically 1-7px). For schemes whose bottom-row decoration is tall (Big Blue's 17px tabs), the named parts get partially clipped by `overflow: hidden` on the container. That's a demo-CSS choice, not a renderer limitation — consumers can make the container taller if they want more decoration visible.
+
+**Phase 4c queued:** left + right edges (vertical iteration of the recipe walker). After 4c lands, the border-image fallback paths become unused — kept for one cycle as dead code, then deleted.
+
+---
+
 *New learnings get appended below this line as the project ships.*
