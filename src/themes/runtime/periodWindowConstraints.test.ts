@@ -46,16 +46,16 @@ describe('periodWindowConstraints', () => {
     expect(c).toBeNull();
   });
 
-  it('caps composer-route schemes (rich recipe + body rect) at 1.5× native', () => {
+  it('body-rect schemes use cicn-native as min, no max (composer scales cleanly)', () => {
     const c = periodWindowConstraints(makeTheme({ cicnW: 170, cicnH: 170, rich: true, hasBodyRect: true }))!;
     expect(c.minWidth).toBe(170);
     expect(c.minHeight).toBe(170);
-    expect(c.maxWidth).toBe(255); // 170 * 1.5
-    expect(c.maxHeight).toBe(255);
+    expect(c.maxWidth).toBeUndefined();
+    expect(c.maxHeight).toBeUndefined();
     expect(c.naturalWidth).toBe(170);
   });
 
-  it('leaves Kind B simple recipes UNBOUNDED on max (9-slice scales cleanly)', () => {
+  it('Kind B simple recipes also unbounded on max', () => {
     const c = periodWindowConstraints(makeTheme({ cicnW: 132, cicnH: 64, rich: false, hasBodyRect: true }))!;
     expect(c.minWidth).toBe(132);
     expect(c.minHeight).toBe(64);
@@ -69,12 +69,6 @@ describe('periodWindowConstraints', () => {
     expect(c.minHeight).toBe(60);
     expect(c.maxWidth).toBeUndefined();
     expect(c.naturalWidth).toBe(320);
-  });
-
-  it('rich recipe WITHOUT body rect does NOT cap (no composer route)', () => {
-    // recipeDensity says rich but no part-0 → routes to 9-slice not composer.
-    const c = periodWindowConstraints(makeTheme({ cicnW: 200, cicnH: 200, rich: true, hasBodyRect: false }))!;
-    expect(c.maxWidth).toBeUndefined();
   });
 
   it('applyConstraintsToElement sets inline CSS min/max', () => {
