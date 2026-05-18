@@ -17,14 +17,16 @@ test.describe('bundled-default auto-load (e2e)', () => {
     );
     expect(bg).toBe('#dddddd');
 
-    // AaronWindow's titlebar has the bundled default's chrome cicn.
-    // 3-slice rewrite: cicn lives on titlebar's own border-image-source.
-    const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar')
-      .first()
-      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
-    expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
-    expect(titlebarBg).toMatch(/document-window/);
+    // Phase 4a recipe-driven rendering: chrome lives in
+    // [data-aaron-recipe-segment] children whose backgroundImage points
+    // at the bundled default's cicn.
+    const segment = page
+      .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
+      .first();
+    await expect(segment).toBeAttached();
+    const segBg = await segment.evaluate((el) => (el as HTMLElement).style.backgroundImage);
+    expect(segBg).toContain('themes/masswerk-7-le/cicns/');
+    expect(segBg).toMatch(/document-window/);
   });
 
   test('wnd# part overlays mount under auto-load', async ({ page }) => {
