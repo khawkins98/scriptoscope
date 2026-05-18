@@ -1054,4 +1054,25 @@ End state: drop any well-formed `.ksc` URL into `loadKaleidoscopeScheme()` → f
 
 ---
 
+### 2026-05-18 — Diagnostics page: per-scheme breakdown of extraction + rendering
+
+Added `demo/diagnostics.html?theme=<slug>` — a persistent debug + learning surface for understanding what the runtime sees and does for any given scheme. Built in response to repeated "is it extraction or rendering?" questions on exotic schemes (Acid, 1990, evolution) where the live render looked broken but the cause wasn't obvious.
+
+The page shows, per scheme:
+1. **Metadata card** — name, author, year, source URL
+2. **Classifier verdict** — Kind A (titlebar-only) / B (full-window) / C (fixed-bitmap), with the rendering strategy each kind triggers
+3. **Cicn explorer** — every chrome state cicn (active, inactive, collapsed-*) at 4× scale, with three toggleable SVG overlays:
+   - Parts rects: each named part outlined in a distinct color (matches legend)
+   - Recipe positions: tick marks at each `recipe.at` along every side
+   - Half-line: dashed yellow showing the cicn-half split that drives anchor-side decisions
+4. **Recipes** — per-side table of `{at, part, kind, part rect}` entries
+5. **Parts** — table of all named slugs + their cicn rects
+6. **Live render** — a real `AaronWindow` with the scheme applied, width slider so you can see how the chrome adapts, plus a "highlight segments" toggle that outlines each rendered piece (named in pink, fills in blue)
+
+**Workflow this unblocks:** when a scheme renders incorrectly, open the diagnostics page → compare the live render to the cicn with overlays. If the recipe data + parts look reasonable but the live render is wrong, the bug is in the renderer (`composeRecipeBased.ts` or the dispatch in `applyChromeFromTheme.ts`). If the recipe data is empty / orphan-slugged / clearly mis-parsed, the bug is in the extractor (`buildThemeJson.js`). The split shortens the debug loop substantially.
+
+**Linked from:** the main demo's "For developers" footer, alongside the gallery.
+
+---
+
 *New learnings get appended below this line as the project ships.*
