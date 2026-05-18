@@ -256,6 +256,13 @@
       <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
       <div id="parts-host"></div>
 
+      <h2>Coverage</h2>
+      <p class="subtitle">
+        How many extracted assets does Aaron UI actually consume?
+        See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/kaleidoscope-asset-catalog.md" style="color: #6af;">docs/kaleidoscope-asset-catalog.md</a> for the canonical family vocabulary and conformance levels.
+      </p>
+      <div id="coverage-host" class="panel" style="padding: 12px;"></div>
+
       <h2>Full chromeElements catalog (all extracted rasters)</h2>
       <p class="subtitle">
         Every <code>cicn</code> the extractor decoded from the scheme's resource fork —
@@ -713,6 +720,147 @@
       highlight.addEventListener('change', () => live.classList.toggle('highlight', highlight.checked));
     }
 
+    // Family-classifier — matches docs/kaleidoscope-asset-catalog.md §3.
+    // Patterns are intentionally loose: scheme authors use synonyms,
+    // typos, and word-order variants for the same slot.
+    const FAMILY_PATTERNS = [
+      ['chrome',     /document-window|titled-utility|no-title-utility|side-floating-utility|titleless-utility|^dialog|movable-dialog|^alert|movable-alert|movable-modal|finder-header|popup-window|grow-box|collapsed|window-widget|utility-window|placard/i],
+      ['scroll',     /scroll|spin-arrow|little-arrow|nothing-to-scroll|thumb/i],
+      ['slider',     /slider|tick-mark/i],
+      ['control',    /check[\s-]*box|radio|push-button|bevel-button|^sbb-/i],
+      ['tab',        /(^|-)(lsf|ssf)-|tabs?-(background|large|small|pane|front|rear)|popup-window-tab/i],
+      ['menu',       /menubar|menu-item|menu-divider|menu-background|menu-grip|menu-grabber|application-menu/i],
+      ['popup',      /pop-?up|popup-menu|pop-arrow|arrow-glyph|menu-arrow/i],
+      ['progress',   /progress/i],
+      ['disclosure', /disclosure|triangle/i],
+      ['cursor',     /point-arrow|arrow-only/i],
+      ['misc',       /divider-line|list-|sort-column|standard-file|desktop-|icon-background|generator|unnamed/i],
+    ];
+
+    function classifyCicn(slug) {
+      for (const [family, pattern] of FAMILY_PATTERNS) {
+        if (pattern.test(slug)) return family;
+      }
+      return 'unclassified';
+    }
+
+    function renderCoverage(theme) {
+      const host = document.getElementById('coverage-host');
+      const cicns = Object.entries(theme.chromeElements ?? {});
+      const total = cicns.length;
+
+      // Bucket every cicn by family.
+      const families = {};
+      for (const [slug] of cicns) {
+        const f = classifyCicn(slug);
+        (families[f] ??= []).push(slug);
+      }
+
+      // What does the runtime currently consume? Walk windowTypes for
+      // chrome.{active,inactive} URLs + parts that reference a separate
+      // cicn (today: none — parts are sub-rects of the chrome cicn).
+      const consumedAssets = new Set();
+      for (const wt of Object.values(theme.windowTypes ?? {})) {
+        for (const url of Object.values(wt?.chrome ?? {})) {
+          if (typeof url === 'string') consumedAssets.add(url);
+        }
+      }
+      // Map asset URLs back to chromeElements keys for counting.
+      const consumedSlugs = new Set();
+      for (const [slug, entry] of cicns) {
+        if (consumedAssets.has(entry.asset)) consumedSlugs.add(slug);
+      }
+      const consumed = consumedSlugs.size;
+      const classified = total - (families.unclassified?.length ?? 0);
+
+      host.innerHTML = '';
+
+      // Top-line counts
+      const headline = document.createElement('div');
+      headline.style.display = 'grid';
+      headline.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      headline.style.gap = '12px';
+      headline.style.marginBottom = '14px';
+      const cell = (label, value, hint) => {
+        const d = document.createElement('div');
+        d.style.padding = '10px 12px';
+        d.style.background = '#1c1c1f';
+        d.style.border = '1px solid #2a2a35';
+        d.style.borderRadius = '4px';
+        d.innerHTML = `<div style="font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:0.04em;">${label}</div>
+                       <div style="font-family:ui-monospace,Menlo,monospace;font-size:22px;margin-top:4px;">${value}</div>
+                       <div style="font-size:11px;opacity:0.55;margin-top:4px;">${hint}</div>`;
+        return d;
+      };
+      headline.appendChild(cell('Extracted', total, 'cicns decoded from the resource fork'));
+      headline.appendChild(cell('Classified', `${classified} / ${total}`, `${total > 0 ? Math.round((classified / total) * 100) : 0}% match a known family`));
+      headline.appendChild(cell('Rendered', `${consumed} / ${total}`, `${total > 0 ? Math.round((consumed / total) * 100) : 0}% consumed by the runtime today`));
+      host.appendChild(headline);
+
+      // Per-family breakdown
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      table.style.fontSize = '13px';
+      const thead = document.createElement('thead');
+      thead.innerHTML = `<tr style="text-align:left;border-bottom:1px solid #2a2a35;">
+        <th style="padding:6px 8px;font-weight:normal;opacity:0.6;">Family</th>
+        <th style="padding:6px 8px;font-weight:normal;opacity:0.6;">Count</th>
+        <th style="padding:6px 8px;font-weight:normal;opacity:0.6;">Conformance level</th>
+        <th style="padding:6px 8px;font-weight:normal;opacity:0.6;">Renderer status</th>
+      </tr>`;
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+
+      const LEVEL = {
+        chrome: 'L1 — document-window only / L2 — all',
+        scroll: 'L3', slider: 'L3', control: 'L3', progress: 'L3', disclosure: 'L3',
+        tab: 'L3', menu: 'L4', popup: 'L4', cursor: 'L4', misc: 'L4',
+        unclassified: '—',
+      };
+      const rendererConsumes = new Set(); // families with at least one rendered cicn
+      for (const slug of consumedSlugs) rendererConsumes.add(classifyCicn(slug));
+
+      const familyOrder = ['chrome','scroll','slider','control','tab','menu','popup','progress','disclosure','cursor','misc','unclassified'];
+      for (const family of familyOrder) {
+        const slugs = families[family] ?? [];
+        if (slugs.length === 0) continue;
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #1c1c1f';
+        const renderedInFamily = slugs.filter((s) => consumedSlugs.has(s)).length;
+        const statusColor = renderedInFamily > 0 ? '#7c7' : '#776';
+        const statusText = renderedInFamily > 0
+          ? `rendered (${renderedInFamily} of ${slugs.length})`
+          : 'not yet rendered';
+        tr.innerHTML = `
+          <td style="padding:6px 8px;font-family:ui-monospace,Menlo,monospace;">${family}</td>
+          <td style="padding:6px 8px;font-family:ui-monospace,Menlo,monospace;">${slugs.length}</td>
+          <td style="padding:6px 8px;opacity:0.7;">${LEVEL[family] ?? ''}</td>
+          <td style="padding:6px 8px;color:${statusColor};">${statusText}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      host.appendChild(table);
+
+      // Conformance verdict
+      const verdict = document.createElement('div');
+      verdict.style.marginTop = '14px';
+      verdict.style.padding = '10px 12px';
+      verdict.style.background = '#1c1c1f';
+      verdict.style.borderLeft = '3px solid #6af';
+      verdict.style.fontSize = '13px';
+      const renderedChrome = (families.chrome ?? []).filter((s) => consumedSlugs.has(s)).length;
+      const level = renderedChrome > 0
+        ? (rendererConsumes.size >= 5 ? 'Level 3+' : (families.chrome?.length > 0 && rendererConsumes.has('chrome') ? 'Level 1' : 'sub-Level 1'))
+        : 'sub-Level 1';
+      verdict.innerHTML = `<strong>Renderer conformance for this scheme:</strong> ${level}.
+        Renders ${consumed} of ${total} extracted assets (${total > 0 ? Math.round((consumed / total) * 100) : 0}%) across
+        ${rendererConsumes.size} of ${familyOrder.length - 1} possible families.
+        See <code>docs/kaleidoscope-asset-catalog.md §5</code> for level definitions.`;
+      host.appendChild(verdict);
+    }
+
     function renderCatalog(theme) {
       const host = document.getElementById('catalog-host');
       const countEl = document.getElementById('t-cat-count');
@@ -809,6 +957,7 @@
       renderCicnStacks(theme, wt);
       renderRecipes(theme, wt);
       renderParts(theme, wt);
+      renderCoverage(theme);
       renderCatalog(theme);
       await renderLive(theme, slug);
     }
