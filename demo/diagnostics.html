@@ -274,6 +274,7 @@
         <label><input type="checkbox" id="t-parts" checked> Parts rects <span class="info" data-tip="Colored rectangles = the named `parts` from the wnd# resource (close box, zoom box, title pill, windowshade, etc.). These are sub-rects of the cicn bitmap that the renderer crops out and positions as hit targets. If a part rect doesn't enclose the visible widget pixels, the click target will be wrong even when the chrome looks right.">ⓘ</span></label>
         <label><input type="checkbox" id="t-recipe"> Recipe positions <span class="info" data-tip="Cyan/white tick marks at each `{at}` value from a wnd# side recipe. White = the entry references a named part; cyan = it's a fill segment (tiled cicn pixels). Recipe entries are slice-boundary markers, NOT per-widget render commands — they tell the renderer where to cut the cicn into stretchable vs. fixed-width zones.">ⓘ</span></label>
         <label><input type="checkbox" id="t-half"> Half-line (anchor split) <span class="info" data-tip="Dashed yellow lines at cicn width/2 and height/2. Some renderers split the cicn at these anchors when computing left/right (or top/bottom) halves — useful for debugging mirror-symmetric chrome. Mainly diagnostic; not load-bearing in Aaron UI's current 3-slice / 9-slice paths.">ⓘ</span></label>
+        <label><input type="checkbox" id="t-segments"> Edge segments <span class="info" data-tip="Recipe-derived edge segmentation. Each colored band = one segment between consecutive `{at}` markers on an edge. GREEN = the segment's part is in the parts table (a named widget — close box, title pill, etc., rendered at native pixel width). BLUE = fill segment (tile cicn pixels across this span). This is the ground truth for a rich-recipe renderer: schemes like 1990 define 20+ segments per edge that CSS `border-image` (9-slice only) can't represent — visualizing them here proves what a recipe-based composer would draw before we wire one up.">ⓘ</span></label>
       </div>
       <div id="cicn-stacks"></div>
 
@@ -648,6 +649,51 @@
           halfLayer.appendChild(hline);
           svg.appendChild(halfLayer);
 
+          // Edge segments layer — what a recipe-based composer would draw.
+          // Each band = one segment between consecutive {at} markers.
+          // Color tells you what TYPE the renderer would emit:
+          //   green = named-part widget (part is in parts table)
+          //   blue  = fill segment (tile cicn pixels across this span)
+          const segmentsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          segmentsLayer.setAttribute('data-layer', 'segments');
+          segmentsLayer.style.opacity = '0.6';
+          const bandThickness = Math.max(3, Math.min(w, h) * 0.04);
+          for (const [side, recipe] of Object.entries(recipes)) {
+            if (!Array.isArray(recipe) || recipe.length === 0) continue;
+            const isVertical = side === 'left' || side === 'right';
+            const axisMax = isVertical ? h : w;
+            const sorted = [...recipe].sort((a, b) => a.at - b.at);
+            for (let i = 0; i < sorted.length; i++) {
+              const entry = sorted[i];
+              const next = sorted[i + 1];
+              const start = entry.at;
+              const end = next ? next.at : axisMax;
+              if (end <= start) continue; // skip zero-width segments from coincident at-values
+              const isNamed = entry.part in parts;
+              const fill = isNamed ? 'rgba(80, 220, 120, 0.45)' : 'rgba(80, 160, 255, 0.45)';
+              const stroke = isNamed ? '#5d5' : '#5af';
+              const band = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              if (isVertical) {
+                const x = side === 'left' ? 0 : Math.max(0, w - bandThickness);
+                band.setAttribute('x', x);
+                band.setAttribute('y', start);
+                band.setAttribute('width', bandThickness);
+                band.setAttribute('height', Math.max(0.5, end - start));
+              } else {
+                const y = side === 'top' ? 0 : Math.max(0, h - bandThickness);
+                band.setAttribute('x', start);
+                band.setAttribute('y', y);
+                band.setAttribute('width', Math.max(0.5, end - start));
+                band.setAttribute('height', bandThickness);
+              }
+              band.setAttribute('fill', fill);
+              band.setAttribute('stroke', stroke);
+              band.setAttribute('stroke-width', '0.2');
+              segmentsLayer.appendChild(band);
+            }
+          }
+          svg.appendChild(segmentsLayer);
+
           stack.appendChild(svg);
           updateOverlayVisibility();
 
@@ -683,20 +729,19 @@
     }
 
     function updateOverlayVisibility() {
-      const showParts = document.getElementById('t-parts').checked;
-      const showRecipe = document.getElementById('t-recipe').checked;
-      const showHalf = document.getElementById('t-half').checked;
-      for (const layer of document.querySelectorAll('[data-layer="parts"]')) {
-        layer.style.display = showParts ? '' : 'none';
-      }
-      for (const layer of document.querySelectorAll('[data-layer="recipe"]')) {
-        layer.style.display = showRecipe ? '' : 'none';
-      }
-      for (const layer of document.querySelectorAll('[data-layer="half"]')) {
-        layer.style.display = showHalf ? '' : 'none';
+      const layers = {
+        parts: document.getElementById('t-parts').checked,
+        recipe: document.getElementById('t-recipe').checked,
+        half: document.getElementById('t-half').checked,
+        segments: document.getElementById('t-segments').checked,
+      };
+      for (const [name, visible] of Object.entries(layers)) {
+        for (const layer of document.querySelectorAll(`[data-layer="${name}"]`)) {
+          layer.style.display = visible ? '' : 'none';
+        }
       }
     }
-    for (const id of ['t-parts','t-recipe','t-half']) {
+    for (const id of ['t-parts','t-recipe','t-half','t-segments']) {
       document.getElementById(id).addEventListener('change', updateOverlayVisibility);
     }
 
