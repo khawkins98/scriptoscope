@@ -16,6 +16,33 @@
       min-height: 100vh;
     }
     body { padding: 20px 24px 80px; }
+    /* 2-column layout: left scrolls (data + cicns + recipes); right is
+       a sticky "live render" pane that follows the viewport while
+       reading down the page. */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .layout > .left { min-width: 0; /* prevent overflow from cicn images */ }
+    .layout > .right {
+      position: sticky;
+      top: 60px; /* below nav-bar */
+      align-self: start;
+      max-height: calc(100vh - 80px);
+      overflow: auto;
+      background: #2a2a2e;
+      border: 1px solid #44444a;
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .right h2:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+    /* Narrow viewport fallback: stack the panes. */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .layout > .right { position: static; max-height: none; }
+    }
     h1 { margin: 0 0 4px; font-size: 22px; }
     h2 { margin: 32px 0 12px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #44444a; padding-bottom: 6px; }
     h3 { margin: 16px 0 8px; font-size: 13px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -180,59 +207,72 @@
     </label>
   </div>
 
-  <h1 id="scheme-heading">Scheme Diagnostics</h1>
-  <p class="subtitle">Per-scheme view of how Aaron UI decodes + renders a Kaleidoscope scheme.
-    Shows the raw chrome cicns with parts-rect + recipe-position overlays, the classifier verdict,
-    the derived slice geometry, and a live render with optional segment-outline highlighting.
-    Use this to diagnose extraction-vs-rendering gaps: if the recipe data looks correct here
-    but the live render is wrong, the bug is in the renderer. If the data itself is missing
-    or wrong, the bug is in the extractor.
-  </p>
+  <div class="layout">
+    <div class="left">
+      <h1 id="scheme-heading">Scheme Diagnostics</h1>
+      <p class="subtitle">Per-scheme view of how Aaron UI decodes + renders a Kaleidoscope scheme.
+        Shows the raw chrome cicns with parts-rect + recipe-position overlays, the classifier verdict,
+        the derived slice geometry, and a live render with optional segment-outline highlighting.
+        Use this to diagnose extraction-vs-rendering gaps: if the recipe data looks correct here
+        but the live render is wrong, the bug is in the renderer. If the data itself is missing
+        or wrong, the bug is in the extractor.
+      </p>
 
-  <div class="meta-card" id="meta-card">
-    <div class="row">
-      <div><label>Name</label><div class="value" id="meta-name">—</div></div>
-      <div><label>Author</label><div class="value" id="meta-author">—</div></div>
-      <div><label>Year</label><div class="value" id="meta-year">—</div></div>
-      <div><label>Source</label><div class="value" id="meta-source">—</div></div>
+      <div class="meta-card" id="meta-card">
+        <div class="row">
+          <div><label>Name</label><div class="value" id="meta-name">—</div></div>
+          <div><label>Author</label><div class="value" id="meta-author">—</div></div>
+          <div><label>Year</label><div class="value" id="meta-year">—</div></div>
+          <div><label>Source</label><div class="value" id="meta-source">—</div></div>
+        </div>
+      </div>
+
+      <h2>Classifier verdict</h2>
+      <div id="verdict-host"></div>
+
+      <h2>Chrome cicns</h2>
+      <p class="subtitle">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap.</p>
+      <div class="toggles">
+        <label><input type="checkbox" id="t-parts" checked> Parts rects</label>
+        <label><input type="checkbox" id="t-recipe"> Recipe positions</label>
+        <label><input type="checkbox" id="t-half"> Half-line (anchor split)</label>
+      </div>
+      <div id="cicn-stacks"></div>
+
+      <h2>Recipes (wnd#)</h2>
+      <p class="subtitle">For each side: list of <code>{at, part}</code> entries. <code>at</code> is the cicn-pixel position along the side axis.
+        <code>part</code> matching a slug in the parts table = named.
+        <code>part</code> not in the table = fill (tiles cicn pixels in the segment).
+        Recipe entries are <em>slice-boundary markers</em>, not per-widget render commands —
+        the renderer slices the cicn at the fill-zone boundaries and pins left/right slices to corners at native size.
+      </p>
+      <div id="recipes-host"></div>
+
+      <h2>Parts (named cicn rects)</h2>
+      <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
+      <div id="parts-host"></div>
+    </div>
+
+    <div class="right">
+      <h2 style="border-top: 0; margin-top: 0;">Live render</h2>
+      <p class="subtitle">Real <code>AaronWindow</code> with the scheme applied. Stays pinned while you scroll the data on the left.</p>
+      <div class="toggles">
+        <label><input type="checkbox" id="t-highlight"> Highlight</label>
+      </div>
+      <div class="toggles" style="margin-top: 4px;">
+        <label style="flex: 1;">Width
+          <input type="range" id="t-width" min="180" max="800" value="380" style="width:100%;">
+          <span id="t-width-display" style="font-family: ui-monospace, Menlo, monospace; font-size: 11px;">380px</span>
+        </label>
+      </div>
+      <p class="subtitle" style="font-size: 11px; margin: 6px 0 8px;">
+        <span style="color:#ff0;">▍</span> 3-slice titlebar &middot;
+        <span style="color:#0ff;">▍</span> 9-slice window &middot;
+        <span style="color:#f5a;">▍</span>/<span style="color:#5af;">▍</span> recipe (unused)
+      </p>
+      <div id="render-host"></div>
     </div>
   </div>
-
-  <h2>Classifier verdict</h2>
-  <div id="verdict-host"></div>
-
-  <h2>Chrome cicns</h2>
-  <p class="subtitle">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap.</p>
-  <div class="toggles">
-    <label><input type="checkbox" id="t-parts" checked> Parts rects</label>
-    <label><input type="checkbox" id="t-recipe"> Recipe positions</label>
-    <label><input type="checkbox" id="t-half"> Half-line (anchor split)</label>
-  </div>
-  <div id="cicn-stacks"></div>
-
-  <h2>Recipes (wnd#)</h2>
-  <p class="subtitle">For each side: list of <code>{at, part}</code> entries. <code>at</code> is the cicn-pixel position along the side axis.
-    <code>part</code> matching a slug in the parts table = named (renders that rect at native size at <code>at</code>).
-    <code>part</code> not in the table = fill (tiles cicn pixels in the segment).
-  </p>
-  <div id="recipes-host"></div>
-
-  <h2>Parts (named cicn rects)</h2>
-  <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
-  <div id="parts-host"></div>
-
-  <h2>Live render</h2>
-  <p class="subtitle">A real <code>AaronWindow</code> with this scheme applied. Toggle "Highlight segments" to outline the
-    chrome-rendered regions: <span style="color:#ff0;">yellow</span> = 3-slice titlebar (Kind A);
-    <span style="color:#0ff;">cyan</span> = 9-slice window root (Kind B); <span style="color:#f5a;">pink</span>/<span style="color:#5af;">blue</span> = recipe segments (currently unused).</p>
-  <div class="toggles">
-    <label><input type="checkbox" id="t-highlight"> Highlight segments</label>
-    <label>Window width:
-      <input type="range" id="t-width" min="180" max="800" value="380" style="width:160px;">
-      <span id="t-width-display">380px</span>
-    </label>
-  </div>
-  <div id="render-host"></div>
 
   <script type="module">
     import { AaronWindow, applyChromeFromTheme } from '../src/index.ts';
