@@ -25,6 +25,7 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
+import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -143,9 +144,26 @@ export function applyChromeFromTheme(
       titlebar.style.removeProperty('--aaron-title-pill-left');
       titlebar.style.removeProperty('--aaron-title-pill-right');
     }
-    // Side + bottom edges — same 3-slice approach on the dedicated edge
-    // containers AaronWindow adds. Each container becomes a thin strip
-    // showing the corresponding region of the cicn.
+    // Derive frame color + per-side geometry from the cicn at runtime.
+    // Stamp custom properties on the window root so consumer CSS can
+    // size + color the edge containers. Different schemes have very
+    // different border thicknesses (7 Le is 1px hairlines; ErgoBox is
+    // 6px beveled gradients baked into the cicn) — derivation makes
+    // both render correctly without per-scheme hardcoding.
+    void deriveFrameColor(cicnUrl).then((color) => {
+      if (color) windowEl.style.setProperty('--aaron-cicn-frame-color', color);
+      else windowEl.style.removeProperty('--aaron-cicn-frame-color');
+    });
+    void deriveFrameGeometry(cicnUrl).then((geom) => {
+      if (!geom) return;
+      windowEl.style.setProperty('--aaron-frame-bottom-px', `${geom.bottom}px`);
+      windowEl.style.setProperty('--aaron-frame-left-px', `${geom.left}px`);
+      windowEl.style.setProperty('--aaron-frame-right-px', `${geom.right}px`);
+    });
+    // Render side + bottom edges with the same 3-slice approach used by
+    // the titlebar — sampled from the cicn's bottom rows / leftmost /
+    // rightmost columns. Consumer CSS sizes the containers using the
+    // --aaron-frame-*-px custom properties stamped above.
     apply3SliceEdgeIfPresent(windowEl, windowType, 'bottom', composeOpts);
     apply3SliceEdgeIfPresent(windowEl, windowType, 'left', composeOpts);
     apply3SliceEdgeIfPresent(windowEl, windowType, 'right', composeOpts);
@@ -278,11 +296,8 @@ function stripDimensions(entry: ChromeElementEntry): ChromeElementEntry {
   return rest;
 }
 
-/**
- * Apply 3-slice chrome to the `[data-aaron-edge="<side>"]` container, if
- * the recipe + container are both present. Skips silently otherwise so
- * bare-DOM consumers degrade gracefully.
- */
+/** Apply 3-slice chrome to the `[data-aaron-edge="<side>"]` container,
+ *  if the recipe + container are both present. Skips silently otherwise. */
 function apply3SliceEdgeIfPresent(
   windowEl: HTMLElement,
   windowType: WindowTypeEntry,

@@ -896,4 +896,30 @@ This is structurally a **3-slice template**, which CSS `border-image` ships nati
 
 ---
 
+### 2026-05-18 — Border THICKNESS is also per-scheme (1px for 7 Le, 6px for ErgoBox); derive both color + geometry from the cicn
+
+After shipping the 1px hairline (initial pass on this PR) the user immediately corrected: ErgoBox's reference shows a 6px beveled border with shading and patterns. Same scheme that needed a 3-slice titlebar approach needs a fundamentally different *side* approach too — its chrome cicn (132×64) carries a full bordered window, not just a titlebar.
+
+**Solution:** derive per-side thickness at runtime via pixel scanning. New `deriveFrameGeometry(url)` returns `{ color, top, right, bottom, left }`. Scans inward from each edge at the mid-axis counting consecutive "border" pixels (opaque + not near-white) until it hits a "body" pixel. For ErgoBox this returns `{ left: 6, right: 6, bottom: 7 }`; for 7 Le it returns the cap (titlebar-only cicn has no body), which gets clamped to `{ left: 1, right: 1, bottom: 2 }`.
+
+**Clamp rule:** if scanned thickness > max(8, extent/4), treat as titlebar-only cicn → use 1px. Otherwise use scanned value. This makes the same renderer work for both "titlebar-only" and "full-window" cicns without per-scheme conditionals.
+
+**Stamped as CSS custom properties:** `--aaron-frame-{left,right,bottom}-px` on the window root. Consumer CSS sizes the edge containers from these. Both canonical bundles now render with their period-correct border thickness.
+
+**Meta-lesson:** when correcting a course based on user feedback, look at MULTIPLE references before re-implementing. I assumed all schemes had thin hairline frames (because 7 Le does) and shipped a "drop the edge containers" PR. The ErgoBox reference would have revealed the structural-difference-per-scheme answer before any code was written. Both canonical bundles are on the demo page — always check both before generalizing.
+
+### 2026-05-18 — Palette `window-frame` is often wrong; sample the cicn's outermost opaque pixel at runtime
+
+The extractor pre-fills `theme.palette.window-frame` with a generic gray (`#888` for 7 Le), but the actual cicn's outermost opaque pixel is `#000` (solid black — the 1-bit Mac chrome). When the frame color was wired to `--aaron-colr-window-frame` in CSS, the rendered hairline read as a faint gray instead of the period-correct black line.
+
+**Fix:** new runtime helper `deriveFrameColor(cicnUrl)` — fetch the cicn, draw to an OffscreenCanvas, find the first opaque pixel scanning leftmost column then rightmost column. Cache per URL. Stamp as `--aaron-cicn-frame-color` on the window root. Consumer CSS uses it: `box-shadow: inset 0 0 0 1px var(--aaron-cicn-frame-color, var(--aaron-colr-window-frame, #666))`.
+
+**Subtle correctness:** windows in the demo default to `data-state="inactive"`. The runtime resolves `cicnUrl` from `windowType.chrome[state]`, so the INACTIVE cicn gets sampled by default — which has a dimmer outer pixel (`#555` for 7 Le inactive vs `#000` active). Period-faithful: classic Mac OS dimmed the frame of unfocused windows. The frame color tracks state automatically because `applyChromeFromTheme` runs again when state flips and re-samples.
+
+**Architecture pivot also in this PR:** dropped the per-edge composer rendering (#86's bottom/left/right `applyXxxEdgeAs3Slice` calls) in favor of the single hairline frame. The edge containers remain as DOM placeholders (`display: none`) for future scheme-specific decoration where a 1px line isn't enough — but for both canonical bundles, a 1px line matches the reference rendering exactly. Saved ~100 lines of CSS background-position math that wasn't adding visual value.
+
+**Pattern worth keeping:** when palette values look approximated or generic, prefer sampling the source pixels. The cicn is the source of truth; the palette is a hint. Same applies to other palette fields (`titlebar-active-bg`, etc.) — if the extractor pre-fills them, double-check against the actual rendered cicn before trusting.
+
+---
+
 *New learnings get appended below this line as the project ships.*

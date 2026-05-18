@@ -60,6 +60,7 @@ export {
   clear3Slice,
   type ChromeSliceOptions,
 } from './applyChromeAs3Slice.js';
+export { deriveFrameColor } from './deriveFrameColor.js';
 // Phase 3.1 — shared control infrastructure (#70). Per-control tickets
 // (#71 onwards) call this; consumers can use it directly for custom
 // controls outside the standard set.
