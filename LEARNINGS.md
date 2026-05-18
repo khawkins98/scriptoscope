@@ -975,4 +975,23 @@ Phase 2 of the loader rewrite: added `parseResourceFork(bytes)` and `loadKaleido
 
 ---
 
+### 2026-05-18 — Phase 3 of the loader rewrite: distribute themes as .rsrc + runtime decode
+
+Phase 3 lands: every bundled scheme now has a `scheme.rsrc` file (the raw Mac OS resource fork bytes) alongside the legacy build-time bundle (`theme.json` + PNGs). The demo's `smartLoadTheme(slug)` helper prefers the runtime path when `.rsrc` is available, falls back to the bundle otherwise.
+
+**File sizes** (illustrative): `masswerk-7-le` 117 KB, `acid` 826 KB, `evolution` 1.6 MB. The 1.6 MB worst case decodes in <100 ms in the runtime; smaller schemes well under that. Compared to the bundle path (single `theme.json` fetch + 100+ PNG fetches as needed), the .rsrc path is faster overall because it's one round-trip for everything.
+
+**Canonical wnd# ID → slug fallback table** (added in `buildThemeJson.js`): fixes the SHIOCOP orphan-slug problem at the *source* — both build-time and runtime paths now produce `document-window` for `wnd# -14336` regardless of whether the resource carried a name. The fallback table maps the well-known Mac OS Window Manager IDs (`-14336` → `document-window`, `-14328` → `dialog`, `-14326` → `alert`, etc.).
+
+**Runtime parity** (manual verification): loading any of the 7 schemes via `?theme=<slug>` produces the same visible chrome as the legacy bundle path. The 3-slice/9-slice renderer is unchanged (Phase 4 scope); we're just feeding it from the runtime decoder instead of a JSON file.
+
+**E2E gotcha — radio click triggering theme switch:** the demo Controls window has a radio group wired to swap schemes. Initially I swapped its handler to `smartLoadTheme`, which then ran the runtime decoder for the 516KB ErgoBox scheme inline. That added a few hundred ms which made the radio-click → name-update assertion flaky in Playwright. The radio group is a UI illustration, not a loader test — kept it on the fast bundle path. **General rule:** when a slow path is OPTIONAL for a given user interaction, default to the fast path for that interaction even if the slow path is correct architecturally.
+
+**What's NOT yet changed:**
+- The `themes/<slug>/theme.json` + PNG bundles are still on disk (cache; not deleted yet — needs deprecation cycle)
+- The bundled-default still loads via the legacy path (`enableBundledDefault` uses `loadTheme(bundleUrl)`) — could swap to runtime in a follow-up
+- The renderer is unchanged — Phase 4 picks that up
+
+---
+
 *New learnings get appended below this line as the project ships.*

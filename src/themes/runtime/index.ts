@@ -52,6 +52,7 @@ export {
   findTitlePillBounds,
   type ComposeWindowChromeOptions,
 } from './composeWindowChrome.js';
+export { loadThemeFromRsrc, type LoadThemeFromRsrcOptions } from './loadThemeFromRsrc.js';
 export {
   applyTitlebarAs3Slice,
   applyBottomEdgeAs3Slice,

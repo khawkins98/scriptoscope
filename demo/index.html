@@ -270,6 +270,24 @@
       promoteRadios,
       promoteFields,
     } from '../src/index.ts';
+    import { loadThemeFromRsrc } from '../src/themes/runtime/loadThemeFromRsrc.ts';
+
+    // Phase 3: prefer runtime resource-fork decoding when scheme.rsrc is
+    // available. Falls back to the build-time bundle (theme.json) if not.
+    // This is the "load like Kaleidoscope" path — no per-scheme conversion
+    // step, the binary IS the theme.
+    async function smartLoadTheme(slug) {
+      const rsrcUrl = `themes/${slug}/scheme.rsrc`;
+      try {
+        const head = await fetch(rsrcUrl, { method: 'HEAD' });
+        if (head.ok) {
+          await loadThemeFromRsrc(rsrcUrl);
+          return;
+        }
+      } catch { /* fall through */ }
+      // Bundle fallback (theme.json + PNGs).
+      await loadTheme(`themes/${slug}/`);
+    }
 
     const desktop = document.getElementById('desktop');
 
@@ -400,6 +418,10 @@
         if (r.value === 'seven') select.value = 'masswerk-7-le';
         else if (r.value === 'ergo') select.value = 'masswerk-dark-ergobox2';
         else return;
+        // Keep the demo radio group on the fast bundle path (it's a UI
+        // illustration, not a loader test) — smartLoadTheme adds a few
+        // hundred ms for the larger schemes which makes the
+        // radio-click → name-update e2e test flaky.
         void loadTheme(`themes/${select.value}/`);
       });
     });
@@ -416,7 +438,7 @@
     // version (PRD §Theme system); the <select> is the imperative.
     const select = document.getElementById('scheme-switcher');
     select.addEventListener('change', () => {
-      void loadTheme(`themes/${select.value}/`);
+      void smartLoadTheme(select.value);
       // Keep the URL in sync so reloads + sharing preserve the picked scheme.
       const u = new URL(location.href);
       u.searchParams.set('theme', select.value);
@@ -448,7 +470,7 @@
         const tryApply = () => {
           if (applied) return;
           applied = true;
-          void loadTheme(`themes/${requested}/`);
+          void smartLoadTheme(requested);
         };
         // Either the registry already has the bundled default (synced)
         // or it'll arrive on the next subscribe callback.

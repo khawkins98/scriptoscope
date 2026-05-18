@@ -109,7 +109,15 @@ export function buildThemeJson(manifest, options = {}) {
   // We try a small neighborhood of IDs and probe their names for the state.
   const windowTypes = {};
   for (const wnd of wnds) {
-    const slug = uniqueElementSlug(windowTypes, slugify(wnd.name) || `wnd-${wnd.id}`);
+    // Slug priority: scheme-author's name → canonical Mac OS ID
+    // fallback → opaque wnd-<id>. The fallback table catches the case
+    // where the wnd# resource has no name (some authors didn't fill it
+    // in — SHIOCOP's schemes are the canonical example). Without this,
+    // such schemes would expose "wnd--14336" instead of "document-window"
+    // and break runtime lookups by slug.
+    const named = slugify(wnd.name);
+    const canonical = CANONICAL_WNDTYPE_SLUGS[String(wnd.id)] || `wnd-${wnd.id}`;
+    const slug = uniqueElementSlug(windowTypes, named || canonical);
 
     const chrome = pairChromeStates(wnd.id, byTypeAndId);
     if (Object.keys(chrome).length === 0) continue; // skip if no cicn pairs found
@@ -249,3 +257,33 @@ function uniqueElementSlug(existing, slug) {
 function uniquePatternSlug(existing, slug) {
   return uniqueElementSlug(existing, slug);
 }
+
+/**
+ * Canonical Mac OS wnd# resource IDs → standard slugs.
+ *
+ * Mac OS Window Manager uses well-known negative resource IDs for the
+ * standard window types (zoomDocProc = -14336, etc.). Most scheme
+ * authors fill in the `name` field on each wnd# resource (e.g.,
+ * "Document Window") which slugifies cleanly. SHIOCOP (#1022, #1990,
+ * #1991, ...) authored their schemes WITHOUT names — Mac OS doesn't
+ * require them since the ID is the actual lookup key. Without this
+ * fallback table their windowTypes get opaque "wnd--14336" slugs and
+ * the runtime can't resolve `document-window`.
+ *
+ * Mapping derived from the named entries in well-formed schemes
+ * (mass:werk 7 Le, ErgoBox, 1138, Big Blue) — every observed
+ * name → ID pairing follows these conventions.
+ */
+const CANONICAL_WNDTYPE_SLUGS = {
+  '-14336': 'document-window',
+  '-14335': 'document-window', // active variant (some schemes use as the wnd# ID)
+  '-14332': 'collapsed-document-window',
+  '-14328': 'dialog',
+  '-14326': 'alert',
+  '-14324': 'movable-modal',
+  '-14322': 'movable-alert',
+  '-14304': 'titled-utility-window',
+  '-14296': 'side-floating-utility-window',
+  '-14288': 'no-title-utility-window',
+  '-12320': 'popup-window',
+};
