@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aaron UI — Scheme Diagnostics</title>
+  <meta name="description" content="Per-scheme diagnostic view: raw cicn + parts overlay + recipe entries + classifier verdict + live render. For debugging extraction-vs-rendering gaps.">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", sans-serif;
+      font-size: 13px;
+      background: #1c1c1f;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    body { padding: 20px 24px 80px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    h2 { margin: 32px 0 12px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #44444a; padding-bottom: 6px; }
+    h3 { margin: 16px 0 8px; font-size: 13px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.04em; }
+    .subtitle { opacity: 0.65; margin: 0 0 16px; font-size: 13px; }
+    .subtitle a { color: #9bd; }
+    .nav-bar {
+      position: sticky; top: 0;
+      background: #1c1c1feb;
+      backdrop-filter: blur(8px);
+      padding: 10px 0; margin: -20px 0 16px;
+      z-index: 100;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      border-bottom: 1px solid #2a2a2e;
+    }
+    .nav-bar a { color: #9bd; text-decoration: none; font-size: 12px; padding: 4px 8px; background: #2a2a2e; border-radius: 3px; }
+    .nav-bar a.active { background: #3a3a45; color: #fff; }
+    .nav-bar a:hover { background: #555560; color: #fff; }
+    .nav-bar .back { background: transparent; padding: 0; color: #fff; }
+    .nav-bar select { padding: 4px 8px; font: inherit; background: #2a2a2e; color: #e0e0e0; border: 1px solid #44444a; border-radius: 3px; }
+    .meta-card {
+      background: #2a2a2e;
+      border: 1px solid #44444a;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+    .meta-card .row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .meta-card .row > div { min-width: 180px; }
+    .meta-card label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.55; margin: 0 0 2px; }
+    .meta-card .value { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .panel {
+      background: #2a2a2e;
+      border: 1px solid #44444a;
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .cicn-stack {
+      position: relative;
+      display: inline-block;
+      image-rendering: pixelated;
+    }
+    .cicn-img {
+      display: block;
+      image-rendering: pixelated;
+    }
+    .cicn-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      mix-blend-mode: normal;
+    }
+    .toggles { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; }
+    .toggles label { display: flex; gap: 6px; align-items: center; cursor: pointer; padding: 4px 8px; background: #1c1c1f; border: 1px solid #44444a; border-radius: 4px; }
+    .toggles input[type="checkbox"] { margin: 0; }
+    .legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 12px; font-size: 12px; margin-top: 8px; font-family: ui-monospace, Menlo, monospace; }
+    .legend-item { display: flex; gap: 6px; align-items: center; padding: 2px 0; }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 2px; flex: 0 0 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: ui-monospace, Menlo, monospace; }
+    table th, table td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #2a2a2e; }
+    table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.6; }
+    .recipe-side { margin-bottom: 18px; }
+    .verdict {
+      padding: 10px 14px;
+      border-radius: 4px;
+      background: #1c1c1f;
+      border: 1px solid #44444a;
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .verdict.kind-titlebar-only { border-left: 3px solid #5dd; }
+    .verdict.kind-full-window { border-left: 3px solid #fd5; }
+    .verdict.kind-fixed-bitmap { border-left: 3px solid #f55; }
+    .live-render {
+      background: #cccccc;
+      border-radius: 4px;
+      padding: 8px;
+      min-height: 280px;
+      position: relative;
+    }
+    .live-render.dark { background: #555; }
+    /* AaronWindow CSS pulled from main demo, so live render matches */
+    .aaron-window {
+      background: white;
+      box-shadow:
+        inset 0 0 0 1px var(--aaron-cicn-frame-color, var(--aaron-colr-window-frame, #666)),
+        2px 3px 12px rgba(0,0,0,0.25);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .aaron-titlebar { flex: 0 0 25px; position: relative; height: 25px; min-height: 25px; image-rendering: pixelated; }
+    .aaron-titlebar__title {
+      position: absolute;
+      left: var(--aaron-title-pill-left, 0);
+      right: var(--aaron-title-pill-right, 0);
+      top: 0; bottom: 0;
+      padding: 0 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      pointer-events: none;
+      overflow: hidden; white-space: nowrap;
+      color: var(--aaron-colr-titlebar-active-fg, currentColor);
+      z-index: 2;
+    }
+    .aaron-titlebar__title > span { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .aaron-content { flex: 1 1 auto; min-height: 0; padding: 12px; line-height: 1.4; overflow: auto; color: #000; }
+    .aaron-window__edge--bottom { left: 0; right: 0; bottom: 0; height: var(--aaron-frame-bottom-px, 1px); position: absolute; overflow: hidden; }
+    .aaron-window__edge--left { left: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px); width: var(--aaron-frame-left-px, 1px); position: absolute; overflow: hidden; }
+    .aaron-window__edge--right { right: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px); width: var(--aaron-frame-right-px, 1px); position: absolute; overflow: hidden; }
+
+    /* Highlight segment outlines for the live render diagnostic mode */
+    .live-render.highlight [data-aaron-recipe-segment] {
+      outline: 2px solid #ff0;
+      outline-offset: -1px;
+    }
+    .live-render.highlight [data-aaron-recipe-segment="top-named"] { outline-color: #f5a; }
+    .live-render.highlight [data-aaron-recipe-segment$="-fill"],
+    .live-render.highlight [data-aaron-recipe-segment$="-middle-fill"] { outline-color: #5af; }
+
+    .nothing { opacity: 0.6; font-style: italic; }
+    code { background: #1c1c1f; padding: 2px 4px; border-radius: 2px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="nav-bar">
+    <a href="/" class="back">← Main demo</a>
+    <span style="opacity:0.4;">|</span>
+    <a href="/themes-gallery.html">Gallery</a>
+    <span style="opacity:0.4;">|</span>
+    <label style="display:flex;gap:6px;align-items:center;">
+      Scheme:
+      <select id="scheme-select">
+        <option value="masswerk-7-le">mass:werk 7 Le</option>
+        <option value="masswerk-dark-ergobox2">mass:werk Dark ErgoBox 2</option>
+        <option value="acid">Acid (#1022)</option>
+        <option value="1138">1138</option>
+        <option value="big-blue">Big Blue is Watching (#1984)</option>
+        <option value="1990">1990</option>
+        <option value="evolution">1991 evolution</option>
+      </select>
+    </label>
+  </div>
+
+  <h1 id="scheme-heading">Scheme Diagnostics</h1>
+  <p class="subtitle">Per-scheme view of how Aaron UI decodes + renders a Kaleidoscope scheme.
+    Shows the raw chrome cicns with parts-rect + recipe-position overlays, the classifier verdict,
+    the derived slice geometry, and a live render with optional segment-outline highlighting.
+    Use this to diagnose extraction-vs-rendering gaps: if the recipe data looks correct here
+    but the live render is wrong, the bug is in the renderer. If the data itself is missing
+    or wrong, the bug is in the extractor.
+  </p>
+
+  <div class="meta-card" id="meta-card">
+    <div class="row">
+      <div><label>Name</label><div class="value" id="meta-name">—</div></div>
+      <div><label>Author</label><div class="value" id="meta-author">—</div></div>
+      <div><label>Year</label><div class="value" id="meta-year">—</div></div>
+      <div><label>Source</label><div class="value" id="meta-source">—</div></div>
+    </div>
+  </div>
+
+  <h2>Classifier verdict</h2>
+  <div id="verdict-host"></div>
+
+  <h2>Chrome cicns</h2>
+  <p class="subtitle">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap.</p>
+  <div class="toggles">
+    <label><input type="checkbox" id="t-parts" checked> Parts rects</label>
+    <label><input type="checkbox" id="t-recipe"> Recipe positions</label>
+    <label><input type="checkbox" id="t-half"> Half-line (anchor split)</label>
+  </div>
+  <div id="cicn-stacks"></div>
+
+  <h2>Recipes (wnd#)</h2>
+  <p class="subtitle">For each side: list of <code>{at, part}</code> entries. <code>at</code> is the cicn-pixel position along the side axis.
+    <code>part</code> matching a slug in the parts table = named (renders that rect at native size at <code>at</code>).
+    <code>part</code> not in the table = fill (tiles cicn pixels in the segment).
+  </p>
+  <div id="recipes-host"></div>
+
+  <h2>Parts (named cicn rects)</h2>
+  <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
+  <div id="parts-host"></div>
+
+  <h2>Live render</h2>
+  <p class="subtitle">A real <code>AaronWindow</code> with this scheme applied. Toggle "Highlight segments" to outline each
+    recipe-rendered piece in the rendered chrome (named parts in pink; fill segments in blue).</p>
+  <div class="toggles">
+    <label><input type="checkbox" id="t-highlight"> Highlight segments</label>
+    <label>Window width:
+      <input type="range" id="t-width" min="180" max="800" value="380" style="width:160px;">
+      <span id="t-width-display">380px</span>
+    </label>
+  </div>
+  <div id="render-host"></div>
+
+  <script type="module">
+    import { AaronWindow, applyChromeFromTheme } from '../src/index.ts';
+    import { parseTheme } from '../src/themes/schema/index.ts';
+    import { resolveAssetUrls } from '../src/themes/runtime/loadTheme.ts';
+    import { classifyChromeCicn } from '../src/themes/runtime/classifyChromeCicn.ts';
+
+    // Distinct colors for named parts in the overlay.
+    const PART_COLORS = ['#f55','#5f5','#55f','#fa5','#5af','#a5f','#5fa','#fa5','#aa5','#5aa'];
+
+    function getColor(idx) { return PART_COLORS[idx % PART_COLORS.length]; }
+
+    async function loadSchemeData(slug) {
+      const url = new URL(`../themes/${slug}/theme.json`, location.href).toString();
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+      const parsed = parseTheme(await res.json());
+      return resolveAssetUrls(parsed, url);
+    }
+
+    function fmtRect(rect) { return `[${rect.join(', ')}]`; }
+
+    function renderMeta(theme) {
+      document.getElementById('meta-name').textContent = theme.name ?? '—';
+      const a = theme.author;
+      document.getElementById('meta-author').textContent = a?.name ?? '—';
+      document.getElementById('meta-year').textContent = a?.year ? String(a.year) : '—';
+      const sourceEl = document.getElementById('meta-source');
+      sourceEl.innerHTML = '';
+      if (theme.origin?.sourceUrl) {
+        const link = document.createElement('a');
+        link.href = theme.origin.sourceUrl;
+        link.textContent = theme.origin.sourceUrl;
+        link.style.color = '#9bd';
+        sourceEl.appendChild(link);
+      } else { sourceEl.textContent = '—'; }
+      document.getElementById('scheme-heading').textContent = `Diagnostics: ${theme.name ?? '(unnamed)'}`;
+    }
+
+    async function renderVerdict(theme, windowType) {
+      const host = document.getElementById('verdict-host');
+      host.innerHTML = '';
+      const activeCicn = windowType?.chrome?.active ?? windowType?.chrome?.inactive;
+      if (!activeCicn) {
+        host.innerHTML = '<div class="verdict"><span class="nothing">No active document-window cicn</span></div>';
+        return;
+      }
+      const kind = await classifyChromeCicn(activeCicn);
+      const div = document.createElement('div');
+      div.className = `verdict kind-${kind}`;
+      const desc = {
+        'titlebar-only': 'Thin cicn → 3-slice on titlebar element. Recipe-driven per-segment composition (Phase 4a-c). Side+bottom rendered as recipe-driven segments inside <code>[data-aaron-edge]</code> containers, sized by derived frame geometry.',
+        'full-window': '9-slice border-image on the WINDOW ROOT (border-top/right/bottom/left widths from derived geometry). Recipe segments cleared to avoid double-rendering on top of the 9-slice border.',
+        'fixed-bitmap': 'Falls back to titlebar-only treatment (renderer can\'t faithfully reproduce decorative non-tileable cicns at arbitrary sizes; Kind C is the documented limitation).',
+      };
+      div.innerHTML = `<strong>Classifier kind:</strong> <code>${kind}</code><br><br>${desc[kind] ?? ''}`;
+      host.appendChild(div);
+    }
+
+    function renderCicnStacks(theme, windowType) {
+      const host = document.getElementById('cicn-stacks');
+      host.innerHTML = '';
+      if (!windowType?.chrome) return;
+      const states = Object.entries(windowType.chrome);
+      const parts = windowType.parts ?? {};
+      const recipes = windowType.edges ?? {};
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gap = '20px';
+      grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(360px, 1fr))';
+      host.appendChild(grid);
+
+      for (const [state, cicnUrl] of states) {
+        if (typeof cicnUrl !== 'string') continue;
+        const card = document.createElement('div');
+        card.className = 'panel';
+        card.innerHTML = `<h3>${state}</h3>`;
+        grid.appendChild(card);
+
+        const img = document.createElement('img');
+        img.src = cicnUrl;
+        img.className = 'cicn-img';
+        const stack = document.createElement('div');
+        stack.className = 'cicn-stack';
+        const svgHost = document.createElement('div');
+        stack.appendChild(img);
+        stack.appendChild(svgHost);
+        card.appendChild(stack);
+
+        img.onload = () => {
+          const scale = 4;
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
+          img.style.width = `${w * scale}px`;
+          img.style.height = `${h * scale}px`;
+          stack.style.width = `${w * scale}px`;
+          stack.style.height = `${h * scale}px`;
+
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('class', 'cicn-overlay');
+          svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+          svg.setAttribute('preserveAspectRatio', 'none');
+          svg.style.width = '100%';
+          svg.style.height = '100%';
+          svg.style.position = 'absolute';
+          svg.style.inset = '0';
+
+          // Parts rects layer
+          const partsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          partsLayer.setAttribute('data-layer', 'parts');
+          const partsEntries = Object.entries(parts);
+          partsEntries.forEach(([slug, p], idx) => {
+            const [rl, rt, rr, rb] = p.rect;
+            const rectEl = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rectEl.setAttribute('x', rl);
+            rectEl.setAttribute('y', rt);
+            rectEl.setAttribute('width', Math.max(0.5, rr - rl));
+            rectEl.setAttribute('height', Math.max(0.5, rb - rt));
+            rectEl.setAttribute('fill', 'transparent');
+            rectEl.setAttribute('stroke', getColor(idx));
+            rectEl.setAttribute('stroke-width', '0.5');
+            rectEl.setAttribute('opacity', '0.95');
+            partsLayer.appendChild(rectEl);
+          });
+          svg.appendChild(partsLayer);
+
+          // Recipe positions layer
+          const recipeLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          recipeLayer.setAttribute('data-layer', 'recipe');
+          for (const [side, recipe] of Object.entries(recipes)) {
+            if (!Array.isArray(recipe)) continue;
+            for (const entry of recipe) {
+              const isVertical = side === 'left' || side === 'right';
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              const color = entry.part in parts ? '#fff' : '#0ff';
+              line.setAttribute('stroke', color);
+              line.setAttribute('stroke-width', '0.3');
+              line.setAttribute('opacity', '0.7');
+              if (isVertical) {
+                const x = side === 'left' ? 0 : w;
+                line.setAttribute('x1', x);
+                line.setAttribute('x2', side === 'left' ? Math.min(6, w) : Math.max(0, w - 6));
+                line.setAttribute('y1', entry.at);
+                line.setAttribute('y2', entry.at);
+              } else {
+                const y = side === 'top' ? 0 : h;
+                line.setAttribute('x1', entry.at);
+                line.setAttribute('x2', entry.at);
+                line.setAttribute('y1', y);
+                line.setAttribute('y2', side === 'top' ? Math.min(6, h) : Math.max(0, h - 6));
+              }
+              recipeLayer.appendChild(line);
+            }
+          }
+          svg.appendChild(recipeLayer);
+
+          // Half-split layer (left/right or top/bottom halves)
+          const halfLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          halfLayer.setAttribute('data-layer', 'half');
+          const vline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          vline.setAttribute('x1', w/2); vline.setAttribute('x2', w/2);
+          vline.setAttribute('y1', 0); vline.setAttribute('y2', h);
+          vline.setAttribute('stroke', '#ff0'); vline.setAttribute('stroke-width', '0.2'); vline.setAttribute('opacity', '0.6');
+          vline.setAttribute('stroke-dasharray', '1,1');
+          halfLayer.appendChild(vline);
+          const hline = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          hline.setAttribute('x1', 0); hline.setAttribute('x2', w);
+          hline.setAttribute('y1', h/2); hline.setAttribute('y2', h/2);
+          hline.setAttribute('stroke', '#ff0'); hline.setAttribute('stroke-width', '0.2'); hline.setAttribute('opacity', '0.6');
+          hline.setAttribute('stroke-dasharray', '1,1');
+          halfLayer.appendChild(hline);
+          svg.appendChild(halfLayer);
+
+          stack.appendChild(svg);
+          updateOverlayVisibility();
+
+          // Dimensions sublabel
+          const dim = document.createElement('div');
+          dim.style.opacity = '0.6';
+          dim.style.fontSize = '11px';
+          dim.style.marginTop = '6px';
+          dim.style.fontFamily = 'ui-monospace, Menlo, monospace';
+          dim.textContent = `${w}×${h} px`;
+          card.appendChild(dim);
+
+          // Parts legend (only on first card)
+          if (state === states[0][0] && partsEntries.length > 0) {
+            const legend = document.createElement('div');
+            legend.className = 'legend';
+            legend.style.marginTop = '12px';
+            partsEntries.forEach(([slug, p], idx) => {
+              const li = document.createElement('div');
+              li.className = 'legend-item';
+              const sw = document.createElement('div');
+              sw.className = 'legend-swatch';
+              sw.style.background = getColor(idx);
+              li.appendChild(sw);
+              li.append(`${slug} ${fmtRect(p.rect)}`);
+              legend.appendChild(li);
+            });
+            card.appendChild(legend);
+          }
+        };
+      }
+    }
+
+    function updateOverlayVisibility() {
+      const showParts = document.getElementById('t-parts').checked;
+      const showRecipe = document.getElementById('t-recipe').checked;
+      const showHalf = document.getElementById('t-half').checked;
+      for (const layer of document.querySelectorAll('[data-layer="parts"]')) {
+        layer.style.display = showParts ? '' : 'none';
+      }
+      for (const layer of document.querySelectorAll('[data-layer="recipe"]')) {
+        layer.style.display = showRecipe ? '' : 'none';
+      }
+      for (const layer of document.querySelectorAll('[data-layer="half"]')) {
+        layer.style.display = showHalf ? '' : 'none';
+      }
+    }
+    for (const id of ['t-parts','t-recipe','t-half']) {
+      document.getElementById(id).addEventListener('change', updateOverlayVisibility);
+    }
+
+    function renderRecipes(theme, windowType) {
+      const host = document.getElementById('recipes-host');
+      host.innerHTML = '';
+      const recipes = windowType?.edges ?? {};
+      const parts = windowType?.parts ?? {};
+      const sides = ['top','right','bottom','left'];
+      for (const side of sides) {
+        const r = recipes[side];
+        const card = document.createElement('div');
+        card.className = 'recipe-side panel';
+        card.innerHTML = `<h3>${side} (${r ? r.length : 0} entries)</h3>`;
+        if (!r || r.length === 0) {
+          card.appendChild(Object.assign(document.createElement('div'), {className:'nothing', textContent:'no recipe data'}));
+        } else {
+          const tbl = document.createElement('table');
+          tbl.innerHTML = `<thead><tr><th>#</th><th>at</th><th>part</th><th>kind</th><th>part rect</th></tr></thead>`;
+          const tbody = document.createElement('tbody');
+          r.forEach((entry, i) => {
+            const tr = document.createElement('tr');
+            const namedPart = parts[entry.part];
+            const kind = namedPart ? 'named' : 'fill';
+            tr.innerHTML = `<td>${i}</td><td>${entry.at}</td><td>${entry.part}</td><td>${kind}</td><td>${namedPart ? fmtRect(namedPart.rect) : '—'}</td>`;
+            tbody.appendChild(tr);
+          });
+          tbl.appendChild(tbody);
+          card.appendChild(tbl);
+        }
+        host.appendChild(card);
+      }
+    }
+
+    function renderParts(theme, windowType) {
+      const host = document.getElementById('parts-host');
+      host.innerHTML = '';
+      const parts = windowType?.parts ?? {};
+      const entries = Object.entries(parts);
+      const card = document.createElement('div');
+      card.className = 'panel';
+      if (entries.length === 0) {
+        card.innerHTML = '<div class="nothing">no parts</div>';
+      } else {
+        const tbl = document.createElement('table');
+        tbl.innerHTML = `<thead><tr><th>slug</th><th>rect [l,t,r,b]</th><th>w×h</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+        entries.forEach(([slug, p]) => {
+          const [rl, rt, rr, rb] = p.rect;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${slug}</td><td>${fmtRect(p.rect)}</td><td>${rr-rl}×${rb-rt}</td>`;
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        card.appendChild(tbl);
+      }
+      host.appendChild(card);
+    }
+
+    async function renderLive(theme, slug) {
+      const host = document.getElementById('render-host');
+      host.innerHTML = '';
+      const live = document.createElement('div');
+      live.className = 'live-render';
+      live.id = 'live-render';
+      const dark = slug === 'masswerk-dark-ergobox2';
+      if (dark) live.classList.add('dark');
+      host.appendChild(live);
+
+      const widthRange = document.getElementById('t-width');
+      const widthDisplay = document.getElementById('t-width-display');
+      const highlight = document.getElementById('t-highlight');
+      const mountWindow = () => {
+        live.innerHTML = '';
+        const w = parseInt(widthRange.value, 10);
+        widthDisplay.textContent = `${w}px`;
+        const win = new AaronWindow({
+          title: `${theme.name ?? slug} window`,
+          x: 8, y: 8,
+          width: w, height: 220,
+          html: `<p>Live <code>AaronWindow</code> using <strong>${theme.name ?? slug}</strong>.</p><p>Resize the slider above to see how the chrome adapts.</p>`,
+        });
+        win.mount(live);
+        try {
+          applyChromeFromTheme(win.element, theme, { windowTypeSlug: 'document-window' });
+        } catch (e) {
+          console.warn('apply failed:', e);
+        }
+      };
+      mountWindow();
+      widthRange.addEventListener('input', mountWindow);
+      highlight.addEventListener('change', () => live.classList.toggle('highlight', highlight.checked));
+    }
+
+    async function loadAndRender(slug) {
+      const theme = await loadSchemeData(slug);
+      const wt = theme.windowTypes?.['document-window'];
+      renderMeta(theme);
+      await renderVerdict(theme, wt);
+      renderCicnStacks(theme, wt);
+      renderRecipes(theme, wt);
+      renderParts(theme, wt);
+      await renderLive(theme, slug);
+    }
+
+    // Initial load from ?theme= or default to 7 Le
+    const params = new URLSearchParams(location.search);
+    const select = document.getElementById('scheme-select');
+    const initial = params.get('theme') ?? 'masswerk-7-le';
+    if (Array.from(select.options).some((o) => o.value === initial)) {
+      select.value = initial;
+    }
+    void loadAndRender(select.value);
+    select.addEventListener('change', () => {
+      const u = new URL(location.href);
+      u.searchParams.set('theme', select.value);
+      history.replaceState(null, '', u.toString());
+      void loadAndRender(select.value);
+    });
+  </script>
+</body>
+</html>
