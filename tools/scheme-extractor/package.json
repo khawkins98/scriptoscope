@@ -5,7 +5,7 @@
   "description": "Extract raster assets (cicn color icons, ppat pixel patterns) from Kaleidoscope scheme resource forks. Inputs DeRez .r text; outputs PNGs plus a manifest. lib/ is browser-portable; bin/ wraps Node file I/O.",
   "type": "module",
   "exports": {
-    ".": "./lib/index.js"
+    ".": "../../src/themes/loader/index.js"
   },
   "bin": {
     "scheme-extract": "./bin/extract.js"

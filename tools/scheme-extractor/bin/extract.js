@@ -23,7 +23,7 @@ import {
   buildThemeJson,
   validateTheme,
   ThemeValidationError,
-} from '../lib/index.js';
+} from '../../../src/themes/loader/index.js';
 
 function parseArgs(argv) {
   const args = {

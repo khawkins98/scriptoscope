@@ -943,4 +943,20 @@ New `classifyChromeCicn(url)` helper detects the kind by inspecting the cicn:
 
 ---
 
+### 2026-05-18 — The build-time extraction step was the wrong default; decoders belong in the runtime
+
+After importing 5 exotic schemes (#89) and seeing the gallery expose fidelity gaps, the user articulated the structural problem: we've been doing **lossy build-time conversion** + manual per-scheme patches when something doesn't extract cleanly (SHIOCOP wnd# slug orphans, missing cinf usage, missing bgPattern tiling). That doesn't scale to the 3000+ scheme archive.
+
+**Kaleidoscope's actual model:** it was a System extension that opened the resource fork at runtime, enumerated standard Mac OS resource types, and rendered windows by interpretation. No conversion step. The renderer was the authoritative interpretation layer.
+
+**Plan (multi-phase loader rewrite):**
+1. **Phase 1 (this entry):** move decoders from `tools/scheme-extractor/lib/` to `src/themes/loader/` so they're runtime-importable. README explicitly noted they were already browser-portable; the move is mostly mechanical (`git mv`, update CLI imports, update vitest config). Behavior unchanged for existing schemes.
+2. **Phase 2 (next):** add a pure-JS Mac OS resource fork parser + `loadKaleidoscopeScheme(bytes|url|File)` that returns an in-memory `Theme` matching the schema. Replaces `theme.json` as the source of truth for runtime.
+3. **Phase 3:** distribute themes as raw `.rsrc` (resource fork bytes) — runtime decodes on load; `theme.json` becomes a cache, not a contract.
+4. **Phase 4:** recipe-driven per-segment renderer (separate workstream — orthogonal to the loader move but unblocked by it).
+
+**Pattern worth recording:** when a build-time pipeline accumulates per-scheme manual patches, the pipeline is the wrong place to do the work. Move to runtime; let the renderer be the spec compliance layer. Apply the same logic when other build-time conversion steps emerge.
+
+---
+
 *New learnings get appended below this line as the project ships.*
