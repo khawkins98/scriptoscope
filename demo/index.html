@@ -69,6 +69,18 @@
       box-shadow:
         inset 0 0 0 1px var(--aaron-cicn-frame-color, var(--aaron-colr-window-frame, #666)),
         2px 3px 12px rgba(0,0,0,0.25);
+      /* Layout: titlebar fixed-height at top, content fills the rest
+         (scrolling if it overflows). Without this, content with a
+         tall textarea / large markup would spill below the window
+         border instead of staying contained. */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .aaron-titlebar { flex: 0 0 25px; }
+    .aaron-content {
+      flex: 1 1 auto;
+      min-height: 0; /* required so flex item can shrink below content height */
     }
     /* Edge containers sized from --aaron-frame-{bottom,left,right}-px
        stamped on the window by the runtime. Default to 1px fallbacks
