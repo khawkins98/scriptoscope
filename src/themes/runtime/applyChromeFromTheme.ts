@@ -25,7 +25,9 @@ import {
   applyVerticalEdgeAs3Slice,
   clear3Slice,
 } from './applyChromeAs3Slice.js';
+import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
+import { classifyChromeCicn } from './classifyChromeCicn.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -118,13 +120,14 @@ export function applyChromeFromTheme(
     chromeEntry.width != null && chromeEntry.height != null;
 
   if (hasTopRecipe && hasNativeDimensions) {
-    // Path A — 3-slice rendering via CSS border-image.
+    // Path A — classifier picks 3-slice (Kind A) or 9-slice (Kind B).
     //
-    // Per the structural rewrite (chrome PR following #64.3): the cicn is
-    // a 3-slice TEMPLATE, not a stretchy per-segment composition. Left
-    // slice pinned to titlebar left at native pixel size; right slice
-    // pinned to right at native pixel size; middle stretchable region
-    // (the "title pill" zone) tiles across the gap as the window resizes.
+    // See docs/chrome-rendering-architecture.md for the full decision
+    // rules. Kind A = thin titlebar-only cicn (e.g., 7 Le 74×25);
+    // Kind B = full-window cicn that encodes the entire frame
+    // (e.g., ErgoBox 132×64, Big Blue 89×82); Kind C = decorative
+    // fixed bitmap that can't tile (Acid, evolution) — falls back
+    // to Kind A treatment for now.
     titlebar.style.backgroundImage = '';
     titlebar.style.backgroundSize = '';
     const composeOpts = {
@@ -132,6 +135,19 @@ export function applyChromeFromTheme(
       cicnHeight: chromeEntry.height as number,
       cicnUrl,
     };
+
+    // Kick off classifier (async) + dispatch when it resolves. While
+    // it's running, render via 3-slice as a fast default — re-renders
+    // if classifier returns 9-slice.
+    void classifyChromeCicn(cicnUrl).then((kind) => {
+      if (kind === 'full-window') {
+        clear3Slice(titlebar);
+        clearAllEdges(windowEl);
+        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+      } else {
+        clearWindow9Slice(windowEl);
+      }
+    });
     const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
     // Title-pill positioning (#64.2) — with the 3-slice model the pill
     // is exactly the middle border-image region, i.e. titlebar pixel
