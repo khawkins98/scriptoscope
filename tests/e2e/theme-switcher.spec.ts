@@ -10,13 +10,16 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#load-7le').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
-    // 3-slice rewrite: the titlebar carries the cicn as border-image-source.
-    const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar')
-      .first()
-      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
-    expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
-    expect(titlebarBg).toMatch(/document-window/);
+    // Phase 4a recipe-driven rendering: the titlebar contains
+    // [data-aaron-recipe-segment] children whose backgroundImage points
+    // at the loaded scheme's cicn.
+    const segment = page
+      .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
+      .first();
+    await expect(segment).toBeAttached();
+    const bg = await segment.evaluate((el) => (el as HTMLElement).style.backgroundImage);
+    expect(bg).toContain('themes/masswerk-7-le/cicns/');
+    expect(bg).toMatch(/document-window/);
   });
 
   test('mounts wnd# part overlays inside the titlebar', async ({ page }) => {
@@ -35,21 +38,20 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#load-7le').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
-    const first = await page
-      .locator('.aaron-window .aaron-titlebar')
+    const firstBg = await page
+      .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
-    expect(first).toContain('themes/masswerk-7-le/cicns/');
+      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+    expect(firstBg).toContain('themes/masswerk-7-le/cicns/');
 
     await page.locator('#load-ergobox').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-dark-ergobox2');
-    // ErgoBox is classified as full-window (Kind B per chrome architecture
-    // doc) — border-image lands on the WINDOW root, not the titlebar.
+    // Recipe segments in the titlebar now reference the new scheme's cicn.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window')
+        .locator('.aaron-window .aaron-titlebar [data-aaron-recipe-segment]')
         .first()
-        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
+        .evaluate((el) => (el as HTMLElement).style.backgroundImage);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
     }).toPass({ timeout: 2000 });
   });
