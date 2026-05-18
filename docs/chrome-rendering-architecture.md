@@ -234,34 +234,32 @@ A future improvement could be canvas-composite rendering — load the cicn pixel
 
 ## 7. Path selection in `applyChromeFromTheme`
 
-The renderer dispatches on **two** axes, not one:
+The renderer dispatches on **three** axes:
 
-1. **Classifier kind** (the cicn's geometric shape): titlebar-only / full-window / fixed-bitmap
-2. **Recipe density** (the wnd# data's slice complexity): simple / rich
+1. **Classifier kind** (cicn pixel scan): titlebar-only / full-window / fixed-bitmap
+2. **Recipe density** (wnd# slice complexity): simple / rich
+3. **Body-rect presence** (wnd# `parts.part-0`): true / false
 
 ```ts
 const kind = classifyChromeCicn(cicnUrl, windowType);
-const recipe = recipeDensity(windowType.edges); // see §7.1
+const rich = recipeDensity(windowType) === 'rich';
+const hasBodyRect = !!windowType.parts?.['part-0'];
 
-switch (kind) {
-  case 'titlebar-only':            // Kind A
-    applyTitlebarAs3Slice(...);
-    applyHairlineFrame(...);
-    break;
-  case 'full-window':               // Kind B
-    if (recipe === 'rich') {
-      composeRichRecipe(...);       // §7.2 — N-segment DOM composer
-    } else {
-      applyWindowAs9Slice(...);     // §5 — CSS border-image
-    }
-    break;
-  case 'fixed-bitmap':              // Kind C
-    applyFixedBitmap(...);          // current: falls back to Kind A treatment
-    break;
+if (kind === 'titlebar-only') {            // Kind A
+  applyTitlebarAs3Slice(...);              // §4
+  applyHairlineFrame(...);
+} else if (rich && hasBodyRect) {
+  composeRichRecipe(...);                  // §7.2 — N-segment DOM composer
+} else if (kind === 'full-window') {       // Kind B simple
+  applyWindowAs9Slice(...);                // §5 — CSS border-image
+} else {                                    // Kind C without rich+body
+  applyFixedBitmap(...);                   // current: falls back to Kind A
 }
 ```
 
-Detection costs: classifier = one image fetch + pixel scan per cicn (cached); recipe density = synchronous wnd# traversal (no I/O).
+**Why `rich && hasBodyRect` overrides the classifier verdict:** the pixel-scan classifier flags schemes with busy interiors (Acid, evolution) as Kind C because it can't find a "near-white body region surrounded by frame." But those schemes publish a `part-0` body rect in wnd# — unambiguous structural proof that a frame model applies. The published structure trumps pixel scanning. With this rule, Acid + evolution route to the composer alongside 1990 and render full-frame chrome; their cicn pixels show through the segment slicing.
+
+Detection costs: classifier = one image fetch + pixel scan per cicn (cached); density + body-rect = synchronous wnd# traversal (no I/O).
 
 ### 7.1 What counts as a "rich" recipe?
 
@@ -292,8 +290,8 @@ The threshold (`> 6`) is corpus-empirical: at the time of writing, the Kind B sc
 | Big Blue | B | 4 | simple | 9-slice |
 | 1138 | B | 5 | simple | 9-slice |
 | **1990** | **B** | **9** | **rich** | **composer** |
-| Acid | C | 17 | rich | falls back to Kind A (Kind C limit) |
-| evolution | C | 9 | rich | falls back to Kind A (Kind C limit) |
+| **Acid** | **C** | **17** | **rich** | **composer (via `hasBodyRect` override)** |
+| **evolution** | **C** | **9** | **rich** | **composer (via `hasBodyRect` override)** |
 
 Two observations:
 
@@ -350,10 +348,10 @@ The classifier picks once per theme load; the right renderer runs once per windo
 |---|---|---|---|---|---|---|---|
 | mass:werk 7 Le | 74×25 | A | 0 | 39 | 0 | 25 | Titlebar-only; hairline frame |
 | mass:werk Dark ErgoBox 2 | 132×64 | B | ~18 | 6 | 7 | 6 | Beveled frame all around; tab projects above |
-| Acid (#1022) | 177×140 | C (probably) | — | — | — | — | Lego-block decoration doesn't tile cleanly |
+| Acid (#1022) | 177×140 | C (composer override) | rich | rich | rich | rich | Mondrian decoration; pixel-scan flags C but wnd# publishes part-0 + rich recipe → routes to `composeRichRecipe` |
 | 1138 | ~96×48 | A or B | TBD | TBD | TBD | TBD | Multi-icon decoration |
 | Big Blue (#1984) | 89×82 | B | ~20 | 4 | 4 | 4 | Apple-style with projecting tab |
 | 1990 | 170×170 | B (rich) | ~22 segs | ~2 segs | ~22 segs | ~2 segs | Grunge frame — uses `composeRichRecipe` (§7.2); 9-slice would drop ~54 segments |
-| 1991 evolution | 140×140 | C | — | — | — | — | Metallic pipes — fundamentally fixed-bitmap |
+| 1991 evolution | 140×140 | C (composer override) | rich | rich | rich | rich | Metallic-pipe frame; same override path as Acid (part-0 + rich recipe → composer) |
 
 The classifier validates these expectations at runtime. If a scheme renders weirdly, check the gallery (`/themes-gallery.html`) to see whether it's misclassified.
