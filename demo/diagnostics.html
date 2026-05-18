@@ -894,7 +894,7 @@
     const BODY_PART = 'part-0';
     const INSPECTOR_SIDES = ['top', 'right', 'bottom', 'left'];
 
-    function buildSegmentSpecs(recipe, parts, axisMax) {
+    function buildSegmentSpecs(recipe, parts, axisMax, partRanges) {
       // sentinel ensures the last entry produces a real segment
       const sorted = [...recipe].sort((a, b) => a.at - b.at);
       const cursor = [...sorted, { at: axisMax, part: '__end__' }];
@@ -919,12 +919,43 @@
       for (let i = specs.length - 1; i >= 0; i--) {
         if (!specs[i].isNamedWidget) { lastFillIdx = i; break; }
       }
+      // pin fills whose axis-range overlaps a part rect on this edge —
+      // matches composeRichRecipe's isStaticFill detection
+      function overlapsPart(start, end) {
+        for (const [a, b] of partRanges) if (start < b && end > a) return true;
+        return false;
+      }
       specs.forEach((s, i) => {
-        s.kind = s.isNamedWidget
-          ? `widget:${s.part}`
-          : (i === firstFillIdx || i === lastFillIdx) ? 'corner' : 'fill';
+        if (s.isNamedWidget) s.kind = `widget:${s.part}`;
+        else if (i === firstFillIdx || i === lastFillIdx) s.kind = 'corner';
+        else if (overlapsPart(s.start, s.end)) s.kind = 'static';
+        else s.kind = 'fill';
       });
       return specs;
+    }
+
+    function collectPartRangesOnEdge(parts, side, thickness, cicnW, cicnH) {
+      const isVertical = side === 'left' || side === 'right';
+      const bandStart = side === 'top' || side === 'left' ? 0
+        : side === 'bottom' ? cicnH - thickness.bottom
+        : cicnW - thickness.right;
+      const bandEnd = side === 'top' ? thickness.top
+        : side === 'left' ? thickness.left
+        : side === 'bottom' ? cicnH
+        : cicnW;
+      const ranges = [];
+      for (const [name, p] of Object.entries(parts)) {
+        if (name === BODY_PART) continue;
+        const [l, t, r, b] = p.rect;
+        if (isVertical) {
+          if (r <= bandStart || l >= bandEnd) continue;
+          ranges.push([t, b]);
+        } else {
+          if (b <= bandStart || t >= bandEnd) continue;
+          ranges.push([l, r]);
+        }
+      }
+      return ranges;
     }
 
     function renderSegmentInspector(theme, windowType) {
@@ -974,9 +1005,9 @@
         <strong>Columns:</strong>
         <code>#</code> segment index ·
         <code>span</code> cicn-pixel length ·
-        <code>kind</code> corner / widget / fill (corners + widgets pin; fills grow) ·
+        <code>kind</code> corner / widget / static / fill — corner + widget + static pin (no tile); fill grows ·
         <code>slice</code> the exact cicn pixels the segment renders ·
-        <code>tiles</code> how many times the slice repeats at the live-render width — <strong>&gt;1 on a visibly-static slice = a candidate for static metadata</strong>
+        <code>tiles</code> tile count at live-render width — <strong>any remaining &gt;1 on a visibly-discrete slice = a candidate for further static-detection work (e.g., the &quot;1990&quot; plaque + star which aren&apos;t in the parts table)</strong>
       `;
       host.appendChild(legend);
 
@@ -985,7 +1016,8 @@
         const isVertical = side === 'left' || side === 'right';
         const axisMax = isVertical ? cicnH : cicnW;
         const sideThickness = thickness[side];
-        const specs = buildSegmentSpecs(recipe, parts, axisMax);
+        const partRanges = collectPartRangesOnEdge(parts, side, thickness, cicnW, cicnH);
+        const specs = buildSegmentSpecs(recipe, parts, axisMax, partRanges);
 
         // Section header per edge
         const header = document.createElement('h3');
@@ -1000,6 +1032,7 @@
         //   * pinned (corner/widget): rendered span = span px (1× tile)
         //   * fill: rendered span = (totalFillRenderLength * span / totalFillCicnSpan)
         const renderedTotal = renderedEdgeLen[side];
+        // Anything tagged as non-'fill' pins (corners + widgets + static).
         const pinnedSpanSum = specs.filter((s) => s.kind !== 'fill').reduce((a, s) => a + s.span, 0);
         const fillSpanSum = specs.filter((s) => s.kind === 'fill').reduce((a, s) => a + s.span, 0);
         const availableForFills = Math.max(0, renderedTotal - pinnedSpanSum);
