@@ -22,27 +22,26 @@ test.describe('side + bottom composition (#64.3)', () => {
     }
   });
 
-  test('bottom edge has composed segments after theme load', async ({ page }) => {
+  test('bottom edge has 3-slice pieces after theme load', async ({ page }) => {
     const bottom = page.locator('.aaron-window [data-aaron-edge="bottom"]').first();
-    const segs = await bottom.locator('[data-aaron-chrome-segment="bottom"]').count();
-    expect(segs).toBeGreaterThan(0);
+    // Horizontal 3-slice: pieces are left / middle / right.
+    await expect(bottom.locator('[data-3slice-piece="middle"]')).toHaveCount(1);
   });
 
-  test('left edge has composed segments', async ({ page }) => {
+  test('left edge has 3-slice pieces', async ({ page }) => {
     const left = page.locator('.aaron-window [data-aaron-edge="left"]').first();
-    const segs = await left.locator('[data-aaron-chrome-segment="left"]').count();
-    expect(segs).toBeGreaterThan(0);
+    // Vertical 3-slice: pieces are top / middle / bottom.
+    await expect(left.locator('[data-3slice-piece="middle"]')).toHaveCount(1);
   });
 
-  test('right edge has composed segments', async ({ page }) => {
+  test('right edge has 3-slice pieces', async ({ page }) => {
     const right = page.locator('.aaron-window [data-aaron-edge="right"]').first();
-    const segs = await right.locator('[data-aaron-chrome-segment="right"]').count();
-    expect(segs).toBeGreaterThan(0);
+    await expect(right.locator('[data-3slice-piece="middle"]')).toHaveCount(1);
   });
 
   test('edge segments reference the active theme cicn', async ({ page }) => {
     const seg = page
-      .locator('.aaron-window [data-aaron-edge="bottom"] [data-aaron-chrome-segment]')
+      .locator('.aaron-window [data-aaron-edge="bottom"] [data-3slice-piece]')
       .first();
     const bg = await seg.evaluate((el) => (el as HTMLElement).style.backgroundImage);
     expect(bg).toContain('themes/masswerk-7-le/cicns/');
@@ -50,7 +49,7 @@ test.describe('side + bottom composition (#64.3)', () => {
 
   test('edges re-compose on theme switch', async ({ page }) => {
     const bottomSeg = page
-      .locator('.aaron-window [data-aaron-edge="bottom"] [data-aaron-chrome-segment]')
+      .locator('.aaron-window [data-aaron-edge="bottom"] [data-3slice-piece]')
       .first();
     const before = await bottomSeg.evaluate((el) => (el as HTMLElement).style.backgroundImage);
     await page.locator('#scheme-switcher').selectOption('masswerk-dark-ergobox2');

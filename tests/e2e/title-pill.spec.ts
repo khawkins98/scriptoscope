@@ -22,8 +22,10 @@ test.describe('title pill (#64.2)', () => {
           l: (el as HTMLElement).style.getPropertyValue('--aaron-title-pill-left'),
           r: (el as HTMLElement).style.getPropertyValue('--aaron-title-pill-right'),
         }));
-      expect(props.l).toMatch(/%$/);
-      expect(props.r).toMatch(/%$/);
+      // 3-slice rewrite: pill bounds are PX values (border-image slice
+      // widths in titlebar pixel space), not percentages.
+      expect(props.l).toMatch(/px$/);
+      expect(props.r).toMatch(/px$/);
     }
   });
 

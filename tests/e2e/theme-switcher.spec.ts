@@ -10,12 +10,11 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#load-7le').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
-    // V2 (#64.1) composer puts the cicn URL on child segment divs, not the
-    // titlebar element itself. Find any segment that references the scheme.
+    // 3-slice rewrite: the titlebar carries the cicn as border-image-source.
     const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
+      .locator('.aaron-window .aaron-titlebar')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
     expect(titlebarBg).toMatch(/document-window/);
   });
@@ -35,25 +34,21 @@ test.describe('theme switcher (e2e)', () => {
     await page.goto('/theme-switcher-fixture.html');
     await page.locator('#load-7le').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
-    await expect(
-      page.locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]').first(),
-    ).toBeAttached();
 
     const first = await page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
+      .locator('.aaron-window .aaron-titlebar')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(first).toContain('themes/masswerk-7-le/cicns/');
 
     await page.locator('#load-ergobox').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-dark-ergobox2');
-    // Segments tear down + re-mount under the new theme; poll until the
-    // first segment references the new scheme's cicn path.
+    // Titlebar border-image-source updates to point at the new scheme.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
+        .locator('.aaron-window .aaron-titlebar')
         .first()
-        .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
     }).toPass({ timeout: 2000 });
   });
@@ -65,12 +60,13 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#unload').click();
     await expect(page.locator('#status')).toHaveText('unloaded');
 
-    // V2 (#64.1) composer puts the cicn URL on child segment divs, not the
-    // titlebar element itself. Find any segment that references the scheme.
-    // After unload, both the segment composer divs AND the part overlays
-    // should be removed from the titlebar.
-    const segments = page.locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]');
-    await expect(segments).toHaveCount(0);
+    // After unload, the titlebar's border-image-source should be cleared
+    // and the part overlays removed.
+    const titlebarBg = await page
+      .locator('.aaron-window .aaron-titlebar')
+      .first()
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
+    expect(titlebarBg).toBe('');
     const parts = page.locator('.aaron-window .aaron-titlebar [data-aaron-window-part]');
     await expect(parts).toHaveCount(0);
   });

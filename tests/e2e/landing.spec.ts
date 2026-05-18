@@ -19,16 +19,15 @@ test.describe('landing page (index.html)', () => {
   test('chrome renders on each window after auto-load', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk 7 Le');
-    // V2 (#64.1) composer puts cicn URLs on segment child divs. Every
-    // titlebar should have at least one segment referencing the bundled
-    // 7 Le chrome.
+    // 3-slice rewrite (post-#64.3): the titlebar itself carries the cicn
+    // as a border-image. Every titlebar should reference the bundled 7 Le
+    // chrome via border-image-source.
     for (let i = 0; i < 5; i++) {
       const bg = await page
         .locator('.aaron-window')
         .nth(i)
-        .locator('.aaron-titlebar [data-aaron-chrome-segment]')
-        .first()
-        .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+        .locator('.aaron-titlebar')
+        .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-7-le/cicns/');
     }
   });
@@ -43,9 +42,9 @@ test.describe('landing page (index.html)', () => {
 
     // All windows updated to the new chrome path.
     const bg = await page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
+      .locator('.aaron-window .aaron-titlebar')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
   });
 

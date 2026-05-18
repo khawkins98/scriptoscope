@@ -18,14 +18,13 @@ import type {
 } from '../schema/types.js';
 import { applyChromeElement, clearChromeElement } from './applyChromeElement.js';
 import { applyWindowParts, clearWindowParts, type WindowPartInfo } from './applyWindowParts.js';
+import { clearChromeSegments } from './composeWindowChrome.js';
 import {
-  composeTopEdge,
-  composeBottomEdge,
-  composeLeftEdge,
-  composeRightEdge,
-  clearChromeSegments,
-  findTitlePillBounds,
-} from './composeWindowChrome.js';
+  applyTitlebarAs3Slice,
+  applyBottomEdgeAs3Slice,
+  applyVerticalEdgeAs3Slice,
+  clear3Slice,
+} from './applyChromeAs3Slice.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -118,39 +117,42 @@ export function applyChromeFromTheme(
     chromeEntry.width != null && chromeEntry.height != null;
 
   if (hasTopRecipe && hasNativeDimensions) {
-    // Path A. Clear any prior background so segment divs aren't drawn
-    // over a stretched copy.
+    // Path A — 3-slice rendering via CSS border-image.
+    //
+    // Per the structural rewrite (chrome PR following #64.3): the cicn is
+    // a 3-slice TEMPLATE, not a stretchy per-segment composition. Left
+    // slice pinned to titlebar left at native pixel size; right slice
+    // pinned to right at native pixel size; middle stretchable region
+    // (the "title pill" zone) tiles across the gap as the window resizes.
     titlebar.style.backgroundImage = '';
     titlebar.style.backgroundSize = '';
-    titlebar.style.imageRendering = '';
     const composeOpts = {
       cicnWidth: chromeEntry.width as number,
       cicnHeight: chromeEntry.height as number,
       cicnUrl,
     };
-    composeTopEdge(titlebar, windowType, composeOpts);
-    // Title-pill positioning (#64.2) — find the widest fill-segment run
-    // in the recipe and expose its bounds as custom properties so the
-    // title text can be constrained to that safe zone in CSS.
-    const pill = findTitlePillBounds(windowType, chromeEntry.width as number);
-    if (pill) {
-      titlebar.style.setProperty('--aaron-title-pill-left', `${pill.leftPct.toFixed(4)}%`);
-      titlebar.style.setProperty('--aaron-title-pill-right', `${pill.rightPct.toFixed(4)}%`);
+    const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
+    // Title-pill positioning (#64.2) — with the 3-slice model the pill
+    // is exactly the middle border-image region, i.e. titlebar pixel
+    // bounds [leftSlicePx .. titlebarWidth - rightSlicePx]. Stamp the
+    // slice values as CSS custom properties for the consumer's title CSS.
+    if (slice) {
+      titlebar.style.setProperty('--aaron-title-pill-left', `${slice.leftSlicePx}px`);
+      titlebar.style.setProperty('--aaron-title-pill-right', `${slice.rightSlicePx}px`);
     } else {
       titlebar.style.removeProperty('--aaron-title-pill-left');
       titlebar.style.removeProperty('--aaron-title-pill-right');
     }
-    // Side + bottom composition (#64.3) — compose each remaining edge if
-    // the windowType has a recipe for it AND the window has the
-    // [data-aaron-edge] container divs (AaronWindow adds them; bare
-    // consumers without the container divs simply skip the side
-    // rendering and fall back to the consumer's CSS borders).
-    composeEdgeIfPresent(windowEl, windowType, 'bottom', composeOpts);
-    composeEdgeIfPresent(windowEl, windowType, 'left', composeOpts);
-    composeEdgeIfPresent(windowEl, windowType, 'right', composeOpts);
+    // Side + bottom edges — same 3-slice approach on the dedicated edge
+    // containers AaronWindow adds. Each container becomes a thin strip
+    // showing the corresponding region of the cicn.
+    apply3SliceEdgeIfPresent(windowEl, windowType, 'bottom', composeOpts);
+    apply3SliceEdgeIfPresent(windowEl, windowType, 'left', composeOpts);
+    apply3SliceEdgeIfPresent(windowEl, windowType, 'right', composeOpts);
   } else if (chromeEntry.slice) {
     // Path B.
     clearChromeSegments(titlebar);
+    clear3Slice(titlebar);
     applyChromeElement(titlebar, chromeEntry, { theme });
     titlebar.style.removeProperty('--aaron-title-pill-left');
     titlebar.style.removeProperty('--aaron-title-pill-right');
@@ -158,6 +160,7 @@ export function applyChromeFromTheme(
   } else {
     // Path C.
     clearChromeSegments(titlebar);
+    clear3Slice(titlebar);
     const titlebarEntry: ChromeElementEntry = stripDimensions(chromeEntry);
     applyChromeElement(titlebar, titlebarEntry, { theme });
     titlebar.style.backgroundSize = '100% 100%';
@@ -276,13 +279,11 @@ function stripDimensions(entry: ChromeElementEntry): ChromeElementEntry {
 }
 
 /**
- * Find the `[data-aaron-edge="<side>"]` container under `windowEl` and
- * compose that edge's chrome into it, if both the recipe and the container
- * are present. Skips silently when either is missing so bare-DOM consumers
- * (no edge containers) and theme bundles with partial recipes both degrade
- * gracefully to whatever the consumer's CSS already provides.
+ * Apply 3-slice chrome to the `[data-aaron-edge="<side>"]` container, if
+ * the recipe + container are both present. Skips silently otherwise so
+ * bare-DOM consumers degrade gracefully.
  */
-function composeEdgeIfPresent(
+function apply3SliceEdgeIfPresent(
   windowEl: HTMLElement,
   windowType: WindowTypeEntry,
   side: 'bottom' | 'left' | 'right',
@@ -292,18 +293,20 @@ function composeEdgeIfPresent(
   if (!container) return;
   const recipe = windowType.edges?.[side];
   if (!recipe || recipe.length === 0) {
-    clearChromeSegments(container);
+    clear3Slice(container);
     return;
   }
-  if (side === 'bottom') composeBottomEdge(container, windowType, options);
-  else if (side === 'left') composeLeftEdge(container, windowType, options);
-  else composeRightEdge(container, windowType, options);
+  if (side === 'bottom') applyBottomEdgeAs3Slice(container, windowType, options);
+  else applyVerticalEdgeAs3Slice(container, windowType, options, side);
 }
 
-/** Clear segment children from all three side edges (Path B / Path C). */
+/** Clear 3-slice rendering from all three side edges (Path B / Path C). */
 function clearAllEdges(windowEl: HTMLElement): void {
   for (const side of ['bottom', 'left', 'right'] as const) {
     const container = windowEl.querySelector<HTMLElement>(`[data-aaron-edge="${side}"]`);
-    if (container) clearChromeSegments(container);
+    if (container) {
+      clear3Slice(container);
+      clearChromeSegments(container);
+    }
   }
 }

@@ -336,7 +336,49 @@ Implemented in PR #86 (this PR). Approach:
 - Side edges currently sample a 1-2px column from the cicn. Schemes with multi-pixel side decorations (drop shadows, beveled frames) would benefit from sampling a wider strip — tracked but not blocking.
 - The titlebar's bottom edge is the chrome cicn rendering, so the side edges start at `top: 25px` to avoid overlap. If a future scheme has a non-25px titlebar height, the demo CSS needs to follow — this is consumer-side, the runtime doesn't enforce.
 
-## 11. References
+## §11. Structural rewrite — 3-slice via CSS border-image (LANDED)
+
+Per-segment proportional positioning (V2 from #64.1, plus the bottom/side composer from #64.3) turned out to be the **wrong rendering model** when held against the reference. Visual evidence: user screenshots after #64.3 showed scattered named-part decorations across the titlebar, narrow ellipsized title pills, and thin-strip side edges that read as glitches rather than chrome.
+
+The reference image (`assets/references/masswerk-7-le.jpg`) shows the correct rendering: close-box pinned to the **left pixel** edge, zoom-box pinned to the **right pixel** edge, and the middle region tiling the cicn's pinstripe pattern with the title text on top. As the window grows, the corners stay put; the middle absorbs the slack.
+
+This is a **3-slice template**, not a per-segment composition. The same shape CSS `border-image` ships natively.
+
+### Implementation
+
+New module `src/themes/runtime/applyChromeAs3Slice.ts`:
+
+1. **`computeStretchZone(recipe, namedParts, cicnExtent)`** — same algorithm as the old `findTitlePillBounds` but recipe-agnostic. Returns `{ start, end }` in cicn-pixel space — the boundary of the middle stretchable region.
+
+2. **`applyTitlebarAs3Slice(titlebar, windowType, options)`** — sets inline `border-image-*` styles on the titlebar:
+   - `border-image-source: url(cicn)`
+   - `border-image-slice: 0 rightSlice 0 leftSlice fill`
+   - `border-image-width: 0 rightSlicePx 0 leftSlicePx`
+   - `border-image-repeat: round` (tiles whole copies of the middle slice with slight resize to fit, period-faithful for pinstripe patterns)
+   - `image-rendering: pixelated` (preserves the crisp 1-bit look of classic Mac chrome)
+
+3. **`applyBottomEdgeAs3Slice(container, ...)`** — bottom edge is too thin (~3px) for `border-image` to work cleanly. Instead renders 3 absolutely-positioned child divs (`data-3slice-piece="left|middle|right"`), each with the full cicn as background, sized to native dimensions, positioned so the cicn's *bottom* rows align with the container bottom (`background-position-y: bottom`). The middle piece tiles horizontally (`repeat-x`).
+
+4. **`applyVerticalEdgeAs3Slice(container, ..., side)`** — symmetric for left/right. 3 piece divs (`top|middle|bottom`), middle tiles vertically (`repeat-y`), sampling from cicn column 0 (left) or column `cicnWidth - 1` (right).
+
+5. **`clear3Slice(el)`** — idempotent teardown: removes all the inline border styles and any inner piece divs.
+
+### Visible result
+
+User-reported artefacts resolved:
+- Close-box + zoom-box pinned to corners (was: spread proportionally inward)
+- Full titles visible ("About Aaron UI" instead of "Abo…")
+- Real pinstripe pattern tiling across the titlebar middle
+- Body content + side decorations from the cicn's left/right columns
+- Bottom edge shows the cicn's bottom-row pattern (1-2px scheme-derived strip)
+
+### Trade-offs
+
+- **Per-segment named-part positioning is gone.** The middle named parts in the wnd# top recipe (dividers, decorative ornaments at cicn-interior positions) are now part of the tiled middle slice rather than separately positioned. For schemes where these ornaments were designed to render at fixed pixel positions in the middle, they'll repeat with the tile. The reference shows this is what Kaleidoscope actually did, so this is faithful, not a regression.
+- **Old per-segment composer (`composeWindowChrome.ts`) is kept** as a non-default export for any future consumer who wants per-segment control. Not used by the runtime any more.
+- **`border-image-repeat: round`** is the period-correct choice but could be swapped to `repeat` (with possible partial cuts at the ends) if a scheme's tile spacing demands it. Configurable later if needed.
+
+## 12. References
 
 - [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — output contract; this gap analysis identifies where it's silent on side-recipe composition + title pill.
 - [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — input contract; the wnd# side recipe data described in §3 is what we need to start consuming.

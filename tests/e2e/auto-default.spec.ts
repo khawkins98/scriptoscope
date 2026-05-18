@@ -18,11 +18,11 @@ test.describe('bundled-default auto-load (e2e)', () => {
     expect(bg).toBe('#dddddd');
 
     // AaronWindow's titlebar has the bundled default's chrome cicn.
-    // V2 (#64.1) composer puts cicn URLs on segment child divs, not titlebar.
+    // 3-slice rewrite: cicn lives on titlebar's own border-image-source.
     const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar [data-aaron-chrome-segment]')
+      .locator('.aaron-window .aaron-titlebar')
       .first()
-      .evaluate((el) => (el as HTMLElement).style.backgroundImage);
+      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
     expect(titlebarBg).toMatch(/document-window/);
   });

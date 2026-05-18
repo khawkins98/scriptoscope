@@ -880,4 +880,20 @@ Later, I did factor `composeLeftEdge` + `composeRightEdge` into a private `compo
 
 ---
 
+### 2026-05-18 — The chrome composer was structurally wrong; reference image is the authoritative spec
+
+After three composer iterations (V1 stretched-segments, V2 named-vs-fill, V3 with side composition) the user surfaced screenshots showing the rendering still didn't read right — "still lots of weird artefacts." The root cause was a flawed mental model of how Kaleidoscope chrome works: I'd been assuming the cicn is a **per-segment composition** with named parts spreading proportionally across the titlebar width. The reference rendering (already on the page in the side-by-side fidelity window) shows otherwise: close-box pinned to the **left pixel edge**, zoom-box pinned to the **right pixel edge**, and the middle **tiles** the cicn's pinstripe pattern as the window grows.
+
+This is structurally a **3-slice template**, which CSS `border-image` ships natively. Took one PR to replace ~500 lines of per-segment composer logic with ~100 lines of inline `border-image-*` styles + 6 piece divs for the bottom/side edges (where `border-image` doesn't fit because the container is too thin).
+
+**Pattern worth keeping:** when the user shows screenshots and says "weird artefacts," check the rendering against the reference image *first*, before reaching for incremental fixes. Three PRs of "make the per-segment composer slightly less wrong" was less productive than one PR of "throw out the model and use the standard CSS feature designed for this." The reference image was sitting there the whole time.
+
+**Implementation detail:** `border-image-repeat: round` tiles whole-number copies of the middle slice and resizes them slightly to fit — period-correct for pinstripe patterns where partial cuts at the ends would look broken. `image-rendering: pixelated` is essential — without it browsers smooth the cicn upscale and the crisp 1-bit chrome looks blurry.
+
+**Edge case the rewrite uncovered:** `border-image` requires the container to have enough height for the slice geometry to make sense. The titlebar at 25px tall, with slice `0 39 0 25` (top 0, right 39, bottom 0, left 25), works fine — top/bottom borders are 0 width so the middle "fill" region spans full height. But for the bottom edge container which is only 3px tall and wants to show the cicn's bottom rows, `border-image` would scale the entire cicn into that 3px height (terrible). Solved by falling back to the per-piece div approach for thin edges where `background-position-y: bottom` does the alignment correctly.
+
+**Cumulative chrome PR count:** #58 → #59 → #60 → #61 (gap analysis) → #62 (revert) → #65 (V1) → #66 (research) → #67 (spec) → #68 (V2) → #85 (title pill) → #86 (side composition) → this PR (3-slice). 11 PRs across two days. Don't pretend the path was linear — it wasn't. Every iteration moved understanding forward even when the implementation got reverted. The honest gap analysis from #61 was the critical methodological step that made the rest possible; without it I'd still be shipping reactive per-segment fixes.
+
+---
+
 *New learnings get appended below this line as the project ships.*
