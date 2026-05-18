@@ -213,16 +213,41 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     if (!specs[i]!.isNamedWidget) { lastFillIdx = i; break; }
   }
 
+  // Compute the cicn axis-range each part rect occupies ON THIS EDGE.
+  // Top/bottom edges read x-ranges; left/right read y-ranges. We only
+  // consider parts that actually live in the edge's perpendicular band
+  // (top edge: y inside [0, topThickness]; etc.) — otherwise a part rect
+  // that exists in the cicn's top would falsely "anchor" segments on the
+  // bottom edge too.
+  const edgePartRanges = collectPartRangesOnEdge(parts, side, thickness, cicnWidth, cicnHeight);
+
+  function overlapsPartRange(start: number, end: number): boolean {
+    for (const [a, b] of edgePartRanges) {
+      if (start < b && end > a) return true;
+    }
+    return false;
+  }
+
   specs.forEach((spec, i) => {
     const { start, end, span, part, isNamedWidget } = spec;
     const isCornerFill = !isNamedWidget && (i === firstFillIdx || i === lastFillIdx);
+    // Static-graphic detection: a fill segment whose cicn axis-range
+    // overlaps a part rect lives in a zone containing widget pixels
+    // (e.g., 1990's close/zoom widgets at cicn x=46..64). Tile-repeating
+    // such a slice produces multiple copies of the widget across the
+    // edge — the bug the per-segment inspector surfaced. Pin them.
+    const isStaticFill = !isNamedWidget && !isCornerFill && overlapsPartRange(start, end);
 
     const seg = document.createElement('div');
     seg.style.imageRendering = 'pixelated';
-    seg.setAttribute(
-      `${RICH_FRAME_ATTR}-segment`,
-      isNamedWidget ? `widget:${part}` : isCornerFill ? 'corner' : 'fill',
-    );
+    const segKind = isNamedWidget
+      ? `widget:${part}`
+      : isCornerFill
+        ? 'corner'
+        : isStaticFill
+          ? `static:overlaps-part`
+          : 'fill';
+    seg.setAttribute(`${RICH_FRAME_ATTR}-segment`, segKind);
 
     // The actual pixels for any segment come from the cicn at the segment's
     // EDGE position — not from a named part's rect. The part rect is metadata
@@ -246,7 +271,7 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     //   interior fill    → grow proportional to cicn span (absorbs window
     //                      resize, mirroring how border-image stretches
     //                      its center fill zone)
-    if (isNamedWidget || isCornerFill) {
+    if (isNamedWidget || isCornerFill || isStaticFill) {
       seg.style.flex = `0 0 ${span}px`;
     } else {
       seg.style.flex = `${span} ${span} auto`;
@@ -264,4 +289,50 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
   });
 
   return strip;
+}
+
+/**
+ * Collect cicn axis-ranges (along the edge's primary axis) occupied by
+ * part rects whose perpendicular range is within this edge's band. Skips
+ * the body part (`part-0`) since it isn't a static graphic — its rect
+ * defines the body, not a widget.
+ *
+ * Top/bottom edges: returns x-ranges, filtered to parts whose y-range
+ * overlaps the edge band.
+ * Left/right edges: returns y-ranges, filtered by x-range overlap.
+ */
+function collectPartRangesOnEdge(
+  parts: Record<string, { rect: [number, number, number, number] }>,
+  side: Side,
+  thickness: Record<Side, number>,
+  cicnWidth: number,
+  cicnHeight: number,
+): Array<[number, number]> {
+  const isVertical = side === 'left' || side === 'right';
+  const bandStart = side === 'top' || side === 'left' ? 0
+    : side === 'bottom' ? cicnHeight - thickness.bottom
+    : cicnWidth - thickness.right;
+  const bandEnd = side === 'top' ? thickness.top
+    : side === 'left' ? thickness.left
+    : side === 'bottom' ? cicnHeight
+    : cicnWidth;
+  const ranges: Array<[number, number]> = [];
+  for (const [name, p] of Object.entries(parts)) {
+    if (name === BODY_PART) continue;
+    const [l, t, r, b] = p.rect;
+    if (isVertical) {
+      // Edge band runs along x; we want parts whose x-range overlaps the band.
+      const px0 = l;
+      const px1 = r;
+      if (px1 <= bandStart || px0 >= bandEnd) continue;
+      ranges.push([t, b]);
+    } else {
+      // Edge band runs along y; we want parts whose y-range overlaps the band.
+      const py0 = t;
+      const py1 = b;
+      if (py1 <= bandStart || py0 >= bandEnd) continue;
+      ranges.push([l, r]);
+    }
+  }
+  return ranges;
 }
