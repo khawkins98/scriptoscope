@@ -27,6 +27,8 @@ import {
 } from './applyChromeAs3Slice.js';
 import { clearRecipeSegments } from './composeRecipeBased.js';
 import { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
+import { composeRichRecipe, clearRichRecipe } from './composeRichRecipe.js';
+import { recipeDensity } from './recipeDensity.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
 import { classifyChromeCicn } from './classifyChromeCicn.js';
 
@@ -161,9 +163,21 @@ export function applyChromeFromTheme(
     void classifyChromeCicn(cicnUrl).then((kind) => {
       if (kind === 'full-window') {
         clear3Slice(titlebar);
-        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+        // Dispatch on recipe density (see docs/chrome-rendering-architecture.md §7.1):
+        //   rich   → composeRichRecipe paints per-segment divs (e.g., 1990 — 9+ fill segs)
+        //   simple → applyWindowAs9Slice uses CSS border-image (ErgoBox / Big Blue / 1138)
+        // border-image and the rich composer are mutually exclusive on the
+        // window root, so clear the other path before applying.
+        if (recipeDensity(windowType) === 'rich') {
+          clearWindow9Slice(windowEl);
+          void composeRichRecipe(windowEl, windowType, composeOpts);
+        } else {
+          clearRichRecipe(windowEl);
+          void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+        }
       } else {
         clearWindow9Slice(windowEl);
+        clearRichRecipe(windowEl);
       }
     });
     const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
@@ -207,6 +221,7 @@ export function applyChromeFromTheme(
     // Path B.
     clearChromeSegments(titlebar);
     clear3Slice(titlebar);
+    clearRichRecipe(windowEl);
     applyChromeElement(titlebar, chromeEntry, { theme });
     titlebar.style.removeProperty('--aaron-title-pill-left');
     titlebar.style.removeProperty('--aaron-title-pill-right');
@@ -215,6 +230,7 @@ export function applyChromeFromTheme(
     // Path C.
     clearChromeSegments(titlebar);
     clear3Slice(titlebar);
+    clearRichRecipe(windowEl);
     const titlebarEntry: ChromeElementEntry = stripDimensions(chromeEntry);
     applyChromeElement(titlebar, titlebarEntry, { theme });
     titlebar.style.backgroundSize = '100% 100%';
@@ -262,6 +278,8 @@ export function applyChromeFromTheme(
  * that hasn't been themed.
  */
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
+  clearRichRecipe(windowEl);
+  clearWindow9Slice(windowEl);
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);
