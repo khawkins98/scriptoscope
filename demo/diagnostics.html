@@ -291,6 +291,17 @@
       <p class="subtitle">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
       <div id="parts-host"></div>
 
+      <h2>Per-segment inspector</h2>
+      <p class="subtitle">
+        Only meaningful for rich-recipe schemes (1990, Acid, evolution).
+        For each edge, shows every segment the composer emits: its cicn slice
+        preview, span, render behavior, and (the key column) how many times
+        it would tile at the live-render window width. Tile-count &gt; 1 on a
+        slice that looks like a static graphic is the signal that we'd benefit
+        from per-segment static-vs-tile metadata. See the column legend below.
+      </p>
+      <div id="segment-inspector-host" class="panel" style="padding: 12px;"></div>
+
       <h2>Coverage</h2>
       <p class="subtitle">
         How many extracted assets does Aaron UI actually consume?
@@ -874,6 +885,202 @@
       return 'unclassified';
     }
 
+    // ─── Per-segment inspector ──────────────────────────────────────────
+    //
+    // Replicates the segment-splitting logic from src/themes/runtime/
+    // composeRichRecipe.ts so the table here matches exactly what the
+    // composer would emit. Read-only — no side effects on the live render.
+
+    const BODY_PART = 'part-0';
+    const INSPECTOR_SIDES = ['top', 'right', 'bottom', 'left'];
+
+    function buildSegmentSpecs(recipe, parts, axisMax) {
+      // sentinel ensures the last entry produces a real segment
+      const sorted = [...recipe].sort((a, b) => a.at - b.at);
+      const cursor = [...sorted, { at: axisMax, part: '__end__' }];
+      const specs = [];
+      for (let i = 0; i < cursor.length - 1; i++) {
+        const cur = cursor[i];
+        const next = cursor[i + 1];
+        const span = next.at - cur.at;
+        if (span <= 0) continue;
+        const isNamedWidget = cur.part !== BODY_PART && cur.part in parts;
+        specs.push({
+          start: cur.at,
+          end: next.at,
+          span,
+          part: cur.part,
+          isNamedWidget,
+        });
+      }
+      // pin first + last FILL segments as 'corner' (matches composer)
+      const firstFillIdx = specs.findIndex((s) => !s.isNamedWidget);
+      let lastFillIdx = -1;
+      for (let i = specs.length - 1; i >= 0; i--) {
+        if (!specs[i].isNamedWidget) { lastFillIdx = i; break; }
+      }
+      specs.forEach((s, i) => {
+        s.kind = s.isNamedWidget
+          ? `widget:${s.part}`
+          : (i === firstFillIdx || i === lastFillIdx) ? 'corner' : 'fill';
+      });
+      return specs;
+    }
+
+    function renderSegmentInspector(theme, windowType) {
+      const host = document.getElementById('segment-inspector-host');
+      host.innerHTML = '';
+
+      const edges = windowType?.edges ?? {};
+      const parts = windowType?.parts ?? {};
+      const richSides = INSPECTOR_SIDES.filter(
+        (s) => Array.isArray(edges[s]) && edges[s].length > 3,
+      );
+      if (richSides.length === 0) {
+        host.innerHTML = '<p class="subtitle" style="margin:0;">This scheme uses a simple recipe — the composer doesn\'t emit per-segment divs for it. Inspector is empty.</p>';
+        return;
+      }
+
+      // Resolve the chrome cicn URL + dimensions
+      const activeUrl = windowType.chrome?.active ?? windowType.chrome?.inactive;
+      const ce = Object.values(theme.chromeElements ?? {}).find((e) => e.asset === activeUrl);
+      const cicnW = ce?.width ?? 0;
+      const cicnH = ce?.height ?? 0;
+      const bodyRect = parts[BODY_PART]?.rect;
+      const thickness = bodyRect ? {
+        top: Math.max(1, bodyRect[1]),
+        right: Math.max(1, cicnW - bodyRect[2]),
+        bottom: Math.max(1, cicnH - bodyRect[3]),
+        left: Math.max(1, bodyRect[0]),
+      } : { top: 8, right: 8, bottom: 8, left: 8 };
+
+      // Read the live render window's edge widths so we can compute tile counts
+      const liveWindow = document.querySelector('.right .aaron-window');
+      const liveRect = liveWindow?.getBoundingClientRect();
+      const renderedEdgeLen = {
+        top: liveRect?.width ?? 0,
+        bottom: liveRect?.width ?? 0,
+        left: liveRect?.height ?? 0,
+        right: liveRect?.height ?? 0,
+      };
+
+      // Legend
+      const legend = document.createElement('div');
+      legend.style.fontSize = '12px';
+      legend.style.opacity = '0.75';
+      legend.style.marginBottom = '14px';
+      legend.style.lineHeight = '1.5';
+      legend.innerHTML = `
+        <strong>Columns:</strong>
+        <code>#</code> segment index ·
+        <code>span</code> cicn-pixel length ·
+        <code>kind</code> corner / widget / fill (corners + widgets pin; fills grow) ·
+        <code>slice</code> the exact cicn pixels the segment renders ·
+        <code>tiles</code> how many times the slice repeats at the live-render width — <strong>&gt;1 on a visibly-static slice = a candidate for static metadata</strong>
+      `;
+      host.appendChild(legend);
+
+      for (const side of richSides) {
+        const recipe = edges[side];
+        const isVertical = side === 'left' || side === 'right';
+        const axisMax = isVertical ? cicnH : cicnW;
+        const sideThickness = thickness[side];
+        const specs = buildSegmentSpecs(recipe, parts, axisMax);
+
+        // Section header per edge
+        const header = document.createElement('h3');
+        header.textContent = `${side} edge — ${specs.length} segments`;
+        header.style.marginTop = '20px';
+        header.style.fontSize = '14px';
+        host.appendChild(header);
+
+        // For tile-count math:
+        // - cicn span (per segment) is fixed by the recipe
+        // - rendered span depends on flex distribution at runtime
+        //   * pinned (corner/widget): rendered span = span px (1× tile)
+        //   * fill: rendered span = (totalFillRenderLength * span / totalFillCicnSpan)
+        const renderedTotal = renderedEdgeLen[side];
+        const pinnedSpanSum = specs.filter((s) => s.kind !== 'fill').reduce((a, s) => a + s.span, 0);
+        const fillSpanSum = specs.filter((s) => s.kind === 'fill').reduce((a, s) => a + s.span, 0);
+        const availableForFills = Math.max(0, renderedTotal - pinnedSpanSum);
+
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.style.fontSize = '12px';
+        table.innerHTML = `
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid #2a2a35;">
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">#</th>
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">span (cicn-px)</th>
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">kind</th>
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">cicn slice</th>
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">rendered (px)</th>
+              <th style="padding:4px 6px;font-weight:normal;opacity:0.6;">tiles</th>
+            </tr>
+          </thead>
+        `;
+        const tbody = document.createElement('tbody');
+        specs.forEach((s, i) => {
+          let renderedPx, tiles;
+          if (s.kind === 'fill') {
+            renderedPx = fillSpanSum > 0 ? (availableForFills * s.span) / fillSpanSum : s.span;
+            tiles = s.span > 0 ? renderedPx / s.span : 0;
+          } else {
+            renderedPx = s.span;
+            tiles = 1;
+          }
+          const tileWarn = tiles > 1.5;
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #1c1c1f';
+          tr.style.verticalAlign = 'middle';
+          const slicePreview = makeSlicePreview(activeUrl, cicnW, cicnH, s.start, s.end, sideThickness, isVertical, side);
+          tr.innerHTML = `
+            <td style="padding:4px 6px;font-family:ui-monospace,Menlo,monospace;opacity:0.7;">${i}</td>
+            <td style="padding:4px 6px;font-family:ui-monospace,Menlo,monospace;">${s.span}</td>
+            <td style="padding:4px 6px;font-family:ui-monospace,Menlo,monospace;">${s.kind}</td>
+            <td style="padding:4px 6px;"></td>
+            <td style="padding:4px 6px;font-family:ui-monospace,Menlo,monospace;">${renderedPx.toFixed(1)}</td>
+            <td style="padding:4px 6px;font-family:ui-monospace,Menlo,monospace;color:${tileWarn ? '#fc7' : '#7c7'};">${tiles.toFixed(2)}×${tileWarn ? ' ⚠' : ''}</td>
+          `;
+          tr.children[3].appendChild(slicePreview);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        host.appendChild(table);
+      }
+    }
+
+    function makeSlicePreview(cicnUrl, cicnW, cicnH, start, end, thickness, isVertical, side) {
+      // Render a small canvas showing just the segment's cicn slice. Scaled up
+      // 3× with image-rendering: pixelated for visibility.
+      const scale = 3;
+      const sliceW = isVertical ? thickness : (end - start);
+      const sliceH = isVertical ? (end - start) : thickness;
+      const canvas = document.createElement('canvas');
+      canvas.width = sliceW;
+      canvas.height = sliceH;
+      canvas.style.width = `${sliceW * scale}px`;
+      canvas.style.height = `${sliceH * scale}px`;
+      canvas.style.maxWidth = '200px';
+      canvas.style.maxHeight = '60px';
+      canvas.style.imageRendering = 'pixelated';
+      canvas.style.background = 'repeating-conic-gradient(#222 0% 25%, #1c1c1f 0% 50%) 50%/8px 8px';
+      canvas.style.border = '1px solid #2a2a35';
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return canvas;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const sx = isVertical ? (side === 'left' ? 0 : cicnW - thickness) : start;
+        const sy = isVertical ? start : (side === 'top' ? 0 : cicnH - thickness);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, sx, sy, sliceW, sliceH, 0, 0, sliceW, sliceH);
+      };
+      img.src = cicnUrl;
+      return canvas;
+    }
+
     function renderCoverage(theme) {
       const host = document.getElementById('coverage-host');
       const cicns = Object.entries(theme.chromeElements ?? {});
@@ -1090,6 +1297,11 @@
       renderCoverage(theme);
       renderCatalog(theme);
       await renderLive(theme, slug);
+      // Inspector needs the live render mounted (it reads its width) so it
+      // runs LAST. Also re-runs on the width slider so tile counts stay live.
+      renderSegmentInspector(theme, wt);
+      const widthSlider = document.getElementById('t-width');
+      if (widthSlider) widthSlider.addEventListener('input', () => renderSegmentInspector(theme, wt));
     }
 
     // Initial load from ?theme= or default to 7 Le
