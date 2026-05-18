@@ -234,26 +234,92 @@ A future improvement could be canvas-composite rendering — load the cicn pixel
 
 ## 7. Path selection in `applyChromeFromTheme`
 
+The renderer dispatches on **two** axes, not one:
+
+1. **Classifier kind** (the cicn's geometric shape): titlebar-only / full-window / fixed-bitmap
+2. **Recipe density** (the wnd# data's slice complexity): simple / rich
+
 ```ts
-// Pseudo-code for the dispatch:
 const kind = classifyChromeCicn(cicnUrl, windowType);
+const recipe = recipeDensity(windowType.edges); // see §7.1
 
 switch (kind) {
   case 'titlebar-only':            // Kind A
     applyTitlebarAs3Slice(...);
-    applyHairlineFrame(...);       // 1px scheme-derived border on the window
+    applyHairlineFrame(...);
     break;
   case 'full-window':               // Kind B
-    applyWindowAs9Slice(...);
-    // Titlebar element exists but stays empty (its bg is the cicn's top region)
+    if (recipe === 'rich') {
+      composeRichRecipe(...);       // §7.2 — N-segment DOM composer
+    } else {
+      applyWindowAs9Slice(...);     // §5 — CSS border-image
+    }
     break;
   case 'fixed-bitmap':              // Kind C
-    applyFixedBitmap(...);
+    applyFixedBitmap(...);          // current: falls back to Kind A treatment
     break;
 }
 ```
 
-Detection cost: one image fetch + pixel scan per chrome cicn, cached per URL.
+Detection costs: classifier = one image fetch + pixel scan per cicn (cached); recipe density = synchronous wnd# traversal (no I/O).
+
+### 7.1 What counts as a "rich" recipe?
+
+A recipe is **rich** when CSS `border-image` (which is 9-slice only — 4 corners + 4 sides + 1 center) is physically incapable of expressing the slicing the recipe describes. The discriminator is **fill segments per edge** (entries whose `part` is *not* in the `parts` table — i.e., spans of cicn pixels that need to tile). Named-widget entries don't strain `border-image` because they're positioned via the `parts` map, not the border-image slicing.
+
+```ts
+function recipeDensity(edges: Edges, parts: Parts): 'simple' | 'rich' {
+  const fillsPerEdge = (['top', 'right', 'bottom', 'left'] as const).map(
+    (side) => (edges[side] ?? []).filter((e) => !(e.part in parts)).length,
+  );
+  // border-image gives us exactly ONE fill span per side (between the corners).
+  // Anything beyond that is a fidelity loss — but in practice schemes with up
+  // to ~6 fill segments per edge still render acceptably with 9-slice because
+  // the in-between fills are short and visually uniform. The threshold is set
+  // at the corpus-empirical gap (see §7.1 table): 6 is the highest count among
+  // schemes that look fine with 9-slice today; 9 is the lowest among schemes
+  // that visibly drop decoration.
+  return Math.max(...fillsPerEdge) > 6 ? 'rich' : 'simple';
+}
+```
+
+The threshold (`> 6`) is corpus-empirical: at the time of writing, the Kind B schemes split cleanly:
+
+| Scheme | Kind | Max fills / edge | Recipe density | Path |
+|---|---|---:|---|---|
+| 7 Le | A | 6 | n/a | 3-slice (Kind A overrides) |
+| ErgoBox | B | 4 | simple | 9-slice |
+| Big Blue | B | 4 | simple | 9-slice |
+| 1138 | B | 5 | simple | 9-slice |
+| **1990** | **B** | **9** | **rich** | **composer** |
+| Acid | C | 17 | rich | falls back to Kind A (Kind C limit) |
+| evolution | C | 9 | rich | falls back to Kind A (Kind C limit) |
+
+Two observations:
+
+1. **Kind C schemes also have rich recipes** (Acid 17, evolution 9) but the composer doesn't help them — Kind C is fixed-bitmap, not tile-able. They remain a deferred canvas-composite problem.
+2. **7 Le sits at 6 fills** — right at the edge of the threshold — but Kind A overrides any recipe density discussion since 7 Le has no body region. The 3-slice path is unaffected.
+
+If a future scheme lands between 7 and 8, revisit the threshold — but the gap between 5 (1138) and 9 (1990) is comfortable for current sizing.
+
+### 7.2 The rich-recipe composer (`composeRichRecipe`)
+
+**Output contract:** for each edge with a non-trivial recipe, emit a horizontal (or vertical) flex row of absolutely-positioned segment divs. Each segment is one of:
+
+- **Fill segment** — `background-image: url(cicn); background-position: -<start>px 0; background-repeat: repeat` — tiles the cicn pixels for that span. Span width is recipe-derived; rendered width depends on the window's actual size (the edge container is `flex: 1 1 auto` and segments distribute by `flex-basis: <span>px`).
+- **Named widget segment** — fixed-width div sized at the named part's native rect, with `background-image` cropped to that rect. Acts as a hit target for the part (clickable, role-anchored).
+
+Corners are pinned at native size (no stretch). The body cell is independent — it can carry a `ppat` fill if cinf references one, or stay transparent for content.
+
+**Why a DOM composer and not SVG or canvas:**
+
+- **DOM** — natural hit targets per named widget (close box, zoom box, etc.) for free; standard pointer events; cheap to update on resize via flex.
+- **SVG** — would require manual hit-target rects and breaks pointer events through nested `<image>` elements.
+- **Canvas** — pixel-perfect but loses hit-target semantics; deferred for Kind C where it's the only viable path.
+
+**Conformance check:** the segment positions emitted by `composeRichRecipe` must match the segment bands drawn by the diagnostics `Edge segments` overlay (`demo/diagnostics.html`) at the same recipe-derived offsets. Visual diff is the regression guard.
+
+**Performance:** segment count is bounded by recipe entries (worst observed: 22 per edge × 4 edges = 88 divs per window). Compared to the rest of the AaronWindow DOM this is negligible.
 
 ---
 
@@ -287,7 +353,7 @@ The classifier picks once per theme load; the right renderer runs once per windo
 | Acid (#1022) | 177×140 | C (probably) | — | — | — | — | Lego-block decoration doesn't tile cleanly |
 | 1138 | ~96×48 | A or B | TBD | TBD | TBD | TBD | Multi-icon decoration |
 | Big Blue (#1984) | 89×82 | B | ~20 | 4 | 4 | 4 | Apple-style with projecting tab |
-| 1990 | 170×170 | B or C | TBD | TBD | TBD | TBD | Grunge frame |
+| 1990 | 170×170 | B (rich) | ~22 segs | ~2 segs | ~22 segs | ~2 segs | Grunge frame — uses `composeRichRecipe` (§7.2); 9-slice would drop ~54 segments |
 | 1991 evolution | 140×140 | C | — | — | — | — | Metallic pipes — fundamentally fixed-bitmap |
 
 The classifier validates these expectations at runtime. If a scheme renders weirdly, check the gallery (`/themes-gallery.html`) to see whether it's misclassified.
