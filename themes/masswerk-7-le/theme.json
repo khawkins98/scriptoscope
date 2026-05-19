@@ -2,7 +2,7 @@
   "version": "0.1",
   "source": "scheme.r",
   "generatedAt": "2026-05-16T21:22:03.736Z",
-  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/kaleidoscope-geometry-spec.md §7.",
+  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/aaron-ui-composer-spec.md (spec C) §3.",
   "name": "mass:werk 7 Le",
   "author": {
     "name": "Norbert Landsteiner",
@@ -670,6 +670,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8287,
@@ -681,6 +682,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8279,
@@ -692,6 +694,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8278,
@@ -703,6 +706,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8277,
@@ -714,6 +718,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8286,
@@ -725,6 +730,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8285,
@@ -736,6 +742,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8288,
@@ -747,6 +754,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8280,
@@ -758,6 +766,7 @@
       "height": 38,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -12320,
@@ -769,6 +778,7 @@
       "height": 28,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -12319,
@@ -780,6 +790,7 @@
       "height": 25,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14335,
@@ -791,6 +802,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14334,
@@ -802,6 +814,7 @@
       "height": 11,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14330,
@@ -813,6 +826,7 @@
       "height": 25,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14336,
@@ -824,6 +838,7 @@
       "height": 24,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14332,
@@ -835,6 +850,7 @@
       "height": 24,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14331,
@@ -847,10 +863,13 @@
       "slice": {
         "corner": 4,
         "side": 4,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        2,
+        2
+      ],
       "textAnchor": [
         4,
         4
@@ -869,10 +888,13 @@
       "slice": {
         "corner": 6,
         "side": 6,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        7,
+        4
+      ],
       "textAnchor": [
         6,
         6
@@ -891,10 +913,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        4,
+        3
+      ],
       "textAnchor": [
         3,
         3
@@ -913,10 +938,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         2,
         2
@@ -935,10 +963,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        4,
+        3
+      ],
       "textAnchor": [
         3,
         3
@@ -957,10 +988,13 @@
       "slice": {
         "corner": 4,
         "side": 1,
-        "tile": true,
-        "resizeBehavior": "repeat-whole"
+        "tile": true
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -979,10 +1013,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        2
+      ],
       "textAnchor": [
         2,
         2
@@ -1000,6 +1037,7 @@
       "height": 17,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10208,
@@ -1011,6 +1049,7 @@
       "height": 17,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10207,
@@ -1022,6 +1061,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10206,
@@ -1033,6 +1073,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10205,
@@ -1044,6 +1085,7 @@
       "height": 17,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8272,
@@ -1055,6 +1097,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8271,
@@ -1066,6 +1109,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10175,
@@ -1077,6 +1121,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10174,
@@ -1088,6 +1133,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10173,
@@ -1099,6 +1145,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10172,
@@ -1110,6 +1157,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10171,
@@ -1121,6 +1169,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10167,
@@ -1132,6 +1181,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10166,
@@ -1143,6 +1193,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10165,
@@ -1154,6 +1205,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10164,
@@ -1165,6 +1217,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10163,
@@ -1176,6 +1229,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10162,
@@ -1187,6 +1241,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10158,
@@ -1198,6 +1253,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10157,
@@ -1209,6 +1265,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10156,
@@ -1220,6 +1277,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10176,
@@ -1232,10 +1290,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        4,
+        3
+      ],
       "textAnchor": [
         3,
         3
@@ -1254,10 +1315,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        4,
+        3
+      ],
       "textAnchor": [
         3,
         3
@@ -1276,10 +1340,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        4,
+        3
+      ],
       "textAnchor": [
         3,
         3
@@ -1298,10 +1365,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         0,
         0
@@ -1320,10 +1390,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         0,
         0
@@ -1342,10 +1415,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         0,
         0
@@ -1364,10 +1440,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        1
+      ],
       "textAnchor": [
         3,
         3
@@ -1386,10 +1465,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        1
+      ],
       "textAnchor": [
         3,
         3
@@ -1408,10 +1490,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        1
+      ],
       "textAnchor": [
         3,
         3
@@ -1429,6 +1514,7 @@
       "height": 10,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8199,
@@ -1440,6 +1526,7 @@
       "height": 10,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8198,
@@ -1451,6 +1538,7 @@
       "height": 10,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8197,
@@ -1462,6 +1550,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8196,
@@ -1473,6 +1562,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8195,
@@ -1484,6 +1574,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -8194,
@@ -1496,10 +1587,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1518,10 +1612,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1540,10 +1637,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1561,6 +1661,7 @@
       "height": 64,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10141,
@@ -1572,6 +1673,7 @@
       "height": 7,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10140,
@@ -1583,6 +1685,7 @@
       "height": 7,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10139,
@@ -1595,10 +1698,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1617,10 +1723,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1639,10 +1748,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1660,6 +1772,7 @@
       "height": 64,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10129,
@@ -1672,10 +1785,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1694,10 +1810,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1716,10 +1835,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1737,6 +1859,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10125,
@@ -1748,6 +1871,7 @@
       "height": 5,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10124,
@@ -1759,6 +1883,7 @@
       "height": 5,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10123,
@@ -1771,10 +1896,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1793,10 +1921,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1815,10 +1946,13 @@
       "slice": {
         "corner": 5,
         "side": 16,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1836,6 +1970,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10113,
@@ -1847,6 +1982,7 @@
       "height": 16,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14305,
@@ -1859,10 +1995,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -1881,10 +2020,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -1903,10 +2045,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -1925,10 +2070,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -1947,10 +2095,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -1969,10 +2120,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -1991,10 +2145,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         4,
         4
@@ -2013,10 +2170,13 @@
       "slice": {
         "corner": 3,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         4,
         4
@@ -2035,10 +2195,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -2057,10 +2220,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -2079,10 +2245,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -2101,10 +2270,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -2123,10 +2295,13 @@
       "slice": {
         "corner": 12,
         "side": 3,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
       "textAnchor": [
         12,
         4
@@ -2144,6 +2319,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10112,
@@ -2155,6 +2331,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10111,
@@ -2166,6 +2343,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10110,
@@ -2177,6 +2355,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10104,
@@ -2188,6 +2367,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10103,
@@ -2199,6 +2379,7 @@
       "height": 12,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10102,
@@ -2210,6 +2391,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14328,
@@ -2221,6 +2403,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14327,
@@ -2232,6 +2415,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14326,
@@ -2243,6 +2427,7 @@
       "height": 8,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14325,
@@ -2254,6 +2439,7 @@
       "height": 29,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14324,
@@ -2265,6 +2451,7 @@
       "height": 29,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14323,
@@ -2276,6 +2463,7 @@
       "height": 29,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14322,
@@ -2287,6 +2475,7 @@
       "height": 29,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14321,
@@ -2299,10 +2488,13 @@
       "slice": {
         "corner": 0,
         "side": 0,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        3,
+        3
+      ],
       "textAnchor": [
         1,
         1
@@ -2320,6 +2512,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14333,
@@ -2331,6 +2524,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14309,
@@ -2342,6 +2536,7 @@
       "height": 15,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14310,
@@ -2354,10 +2549,13 @@
       "slice": {
         "corner": 4,
         "side": 0,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -2376,10 +2574,13 @@
       "slice": {
         "corner": 4,
         "side": 0,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -2398,10 +2599,13 @@
       "slice": {
         "corner": 2,
         "side": 2,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
       "textAnchor": [
         0,
         0
@@ -2420,10 +2624,13 @@
       "slice": {
         "corner": 6,
         "side": 0,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        7,
+        7
+      ],
       "textAnchor": [
         0,
         0
@@ -2442,10 +2649,13 @@
       "slice": {
         "corner": 6,
         "side": 0,
-        "tile": false,
-        "resizeBehavior": "stretch-whole"
+        "tile": false
       },
       "bgPattern": null,
+      "bgAnchor": [
+        7,
+        7
+      ],
       "textAnchor": [
         0,
         0
@@ -2463,6 +2673,7 @@
       "height": 20,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -12231,
@@ -2474,6 +2685,7 @@
       "height": 20,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -12230,
@@ -2485,6 +2697,7 @@
       "height": 20,
       "slice": null,
       "bgPattern": null,
+      "bgAnchor": null,
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -12229,
