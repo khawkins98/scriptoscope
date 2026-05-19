@@ -465,6 +465,10 @@
       promoteCheckboxes,
       promoteRadios,
       promoteFields,
+      promoteDisclosures,
+      promotePlacards,
+      promoteWindowHeaders,
+      promoteProgressBars,
       computeConformanceReport,
     } from '../src/index.ts';
     import { loadThemeFromRsrc } from '../src/themes/runtime/loadThemeFromRsrc.ts';
@@ -528,41 +532,12 @@
         `,
       },
       {
-        title: 'Side-by-side fidelity',
-        x: 40, y: 410, width: 460, height: 280,
-        html: `
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;">
-            <figure style="margin:0;">
-              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Original scheme preview</figcaption>
-              <img id="reference-img" alt="reference thumbnail" style="max-width:100%;height:auto;border:1px solid #aaa;image-rendering:pixelated;">
-            </figure>
-            <figure style="margin:0;">
-              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Aaron UI render (this page)</figcaption>
-              <p style="font-size:12px;opacity:0.7;">The other windows on this page are the live render — same scheme, same chrome bitmaps, composited at runtime instead of by Kaleidoscope itself.</p>
-            </figure>
-          </div>
-        `,
-      },
-      {
-        title: 'For developers',
-        x: 520, y: 380, width: 380, height: 190,
-        html: `
-          <h3>Three configuration paths</h3>
-          <p><code>import 'aaron-ui'</code> — auto-loads the bundled
-          default (this page).</p>
-          <p><code>import 'aaron-ui/no-default'</code> — same API, no
-          auto-load. You own theme loading.</p>
-          <p><code>setBundledDefaultUrl('/path/')</code> — override
-          where the default fetches from.</p>
-        `,
-      },
-      {
         title: 'Controls',
         x: 520, y: 90, width: 360, height: 380,
         html: `
-          <h3>Phase 3 controls</h3>
-          <p>Buttons, checkboxes, radios, fields — all CSS-drawn +
-          palette-tinted. None of these were cicn'd by Kaleidoscope.</p>
+          <h3>Phase 3 form controls</h3>
+          <p style="font-size:12px;opacity:0.75;">Buttons + fields are CSS-drawn (no period cicn artwork).
+          Checkboxes + radios consume cicn artwork when the scheme ships it (acid, 1138, 1990, big-blue, evolution); otherwise palette-tinted CSS.</p>
           <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
             <label><input type="checkbox" data-aaron-checkbox checked> Show invisibles</label>
             <label><input type="checkbox" data-aaron-checkbox> Use scheme's body pattern</label>
@@ -587,6 +562,71 @@
           </div>
         `,
       },
+      {
+        title: 'Elements showcase',
+        x: 520, y: 470, width: 380, height: 100,
+        html: `
+          <h3>Cicn-driven element families</h3>
+          <p style="font-size:12px;opacity:0.75;">Each promotes from
+          declarative markup. Switch schemes to see the cicn artwork
+          (when present) or engine-baseline CSS fallback.</p>
+
+          <div data-aaron-window-header style="margin-top:10px;">Window header</div>
+
+          <p style="margin:8px 0 4px;font-size:11px;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">Disclosure</p>
+          <div style="display:flex;gap:14px;align-items:center;">
+            <button data-aaron-disclosure>Right-facing</button>
+            <button data-aaron-disclosure data-facing="down" aria-expanded="true">
+              <span class="aaron-disclosure__label">Expanded</span>
+            </button>
+            <button data-aaron-disclosure disabled>Disabled</button>
+          </div>
+
+          <p style="margin:10px 0 4px;font-size:11px;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">Placards</p>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <div data-aaron-placard>Status: idle</div>
+            <div data-aaron-placard>12 items</div>
+            <div data-aaron-placard data-aaron-disabled>locked</div>
+          </div>
+
+          <p style="margin:10px 0 4px;font-size:11px;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">Progress</p>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div data-aaron-progress data-value="32" data-max="100"></div>
+            <div data-aaron-progress data-value="78" data-max="100"></div>
+            <div data-aaron-progress data-value="100" data-max="100" disabled></div>
+          </div>
+        `,
+      },
+      {
+        title: 'Side-by-side fidelity',
+        x: 40, y: 410, width: 460, height: 280,
+        html: `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;">
+            <figure style="margin:0;">
+              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Original scheme preview</figcaption>
+              <img id="reference-img" alt="reference thumbnail" style="max-width:100%;height:auto;border:1px solid #aaa;image-rendering:pixelated;">
+            </figure>
+            <figure style="margin:0;">
+              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Aaron UI render</figcaption>
+              <p style="font-size:12px;opacity:0.7;">The other windows on this page are the live render — same scheme, same chrome bitmaps, composited at runtime instead of by Kaleidoscope itself.</p>
+            </figure>
+          </div>
+        `,
+      },
+      {
+        title: 'For developers',
+        x: 520, y: 380, width: 380, height: 80,
+        html: `
+          <h3>Three configuration paths</h3>
+          <p><code>import 'aaron-ui'</code> — auto-loads the bundled
+          default (this page).</p>
+          <p><code>import 'aaron-ui/no-default'</code> — same API, no
+          auto-load. You own theme loading.</p>
+          <p><code>setBundledDefaultUrl('/path/')</code> — override
+          where the default fetches from.</p>
+          <p style="font-size:12px;opacity:0.75;margin-top:8px;">Declarative scanner promotes <code>data-aaron-*</code> sentinels on load + via <code>MutationObserver</code>. All families covered by the unified <code>scanAll()</code>.</p>
+        `,
+      },
     ];
 
     for (const cfg of windows) {
@@ -595,10 +635,18 @@
       attachThemeToWindow(w.element, { windowTypeSlug: 'document-window' });
     }
 
+    // Synchronous promotion of all data-aaron-* sentinels inside the
+    // mounted windows. The unified scanner's MutationObserver also
+    // catches them but fires async; sync promotion ensures tests + the
+    // first user paint see the controls already themed.
     promoteButtons(desktop);
     promoteCheckboxes(desktop);
     promoteRadios(desktop);
     promoteFields(desktop);
+    promoteDisclosures(desktop);
+    promotePlacards(desktop);
+    promoteWindowHeaders(desktop);
+    promoteProgressBars(desktop);
 
     desktop.querySelectorAll('input[name="demo-rg"]').forEach((r) => {
       r.addEventListener('change', () => {
