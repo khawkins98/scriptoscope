@@ -3,47 +3,77 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aaron UI v2 — rebuild</title>
+  <title>Aaron UI v2 — slice 1</title>
   <style>
     :root { color-scheme: light; }
     body {
       margin: 0;
       font: 14px/1.5 -apple-system, system-ui, sans-serif;
-      background: #d8d8d8;
+      background: #b9b9b9;
       color: #1a1a1a;
       min-height: 100vh;
     }
-    main { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
-    h1 { font-size: 22px; margin: 0 0 4px; }
-    .sub { opacity: 0.6; margin: 0 0 28px; }
-    .panel {
-      background: #fff;
-      border: 1px solid #aaa;
-      box-shadow: 2px 3px 12px rgba(0,0,0,0.18);
-      padding: 16px 18px;
+    header { padding: 20px 24px 0; }
+    header h1 { font-size: 18px; margin: 0; }
+    header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; }
+    .stage {
+      display: flex; flex-wrap: wrap; gap: 40px;
+      padding: 28px 24px 48px;
+      align-items: flex-start;
     }
+    .col { display: flex; flex-direction: column; gap: 10px; }
+    .col h2 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      opacity: 0.55; margin: 0; font-weight: 700;
+    }
+    .frame {
+      background: #c8c8c8;
+      padding: 28px;
+      border: 1px solid #999;
+      box-shadow: inset 0 0 0 1px #fff6;
+    }
+    .reference img {
+      image-rendering: pixelated;
+      display: block;
+    }
+    .note { font-size: 12px; opacity: 0.7; max-width: 280px; }
     code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-    ul { margin: 8px 0 0; padding-left: 18px; }
-    li { margin: 2px 0; }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Aaron UI <span id="ver"></span></h1>
-    <p class="sub">Clean-break rebuild — scaling up a working runtime for Kaleidoscope schemes.</p>
-    <div class="panel">
-      <strong>Preserved artifacts</strong>
-      <ul>
-        <li><code>themes/&lt;slug&gt;/</code> — extracted bundles (theme.json + cicn PNGs)</li>
-        <li><code>tools/theme-loader/</code> — .rsrc → theme.json decoder</li>
-        <li><code>docs/</code> — mapping reference, kDEF disassembly, v1 specs</li>
-        <li><code>demo/assets/references/</code> — reference screenshots (ground truth)</li>
-      </ul>
+  <header>
+    <h1>Aaron UI <span id="ver"></span> — slice 1</h1>
+    <p>One <code>document-window</code> from mass:werk 7 Le, rendered from its bundle, beside the reference.</p>
+  </header>
+  <div class="stage">
+    <div class="col">
+      <h2>Rendered (3× scale)</h2>
+      <div class="frame" id="render-3x"></div>
     </div>
-  </main>
+    <div class="col">
+      <h2>Rendered (1×)</h2>
+      <div class="frame" id="render-1x"></div>
+    </div>
+    <div class="col reference">
+      <h2>Reference</h2>
+      <div class="frame">
+        <img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" width="320" />
+      </div>
+      <p class="note">The whole desktop screenshot — compare the document window chrome (top-left).</p>
+    </div>
+  </div>
+
   <script type="module">
-    import { VERSION } from '../src/index.ts';
+    import { VERSION, loadTheme, renderWindow } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
+
+    const theme = await loadTheme('/themes/masswerk-7-le');
+
+    const w3 = renderWindow(theme, { title: 'Hello!', width: 220, height: 130, scale: 3 });
+    document.getElementById('render-3x').appendChild(w3);
+
+    const w1 = renderWindow(theme, { title: 'Hello!', width: 220, height: 130, scale: 1 });
+    document.getElementById('render-1x').appendChild(w1);
   </script>
 </body>
 </html>

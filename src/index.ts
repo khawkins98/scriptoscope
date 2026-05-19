@@ -12,7 +12,17 @@
 //   docs/kaleidoscope-to-html-mapping.md      mapping reference
 //   docs/tracking/kdef-disassembly-findings.md   binary archaeology
 //   docs/aaron-ui-*-spec.md                   the v1 specs (reference)
-//
-// v2 starts here.
 
 export const VERSION = '2.0.0-dev';
+
+export type {
+  WindowState,
+  Rect,
+  WindowPart,
+  WindowType,
+  ChromeElement,
+  ThemeManifest,
+  LoadedTheme,
+} from './types.js';
+export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
+export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
