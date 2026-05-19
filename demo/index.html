@@ -56,7 +56,18 @@
       background-size: 24px 24px;
     }
 
-    /* AaronWindow visual treatment */
+    /* AaronWindow visual treatment.
+       Two layout modes:
+       - UNTHEMED (.aaron-window without [data-aaron-chrome="on"]): flex
+         column with the titlebar as a flex child. The window's
+         width/height define the STRUCTURE rect; chrome lives inside.
+         This is the engine-baseline / CSS-only path.
+       - THEMED ([data-aaron-chrome="on"]): chrome layers escape via
+         absolute positioning + negative offsets. The window's
+         width/height become the CONTENT rect; chrome extends OUTSIDE,
+         matching the Mac Window Manager model (per
+         docs/tracking/bulbous-chrome-architecture.md). overflow:visible
+         lets bulbous chrome ornaments protrude beyond the content rect. */
     .aaron-window {
       background: white;
       box-shadow:
@@ -64,6 +75,13 @@
         2px 3px 12px rgba(0,0,0,0.25);
       display: flex; flex-direction: column;
       overflow: hidden;
+    }
+    /* Themed mode — chrome can protrude outside the content rect. */
+    .aaron-window[data-aaron-chrome="on"] {
+      overflow: visible;
+      /* Drop the box-shadow stroke — the chrome cicn provides its own
+         border. The drop-shadow under the window stays. */
+      box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.25);
     }
     .aaron-titlebar {
       flex: 0 0 var(--aaron-frame-top-px, 25px);
@@ -73,9 +91,15 @@
       border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
       image-rendering: pixelated;
     }
-    /* When the chrome composer has painted into the titlebar, drop the
-       CSS-fallback bottom border — the cicn already provides one. */
+    /* Themed mode: titlebar leaves the flex flow + sits ABOVE the
+       content rect, exactly matching the Mac model where the titlebar
+       is outside the user-resizable content area. */
     .aaron-window[data-aaron-chrome="on"] .aaron-titlebar {
+      flex: none;
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(-1 * var(--aaron-frame-top-px, 25px));
+      height: var(--aaron-frame-top-px, 25px);
       border-bottom: 0;
     }
     .aaron-titlebar__title {
@@ -95,6 +119,37 @@
     .aaron-window[data-state="inactive"] .aaron-titlebar__title {
       color: var(--aaron-colr-titlebar-inactive-fg, #888);
     }
+    /* Unthemed edge containers — invisible, just for structural DOM. */
+    .aaron-window__edge--bottom,
+    .aaron-window__edge--left,
+    .aaron-window__edge--right {
+      display: flex;
+      pointer-events: none;
+    }
+    .aaron-window__edge--left,
+    .aaron-window__edge--right { flex-direction: column; }
+    .aaron-window__edge--bottom { flex-direction: row; }
+    /* Themed mode: side + bottom edges escape OUTSIDE the content rect.
+       The cicn's chrome bitmap surrounds the content; bulbous features
+       (rounded corners, ornaments) protrude beyond the content rect. */
+    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--bottom {
+      left: 0; right: 0;
+      bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
+      height: var(--aaron-frame-bottom-px, 1px);
+    }
+    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--left {
+      top: calc(-1 * var(--aaron-frame-top-px, 25px));
+      bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
+      left: calc(-1 * var(--aaron-frame-left-px, 1px));
+      width: var(--aaron-frame-left-px, 1px);
+    }
+    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--right {
+      top: calc(-1 * var(--aaron-frame-top-px, 25px));
+      bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
+      right: calc(-1 * var(--aaron-frame-right-px, 1px));
+      width: var(--aaron-frame-right-px, 1px);
+    }
+    /* Unthemed (or pre-theme-applied) edges live INSIDE the window box. */
     .aaron-window__edge--bottom {
       left: 0; right: 0; bottom: 0;
       height: var(--aaron-frame-bottom-px, 1px);
@@ -107,25 +162,11 @@
       right: 0; top: var(--aaron-frame-top-px, 25px); bottom: var(--aaron-frame-bottom-px, 1px);
       width: var(--aaron-frame-right-px, 1px);
     }
-    /* When the chrome composer paints into the side edges, ensure they
-       layout as flex strips matching their axis. The composer also
-       writes display:flex inline, but a CSS fallback keeps things
-       predictable if a consumer overrides. */
-    .aaron-window__edge--left,
-    .aaron-window__edge--right {
-      display: flex;
-      flex-direction: column;
-    }
-    .aaron-window__edge--bottom {
-      display: flex;
-      flex-direction: row;
-    }
-    /* Content sits inside the side-edge insets when chrome is applied.
-       Use the same CSS vars the runtime stamps. */
+    /* Themed mode: titlebar is out-of-flow (absolute, above the window),
+       so .aaron-content can fill the entire .aaron-window box with no
+       inset for chrome — chrome is OUTSIDE. */
     .aaron-window[data-aaron-chrome="on"] .aaron-content {
-      padding-left: calc(14px + var(--aaron-frame-left-px, 1px));
-      padding-right: calc(14px + var(--aaron-frame-right-px, 1px));
-      padding-bottom: calc(14px + var(--aaron-frame-bottom-px, 1px));
+      padding: 14px;
     }
     .aaron-content {
       flex: 1 1 auto;
