@@ -47,11 +47,7 @@ export default defineConfig(({ command }) => {
       },
     };
   }
-  // Library build mode — emits two entries:
-  //   dist/aaron-ui.js          — main entry, auto-loads bundled default
-  //   dist/no-default.js        — opt-out sub-entry, no auto-load
-  // Both share the same source modules; the difference is whether
-  // enableBundledDefault() is called at import time.
+  // Library build mode — single ESM entry from src/index.ts.
   return {
     build: {
       outDir: 'dist',
@@ -59,8 +55,7 @@ export default defineConfig(({ command }) => {
       sourcemap: true,
       lib: {
         entry: {
-          'aaron-ui':  resolve(import.meta.dirname, 'src/index.ts'),
-          'no-default': resolve(import.meta.dirname, 'src/no-default.ts'),
+          'aaron-ui': resolve(import.meta.dirname, 'src/index.ts'),
         },
         formats: ['es'],
         fileName: (_format, entryName) => `${entryName}.js`,

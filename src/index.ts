@@ -1,14 +1,18 @@
-// Aaron UI main entry — re-exports the full public API and triggers the
-// bundled-default theme to auto-load on DOMContentLoaded.
+// Aaron UI v2 — clean-break rebuild.
 //
-// Consumers who want to opt out of the auto-load (and own theme loading
-// entirely themselves) should import from `aaron-ui/no-default` instead.
+// A web-native runtime for classic-Mac Kaleidoscope schemes. We start
+// from zero and scale up a working implementation, learning the right
+// HTML/CSS structure empirically against the reference images and the
+// extracted theme bundles, rather than locking structure in early.
+//
+// Preserved from v1 (do not re-derive — see docs/):
+//   themes/<slug>/                            extracted bundles
+//                                             (theme.json + cicns/*.png)
+//   tools/theme-loader/                       .rsrc → theme.json decoder
+//   docs/kaleidoscope-to-html-mapping.md      mapping reference
+//   docs/tracking/kdef-disassembly-findings.md   binary archaeology
+//   docs/aaron-ui-*-spec.md                   the v1 specs (reference)
+//
+// v2 starts here.
 
-export * from './index-no-side-effects.js';
-
-import { enableBundledDefault } from './themes/runtime/bundledDefault.js';
-
-// Side-effect: schedule the bundled-default theme to fetch+apply on
-// DOMContentLoaded. No-op if the consumer has already called loadTheme()
-// manually before the auto-load fires.
-enableBundledDefault();
+export const VERSION = '2.0.0-dev';

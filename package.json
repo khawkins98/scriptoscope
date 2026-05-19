@@ -31,10 +31,6 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/aaron-ui.js"
-    },
-    "./no-default": {
-      "types": "./dist/types/no-default.d.ts",
-      "import": "./dist/no-default.js"
     }
   },
   "files": [
@@ -52,10 +48,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "screenshots": "node tools/scheme-screenshots.mjs",
-    "test": "npm run test:unit && npm run test:e2e",
-    "test:unit": "vitest run",
-    "test:unit:watch": "vitest",
-    "test:e2e": "playwright test"
+    "build:themes": "node scripts/build-theme-bundles.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
