@@ -94,8 +94,12 @@ export {
   promoteRadios,
   AaronField,
   promoteFields,
+  AaronDisclosure,
+  promoteDisclosures,
   installEngineBaseline,
   type AaronButtonOptions,
   type AaronCheckableOptions,
   type AaronFieldOptions,
+  type AaronDisclosureOptions,
+  type DisclosureFacing,
 } from './controls/index.js';
