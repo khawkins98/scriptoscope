@@ -110,18 +110,39 @@ export function applyChromeFromTheme(
   const content = windowEl.querySelector<HTMLElement>('.aaron-content');
   if (content) applyBodyPattern(content, theme, chromeEntry);
 
-  // Hit-target overlays for wnd# parts (close, zoom, windowshade, etc.) —
-  // invisible by default. The visible chrome comes from the composer
-  // above; these overlays exist so future PRs can attach click handlers
-  // (see spec §8).
+  // Hit-target overlays for wnd# parts (close/zoom/windowshade/etc).
+  //
+  // Two placement strategies:
+  //   A. Segment-anchored (preferred): for each part-N with a matching
+  //      `[data-aaron-chrome-segment="widget:part-N"]` in the rendered
+  //      chrome, append the hit-target as a child of that segment with
+  //      inset:0. The overlay then lives at exactly the same pixel
+  //      coords as the chrome graphic — robust against per-segment
+  //      flex layout that percent-based positioning can't follow.
+  //   B. Percent-positioned (fallback): for parts without any matching
+  //      segment in the rendered recipe (rare), fall back to the
+  //      legacy applyWindowParts behavior of positioning inside the
+  //      titlebar by percent of cicn dimensions.
   const partsAria = options.partsAria ?? 'hidden';
   let parts: WindowPartInfo[] = [];
   if (windowType.parts && Object.keys(windowType.parts).length > 0 && cicnWidth > 0 && cicnHeight > 0) {
-    parts = applyWindowParts(titlebar, windowType, {
-      chromeWidth: cicnWidth,
-      chromeHeight: cicnHeight,
-      aria: partsAria,
-    });
+    parts = anchorWidgetsToSegments(windowEl, windowType, { aria: partsAria });
+    // Fallback: any part not anchored to a segment → percent-position
+    // inside the titlebar (the old behavior).
+    const anchoredSlugs = new Set(parts.map((p) => p.partSlug));
+    const missing: Record<string, { rect: [number, number, number, number] }> = {};
+    for (const [slug, entry] of Object.entries(windowType.parts)) {
+      if (slug === 'part-0' || anchoredSlugs.has(slug)) continue;
+      missing[slug] = entry;
+    }
+    if (Object.keys(missing).length > 0) {
+      const fallback = applyWindowParts(
+        titlebar,
+        { ...windowType, parts: missing },
+        { chromeWidth: cicnWidth, chromeHeight: cicnHeight, aria: partsAria },
+      );
+      parts = parts.concat(fallback);
+    }
   }
 
   return {
@@ -130,6 +151,59 @@ export function applyChromeFromTheme(
     chromeDimensions: { width: cicnWidth, height: cicnHeight },
     parts,
   };
+}
+
+// Anchor ONE hit-target overlay div per UNIQUE non-body partSlug,
+// inside the FIRST rendered widget segment that matches it. The
+// overlay is position:absolute inset:0 so it inherits the segment's
+// exact box — no percent-coord math needed.
+//
+// Why one-per-unique: each Mac wnd# part is a single semantic widget
+// (close box, zoom box, windowshade). Even if a scheme's recipe
+// references the same part code multiple times to draw the graphic in
+// multiple places, the click target is the part itself, not its
+// rendered duplicates.
+function anchorWidgetsToSegments(
+  windowEl: HTMLElement,
+  windowType: WindowTypeEntry,
+  options: { aria: 'hidden' | 'button' },
+): WindowPartInfo[] {
+  const out: WindowPartInfo[] = [];
+  const knownParts = new Set(Object.keys(windowType.parts ?? {}));
+  const seen = new Set<string>();
+  const segs = Array.from(
+    windowEl.querySelectorAll<HTMLElement>('[data-aaron-chrome-segment^="widget:"]'),
+  );
+  for (const seg of segs) {
+    const attr = seg.getAttribute('data-aaron-chrome-segment') ?? '';
+    const partSlug = attr.slice('widget:'.length);
+    if (!partSlug || partSlug === 'part-0' || !knownParts.has(partSlug)) continue;
+    if (seen.has(partSlug)) continue;
+    seen.add(partSlug);
+
+    let overlay = seg.querySelector<HTMLElement>(':scope > [data-aaron-window-part]');
+    if (!overlay) {
+      overlay = windowEl.ownerDocument.createElement('div');
+      overlay.setAttribute('data-aaron-window-part', partSlug);
+      overlay.setAttribute('data-part', partSlug);
+      overlay.setAttribute('data-state', 'normal');
+      if (options.aria === 'button') {
+        overlay.setAttribute('role', 'button');
+        overlay.setAttribute('tabindex', '0');
+      } else {
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+      overlay.style.position = 'absolute';
+      overlay.style.inset = '0';
+      // Ensure the overlay receives pointer events even though edge
+      // containers (in AaronWindow) inline pointer-events:none.
+      overlay.style.pointerEvents = 'auto';
+      overlay.style.cursor = 'pointer';
+      seg.appendChild(overlay);
+    }
+    out.push({ partSlug, el: overlay });
+  }
+  return out;
 }
 
 /**
