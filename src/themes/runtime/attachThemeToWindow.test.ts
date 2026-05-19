@@ -9,13 +9,16 @@ const theme: Theme = {
     'document-window': {
       chrome: { active: 'cicns/a.png', inactive: 'cicns/i.png' },
       parts: { 'part-0': { rect: [1, 22, 72, 23] } },
+      edges: {
+        top: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-0' }],
+        bottom: [{ at: 0, part: 'part-0' }],
+        left: [{ at: 0, part: 'part-0' }],
+        right: [{ at: 0, part: 'part-0' }],
+      },
     },
   },
   chromeElements: {
-    'active-document-window': {
-      asset: 'cicns/a.png',
-      width: 74, height: 25,
-    },
+    'active-document-window': { asset: 'cicns/a.png', width: 74, height: 25 },
   },
 };
 
@@ -29,6 +32,11 @@ function makeWindow(): HTMLElement {
   return w;
 }
 
+function firstSegmentBg(w: HTMLElement): string {
+  const seg = w.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+  return seg?.style.borderImageSource ?? '';
+}
+
 describe('attachThemeToWindow', () => {
   beforeEach(() => themeRegistry.reset());
   afterEach(() => themeRegistry.reset());
@@ -37,7 +45,7 @@ describe('attachThemeToWindow', () => {
     themeRegistry.replace(theme);
     const w = makeWindow();
     attachThemeToWindow(w);
-    expect(w.style.borderImageSource).toBe('url("cicns/a.png")');
+    expect(firstSegmentBg(w)).toBe('url("cicns/a.png")');
   });
 
   it('re-applies on theme change', () => {
@@ -45,15 +53,15 @@ describe('attachThemeToWindow', () => {
     attachThemeToWindow(w);
 
     themeRegistry.replace(theme);
-    expect(w.style.borderImageSource).toBe('url("cicns/a.png")');
+    expect(firstSegmentBg(w)).toBe('url("cicns/a.png")');
 
-    // Swap to a new theme with a different URL.
     const theme2: Theme = {
       ...theme,
       windowTypes: {
         'document-window': {
           chrome: { active: 'cicns/other.png' },
           parts: { 'part-0': { rect: [1, 22, 72, 23] } },
+          edges: { top: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-0' }] },
         },
       },
       chromeElements: {
@@ -61,7 +69,7 @@ describe('attachThemeToWindow', () => {
       },
     };
     themeRegistry.replace(theme2);
-    expect(w.style.borderImageSource).toBe('url("cicns/other.png")');
+    expect(firstSegmentBg(w)).toBe('url("cicns/other.png")');
   });
 
   it('clears the chrome when replaced with null', () => {
@@ -69,7 +77,7 @@ describe('attachThemeToWindow', () => {
     const w = makeWindow();
     attachThemeToWindow(w);
     themeRegistry.replace(null);
-    expect(w.style.borderImageSource).toBe('');
+    expect(w.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
   });
 
   it('teardown unsubscribes and clears the chrome', () => {
@@ -77,17 +85,17 @@ describe('attachThemeToWindow', () => {
     const w = makeWindow();
     const detach = attachThemeToWindow(w);
     detach();
-    expect(w.style.borderImageSource).toBe('');
+    expect(w.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
     // Further theme changes don't reach this window.
     themeRegistry.replace(theme);
-    expect(w.style.borderImageSource).toBe('');
+    expect(w.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
   });
 
   it('applyOnAttach: false skips initial apply', () => {
     themeRegistry.replace(theme);
     const w = makeWindow();
     attachThemeToWindow(w, { applyOnAttach: false });
-    expect(w.style.borderImageSource).toBe('');
+    expect(w.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
   });
 
   it('swallows applyChromeFromTheme errors (clears chrome instead)', () => {
@@ -97,5 +105,6 @@ describe('attachThemeToWindow', () => {
     themeRegistry.replace(badTheme);
     const w = makeWindow();
     expect(() => attachThemeToWindow(w)).not.toThrow();
+    expect(w.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
   });
 });

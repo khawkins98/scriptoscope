@@ -17,8 +17,8 @@ beforeEach(() => {
 });
 
 // Test theme follows the K2-faithful contract: windowType has a part-0
-// body rect (the composer requires it). 7 Le-shaped: 74×25 cicn with
-// body rect [1, 22, 72, 23] giving thicknesses 22/2/2/1.
+// body rect (the composer requires it) AND a top recipe (drives the
+// per-segment composition). 7 Le-shaped.
 const fullTheme: Theme = {
   version: THEME_SCHEMA_VERSION,
   windowTypes: {
@@ -34,6 +34,12 @@ const fullTheme: Theme = {
         'part-1': { rect: [9, 5, 20, 16] },
         'part-2': { rect: [36, 5, 48, 16] },
       },
+      edges: {
+        top: [{ at: 0, part: 'part-0' }, { at: 5, part: 'part-1' }, { at: 21, part: 'part-2' }, { at: 33, part: 'part-1' }],
+        bottom: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-1' }],
+        left: [{ at: 0, part: 'part-0' }],
+        right: [{ at: 0, part: 'part-0' }],
+      },
     },
   },
   chromeElements: {
@@ -45,23 +51,31 @@ const fullTheme: Theme = {
 
 describe('applyChromeFromTheme', () => {
   describe('chrome application via composeKaleidoscopeChrome', () => {
-    it('writes borderImageSource on the window root', () => {
+    it('mounts edge strips on the window root', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/active.png")');
+      const strips = windowEl.querySelectorAll('[data-aaron-chrome-edge]');
+      expect(strips.length).toBeGreaterThan(0);
     });
 
-    it('writes border widths derived from part-0 body rect', () => {
+    it('first top-edge segment writes borderImageSource referencing the cicn', () => {
+      applyChromeFromTheme(windowEl, fullTheme);
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
+    });
+
+    it('applies body-rect-derived padding to the window root', () => {
       applyChromeFromTheme(windowEl, fullTheme);
       // body rect [1, 22, 72, 23] in 74×25 cicn → 22/2/2/1 (top/right/bottom/left)
-      expect(windowEl.style.borderTopWidth).toBe('22px');
-      expect(windowEl.style.borderRightWidth).toBe('2px');
-      expect(windowEl.style.borderBottomWidth).toBe('2px');
-      expect(windowEl.style.borderLeftWidth).toBe('1px');
+      expect(windowEl.style.paddingTop).toBe('22px');
+      expect(windowEl.style.paddingRight).toBe('2px');
+      expect(windowEl.style.paddingBottom).toBe('2px');
+      expect(windowEl.style.paddingLeft).toBe('1px');
     });
 
     it('uses border-image-repeat: stretch per K2 Speed Note', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      expect(windowEl.style.borderImageRepeat).toBe('stretch');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageRepeat).toBe('stretch');
     });
 
     it('stamps frame-thickness custom properties', () => {
@@ -76,7 +90,8 @@ describe('applyChromeFromTheme', () => {
         windowTypes: {
           'document-window': {
             chrome: { active: 'cicns/window.png' },
-            parts: { 'part-1': { rect: [9, 5, 20, 16] } }, // no part-0
+            parts: { 'part-1': { rect: [9, 5, 20, 16] } },
+            edges: { top: [{ at: 0, part: 'part-1' }] },
           },
         },
         chromeElements: {
@@ -84,7 +99,7 @@ describe('applyChromeFromTheme', () => {
         },
       };
       applyChromeFromTheme(windowEl, noBodyTheme);
-      expect(windowEl.style.borderImageSource).toBe('');
+      expect(windowEl.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
     });
   });
 
@@ -92,43 +107,49 @@ describe('applyChromeFromTheme', () => {
     it('picks active chrome when data-state="active"', () => {
       windowEl.setAttribute('data-state', 'active');
       applyChromeFromTheme(windowEl, fullTheme);
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/active.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
     });
 
     it('picks inactive chrome when data-state="inactive"', () => {
       windowEl.setAttribute('data-state', 'inactive');
       applyChromeFromTheme(windowEl, fullTheme);
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/inactive.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
     });
 
     it('picks collapsed-active when data-state="collapsed" and scheme provides it', () => {
       windowEl.setAttribute('data-state', 'collapsed');
       applyChromeFromTheme(windowEl, fullTheme);
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/collapsed-active.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/collapsed-active.png")');
     });
 
     it('honors explicit state option override', () => {
       windowEl.setAttribute('data-state', 'active');
       applyChromeFromTheme(windowEl, fullTheme, { state: 'inactive' });
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/inactive.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
     });
   });
 
   describe('idempotency on re-apply', () => {
     it('replaces prior chrome cleanly on re-apply', () => {
       applyChromeFromTheme(windowEl, fullTheme, { state: 'active' });
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/active.png")');
+      let seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
       applyChromeFromTheme(windowEl, fullTheme, { state: 'inactive' });
-      expect(windowEl.style.borderImageSource).toBe('url("cicns/inactive.png")');
+      seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
     });
   });
 
   describe('clearChromeFromTheme', () => {
-    it('removes all inline chrome styles', () => {
+    it('removes all chrome from the window', () => {
       applyChromeFromTheme(windowEl, fullTheme);
       clearChromeFromTheme(windowEl);
-      expect(windowEl.style.borderImageSource).toBe('');
-      expect(windowEl.style.borderTopWidth).toBe('');
+      expect(windowEl.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
+      expect(windowEl.style.paddingTop).toBe('');
       expect(windowEl.style.getPropertyValue('--aaron-frame-top-px')).toBe('');
     });
   });
