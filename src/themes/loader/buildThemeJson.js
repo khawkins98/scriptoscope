@@ -2,8 +2,9 @@
 //
 // The manifest is the extractor's raw output: per-resource decoded data plus
 // PNG filenames. The theme.json is the runtime contract per
-// docs/kaleidoscope-geometry-spec.md §7 (typed in src/themes/schema/types.ts,
-// validated by parseTheme there + validateTheme.js here).
+// docs/aaron-ui-composer-spec.md (spec C) §3 (typed in
+// src/themes/schema/types.ts, validated by parseTheme there +
+// validateTheme.js here).
 //
 // This module is pure: no Node imports, no file I/O. The CLI wraps it.
 
@@ -87,9 +88,9 @@ export function buildThemeJson(manifest, options = {}) {
             side: cd.sideThickness,
             tile: cd.tileSides !== 0,
             // The full 15-value resize behavior per Scheme Factory MENU 139.
-            // See docs/kaleidoscope-geometry-spec.md §11. Surfaced here so the
-            // runtime can honor per-region behavior (e.g., 'repeat-bottom')
-            // rather than treating `tile` as a boolean.
+            // See spec B §13.3 (parked against kDEF disassembly). Surfaced
+            // here so the runtime can honor per-region behavior (e.g.,
+            // 'repeat-bottom') rather than treating `tile` as a boolean.
             resizeBehavior: cd.resizeBehavior,
           }
         : null,
@@ -162,7 +163,7 @@ export function buildThemeJson(manifest, options = {}) {
     generatedAt: manifest.extractedAt,
     note:
       'Draft theme.json produced by @aaron-ui/scheme-extractor. ' +
-      'Schema per docs/kaleidoscope-geometry-spec.md §7.',
+      'Schema per docs/aaron-ui-composer-spec.md (spec C) §3.',
   };
 
   // Merge sidecar meta (name, author, origin, options, palette) on top.

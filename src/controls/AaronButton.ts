@@ -1,15 +1,13 @@
-// Phase 3.2 — push buttons (normal + default).
+// Push buttons (normal + default) per spec A §3.1.
 //
-// Per docs/control-rendering-architecture.md §9 (push button) +
-// the inspection in #71 that revealed: canonical Kaleidoscope schemes
-// don't ship push-button cicn artwork. In real Mac OS Appearance, push
-// buttons were drawn by the system's CDEF (Control DEFinition), not
-// by Kaleidoscope schemes. Schemes themed the surroundings.
+// Canonical Kaleidoscope schemes don't ship push-button cicn artwork:
+// in real Mac OS Appearance, push buttons were drawn by the system's
+// CDEF (Control DEFinition), not by Kaleidoscope schemes. Schemes
+// themed the surroundings only.
 //
 // Aaron UI's push buttons therefore use CSS-drawn chrome with palette
-// custom property tinting (engine-baseline CSS from engineBaseline.ts).
-// They wire the universal state machine via wireControlStateMachine
-// (no chromeElements lookup needed).
+// custom-property tinting (engine-baseline CSS from engineBaseline.ts).
+// State machine via wireControlStateMachine; no chromeElements lookup.
 
 import { wireControlStateMachine, type TeardownFn } from '../themes/runtime/applyControlChrome.js';
 import { installEngineBaseline } from './engineBaseline.js';

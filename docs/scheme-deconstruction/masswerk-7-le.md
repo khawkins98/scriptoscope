@@ -1,6 +1,6 @@
 # Scheme deconstruction — mass:werk 7 Le
 
-**First Kaleidoscope scheme deconstructed for Aaron UI.** Recorded as a reference for the Phase 4 theme bundle format and as a worked example of the methodology in [`docs/RESEARCH-SPIKE-THEMES.md`](../RESEARCH-SPIKE-THEMES.md).
+**First Kaleidoscope scheme deconstructed for Aaron UI.** Recorded as a reference for the theme bundle format. Kept as a worked example of how scheme contents map to a runtime-ready Theme; the canonical specs are now [`docs/aaron-ui-architecture-spec.md`](../aaron-ui-architecture-spec.md) (format) + [`docs/aaron-ui-raster-mapping-spec.md`](../aaron-ui-raster-mapping-spec.md) (mapping rules).
 
 ---
 
