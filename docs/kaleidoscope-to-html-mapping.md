@@ -219,7 +219,9 @@ For each Kaleidoscope element family from K2's catalog:
 
 **Aaron UI:** CSS-drawn beveled buttons palette-tinted with `--aaron-colr-*` custom properties from the scheme.
 
-**Truthfulness assessment:** **faithful.** We're doing the same thing in principle (button = CSS-drawn, scheme contributes palette only). The visual fidelity depends on how period-faithful our CSS bezels are.
+**Truthfulness assessment:** **partially faithful — flagged for revisit.** We're following the period architecture (button = system-drawn, scheme contributes palette only) but on the web there's no equivalent "system CDEF" — so our CSS bezels stand in for what Mac OS would have drawn. Visual fidelity depends on how period-correct those CSS bezels are.
+
+> **Decision note (2026-05-19):** the team decided to keep buttons CSS-only for now, matching the period architecture decision. **This may not be the right long-term call.** Period users SAW themed-looking buttons (because the underlying Mac OS Appearance was itself themed by Kaleidoscope's surrounding chrome cues — pinstripes, accent colors, etc.); flat-looking CSS bezels in a heavily-themed page look out-of-place. Future option: extract a "synthetic button cicn" from the scheme's accent colors + frame pixels at theme load + render it as a 9-slice border on the button. Or: ship a few canonical button bitmaps that we tint per scheme. Track as a follow-up; revisit when the rest of the chrome stack stabilizes.
 
 ### 4.3 No `proxy icon`, no `windowshade widget` animations, no `zoom rect` flicker
 

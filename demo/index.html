@@ -66,11 +66,17 @@
       overflow: hidden;
     }
     .aaron-titlebar {
-      flex: 0 0 25px;
+      flex: 0 0 var(--aaron-frame-top-px, 25px);
       position: relative;
-      height: 25px; min-height: 25px;
+      height: var(--aaron-frame-top-px, 25px);
+      min-height: var(--aaron-frame-top-px, 25px);
       border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
       image-rendering: pixelated;
+    }
+    /* When the chrome composer has painted into the titlebar, drop the
+       CSS-fallback bottom border — the cicn already provides one. */
+    .aaron-window[data-aaron-chrome="on"] .aaron-titlebar {
+      border-bottom: 0;
     }
     .aaron-titlebar__title {
       position: absolute;
@@ -94,12 +100,32 @@
       height: var(--aaron-frame-bottom-px, 1px);
     }
     .aaron-window__edge--left {
-      left: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px);
+      left: 0; top: var(--aaron-frame-top-px, 25px); bottom: var(--aaron-frame-bottom-px, 1px);
       width: var(--aaron-frame-left-px, 1px);
     }
     .aaron-window__edge--right {
-      right: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px);
+      right: 0; top: var(--aaron-frame-top-px, 25px); bottom: var(--aaron-frame-bottom-px, 1px);
       width: var(--aaron-frame-right-px, 1px);
+    }
+    /* When the chrome composer paints into the side edges, ensure they
+       layout as flex strips matching their axis. The composer also
+       writes display:flex inline, but a CSS fallback keeps things
+       predictable if a consumer overrides. */
+    .aaron-window__edge--left,
+    .aaron-window__edge--right {
+      display: flex;
+      flex-direction: column;
+    }
+    .aaron-window__edge--bottom {
+      display: flex;
+      flex-direction: row;
+    }
+    /* Content sits inside the side-edge insets when chrome is applied.
+       Use the same CSS vars the runtime stamps. */
+    .aaron-window[data-aaron-chrome="on"] .aaron-content {
+      padding-left: calc(14px + var(--aaron-frame-left-px, 1px));
+      padding-right: calc(14px + var(--aaron-frame-right-px, 1px));
+      padding-bottom: calc(14px + var(--aaron-frame-bottom-px, 1px));
     }
     .aaron-content {
       flex: 1 1 auto;
