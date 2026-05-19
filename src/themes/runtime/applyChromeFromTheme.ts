@@ -31,7 +31,6 @@ import {
   clearKaleidoscopeFaithful,
 } from './composeKaleidoscopeFaithful.js';
 import { deriveFrameColor, deriveFrameGeometry } from './deriveFrameColor.js';
-import { classifyChromeCicn } from './classifyChromeCicn.js';
 
 export interface ApplyChromeFromThemeOptions {
   /**
@@ -143,37 +142,24 @@ export function applyChromeFromTheme(
     clearAllEdges(windowEl); // strip any prior 3-slice edge segments
     // Dispatch — see docs/chrome-rendering-architecture.md §7.
     //
-    // Two paths exist now (post-2026-05-18 cleanup):
-    //   - Kind A (thin titlebar): 3-slice via border-image on the titlebar.
-    //   - Everything else with a body rect: composeKaleidoscopeFaithful
-    //     (CSS border-image 9-slice from part-0 geometry).
+    // Single path now (post-2026-05-19 unification): every scheme with a
+    // part-0 body rect renders through composeKaleidoscopeFaithful. The
+    // Kind A (thin titlebar) special case is gone — 7 Le has a 22px-tall
+    // titlebar zone above part-0, and the faithful composer renders it
+    // correctly as the top edge of a 9-slice (22/2/2/1 = top/right/bottom/
+    // left for 7 Le's 74×25 cicn).
     //
-    // The per-segment composer (composeRichRecipe) + its 4 pinning
-    // heuristics + the recipe-density gate + the part-code dispatcher are
-    // all retired — the recipe is hit-test data per the WDEF research
-    // (kept in theme.json for future click-handler wiring, not used for
-    // paint). See LEARNINGS 2026-05-18 entries on "Scheme Factory's
-    // resource fork is the missing spec" and "WDEF research".
+    // Schemes without part-0 fall back to the legacy pixel-scan 9-slice
+    // for forward-compat; none of the 7 schemes in the corpus hit this.
     const hasBodyRect = !!windowType.parts?.['part-0'];
-    void classifyChromeCicn(cicnUrl).then((kind) => {
-      if (kind === 'titlebar-only') {
-        // Kind A — chrome lives entirely in the 3-slice titlebar path.
-        clearWindow9Slice(windowEl);
-        clearKaleidoscopeFaithful(windowEl);
-        return;
-      }
-      clear3Slice(titlebar);
-      if (hasBodyRect) {
-        clearWindow9Slice(windowEl);
-        composeKaleidoscopeFaithful(windowEl, windowType, composeOpts);
-      } else {
-        // No body rect → defensive fallback to the legacy pixel-scan 9-slice.
-        // None of the 7 schemes in the corpus hit this path; we keep it for
-        // forward-compat with future schemes that omit part-0.
-        clearKaleidoscopeFaithful(windowEl);
-        void applyWindowAs9Slice(windowEl, windowType, composeOpts);
-      }
-    });
+    clear3Slice(titlebar);
+    clearWindow9Slice(windowEl);
+    if (hasBodyRect) {
+      composeKaleidoscopeFaithful(windowEl, windowType, composeOpts);
+    } else {
+      clearKaleidoscopeFaithful(windowEl);
+      void applyWindowAs9Slice(windowEl, windowType, composeOpts);
+    }
     const slice = applyTitlebarAs3Slice(titlebar, windowType, composeOpts);
     // Title-pill positioning (#64.2) — with the 3-slice model the pill
     // is exactly the middle border-image region, i.e. titlebar pixel
