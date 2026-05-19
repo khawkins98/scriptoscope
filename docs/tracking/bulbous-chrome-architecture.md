@@ -1,6 +1,6 @@
 # Tracking: bulbous chrome + Mac window-model alignment
 
-**Status:** PARKED — surfaced 2026-05-19 during the option-B composer fix conversation. Captures an architectural shift that may be needed before we can render the more exotic schemes faithfully.
+**Status:** Phase 1 IN-FLIGHT (#158). The CSS-only piece of the refactor (chrome layers protrude via negative absolute offsets + `overflow: visible`) has shipped; positioning-semantics shift (content-rect vs. structure-rect) deferred. Bulbous schemes now have the DOM/CSS hooks they need; the runtime + AaronWindow drag/resize haven't yet been re-anchored to operate on the content rect.
 
 ---
 
