@@ -1,16 +1,23 @@
-// Phase 3.3 — checkbox + radio controls.
-//
-// Like push buttons (#71), neither canonical bundle ships cicn artwork
-// for these controls (Mac OS CDEF rendered them; Kaleidoscope themed
-// surroundings). CSS-drawn + palette-tinted via engineBaseline.ts.
+// Checkbox + radio controls.
 //
 // Implementation strategy: keep the native <input type="checkbox|radio">
 // for activation, focus, keyboard, form-submission, and a11y. Wrap it
 // in a <label> (so click-on-label toggles) and add a sibling <span>
-// that paints the visible chrome. The native input is visually hidden
-// but stays in the tab order.
+// that paints the visible chrome.
+//
+// Dual chrome path (spec B §4.4 / §4.5):
+//   1. If the active theme has cicn artwork for this control family
+//      (most exotic schemes do; mass:werk schemes don't), paint the
+//      cicn onto the chrome span via attachThemeToCheckable.
+//   2. Otherwise, engine-baseline CSS draws the chrome (palette-tinted,
+//      via engineBaseline.ts).
+// Both paths use the SAME DOM. The cicn path stamps
+// `data-aaron-cicn-loaded` on the chrome span — CSS uses that to
+// suppress the pseudo-element check mark / radio dot when artwork is
+// active (the cicn already draws them).
 
 import { installEngineBaseline } from './engineBaseline.js';
+import { attachThemeToCheckable } from '../themes/runtime/attachThemeToCheckable.js';
 
 type Kind = 'checkbox' | 'radio';
 
@@ -103,6 +110,17 @@ abstract class AaronCheckable {
     }
 
     this.mountKind(kind);
+
+    // Cicn-driven chrome when the active theme ships artwork for this
+    // control family (most exotic Kaleidoscope schemes do). Falls back
+    // to engine-baseline CSS when artwork is absent. Detached on unmount.
+    const detach = attachThemeToCheckable({
+      chromeEl: this.chrome,
+      input: this.element,
+      label: this.label,
+      kind,
+    });
+    this.detachers.push(detach);
 
     if (opts.onChange) {
       const handler = (): void => opts.onChange!(input.checked, input);
