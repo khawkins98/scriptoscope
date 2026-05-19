@@ -165,4 +165,82 @@ describe('applyChromeFromTheme', () => {
       expect(() => applyChromeFromTheme(windowEl, emptyTheme)).toThrow(/no windowTypes/);
     });
   });
+
+  describe('cinf.tileSides override (spec B §3.3)', () => {
+    it('uses border-image-repeat: repeat when chromeElement.slice.tile is true', () => {
+      const tileTheme: Theme = {
+        ...fullTheme,
+        chromeElements: {
+          'active': {
+            asset: 'cicns/active.png',
+            width: 74,
+            height: 25,
+            slice: { corner: 0, side: 0, tile: true },
+          },
+          'inactive': { asset: 'cicns/inactive.png', width: 74, height: 25 },
+        },
+      };
+      applyChromeFromTheme(windowEl, tileTheme);
+      // The named-widget segments (part-1, part-2) stretch regardless;
+      // find a fill segment to verify the tile override. Top edge has
+      // recipe [part-0, part-1, part-2, part-1] — last entry's segment
+      // is a fill (no terminator after it).
+      const segs = Array.from(
+        windowEl.querySelectorAll('[data-aaron-chrome-edge="top"] > div'),
+      ) as HTMLElement[];
+      // Pick a segment whose data-aaron-chrome-segment starts with "widget:" —
+      // tile override applies even to those (the original cicn slice repeats).
+      const widgetSeg = segs.find((s) => s.getAttribute('data-aaron-chrome-segment')?.startsWith('widget:'));
+      expect(widgetSeg?.style.borderImageRepeat).toBe('repeat');
+    });
+
+    it('still stretches when slice.tile is false (or absent)', () => {
+      applyChromeFromTheme(windowEl, fullTheme);
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageRepeat).toBe('stretch');
+    });
+  });
+
+  describe('Colr-flag stamping (spec B §8 + spec A §20)', () => {
+    it('stamps data attributes for enabled Colr flags', () => {
+      const colrTheme: Theme = {
+        ...fullTheme,
+        options: {
+          unifiedScrollbarTrack: true,
+          windowsStyleScrollbars: true,
+          stretchScrollbarThumbFromCenter: false,
+          menuHighlightOverlay: true,
+          extendedScrollbarArrows: false,
+        },
+      };
+      applyChromeFromTheme(windowEl, colrTheme);
+      expect(windowEl.getAttribute('data-aaron-scrollbar-style')).toBe('unified');
+      expect(windowEl.getAttribute('data-aaron-scrollbar-layout')).toBe('paired');
+      expect(windowEl.getAttribute('data-aaron-menu-overlay')).toBe('true');
+      // Disabled flags do not get attributes
+      expect(windowEl.hasAttribute('data-aaron-thumb-stretch')).toBe(false);
+      expect(windowEl.hasAttribute('data-aaron-scrollbar-arrows')).toBe(false);
+    });
+
+    it('removes stale Colr-flag attributes when switching themes', () => {
+      applyChromeFromTheme(windowEl, {
+        ...fullTheme,
+        options: { unifiedScrollbarTrack: true },
+      });
+      expect(windowEl.getAttribute('data-aaron-scrollbar-style')).toBe('unified');
+      // Re-apply with no options → stale attribute should clear.
+      applyChromeFromTheme(windowEl, fullTheme);
+      expect(windowEl.hasAttribute('data-aaron-scrollbar-style')).toBe(false);
+    });
+
+    it('clearChromeFromTheme removes all Colr-flag attributes', () => {
+      applyChromeFromTheme(windowEl, {
+        ...fullTheme,
+        options: { unifiedScrollbarTrack: true, menuHighlightOverlay: true },
+      });
+      clearChromeFromTheme(windowEl);
+      expect(windowEl.hasAttribute('data-aaron-scrollbar-style')).toBe(false);
+      expect(windowEl.hasAttribute('data-aaron-menu-overlay')).toBe(false);
+    });
+  });
 });

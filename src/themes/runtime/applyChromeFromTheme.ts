@@ -1,14 +1,19 @@
 // Apply a Kaleidoscope theme's window-type chrome to an AaronWindow's DOM.
 //
-// Implements docs/aaron-ui-architecture-spec.md §7 — the DOM + CSS mapping.
-// Single composer path (composeKaleidoscopeChrome) per the K2 rendering
-// rules. Hit-test overlays (applyWindowParts) attach to the titlebar for
-// future click-handler wiring per spec §8.
+// Implements:
+//   - docs/aaron-ui-html-skeleton-spec.md (spec A) §2 — the DOM shape
+//   - docs/aaron-ui-raster-mapping-spec.md (spec B) §4.1 — window mapping rule
+//   - docs/aaron-ui-composer-spec.md (spec C) §6.2 — window composer
+//
+// Single composer path (composeKaleidoscopeChrome) per K2 rules. Hit-test
+// overlays (applyWindowParts) attach to the titlebar for click-handler
+// wiring per spec A §2.4.
 //
 // This is the WM↔runtime seam: applyChromeFromTheme reads the AaronWindow
-// DOM shape (`.aaron-window` + `.aaron-titlebar`) and writes inline styles.
-// AaronWindow doesn't import the runtime; the runtime reaches into
-// AaronWindow's DOM through the documented selectors.
+// DOM shape (`.aaron-window` + `.aaron-titlebar`) and writes inline styles
+// + Colr-flag data attributes (spec B §8). AaronWindow doesn't import the
+// runtime; the runtime reaches into AaronWindow's DOM through the
+// documented selectors.
 
 import type {
   Theme,
@@ -71,12 +76,22 @@ export function applyChromeFromTheme(
   const chromeEntry = findChromeElementByAsset(theme, cicnUrl) ?? { asset: cicnUrl };
   const cicnWidth = chromeEntry.width ?? 0;
   const cicnHeight = chromeEntry.height ?? 0;
+  // Per spec B §3.3: honor cinf.tileSides when set on the chrome cicn.
+  // Schema field name is `slice.tile` for back-compat; semantically it's
+  // the cinf tileSides bit.
+  const tileSides = chromeEntry.slice?.tile === true;
 
   // Reset titlebar inline styles from any prior themed state.
   titlebar.style.backgroundImage = '';
   titlebar.style.backgroundSize = '';
 
-  // Single composer path — see docs/aaron-ui-architecture-spec.md §4.
+  // Stamp Colr scheme-global flags as data attributes on the window root
+  // per spec B §8 + spec A §20. CSS keys off these for cross-family
+  // behavior (scrollbar layout, menu overlay, etc.). Stamped on every
+  // themed window — cheap, idempotent, removed by clearChromeFromTheme.
+  stampColrFlags(windowEl, theme);
+
+  // Single composer path — see spec B §4.1.
   // Requires the windowType to publish a `part-0` body rect; if absent
   // we leave the window engine-baseline styled (no themed chrome).
   if (cicnWidth > 0 && cicnHeight > 0 && windowType.parts?.['part-0']) {
@@ -84,6 +99,7 @@ export function applyChromeFromTheme(
       cicnUrl,
       cicnWidth,
       cicnHeight,
+      tileSides,
     });
   } else {
     clearKaleidoscopeChrome(windowEl);
@@ -113,10 +129,12 @@ export function applyChromeFromTheme(
 
 /**
  * Reverse the work of {@link applyChromeFromTheme}: clears inline chrome
- * styles + removes part overlays. Safe to call on an unthemed window.
+ * styles + removes part overlays + clears Colr-flag data attributes.
+ * Safe to call on an unthemed window.
  */
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
   clearKaleidoscopeChrome(windowEl);
+  clearColrFlags(windowEl);
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);
@@ -165,4 +183,27 @@ function findChromeElementByAsset(theme: Theme, assetUrl: string): ChromeElement
     if (entry.asset === assetUrl) return entry;
   }
   return null;
+}
+
+// Colr scheme-global flag → DOM attribute mapping per spec B §8 + spec A §20.
+// Stamped on the window root so CSS attribute selectors can drive
+// cross-family behavior without per-control JS reads.
+const COLR_FLAG_ATTRS = [
+  ['unifiedScrollbarTrack', 'data-aaron-scrollbar-style', 'unified'],
+  ['windowsStyleScrollbars', 'data-aaron-scrollbar-layout', 'paired'],
+  ['stretchScrollbarThumbFromCenter', 'data-aaron-thumb-stretch', 'center'],
+  ['menuHighlightOverlay', 'data-aaron-menu-overlay', 'true'],
+  ['extendedScrollbarArrows', 'data-aaron-scrollbar-arrows', 'extended'],
+] as const;
+
+function stampColrFlags(windowEl: HTMLElement, theme: Theme): void {
+  const opts = theme.options;
+  for (const [flagKey, attr, attrValue] of COLR_FLAG_ATTRS) {
+    if (opts?.[flagKey]) windowEl.setAttribute(attr, attrValue);
+    else windowEl.removeAttribute(attr);
+  }
+}
+
+function clearColrFlags(windowEl: HTMLElement): void {
+  for (const [, attr] of COLR_FLAG_ATTRS) windowEl.removeAttribute(attr);
 }

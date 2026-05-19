@@ -1,22 +1,30 @@
-// Kaleidoscope chrome composer — implements docs/aaron-ui-architecture-spec.md
-// §4 (the K2 rendering rules from Kaleidoscope's own Scheme Reference).
+// Kaleidoscope chrome composer — implements docs/aaron-ui-raster-mapping-spec.md
+// (spec B) §2 + §3, producing DOM that conforms to spec A §2.2.
 //
 // Per-segment composition: the wnd# recipe defines slice boundaries per
-// edge, and each segment renders its cicn slice INDEPENDENTLY via CSS
-// `border-image-repeat: stretch`. Honors the author's segmentation —
-// the author broke edges into small 1-2px segments where they wanted
-// stretch-to-fill behavior (a 1px slice stretched any width = solid
-// uniform fill) and into wider segments for distinct graphics they
-// accepted slight distortion on.
+// edge (spec B §2.4), and each segment renders its cicn slice INDEPENDENTLY
+// via CSS `border-image-repeat`. Honors the author's segmentation — the
+// author broke edges into small 1-2px segments where they wanted stretch-
+// to-fill behavior (a 1px slice stretched any width = solid uniform fill,
+// per K2 Speed Note in spec B §3.1) and into wider segments for distinct
+// graphics they accepted slight distortion on.
 //
-// Three K2 rules in §4:
-//   1. STRETCH IS THE DEFAULT (Speed Note). border-image-repeat: stretch.
-//   2. PART CODE 0 = NULL — does not draw. Skip the segment.
-//   3. NAMED RECTLIST PARTS pin at native cicn-px size. Other parts
-//      grow to fill remaining flex space, stretching their cicn slice.
+// Key spec rules implemented here:
+//   - Spec B §2.5 — slice-vs-stamp boundary: part 0 skipped; named widgets
+//     pinned at native; all other parts get their cicn slice stretched.
+//   - Spec B §3.1 — stretch is the default (K2 Speed Note).
+//   - Spec B §3.2 — hybrid threshold: span ≤ 2 → 1-pixel-stretch; span > 2
+//     → full-slice stretch. Threshold is explicitly tunable per spec.
+//   - Spec B §3.3 — cinf.tileSides override: when set, switch to
+//     border-image-repeat: repeat.
 //
 // Frame thicknesses come from the body rect (`part-0`) per K2; we never
 // pixel-scan.
+//
+// Open questions parked against kDEF disassembly (spec B §13):
+//   - §13.1 — divider sandwich parts 5/6 — currently treated as
+//     universal-stretch (part-8)
+//   - §13.2 — threshold value (currently 2px, empirical)
 
 import type { WindowTypeEntry } from '../schema/types.js';
 
@@ -29,6 +37,10 @@ export interface ComposeChromeOptions {
   cicnUrl: string;
   cicnWidth: number;
   cicnHeight: number;
+  /** Per spec B §3.3 — cinf.tileSides override. When true, segments use
+   *  `border-image-repeat: repeat` (tile cicn pixels at native size)
+   *  instead of `stretch`. Default: false (stretch per K2 Speed Note). */
+  tileSides?: boolean;
 }
 
 export function composeKaleidoscopeChrome(
@@ -66,11 +78,12 @@ export function composeKaleidoscopeChrome(
   windowEl.style.setProperty('--aaron-frame-bottom-px', `${thickness.bottom}px`);
   windowEl.style.setProperty('--aaron-frame-left-px', `${thickness.left}px`);
 
+  const tileSides = options.tileSides === true;
   for (const side of SIDES) {
     const recipe = edges[side];
     if (!recipe || recipe.length === 0) continue;
     const strip = buildEdgeStrip({
-      side, recipe, parts, cicnUrl, cicnWidth, cicnHeight, thickness,
+      side, recipe, parts, cicnUrl, cicnWidth, cicnHeight, thickness, tileSides,
     });
     windowEl.appendChild(strip);
   }
@@ -102,10 +115,11 @@ interface BuildEdgeOptions {
   cicnWidth: number;
   cicnHeight: number;
   thickness: Record<Side, number>;
+  tileSides: boolean;
 }
 
 function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
-  const { side, recipe, parts, cicnUrl, cicnWidth, cicnHeight, thickness } = opts;
+  const { side, recipe, parts, cicnUrl, cicnWidth, cicnHeight, thickness, tileSides } = opts;
   const isVertical = side === 'left' || side === 'right';
   const axisMax = isVertical ? cicnHeight : cicnWidth;
   const sideThickness = thickness[side];
@@ -213,12 +227,17 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     seg.style.borderImageSource = `url("${cicnUrl.replace(/"/g, '\\"')}")`;
     seg.style.borderImageSlice = `${sliceTop} ${sliceRight} ${sliceBottom} ${sliceLeft} fill`;
     seg.style.borderImageWidth = '0';
-    // K2 Speed Note: stretch is the default. Each segment's cicn slice
-    // stretches to fill the segment's rendered width. 1-2px slices
-    // (the author's typical accent markers) stretch to a uniform bar
-    // of that pixel's color — fast and visually clean. Wider slices
-    // stretch noticeably; that's the author's accepted trade-off.
-    seg.style.borderImageRepeat = 'stretch';
+    // Per spec B §3.1 (K2 Speed Note): stretch is the default. Each
+    // segment's cicn slice stretches to fill the segment's rendered
+    // width. 1-2px slices (the author's typical accent markers) stretch
+    // to a uniform bar of that pixel's color — fast and visually clean.
+    // Wider slices stretch noticeably; the author's accepted trade-off.
+    //
+    // Per spec B §3.3: when cinf.tileSides is set, switch to repeat —
+    // tile the cicn slice at native pixel size across the segment.
+    // Tiny fills still stretch (they're 1-pixel uniform bars; tiling is
+    // visually identical but pays a tile-math cost for nothing).
+    seg.style.borderImageRepeat = tileSides && !isTinyFill ? 'repeat' : 'stretch';
     strip.appendChild(seg);
   }
 
