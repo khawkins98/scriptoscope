@@ -1,6 +1,6 @@
 # Tracking: kDEF disassembly
 
-**Status:** PARKED — trigger to revisit is "when Levels 1-2 of the rebuild produce a tight question set" (currently in progress; see [`docs/aaron-ui-composer-spec.md`](../aaron-ui-composer-spec.md) §11).
+**Status:** First-pass investigation **complete** — see [`kdef-disassembly-findings.md`](./kdef-disassembly-findings.md) for what was learned. Some open questions closed (§13.2 reframed, §13.4 actionable), others still parked pending a deeper trace of the cinf-parser at `kDEF 0` `0x77b4`.
 
 **Author:** spec-trilogy session 2026-05-19
 
