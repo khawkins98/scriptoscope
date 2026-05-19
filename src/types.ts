@@ -15,15 +15,36 @@ export interface WindowPart {
   rect: Rect;
 }
 
+/**
+ * One step of an edge recipe: at cicn pixel `at`, the segment begins;
+ * `part` is its frame-piece slug (`part-N`, where N is the true wnd#
+ * part code). Per docs/tracking/kdef-disassembly-findings §8: these are
+ * structural pieces, not widget refs. A segment runs from one entry's
+ * `at` to the next entry's `at`.
+ */
+export interface EdgeStep {
+  at: number;
+  part: string;
+}
+
+export interface WindowEdges {
+  top: EdgeStep[];
+  bottom: EdgeStep[];
+  left: EdgeStep[];
+  right: EdgeStep[];
+}
+
 export interface WindowType {
   /** State → relative path of the chrome cicn for that state. */
   chrome: Partial<Record<WindowState, string>>;
   /**
    * Named widget rects within the chrome cicn. `part-0` is the body
    * anchor (its rect's insets define the frame thicknesses); the rest
-   * are widgets (close box, zoom box, windowshade, ...).
+   * are widgets (close box, zoom box, windowshade, ...) for hit-testing.
    */
   parts: Record<string, WindowPart>;
+  /** Per-edge fill recipe (the wnd# side lists). */
+  edges?: WindowEdges;
 }
 
 export interface ChromeElement {
