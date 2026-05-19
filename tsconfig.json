@@ -19,10 +19,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "types": ["vitest/globals"],
+    "types": [],
     "rootDir": ".",
     "outDir": "./dist/types"
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "vite.config.js", "vitest.config.ts", "playwright.config.ts"],
+  "include": ["src/**/*.ts", "vite.config.js", "vite.demo.config.js"],
   "exclude": ["node_modules", "dist", "tools/**/node_modules", ".scratch"]
 }

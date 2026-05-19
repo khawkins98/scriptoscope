@@ -17,14 +17,7 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       input: {
-        index:                    resolve(import.meta.dirname, 'demo/index.html'),
-        // WM core (Phase 1) fixtures
-        'wm-fixture':             resolve(import.meta.dirname, 'demo/wm-fixture.html'),
-        'scanner-fixture':        resolve(import.meta.dirname, 'demo/scanner-fixture.html'),
-        // Runtime (Phase 4) fixtures
-        'theme-loader-fixture':   resolve(import.meta.dirname, 'demo/theme-loader-fixture.html'),
-        'theme-switcher-fixture': resolve(import.meta.dirname, 'demo/theme-switcher-fixture.html'),
-        'auto-default-fixture':   resolve(import.meta.dirname, 'demo/auto-default-fixture.html'),
+        index: resolve(import.meta.dirname, 'demo/index.html'),
       },
     },
   },

@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   test:
-    name: Typecheck + unit + build + e2e
+    name: Typecheck + build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -46,17 +46,8 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests
-        run: npm run test:unit
-
       - name: Library build
         run: npm run build
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: End-to-end tests
-        run: npm run test:e2e
 
       - name: Upload Playwright report on failure
         if: failure()

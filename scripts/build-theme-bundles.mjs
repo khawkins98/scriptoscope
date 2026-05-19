@@ -22,8 +22,8 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildThemeJson } from '../src/themes/loader/buildThemeJson.js';
-import { validateTheme } from '../src/themes/loader/validateTheme.js';
+import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
+import { validateTheme } from '../tools/theme-loader/validateTheme.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
