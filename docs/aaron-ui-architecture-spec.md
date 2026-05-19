@@ -12,11 +12,18 @@
 4. **TMPLs embedded in every scheme file** — the binary layout templates Kaleidoscope itself reads against. We extract these from real schemes.
 5. **Cross-corpus empirical audit** of 7 schemes (1138, 1990, acid, big-blue, evolution, masswerk-7-le, masswerk-dark-ergobox2) — fills gaps the documents leave open.
 
-**Supersedes** (kept as historical artifacts, not load-bearing going forward):
-- `docs/kaleidoscope-geometry-spec.md`
-- `docs/chrome-rendering-architecture.md`
-- `docs/control-rendering-architecture.md`
-- `docs/kaleidoscope-asset-catalog.md`
+**Companion specs** (the three-layer architecture; see [the trilogy LEARNING for context](../LEARNINGS.md)):
+- `docs/aaron-ui-html-skeleton-spec.md` — spec A: the DOM contract
+- `docs/aaron-ui-raster-mapping-spec.md` — spec B: how scheme resources fill the DOM
+- `docs/aaron-ui-composer-spec.md` — spec C: runtime architecture
+
+**Superseded predecessor docs** (deleted as part of the spec-trilogy cleanup; git history retains them):
+- `docs/kaleidoscope-geometry-spec.md` — folded into spec B §2-§6 + this doc's §2-§4
+- `docs/chrome-rendering-architecture.md` — folded into spec B §3 + §4
+- `docs/control-rendering-architecture.md` — folded into spec A §3-§14 + spec B §4
+- `docs/runtime-rendering-architecture.md` — folded into spec C
+- `docs/rendering-gap-analysis-2026-05-17.md` + `docs/wnd-recipe-semantics-2026-05-17.md` — findings folded into spec B §13 (open questions)
+- `docs/RESEARCH-SPIKE-THEMES.md` — pre-implementation spike, complete
 
 ---
 
@@ -545,17 +552,21 @@ All of the above PLUS proper hit-testing per §8 (click on close box closes the 
 - `src/themes/schema/` — TypeScript schema for `theme.json`
 - `demo/diagnostics.html` — per-scheme diagnostic view; shows recipe data, parts, segment inspector
 
-### Historical docs (superseded)
+### Historical docs (deleted; see git history)
 
-These remain in tree for posterity but should not be consulted as authoritative going forward:
+These were folded into the spec trilogy + this doc, then removed in the
+spec-trilogy cleanup. Git history retains them for archaeology.
 
 - `docs/kaleidoscope-geometry-spec.md`
 - `docs/chrome-rendering-architecture.md`
 - `docs/control-rendering-architecture.md`
-- `docs/kaleidoscope-asset-catalog.md`
 - `docs/runtime-rendering-architecture.md`
 - `docs/rendering-gap-analysis-2026-05-17.md`
 - `docs/wnd-recipe-semantics-2026-05-17.md`
+- `docs/RESEARCH-SPIKE-THEMES.md`
+
+Still in tree (referenced from the demo's coverage section + extractor):
+- `docs/kaleidoscope-asset-catalog.md` — canonical family vocabulary lookup
 
 ### Important legal note
 

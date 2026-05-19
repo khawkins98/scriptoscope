@@ -1,15 +1,14 @@
-// Phase 3.1 — shared infrastructure for in-window controls.
+// Shared infrastructure for in-window controls.
 //
-// Wraps the Phase 4 runtime's applyChromeElement (cinf 9-slice + ppat
-// overlay primitive) with the universal state machine spec'd in
-// docs/control-rendering-architecture.md §3:
+// Wraps applyChromeElement (cinf 9-slice + ppat overlay primitive) with
+// the universal state machine spec'd in spec A §1.4:
 //
 //   Normal  ──pointerdown──> Pressed ──pointerup (within bounds)──> activate
 //   Normal  ──focus(keyboard)──> Focused ──Space/Enter──> Pressed → activate
 //   *       ──setEnabled(false)──> Disabled
 //
-// Per-control tickets (#71 onwards) all call this helper. They supply
-// the state→chromeElements-slug map; the helper handles the rest.
+// Per-control modules call this helper with a state→chromeElements-slug
+// map; the helper handles theme subscription + state-attribute mirroring.
 
 import type { ChromeElementEntry, Theme } from '../schema/types.js';
 import { applyChromeElement, clearChromeElement } from './applyChromeElement.js';

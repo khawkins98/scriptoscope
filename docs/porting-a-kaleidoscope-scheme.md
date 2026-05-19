@@ -4,7 +4,7 @@ Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By
 
 **Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme other than mass:werk's bundled "7 Le" default.
 
-**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), [`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) (what's in a `.ksc`), [`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) (how the runtime renders it). This doc is the *procedural* version of those three.
+**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), [`docs/aaron-ui-architecture-spec.md`](./aaron-ui-architecture-spec.md) (what's in a `.ksc`), [`docs/aaron-ui-raster-mapping-spec.md`](./aaron-ui-raster-mapping-spec.md) (how scheme resources map to DOM), [`docs/aaron-ui-composer-spec.md`](./aaron-ui-composer-spec.md) (the runtime). This doc is the *procedural* version of those.
 
 ---
 
@@ -241,4 +241,4 @@ Symptom: `DeRez scheme-file > scheme.r` produces a near-empty file. The resource
 - [mass:werk schemes](https://www.masswerk.at/schemes.php) — Aaron UI's bundled-default source
 - [SheepShaver](https://www.emaculation.com/doku.php/sheepshaver) — for authoring new schemes under emulated classic Mac OS
 
-For questions about the format itself, the geometry spec ([`docs/kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md)) is the authoritative reference. For runtime behavior, the architecture doc ([`docs/runtime-rendering-architecture.md`](./runtime-rendering-architecture.md)) covers how a parsed `Theme` becomes DOM.
+For questions about the format itself, the architecture spec ([`docs/aaron-ui-architecture-spec.md`](./aaron-ui-architecture-spec.md)) is the authoritative reference. For how a parsed `Theme` becomes DOM, see specs B + C ([`docs/aaron-ui-raster-mapping-spec.md`](./aaron-ui-raster-mapping-spec.md), [`docs/aaron-ui-composer-spec.md`](./aaron-ui-composer-spec.md)).
