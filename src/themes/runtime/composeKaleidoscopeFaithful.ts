@@ -138,16 +138,22 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     pointerEvents: 'none',
     imageRendering: 'pixelated',
   } as Partial<CSSStyleDeclaration>);
-  // Top/bottom strips span full window width. Side strips inset between top
-  // and bottom so the corners belong to top/bottom strips.
+  // All strips span the full window edge — top/bottom full width, left/right
+  // full height. Strips OVERLAP at corners by design. This matches
+  // Kaleidoscope's actual rendering: each recipe describes its edge band
+  // INCLUDING the corner zones, and corners get drawn redundantly by both
+  // perpendicular strips. They source the same cicn pixels so the redundant
+  // paint looks like one corner. Without the overlap, the corner content
+  // appeared at the top of the left strip (under the top strip's leftmost
+  // segment), creating a visible duplication.
   if (side === 'top') {
     Object.assign(strip.style, { top: '0', left: '0', right: '0', height: `${sideThickness}px` });
   } else if (side === 'bottom') {
     Object.assign(strip.style, { bottom: '0', left: '0', right: '0', height: `${sideThickness}px` });
   } else if (side === 'left') {
-    Object.assign(strip.style, { top: `${thickness.top}px`, bottom: `${thickness.bottom}px`, left: '0', width: `${sideThickness}px` });
+    Object.assign(strip.style, { top: '0', bottom: '0', left: '0', width: `${sideThickness}px` });
   } else {
-    Object.assign(strip.style, { top: `${thickness.top}px`, bottom: `${thickness.bottom}px`, right: '0', width: `${sideThickness}px` });
+    Object.assign(strip.style, { top: '0', bottom: '0', right: '0', width: `${sideThickness}px` });
   }
 
   // Walk recipe pair-wise. Each consecutive (at_i, at_{i+1}) pair defines
@@ -173,27 +179,23 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     });
   }
 
-  // Per-edge part-rect ranges — fills that overlap a part rect on this
-  // edge band are static graphics (close box, etc.) and should pin, not
-  // tile. Otherwise their pixels would multiply across the edge.
-  const edgePartRanges = collectPartRangesOnEdge(parts, side, thickness, cicnWidth, cicnHeight);
-  function overlapsPart(start: number, end: number): boolean {
-    for (const [a, b] of edgePartRanges) if (start < b && end > a) return true;
-    return false;
-  }
+  // Tile-vs-pin classification driven by segment SPAN, not by part-name
+  // labels. Empirically (and confirmed by the user's visual review): the
+  // segments meant to tile are the 1-2 cicn-pixel-wide accent markers that
+  // appear at regular intervals along the edge. Everything wider is a
+  // discrete graphic the author drew once — either a static decoration
+  // (the "1990" plaque) or a regular fill pattern that should appear at
+  // its authored position, not multiply.
+  //
+  // Threshold 2: covers the 1-px part-1 accent markers in 1990's recipe
+  // (referenced ~14× per edge for regular tab graphics) without sweeping
+  // up larger fills. If a future scheme needs a different threshold,
+  // promote this to per-windowType metadata.
+  const TILE_SPAN_THRESHOLD = 2;
 
-  // Identify outermost fills as corner anchors.
-  const firstFillIdx = specs.findIndex((s) => !s.isNamedWidget);
-  let lastFillIdx = -1;
-  for (let i = specs.length - 1; i >= 0; i--) {
-    if (!specs[i]!.isNamedWidget) { lastFillIdx = i; break; }
-  }
-
-  specs.forEach((spec, i) => {
+  specs.forEach((spec) => {
     const { start, end, span, part, isNamedWidget } = spec;
-    const isCornerFill = !isNamedWidget && (i === firstFillIdx || i === lastFillIdx);
-    const isStaticOverlap = !isNamedWidget && !isCornerFill && overlapsPart(start, end);
-    const isPinned = isNamedWidget || isCornerFill || isStaticOverlap;
+    const isPinned = span > TILE_SPAN_THRESHOLD;
 
     // Slice math — keep the cicn cropping aligned to the edge's band.
     let sliceTop: number, sliceRight: number, sliceBottom: number, sliceLeft: number;
@@ -214,7 +216,7 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
     const seg = document.createElement('div');
     seg.setAttribute(
       `${FAITHFUL_ATTR}-segment`,
-      isNamedWidget ? `widget:${part}` : isCornerFill ? 'corner' : isStaticOverlap ? 'static' : 'fill',
+      isPinned ? (isNamedWidget ? `widget:${part}` : 'pin') : `tile:${part}`,
     );
     seg.style.imageRendering = 'pixelated';
     if (isPinned) {
@@ -241,34 +243,3 @@ function buildEdgeStrip(opts: BuildEdgeOptions): HTMLElement {
   return strip;
 }
 
-/** Cicn axis-ranges occupied by part rects whose perpendicular range is
- *  inside this edge's band. Skips part-0 (body marker). */
-function collectPartRangesOnEdge(
-  parts: Record<string, { rect: [number, number, number, number] }>,
-  side: Side,
-  thickness: Record<Side, number>,
-  cicnWidth: number,
-  cicnHeight: number,
-): Array<[number, number]> {
-  const isVertical = side === 'left' || side === 'right';
-  const bandStart = side === 'top' || side === 'left' ? 0
-    : side === 'bottom' ? cicnHeight - thickness.bottom
-    : cicnWidth - thickness.right;
-  const bandEnd = side === 'top' ? thickness.top
-    : side === 'left' ? thickness.left
-    : side === 'bottom' ? cicnHeight
-    : cicnWidth;
-  const ranges: Array<[number, number]> = [];
-  for (const [name, p] of Object.entries(parts)) {
-    if (name === BODY_PART) continue;
-    const [l, t, r, b] = p.rect;
-    if (isVertical) {
-      if (r <= bandStart || l >= bandEnd) continue;
-      ranges.push([t, b]);
-    } else {
-      if (b <= bandStart || t >= bandEnd) continue;
-      ranges.push([l, r]);
-    }
-  }
-  return ranges;
-}
