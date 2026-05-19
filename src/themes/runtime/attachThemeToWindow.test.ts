@@ -8,13 +8,13 @@ const theme: Theme = {
   windowTypes: {
     'document-window': {
       chrome: { active: 'cicns/a.png', inactive: 'cicns/i.png' },
+      parts: { 'part-0': { rect: [1, 22, 72, 23] } },
     },
   },
   chromeElements: {
     'active-document-window': {
       asset: 'cicns/a.png',
       width: 74, height: 25,
-      slice: { corner: 4, side: 4, tile: false },
     },
   },
 };
@@ -37,8 +37,7 @@ describe('attachThemeToWindow', () => {
     themeRegistry.replace(theme);
     const w = makeWindow();
     attachThemeToWindow(w);
-    const tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('url("cicns/a.png")');
+    expect(w.style.borderImageSource).toBe('url("cicns/a.png")');
   });
 
   it('re-applies on theme change', () => {
@@ -46,8 +45,7 @@ describe('attachThemeToWindow', () => {
     attachThemeToWindow(w);
 
     themeRegistry.replace(theme);
-    let tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('url("cicns/a.png")');
+    expect(w.style.borderImageSource).toBe('url("cicns/a.png")');
 
     // Swap to a new theme with a different URL.
     const theme2: Theme = {
@@ -55,6 +53,7 @@ describe('attachThemeToWindow', () => {
       windowTypes: {
         'document-window': {
           chrome: { active: 'cicns/other.png' },
+          parts: { 'part-0': { rect: [1, 22, 72, 23] } },
         },
       },
       chromeElements: {
@@ -62,8 +61,7 @@ describe('attachThemeToWindow', () => {
       },
     };
     themeRegistry.replace(theme2);
-    tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('url("cicns/other.png")');
+    expect(w.style.borderImageSource).toBe('url("cicns/other.png")');
   });
 
   it('clears the chrome when replaced with null', () => {
@@ -71,8 +69,7 @@ describe('attachThemeToWindow', () => {
     const w = makeWindow();
     attachThemeToWindow(w);
     themeRegistry.replace(null);
-    const tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('');
+    expect(w.style.borderImageSource).toBe('');
   });
 
   it('teardown unsubscribes and clears the chrome', () => {
@@ -80,20 +77,17 @@ describe('attachThemeToWindow', () => {
     const w = makeWindow();
     const detach = attachThemeToWindow(w);
     detach();
-    let tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('');
+    expect(w.style.borderImageSource).toBe('');
     // Further theme changes don't reach this window.
     themeRegistry.replace(theme);
-    tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('');
+    expect(w.style.borderImageSource).toBe('');
   });
 
   it('applyOnAttach: false skips initial apply', () => {
     themeRegistry.replace(theme);
     const w = makeWindow();
     attachThemeToWindow(w, { applyOnAttach: false });
-    const tb = w.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(tb.style.backgroundImage).toBe('');
+    expect(w.style.borderImageSource).toBe('');
   });
 
   it('swallows applyChromeFromTheme errors (clears chrome instead)', () => {

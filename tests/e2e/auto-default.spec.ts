@@ -19,7 +19,7 @@ test.describe('bundled-default auto-load (e2e)', () => {
 
     // 3-slice rendering: cicn lives on titlebar's border-image-source.
     const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar')
+      .locator('.aaron-window [data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
       .first()
       .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');

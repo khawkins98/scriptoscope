@@ -28,6 +28,11 @@ export {
   type ApplyChromeFromThemeResult,
 } from './applyChromeFromTheme.js';
 export {
+  composeKaleidoscopeChrome,
+  clearKaleidoscopeChrome,
+  type ComposeChromeOptions,
+} from './composeKaleidoscopeChrome.js';
+export {
   attachThemeToWindow,
   type AttachThemeToWindowOptions,
 } from './attachThemeToWindow.js';
@@ -42,28 +47,7 @@ export {
   setBundledDefaultUrl,
   getBundledDefaultUrl,
 } from './bundledDefault.js';
-export {
-  composeTopEdge,
-  composeBottomEdge,
-  composeLeftEdge,
-  composeRightEdge,
-  clearChromeSegments,
-  recipeToSegments,
-  findTitlePillBounds,
-  type ComposeWindowChromeOptions,
-} from './composeWindowChrome.js';
 export { loadThemeFromRsrc, type LoadThemeFromRsrcOptions } from './loadThemeFromRsrc.js';
-export {
-  applyTitlebarAs3Slice,
-  applyBottomEdgeAs3Slice,
-  applyVerticalEdgeAs3Slice,
-  computeStretchZone,
-  clear3Slice,
-  type ChromeSliceOptions,
-} from './applyChromeAs3Slice.js';
-export { deriveFrameColor, deriveFrameGeometry, type FrameGeometry } from './deriveFrameColor.js';
-export { applyWindowAs9Slice, clearWindow9Slice } from './applyChromeAs9Slice.js';
-export { classifyChromeCicn, type ChromeCicnKind } from './classifyChromeCicn.js';
 // Phase 3.1 — shared control infrastructure (#70). Per-control tickets
 // (#71 onwards) call this; consumers can use it directly for custom
 // controls outside the standard set.

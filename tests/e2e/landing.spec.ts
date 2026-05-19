@@ -22,11 +22,15 @@ test.describe('landing page (index.html)', () => {
     // 3-slice rendering (post-Phase-4-revert): the titlebar itself
     // carries the cicn as border-image-source. Every titlebar should
     // reference the bundled 7 Le chrome.
+    // Per-segment composer: cicn URL appears on segment divs inside
+    // [data-aaron-chrome-edge] strips. First top-edge segment of each
+    // window should reference the bundled 7 Le cicn.
     for (let i = 0; i < 5; i++) {
       const bg = await page
         .locator('.aaron-window')
         .nth(i)
-        .locator('.aaron-titlebar')
+        .locator('[data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
+        .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-7-le/cicns/');
     }
@@ -43,7 +47,7 @@ test.describe('landing page (index.html)', () => {
     // window root itself.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window [data-aaron-faithful-chrome-edge="top"] > div')
+        .locator('.aaron-window [data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
         .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
