@@ -38,12 +38,12 @@ test.describe('landing page (index.html)', () => {
 
     await page.locator('#scheme-switcher').selectOption('masswerk-dark-ergobox2');
     await expect(page.locator('#active-scheme-name')).toHaveText('mass:werk Dark ErgoBox 2');
-    // ErgoBox is Kind B (full-window cicn) — 9-slice border-image
-    // on the window root paints the frame; recipe segments are
-    // cleared (would otherwise double-render).
+    // ErgoBox routes through the per-segment composer (post-#125). The
+    // cicn URL appears on segment divs inside the edge strips, not on the
+    // window root itself.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window')
+        .locator('.aaron-window [data-aaron-faithful-chrome-edge="top"] > div')
         .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
