@@ -3,89 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aaron UI — a web-native runtime for Kaleidoscope themes</title>
-  <meta name="description" content="Drop-in window manager + theme engine. Loads freeware-licensed Kaleidoscope schemes (cicn/ppat/cinf/wnd#) and renders them with CSS, SVG, and JS.">
+  <title>Aaron UI — runtime + scheme diagnostics</title>
+  <meta name="description" content="Web-native runtime for Kaleidoscope themes. Live demo windows + per-scheme diagnostic view (cicns, recipes, parts, catalog).">
   <style>
     :root {
-      /* Themed colors come from --aaron-colr-* (set by loadTheme). These
-         are fallbacks for the un-themed flash before the bundled default
-         finishes loading. */
       --bg: var(--aaron-colr-bg, #cccccc);
       --fg: var(--aaron-colr-fg, #1a1a1a);
       --accent: var(--aaron-colr-accent, #316ac5);
-      --topbar-bg: var(--aaron-colr-titlebar-active-bg, #cccccc);
-      --topbar-fg: var(--aaron-colr-titlebar-active-fg, #000000);
+      --nav-bg: var(--aaron-colr-titlebar-active-bg, #cccccc);
+      --nav-fg: var(--aaron-colr-titlebar-active-fg, #000000);
+      --diag-bg: #1c1c1f;
+      --diag-fg: #e0e0e0;
+      --diag-panel-bg: #2a2a2e;
+      --diag-panel-border: #44444a;
+      --diag-accent: #9bd;
     }
     * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Lucida Grande", "Charcoal", sans-serif;
       font-size: 13px;
-      background: var(--bg);
       color: var(--fg);
+      background: var(--bg);
       min-height: 100vh;
     }
-    body { display: flex; flex-direction: column; }
 
-    .topbar {
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    /* ─── Sticky nav-bar ─────────────────────────────────────────── */
+    .nav-bar {
+      position: sticky; top: 0;
+      z-index: 100;
+      display: flex; align-items: center; gap: 16px;
       padding: 8px 16px;
-      background: var(--topbar-bg);
-      color: var(--topbar-fg);
+      background: var(--nav-bg);
+      color: var(--nav-fg);
       border-bottom: 1px solid #888;
       font-size: 13px;
     }
-    .topbar h1 { margin: 0; font-size: 16px; font-weight: 700; }
-    .topbar .byline { opacity: 0.7; font-size: 12px; }
-    .topbar .spacer { flex: 1; }
-    .topbar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-    .topbar select { padding: 2px 6px; font: inherit; }
-    .topbar a { color: inherit; text-decoration: underline; }
+    .nav-bar h1 { margin: 0; font-size: 16px; font-weight: 700; }
+    .nav-bar .byline { opacity: 0.7; font-size: 12px; }
+    .nav-bar .spacer { flex: 1; }
+    .nav-bar label { display: flex; align-items: center; gap: 6px; }
+    .nav-bar select { padding: 2px 6px; font: inherit; }
+    .nav-bar a { color: inherit; text-decoration: underline; }
 
+    /* ─── Section: Demo desktop ──────────────────────────────────── */
     .desktop {
-      flex: 1 1 auto;
       position: relative;
       min-height: 580px;
-      /* Subtle desktop pattern below the windows. */
       background-image:
         linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
       background-size: 24px 24px;
     }
 
-    /* AaronWindow visual treatment — the chrome cicn paints over these
-       fallbacks via inline styles the runtime writes. */
+    /* AaronWindow visual treatment */
     .aaron-window {
       background: white;
-      /* Drop shadow + a thin palette-derived backstop for the un-themed
-         flash. Once the cicn samples land (deriveFrameGeometry +
-         deriveFrameColor in deriveFrameColor.ts), the .aaron-window__edge
-         containers paint the actual scheme-derived frame at the right
-         thickness (1-2px for 7 Le, 6px for ErgoBox). */
       box-shadow:
         inset 0 0 0 1px var(--aaron-cicn-frame-color, var(--aaron-colr-window-frame, #666)),
         2px 3px 12px rgba(0,0,0,0.25);
-      /* Layout: titlebar fixed-height at top, content fills the rest
-         (scrolling if it overflows). Without this, content with a
-         tall textarea / large markup would spill below the window
-         border instead of staying contained. */
-      display: flex;
-      flex-direction: column;
+      display: flex; flex-direction: column;
       overflow: hidden;
     }
-    .aaron-titlebar { flex: 0 0 25px; }
-    .aaron-content {
-      flex: 1 1 auto;
-      min-height: 0; /* required so flex item can shrink below content height */
+    .aaron-titlebar {
+      flex: 0 0 25px;
+      position: relative;
+      height: 25px; min-height: 25px;
+      border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
+      image-rendering: pixelated;
     }
-    /* Edge containers sized from --aaron-frame-{bottom,left,right}-px
-       stamped on the window by the runtime. Default to 1px fallbacks
-       for the un-themed flash; once derived, ErgoBox's 6px beveled
-       border lands here. */
+    .aaron-titlebar__title {
+      position: absolute;
+      left: var(--aaron-title-pill-left, 0);
+      right: var(--aaron-title-pill-right, 0);
+      top: 0; bottom: 0;
+      padding: 0 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      pointer-events: none;
+      overflow: hidden; white-space: nowrap;
+      color: var(--aaron-colr-titlebar-active-fg, currentColor);
+      z-index: 2;
+    }
+    .aaron-titlebar__title > span { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .aaron-window[data-state="inactive"] .aaron-titlebar__title {
+      color: var(--aaron-colr-titlebar-inactive-fg, #888);
+    }
     .aaron-window__edge--bottom {
       left: 0; right: 0; bottom: 0;
       height: var(--aaron-frame-bottom-px, 1px);
@@ -98,48 +101,13 @@
       right: 0; top: 25px; bottom: var(--aaron-frame-bottom-px, 1px);
       width: var(--aaron-frame-right-px, 1px);
     }
-    .aaron-titlebar {
-      position: relative;
-      height: 25px;
-      min-height: 25px;
-      border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
-      /* Crisp pixel-art rendering when the chrome cicn is stretched
-         to fill the titlebar width via applyChromeFromTheme. */
-      image-rendering: pixelated;
+    .aaron-content {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 14px;
+      line-height: 1.45;
+      overflow: auto;
     }
-    .aaron-titlebar__title {
-      /* Title-pill positioning (#64.2): when the runtime detects the
-         widest fill-segment run in the wnd# top recipe, it stamps
-         --aaron-title-pill-{left,right} as %. We use those to keep the
-         title inside that safe zone so it doesn't overlap close-box /
-         zoom-box / divider decorations. Defaults to inset:0 when the
-         runtime didn't set the props (no recipe, or no fill run). */
-      position: absolute;
-      left: var(--aaron-title-pill-left, 0);
-      right: var(--aaron-title-pill-right, 0);
-      top: 0;
-      bottom: 0;
-      padding: 0 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      pointer-events: none;
-      overflow: hidden;
-      white-space: nowrap;
-      color: var(--aaron-colr-titlebar-active-fg, currentColor);
-      z-index: 2; /* above chrome segments */
-    }
-    .aaron-titlebar__title > span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-    .aaron-window[data-state="inactive"] .aaron-titlebar__title {
-      color: var(--aaron-colr-titlebar-inactive-fg, #888);
-    }
-    .aaron-content { padding: 14px; line-height: 1.45; overflow: auto; }
     .aaron-content p { margin: 0 0 0.7em; }
     .aaron-content p:last-child { margin-bottom: 0; }
     .aaron-content a { color: var(--accent); }
@@ -151,68 +119,218 @@
       border-radius: 2px;
     }
     .aaron-content h3 { margin: 0 0 8px; font-size: 13px; font-weight: 700; }
-    .aaron-content .sidebyside {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      align-items: start;
-    }
-    .aaron-content .sidebyside figure { margin: 0; }
-    .aaron-content .sidebyside figcaption {
-      font-size: 11px;
-      opacity: 0.7;
-      margin-bottom: 4px;
-    }
-    .aaron-content .sidebyside img {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #aaa;
-      image-rendering: pixelated;
-    }
 
-    .infobar {
-      flex: 0 0 auto;
+    /* ─── Provenance bar (between demo + diagnostics) ─────────────── */
+    .provenance-bar {
       padding: 10px 16px;
       background: rgba(0,0,0,0.06);
       border-top: 1px solid #888;
       font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     }
-    .infobar .provenance { flex: 1; opacity: 0.85; }
-    .infobar a { color: inherit; }
-    .infobar details summary {
-      cursor: pointer;
-      font-weight: 700;
-      list-style: none;
+    .provenance-bar .provenance { flex: 1; opacity: 0.85; }
+    .provenance-bar a { color: inherit; }
+
+    /* ─── Section: Scheme diagnostics (dark theme below) ──────────── */
+    .diagnostics {
+      background: var(--diag-bg);
+      color: var(--diag-fg);
+      padding: 30px 24px 60px;
     }
-    .infobar details summary::after { content: ' ▼'; opacity: 0.6; }
-    .infobar details[open] summary::after { content: ' ▲'; }
-    .infobar details > div {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px dashed #888;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 8px;
+    .diagnostics-header {
+      max-width: 1200px;
+      margin: 0 auto 20px;
     }
-    .infobar details > div h4 {
-      margin: 0 0 4px;
+    .diagnostics-header h2 {
+      margin: 0 0 6px;
+      font-size: 20px; font-weight: 700;
+    }
+    .diagnostics-header .subtitle {
+      opacity: 0.65;
+      margin: 0;
+      font-size: 13px;
+      max-width: 800px;
+    }
+    .diagnostics-header .subtitle a { color: var(--diag-accent); }
+
+    .diagnostics-inner { max-width: 1200px; margin: 0 auto; }
+    .diagnostics-inner h3 {
+      margin: 28px 0 10px;
+      font-size: 15px; font-weight: 700;
+      border-bottom: 1px solid var(--diag-panel-border);
+      padding-bottom: 6px;
+    }
+    .diagnostics-inner .section-sub {
+      opacity: 0.65;
+      margin: 0 0 12px;
+      font-size: 12px;
+    }
+    .diagnostics-inner .section-sub a { color: var(--diag-accent); }
+    .diagnostics-inner .section-sub code {
+      background: var(--diag-bg);
+      padding: 2px 4px; border-radius: 2px;
+      font-family: ui-monospace, Menlo, monospace;
       font-size: 11px;
+    }
+
+    .panel {
+      background: var(--diag-panel-bg);
+      border: 1px solid var(--diag-panel-border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .meta-card { padding: 14px 18px; }
+    .meta-card .row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .meta-card .row > div { min-width: 180px; }
+    .meta-card label {
+      display: block;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+      opacity: 0.55; margin: 0 0 2px;
+    }
+    .meta-card .value { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+
+    .toggles { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; }
+    .toggles label {
+      display: flex; gap: 6px; align-items: center;
+      cursor: pointer;
+      padding: 4px 8px;
+      background: var(--diag-bg);
+      border: 1px solid var(--diag-panel-border);
+      border-radius: 4px;
+    }
+    .toggles input[type="checkbox"] { margin: 0; }
+    .toggles input[type="text"] {
+      font: inherit;
+      padding: 4px 8px;
+      background: var(--diag-bg);
+      border: 1px solid var(--diag-panel-border);
+      border-radius: 4px;
+      color: var(--diag-fg);
+    }
+
+    .cicn-stack {
+      position: relative;
+      display: inline-block;
+      image-rendering: pixelated;
+    }
+    .cicn-img { display: block; image-rendering: pixelated; }
+    .cicn-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: ui-monospace, Menlo, monospace;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--diag-bg);
+    }
+    table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      opacity: 0.6;
+    }
+
+    .recipe-side { margin-bottom: 18px; }
+    .recipe-side h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
       opacity: 0.7;
     }
-    .infobar details > div p { margin: 0; }
-    .infobar details > div a { display: inline-block; margin-right: 6px; }
+
+    .nothing { opacity: 0.6; font-style: italic; }
+
+    /* Cicn-state tab bar (active / inactive / collapsed) */
+    .cicn-tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 1px solid var(--diag-panel-border); }
+    .cicn-tab {
+      background: transparent;
+      color: #aaa;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      padding: 8px 14px;
+      cursor: pointer;
+      font: inherit; font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .cicn-tab.active {
+      background: #3a3a45;
+      color: #fff;
+      border-bottom-color: #6af;
+    }
+
+    /* ─── Footer ──────────────────────────────────────────────────── */
+    .footer {
+      background: var(--diag-bg);
+      color: var(--diag-fg);
+      padding: 20px 24px;
+      border-top: 1px solid #000;
+      font-size: 12px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px;
+    }
+    .footer h4 {
+      margin: 0 0 6px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+      opacity: 0.6;
+    }
+    .footer a { color: var(--diag-accent); margin-right: 10px; }
+    .footer p { margin: 0; line-height: 1.6; }
+
+    /* Info marker + tooltip */
+    .info {
+      display: inline-block;
+      width: 14px; height: 14px;
+      line-height: 14px;
+      text-align: center;
+      border-radius: 50%;
+      background: #2a2a35;
+      color: var(--diag-accent);
+      font-size: 10px;
+      cursor: help;
+      user-select: none;
+      margin-left: 2px;
+    }
+    .info:hover { background: #3a3a55; color: #cdf; }
+    #tooltip-layer {
+      position: fixed;
+      z-index: 1000;
+      max-width: 320px;
+      padding: 10px 12px;
+      background: var(--diag-bg);
+      border: 1px solid var(--diag-panel-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      color: var(--diag-fg);
+      font-size: 12px;
+      line-height: 1.5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 100ms;
+    }
+    #tooltip-layer.visible { opacity: 1; }
+    #tooltip-layer code { font-size: 11px; background: #000; padding: 2px 4px; border-radius: 2px; }
   </style>
 </head>
 <body data-aaron-theme="">
-  <div class="topbar">
+  <div class="nav-bar">
     <h1>Aaron UI</h1>
-    <span class="byline">A web-native runtime for Kaleidoscope themes</span>
+    <span class="byline">runtime + scheme diagnostics</span>
     <span class="spacer"></span>
     <label>
       Scheme:
@@ -233,50 +351,109 @@
     <a href="https://github.com/khawkins98/aaron-ui">GitHub ↗</a>
   </div>
 
+  <!-- ─── Section 1: Live demo windows ─────────────────────────── -->
   <div class="desktop" id="desktop"></div>
 
-  <div class="infobar">
+  <div class="provenance-bar">
     <div class="provenance">
       Currently rendering <strong id="active-scheme-name">…</strong> by
       <a id="active-scheme-author" href="#"><span></span></a>.
       <span id="active-scheme-license"></span>
     </div>
-    <details>
-      <summary>For developers</summary>
-      <div>
-        <div>
-          <h4>Per-scheme views</h4>
-          <p>
-            <a href="diagnostics.html">Diagnostics</a>
-            <a href="themes-gallery.html">Gallery</a>
-          </p>
-        </div>
-        <div>
-          <h4>Runtime fixtures (Phase 4)</h4>
-          <p>
-            <a href="auto-default-fixture.html">auto-default</a>
-            <a href="theme-switcher-fixture.html">theme-switcher</a>
-            <a href="theme-loader-fixture.html">theme-loader</a>
-          </p>
-        </div>
-        <div>
-          <h4>WM core fixtures (Phase 1)</h4>
-          <p>
-            <a href="wm-fixture.html">wm</a>
-            <a href="scanner-fixture.html">scanner</a>
-          </p>
-        </div>
-        <div>
-          <h4>Docs</h4>
-          <p>
-            <a href="https://github.com/khawkins98/aaron-ui/blob/main/README.md">README</a>
-            <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/porting-a-kaleidoscope-scheme.md">Porting guide</a>
-            <a href="https://github.com/khawkins98/aaron-ui/blob/main/LEARNINGS.md">LEARNINGS</a>
-          </p>
+  </div>
+
+  <!-- ─── Section 2: Scheme diagnostics ────────────────────────── -->
+  <div class="diagnostics">
+    <div class="diagnostics-header">
+      <h2 id="diag-heading">Scheme diagnostics</h2>
+      <p class="subtitle">Per-scheme view of how Aaron UI decodes the active scheme. The four windows above are the live render; everything below is the data behind it — chrome cicns with parts/recipe overlays, the wnd# entries, the parts table, and the full extracted catalog.</p>
+    </div>
+
+    <div class="diagnostics-inner">
+      <h3>Meta</h3>
+      <div class="meta-card panel">
+        <div class="row">
+          <div><label>Name</label><div class="value" id="meta-name">—</div></div>
+          <div><label>Author</label><div class="value" id="meta-author">—</div></div>
+          <div><label>Year</label><div class="value" id="meta-year">—</div></div>
+          <div><label>Source</label><div class="value" id="meta-source">—</div></div>
         </div>
       </div>
-    </details>
+
+      <h3>Reference</h3>
+      <p class="section-sub">Period rendering of the scheme — what the author actually saw on the classic Mac. Mass:werk schemes have curated thumbnails on file; exotic schemes link out to the <a href="https://kaleidoscope.hryjksn.com/" target="_blank">Kaleidoscope Scheme Archive</a>.</p>
+      <div id="reference-host" class="panel"></div>
+
+      <h3>Chrome cicns</h3>
+      <p class="section-sub">Each chrome state cicn at 4× scale. Toggle overlays to see how the renderer interprets the bitmap. Hover the <span class="info">ⓘ</span> icons for what each overlay shows and why it matters.</p>
+      <div class="toggles">
+        <label><input type="checkbox" id="t-parts" checked> Parts rects <span class="info" tabindex="0" role="button" aria-label="More info" data-tip="Colored rectangles = the named `parts` from the wnd# resource (close box, zoom box, title pill, etc.). Sub-rects of the cicn bitmap that the renderer crops out and positions as hit targets.">ⓘ</span></label>
+        <label><input type="checkbox" id="t-recipe"> Recipe positions <span class="info" tabindex="0" role="button" aria-label="More info" data-tip="Cyan/white tick marks at each `{at}` value from a wnd# side recipe. White = the entry references a named part; cyan = it's a fill segment. Recipe entries are slice-boundary markers, NOT per-widget render commands.">ⓘ</span></label>
+      </div>
+      <div id="cicn-stacks"></div>
+
+      <h3>Recipes (wnd#)</h3>
+      <p class="section-sub">For each side: list of <code>{at, part}</code> entries. <code>at</code> is the cicn-pixel position along the side axis. <code>part</code> matching a slug in the parts table = named; not in the table = fill (tiles cicn pixels in the segment).</p>
+      <div id="recipes-host"></div>
+
+      <h3>Parts (named cicn rects)</h3>
+      <p class="section-sub">Slugs referenced by recipe entries. Each rect <code>[left, top, right, bottom]</code> in cicn pixels.</p>
+      <div id="parts-host"></div>
+
+      <h3>Coverage</h3>
+      <p class="section-sub">How many extracted assets does Aaron UI actually consume? See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-architecture-spec.md" target="_blank">architecture spec</a> and <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-html-skeleton-spec.md" target="_blank">spec A §23</a> for conformance levels.</p>
+      <div id="coverage-host" class="panel"></div>
+
+      <h3>Full chromeElements catalog (all extracted rasters)</h3>
+      <p class="section-sub">Every <code>cicn</code> the extractor decoded from the scheme's resource fork — not just document-window chrome. Click any thumb to open the raw PNG.</p>
+      <div class="toggles">
+        <label>Filter:
+          <input id="t-cat-filter" type="text" placeholder="scrollbar, button, slider, …">
+        </label>
+        <span id="t-cat-count" style="font-family: ui-monospace, Menlo, monospace; opacity: 0.7;"></span>
+      </div>
+      <div id="catalog-host" class="panel"></div>
+    </div>
   </div>
+
+  <div class="footer">
+    <div class="footer-inner">
+      <div>
+        <h4>Docs</h4>
+        <p>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/README.md" target="_blank">README</a>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/LEARNINGS.md" target="_blank">LEARNINGS</a>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/PRD.md" target="_blank">PRD</a>
+        </p>
+        <p>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-html-skeleton-spec.md" target="_blank">Spec A: DOM</a>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-raster-mapping-spec.md" target="_blank">Spec B: mapping</a>
+          <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-composer-spec.md" target="_blank">Spec C: runtime</a>
+        </p>
+      </div>
+      <div>
+        <h4>Runtime fixtures (Phase 4)</h4>
+        <p>
+          <a href="auto-default-fixture.html">auto-default</a>
+          <a href="theme-switcher-fixture.html">theme-switcher</a>
+          <a href="theme-loader-fixture.html">theme-loader</a>
+        </p>
+      </div>
+      <div>
+        <h4>WM core fixtures (Phase 1)</h4>
+        <p>
+          <a href="wm-fixture.html">wm</a>
+          <a href="scanner-fixture.html">scanner</a>
+        </p>
+      </div>
+      <div>
+        <h4>Source</h4>
+        <p><a href="https://github.com/khawkins98/aaron-ui" target="_blank">github.com/khawkins98/aaron-ui</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tooltip-layer" role="tooltip" aria-hidden="true"></div>
 
   <script type="module">
     import {
@@ -291,10 +468,10 @@
     } from '../src/index.ts';
     import { loadThemeFromRsrc } from '../src/themes/runtime/loadThemeFromRsrc.ts';
 
-    // Phase 3: prefer runtime resource-fork decoding when scheme.rsrc is
-    // available. Falls back to the build-time bundle (theme.json) if not.
-    // This is the "load like Kaleidoscope" path — no per-scheme conversion
-    // step, the binary IS the theme.
+    // ──────────────────────────────────────────────────────────────
+    // Section A: live demo windows
+    // ──────────────────────────────────────────────────────────────
+
     async function smartLoadTheme(slug) {
       const rsrcUrl = `themes/${slug}/scheme.rsrc`;
       try {
@@ -304,13 +481,8 @@
           return;
         }
       } catch (err) {
-        // Surface .rsrc failures so debugging is possible — silent
-        // failure here used to manifest as a dropdown/registry drift
-        // where the dropdown showed the requested slug but the footer
-        // + render showed the bundled default.
         console.warn(`[demo] scheme.rsrc decode failed for ${slug}; falling back to bundle:`, err);
       }
-      // Bundle fallback (theme.json + PNGs).
       try {
         await loadTheme(`themes/${slug}/`);
       } catch (err) {
@@ -319,10 +491,6 @@
     }
 
     const desktop = document.getElementById('desktop');
-
-    // Define the four windows that populate the desktop. Positions are
-    // staggered + sized so they're all simultaneously visible on a
-    // reasonable viewport without overlap dominating the first paint.
     const windows = [
       {
         title: 'About Aaron UI',
@@ -362,17 +530,14 @@
         title: 'Side-by-side fidelity',
         x: 40, y: 410, width: 460, height: 280,
         html: `
-          <div class="sidebyside">
-            <figure>
-              <figcaption>Original scheme preview</figcaption>
-              <img id="reference-img" alt="reference thumbnail">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;">
+            <figure style="margin:0;">
+              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Original scheme preview</figcaption>
+              <img id="reference-img" alt="reference thumbnail" style="max-width:100%;height:auto;border:1px solid #aaa;image-rendering:pixelated;">
             </figure>
-            <figure>
-              <figcaption>Aaron UI render (this page)</figcaption>
-              <p style="font-size:12px;opacity:0.7;">The other three
-              windows on this page are the live render — same scheme,
-              same chrome bitmaps, composited at runtime instead of by
-              Kaleidoscope itself.</p>
+            <figure style="margin:0;">
+              <figcaption style="font-size:11px;opacity:0.7;margin-bottom:4px;">Aaron UI render (this page)</figcaption>
+              <p style="font-size:12px;opacity:0.7;">The other windows on this page are the live render — same scheme, same chrome bitmaps, composited at runtime instead of by Kaleidoscope itself.</p>
             </figure>
           </div>
         `,
@@ -388,7 +553,6 @@
           auto-load. You own theme loading.</p>
           <p><code>setBundledDefaultUrl('/path/')</code> — override
           where the default fetches from.</p>
-          <p>See the developer fixtures at the bottom of the page.</p>
         `,
       },
       {
@@ -408,16 +572,13 @@
               <label><input type="radio" name="demo-rg" data-aaron-radio value="other" disabled> Other</label>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
-              <label style="display:flex;gap:6px;align-items:center;">
-                Name:
+              <label style="display:flex;gap:6px;align-items:center;">Name:
                 <input type="text" data-aaron-field value="Susan Kare" style="flex:1;">
               </label>
-              <label style="display:flex;gap:6px;align-items:center;">
-                Email:
+              <label style="display:flex;gap:6px;align-items:center;">Email:
                 <input type="email" data-aaron-field placeholder="you@example.com" style="flex:1;">
               </label>
-              <label style="display:flex;gap:6px;align-items:center;">
-                Locked:
+              <label style="display:flex;gap:6px;align-items:center;">Locked:
                 <input type="text" data-aaron-field value="read-only" readonly style="flex:1;">
               </label>
               <textarea data-aaron-field rows="2" placeholder="Notes…" style="width:100%;"></textarea>
@@ -433,91 +594,57 @@
       attachThemeToWindow(w.element, { windowTypeSlug: 'document-window' });
     }
 
-    // Phase 3 controls (#71, #72) — promote declarative markup inside
-    // window contents. Runs after windows mount.
     promoteButtons(desktop);
     promoteCheckboxes(desktop);
     promoteRadios(desktop);
     promoteFields(desktop);
 
-    // Wire the Controls demo radio group to switch the scheme.
     desktop.querySelectorAll('input[name="demo-rg"]').forEach((r) => {
       r.addEventListener('change', () => {
         if (!r.checked) return;
         if (r.value === 'seven') select.value = 'masswerk-7-le';
         else if (r.value === 'ergo') select.value = 'masswerk-dark-ergobox2';
         else return;
-        // Keep the demo radio group on the fast bundle path (it's a UI
-        // illustration, not a loader test) — smartLoadTheme adds a few
-        // hundred ms for the larger schemes which makes the
-        // radio-click → name-update e2e test flaky.
         void loadTheme(`themes/${select.value}/`);
       });
     });
     const okBtn = document.getElementById('demo-ok-button');
-    if (okBtn) {
-      okBtn.addEventListener('click', () => {
-        // Demo activation handler — just log so people can see it works.
-        console.info('[demo] OK clicked');
-      });
-    }
+    if (okBtn) okBtn.addEventListener('click', () => console.info('[demo] OK clicked'));
 
-    // Theme switcher — both <select> change and the data-aaron-theme
-    // attribute path are supported. The attribute is the declarative
-    // version (PRD §Theme system); the <select> is the imperative.
+    // ──────────────────────────────────────────────────────────────
+    // Scheme switcher (drives both demo + diagnostics)
+    // ──────────────────────────────────────────────────────────────
+
     const select = document.getElementById('scheme-switcher');
     select.addEventListener('change', () => {
       void smartLoadTheme(select.value);
-      // Keep the URL in sync so reloads + sharing preserve the picked scheme.
       const u = new URL(location.href);
       u.searchParams.set('theme', select.value);
       history.replaceState(null, '', u.toString());
     });
 
-    // ?theme=<slug> deep-link: load the requested scheme on page load
-    // (instead of the bundled default). Useful for sharing a specific
-    // scheme + for Playwright screenshot workflows.
-    //
-    // Implementation: the bundled-default import is a side effect that
-    // fires before this script runs, so we can't pre-empt it. Instead,
-    // subscribe to the registry and swap when the bundled default
-    // settles. The swap then becomes the *last* load → wins the race.
+    // ?theme= deep link
     const urlParams = new URLSearchParams(location.search);
     const requested = urlParams.get('theme');
     if (requested) {
-      const validOptions = new Set(
-        Array.from(select.options).map((o) => o.value),
-      );
+      const validOptions = new Set(Array.from(select.options).map((o) => o.value));
       if (!validOptions.has(requested)) {
         console.warn(`[demo] ?theme=${requested} is not a known scheme; ignoring.`);
-      } else if (requested === select.value) {
-        // Already what the bundled default loads — nothing to do.
-      } else {
+      } else if (requested !== select.value) {
         select.value = requested;
-        // Defer until the bundled default's first settled load lands.
         let applied = false;
         const tryApply = () => {
           if (applied) return;
           applied = true;
           void smartLoadTheme(requested);
         };
-        // Either the registry already has the bundled default (synced)
-        // or it'll arrive on the next subscribe callback.
-        if (themeRegistry.current()) {
-          tryApply();
-        } else {
-          const unsub = themeRegistry.subscribe(() => {
-            tryApply();
-            unsub();
-          });
+        if (themeRegistry.current()) tryApply();
+        else {
+          const unsub = themeRegistry.subscribe(() => { tryApply(); unsub(); });
         }
       }
     }
 
-    // Map theme.name → slug so refreshProvenance can keep the dropdown
-    // synced to the ACTUALLY-LOADED scheme (not the user's last request).
-    // This prevents the "dropdown shows X, footer shows Y" drift that
-    // happens when a load fails silently.
     const SCHEME_NAME_TO_SLUG = {
       'mass:werk 7 Le': 'masswerk-7-le',
       'mass:werk Dark ErgoBox 2': 'masswerk-dark-ergobox2',
@@ -528,13 +655,9 @@
       '1991 evolution': 'evolution',
     };
 
-    // Provenance display updates whenever the theme changes.
     function refreshProvenance(theme) {
       if (!theme) return;
       document.getElementById('active-scheme-name').textContent = theme.name ?? 'unknown';
-      // Sync the dropdown + URL to whatever's ACTUALLY loaded (vs what
-      // was last requested). If the registry shows scheme X, the
-      // dropdown must show X — anything else is a confusing drift.
       const actualSlug = SCHEME_NAME_TO_SLUG[theme.name];
       if (actualSlug && actualSlug !== select.value) {
         select.value = actualSlug;
@@ -546,45 +669,494 @@
       authorEl.querySelector('span').textContent = theme.author?.name ?? 'unknown';
       if (theme.author?.url) authorEl.href = theme.author.url;
       const licenseEl = document.getElementById('active-scheme-license');
-      licenseEl.textContent = theme.origin?.originalLicense
-        ? `License: ${theme.origin.originalLicense}`
-        : '';
+      licenseEl.textContent = theme.origin?.originalLicense ? `License: ${theme.origin.originalLicense}` : '';
 
-      // README window content.
+      // README window
       const readmeTitle = document.getElementById('readme-title');
       const readmeDesc = document.getElementById('readme-desc');
       const readmeSource = document.getElementById('readme-source');
-      readmeTitle.textContent = theme.name ?? '';
-      readmeDesc.textContent = theme.author
+      if (readmeTitle) readmeTitle.textContent = theme.name ?? '';
+      if (readmeDesc) readmeDesc.textContent = theme.author
         ? `By ${theme.author.name}${theme.author.year ? `, ${theme.author.year}` : ''}.`
         : '';
-      if (theme.origin?.sourceUrl) readmeSource.href = theme.origin.sourceUrl;
+      if (readmeSource && theme.origin?.sourceUrl) readmeSource.href = theme.origin.sourceUrl;
 
-      // Side-by-side reference thumbnail — derive from the loaded theme's
-      // slug. For schemes with a dedicated reference jpg (the two mass:werk
-      // bundles), use it. For the exotic bundles from the Kaleidoscope
-      // archive, fall back to the chrome cicn itself at 4× scale, which is
-      // what the dedicated themes-gallery.html page shows.
+      // Side-by-side reference thumbnail
       const slug = select.value;
       const ref = document.getElementById('reference-img');
       const dedicatedRefs = new Set(['masswerk-7-le', 'masswerk-dark-ergobox2']);
-      if (dedicatedRefs.has(slug)) {
-        ref.src = `assets/references/${slug}.jpg`;
-        ref.style.imageRendering = 'pixelated';
-      } else {
-        // Use the chrome cicn — it's the author's design intent at native size.
-        const active = theme.windowTypes?.['document-window']?.chrome?.active;
-        if (active) {
-          // active is already a resolved absolute URL after loadTheme.
-          ref.src = active;
-          ref.style.imageRendering = 'pixelated';
+      if (ref) {
+        if (dedicatedRefs.has(slug)) {
+          ref.src = `assets/references/${slug}.jpg`;
+        } else {
+          const active = theme.windowTypes?.['document-window']?.chrome?.active;
+          if (active) ref.src = active;
         }
       }
     }
-    themeRegistry.subscribe(refreshProvenance);
-    refreshProvenance(themeRegistry.current());
 
-    // Expose for in-page debugging from the JS console.
+    // ──────────────────────────────────────────────────────────────
+    // Section B: diagnostics — driven by themeRegistry
+    // ──────────────────────────────────────────────────────────────
+
+    function fmtRect(rect) { return `[${rect.join(', ')}]`; }
+
+    const REFERENCE_JPGS = {
+      'masswerk-7-le': 'assets/references/masswerk-7-le.jpg',
+      'masswerk-dark-ergobox2': 'assets/references/masswerk-dark-ergobox2.jpg',
+      '1990': 'assets/references/1990.png',
+    };
+    const ARCHIVE_SEARCH = 'https://kaleidoscope.hryjksn.com/';
+
+    const PART_COLORS = ['#f55','#5f5','#55f','#fa5','#5af','#a5f','#5fa','#fa5','#aa5','#5aa'];
+    const getColor = (idx) => PART_COLORS[idx % PART_COLORS.length];
+
+    function renderReferenceDiag(slug, theme) {
+      const host = document.getElementById('reference-host');
+      host.innerHTML = '';
+      const jpg = REFERENCE_JPGS[slug];
+      if (jpg) {
+        const img = document.createElement('img');
+        img.src = jpg;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.borderRadius = '4px';
+        img.alt = `${theme.name} — period reference`;
+        host.appendChild(img);
+      } else {
+        const id = theme.origin?.originalSchemeId;
+        host.innerHTML = `<p style="margin:0 0 8px;">No curated reference image on file for this scheme.</p>
+          <p style="margin:0;opacity:0.7;font-size:12px;">Browse the <a href="${ARCHIVE_SEARCH}" target="_blank" style="color:#9bd;">Kaleidoscope Scheme Archive</a> ${id ? `(scheme #${id})` : ''} for a dynamic preview rendered from the same resource data.</p>`;
+      }
+    }
+
+    function renderMeta(theme) {
+      document.getElementById('meta-name').textContent = theme.name ?? '—';
+      const a = theme.author;
+      document.getElementById('meta-author').textContent = a?.name ?? '—';
+      document.getElementById('meta-year').textContent = a?.year ? String(a.year) : '—';
+      const sourceEl = document.getElementById('meta-source');
+      sourceEl.innerHTML = '';
+      if (theme.origin?.sourceUrl) {
+        const link = document.createElement('a');
+        link.href = theme.origin.sourceUrl;
+        link.target = '_blank';
+        link.textContent = theme.origin.sourceUrl;
+        link.style.color = '#9bd';
+        sourceEl.appendChild(link);
+      } else { sourceEl.textContent = '—'; }
+      document.getElementById('diag-heading').textContent = `Scheme diagnostics — ${theme.name ?? '(unnamed)'}`;
+    }
+
+    function renderCicnStacks(theme, windowType) {
+      const host = document.getElementById('cicn-stacks');
+      host.innerHTML = '';
+      if (!windowType?.chrome) return;
+      const states = Object.entries(windowType.chrome).filter(([, url]) => typeof url === 'string');
+      const parts = windowType.parts ?? {};
+      const recipes = windowType.edges ?? {};
+
+      const tabBar = document.createElement('div');
+      tabBar.className = 'cicn-tabs';
+      host.appendChild(tabBar);
+      const panels = document.createElement('div');
+      host.appendChild(panels);
+
+      const tabs = [];
+      const tabPanels = [];
+
+      function selectTab(idx) {
+        tabs.forEach((b, i) => b.classList.toggle('active', i === idx));
+        tabPanels.forEach((p, i) => p.style.display = i === idx ? '' : 'none');
+      }
+
+      states.forEach(([state, cicnUrl], stateIdx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cicn-tab';
+        btn.textContent = state;
+        btn.onclick = () => selectTab(stateIdx);
+        tabBar.appendChild(btn);
+        tabs.push(btn);
+
+        const card = document.createElement('div');
+        card.className = 'panel';
+        panels.appendChild(card);
+        tabPanels.push(card);
+      });
+
+      states.forEach(([state, cicnUrl], stateIdx) => {
+        const card = tabPanels[stateIdx];
+        const img = document.createElement('img');
+        img.src = cicnUrl;
+        img.className = 'cicn-img';
+        const stack = document.createElement('div');
+        stack.className = 'cicn-stack';
+        stack.appendChild(img);
+        card.appendChild(stack);
+
+        img.onload = () => {
+          const scale = 4;
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
+          img.style.width = `${w * scale}px`;
+          img.style.height = `${h * scale}px`;
+          stack.style.width = `${w * scale}px`;
+          stack.style.height = `${h * scale}px`;
+
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('class', 'cicn-overlay');
+          svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+          svg.setAttribute('preserveAspectRatio', 'none');
+          svg.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;';
+
+          // Parts rects layer
+          const partsLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          const partEntries = Object.entries(parts);
+          partEntries.forEach(([slug, p], i) => {
+            const [l, t, r, b] = p.rect;
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', String(l));
+            rect.setAttribute('y', String(t));
+            rect.setAttribute('width', String(r - l));
+            rect.setAttribute('height', String(b - t));
+            rect.setAttribute('fill', 'none');
+            rect.setAttribute('stroke', getColor(i));
+            rect.setAttribute('stroke-width', '1');
+            partsLayer.appendChild(rect);
+          });
+          partsLayer.style.display = document.getElementById('t-parts').checked ? '' : 'none';
+          svg.appendChild(partsLayer);
+
+          // Recipe positions layer
+          const recipeLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          ['top','right','bottom','left'].forEach((side) => {
+            const r = recipes[side];
+            if (!r) return;
+            r.forEach((entry) => {
+              const isVertical = side === 'left' || side === 'right';
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              const isNamed = parts[entry.part];
+              const stroke = isNamed ? '#fff' : '#5dd';
+              if (isVertical) {
+                const x = side === 'left' ? 0 : w;
+                line.setAttribute('x1', String(x));
+                line.setAttribute('x2', String(side === 'left' ? 5 : w - 5));
+                line.setAttribute('y1', String(entry.at));
+                line.setAttribute('y2', String(entry.at));
+              } else {
+                const y = side === 'top' ? 0 : h;
+                line.setAttribute('y1', String(y));
+                line.setAttribute('y2', String(side === 'top' ? 5 : h - 5));
+                line.setAttribute('x1', String(entry.at));
+                line.setAttribute('x2', String(entry.at));
+              }
+              line.setAttribute('stroke', stroke);
+              line.setAttribute('stroke-width', '1');
+              recipeLayer.appendChild(line);
+            });
+          });
+          recipeLayer.style.display = document.getElementById('t-recipe').checked ? '' : 'none';
+          svg.appendChild(recipeLayer);
+
+          stack.appendChild(svg);
+
+          // Wire toggles
+          document.getElementById('t-parts').addEventListener('change', (e) => {
+            partsLayer.style.display = e.target.checked ? '' : 'none';
+          });
+          document.getElementById('t-recipe').addEventListener('change', (e) => {
+            recipeLayer.style.display = e.target.checked ? '' : 'none';
+          });
+
+          // Dimensions sublabel + legend
+          const meta = document.createElement('div');
+          meta.style.cssText = 'margin-top:6px;font-size:11px;opacity:0.7;font-family:ui-monospace,Menlo,monospace;';
+          meta.textContent = `${w}×${h} native, displayed at ${w * scale}×${h * scale}`;
+          card.appendChild(meta);
+
+          const legend = document.createElement('div');
+          legend.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;font-size:12px;margin-top:8px;font-family:ui-monospace,Menlo,monospace;';
+          partEntries.forEach(([slug], i) => {
+            const item = document.createElement('div');
+            item.style.cssText = 'display:flex;gap:6px;align-items:center;padding:2px 0;';
+            const swatch = document.createElement('div');
+            swatch.style.cssText = `width:12px;height:12px;border-radius:2px;flex:0 0 12px;background:${getColor(i)};`;
+            const label = document.createElement('span');
+            label.textContent = slug;
+            item.appendChild(swatch);
+            item.appendChild(label);
+            legend.appendChild(item);
+          });
+          card.appendChild(legend);
+        };
+      });
+
+      selectTab(0);
+    }
+
+    function renderRecipes(theme, windowType) {
+      const host = document.getElementById('recipes-host');
+      host.innerHTML = '';
+      const recipes = windowType?.edges ?? {};
+      const parts = windowType?.parts ?? {};
+      const sides = ['top','right','bottom','left'];
+      for (const side of sides) {
+        const r = recipes[side];
+        const card = document.createElement('div');
+        card.className = 'recipe-side panel';
+        card.innerHTML = `<h4>${side} (${r ? r.length : 0} entries)</h4>`;
+        if (!r || r.length === 0) {
+          const nothing = document.createElement('div');
+          nothing.className = 'nothing';
+          nothing.textContent = 'no recipe data';
+          card.appendChild(nothing);
+        } else {
+          const tbl = document.createElement('table');
+          tbl.innerHTML = `<thead><tr><th>#</th><th>at</th><th>part</th><th>kind</th><th>part rect</th></tr></thead>`;
+          const tbody = document.createElement('tbody');
+          r.forEach((entry, i) => {
+            const namedPart = parts[entry.part];
+            const kind = namedPart ? 'named' : 'fill';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${i}</td><td>${entry.at}</td><td>${entry.part}</td><td>${kind}</td><td>${namedPart ? fmtRect(namedPart.rect) : '—'}</td>`;
+            tbody.appendChild(tr);
+          });
+          tbl.appendChild(tbody);
+          card.appendChild(tbl);
+        }
+        host.appendChild(card);
+      }
+    }
+
+    function renderParts(theme, windowType) {
+      const host = document.getElementById('parts-host');
+      host.innerHTML = '';
+      const parts = windowType?.parts ?? {};
+      const entries = Object.entries(parts);
+      const card = document.createElement('div');
+      card.className = 'panel';
+      if (entries.length === 0) {
+        card.innerHTML = '<div class="nothing">no parts</div>';
+      } else {
+        const tbl = document.createElement('table');
+        tbl.innerHTML = `<thead><tr><th>slug</th><th>rect [l,t,r,b]</th><th>w×h</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+        entries.forEach(([slug, p]) => {
+          const [rl, rt, rr, rb] = p.rect;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${slug}</td><td>${fmtRect(p.rect)}</td><td>${rr - rl}×${rb - rt}</td>`;
+          tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);
+        card.appendChild(tbl);
+      }
+      host.appendChild(card);
+    }
+
+    // Lightweight family classifier (regex-based, slug name only).
+    const FAMILY_PATTERNS = [
+      ['chrome',     /window|grow-box|widget|collapsed|chrome|frame/i],
+      ['scroll',     /scroll|thumb|arrow/i],
+      ['slider',     /slider/i],
+      ['control',    /button|checkbox|radio|control/i],
+      ['tab',        /tab/i],
+      ['menu',       /menu/i],
+      ['popup',      /popup|combo/i],
+      ['progress',   /progress/i],
+      ['disclosure', /disclosure|triangle/i],
+      ['cursor',     /cursor|point-arrow|arrow-only/i],
+      ['misc',       /divider|list-|sort-column|standard-file|desktop|icon-background|generator|unnamed/i],
+    ];
+    function classifyCicn(slug) {
+      for (const [family, pattern] of FAMILY_PATTERNS) {
+        if (pattern.test(slug)) return family;
+      }
+      return 'unclassified';
+    }
+
+    function renderCoverage(theme) {
+      const host = document.getElementById('coverage-host');
+      host.innerHTML = '';
+      const cicns = Object.entries(theme.chromeElements ?? {});
+      const total = cicns.length;
+      const families = {};
+      for (const [slug] of cicns) {
+        const f = classifyCicn(slug);
+        (families[f] ??= []).push(slug);
+      }
+      const consumedAssets = new Set();
+      for (const wt of Object.values(theme.windowTypes ?? {})) {
+        for (const url of Object.values(wt?.chrome ?? {})) {
+          if (typeof url === 'string') consumedAssets.add(url);
+        }
+      }
+      const consumedSlugs = new Set();
+      for (const [slug, entry] of cicns) {
+        if (consumedAssets.has(entry.asset)) consumedSlugs.add(slug);
+      }
+      const consumed = consumedSlugs.size;
+      const classified = total - (families.unclassified?.length ?? 0);
+
+      const headline = document.createElement('div');
+      headline.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;';
+      const cell = (label, value, hint) => {
+        const d = document.createElement('div');
+        d.style.cssText = 'padding:10px 12px;background:#1c1c1f;border:1px solid #2a2a35;border-radius:4px;';
+        d.innerHTML = `<div style="font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:0.04em;">${label}</div>
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:22px;margin-top:4px;">${value}</div>
+          <div style="font-size:11px;opacity:0.55;margin-top:4px;">${hint}</div>`;
+        return d;
+      };
+      headline.appendChild(cell('Extracted', total, 'cicns decoded from the resource fork'));
+      headline.appendChild(cell('Classified', `${classified} / ${total}`, `${total > 0 ? Math.round((classified / total) * 100) : 0}% match a known family`));
+      headline.appendChild(cell('Rendered', `${consumed} / ${total}`, `${total > 0 ? Math.round((consumed / total) * 100) : 0}% consumed by the runtime today`));
+      host.appendChild(headline);
+
+      const familyOrder = ['chrome','scroll','slider','control','tab','menu','popup','progress','disclosure','cursor','misc','unclassified'];
+      const tbl = document.createElement('table');
+      tbl.innerHTML = `<thead><tr><th>Family</th><th>Count</th><th>Renderer status</th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      for (const family of familyOrder) {
+        const slugs = families[family] ?? [];
+        if (slugs.length === 0) continue;
+        const rendered = slugs.filter((s) => consumedSlugs.has(s)).length;
+        const color = rendered > 0 ? '#7c7' : '#776';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${family}</td><td>${slugs.length}</td><td style="color:${color};">${rendered > 0 ? `rendered (${rendered} of ${slugs.length})` : 'not yet rendered'}</td>`;
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      host.appendChild(tbl);
+    }
+
+    function renderCatalog(theme) {
+      const host = document.getElementById('catalog-host');
+      const countEl = document.getElementById('t-cat-count');
+      const filterEl = document.getElementById('t-cat-filter');
+      const all = Object.entries(theme.chromeElements ?? {});
+      const pats = Object.entries(theme.patterns ?? {});
+
+      function render() {
+        const q = filterEl.value.trim().toLowerCase();
+        const filteredCicns = all.filter(([slug]) => !q || slug.toLowerCase().includes(q));
+        const filteredPats = pats.filter(([slug]) => !q || slug.toLowerCase().includes(q));
+        countEl.textContent = `${filteredCicns.length} cicns + ${filteredPats.length} ppats (${all.length}+${pats.length} total)`;
+
+        host.innerHTML = '';
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));';
+        host.appendChild(grid);
+
+        for (const [slug, entry] of filteredCicns) {
+          const card = document.createElement('a');
+          card.href = entry.asset;
+          card.target = '_blank';
+          card.style.cssText = 'background:#1c1c1f;border:1px solid #44444a;border-radius:4px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#e0e0e0;text-decoration:none;font-size:11px;';
+          const img = document.createElement('img');
+          img.src = entry.asset;
+          img.style.cssText = 'image-rendering:pixelated;max-width:120px;max-height:60px;background:repeating-conic-gradient(#333 0% 25%, #1c1c1f 0% 50%) 50%/8px 8px;';
+          card.appendChild(img);
+          const lbl = document.createElement('div');
+          lbl.style.cssText = 'font-family:ui-monospace,Menlo,monospace;opacity:0.85;word-break:break-all;text-align:center;';
+          lbl.textContent = slug;
+          card.appendChild(lbl);
+          const dim = document.createElement('div');
+          dim.style.cssText = 'opacity:0.5;';
+          dim.textContent = `${entry.width ?? '?'}×${entry.height ?? '?'}`;
+          card.appendChild(dim);
+          grid.appendChild(card);
+        }
+        if (filteredPats.length > 0) {
+          const sep = document.createElement('h4');
+          sep.textContent = `Patterns (ppat) — ${filteredPats.length}`;
+          sep.style.cssText = 'grid-column:1/-1;margin-top:14px;font-size:13px;opacity:0.7;';
+          grid.appendChild(sep);
+          for (const [slug, entry] of filteredPats) {
+            const card = document.createElement('a');
+            card.href = entry.asset;
+            card.target = '_blank';
+            card.style.cssText = 'background:#1c1c1f;border:1px solid #44444a;border-radius:4px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#e0e0e0;text-decoration:none;font-size:11px;';
+            const swatch = document.createElement('div');
+            swatch.style.cssText = `width:100px;height:40px;background-image:url("${entry.asset}");background-repeat:repeat;image-rendering:pixelated;`;
+            card.appendChild(swatch);
+            const lbl = document.createElement('div');
+            lbl.style.cssText = 'font-family:ui-monospace,Menlo,monospace;opacity:0.85;';
+            lbl.textContent = slug;
+            card.appendChild(lbl);
+            grid.appendChild(card);
+          }
+        }
+      }
+      render();
+      filterEl.oninput = render;
+    }
+
+    function refreshDiagnostics(theme) {
+      if (!theme) return;
+      const slug = select.value;
+      const wt = theme.windowTypes?.['document-window'];
+      renderReferenceDiag(slug, theme);
+      renderMeta(theme);
+      renderCicnStacks(theme, wt);
+      renderRecipes(theme, wt);
+      renderParts(theme, wt);
+      renderCoverage(theme);
+      renderCatalog(theme);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Tooltip wiring (data-tip on info markers)
+    // ──────────────────────────────────────────────────────────────
+    const tooltipLayer = document.getElementById('tooltip-layer');
+    function showTooltip(el) {
+      const raw = el.dataset.tip;
+      if (!raw) return;
+      const html = raw
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      tooltipLayer.innerHTML = html;
+      tooltipLayer.classList.add('visible');
+      tooltipLayer.setAttribute('aria-hidden', 'false');
+      const r = el.getBoundingClientRect();
+      const tipW = tooltipLayer.offsetWidth;
+      const tipH = tooltipLayer.offsetHeight;
+      let left = r.left;
+      let top = r.bottom + 6;
+      if (left + tipW > window.innerWidth - 8) left = window.innerWidth - tipW - 8;
+      if (top + tipH > window.innerHeight - 8) top = r.top - tipH - 6;
+      tooltipLayer.style.left = `${Math.max(8, left)}px`;
+      tooltipLayer.style.top = `${Math.max(8, top)}px`;
+    }
+    function hideTooltip() {
+      tooltipLayer.classList.remove('visible');
+      tooltipLayer.setAttribute('aria-hidden', 'true');
+    }
+    document.addEventListener('mouseover', (e) => {
+      const t = e.target.closest('[data-tip]');
+      if (t) showTooltip(t);
+    });
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest('[data-tip]')) hideTooltip();
+    });
+    document.addEventListener('focusin', (e) => {
+      const t = e.target.closest('[data-tip]');
+      if (t) showTooltip(t);
+    });
+    document.addEventListener('focusout', (e) => {
+      if (e.target.closest('[data-tip]')) hideTooltip();
+    });
+
+    // ──────────────────────────────────────────────────────────────
+    // Wire it up
+    // ──────────────────────────────────────────────────────────────
+    themeRegistry.subscribe((theme) => {
+      refreshProvenance(theme);
+      refreshDiagnostics(theme);
+    });
+    refreshProvenance(themeRegistry.current());
+    refreshDiagnostics(themeRegistry.current());
+
     window.__aaronTheme = { loadTheme, themeRegistry };
   </script>
 </body>
