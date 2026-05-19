@@ -59,6 +59,9 @@ function validateOrigin(value, path) {
   for (const k of ['originalFormat', 'originalLicense', 'originalReadme', 'sourceUrl']) {
     if (k in obj) assertString(obj[k], `${path}.${k}`);
   }
+  for (const k of ['originalSchemeId', 'minimumKaleidoscopeVersion']) {
+    if (k in obj) assertNumber(obj[k], `${path}.${k}`);
+  }
 }
 
 function validateOptions(value, path) {
