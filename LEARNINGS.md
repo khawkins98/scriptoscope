@@ -1276,3 +1276,26 @@ For **window chrome** cicns (1990, Acid, evolution — the wnd# series), **cinf 
 ### Process meta-lesson
 
 When the spec docs are unrecoverable, **the editor's binary IS the spec**. Scheme Factory's STR#/MENU resources literally enumerate the editor's vocabulary — which IS the format's vocabulary, since the editor's UI maps 1:1 to scheme fields. **20 minutes of parsing the editor's binary recovered more spec than 2 hours of web research.** If we hit another undocumented format in the future: find the official authoring tool, parse its resource fork, read its UI strings + menu items.
+
+## 2026-05-19 — Period principle: tile at native, never stretch (#125)
+
+The faithful composer landed in #124 used `border-image-repeat: stretch` for the chrome 9-slice. That preserved once-ness of static graphics (1990's plaque + star appeared once instead of multiplying) but stretched the decoration when the window grew beyond cicn-native — chrome distortion that looked wrong in a different way.
+
+User-stated correction: **classic Mac OS chrome was always bitblt-tiled at native pixel size; QuickDraw stretching was both slow and visually wrong for the period's bitmap authoring style. Authors drew assuming tile, not stretch.**
+
+This reversed the design direction. Per-segment composition came back (the right idea originally), but with a cleaner principle than the previous heuristic stack:
+
+  Every segment is one of:
+    a) ONE-OFF — drawn once at native cicn-px size, anchored in flex layout
+    b) REPEATING FILL — cicn slice tiles at native pixel size via
+       `border-image-repeat: repeat` to fill flex-grown width
+
+  NEVER stretches.
+
+`border-image-repeat: repeat` (not `round` or `stretch`) is the critical CSS — it tiles at the native source size, accepting a partial tile at the trailing edge. The partial tile is a period-correct artifact, not a bug.
+
+**Why it matters:** in just one user message we eliminated the "stretch vs tile" debate that had driven multiple PRs (#116-#120, #124, #125). The answer was always "tile, period-correctly." Once stated, every visual artifact across all 7 schemes was resolvable with a single, consistent rule.
+
+**How to apply:** when designing rendering behavior for a period-era format, the period's HARDWARE CONSTRAINTS often dictate the right answer. "QuickDraw stretching was slow" is itself a render-model constraint that excludes a whole class of options. Future-format renderer work: ask "what was performant in the era?" before "what does CSS support?"
+
+**Process meta:** the architectural cleanup in #124 was correct (delete the heuristic stack, use one simple model) even though the specific composition was wrong. Cleanup first, then iterate on the principle. The wrong rendering principle in clean code is easier to fix than the right principle buried in a heuristic stack.
