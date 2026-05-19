@@ -111,6 +111,8 @@ export {
 export {
   AaronButton,
   promoteButtons,
+  AaronBevelButton,
+  promoteBevelButtons,
   AaronCheckbox,
   AaronRadio,
   promoteCheckboxes,
@@ -127,6 +129,9 @@ export {
   promoteProgressBars,
   installEngineBaseline,
   type AaronButtonOptions,
+  type AaronBevelButtonOptions,
+  type BevelButtonSize,
+  type BevelButtonValue,
   type AaronCheckableOptions,
   type AaronFieldOptions,
   type AaronDisclosureOptions,
