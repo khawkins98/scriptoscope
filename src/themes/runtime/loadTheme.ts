@@ -92,6 +92,14 @@ export function resolveAssetUrls(theme: Theme, themeJsonUrl: string): Theme {
     out.windowTypes = resolved;
   }
 
+  if (theme.cursors) {
+    const resolved: Record<string, typeof theme.cursors[string]> = {};
+    for (const [key, entry] of Object.entries(theme.cursors)) {
+      resolved[key] = { ...entry, asset: resolve(entry.asset) };
+    }
+    out.cursors = resolved;
+  }
+
   return out;
 }
 

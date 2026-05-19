@@ -318,4 +318,44 @@ describe('parseTheme', () => {
       expect((t.options as Record<string, unknown>)['newFutureFlag']).toBeUndefined();
     });
   });
+
+  describe('cursors', () => {
+    it('parses a complete cursor entry', () => {
+      const t = parseTheme({
+        version: '0.1',
+        cursors: {
+          arrow: { asset: 'cursors/arrow.png', hotspot: [1, 1] },
+          contextual: {
+            asset: 'cursors/contextual.png',
+            hotspot: [1, 1],
+            fallback: 'context-menu',
+          },
+        },
+      });
+      expect(t.cursors?.arrow).toEqual({ asset: 'cursors/arrow.png', hotspot: [1, 1] });
+      expect(t.cursors?.contextual).toEqual({
+        asset: 'cursors/contextual.png',
+        hotspot: [1, 1],
+        fallback: 'context-menu',
+      });
+    });
+
+    it('requires asset', () => {
+      expect(() =>
+        parseTheme({
+          version: '0.1',
+          cursors: { arrow: { hotspot: [1, 1] } },
+        }),
+      ).toThrow(/theme\.json\.cursors\.arrow\.asset/);
+    });
+
+    it('requires hotspot as [x, y] tuple', () => {
+      expect(() =>
+        parseTheme({
+          version: '0.1',
+          cursors: { arrow: { asset: 'a.png', hotspot: [1] } },
+        }),
+      ).toThrow(/theme\.json\.cursors\.arrow\.hotspot/);
+    });
+  });
 });
