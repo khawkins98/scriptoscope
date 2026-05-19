@@ -186,6 +186,99 @@ Disassembly artifacts kept under `/tmp/aaron-disasm/` (not committed). Reproduci
 
 ---
 
+## 8. Recipe-walk resolution — §13.1 CLOSED (2026-05-20)
+
+Second-pass trace, driven by the v2 compositor needing a principled
+fill-source rule (not the heuristic "scan for the stripiest column").
+Resolved by THREE independent, agreeing sources.
+
+### 8.1 The period authoring doc states the rule outright
+
+`Kaleidoscope Goodies/Creating Schemes/Creating Color Schemes` (shipped
+in the 1.8.2 installer) describes the popup-window draw, which is the
+same model used for all frames:
+
+> "It draws the four corners of the frame directly from the cicn, and
+> **stretches the single row or column of pixels between the various grow
+> regions to draw the sides.** It then stamps the tab on top of the
+> frame, stretching the middle column of pixels (which includes the text
+> color pixel) to make room for the title."
+
+So: corners/fixed pieces are CopyBits 1:1; **sides are a single 1px
+row/column stretched** between grow-region markers. This is the
+authoritative statement of §13.2's model, from Kaleidoscope's own authors.
+
+### 8.2 The wnd# recipe is a structural segment list, NOT widget refs
+
+Raw decode of 7 Le's `wnd#` (via `tools/theme-loader`), with TRUE part
+codes (theme.json slugs them part-0..N by index, hiding this):
+
+```
+Document Window (-14336)
+  RECT LIST (hit-test only): p0 body, p1 close x9-20, p2 zoom x36-48,
+                             p3 windowshade x53-64, p4 divider x28-29
+  TOP recipe (border@part):  0@p0 5@p1 21@p2 24@p1 25@p8 28@p6 29@p5
+                             32@p6 33@p8 35@p1 51@p3 68@p10 74@p1
+```
+
+The recipe part codes are a **frame-piece vocabulary, independent of the
+rect-list widget codes**. Proof: the **Modal Dialog has no widgets** yet
+its recipe is `0@p0 3@p1 4@p8 8@p1` — so `p1`/`p8` are structural frame
+pieces, not the close box. Every window type shows the same signature:
+`p8` fill segment(s) flanking a `p5/p6` "divider sandwich", `p1` at the
+edges/corners, `p0` as the null start. Widgets are **baked into the cicn
+bitmap** at their positions; the rect-list is purely for click hit-testing.
+
+### 8.3 Code-level confirmation (kDEF 0, 68k)
+
+- **Top-level dispatch** `0x1f0e`: `movew fp@(12),d0; cmpiw #27,d0;
+  bhi …; movew pc@(0x1f22,d0:w:2),d0; jmp pc@(0x1f22,d0:w)` — a 28-case
+  jump table on the **element type** (window / scrollbar / menu / …).
+  Confirms the table-driven dispatch model (§4.3).
+- **Core blit primitive** `0x738–0x7c2`: one routine that calls
+  `CopyBits` (`$a8ec`) or `CopyMask` (`$a817`) per a "use-mask" flag
+  (`tstb d3` @ `0x77a`), bracketed by fore/back color sets. Fixed pieces
+  call it with `srcRect == dstRect`; fills with a 1px-wide srcRect. The
+  sample-and-hold scaling is QuickDraw's, per §2.1.
+
+### 8.4 What this means for the compositor (the principled rule)
+
+Replace the heuristic `findStripeColumn` with a recipe walk:
+
+- Walk the side recipe as segments `[border[i], border[i+1])`.
+- `p0` = null start (skip).
+- A segment's cicn source is its own `[border[i], border[i+1])` x-range.
+- At minimum window size, every segment draws 1:1 (reproduces the cicn).
+- For a larger window, the **extra span is absorbed by the fill segments**
+  (the narrow 1px "side" columns — the `p8` stripe and the `p5/p6`
+  divider), each stretched horizontally; **fixed segments** (corners +
+  the wide segments that contain baked-in widgets) stay native.
+- Centered title behavior falls out: the two `p8` stripe segments
+  flanking the center each absorb half the extra, keeping the divider/
+  title centered and the widgets pinned to their sides.
+
+### 8.5 Still not nailed to the instruction (low marginal value)
+
+The exact **width-distribution arithmetic** (precise px split when there
+are multiple fill segments) and the full **part-code → fixed/fill table**
+weren't traced instruction-by-instruction — that's a deep multi-hour walk
+through the window-draw case's recipe loop and rect math in 20k lines of
+68k. Given §8.1 states the rule and §8.2/§8.3 confirm the structure +
+mechanism, the marginal value is low. Revisit only if a scheme renders
+visibly wrong on the model above. (If/when needed: emulator golden images
+across window sizes would pin the distribution faster than 68k tracing.)
+
+### 8.6 Reproduce
+
+```
+unar "Kaleidoscope 1.8.2 Installer.app"        # → Kaleidoscope (cdev)
+node tools/theme-loader … dump kDEF 0          # → kDEF_0.bin (60,732 B)
+m68k-elf-objdump -D -b binary -m m68k:68000 -EB kDEF_0.bin
+# raw wnd# decode: parseResourceFork(scheme.rsrc) → decodeWnd, print true part codes
+```
+
+---
+
 ## 7. References
 
 - [`docs/aaron-ui-raster-mapping-spec.md`](../aaron-ui-raster-mapping-spec.md) §13 — open-question catalog this disassembly is closing against
