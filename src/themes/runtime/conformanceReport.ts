@@ -25,6 +25,10 @@ const RUNTIME_CONSUMED_PATTERNS: RegExp[] = [
   // typo variants observed in 7 Le's extracted bundle.
   /^(right|down)-pointing-disclosure-(triangle|tringle)$/,
   /^(pressed|inactive)-(right|down)-pointing-disclosure-(triangle|tringle)$/,
+  // Placard + window header (step 3c — simply-stretched containers)
+  /^placard-thing$/,
+  /^(active|pressed|inactive)-placard$/,
+  /^finder-header-(active|inactive)$/,
 ];
 
 // Family classifier — slug-name regex match. Buckets every cicn into

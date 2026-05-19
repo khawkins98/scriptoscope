@@ -283,6 +283,72 @@ const ENGINE_BASELINE_CSS = `
   transform: none;
 }
 
+/* ─── Placards + window headers (simply-stretched containers) ────────
+   Both fall back to CSS-drawn beveled bars when no cicn artwork is
+   shipped (e.g., mass:werk schemes). When a cicn IS loaded,
+   [data-aaron-cicn-loaded] suppresses the CSS bevel + background so
+   the cicn shows through. */
+
+.aaron-placard {
+  display: inline-block;
+  padding: 2px 10px;
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--aaron-colr-fg, #000);
+  background: linear-gradient(
+    to bottom,
+    var(--aaron-colr-bg, #d8d8d8) 0%,
+    var(--aaron-colr-button-mid, #c0c0c0) 100%
+  );
+  border: 1px solid var(--aaron-colr-window-frame, #888);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.1);
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.aaron-placard[data-state="pressed"] {
+  background: var(--aaron-colr-button-pressed-bottom, #a8a8a8);
+  box-shadow: inset 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+.aaron-placard[aria-disabled="true"] {
+  color: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+  background: var(--aaron-colr-bg-disabled, #ececec);
+}
+
+.aaron-window-header {
+  display: block;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--aaron-colr-fg, #000);
+  background: linear-gradient(
+    to bottom,
+    var(--aaron-colr-titlebar-active-bg, #d8d8d8) 0%,
+    var(--aaron-colr-button-mid, #c8c8c8) 100%
+  );
+  border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.aaron-window-header[data-state="inactive"] {
+  background: var(--aaron-colr-titlebar-inactive-bg, #ccc);
+  color: var(--aaron-colr-titlebar-inactive-fg, #888);
+}
+
+/* Cicn-loaded overrides — suppress the CSS bevel/background when
+   attachThemeToStretched has painted a cicn. */
+.aaron-placard[data-aaron-cicn-loaded],
+.aaron-window-header[data-aaron-cicn-loaded] {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 /* ─── Text fields (input + textarea) ───────────────────────────────── */
 /* Same path as buttons / checkboxes (#71, #72): no field/frame cicn
    slugs in either canonical bundle. CSS-drawn inset bezel, palette-

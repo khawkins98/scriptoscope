@@ -15,4 +15,14 @@ export {
   type AaronDisclosureOptions,
   type DisclosureFacing,
 } from './AaronDisclosure.js';
+export {
+  AaronPlacard,
+  promotePlacards,
+  type AaronPlacardOptions,
+} from './AaronPlacard.js';
+export {
+  AaronWindowHeader,
+  promoteWindowHeaders,
+  type AaronWindowHeaderOptions,
+} from './AaronWindowHeader.js';
 export { installEngineBaseline } from './engineBaseline.js';
