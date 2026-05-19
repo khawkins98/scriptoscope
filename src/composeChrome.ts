@@ -8,15 +8,19 @@ function partCode(slug: string): number {
 }
 
 /**
- * Fill part codes: segments that absorb extra width by stretching their
- * 1px column (the racing-stripe "side" between grow regions, per
- * kdef-disassembly-findings §8.4). p8 is the stripe fill in every 7 Le
- * window type; everything else (corners, edges, the p5/p6 divider, and
- * the segments that contain baked-in widgets) is stamped 1:1. Extend
- * this when other schemes reveal more fill codes (the A pass).
+ * Grow-region (fill) part codes — segments that stretch to absorb the
+ * window's extra width. Per the period authoring doc the sides are
+ * "the single row or column of pixels between the grow regions."
+ *
+ * Observed vocabulary across 7 Le + ErgoBox: the divider/stripe codes
+ * 5, 6, 8 are the grow regions. Everything else is fixed and stamped
+ * 1:1 — including edge pieces like p10 / p4 (which carry the corner
+ * border and must NOT stretch, or the black corner smears into a
+ * block). The K2 Scheme Reference would give the authoritative code
+ * set; revisit if a scheme reveals another grow code.
  */
 function isFillPart(code: number): boolean {
-  return code === 8;
+  return code === 5 || code === 6 || code === 8;
 }
 
 interface RecipeSegment {
@@ -137,25 +141,47 @@ function composeTopEdgeFromRecipe(
   fullW: number,
 ): void {
   const segs = recipeSegments(recipe, cicn.width);
+
+  // Group contiguous fill segments into grow zones; each zone is filled
+  // by stretching ONE column (the doc's "single column between grow
+  // regions"), so an embedded divider sandwich doesn't widen and the
+  // zone reads as continuous stripe. Fixed segments stamp 1:1.
+  interface Unit { x0: number; x1: number; fill: boolean }
+  const units: Unit[] = [];
+  for (const seg of segs) {
+    const prev = units[units.length - 1];
+    if (seg.fill && prev && prev.fill) {
+      prev.x1 = seg.x1; // extend the current grow zone
+    } else {
+      units.push({ x0: seg.x0, x1: seg.x1, fill: seg.fill });
+    }
+  }
+
+  const totalGrowNative = units.reduce((s, u) => (u.fill ? s + (u.x1 - u.x0) : s), 0);
   const extra = Math.max(0, fullW - cicn.width);
-  let fillsLeft = segs.filter((s) => s.fill).length;
+  let growsLeft = units.filter((u) => u.fill).length;
   let extraRem = extra;
   let outX = 0;
-  for (const seg of segs) {
-    const nativeW = seg.x1 - seg.x0;
-    let outW = nativeW;
-    if (seg.fill) {
-      // last fill segment soaks up the rounding remainder
-      const add = fillsLeft === 1 ? extraRem : Math.round(extra / segs.filter((s) => s.fill).length);
-      outW = nativeW + add;
-      extraRem -= add;
-      fillsLeft--;
+  for (const u of units) {
+    const nativeW = u.x1 - u.x0;
+    if (!u.fill) {
+      out.copyBits(cicn, { x: u.x0, y: 0, w: nativeW, h: top }, { x: outX, y: 0, w: nativeW, h: top });
+      outX += nativeW;
+      continue;
     }
-    out.copyBits(
-      cicn,
-      { x: seg.x0, y: 0, w: nativeW, h: top },
-      { x: outX, y: 0, w: outW, h: top },
-    );
+    // grow zone: native + share of extra (proportional to native width);
+    // the last grow zone soaks up the rounding remainder.
+    const share =
+      growsLeft === 1
+        ? extraRem
+        : totalGrowNative > 0
+          ? Math.round((extra * nativeW) / totalGrowNative)
+          : 0;
+    extraRem -= share;
+    growsLeft--;
+    const outW = nativeW + share;
+    const stripeX = findStripeColumn(cicn, u.x0, u.x1, top);
+    out.copyBits(cicn, { x: stripeX, y: 0, w: 1, h: top }, { x: outX, y: 0, w: outW, h: top });
     outX += outW;
   }
 }

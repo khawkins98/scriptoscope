@@ -45,38 +45,51 @@
 </head>
 <body>
   <header>
-    <h1>Aaron UI <span id="ver"></span> — slice 1</h1>
-    <p>One <code>document-window</code> from mass:werk 7 Le, rendered from its bundle, beside the reference.</p>
+    <h1>Aaron UI <span id="ver"></span> — recipe compositor</h1>
+    <p>Document windows composed from each scheme's <code>wnd#</code> recipe (2×), across states + two schemes, beside the references.</p>
   </header>
-  <div class="stage">
-    <div class="col">
-      <h2>Rendered (2×, matches reference)</h2>
-      <div class="frame" id="render-2x"></div>
-    </div>
-    <div class="col">
-      <h2>Rendered (1×)</h2>
-      <div class="frame" id="render-1x"></div>
+  <div class="stage" id="stage"></div>
+  <div class="stage refs">
+    <div class="col reference">
+      <h2>7 Le reference (2×)</h2>
+      <div class="frame"><img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" /></div>
     </div>
     <div class="col reference">
-      <h2>Reference (2×, integer)</h2>
-      <div class="frame">
-        <img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" />
-      </div>
-      <p class="note">Native 240×200 desktop screenshot at integer 2× — compare the document window chrome (top-left).</p>
+      <h2>ErgoBox 2 reference</h2>
+      <div class="frame"><img src="./assets/references/masswerk-dark-ergobox2.jpg" alt="ErgoBox reference" style="width:auto;height:auto;" /></div>
     </div>
   </div>
 
   <script type="module">
     import { VERSION, loadTheme, renderWindow } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
+    const stage = document.getElementById('stage');
 
-    const theme = await loadTheme('/themes/masswerk-7-le');
+    const schemes = [
+      { slug: 'masswerk-7-le', label: '7 Le' },
+      { slug: 'masswerk-dark-ergobox2', label: 'ErgoBox 2' },
+    ];
+    const states = ['active', 'inactive'];
 
-    const w2 = await renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 2 });
-    document.getElementById('render-2x').appendChild(w2);
-
-    const w1 = await renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 1 });
-    document.getElementById('render-1x').appendChild(w1);
+    for (const s of schemes) {
+      const theme = await loadTheme(`/themes/${s.slug}`);
+      for (const state of states) {
+        const col = document.createElement('div');
+        col.className = 'col';
+        const h = document.createElement('h2');
+        h.textContent = `${s.label} · ${state}`;
+        const frame = document.createElement('div');
+        frame.className = 'frame';
+        try {
+          const win = await renderWindow(theme, { title: 'Hello!', width: 200, height: 110, scale: 2, state });
+          frame.appendChild(win);
+        } catch (err) {
+          frame.textContent = String(err);
+        }
+        col.append(h, frame);
+        stage.appendChild(col);
+      }
+    }
   </script>
 </body>
 </html>
