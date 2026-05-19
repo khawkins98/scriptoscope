@@ -222,6 +222,65 @@ const ENGINE_BASELINE_CSS = `
   display: none;
 }
 
+/* ─── Disclosure triangles ─────────────────────────────────────────── */
+/* CSS-drawn fallback when the scheme has no disclosure cicn artwork.
+   Glyph is a triangle drawn via clip-path; data-facing rotates it.
+   When attachThemeToDisclosure paints a cicn, [data-aaron-cicn-loaded]
+   transparents the CSS triangle so the cicn shows through. */
+
+.aaron-disclosure {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--aaron-colr-fg, #000);
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.aaron-disclosure__glyph {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  background: var(--aaron-colr-fg, #000);
+  clip-path: polygon(20% 0%, 80% 50%, 20% 100%);
+  transform-origin: center;
+  transition: transform 150ms;
+}
+
+.aaron-disclosure[data-facing="down"] .aaron-disclosure__glyph {
+  transform: rotate(90deg);
+}
+
+.aaron-disclosure[aria-disabled="true"],
+.aaron-disclosure[disabled] {
+  color: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+  cursor: not-allowed;
+}
+.aaron-disclosure[aria-disabled="true"] .aaron-disclosure__glyph,
+.aaron-disclosure[disabled] .aaron-disclosure__glyph {
+  background: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
+}
+
+/* Cicn loaded — suppress the CSS clip-path triangle so the cicn shows. */
+.aaron-disclosure__glyph[data-aaron-cicn-loaded] {
+  background: none;
+  clip-path: none;
+  transition: none;
+}
+/* Cicn provides facing-specific artwork; don't apply the rotate. */
+.aaron-disclosure[data-facing] .aaron-disclosure__glyph[data-aaron-cicn-loaded] {
+  transform: none;
+}
+
 /* ─── Text fields (input + textarea) ───────────────────────────────── */
 /* Same path as buttons / checkboxes (#71, #72): no field/frame cicn
    slugs in either canonical bundle. CSS-drawn inset bezel, palette-

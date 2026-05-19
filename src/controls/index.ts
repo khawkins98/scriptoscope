@@ -9,4 +9,10 @@ export {
   type AaronCheckableOptions,
 } from './AaronCheckable.js';
 export { AaronField, promoteFields, type AaronFieldOptions } from './AaronField.js';
+export {
+  AaronDisclosure,
+  promoteDisclosures,
+  type AaronDisclosureOptions,
+  type DisclosureFacing,
+} from './AaronDisclosure.js';
 export { installEngineBaseline } from './engineBaseline.js';
