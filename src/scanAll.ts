@@ -18,6 +18,7 @@
 import { scanForWindows, promoteElement as promoteWindowElement } from './window-manager/scanner.js';
 import {
   promoteButtons,
+  promoteBevelButtons,
   promoteCheckboxes,
   promoteRadios,
   promoteFields,
@@ -42,6 +43,7 @@ let observer: MutationObserver | null = null;
 export function scanAll(root: ParentNode = document): ScanAllResult {
   const windows = scanForWindows(root);
   const buttons = promoteButtons(root as Element);
+  const bevelButtons = promoteBevelButtons(root as Element);
   const checkboxes = promoteCheckboxes(root as Element);
   const radios = promoteRadios(root as Element);
   const fields = promoteFields(root as Element);
@@ -52,6 +54,7 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
   return {
     windows: windows.length,
     buttons: buttons.length,
+    bevelButtons: bevelButtons.length,
     checkboxes: checkboxes.length,
     radios: radios.length,
     fields: fields.length,
@@ -65,6 +68,7 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
 export interface ScanAllResult {
   windows: number;
   buttons: number;
+  bevelButtons: number;
   checkboxes: number;
   radios: number;
   fields: number;
@@ -116,6 +120,7 @@ function onMutations(mutations: MutationRecord[]): void {
       // querySelectorAll picks it up.
       const root = node.parentNode instanceof HTMLElement ? node.parentNode : node;
       promoteButtons(root);
+      promoteBevelButtons(root);
       promoteCheckboxes(root);
       promoteRadios(root);
       promoteFields(root);

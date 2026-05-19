@@ -92,6 +92,52 @@ const ENGINE_BASELINE_CSS = `
     0 0 0 2px var(--aaron-colr-default-button-outline-disabled, rgba(0, 0, 0, 0.3));
 }
 
+/* Bevel-button variant: heavier border, square corners, can carry an
+   on/off/mixed value. Per spec A §3.2. Three size variants. */
+.aaron-button--bevel {
+  border-radius: 2px;
+  border-width: 2px;
+  min-width: 0;
+  padding: 0 8px;
+}
+.aaron-button--bevel[data-size="small"]  { min-height: 16px; font-size: 11px; }
+.aaron-button--bevel[data-size="normal"] { min-height: 20px; font-size: 12px; }
+.aaron-button--bevel[data-size="large"]  { min-height: 28px; font-size: 13px; }
+
+.aaron-button--bevel[data-value="on"] {
+  background: linear-gradient(
+    to bottom,
+    var(--aaron-colr-button-pressed-top, #a8a8a8) 0%,
+    var(--aaron-colr-button-pressed-bottom, #c0c0c0) 100%
+  );
+  box-shadow:
+    inset 1px 1px 1px rgba(0, 0, 0, 0.18),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.aaron-button--bevel[data-value="mixed"] {
+  background: linear-gradient(
+    to bottom,
+    var(--aaron-colr-bg, #d8d8d8) 0%,
+    var(--aaron-colr-button-mid, #c8c8c8) 100%
+  );
+  /* Mixed shows a small marker — diagonal stripe */
+  background-image: linear-gradient(
+    135deg,
+    transparent 35%,
+    var(--aaron-colr-fg, #000) 35%,
+    var(--aaron-colr-fg, #000) 65%,
+    transparent 65%
+  ), linear-gradient(
+    to bottom,
+    var(--aaron-colr-bg, #d8d8d8) 0%,
+    var(--aaron-colr-button-mid, #c8c8c8) 100%
+  );
+  background-size: 6px 6px, 100% 100%;
+  background-position: top right, top left;
+  background-repeat: no-repeat, no-repeat;
+}
+
 /* ─── Checkboxes + radios ──────────────────────────────────────────── */
 /* Same architectural path as push buttons (#71): canonical Kaleidoscope
    bundles ship no checkbox/radio cicn artwork — these were system CDEF

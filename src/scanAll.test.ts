@@ -36,6 +36,7 @@ describe('scanAll (one-shot)', () => {
     expect(result).toEqual({
       windows: 0,
       buttons: 0,
+      bevelButtons: 0,
       checkboxes: 0,
       radios: 0,
       fields: 0,

@@ -2,6 +2,13 @@
 
 export { AaronButton, promoteButtons, type AaronButtonOptions } from './AaronButton.js';
 export {
+  AaronBevelButton,
+  promoteBevelButtons,
+  type AaronBevelButtonOptions,
+  type BevelButtonSize,
+  type BevelButtonValue,
+} from './AaronBevelButton.js';
+export {
   AaronCheckbox,
   AaronRadio,
   promoteCheckboxes,
