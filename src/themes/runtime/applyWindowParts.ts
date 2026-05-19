@@ -89,7 +89,14 @@ export function applyWindowParts(
   windowType: WindowTypeEntry,
   options: ApplyWindowPartsOptions,
 ): WindowPartInfo[] {
-  clearWindowParts(container);
+  // Only clear our own direct children — descendant clears would wipe
+  // out chrome-segment-anchored overlays nested inside `[data-aaron-chrome-segment]`
+  // children. Use `clearWindowParts` (deep) for full teardown.
+  for (const el of Array.from(
+    container.querySelectorAll(`:scope > [${PARTS_OWNER_ATTR}]`),
+  )) {
+    el.parentNode?.removeChild(el);
+  }
 
   const parts = windowType.parts;
   if (!parts) return [];

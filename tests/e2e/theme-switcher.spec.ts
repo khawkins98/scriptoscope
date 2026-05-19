@@ -25,9 +25,9 @@ test.describe('theme switcher (e2e)', () => {
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
     const parts = page.locator('.aaron-window .aaron-titlebar [data-aaron-window-part]');
-    // 7 Le's document-window has 5 parts (titlebar bottom edge + close +
-    // zoom + windowshade + divider).
-    await expect(parts).toHaveCount(5);
+    // 7 Le's document-window has 4 non-body widget parts (close + zoom +
+    // windowshade + divider). part-0 is the content body; not a click target.
+    await expect(parts).toHaveCount(4);
   });
 
   test('swap from 7 Le to ErgoBox 2 cleanly re-renders the chrome', async ({ page }) => {
