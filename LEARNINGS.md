@@ -1315,3 +1315,50 @@ The reset: rather than continuing to iterate the rendering heuristics, we split 
 **Process meta:** when you're cycling on the same problem (#116-#120-#124-#125-#130 all touched the same composition policy with different heuristics), the lesson isn't "try a different heuristic." It's that the problem has been mis-framed. The right move is to **split the conceptual layers** so that the load-bearing decisions land in the layer that can actually settle them — and let the higher layers commit to a stable contract.
 
 **Application:** spec B + spec C work resumes after spec A merges. Both specs reference A's section numbers for cross-cutting elements (e.g., "checkboxes are rendered into the DOM defined in [spec-A §4]"). Treat A as load-bearing — changes to A invalidate sections of B + C, so revisions to A should be deliberate.
+
+## 2026-05-19 — Binary archaeology session (Kaleidoscope 1.8.2 + 2.3.1)
+
+After landing the spec-trilogy rebuild (#132-#143), we did a 4-hour focused archaeology pass on the actual Kaleidoscope binaries (1.8.2 Installer.app + 2.3.1 Installer.bin). Findings + applications:
+
+### What got confirmed (we weren't guessing anymore)
+
+- **Pure QuickDraw + CopyBits architecture.** kDEF 1 (PowerPC, 100KB) imports 174 InterfaceLib symbols, dominated by `CopyBits`, `CopyMask`, region operations, GWorld. NO custom blitter. Stretching = sample-and-hold via CopyBits-with-different-src/dst-sizes. **Our `image-rendering: pixelated` IS the same algorithm, not an approximation.**
+
+- **Buttons drawn by OS, not Kaleidoscope.** kDEF 1 imports only 2 symbols from AppearanceLib: `GetMenuItemIconHandle` + `SetUpControlBackground`. The second one is the giveaway — Kaleidoscope sets up the BACKGROUND for a control before AppearanceLib + system CDEF draws the control on top. **Aaron UI's AaronButton CSS-only approach is period-correct, not a compromise.**
+
+- **kDEF is table-driven.** Only 4 literal `_GetResource(type, id)` calls in the entire 60KB 68k kDEF. All other resource lookups use computed IDs from internal dispatch tables. Confirms spec C §11's table-driven composer model.
+
+### What got reframed
+
+- **§13.2 tile-vs-stretch threshold isn't a thing in Kaleidoscope.** Each segment is either stamped-at-native, stretched-via-1px-source, or tiled-via-cinf.tileSides. Our `TINY_STRETCH_THRESHOLD = 2` is a CSS-border-image artifact, not period intent. Documented in spec B §3.2 + the mapping doc.
+
+- **15-value resize matrix is practically a 10-value matrix.** Zero anchor-* behaviors observed across all 7 bundled schemes. Behaviors 0-9 (stretch-* + repeat-*) cover 100% of corpus. The 10-14 encoding remains technically open but practically settled.
+
+### What got built from findings
+
+- `bgAnchor` field in chrome-element schema (#149) — surfaces the explicit pixel coords for color extraction that the cinf TMPL 129 already carries
+- `extractColorsFromCicn()` helper (#149) — sampling helper that uses bgAnchor / textAnchor / embossAnchor
+- Colr resource decoder (#151) — was missing entirely; populates `theme.options.stretchScrollbarThumbFromCenter` + `theme.origin.minimumKaleidoscopeVersion`
+- Two re-extracted bundled themes (47 + 57 entries with new bgAnchor data)
+
+### What's still open after the session
+
+- **Colr bytes 5-15** (the additional flags introduced after Kaleidoscope 2.1): Unified Scroll Bar Track, Windows-style Scrollbars, etc. Their byte layout isn't in the bundled-with-scheme TMPL 128.
+- **§13.1 divider sandwich semantics** (parts 5/6): not directly visible from binary surface analysis.
+- **15-value resize matrix bits 10-14**: theoretically open, practically irrelevant for the corpus.
+
+### Methodology meta-lesson
+
+Disassembly without an interactive disassembler (Ghidra/IDA) is doable for **architectural confirmation** but not for **single-instruction tracing**. A 4-hour focused session can:
+- Extract resources from a classic Mac binary
+- Parse PEF symbol tables for high-level imports
+- Find literal `_GetResource(type, id)` call sites
+- Compare flag values across multiple schemes to triangulate semantics
+
+It CAN'T (in the same timebox):
+- Trace inner loops (e.g., the cinf parser at `kDEF 0` `0x77b4+`)
+- Recover undocumented bit layouts (e.g., Colr bytes 5-15)
+
+Net value: **moderate.** Confirmed several design decisions weren't guesses, surfaced two concrete actionable changes (bgAnchor + Colr decoder), reframed one open question. Cost: ~4 hours.
+
+Future deeper traces should: (1) install Ghidra + load the PEF for the PowerPC kDEF (has symbol info), (2) follow specific named functions like `DrawWindow*` rather than scanning all instructions.
