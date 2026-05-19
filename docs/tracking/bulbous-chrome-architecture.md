@@ -1,6 +1,10 @@
 # Tracking: bulbous chrome + Mac window-model alignment
 
-**Status:** Phase 1 IN-FLIGHT (#158). The CSS-only piece of the refactor (chrome layers protrude via negative absolute offsets + `overflow: visible`) has shipped; positioning-semantics shift (content-rect vs. structure-rect) deferred. Bulbous schemes now have the DOM/CSS hooks they need; the runtime + AaronWindow drag/resize haven't yet been re-anchored to operate on the content rect.
+**Status:** Phase 1 + Phase 2 LANDED (#158 + #160 + this PR). The user's `width`/`height` now always describes the CONTENT rect; chrome (titlebar + side/bottom edges) lives OUTSIDE the content rect via absolute positioning, in both themed and unthemed modes. Drag/resize math reads `.aaron-window`'s box (which IS the content rect) and uses `getFrameThickness()` to keep the full footprint on-screen for clamp + maximize. Bulbous schemes have the DOM/CSS + runtime hooks they need.
+
+**Followups (not blocking):**
+- Resize-handle clamping: still operates on content rect only; for very small windows the chrome can technically extend past the viewport during a resize. Cosmetic.
+- AaronWindow's public `boundsMode` opt-out for legacy structure-rect consumers: not implemented. No known consumers exist; revisit if a real one emerges.
 
 ---
 
