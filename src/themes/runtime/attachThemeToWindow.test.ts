@@ -9,11 +9,13 @@ const theme: Theme = {
     'document-window': {
       chrome: { active: 'cicns/a.png', inactive: 'cicns/i.png' },
       parts: { 'part-0': { rect: [1, 22, 72, 23] } },
+      // Edge with a non-part-0 segment so the composer actually renders.
+      // (part-0 is the K2 null marker — don't draw.)
       edges: {
-        top: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-0' }],
-        bottom: [{ at: 0, part: 'part-0' }],
-        left: [{ at: 0, part: 'part-0' }],
-        right: [{ at: 0, part: 'part-0' }],
+        top: [{ at: 0, part: 'part-0' }, { at: 1, part: 'part-8' }, { at: 73, part: 'part-0' }],
+        bottom: [{ at: 0, part: 'part-8' }],
+        left: [{ at: 0, part: 'part-8' }],
+        right: [{ at: 0, part: 'part-8' }],
       },
     },
   },
@@ -61,7 +63,7 @@ describe('attachThemeToWindow', () => {
         'document-window': {
           chrome: { active: 'cicns/other.png' },
           parts: { 'part-0': { rect: [1, 22, 72, 23] } },
-          edges: { top: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-0' }] },
+          edges: { top: [{ at: 0, part: 'part-8' }, { at: 73, part: 'part-0' }] },
         },
       },
       chromeElements: {
