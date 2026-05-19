@@ -1148,154 +1148,193 @@
       }
     }
 
-    // DOM mapping — walk the first .aaron-window and label each
-    // chrome-related element with the source data it came from.
-    // Answers the "I see the data, but where does it land in the DOM?"
-    // question without requiring devtools archaeology.
+    // DOM mapping — VISUAL version. Shows the chrome cicn at scale
+    // with each recipe segment colored + labeled, so the user can see
+    // "this slice of the cicn becomes this segment of the rendered
+    // window" without reading a table.
     function renderDomMapping(theme) {
       const host = document.getElementById('dom-mapping-host');
       host.innerHTML = '';
-      const win = document.querySelector('.aaron-window');
-      if (!win) {
-        host.innerHTML = '<div class="nothing">No .aaron-window mounted yet.</div>';
+
+      const winType = theme.windowTypes?.['document-window'];
+      if (!winType) {
+        host.innerHTML = '<div class="nothing">No document-window type in this scheme.</div>';
+        return;
+      }
+      const parts = winType.parts ?? {};
+      const edges = winType.edges ?? {};
+      const chrome = winType.chrome ?? {};
+      const cicnUrl = chrome.active ?? chrome.inactive ?? '';
+      const cicnEntry = Object.values(theme.chromeElements ?? {}).find((e) => e.asset === cicnUrl);
+      if (!cicnUrl || !cicnEntry?.width || !cicnEntry?.height) {
+        host.innerHTML = '<div class="nothing">No chrome cicn to visualize.</div>';
         return;
       }
 
-      const winType = theme.windowTypes?.['document-window'];
-      const parts = winType?.parts ?? {};
-      const edges = winType?.edges ?? {};
-      const chrome = winType?.chrome ?? {};
-      const cicnUrl = chrome.active ?? chrome.inactive ?? '';
-      const chromeEntry = Object.values(theme.chromeElements ?? {}).find((e) => e.asset === cicnUrl);
-      const cicnSlug = Object.entries(theme.chromeElements ?? {}).find(([, e]) => e.asset === cicnUrl)?.[0];
+      // Color palette — one stable color per (side, segment-index) pair
+      // so visual matches across recipe entries stay legible.
+      const colors = ['#f55','#5d5','#56f','#fa5','#5af','#a5f','#5fa','#fa3','#a5a','#5aa','#aa5','#fbb','#bfb','#bbf'];
+      const colorFor = (side, i) => colors[(i + (side === 'top' ? 0 : side === 'right' ? 5 : side === 'bottom' ? 8 : 11)) % colors.length];
 
-      const lines = [];
+      const scale = 6; // pixel multiplier for the cicn preview
+      const cw = cicnEntry.width;
+      const ch = cicnEntry.height;
+      const bodyRect = parts['part-0']?.rect ?? [0, 0, cw, ch];
+      const [bl, bt, br, bb] = bodyRect;
+      const thickness = {
+        top: Math.max(1, bt),
+        right: Math.max(1, cw - br),
+        bottom: Math.max(1, ch - bb),
+        left: Math.max(1, bl),
+      };
 
-      function addRow(elementLabel, sourceLabel, details) {
-        lines.push({ elementLabel, sourceLabel, details });
-      }
+      // Container layout: cicn preview LEFT, legend table RIGHT
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);gap:18px;align-items:start;';
+      host.appendChild(wrap);
 
-      // .aaron-window itself
-      addRow(
-        '<div class="aaron-window">',
-        `windowType "document-window" (state=${win.getAttribute('data-state') ?? '?'})`,
-        win.getAttribute('data-aaron-chrome') === 'on'
-          ? `chrome on — overflow:visible, frame vars set: top=${win.style.getPropertyValue('--aaron-frame-top-px')}, right=${win.style.getPropertyValue('--aaron-frame-right-px')}, bottom=${win.style.getPropertyValue('--aaron-frame-bottom-px')}, left=${win.style.getPropertyValue('--aaron-frame-left-px')}`
-          : 'chrome off — engine-baseline CSS only',
-      );
+      // ─── Left: cicn at scale with segment overlays ─────────────────
+      const cicnPanel = document.createElement('div');
+      cicnPanel.style.cssText = 'position:relative;background:repeating-conic-gradient(#333 0% 25%,#1c1c1f 0% 50%) 50%/8px 8px;padding:8px;border:1px solid #44444a;border-radius:4px;';
+      const cicnStage = document.createElement('div');
+      cicnStage.style.cssText = `position:relative;display:inline-block;width:${cw * scale}px;height:${ch * scale}px;`;
+      const img = document.createElement('img');
+      img.src = cicnUrl;
+      img.style.cssText = `width:${cw * scale}px;height:${ch * scale}px;image-rendering:pixelated;display:block;`;
+      cicnStage.appendChild(img);
 
-      // Titlebar (top edge host)
-      const titlebar = win.querySelector('.aaron-titlebar');
-      if (titlebar) {
-        const topRecipe = edges.top ?? [];
-        addRow(
-          '<div class="aaron-titlebar" data-aaron-chrome-edge="top">',
-          `wnd# top recipe (${topRecipe.length} entries) — chromeElement "${cicnSlug ?? '?'}"`,
-          `Hosts top-edge segments + titlebar__title text. Positioned absolute at top:-frame-top in themed mode.`,
-        );
-        const titleWrap = titlebar.querySelector('.aaron-titlebar__title');
-        if (titleWrap) {
-          addRow(
-            '  <div class="aaron-titlebar__title">',
-            'title text from AaronWindow options.title',
-            `centered via title-pill CSS vars; z-index:2 so it overlays chrome segments.`,
-          );
-        }
-        // Segments
-        const segs = Array.from(titlebar.querySelectorAll(':scope > [data-aaron-chrome-segment]'));
-        segs.forEach((seg, i) => {
-          const segAttr = seg.getAttribute('data-aaron-chrome-segment') ?? '';
-          const recipeEntry = topRecipe[i];
-          const slice = seg.style.borderImageSlice;
-          const flex = seg.style.flex;
-          addRow(
-            `  <div data-aaron-chrome-segment="${segAttr}">`,
-            recipeEntry ? `top[${i}] {at: ${recipeEntry.at}, part: ${recipeEntry.part}}` : '(beyond recipe)',
-            `border-image-slice: ${slice}; flex: ${flex}`,
-          );
-        });
-      }
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${cw} ${ch}`);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.cssText = 'position:absolute;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px);pointer-events:auto;';
+      svg.style.width = `${cw * scale}px`;
+      svg.style.height = `${ch * scale}px`;
+      svg.style.left = '8px';
+      svg.style.top = '8px';
+      svg.style.inset = '';
 
-      // Side + bottom edges
-      for (const side of ['left', 'right', 'bottom']) {
-        const edgeEl = win.querySelector(`.aaron-window__edge--${side}`);
-        if (!edgeEl) continue;
+      // For each edge, draw colored rectangles for each recipe segment
+      const allSegments = []; // for the legend
+      for (const side of ['top','right','bottom','left']) {
         const recipe = edges[side] ?? [];
-        const segs = Array.from(edgeEl.querySelectorAll(':scope > [data-aaron-chrome-segment]'));
-        addRow(
-          `<div class="aaron-window__edge--${side}" data-aaron-chrome-edge="${side}">`,
-          `wnd# ${side} recipe (${recipe.length} entries)`,
-          `${segs.length} segments rendered. Positioned outside content rect (negative ${side === 'bottom' ? 'bottom' : side === 'left' ? 'left' : 'right'}) in themed mode.`,
-        );
-        segs.forEach((seg, i) => {
-          const segAttr = seg.getAttribute('data-aaron-chrome-segment') ?? '';
-          const recipeEntry = recipe[i];
-          addRow(
-            `  <div data-aaron-chrome-segment="${segAttr}">`,
-            recipeEntry ? `${side}[${i}] {at: ${recipeEntry.at}, part: ${recipeEntry.part}}` : '(beyond recipe)',
-            `border-image-slice: ${seg.style.borderImageSlice}`,
-          );
-        });
-      }
+        if (recipe.length === 0) continue;
+        const isVertical = side === 'left' || side === 'right';
+        const axisMax = isVertical ? ch : cw;
+        const sideThickness = thickness[side];
+        const sorted = [...recipe].sort((a, b) => a.at - b.at);
+        const sentinel = { at: axisMax, part: '__end__' };
+        const cursor = [...sorted, sentinel];
 
-      // Window-part hit-target overlays
-      const partOverlays = Array.from(win.querySelectorAll('[data-aaron-window-part]'));
-      if (partOverlays.length > 0) {
-        addRow(
-          'Hit-target overlays (.aaron-titlebar > [data-aaron-window-part])',
-          `${partOverlays.length} parts from wnd# rectangleList`,
-          'Invisible buttons positioned over the named-widget rects (close/zoom/collapse). Sourced from windowType.parts[].',
-        );
-        for (const overlay of partOverlays) {
-          const partName = overlay.getAttribute('data-aaron-window-part') ?? '?';
-          const partRect = parts[partName]?.rect;
-          addRow(
-            `  <... data-aaron-window-part="${partName}">`,
-            partRect ? `parts.${partName}.rect = [${partRect.join(', ')}]` : '(no rect)',
-            `left: ${overlay.style.left}; top: ${overlay.style.top}; width: ${overlay.style.width}; height: ${overlay.style.height}`,
-          );
+        for (let i = 0; i < cursor.length - 1; i++) {
+          const cur = cursor[i], next = cursor[i+1];
+          const span = next.at - cur.at;
+          if (span <= 0) continue;
+          if (cur.part === 'part-0') continue;
+
+          // Position the colored band on the cicn at this segment's pixel range
+          let x, y, w, h;
+          if (side === 'top') {
+            x = cur.at; y = 0; w = span; h = sideThickness;
+          } else if (side === 'bottom') {
+            x = cur.at; y = ch - sideThickness; w = span; h = sideThickness;
+          } else if (side === 'left') {
+            x = 0; y = cur.at; w = sideThickness; h = span;
+          } else {
+            x = cw - sideThickness; y = cur.at; w = sideThickness; h = span;
+          }
+          const c = colorFor(side, i);
+          const isNamed = cur.part in parts && cur.part !== 'part-0';
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', String(x));
+          rect.setAttribute('y', String(y));
+          rect.setAttribute('width', String(w));
+          rect.setAttribute('height', String(h));
+          rect.setAttribute('fill', c);
+          rect.setAttribute('fill-opacity', isNamed ? '0.5' : '0.25');
+          rect.setAttribute('stroke', c);
+          rect.setAttribute('stroke-width', '0.3');
+          rect.setAttribute('stroke-opacity', '0.95');
+          svg.appendChild(rect);
+
+          allSegments.push({ side, i, color: c, span, part: cur.part, isNamed, at: cur.at });
         }
       }
 
-      // Content area
-      const content = win.querySelector('.aaron-content');
-      if (content) {
-        const hasPattern = content.style.backgroundImage !== '';
-        addRow(
-          '<div class="aaron-content">',
-          'consumer-provided HTML',
-          hasPattern
-            ? `bg pattern applied: ${content.style.backgroundImage} (from cinf.bgPatternId → patterns[${chromeEntry?.bgPattern}])`
-            : `no body pattern (cinf.bgPatternId is 0 / unset)`,
-        );
-      }
+      // Highlight the BODY rect (where pattern fills + content lives)
+      const bodyHighlight = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bodyHighlight.setAttribute('x', String(bl));
+      bodyHighlight.setAttribute('y', String(bt));
+      bodyHighlight.setAttribute('width', String(br - bl));
+      bodyHighlight.setAttribute('height', String(bb - bt));
+      bodyHighlight.setAttribute('fill', 'none');
+      bodyHighlight.setAttribute('stroke', '#fff');
+      bodyHighlight.setAttribute('stroke-width', '0.4');
+      bodyHighlight.setAttribute('stroke-dasharray', '0.7 0.7');
+      svg.appendChild(bodyHighlight);
 
-      // Render the table
+      cicnStage.appendChild(svg);
+      cicnPanel.appendChild(cicnStage);
+      const cicnCaption = document.createElement('div');
+      cicnCaption.style.cssText = 'margin-top:8px;font-size:11px;opacity:0.7;font-family:ui-monospace,Menlo,monospace;';
+      cicnCaption.textContent = `chrome cicn @ ${cw}×${ch}, shown at ${scale}× scale. Dashed white = body rect (content area). Colored bands = recipe segments (semi-transparent fills for named widgets; lighter for fills).`;
+      cicnPanel.appendChild(cicnCaption);
+
+      wrap.appendChild(cicnPanel);
+
+      // ─── Right: legend keyed by color ──────────────────────────────
+      const legend = document.createElement('div');
+      legend.innerHTML = '<h4 style="margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;opacity:0.7;">Recipe segments → DOM</h4>';
       const tbl = document.createElement('table');
-      tbl.style.width = '100%';
+      tbl.style.cssText = 'width:100%;font-size:11px;';
       tbl.innerHTML = `<thead><tr>
-        <th style="width:30%;">DOM element</th>
-        <th style="width:30%;">Source data</th>
-        <th>Inline / computed</th>
+        <th style="width:24px;"></th>
+        <th>Recipe</th>
+        <th>Renders as</th>
       </tr></thead>`;
       const tbody = document.createElement('tbody');
-      for (const row of lines) {
+      for (const s of allSegments) {
         const tr = document.createElement('tr');
-        const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const partSlug = s.part;
+        const renderAs = s.isNamed
+          ? `widget:${partSlug} (pin @ ${s.span}px native)`
+          : `fill:${partSlug} (stretch)`;
         tr.innerHTML = `
-          <td><code style="font-size:11px;">${escape(row.elementLabel)}</code></td>
-          <td style="font-size:11px;">${escape(row.sourceLabel)}</td>
-          <td style="font-size:11px;opacity:0.75;">${escape(row.details)}</td>
+          <td><span style="display:inline-block;width:14px;height:14px;background:${s.color};border-radius:2px;opacity:${s.isNamed ? '0.7' : '0.4'};"></span></td>
+          <td style="font-family:ui-monospace,Menlo,monospace;">${s.side}[${s.i}] {at:${s.at}, part:${partSlug}}</td>
+          <td style="font-family:ui-monospace,Menlo,monospace;opacity:0.85;">${renderAs}</td>
         `;
         tbody.appendChild(tr);
       }
       tbl.appendChild(tbody);
-      host.appendChild(tbl);
+      legend.appendChild(tbl);
 
-      const note = document.createElement('div');
-      note.style.cssText = 'margin-top:10px;font-size:11px;opacity:0.65;';
-      note.textContent = `Snapshot at ${new Date().toLocaleTimeString()}. Re-render on scheme swap. Inspect any element above via browser devtools to see the live state.`;
-      host.appendChild(note);
+      // Body rect summary
+      const bodySummary = document.createElement('div');
+      bodySummary.style.cssText = 'margin-top:14px;padding:8px 10px;background:#1c1c1f;border-left:3px solid #fff;font-size:11px;';
+      bodySummary.innerHTML = `
+        <div><strong>Body rect (part-0):</strong> <code>[${bodyRect.join(', ')}]</code></div>
+        <div style="opacity:0.7;margin-top:4px;">→ frame thickness: top=${thickness.top}, right=${thickness.right}, bottom=${thickness.bottom}, left=${thickness.left} px</div>
+        <div style="opacity:0.7;margin-top:4px;">→ runtime stamps these as <code>--aaron-frame-*-px</code> CSS vars</div>
+      `;
+      legend.appendChild(bodySummary);
+
+      // Named parts (hit targets)
+      const partList = Object.entries(parts).filter(([slug]) => slug !== 'part-0');
+      if (partList.length > 0) {
+        const partSummary = document.createElement('div');
+        partSummary.style.cssText = 'margin-top:10px;padding:8px 10px;background:#1c1c1f;border-left:3px solid #f5a;font-size:11px;';
+        partSummary.innerHTML = '<div style="font-weight:700;color:#f5a;margin-bottom:4px;">Named-widget rects (hit targets)</div>';
+        for (const [slug, p] of partList) {
+          const [pl, pt, pr, pb] = p.rect;
+          const line = document.createElement('div');
+          line.style.cssText = 'font-family:ui-monospace,Menlo,monospace;opacity:0.85;margin-top:2px;';
+          line.textContent = `${slug}: rect [${p.rect.join(', ')}] (${pr-pl}×${pb-pt}px)`;
+          partSummary.appendChild(line);
+        }
+        legend.appendChild(partSummary);
+      }
+
+      wrap.appendChild(legend);
     }
 
     // Lazy extraction — triggered by a button click so the parallel
