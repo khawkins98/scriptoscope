@@ -97,6 +97,7 @@ export function buildThemeJson(manifest, options = {}) {
       bgPattern: cd && cd.bgPatternId !== 0
         ? (ppatSlugById[cd.bgPatternId] ?? null)
         : null,
+      bgAnchor:     cd ? coordTuple(cd.bgPixel)     : null,
       textAnchor:   cd ? coordTuple(cd.textPixel)   : null,
       embossAnchor: cd ? coordTuple(cd.embossPixel) : null,
       sourceCicnId: cicn.id,

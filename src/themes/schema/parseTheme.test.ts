@@ -223,6 +223,32 @@ describe('parseTheme', () => {
         }),
       ).toThrow(/theme\.json\.chromeElements\.x\.textAnchor/);
     });
+
+    it('parses bgAnchor alongside text + emboss anchors', () => {
+      const t = parseTheme({
+        version: '0.1',
+        chromeElements: {
+          x: {
+            asset: 'x.png',
+            bgAnchor: [1, 22],
+            textAnchor: [12, 6],
+            embossAnchor: [1, 1],
+          },
+        },
+      });
+      expect(t.chromeElements?.['x']?.bgAnchor).toEqual([1, 22]);
+      expect(t.chromeElements?.['x']?.textAnchor).toEqual([12, 6]);
+      expect(t.chromeElements?.['x']?.embossAnchor).toEqual([1, 1]);
+    });
+
+    it('validates bgAnchor as [x, y] pair', () => {
+      expect(() =>
+        parseTheme({
+          version: '0.1',
+          chromeElements: { x: { asset: 'x.png', bgAnchor: [1] } },
+        }),
+      ).toThrow(/theme\.json\.chromeElements\.x\.bgAnchor/);
+    });
   });
 
   describe('windowTypes', () => {

@@ -68,6 +68,12 @@ export {
   type ExtendedConformanceReport,
   type FamilyCount,
 } from './conformanceReport.js';
+// Color extraction from cinf-anchored cicn pixels (spec B §4.16-§4.18).
+// Surfaced as runtime helper; future spec-B implementations consume it.
+export {
+  extractColorsFromCicn,
+  type ExtractedColors,
+} from './extractColorsFromCicns.js';
 // Attach helpers for cicn-driven controls.
 export { attachThemeToCheckable } from './attachThemeToCheckable.js';
 export { attachThemeToDisclosure } from './attachThemeToDisclosure.js';

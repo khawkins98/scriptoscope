@@ -135,6 +135,11 @@ export interface ChromeElementEntry {
   slice?: SliceSpec | null;
   /** Slug into the `patterns` catalog, or null. Overlay tile composited at runtime. */
   bgPattern?: string | null;
+  /** [x, y] pixel coord in the cicn from which Kaleidoscope extracts the
+   *  control's BACKGROUND color (used by spec B §4.16-§4.18 color
+   *  extraction for dialog/alert/Finder colors). Per cinf TMPL 129;
+   *  confirmed via kDEF disassembly. */
+  bgAnchor?: [number, number] | null;
   /** [x, y] pixel anchor for text labels (button captions, menu items). */
   textAnchor?: [number, number] | null;
   /** [x, y] pixel offset for the engraved-emboss text-shadow effect. */

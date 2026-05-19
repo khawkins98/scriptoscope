@@ -139,6 +139,9 @@ function validateChromeElements(value, path) {
     if ('bgPattern' in c && c.bgPattern !== null) {
       assertString(c.bgPattern, `${path}.${key}.bgPattern`);
     }
+    if ('bgAnchor' in c && c.bgAnchor !== null) {
+      assertPair(c.bgAnchor, `${path}.${key}.bgAnchor`);
+    }
     if ('textAnchor' in c && c.textAnchor !== null) {
       assertPair(c.textAnchor, `${path}.${key}.textAnchor`);
     }
