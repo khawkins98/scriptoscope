@@ -31,7 +31,7 @@ test.describe('bundled-default auto-load (e2e)', () => {
     await expect(page.locator('#status')).toHaveText('auto-loaded: mass:werk 7 Le');
 
     const parts = page.locator('.aaron-window .aaron-titlebar [data-aaron-window-part]');
-    // 7 Le's document-window has 5 named parts.
-    await expect(parts).toHaveCount(5);
+    // 7 Le's document-window has 4 non-body widget parts (part-0 is body).
+    await expect(parts).toHaveCount(4);
   });
 });
