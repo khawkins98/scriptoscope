@@ -22,6 +22,8 @@ import {
   promoteRadios,
   promoteFields,
   promoteDisclosures,
+  promotePlacards,
+  promoteWindowHeaders,
 } from './controls/index.js';
 
 const WINDOW_SOURCE_SELECTOR =
@@ -43,6 +45,8 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
   const radios = promoteRadios(root as Element);
   const fields = promoteFields(root as Element);
   const disclosures = promoteDisclosures(root as Element);
+  const placards = promotePlacards(root as Element);
+  const windowHeaders = promoteWindowHeaders(root as Element);
   return {
     windows: windows.length,
     buttons: buttons.length,
@@ -50,6 +54,8 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
     radios: radios.length,
     fields: fields.length,
     disclosures: disclosures.length,
+    placards: placards.length,
+    windowHeaders: windowHeaders.length,
   };
 }
 
@@ -60,6 +66,8 @@ export interface ScanAllResult {
   radios: number;
   fields: number;
   disclosures: number;
+  placards: number;
+  windowHeaders: number;
 }
 
 /**
@@ -108,6 +116,8 @@ function onMutations(mutations: MutationRecord[]): void {
       promoteRadios(root);
       promoteFields(root);
       promoteDisclosures(root);
+      promotePlacards(root);
+      promoteWindowHeaders(root);
     }
   }
 }

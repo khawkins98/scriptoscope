@@ -40,6 +40,8 @@ describe('scanAll (one-shot)', () => {
       radios: 0,
       fields: 0,
       disclosures: 0,
+      placards: 0,
+      windowHeaders: 0,
     });
   });
 
