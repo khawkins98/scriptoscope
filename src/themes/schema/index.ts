@@ -3,6 +3,8 @@
 export {
   THEME_SCHEMA_VERSION,
   type ChromeElementEntry,
+  type ConformanceReport,
+  type CursorEntry,
   type EdgeRecipe,
   type PartEntry,
   type PatternEntry,

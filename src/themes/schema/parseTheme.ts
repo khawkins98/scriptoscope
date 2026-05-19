@@ -7,6 +7,7 @@
 import {
   THEME_SCHEMA_VERSION,
   type ChromeElementEntry,
+  type CursorEntry,
   type EdgeRecipe,
   type PartEntry,
   type PatternEntry,
@@ -76,6 +77,8 @@ export function parseTheme(input: unknown): Theme {
     out.patterns = parsePatterns(root['patterns'], 'theme.json.patterns');
   if ('palette' in root)
     out.palette = parsePalette(root['palette'], 'theme.json.palette');
+  if ('cursors' in root)
+    out.cursors = parseCursors(root['cursors'], 'theme.json.cursors');
 
   return out;
 }
@@ -331,6 +334,22 @@ function parsePatterns(value: unknown, path: string): Record<string, PatternEntr
       }
       entry.repeat = r;
     }
+    out[key] = entry;
+  }
+  return out;
+}
+
+function parseCursors(value: unknown, path: string): Record<string, CursorEntry> {
+  const obj = assertObject(value, path);
+  const out: Record<string, CursorEntry> = {};
+  for (const [key, raw] of Object.entries(obj)) {
+    const cur = assertObject(raw, `${path}.${key}`);
+    const entry: CursorEntry = {
+      asset: assertString(cur['asset'], `${path}.${key}.asset`),
+      hotspot: parsePair(cur['hotspot'], `${path}.${key}.hotspot`),
+    };
+    if ('fallback' in cur)
+      entry.fallback = assertString(cur['fallback'], `${path}.${key}.fallback`);
     out[key] = entry;
   }
   return out;

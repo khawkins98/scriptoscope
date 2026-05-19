@@ -193,4 +193,22 @@ describe('resolveAssetUrls (pure)', () => {
     // collapsed-inactive was absent — stays absent.
     expect(out.windowTypes?.['document']?.chrome['collapsed-inactive']).toBeUndefined();
   });
+
+  it('resolves cursors asset paths', () => {
+    const t: Theme = {
+      version: THEME_SCHEMA_VERSION,
+      cursors: {
+        arrow: { asset: 'cursors/arrow.png', hotspot: [1, 1] },
+        contextual: {
+          asset: 'cursors/contextual.png',
+          hotspot: [1, 1],
+          fallback: 'context-menu',
+        },
+      },
+    };
+    const out = resolveAssetUrls(t, 'http://localhost/bundle/theme.json');
+    expect(out.cursors?.['arrow']?.asset).toBe('http://localhost/bundle/cursors/arrow.png');
+    expect(out.cursors?.['arrow']?.hotspot).toEqual([1, 1]);
+    expect(out.cursors?.['contextual']?.fallback).toBe('context-menu');
+  });
 });

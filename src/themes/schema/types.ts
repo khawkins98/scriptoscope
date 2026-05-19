@@ -1,9 +1,17 @@
-// theme.json schema — TypeScript codification of docs/kaleidoscope-geometry-spec.md §7.
+// theme.json schema — TypeScript codification of the `Theme` data object
+// defined in docs/aaron-ui-composer-spec.md §3 (spec C).
 //
-// Every shape here maps to a Kaleidoscope resource category: ChromeElementEntry
-// to cicn + cinf; PartEntry to wnd# parts; PatternEntry to ppat; palette to Colr.
-// See the geometry spec for the binary-format derivation, and
-// docs/runtime-rendering-architecture.md for how these become DOM at runtime.
+// Every shape here maps to a Kaleidoscope resource category:
+//   - ChromeElementEntry → cicn + cinf
+//   - PartEntry          → wnd# named parts
+//   - PatternEntry       → ppat
+//   - palette            → extracted colors (Colr / dialog cicns / Finder cicns)
+//   - options            → Colr scheme-global flags
+//   - cursors            → crsr resources
+//
+// See docs/aaron-ui-architecture-spec.md §6 for canonical resource IDs and
+// docs/aaron-ui-raster-mapping-spec.md (spec B) for how these become DOM at
+// runtime.
 
 export const THEME_SCHEMA_VERSION = '0.1' as const;
 
@@ -27,6 +35,9 @@ export interface Theme {
   patterns?: Record<string, PatternEntry>;
   /** CSS-ready palette derived from the scheme's `Colr` resource. */
   palette?: Record<string, string>;
+  /** Cursors (crsr resources) extracted from the scheme. Keyed by slug
+   *  (`arrow`, `contextual-menu`, `alias`, `copy`). Per spec A §18 + spec B §4.19. */
+  cursors?: Record<string, CursorEntry>;
 
   // ─── Extractor draft metadata ───────────────────────────────────────────
   // These fields are populated by tools/scheme-extractor on emit. They're
@@ -180,4 +191,27 @@ export interface PatternEntry {
   asset: string;
   /** Repeat axis. Default: "both" (CSS: `background-repeat: repeat`). */
   repeat?: 'horizontal' | 'vertical' | 'both';
+}
+
+/** A cursor (crsr resource) — PNG + hotspot for CSS `cursor: url(...)`. */
+export interface CursorEntry {
+  /** PNG path relative to the bundle root. */
+  asset: string;
+  /** [x, y] hotspot in cursor-pixel coordinates. CSS: `cursor: url(...) x y, fallback`. */
+  hotspot: [number, number];
+  /** Optional CSS-cursor fallback keyword. Defaults to `auto` if absent.
+   *  Examples: `context-menu` (for contextual cursor), `alias`, `copy`. */
+  fallback?: string;
+}
+
+/** Conformance report emitted by the loader. Per spec C §4.5 + spec B §12. */
+export interface ConformanceReport {
+  /** Total cicns decoded from the resource fork. */
+  cicnsExtracted: number;
+  /** Cicns the runtime can render (consumed by windowTypes or known control families). */
+  cicnsRendered: number;
+  /** Missing-resource fallbacks the loader applied (per spec B §9). */
+  fallbacks: Array<{ kind: string; from: string; to: string; reason: string }>;
+  /** Validation warnings — well-formed but suspicious data. */
+  warnings: string[];
 }
