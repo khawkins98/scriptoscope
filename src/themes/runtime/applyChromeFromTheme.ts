@@ -105,6 +105,11 @@ export function applyChromeFromTheme(
     clearKaleidoscopeChrome(windowEl);
   }
 
+  // Body background pattern — cinf.bgPatternId → ppat slug → CSS
+  // background-image on .aaron-content. Per spec B §2.3 + §4.1.
+  const content = windowEl.querySelector<HTMLElement>('.aaron-content');
+  if (content) applyBodyPattern(content, theme, chromeEntry);
+
   // Hit-target overlays for wnd# parts (close, zoom, windowshade, etc.) —
   // invisible by default. The visible chrome comes from the composer
   // above; these overlays exist so future PRs can attach click handlers
@@ -135,6 +140,12 @@ export function applyChromeFromTheme(
 export function clearChromeFromTheme(windowEl: HTMLElement): void {
   clearKaleidoscopeChrome(windowEl);
   clearColrFlags(windowEl);
+  const content = windowEl.querySelector<HTMLElement>('.aaron-content');
+  if (content) {
+    content.style.backgroundImage = '';
+    content.style.backgroundRepeat = '';
+    content.style.imageRendering = '';
+  }
   const titlebar = windowEl.querySelector<HTMLElement>('.aaron-titlebar');
   if (!titlebar) return;
   clearWindowParts(titlebar);
@@ -206,4 +217,28 @@ function stampColrFlags(windowEl: HTMLElement, theme: Theme): void {
 
 function clearColrFlags(windowEl: HTMLElement): void {
   for (const [, attr] of COLR_FLAG_ATTRS) windowEl.removeAttribute(attr);
+}
+
+// Resolve cinf.bgPatternId → ppat asset URL → CSS background on the
+// .aaron-content element. Per spec B §2.3 + §4.1. The bgPattern slug
+// on the ChromeElementEntry was resolved at extraction time
+// (buildThemeJson) to a key in theme.patterns.
+function applyBodyPattern(
+  content: HTMLElement,
+  theme: Theme,
+  chromeEntry: ChromeElementEntry,
+): void {
+  const slug = chromeEntry.bgPattern;
+  const pat = slug ? theme.patterns?.[slug] : undefined;
+  if (!pat?.asset) {
+    content.style.backgroundImage = '';
+    content.style.backgroundRepeat = '';
+    return;
+  }
+  content.style.backgroundImage = `url("${pat.asset.replace(/"/g, '\\"')}")`;
+  // Patterns are 8×8 or 16×16 tiles meant to repeat at native size
+  // per K2; never stretch or scale. Pixel-art rendering keeps them crisp.
+  content.style.backgroundRepeat = pat.repeat === 'horizontal' ? 'repeat-x'
+    : pat.repeat === 'vertical' ? 'repeat-y' : 'repeat';
+  content.style.imageRendering = 'pixelated';
 }
