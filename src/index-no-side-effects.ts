@@ -25,6 +25,14 @@ export {
   type ScanAllResult,
 } from './scanAll.js';
 
+// Conformance reporting — spec C §4.5 + spec B §12.
+export {
+  computeConformanceReport,
+  classifyCicnFamily,
+  type ExtendedConformanceReport,
+  type FamilyCount,
+} from './themes/runtime/conformanceReport.js';
+
 // Theme schema — types + runtime validator for theme.json bundles.
 // Schema definition: docs/aaron-ui-composer-spec.md (spec C) §3.
 export {

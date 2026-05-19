@@ -465,6 +465,7 @@
       promoteCheckboxes,
       promoteRadios,
       promoteFields,
+      computeConformanceReport,
     } from '../src/index.ts';
     import { loadThemeFromRsrc } from '../src/themes/runtime/loadThemeFromRsrc.ts';
 
@@ -954,49 +955,17 @@
       host.appendChild(card);
     }
 
-    // Lightweight family classifier (regex-based, slug name only).
-    const FAMILY_PATTERNS = [
-      ['chrome',     /window|grow-box|widget|collapsed|chrome|frame/i],
-      ['scroll',     /scroll|thumb|arrow/i],
-      ['slider',     /slider/i],
-      ['control',    /button|checkbox|radio|control/i],
-      ['tab',        /tab/i],
-      ['menu',       /menu/i],
-      ['popup',      /popup|combo/i],
-      ['progress',   /progress/i],
-      ['disclosure', /disclosure|triangle/i],
-      ['cursor',     /cursor|point-arrow|arrow-only/i],
-      ['misc',       /divider|list-|sort-column|standard-file|desktop|icon-background|generator|unnamed/i],
-    ];
-    function classifyCicn(slug) {
-      for (const [family, pattern] of FAMILY_PATTERNS) {
-        if (pattern.test(slug)) return family;
-      }
-      return 'unclassified';
-    }
-
+    // Coverage rendering now consumes the canonical conformance report
+    // exported from the library (computeConformanceReport per spec C §4.5
+    // + spec B §12). The classifier + rendering-detection live there; this
+    // function only paints the result.
     function renderCoverage(theme) {
       const host = document.getElementById('coverage-host');
       host.innerHTML = '';
-      const cicns = Object.entries(theme.chromeElements ?? {});
-      const total = cicns.length;
-      const families = {};
-      for (const [slug] of cicns) {
-        const f = classifyCicn(slug);
-        (families[f] ??= []).push(slug);
-      }
-      const consumedAssets = new Set();
-      for (const wt of Object.values(theme.windowTypes ?? {})) {
-        for (const url of Object.values(wt?.chrome ?? {})) {
-          if (typeof url === 'string') consumedAssets.add(url);
-        }
-      }
-      const consumedSlugs = new Set();
-      for (const [slug, entry] of cicns) {
-        if (consumedAssets.has(entry.asset)) consumedSlugs.add(slug);
-      }
-      const consumed = consumedSlugs.size;
-      const classified = total - (families.unclassified?.length ?? 0);
+      const report = computeConformanceReport(theme);
+      const total = report.cicnsExtracted;
+      const consumed = report.cicnsRendered;
+      const classified = total - (report.familyCounts.unclassified?.total ?? 0);
 
       const headline = document.createElement('div');
       headline.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;';
@@ -1018,16 +987,41 @@
       tbl.innerHTML = `<thead><tr><th>Family</th><th>Count</th><th>Renderer status</th></tr></thead>`;
       const tbody = document.createElement('tbody');
       for (const family of familyOrder) {
-        const slugs = families[family] ?? [];
-        if (slugs.length === 0) continue;
-        const rendered = slugs.filter((s) => consumedSlugs.has(s)).length;
-        const color = rendered > 0 ? '#7c7' : '#776';
+        const count = report.familyCounts[family];
+        if (!count || count.total === 0) continue;
+        const color = count.rendered > 0 ? '#7c7' : '#776';
+        const status = count.rendered > 0
+          ? `rendered (${count.rendered} of ${count.total})`
+          : 'not yet rendered';
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${family}</td><td>${slugs.length}</td><td style="color:${color};">${rendered > 0 ? `rendered (${rendered} of ${slugs.length})` : 'not yet rendered'}</td>`;
+        tr.innerHTML = `<td>${family}</td><td>${count.total}</td><td style="color:${color};">${status}</td>`;
         tbody.appendChild(tr);
       }
       tbl.appendChild(tbody);
       host.appendChild(tbl);
+
+      // Warnings panel — surface the report's warnings array.
+      if (report.warnings.length > 0) {
+        const warn = document.createElement('div');
+        warn.style.cssText = 'margin-top:14px;padding:10px 12px;background:#1c1c1f;border-left:3px solid #cc7;font-size:12px;';
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:700;color:#fc7;margin-bottom:6px;';
+        title.textContent = `Conformance warnings (${report.warnings.length})`;
+        warn.appendChild(title);
+        for (const w of report.warnings.slice(0, 10)) {
+          const line = document.createElement('div');
+          line.style.cssText = 'font-family:ui-monospace,Menlo,monospace;opacity:0.85;';
+          line.textContent = w;
+          warn.appendChild(line);
+        }
+        if (report.warnings.length > 10) {
+          const more = document.createElement('div');
+          more.style.cssText = 'opacity:0.55;margin-top:4px;';
+          more.textContent = `... and ${report.warnings.length - 10} more`;
+          warn.appendChild(more);
+        }
+        host.appendChild(warn);
+      }
     }
 
     function renderCatalog(theme) {
