@@ -35,6 +35,9 @@
     .reference img {
       image-rendering: pixelated;
       display: block;
+      /* native 240×200, shown at integer 2× so it's pixel-comparable */
+      width: 480px;
+      height: 400px;
     }
     .note { font-size: 12px; opacity: 0.7; max-width: 280px; }
     code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
@@ -47,19 +50,19 @@
   </header>
   <div class="stage">
     <div class="col">
-      <h2>Rendered (3× scale)</h2>
-      <div class="frame" id="render-3x"></div>
+      <h2>Rendered (2×, matches reference)</h2>
+      <div class="frame" id="render-2x"></div>
     </div>
     <div class="col">
       <h2>Rendered (1×)</h2>
       <div class="frame" id="render-1x"></div>
     </div>
     <div class="col reference">
-      <h2>Reference</h2>
+      <h2>Reference (2×, integer)</h2>
       <div class="frame">
-        <img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" width="320" />
+        <img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" />
       </div>
-      <p class="note">The whole desktop screenshot — compare the document window chrome (top-left).</p>
+      <p class="note">Native 240×200 desktop screenshot at integer 2× — compare the document window chrome (top-left).</p>
     </div>
   </div>
 
@@ -69,10 +72,10 @@
 
     const theme = await loadTheme('/themes/masswerk-7-le');
 
-    const w3 = renderWindow(theme, { title: 'Hello!', width: 220, height: 130, scale: 3 });
-    document.getElementById('render-3x').appendChild(w3);
+    const w2 = renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 2 });
+    document.getElementById('render-2x').appendChild(w2);
 
-    const w1 = renderWindow(theme, { title: 'Hello!', width: 220, height: 130, scale: 1 });
+    const w1 = renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 1 });
     document.getElementById('render-1x').appendChild(w1);
   </script>
 </body>

@@ -184,11 +184,41 @@ export function renderWindow(theme: LoadedTheme, opts: RenderWindowOptions = {})
   capL.style.height = `${tbH}px`;
   paintSlice(capL, cicnUrl, cicnW, cicnH, 0, 0, seamL, frame.top, capLw, tbH);
 
+  // ── middle fill: racing-stripe pinstripe, NOT a stretch of the cicn ──
+  // The cicn's mid region is just dotted dividers marking the fill zone;
+  // the live window replaces it with the titlebar pinstripe (a ppat /
+  // procedural texture, per docs). We draw it as a repeating gradient in
+  // a band, matching the pixel profile sampled from the reference:
+  //   row 0      black frame
+  //   rows 1..3  white highlight + gray margin
+  //   rows 4..15 racing stripe (1px #fff / 1px #767676, 2px period)
+  //   rows 16..  gray margin + bottom frame
+  const STRIPE = { bandTop: 4, bandH: 12, lineW: 1, base: '#cccccc', light: '#ffffff', dark: '#767676' };
   const mid = document.createElement('div');
   mid.className = 'aw-titlebar__fill';
   mid.style.flex = `1 1 ${midW}px`;
   mid.style.height = `${tbH}px`;
-  paintSlice(mid, cicnUrl, cicnW, cicnH, seamL, 0, seamR, frame.top, midW, tbH);
+  Object.assign(mid.style, {
+    position: 'relative',
+    boxSizing: 'border-box',
+    backgroundColor: STRIPE.base,
+    borderTop: `${scale}px solid #000`,
+    borderBottom: `${scale}px solid #000`,
+  } satisfies Partial<CSSStyleDeclaration>);
+
+  const band = document.createElement('div');
+  band.className = 'aw-titlebar__stripe';
+  const lw = STRIPE.lineW * scale;
+  Object.assign(band.style, {
+    position: 'absolute',
+    left: '0',
+    right: '0',
+    top: `${STRIPE.bandTop * scale}px`,
+    height: `${STRIPE.bandH * scale}px`,
+    backgroundImage:
+      `repeating-linear-gradient(to bottom, ${STRIPE.light} 0px, ${STRIPE.light} ${lw}px, ${STRIPE.dark} ${lw}px, ${STRIPE.dark} ${2 * lw}px)`,
+  } satisfies Partial<CSSStyleDeclaration>);
+  mid.appendChild(band);
 
   const capR = document.createElement('div');
   capR.className = 'aw-titlebar__cap-right';
@@ -196,10 +226,9 @@ export function renderWindow(theme: LoadedTheme, opts: RenderWindowOptions = {})
   capR.style.height = `${tbH}px`;
   paintSlice(capR, cicnUrl, cicnW, cicnH, seamR, 0, cicnW, frame.top, capRw, tbH);
 
-  // ── title label, centered over the bar ──
+  // ── title label: a clear pill that masks the pinstripe behind text ──
   const label = document.createElement('div');
   label.className = 'aw-titlebar__title';
-  label.textContent = title;
   Object.assign(label.style, {
     position: 'absolute',
     left: '0',
@@ -209,11 +238,21 @@ export function renderWindow(theme: LoadedTheme, opts: RenderWindowOptions = {})
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: `${Math.round(9 * scale)}px`,
-    fontWeight: '700',
     pointerEvents: 'none',
-    whiteSpace: 'nowrap',
   } satisfies Partial<CSSStyleDeclaration>);
+  if (title) {
+    const pill = document.createElement('span');
+    pill.textContent = title;
+    Object.assign(pill.style, {
+      backgroundColor: STRIPE.base,
+      padding: `0 ${4 * scale}px`,
+      fontSize: `${Math.round(9 * scale)}px`,
+      fontWeight: '700',
+      whiteSpace: 'nowrap',
+      color: '#000',
+    } satisfies Partial<CSSStyleDeclaration>);
+    label.appendChild(pill);
+  }
 
   titlebar.append(capL, mid, capR, label);
 
