@@ -16,8 +16,8 @@ export {
   stopScanner,
 } from './window-manager/scanner.js';
 
-// Theme schema (Phase 4.1 / issue #35) — types + runtime validator for
-// theme.json bundles per docs/kaleidoscope-geometry-spec.md §7.
+// Theme schema — types + runtime validator for theme.json bundles.
+// Schema definition: docs/aaron-ui-composer-spec.md (spec C) §3.
 export {
   THEME_SCHEMA_VERSION,
   parseTheme,

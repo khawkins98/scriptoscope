@@ -1,16 +1,18 @@
-// Engine-baseline CSS for Phase 3 controls.
+// Engine-baseline CSS for Aaron UI controls.
 //
-// Per docs/control-rendering-architecture.md §11 decisions log:
+// Conventions (anchored in spec A §1.5):
 // - Light DOM (consumer stylesheets cascade into controls)
 // - Constructable stylesheet attached once at first control mount
 // - No :hover by default; :focus-visible focus ring using palette accent
 //
-// For controls that have NO cicn artwork in canonical Kaleidoscope schemes
-// (push buttons, default buttons, group boxes), the visual styling lives
-// here as period-correct CSS, palette-tinted via --aaron-colr-* custom
-// properties. For controls that DO have cicn artwork (checkbox, radio,
-// popup, slider, scrollbar), this baseline only contains layout + focus
-// styles; the visible appearance comes from applyControlChrome.
+// Dual-path painting per spec B §4:
+// - Controls with NO cicn artwork in canonical schemes (push buttons,
+//   text fields) render via period-correct CSS, palette-tinted via
+//   --aaron-colr-* custom properties.
+// - Controls with cicn artwork (checkbox, radio, disclosure, scrollbar,
+//   slider, popup, tabs) use this baseline for layout + focus, and
+//   attachThemeTo* helpers paint the cicn on top. When a cicn is
+//   loaded, [data-aaron-cicn-loaded] suppresses the CSS-drawn visuals.
 
 const ENGINE_BASELINE_CSS = `
 /* ─── Focus ring (universal, per spec §8) ──────────────────────────── */

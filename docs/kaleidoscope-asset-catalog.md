@@ -6,11 +6,12 @@
 
 **Companion documents:**
 
-- [`kaleidoscope-geometry-spec.md`](./kaleidoscope-geometry-spec.md) — the **input format** spec (cicn/cinf/wnd#/ppat/Colr binary layout)
-- [`runtime-rendering-architecture.md`](./runtime-rendering-architecture.md) — Aaron UI's **output contract** (DOM/CSS composition of window chrome)
-- [`control-rendering-architecture.md`](./control-rendering-architecture.md) — Aaron UI's **output contract** for in-window controls (buttons, sliders, etc.)
+- [`aaron-ui-architecture-spec.md`](./aaron-ui-architecture-spec.md) — the **input format** spec (cicn/cinf/wnd#/ppat/Colr binary layout)
+- [`aaron-ui-html-skeleton-spec.md`](./aaron-ui-html-skeleton-spec.md) (spec A) — the **DOM contract** Aaron UI emits
+- [`aaron-ui-raster-mapping-spec.md`](./aaron-ui-raster-mapping-spec.md) (spec B) — **how scheme resources fill the DOM** (chrome + controls)
+- [`aaron-ui-composer-spec.md`](./aaron-ui-composer-spec.md) (spec C) — the **runtime architecture** that walks a scheme
 
-The geometry spec answers *"what bytes are in the file?"* This document answers *"what controls and states do those bytes actually represent across the corpus, and what should my implementation handle?"*
+The architecture spec answers *"what bytes are in the file?"* This document answers *"what controls and states do those bytes actually represent across the corpus, and what should my implementation handle?"*
 
 **Status:** 1.0 draft, derived from empirical audit of 7 schemes (1,277 cicns total) on 2026-05-18.
 

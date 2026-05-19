@@ -63,7 +63,7 @@ Options:
                          into theme.json. The binary scheme doesn't
                          carry author/license info; this is where it lives.
       --validate         Run schema validation on the emitted theme.json
-                         (per docs/kaleidoscope-geometry-spec.md §7).
+                         (per docs/aaron-ui-composer-spec.md §3).
                          Exit non-zero on schema violation.
   -v, --verbose          Print per-resource extraction progress
   -h, --help             Show this help
@@ -94,7 +94,7 @@ function writePng(path, width, height, rgba) {
 function main() {
   const args = parseArgs(process.argv);
   // Default types now include cinf + wnd# for geometry metadata (no PNG output;
-  // they appear in the manifest only). See docs/kaleidoscope-geometry-spec.md.
+  // they appear in the manifest only). See docs/aaron-ui-architecture-spec.md §2.
   const wantedTypes = new Set(args.types || ['cicn', 'ppat', 'cinf', 'wnd#']);
 
   const inputPath = resolve(args.input);
@@ -192,7 +192,7 @@ function main() {
     meta = JSON.parse(readFileSync(metaPath, 'utf8'));
   }
 
-  // Build theme.json per docs/kaleidoscope-geometry-spec.md §7.
+  // Build theme.json per docs/aaron-ui-composer-spec.md §3.
   // Validated by parseTheme in src/themes/schema/parseTheme.ts (TS source of
   // truth) and by validateTheme.js (JS mirror used by --validate).
   const themeJson = buildThemeJson(manifest, { meta });

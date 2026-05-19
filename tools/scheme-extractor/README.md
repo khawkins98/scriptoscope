@@ -199,4 +199,4 @@ None of that is built yet; this internal CLI is the validated foundation.
 - [Inside Macintosh: Imaging With QuickDraw](https://developer.apple.com/library/archive/documentation/mac/QuickDraw/QuickDraw-1.html) — chapter 4 documents the PixMap, BitMap, ColorTable, and pixel pattern structures.
 - [pngjs](https://www.npmjs.com/package/pngjs) — pure-JS PNG encoder used for output.
 - `docs/scheme-deconstruction/` — per-scheme analysis docs that informed the decoder's design.
-- `docs/RESEARCH-SPIKE-THEMES.md` — the spike doc that scoped this workstream.
+- `docs/aaron-ui-architecture-spec.md` — Kaleidoscope format reference (§2 resource model, §6 canonical IDs).

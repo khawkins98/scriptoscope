@@ -20,7 +20,8 @@
 //   - 3-slice titlebar (Kind A — 7 Le):
 //     min = period default (120×60); max = unbounded
 //
-// See docs/chrome-rendering-architecture.md §7 for dispatch context.
+// See docs/aaron-ui-raster-mapping-spec.md (spec B) §4.1 for the
+// window composer + dispatch context.
 
 import type { Theme } from '../schema/types.js';
 

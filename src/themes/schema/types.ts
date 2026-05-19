@@ -150,7 +150,8 @@ export interface ChromeElementEntry {
 }
 
 /** Canonical per-region resize behavior from cinf, per Scheme Factory
- *  MENU 139. See docs/kaleidoscope-geometry-spec.md §11.
+ *  MENU 139. See docs/aaron-ui-raster-mapping-spec.md (spec B) §13.3 —
+ *  the full 15-value bit layout is parked against kDEF disassembly.
  *  - `stretch-*` family: stretch the fill (whole region or one side)
  *  - `repeat-*` family: tile the fill (whole region or one side)
  *  - `anchor-*` family: pin without resize (encoding 10-14 unverified) */
@@ -181,7 +182,8 @@ export interface SliceSpec {
    *  Kept for back-compat; prefer `resizeBehavior` for full fidelity. */
   tile: boolean;
   /** Full 15-value resize behavior from cinf's (tileSides, patternAnchor)
-   *  bytes. See ResizeBehavior + docs/kaleidoscope-geometry-spec.md §11. */
+   *  bytes. See ResizeBehavior + spec B §13.3 (open question, parked
+   *  against kDEF disassembly). */
   resizeBehavior?: ResizeBehavior;
 }
 
