@@ -43,10 +43,12 @@ test.describe('theme switcher (e2e)', () => {
 
     await page.locator('#load-ergobox').click();
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-dark-ergobox2');
-    // ErgoBox is Kind B → 9-slice border-image on the window root.
+    // ErgoBox routes through the per-segment composer (post-#125). The
+    // cicn URL appears on segment divs inside [data-aaron-faithful-chrome-edge]
+    // strips, not on the window root itself.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window')
+        .locator('.aaron-window [data-aaron-faithful-chrome-edge="top"] > div')
         .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
