@@ -96,13 +96,13 @@ describe('AaronDisclosure', () => {
   });
 
   it('pointer down/up cycles data-state through pressed → normal', () => {
-    // jsdom doesn't define PointerEvent — fall back to MouseEvent which
-    // dispatches as the same event type for our listener purposes.
-    const PE = (globalThis as { PointerEvent?: typeof Event }).PointerEvent ?? MouseEvent;
+    // jsdom doesn't define PointerEvent — dispatch a plain Event of the
+    // right type. addEventListener fires on the event NAME, not the
+    // event class.
     const d = new AaronDisclosure();
-    d.element.dispatchEvent(new PE('pointerdown'));
+    d.element.dispatchEvent(new Event('pointerdown'));
     expect(d.element.getAttribute('data-state')).toBe('pressed');
-    d.element.dispatchEvent(new PE('pointerup'));
+    d.element.dispatchEvent(new Event('pointerup'));
     expect(d.element.getAttribute('data-state')).toBe('normal');
   });
 });
