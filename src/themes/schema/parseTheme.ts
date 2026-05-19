@@ -248,6 +248,11 @@ function parseChromeElement(value: unknown, path: string): ChromeElementEntry {
     if (bp === null) entry.bgPattern = null;
     else entry.bgPattern = assertString(bp, `${path}.bgPattern`);
   }
+  if ('bgAnchor' in obj) {
+    const ba = obj['bgAnchor'];
+    if (ba === null) entry.bgAnchor = null;
+    else entry.bgAnchor = parsePair(ba, `${path}.bgAnchor`);
+  }
   if ('textAnchor' in obj) {
     const ta = obj['textAnchor'];
     if (ta === null) entry.textAnchor = null;
