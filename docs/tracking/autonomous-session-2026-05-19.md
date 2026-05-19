@@ -2,7 +2,7 @@
 
 **Duration:** ~4 hours autonomous work
 **Branches:** all merged to main
-**Net: 18 PRs shipped across the day** (spec trilogy + rebuild + binary archaeology)
+**Net: 22 PRs shipped across the day** (spec trilogy + rebuild + binary archaeology + control families)
 
 This doc is your read-on-return: what changed, what's open, what to look at next.
 
@@ -47,6 +47,9 @@ Tools used: `unar` for StuffIt, `m68k-elf-objdump` for 68k disassembly, hand-rol
 | **#150** | Comprehensive Kaleidoscope → HTML mapping reference (298 lines) |
 | **#151** | Colr resource decoder (was missing entirely) + scheme-version extraction |
 | **#152** | LEARNINGS entry consolidating the binary-archaeology session |
+| **#153** | This summary doc |
+| **#154** | "Extracted colors" diagnostic panel — wires §13.4 to visible UI |
+| **#155** | AaronBevelButton (CSS-only) — fills out the button family per spec A §3.2 |
 
 Plus: rebuilt `themes/masswerk-7-le/theme.json` + `themes/masswerk-dark-ergobox2/theme.json` with the new `bgAnchor` field populated for 47 + 57 chrome elements respectively.
 
@@ -110,11 +113,13 @@ This is a 1-2 day focused session, not a 1-2 hour scan.
 
 ```
 main branch:
-  443 tests at session start → 557 tests at session close (+114)
-  ~10K lines docs/spec/code shipped across the day (12 PRs morning + 5 PRs autonomous)
-  Spec trilogy locked + 4 of 6 rebuild steps done + 4 of 6 cicn-driven control families
+  443 tests at session start → 565 tests at session close (+122)
+  ~10K lines docs/spec/code shipped across the day (14 PRs morning + 8 PRs autonomous)
+  Spec trilogy locked + all 6 rebuild steps closed
   Demo + diagnostics merged into one diagnostics-led page
-  Binary archaeology documented + ~150 lines of useful schema additions applied
+  Binary archaeology documented + Colr/bgAnchor schema additions applied
+  Control families shipped: Window, Button, BevelButton, Checkbox, Radio,
+    Field, Disclosure, Placard, WindowHeader, Progress (10 of 24)
 ```
 
 All PRs from the day are merged. No open branches. CI green.
