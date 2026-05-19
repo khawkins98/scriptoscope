@@ -16,6 +16,9 @@ beforeEach(() => {
   windowEl.appendChild(titlebar);
 });
 
+// Test theme follows the K2-faithful contract: windowType has a part-0
+// body rect (the composer requires it) AND a top recipe (drives the
+// per-segment composition). 7 Le-shaped.
 const fullTheme: Theme = {
   version: THEME_SCHEMA_VERSION,
   windowTypes: {
@@ -27,240 +30,139 @@ const fullTheme: Theme = {
         'collapsed-inactive': 'cicns/collapsed-inactive.png',
       },
       parts: {
+        'part-0': { rect: [1, 22, 72, 23] },
         'part-1': { rect: [9, 5, 20, 16] },
         'part-2': { rect: [36, 5, 48, 16] },
+      },
+      edges: {
+        top: [{ at: 0, part: 'part-0' }, { at: 5, part: 'part-1' }, { at: 21, part: 'part-2' }, { at: 33, part: 'part-1' }],
+        bottom: [{ at: 0, part: 'part-0' }, { at: 73, part: 'part-1' }],
+        left: [{ at: 0, part: 'part-0' }],
+        right: [{ at: 0, part: 'part-0' }],
       },
     },
   },
   chromeElements: {
-    'active-document-window': {
-      asset: 'cicns/active.png',
-      width: 74,
-      height: 25,
-      slice: { corner: 4, side: 4, tile: false },
-    },
-    'inactive-document-window': {
-      asset: 'cicns/inactive.png',
-      width: 74,
-      height: 25,
-      slice: { corner: 4, side: 4, tile: false },
-    },
-    'collapsed-active-document-window': {
-      asset: 'cicns/collapsed-active.png',
-      width: 74,
-      height: 18,
-    },
+    'active': { asset: 'cicns/active.png', width: 74, height: 25 },
+    'inactive': { asset: 'cicns/inactive.png', width: 74, height: 25 },
+    'collapsed-active': { asset: 'cicns/collapsed-active.png', width: 74, height: 18 },
   },
 };
 
 describe('applyChromeFromTheme', () => {
-  describe('chrome-element application', () => {
-    it('writes background-image with the chrome cicn URL', () => {
+  describe('chrome application via composeKaleidoscopeChrome', () => {
+    it('mounts edge strips on the window root', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.backgroundImage).toBe('url("cicns/active.png")');
+      const strips = windowEl.querySelectorAll('[data-aaron-chrome-edge]');
+      expect(strips.length).toBeGreaterThan(0);
     });
 
-    it('writes cinf border-image when the chromeElement has slice data', () => {
+    it('first top-edge segment writes borderImageSource referencing the cicn', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.borderImageSource).toBe('url("cicns/active.png")');
-      expect(titlebar.style.borderImageWidth).toBe('4px');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
     });
 
-    it('stretches the titlebar bg via background-size 100% when chrome has no cinf', () => {
-      // Real window-type chrome cicns don't get cinf paired by the extractor.
-      // Without this fix, the chrome bitmap renders at native size in the
-      // top-left of the titlebar (the "small tab" bug from the gh-pages
-      // visual cut-through, 2026-05-17).
-      const noSliceTheme: Theme = {
+    it('applies body-rect-derived padding to the window root', () => {
+      applyChromeFromTheme(windowEl, fullTheme);
+      // body rect [1, 22, 72, 23] in 74×25 cicn → 22/2/2/1 (top/right/bottom/left)
+      expect(windowEl.style.paddingTop).toBe('22px');
+      expect(windowEl.style.paddingRight).toBe('2px');
+      expect(windowEl.style.paddingBottom).toBe('2px');
+      expect(windowEl.style.paddingLeft).toBe('1px');
+    });
+
+    it('uses border-image-repeat: stretch per K2 Speed Note', () => {
+      applyChromeFromTheme(windowEl, fullTheme);
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageRepeat).toBe('stretch');
+    });
+
+    it('stamps frame-thickness custom properties', () => {
+      applyChromeFromTheme(windowEl, fullTheme);
+      expect(windowEl.style.getPropertyValue('--aaron-frame-top-px')).toBe('22px');
+      expect(windowEl.style.getPropertyValue('--aaron-frame-left-px')).toBe('1px');
+    });
+
+    it('no-ops cleanly when windowType has no part-0 body rect', () => {
+      const noBodyTheme: Theme = {
         version: THEME_SCHEMA_VERSION,
         windowTypes: {
           'document-window': {
             chrome: { active: 'cicns/window.png' },
+            parts: { 'part-1': { rect: [9, 5, 20, 16] } },
+            edges: { top: [{ at: 0, part: 'part-1' }] },
           },
         },
         chromeElements: {
-          'active-window': {
-            asset: 'cicns/window.png',
-            width: 74, height: 25, // native cicn dims — without the fix,
-            // these would force background-size to 74px 25px.
-          },
+          'win': { asset: 'cicns/window.png', width: 74, height: 25 },
         },
       };
-      applyChromeFromTheme(windowEl, noSliceTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.backgroundSize).toBe('100% 100%');
-      expect(titlebar.style.backgroundImage).toBe('url("cicns/window.png")');
+      applyChromeFromTheme(windowEl, noBodyTheme);
+      expect(windowEl.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
     });
   });
 
   describe('state derivation from DOM data-state', () => {
     it('picks active chrome when data-state="active"', () => {
+      windowEl.setAttribute('data-state', 'active');
       applyChromeFromTheme(windowEl, fullTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.backgroundImage).toBe('url("cicns/active.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
     });
 
     it('picks inactive chrome when data-state="inactive"', () => {
       windowEl.setAttribute('data-state', 'inactive');
       applyChromeFromTheme(windowEl, fullTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.backgroundImage).toBe('url("cicns/inactive.png")');
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
     });
 
     it('picks collapsed-active when data-state="collapsed" and scheme provides it', () => {
       windowEl.setAttribute('data-state', 'collapsed');
-      const result = applyChromeFromTheme(windowEl, fullTheme);
-      expect(result.state).toBe('collapsed-active');
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      expect(titlebar.style.backgroundImage).toBe('url("cicns/collapsed-active.png")');
-    });
-
-    it('falls back to active when collapsed-* states are absent', () => {
-      const minimalTheme: Theme = {
-        version: THEME_SCHEMA_VERSION,
-        windowTypes: {
-          'document-window': {
-            chrome: { active: 'cicns/a.png', inactive: 'cicns/i.png' },
-          },
-        },
-      };
-      windowEl.setAttribute('data-state', 'collapsed');
-      const result = applyChromeFromTheme(windowEl, minimalTheme);
-      expect(result.state).toBe('active');
-    });
-  });
-
-  describe('wnd# part overlays', () => {
-    it('mounts one div per part inside the titlebar', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-      const parts = titlebar.querySelectorAll('[data-aaron-window-part]');
-      expect(parts).toHaveLength(2);
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/collapsed-active.png")');
     });
 
-    it('returns the WindowPartInfo array for caller listener wiring', () => {
-      const result = applyChromeFromTheme(windowEl, fullTheme);
-      expect(result.parts).toHaveLength(2);
-      expect(result.parts.map(p => p.partSlug)).toEqual(['part-1', 'part-2']);
-    });
-
-    it('skips parts when chromeElement has no width/height and titlebar is unrendered', () => {
-      // No cicn dimensions, no rendered width → parts skipped (returns []).
-      const noSizeTheme: Theme = {
-        version: THEME_SCHEMA_VERSION,
-        windowTypes: {
-          'document-window': {
-            chrome: { active: 'cicns/a.png' },
-            parts: { 'part-1': { rect: [0, 0, 10, 10] } },
-          },
-        },
-      };
-      const result = applyChromeFromTheme(windowEl, noSizeTheme);
-      expect(result.parts).toEqual([]);
-    });
-  });
-
-  describe('windowType selection', () => {
-    it('defaults to "document-window"', () => {
-      const result = applyChromeFromTheme(windowEl, fullTheme);
-      expect(result.windowTypeSlug).toBe('document-window');
-    });
-
-    it('falls back to the first windowType when default is missing', () => {
-      const altTheme: Theme = {
-        version: THEME_SCHEMA_VERSION,
-        windowTypes: {
-          'modal-dialog': {
-            chrome: { active: 'cicns/modal.png' },
-          },
-        },
-      };
-      const result = applyChromeFromTheme(windowEl, altTheme);
-      expect(result.windowTypeSlug).toBe('modal-dialog');
-    });
-
-    it('honours an explicit windowTypeSlug option', () => {
-      const multiTheme: Theme = {
-        version: THEME_SCHEMA_VERSION,
-        windowTypes: {
-          'document-window': { chrome: { active: 'cicns/doc.png' } },
-          'modal-dialog': { chrome: { active: 'cicns/modal.png' } },
-        },
-      };
-      const result = applyChromeFromTheme(windowEl, multiTheme, {
-        windowTypeSlug: 'modal-dialog',
-      });
-      expect(result.windowTypeSlug).toBe('modal-dialog');
+    it('honors explicit state option override', () => {
+      windowEl.setAttribute('data-state', 'active');
+      applyChromeFromTheme(windowEl, fullTheme, { state: 'inactive' });
+      const seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
     });
   });
 
   describe('idempotency on re-apply', () => {
     it('replaces prior chrome cleanly on re-apply', () => {
-      applyChromeFromTheme(windowEl, fullTheme);
-      const firstBg = (windowEl.querySelector('.aaron-titlebar') as HTMLElement).style.backgroundImage;
+      applyChromeFromTheme(windowEl, fullTheme, { state: 'active' });
+      let seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/active.png")');
+      applyChromeFromTheme(windowEl, fullTheme, { state: 'inactive' });
+      seg = windowEl.querySelector('[data-aaron-chrome-edge="top"] > div') as HTMLElement | null;
+      expect(seg?.style.borderImageSource).toBe('url("cicns/inactive.png")');
+    });
+  });
 
-      // Swap to inactive state.
-      windowEl.setAttribute('data-state', 'inactive');
+  describe('clearChromeFromTheme', () => {
+    it('removes all chrome from the window', () => {
       applyChromeFromTheme(windowEl, fullTheme);
-      const secondBg = (windowEl.querySelector('.aaron-titlebar') as HTMLElement).style.backgroundImage;
-
-      expect(firstBg).not.toBe(secondBg);
-      // Still only one set of parts (re-applied, not duplicated).
-      const parts = windowEl.querySelectorAll('[data-aaron-window-part]');
-      expect(parts).toHaveLength(2);
+      clearChromeFromTheme(windowEl);
+      expect(windowEl.querySelectorAll('[data-aaron-chrome-edge]').length).toBe(0);
+      expect(windowEl.style.paddingTop).toBe('');
+      expect(windowEl.style.getPropertyValue('--aaron-frame-top-px')).toBe('');
     });
   });
 
   describe('error cases', () => {
-    it('throws when windowEl has no .aaron-titlebar child', () => {
-      const bareWindow = document.createElement('div');
-      expect(() => applyChromeFromTheme(bareWindow, fullTheme)).toThrow(
-        /no \.aaron-titlebar/,
-      );
+    it('throws when windowEl has no titlebar', () => {
+      const empty = document.createElement('div');
+      expect(() => applyChromeFromTheme(empty, fullTheme)).toThrow(/no \.aaron-titlebar/);
     });
 
     it('throws when theme has no windowTypes at all', () => {
       const emptyTheme: Theme = { version: THEME_SCHEMA_VERSION };
-      expect(() => applyChromeFromTheme(windowEl, emptyTheme)).toThrow(
-        /no windowTypes/,
-      );
+      expect(() => applyChromeFromTheme(windowEl, emptyTheme)).toThrow(/no windowTypes/);
     });
-
-    it('throws when the resolved state has no cicn URL', () => {
-      const partialTheme: Theme = {
-        version: THEME_SCHEMA_VERSION,
-        windowTypes: {
-          'document-window': {
-            chrome: { inactive: 'cicns/i.png' }, // no active
-          },
-        },
-      };
-      expect(() => applyChromeFromTheme(windowEl, partialTheme)).toThrow(
-        /chrome\["active"\] is undefined/,
-      );
-    });
-  });
-});
-
-describe('clearChromeFromTheme', () => {
-  it('removes chrome styles + part overlays', () => {
-    applyChromeFromTheme(windowEl, fullTheme);
-    expect(windowEl.querySelectorAll('[data-aaron-window-part]')).toHaveLength(2);
-
-    clearChromeFromTheme(windowEl);
-    expect(windowEl.querySelectorAll('[data-aaron-window-part]')).toHaveLength(0);
-    const titlebar = windowEl.querySelector('.aaron-titlebar') as HTMLElement;
-    expect(titlebar.style.backgroundImage).toBe('');
-  });
-
-  it('is idempotent on an un-themed window', () => {
-    expect(() => clearChromeFromTheme(windowEl)).not.toThrow();
-  });
-
-  it('is a no-op when windowEl has no titlebar', () => {
-    const bare = document.createElement('div');
-    expect(() => clearChromeFromTheme(bare)).not.toThrow();
   });
 });

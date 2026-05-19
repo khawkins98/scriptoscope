@@ -12,7 +12,7 @@ test.describe('theme switcher (e2e)', () => {
 
     // 3-slice rendering: titlebar carries the cicn as border-image-source.
     const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar')
+      .locator('.aaron-window [data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
       .first()
       .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(titlebarBg).toContain('themes/masswerk-7-le/cicns/');
@@ -36,7 +36,7 @@ test.describe('theme switcher (e2e)', () => {
     await expect(page.locator('#status')).toHaveText('loaded-masswerk-7-le');
 
     const firstBg = await page
-      .locator('.aaron-window .aaron-titlebar')
+      .locator('.aaron-window [data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
       .first()
       .evaluate((el) => (el as HTMLElement).style.borderImageSource);
     expect(firstBg).toContain('themes/masswerk-7-le/cicns/');
@@ -48,7 +48,7 @@ test.describe('theme switcher (e2e)', () => {
     // strips, not on the window root itself.
     await expect(async () => {
       const bg = await page
-        .locator('.aaron-window [data-aaron-faithful-chrome-edge="top"] > div')
+        .locator('.aaron-window [data-aaron-chrome-edge="top"] > [data-aaron-chrome-segment]')
         .first()
         .evaluate((el) => (el as HTMLElement).style.borderImageSource);
       expect(bg).toContain('themes/masswerk-dark-ergobox2/cicns/');
@@ -62,13 +62,10 @@ test.describe('theme switcher (e2e)', () => {
     await page.locator('#unload').click();
     await expect(page.locator('#status')).toHaveText('unloaded');
 
-    // After unload, the titlebar's border-image-source should be cleared
-    // and the part overlays removed.
-    const titlebarBg = await page
-      .locator('.aaron-window .aaron-titlebar')
-      .first()
-      .evaluate((el) => (el as HTMLElement).style.borderImageSource);
-    expect(titlebarBg).toBe('');
+    // After unload, the chrome strips on the window root should be removed
+    // entirely (no segment children) and the part overlays cleared.
+    const segments = await page.locator('.aaron-window [data-aaron-chrome-segment]').count();
+    expect(segments).toBe(0);
     const parts = page.locator('.aaron-window .aaron-titlebar [data-aaron-window-part]');
     await expect(parts).toHaveCount(0);
   });
