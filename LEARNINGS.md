@@ -1299,3 +1299,19 @@ This reversed the design direction. Per-segment composition came back (the right
 **How to apply:** when designing rendering behavior for a period-era format, the period's HARDWARE CONSTRAINTS often dictate the right answer. "QuickDraw stretching was slow" is itself a render-model constraint that excludes a whole class of options. Future-format renderer work: ask "what was performant in the era?" before "what does CSS support?"
 
 **Process meta:** the architectural cleanup in #124 was correct (delete the heuristic stack, use one simple model) even though the specific composition was wrong. Cleanup first, then iterate on the principle. The wrong rendering principle in clean code is easier to fix than the right principle buried in a heuristic stack.
+
+## 2026-05-19 — Three-layer architecture reset, spec A landed (#132)
+
+After PR #130's per-segment composer (span-threshold hybrid: small spans get 1px-stretch, large spans get full-slice stretch), we hit a wall. The remaining heuristic questions — "what exactly should each cinf field do?", "when does part-1 vs part-8 win at a corner?", "is the period-faithful tile policy actually stretch or repeat?" — can't be answered from K2 documentation alone. The actual algorithm lives in 60-100KB of 68k assembly inside Kaleidoscope's kDEF resources. Disassembling that is a multi-week ticket parked in `docs/tracking/kdef-disassembly.md`.
+
+The reset: rather than continuing to iterate the rendering heuristics, we split the problem into **three layered specs** that can each be written and validated independently:
+
+- **Spec A — HTML skeleton** (this PR, #132). The DOM contract Aaron UI emits for every Kaleidoscope-supported element family: shape, state attributes, ARIA roles, declarative-promotion sentinels, programmatic API parity. 829 lines covering 11 element families + ancillary subsystems (cursors, color extraction, scheme-global Colr flags).
+- **Spec B — Raster-to-skeleton mapping** (TBD). How cicn/cinf/wnd#/ppat fill the DOM defined in spec A. This is where rendering policy decisions get locked in — and where future kDEF disassembly findings will plug in.
+- **Spec C — JS parser/composer** (TBD). The runtime that walks a loaded scheme and produces spec-A DOM.
+
+**Why this order matters:** spec A is the **stable public contract**. External consumers (people building Kaleidoscope-themed web apps) only need to know A. Spec B can iterate on rendering policy without breaking A consumers. Spec C can be rewritten entirely (today's per-segment composer is one of many possible implementations) without breaking A consumers OR spec B authors.
+
+**Process meta:** when you're cycling on the same problem (#116-#120-#124-#125-#130 all touched the same composition policy with different heuristics), the lesson isn't "try a different heuristic." It's that the problem has been mis-framed. The right move is to **split the conceptual layers** so that the load-bearing decisions land in the layer that can actually settle them — and let the higher layers commit to a stable contract.
+
+**Application:** spec B + spec C work resumes after spec A merges. Both specs reference A's section numbers for cross-cutting elements (e.g., "checkboxes are rendered into the DOM defined in [spec-A §4]"). Treat A as load-bearing — changes to A invalidate sections of B + C, so revisions to A should be deliberate.
