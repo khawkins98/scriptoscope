@@ -21,8 +21,19 @@ export type {
   WindowPart,
   WindowType,
   ChromeElement,
+  Palette,
   ThemeManifest,
   LoadedTheme,
 } from './types.js';
 export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
+export { PixelBuffer, type PixRect } from './pixelBuffer.js';
+export { loadCicnBuffer } from './cicnImage.js';
+export {
+  composeWindowChrome,
+  frameFromBody,
+  titlebarSeam,
+  findStripeColumn,
+  type Frame,
+  type ComposedChrome,
+} from './composeChrome.js';

@@ -32,8 +32,18 @@ export interface ChromeElement {
   height: number;
 }
 
+export interface Palette {
+  'titlebar-active-bg'?: string;
+  'titlebar-active-fg'?: string;
+  'titlebar-inactive-bg'?: string;
+  'titlebar-inactive-fg'?: string;
+  'window-frame'?: string;
+  [key: string]: string | undefined;
+}
+
 export interface ThemeManifest {
   name: string;
+  palette?: Palette;
   windowTypes: Record<string, WindowType>;
   chromeElements: Record<string, ChromeElement>;
 }

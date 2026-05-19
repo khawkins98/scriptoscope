@@ -72,10 +72,10 @@
 
     const theme = await loadTheme('/themes/masswerk-7-le');
 
-    const w2 = renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 2 });
+    const w2 = await renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 2 });
     document.getElementById('render-2x').appendChild(w2);
 
-    const w1 = renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 1 });
+    const w1 = await renderWindow(theme, { title: 'Hello!', width: 200, height: 120, scale: 1 });
     document.getElementById('render-1x').appendChild(w1);
   </script>
 </body>
