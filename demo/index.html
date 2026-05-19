@@ -471,6 +471,10 @@
       <p class="section-sub">How many extracted assets does Aaron UI actually consume? See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-architecture-spec.md" target="_blank">architecture spec</a> and <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-html-skeleton-spec.md" target="_blank">spec A §23</a> for conformance levels.</p>
       <div id="coverage-host" class="panel"></div>
 
+      <h3>DOM mapping — what the runtime actually composed</h3>
+      <p class="section-sub">Live walk of the first demo window's DOM tree, annotated with which recipe entry / cicn part / chromeElement each chrome-related element came from. Use this to verify "this wnd# data → this DOM element" without guessing.</p>
+      <div id="dom-mapping-host" class="panel"></div>
+
       <h3>Extracted colors (from cinf-anchored pixels)</h3>
       <p class="section-sub">Per spec B §4.16-§4.18, Kaleidoscope schemes carry explicit pixel coordinates in each cinf (Background/Text/Embossing) at which the renderer samples colors. This panel calls <code>extractColorsFromCicn()</code> on every chrome element whose cinf provides a <code>bgAnchor</code>. See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/tracking/kdef-disassembly-findings.md" target="_blank">disassembly findings §3</a> for how we discovered this.</p>
       <div id="colors-host" class="panel"></div>
@@ -1144,6 +1148,156 @@
       }
     }
 
+    // DOM mapping — walk the first .aaron-window and label each
+    // chrome-related element with the source data it came from.
+    // Answers the "I see the data, but where does it land in the DOM?"
+    // question without requiring devtools archaeology.
+    function renderDomMapping(theme) {
+      const host = document.getElementById('dom-mapping-host');
+      host.innerHTML = '';
+      const win = document.querySelector('.aaron-window');
+      if (!win) {
+        host.innerHTML = '<div class="nothing">No .aaron-window mounted yet.</div>';
+        return;
+      }
+
+      const winType = theme.windowTypes?.['document-window'];
+      const parts = winType?.parts ?? {};
+      const edges = winType?.edges ?? {};
+      const chrome = winType?.chrome ?? {};
+      const cicnUrl = chrome.active ?? chrome.inactive ?? '';
+      const chromeEntry = Object.values(theme.chromeElements ?? {}).find((e) => e.asset === cicnUrl);
+      const cicnSlug = Object.entries(theme.chromeElements ?? {}).find(([, e]) => e.asset === cicnUrl)?.[0];
+
+      const lines = [];
+
+      function addRow(elementLabel, sourceLabel, details) {
+        lines.push({ elementLabel, sourceLabel, details });
+      }
+
+      // .aaron-window itself
+      addRow(
+        '<div class="aaron-window">',
+        `windowType "document-window" (state=${win.getAttribute('data-state') ?? '?'})`,
+        win.getAttribute('data-aaron-chrome') === 'on'
+          ? `chrome on — overflow:visible, frame vars set: top=${win.style.getPropertyValue('--aaron-frame-top-px')}, right=${win.style.getPropertyValue('--aaron-frame-right-px')}, bottom=${win.style.getPropertyValue('--aaron-frame-bottom-px')}, left=${win.style.getPropertyValue('--aaron-frame-left-px')}`
+          : 'chrome off — engine-baseline CSS only',
+      );
+
+      // Titlebar (top edge host)
+      const titlebar = win.querySelector('.aaron-titlebar');
+      if (titlebar) {
+        const topRecipe = edges.top ?? [];
+        addRow(
+          '<div class="aaron-titlebar" data-aaron-chrome-edge="top">',
+          `wnd# top recipe (${topRecipe.length} entries) — chromeElement "${cicnSlug ?? '?'}"`,
+          `Hosts top-edge segments + titlebar__title text. Positioned absolute at top:-frame-top in themed mode.`,
+        );
+        const titleWrap = titlebar.querySelector('.aaron-titlebar__title');
+        if (titleWrap) {
+          addRow(
+            '  <div class="aaron-titlebar__title">',
+            'title text from AaronWindow options.title',
+            `centered via title-pill CSS vars; z-index:2 so it overlays chrome segments.`,
+          );
+        }
+        // Segments
+        const segs = Array.from(titlebar.querySelectorAll(':scope > [data-aaron-chrome-segment]'));
+        segs.forEach((seg, i) => {
+          const segAttr = seg.getAttribute('data-aaron-chrome-segment') ?? '';
+          const recipeEntry = topRecipe[i];
+          const slice = seg.style.borderImageSlice;
+          const flex = seg.style.flex;
+          addRow(
+            `  <div data-aaron-chrome-segment="${segAttr}">`,
+            recipeEntry ? `top[${i}] {at: ${recipeEntry.at}, part: ${recipeEntry.part}}` : '(beyond recipe)',
+            `border-image-slice: ${slice}; flex: ${flex}`,
+          );
+        });
+      }
+
+      // Side + bottom edges
+      for (const side of ['left', 'right', 'bottom']) {
+        const edgeEl = win.querySelector(`.aaron-window__edge--${side}`);
+        if (!edgeEl) continue;
+        const recipe = edges[side] ?? [];
+        const segs = Array.from(edgeEl.querySelectorAll(':scope > [data-aaron-chrome-segment]'));
+        addRow(
+          `<div class="aaron-window__edge--${side}" data-aaron-chrome-edge="${side}">`,
+          `wnd# ${side} recipe (${recipe.length} entries)`,
+          `${segs.length} segments rendered. Positioned outside content rect (negative ${side === 'bottom' ? 'bottom' : side === 'left' ? 'left' : 'right'}) in themed mode.`,
+        );
+        segs.forEach((seg, i) => {
+          const segAttr = seg.getAttribute('data-aaron-chrome-segment') ?? '';
+          const recipeEntry = recipe[i];
+          addRow(
+            `  <div data-aaron-chrome-segment="${segAttr}">`,
+            recipeEntry ? `${side}[${i}] {at: ${recipeEntry.at}, part: ${recipeEntry.part}}` : '(beyond recipe)',
+            `border-image-slice: ${seg.style.borderImageSlice}`,
+          );
+        });
+      }
+
+      // Window-part hit-target overlays
+      const partOverlays = Array.from(win.querySelectorAll('[data-aaron-window-part]'));
+      if (partOverlays.length > 0) {
+        addRow(
+          'Hit-target overlays (.aaron-titlebar > [data-aaron-window-part])',
+          `${partOverlays.length} parts from wnd# rectangleList`,
+          'Invisible buttons positioned over the named-widget rects (close/zoom/collapse). Sourced from windowType.parts[].',
+        );
+        for (const overlay of partOverlays) {
+          const partName = overlay.getAttribute('data-aaron-window-part') ?? '?';
+          const partRect = parts[partName]?.rect;
+          addRow(
+            `  <... data-aaron-window-part="${partName}">`,
+            partRect ? `parts.${partName}.rect = [${partRect.join(', ')}]` : '(no rect)',
+            `left: ${overlay.style.left}; top: ${overlay.style.top}; width: ${overlay.style.width}; height: ${overlay.style.height}`,
+          );
+        }
+      }
+
+      // Content area
+      const content = win.querySelector('.aaron-content');
+      if (content) {
+        const hasPattern = content.style.backgroundImage !== '';
+        addRow(
+          '<div class="aaron-content">',
+          'consumer-provided HTML',
+          hasPattern
+            ? `bg pattern applied: ${content.style.backgroundImage} (from cinf.bgPatternId → patterns[${chromeEntry?.bgPattern}])`
+            : `no body pattern (cinf.bgPatternId is 0 / unset)`,
+        );
+      }
+
+      // Render the table
+      const tbl = document.createElement('table');
+      tbl.style.width = '100%';
+      tbl.innerHTML = `<thead><tr>
+        <th style="width:30%;">DOM element</th>
+        <th style="width:30%;">Source data</th>
+        <th>Inline / computed</th>
+      </tr></thead>`;
+      const tbody = document.createElement('tbody');
+      for (const row of lines) {
+        const tr = document.createElement('tr');
+        const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        tr.innerHTML = `
+          <td><code style="font-size:11px;">${escape(row.elementLabel)}</code></td>
+          <td style="font-size:11px;">${escape(row.sourceLabel)}</td>
+          <td style="font-size:11px;opacity:0.75;">${escape(row.details)}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      host.appendChild(tbl);
+
+      const note = document.createElement('div');
+      note.style.cssText = 'margin-top:10px;font-size:11px;opacity:0.65;';
+      note.textContent = `Snapshot at ${new Date().toLocaleTimeString()}. Re-render on scheme swap. Inspect any element above via browser devtools to see the live state.`;
+      host.appendChild(note);
+    }
+
     // Lazy extraction — triggered by a button click so the parallel
     // cicn fetches don't compete with the demo's initial paint (most
     // notably the reference thumbnail in the Side-by-side window).
@@ -1279,6 +1433,7 @@
       renderRecipes(theme, wt);
       renderParts(theme, wt);
       renderCoverage(theme);
+      renderDomMapping(theme);
       renderExtractedColors(theme);
       renderCatalog(theme);
     }
