@@ -122,16 +122,8 @@ function onMutations(mutations: MutationRecord[]): void {
   }
 }
 
-/**
- * Auto-start on DOMContentLoaded when imported in a browser. Importing
- * the library in a non-browser environment (SSR) doesn't trigger this.
- * Consumers who want to manage scanning manually can stopScanner()
- * immediately after import.
- */
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startScanner);
-  } else {
-    queueMicrotask(startScanner);
-  }
-}
+// Auto-start removed in step 4 — the unified scanner in src/scanAll.ts
+// now owns DOMContentLoaded promotion + MutationObserver for ALL
+// families (windows + controls). startScanner / stopScanner remain
+// exported for consumers that want fine-grained window-only control
+// without the control-family promoters; they're no longer auto-invoked.

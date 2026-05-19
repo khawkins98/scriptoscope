@@ -15,6 +15,15 @@ export {
   startScanner,
   stopScanner,
 } from './window-manager/scanner.js';
+// Unified scanner — promotes ALL families (windows + controls) per
+// spec A §21 + spec C §8.1. Auto-starts on DOMContentLoaded; opt out
+// via stopUnifiedScanner.
+export {
+  scanAll,
+  startUnifiedScanner,
+  stopUnifiedScanner,
+  type ScanAllResult,
+} from './scanAll.js';
 
 // Theme schema — types + runtime validator for theme.json bundles.
 // Schema definition: docs/aaron-ui-composer-spec.md (spec C) §3.
