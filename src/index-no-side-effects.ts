@@ -33,6 +33,12 @@ export {
   type FamilyCount,
 } from './themes/runtime/conformanceReport.js';
 
+// Color extraction from cinf-anchored cicn pixels — spec B §4.16-§4.18.
+export {
+  extractColorsFromCicn,
+  type ExtractedColors,
+} from './themes/runtime/extractColorsFromCicns.js';
+
 // Theme schema — types + runtime validator for theme.json bundles.
 // Schema definition: docs/aaron-ui-composer-spec.md (spec C) §3.
 export {

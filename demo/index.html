@@ -404,6 +404,10 @@
       <p class="section-sub">How many extracted assets does Aaron UI actually consume? See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-architecture-spec.md" target="_blank">architecture spec</a> and <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/aaron-ui-html-skeleton-spec.md" target="_blank">spec A §23</a> for conformance levels.</p>
       <div id="coverage-host" class="panel"></div>
 
+      <h3>Extracted colors (from cinf-anchored pixels)</h3>
+      <p class="section-sub">Per spec B §4.16-§4.18, Kaleidoscope schemes carry explicit pixel coordinates in each cinf (Background/Text/Embossing) at which the renderer samples colors. This panel calls <code>extractColorsFromCicn()</code> on every chrome element whose cinf provides a <code>bgAnchor</code>. See <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/tracking/kdef-disassembly-findings.md" target="_blank">disassembly findings §3</a> for how we discovered this.</p>
+      <div id="colors-host" class="panel"></div>
+
       <h3>Full chromeElements catalog (all extracted rasters)</h3>
       <p class="section-sub">Every <code>cicn</code> the extractor decoded from the scheme's resource fork — not just document-window chrome. Click any thumb to open the raw PNG.</p>
       <div class="toggles">
@@ -470,6 +474,7 @@
       promoteWindowHeaders,
       promoteProgressBars,
       computeConformanceReport,
+      extractColorsFromCicn,
     } from '../src/index.ts';
     import { loadThemeFromRsrc } from '../src/themes/runtime/loadThemeFromRsrc.ts';
 
@@ -1072,6 +1077,69 @@
       }
     }
 
+    // Lazy extraction — triggered by a button click so the parallel
+    // cicn fetches don't compete with the demo's initial paint (most
+    // notably the reference thumbnail in the Side-by-side window).
+    function renderExtractedColors(theme) {
+      const host = document.getElementById('colors-host');
+      host.innerHTML = '';
+      const cicns = Object.entries(theme.chromeElements ?? {});
+      const withAnchor = cicns.filter(([, e]) => e.bgAnchor || e.textAnchor || e.embossAnchor);
+      if (withAnchor.length === 0) {
+        host.innerHTML = '<div class="nothing">No cinf-anchored colors in this scheme. Mass:werk schemes only carry text/emboss anchors on a subset of elements; exotic schemes typically don\'t carry them at all.</div>';
+        return;
+      }
+      const header = document.createElement('div');
+      header.style.cssText = 'font-size:12px;opacity:0.7;margin-bottom:10px;font-family:ui-monospace,Menlo,monospace;';
+      header.textContent = `${withAnchor.length} of ${cicns.length} chrome elements have cinf-anchored color coords.`;
+      host.appendChild(header);
+
+      const btn = document.createElement('button');
+      btn.style.cssText = 'font:inherit;padding:6px 12px;background:#1c1c1f;border:1px solid #44444a;border-radius:4px;color:#9bd;cursor:pointer;margin-bottom:10px;';
+      btn.textContent = `Sample colors from first 20`;
+      host.appendChild(btn);
+
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;';
+      host.appendChild(grid);
+
+      btn.onclick = async () => {
+        btn.disabled = true;
+        btn.textContent = 'Sampling…';
+        const sample = withAnchor.slice(0, 20);
+        let extracted = 0;
+        for (const [slug, entry] of sample) {
+          const colors = await extractColorsFromCicn(entry);
+          if (!colors.bg && !colors.fg && !colors.emboss) continue;
+          extracted++;
+          const card = document.createElement('div');
+          card.style.cssText = 'background:#1c1c1f;border:1px solid #2a2a35;border-radius:4px;padding:8px;display:flex;flex-direction:column;gap:4px;font-size:11px;';
+          const title = document.createElement('div');
+          title.style.cssText = 'font-family:ui-monospace,Menlo,monospace;opacity:0.85;';
+          title.textContent = slug;
+          card.appendChild(title);
+          const swatches = document.createElement('div');
+          swatches.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;';
+          for (const [label, color] of [['bg', colors.bg], ['fg', colors.fg], ['emboss', colors.emboss]]) {
+            if (!color) continue;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;';
+            const sw = document.createElement('div');
+            sw.style.cssText = `width:24px;height:24px;border-radius:3px;border:1px solid #44444a;background:${color};`;
+            const lbl = document.createElement('div');
+            lbl.style.cssText = 'opacity:0.6;';
+            lbl.textContent = `${label}: ${color}`;
+            wrap.appendChild(sw);
+            wrap.appendChild(lbl);
+            swatches.appendChild(wrap);
+          }
+          card.appendChild(swatches);
+          grid.appendChild(card);
+        }
+        btn.textContent = `Done — extracted ${extracted} of ${sample.length}`;
+      };
+    }
+
     function renderCatalog(theme) {
       const host = document.getElementById('catalog-host');
       const countEl = document.getElementById('t-cat-count');
@@ -1144,6 +1212,7 @@
       renderRecipes(theme, wt);
       renderParts(theme, wt);
       renderCoverage(theme);
+      renderExtractedColors(theme);
       renderCatalog(theme);
     }
 
