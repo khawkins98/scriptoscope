@@ -56,51 +56,48 @@
       background-size: 24px 24px;
     }
 
-    /* AaronWindow visual treatment.
-       Two layout modes:
-       - UNTHEMED (.aaron-window without [data-aaron-chrome="on"]): flex
-         column with the titlebar as a flex child. The window's
-         width/height define the STRUCTURE rect; chrome lives inside.
-         This is the engine-baseline / CSS-only path.
-       - THEMED ([data-aaron-chrome="on"]): chrome layers escape via
-         absolute positioning + negative offsets. The window's
-         width/height become the CONTENT rect; chrome extends OUTSIDE,
-         matching the Mac Window Manager model (per
-         docs/tracking/bulbous-chrome-architecture.md). overflow:visible
-         lets bulbous chrome ornaments protrude beyond the content rect. */
+    /* AaronWindow visual treatment — Mac Window Manager model (Phase 2).
+       The user's width/height ALWAYS define the CONTENT rect. The
+       titlebar + edge chrome live OUTSIDE the content rect via absolute
+       positioning + negative offsets, matching Apple's Window Manager
+       where the resizable area is the content body and the chrome
+       surrounds it (per docs/tracking/bulbous-chrome-architecture.md).
+       Same semantic whether or not a Kaleidoscope theme has been
+       applied — themed schemes just paint colored chrome into the
+       slots; unthemed schemes leave them at engine-baseline gray. */
     .aaron-window {
       background: white;
+      box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.25);
+      position: absolute;
+      /* overflow:visible so bulbous chrome ornaments can protrude past
+         the content rect. .aaron-content owns its own clip so consumer
+         HTML doesn't bleed into the chrome area. */
+      overflow: visible;
+    }
+    /* Unthemed windows get a 1px frame stroke around the content rect
+       via box-shadow (themed windows draw their own border via the
+       chrome cicn, so we drop the stroke when chrome is active). */
+    .aaron-window:not([data-aaron-chrome="on"]) {
       box-shadow:
         inset 0 0 0 1px var(--aaron-cicn-frame-color, var(--aaron-colr-window-frame, #666)),
         2px 3px 12px rgba(0,0,0,0.25);
-      display: flex; flex-direction: column;
-      overflow: hidden;
     }
-    /* Themed mode — chrome can protrude outside the content rect. */
-    .aaron-window[data-aaron-chrome="on"] {
-      overflow: visible;
-      /* Drop the box-shadow stroke — the chrome cicn provides its own
-         border. The drop-shadow under the window stays. */
-      box-shadow: 2px 3px 12px rgba(0, 0, 0, 0.25);
-    }
+    /* Titlebar always lives ABOVE the content rect, regardless of
+       theme state. The Mac model treats the titlebar as part of the
+       chrome that surrounds the content — not as part of the
+       resizable content area itself. */
     .aaron-titlebar {
-      flex: 0 0 var(--aaron-frame-top-px, 25px);
-      position: relative;
-      height: var(--aaron-frame-top-px, 25px);
-      min-height: var(--aaron-frame-top-px, 25px);
-      border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
-      image-rendering: pixelated;
-    }
-    /* Themed mode: titlebar leaves the flex flow + sits ABOVE the
-       content rect, exactly matching the Mac model where the titlebar
-       is outside the user-resizable content area. */
-    .aaron-window[data-aaron-chrome="on"] .aaron-titlebar {
-      flex: none;
       position: absolute;
       left: 0; right: 0;
       top: calc(-1 * var(--aaron-frame-top-px, 25px));
       height: var(--aaron-frame-top-px, 25px);
-      border-bottom: 0;
+      image-rendering: pixelated;
+    }
+    /* Unthemed-only: a thin engine-baseline divider between the
+       titlebar and the content rect. Themed windows let the cicn
+       handle the visual transition. */
+    .aaron-window:not([data-aaron-chrome="on"]) .aaron-titlebar {
+      border-bottom: 1px solid var(--aaron-colr-window-frame, #888);
     }
     .aaron-titlebar__title {
       position: absolute;
@@ -119,61 +116,48 @@
     .aaron-window[data-state="inactive"] .aaron-titlebar__title {
       color: var(--aaron-colr-titlebar-inactive-fg, #888);
     }
-    /* Unthemed edge containers — invisible, just for structural DOM. */
+    /* Edge containers — always live OUTSIDE the content rect.
+       Themed schemes paint chrome segments into these; unthemed
+       schemes leave them with engine-baseline 1px borders. */
     .aaron-window__edge--bottom,
     .aaron-window__edge--left,
     .aaron-window__edge--right {
+      position: absolute;
       display: flex;
       pointer-events: none;
     }
     .aaron-window__edge--left,
     .aaron-window__edge--right { flex-direction: column; }
     .aaron-window__edge--bottom { flex-direction: row; }
-    /* Themed mode: side + bottom edges escape OUTSIDE the content rect.
-       The cicn's chrome bitmap surrounds the content; bulbous features
-       (rounded corners, ornaments) protrude beyond the content rect. */
-    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--bottom {
+    .aaron-window__edge--bottom {
       left: 0; right: 0;
       bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
       height: var(--aaron-frame-bottom-px, 1px);
     }
-    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--left {
+    .aaron-window__edge--left {
       top: calc(-1 * var(--aaron-frame-top-px, 25px));
       bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
       left: calc(-1 * var(--aaron-frame-left-px, 1px));
       width: var(--aaron-frame-left-px, 1px);
     }
-    .aaron-window[data-aaron-chrome="on"] .aaron-window__edge--right {
+    .aaron-window__edge--right {
       top: calc(-1 * var(--aaron-frame-top-px, 25px));
       bottom: calc(-1 * var(--aaron-frame-bottom-px, 1px));
       right: calc(-1 * var(--aaron-frame-right-px, 1px));
       width: var(--aaron-frame-right-px, 1px);
     }
-    /* Unthemed (or pre-theme-applied) edges live INSIDE the window box. */
-    .aaron-window__edge--bottom {
-      left: 0; right: 0; bottom: 0;
-      height: var(--aaron-frame-bottom-px, 1px);
-    }
-    .aaron-window__edge--left {
-      left: 0; top: var(--aaron-frame-top-px, 25px); bottom: var(--aaron-frame-bottom-px, 1px);
-      width: var(--aaron-frame-left-px, 1px);
-    }
-    .aaron-window__edge--right {
-      right: 0; top: var(--aaron-frame-top-px, 25px); bottom: var(--aaron-frame-bottom-px, 1px);
-      width: var(--aaron-frame-right-px, 1px);
-    }
-    /* Themed mode: titlebar is out-of-flow (absolute, above the window),
-       so .aaron-content can fill the entire .aaron-window box with no
-       inset for chrome — chrome is OUTSIDE. */
+    /* .aaron-content fills the entire .aaron-window box (= content rect)
+       with no inset for chrome — chrome is always OUTSIDE. */
     .aaron-window[data-aaron-chrome="on"] .aaron-content {
       padding: 14px;
     }
     .aaron-content {
-      flex: 1 1 auto;
-      min-height: 0;
+      position: absolute;
+      inset: 0;
       padding: 14px;
       line-height: 1.45;
       overflow: auto;
+      box-sizing: border-box;
     }
     .aaron-content p { margin: 0 0 0.7em; }
     .aaron-content p:last-child { margin-bottom: 0; }
@@ -575,7 +559,7 @@
     const windows = [
       {
         title: 'About Aaron UI',
-        x: 40, y: 32, width: 380, height: 360,
+        x: 40, y: 56, width: 380, height: 360,
         html: `
           <h3>What is this?</h3>
           <p>Aaron UI is a web-native runtime for <strong>Kaleidoscope</strong>
@@ -596,7 +580,7 @@
       },
       {
         title: 'README · scheme provenance',
-        x: 440, y: 80, width: 380, height: 280,
+        x: 460, y: 96, width: 380, height: 280,
         html: `
           <h3 id="readme-title">…</h3>
           <p id="readme-desc">…</p>
@@ -609,7 +593,7 @@
       },
       {
         title: 'Controls',
-        x: 520, y: 90, width: 360, height: 380,
+        x: 880, y: 56, width: 360, height: 380,
         html: `
           <h3>Phase 3 form controls</h3>
           <p style="font-size:12px;opacity:0.75;">Buttons + fields are CSS-drawn (no period cicn artwork).
@@ -640,7 +624,7 @@
       },
       {
         title: 'Elements showcase',
-        x: 520, y: 470, width: 380, height: 100,
+        x: 460, y: 460, width: 380, height: 100,
         html: `
           <h3>Cicn-driven element families</h3>
           <p style="font-size:12px;opacity:0.75;">Each promotes from

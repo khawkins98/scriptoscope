@@ -401,18 +401,19 @@ describe('AaronWindow', () => {
         x: 100, y: 80, left: 100, top: 80, right: 420, bottom: 280,
         width: 320, height: 200, toJSON: () => ({}),
       });
-      // jsdom default viewport is 1024x768. With window 320x200, max is (704, 568).
+      // jsdom default viewport is 1024x768. Per Mac-window-model alignment
+      // (#158/#160) chrome lives OUTSIDE the content rect; clamp keeps the
+      // full footprint on-screen, leaving room for chrome on each side.
       pointer('pointerdown', titlebar, { clientX: 100, clientY: 80 });
-      // Try to drag way off-screen to the right
       pointer('pointermove', document, { clientX: 5000, clientY: 5000 });
       const left = parseInt(w.element!.style.left, 10);
       const top = parseInt(w.element!.style.top, 10);
-      expect(left).toBeLessThanOrEqual(704);
-      expect(top).toBeLessThanOrEqual(568);
-      // And negative direction
+      expect(left + 320).toBeLessThanOrEqual(window.innerWidth);
+      expect(top + 200).toBeLessThanOrEqual(window.innerHeight);
+      // Top/left: content rect can't push chrome off-edge.
       pointer('pointermove', document, { clientX: -1000, clientY: -1000 });
-      expect(parseInt(w.element!.style.left, 10)).toBe(0);
-      expect(parseInt(w.element!.style.top, 10)).toBe(0);
+      expect(parseInt(w.element!.style.left, 10)).toBeGreaterThanOrEqual(0);
+      expect(parseInt(w.element!.style.top, 10)).toBeGreaterThanOrEqual(0);
     });
 
     it('detaches drag listeners on unmount (no stale callbacks)', () => {
@@ -442,8 +443,10 @@ describe('AaronWindow', () => {
         const w = new AaronWindow({ x: 100, y: 80, width: 320, height: 200 });
         w.mount();
         w.move(-100, -100);
-        expect(w.element!.style.left).toBe('0px');
-        expect(w.element!.style.top).toBe('0px');
+        // Mac-window-model clamp keeps chrome on-screen — content rect
+        // can't go negative.
+        expect(parseInt(w.element!.style.left, 10)).toBeGreaterThanOrEqual(0);
+        expect(parseInt(w.element!.style.top, 10)).toBeGreaterThanOrEqual(0);
       });
 
       it('move() is a no-op before mount', () => {
@@ -747,14 +750,20 @@ describe('AaronWindow', () => {
     });
 
     describe('maximize() / unmaximize()', () => {
-      it('maximize() sets window to viewport size', () => {
+      it('maximize() sets content rect to viewport inset by chrome', () => {
         const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
         w.mount();
         w.maximize();
-        expect(w.element!.style.left).toBe('0px');
-        expect(w.element!.style.top).toBe('0px');
-        expect(w.element!.style.width).toBe(`${window.innerWidth}px`);
-        expect(w.element!.style.height).toBe(`${window.innerHeight}px`);
+        // Per Mac-window-model: content rect is inset by frame thickness
+        // so chrome stays visible inside the viewport.
+        const left = parseInt(w.element!.style.left, 10);
+        const top = parseInt(w.element!.style.top, 10);
+        const width = parseInt(w.element!.style.width, 10);
+        const height = parseInt(w.element!.style.height, 10);
+        expect(left + width).toBeLessThanOrEqual(window.innerWidth);
+        expect(top + height).toBeLessThanOrEqual(window.innerHeight);
+        expect(left).toBeGreaterThan(0); // inset by chrome
+        expect(top).toBeGreaterThan(0); // inset by titlebar
         expect(w.isMaximized).toBe(true);
       });
 
@@ -770,14 +779,27 @@ describe('AaronWindow', () => {
         expect(w.isMaximized).toBe(false);
       });
 
-      it('maximize() fires onresize and onmove with viewport dimensions', () => {
+      it('maximize() fires onresize and onmove with the inset content rect', () => {
         const onmove = vi.fn();
         const onresize = vi.fn();
         const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200, onmove, onresize });
         w.mount();
         w.maximize();
-        expect(onmove).toHaveBeenCalledWith(0, 0);
-        expect(onresize).toHaveBeenCalledWith(window.innerWidth, window.innerHeight);
+        // Content rect is inset by chrome margins. Callback values
+        // describe the content rect (the user-visible area), not the
+        // window's outer footprint.
+        expect(onmove).toHaveBeenCalledTimes(1);
+        expect(onresize).toHaveBeenCalledTimes(1);
+        const moveCall = onmove.mock.calls[0]!;
+        const resizeCall = onresize.mock.calls[0]!;
+        const mx = moveCall[0] as number;
+        const my = moveCall[1] as number;
+        const rw = resizeCall[0] as number;
+        const rh = resizeCall[1] as number;
+        expect(mx).toBeGreaterThan(0);
+        expect(my).toBeGreaterThan(0);
+        expect(mx + rw).toBeLessThanOrEqual(window.innerWidth);
+        expect(my + rh).toBeLessThanOrEqual(window.innerHeight);
       });
 
       it('unmaximize() fires onmove and onresize with restored dimensions', () => {
@@ -797,8 +819,9 @@ describe('AaronWindow', () => {
         const w = new AaronWindow({ x: 100, y: 80, width: 300, height: 200 });
         w.mount();
         w.maximize();
+        const widthAfterFirst = w.element!.style.width;
         w.maximize();
-        expect(w.element!.style.width).toBe(`${window.innerWidth}px`);
+        expect(w.element!.style.width).toBe(widthAfterFirst);
       });
 
       it('unmaximize on non-maximized window is a no-op', () => {

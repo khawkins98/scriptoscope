@@ -354,12 +354,17 @@ export class AaronWindow {
       width: this.el.style.width,
       height: this.el.style.height,
     };
-    this.el.style.left = '0px';
-    this.el.style.top = '0px';
-    this.el.style.width = `${window.innerWidth}px`;
-    this.el.style.height = `${window.innerHeight}px`;
-    this.options.onmove.call(this, 0, 0);
-    this.options.onresize.call(this, window.innerWidth, window.innerHeight);
+    // Maximize fills the viewport with the CONTENT rect inset by chrome,
+    // so chrome stays visible (not clipped off-screen).
+    const frame = this.getFrameThickness();
+    const w = Math.max(this.options.minWidth, window.innerWidth - frame.left - frame.right);
+    const h = Math.max(this.options.minHeight, window.innerHeight - frame.top - frame.bottom);
+    this.el.style.left = `${frame.left}px`;
+    this.el.style.top = `${frame.top}px`;
+    this.el.style.width = `${w}px`;
+    this.el.style.height = `${h}px`;
+    this.options.onmove.call(this, frame.left, frame.top);
+    this.options.onresize.call(this, w, h);
     return this;
   }
 
@@ -602,20 +607,51 @@ export class AaronWindow {
   };
 
   /**
+   * Read the chrome frame thickness from CSS custom properties on the
+   * window element. The runtime sets these when applying a themed
+   * scheme; CSS provides defaults (matching the engine-baseline 25px
+   * titlebar + 1px sides) for unthemed windows. Returns 0s if the
+   * window isn't mounted.
+   *
+   * Per the Mac-window-model alignment (#158/#160): the user's
+   * width/height define the CONTENT rect; chrome extends outside.
+   * These thicknesses tell layout-math (clamp, maximize) how much
+   * extra space chrome consumes beyond the content rect.
+   */
+  private getFrameThickness(): { top: number; right: number; bottom: number; left: number } {
+    if (this.el === null) return { top: 0, right: 0, bottom: 0, left: 0 };
+    const cs = window.getComputedStyle(this.el);
+    const num = (v: string): number => parseFloat(v) || 0;
+    return {
+      top: num(cs.getPropertyValue('--aaron-frame-top-px')) || 25,
+      right: num(cs.getPropertyValue('--aaron-frame-right-px')) || 1,
+      bottom: num(cs.getPropertyValue('--aaron-frame-bottom-px')) || 1,
+      left: num(cs.getPropertyValue('--aaron-frame-left-px')) || 1,
+    };
+  }
+
+  /**
    * Clamp a desired position so the window stays at least partially
    * visible. Top-left can't go negative; bottom-right can't disappear
-   * past viewport. Keeps at least the titlebar reachable for re-drag.
+   * past viewport. Accounts for chrome that lives OUTSIDE the content
+   * rect (titlebar above, edges on the sides + bottom) — we don't want
+   * the titlebar to be off the top of the viewport because then the
+   * user can't grab it to re-drag.
    */
   private clampPosition(x: number, y: number): [number, number] {
     if (this.el === null) return [x, y];
     const winW = this.el.offsetWidth || this.options.width;
     const winH = this.el.offsetHeight || this.options.height;
+    const frame = this.getFrameThickness();
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
-    const maxX = Math.max(0, viewW - winW);
-    const maxY = Math.max(0, viewH - winH);
-    const nx = Math.min(Math.max(0, x), maxX);
-    const ny = Math.min(Math.max(0, y), maxY);
+    // Keep entire window footprint (content rect + chrome) within viewport.
+    const minX = frame.left;
+    const minY = frame.top;
+    const maxX = Math.max(minX, viewW - winW - frame.right);
+    const maxY = Math.max(minY, viewH - winH - frame.bottom);
+    const nx = Math.min(Math.max(minX, x), maxX);
+    const ny = Math.min(Math.max(minY, y), maxY);
     return [nx, ny];
   }
 
