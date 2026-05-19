@@ -61,3 +61,13 @@ export {
   type StateChromeMap,
   type TeardownFn,
 } from './applyControlChrome.js';
+// Conformance reporting — spec C §4.5 + spec B §12.
+export {
+  computeConformanceReport,
+  classifyCicnFamily,
+  type ExtendedConformanceReport,
+  type FamilyCount,
+} from './conformanceReport.js';
+// Attach helpers for cicn-driven controls.
+export { attachThemeToCheckable } from './attachThemeToCheckable.js';
+export { attachThemeToDisclosure } from './attachThemeToDisclosure.js';
