@@ -5,10 +5,10 @@ import { test, expect } from '@playwright/test';
 // chrome paints, the switcher swaps themes.
 
 test.describe('landing page (index.html)', () => {
-  test('mounts five AaronWindow instances', async ({ page }) => {
+  test('mounts six AaronWindow instances', async ({ page }) => {
     await page.goto('/');
-    // About + README + Side-by-side + For developers + Controls.
-    await expect(page.locator('.aaron-window')).toHaveCount(5);
+    // About + README + Controls + Elements showcase + Side-by-side + For developers.
+    await expect(page.locator('.aaron-window')).toHaveCount(6);
   });
 
   test('bundled default auto-loads + provenance bar shows the active scheme', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('landing page (index.html)', () => {
     // Per-segment composer: cicn URL appears on segment divs inside
     // [data-aaron-chrome-edge] strips. First top-edge segment of each
     // window should reference the bundled 7 Le cicn.
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       const bg = await page
         .locator('.aaron-window')
         .nth(i)
