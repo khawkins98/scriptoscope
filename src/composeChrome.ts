@@ -1,5 +1,45 @@
 import { PixelBuffer } from './pixelBuffer.js';
-import type { WindowType, Rect } from './types.js';
+import type { WindowType, Rect, EdgeStep } from './types.js';
+
+/** Extract the integer part code from a `part-N` slug (−1 if malformed). */
+function partCode(slug: string): number {
+  const m = /^part-(\d+)$/.exec(slug);
+  return m ? Number(m[1]) : -1;
+}
+
+/**
+ * Fill part codes: segments that absorb extra width by stretching their
+ * 1px column (the racing-stripe "side" between grow regions, per
+ * kdef-disassembly-findings §8.4). p8 is the stripe fill in every 7 Le
+ * window type; everything else (corners, edges, the p5/p6 divider, and
+ * the segments that contain baked-in widgets) is stamped 1:1. Extend
+ * this when other schemes reveal more fill codes (the A pass).
+ */
+function isFillPart(code: number): boolean {
+  return code === 8;
+}
+
+interface RecipeSegment {
+  /** cicn source span along the edge axis. */
+  x0: number;
+  x1: number;
+  code: number;
+  fill: boolean;
+}
+
+/** Turn an edge recipe into ordered source segments along the axis. */
+function recipeSegments(recipe: EdgeStep[], axisMax: number): RecipeSegment[] {
+  const sorted = [...recipe].sort((a, b) => a.at - b.at);
+  const segs: RecipeSegment[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const x0 = sorted[i]!.at;
+    const x1 = i + 1 < sorted.length ? sorted[i + 1]!.at : axisMax;
+    if (x1 <= x0) continue;
+    const code = partCode(sorted[i]!.part);
+    segs.push({ x0, x1, code, fill: isFillPart(code) });
+  }
+  return segs;
+}
 
 /** Frame thicknesses, derived from the body part rect (part-0). */
 export interface Frame {
@@ -82,6 +122,71 @@ export function findStripeColumn(cicn: PixelBuffer, x0: number, x1: number, top:
   return bestX;
 }
 
+/**
+ * Compose the top edge by walking the wnd# recipe (the principled path,
+ * per kdef-disassembly-findings §8.4): each segment is stamped 1:1 from
+ * its cicn span, except fill (p8) segments which stretch to absorb the
+ * window's extra width. The extra is split evenly across fill segments,
+ * so the divider/title stays centered and widgets stay pinned.
+ */
+function composeTopEdgeFromRecipe(
+  out: PixelBuffer,
+  cicn: PixelBuffer,
+  recipe: EdgeStep[],
+  top: number,
+  fullW: number,
+): void {
+  const segs = recipeSegments(recipe, cicn.width);
+  const extra = Math.max(0, fullW - cicn.width);
+  let fillsLeft = segs.filter((s) => s.fill).length;
+  let extraRem = extra;
+  let outX = 0;
+  for (const seg of segs) {
+    const nativeW = seg.x1 - seg.x0;
+    let outW = nativeW;
+    if (seg.fill) {
+      // last fill segment soaks up the rounding remainder
+      const add = fillsLeft === 1 ? extraRem : Math.round(extra / segs.filter((s) => s.fill).length);
+      outW = nativeW + add;
+      extraRem -= add;
+      fillsLeft--;
+    }
+    out.copyBits(
+      cicn,
+      { x: seg.x0, y: 0, w: nativeW, h: top },
+      { x: outX, y: 0, w: outW, h: top },
+    );
+    outX += outW;
+  }
+}
+
+/**
+ * Fallback when a window type ships no edge recipe: stamp the cicn's end
+ * regions as caps and stretch a single stripe column across the gap.
+ */
+function composeTopEdgeFromSeam(
+  out: PixelBuffer,
+  cicn: PixelBuffer,
+  windowType: WindowType,
+  top: number,
+  fullW: number,
+): void {
+  const [seamL, seamR] = titlebarSeam(windowType.parts, cicn.width);
+  const capLw = seamL;
+  const capRw = cicn.width - seamR;
+  out.copyBits(cicn, { x: 0, y: 0, w: capLw, h: top }, { x: 0, y: 0, w: capLw, h: top });
+  out.copyBits(
+    cicn,
+    { x: seamR, y: 0, w: capRw, h: top },
+    { x: fullW - capRw, y: 0, w: capRw, h: top },
+  );
+  const stripeX = findStripeColumn(cicn, seamL, seamR, top);
+  const midW = fullW - capLw - capRw;
+  if (midW > 0) {
+    out.copyBits(cicn, { x: stripeX, y: 0, w: 1, h: top }, { x: capLw, y: 0, w: midW, h: top });
+  }
+}
+
 export interface ComposedChrome {
   buffer: PixelBuffer;
   frame: Frame;
@@ -115,23 +220,10 @@ export function composeWindowChrome(
   const out = PixelBuffer.alloc(fullW, fullH);
 
   // ── titlebar (top strip) ──
-  const [seamL, seamR] = titlebarSeam(windowType.parts, cicn.width);
-  const capLw = seamL;
-  const capRw = cicn.width - seamR;
-  // left cap (left frame + close cluster), 1:1
-  out.copyBits(cicn, { x: 0, y: 0, w: capLw, h: frame.top }, { x: 0, y: 0, w: capLw, h: frame.top });
-  // right cap (zoom / windowshade cluster + right frame), 1:1
-  out.copyBits(
-    cicn,
-    { x: seamR, y: 0, w: capRw, h: frame.top },
-    { x: fullW - capRw, y: 0, w: capRw, h: frame.top },
-  );
-  // fill: 1px stripe column stretched across the gap
-  const stripeX = findStripeColumn(cicn, seamL, seamR, frame.top);
-  const midX = capLw;
-  const midW = fullW - capLw - capRw;
-  if (midW > 0) {
-    out.copyBits(cicn, { x: stripeX, y: 0, w: 1, h: frame.top }, { x: midX, y: 0, w: midW, h: frame.top });
+  if (windowType.edges?.top && windowType.edges.top.length > 0) {
+    composeTopEdgeFromRecipe(out, cicn, windowType.edges.top, frame.top, fullW);
+  } else {
+    composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
   }
 
   // ── side edges (sample a 1px frame slice from the body row, stretch down) ──
