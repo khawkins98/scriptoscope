@@ -69,6 +69,12 @@ export interface ThemeOrigin {
   originalReadme?: string;
   /** Canonical URL where the scheme can be downloaded. */
   sourceUrl?: string;
+  /** Original Kaleidoscope scheme ID (for archive cross-reference). */
+  originalSchemeId?: number;
+  /** Minimum Kaleidoscope version required, as decoded from Colr byte 2
+   *  (e.g. 0x23 = "2.3"). Populated by the Colr decoder; absent when
+   *  no Colr is present. */
+  minimumKaleidoscopeVersion?: number;
 }
 
 /** Scheme-level rendering flags from Kaleidoscope's Colr resource. */

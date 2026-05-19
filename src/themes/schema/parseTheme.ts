@@ -109,6 +109,13 @@ function parseOrigin(value: unknown, path: string): ThemeOrigin {
     origin.originalReadme = assertString(obj['originalReadme'], `${path}.originalReadme`);
   if ('sourceUrl' in obj)
     origin.sourceUrl = assertString(obj['sourceUrl'], `${path}.sourceUrl`);
+  if ('originalSchemeId' in obj)
+    origin.originalSchemeId = assertNumber(obj['originalSchemeId'], `${path}.originalSchemeId`);
+  if ('minimumKaleidoscopeVersion' in obj)
+    origin.minimumKaleidoscopeVersion = assertNumber(
+      obj['minimumKaleidoscopeVersion'],
+      `${path}.minimumKaleidoscopeVersion`,
+    );
   return origin;
 }
 

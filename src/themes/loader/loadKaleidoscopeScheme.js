@@ -14,6 +14,7 @@ import { decodeCicn } from './decoders/cicn.js';
 import { decodePpat } from './decoders/ppat.js';
 import { decodeCinf } from './decoders/cinf.js';
 import { decodeWnd }  from './decoders/wnd.js';
+import { decodeColr } from './decoders/colr.js';
 import { buildThemeJson } from './buildThemeJson.js';
 import { validateTheme } from './validateTheme.js';
 
@@ -58,6 +59,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
       else if (e.type === 'ppat') payload = decodePpat(e.data);
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
+      else if (e.type === 'Colr') payload = decodeColr(e.data);
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }

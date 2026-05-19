@@ -168,13 +168,29 @@ export function buildThemeJson(manifest, options = {}) {
   };
 
   // Merge sidecar meta (name, author, origin, options, palette) on top.
-  // palette is sidecar-supplied pending a Colr decoder (#36 didn't ship one).
-  // Once Colr decoding lands, this merge will defer to the extracted palette.
+  // palette is sidecar-supplied pending full Colr parsing.
   if (meta.name != null)    theme.name = meta.name;
   if (meta.author != null)  theme.author = meta.author;
   if (meta.origin != null)  theme.origin = meta.origin;
   if (meta.options != null) theme.options = meta.options;
   if (meta.palette != null) theme.palette = meta.palette;
+
+  // Extracted Colr (scheme global flags) — supersedes meta.options when
+  // present. Only the documented TMPL 128 fields are surfaced; later
+  // Kaleidoscope flags live in colr.extraBytes for future decoding.
+  const colrAsset = manifest.assets.find((a) => a.type === 'Colr' && a.status === 'ok');
+  if (colrAsset?.data) {
+    theme.options = {
+      ...(theme.options ?? {}),
+      stretchScrollbarThumbFromCenter: colrAsset.data.stretchScrollbarThumbFromCenter,
+    };
+    // Provenance: also stamp the minimum Kaleidoscope version + scheme
+    // version on theme.origin so consumers can warn on too-old runtimes.
+    theme.origin = {
+      ...(theme.origin ?? { kind: 'kaleidoscope-port' }),
+      minimumKaleidoscopeVersion: colrAsset.data.minimumKVersion,
+    };
+  }
 
   // Then the extracted-resource sections — only emit non-empty ones to
   // keep the JSON honest about what was found in the scheme.
