@@ -29,6 +29,10 @@ const RUNTIME_CONSUMED_PATTERNS: RegExp[] = [
   /^placard-thing$/,
   /^(active|pressed|inactive)-placard$/,
   /^finder-header-(active|inactive)$/,
+  // Progress bar (step 3d — frame + track + fill, determinate)
+  /^progress-bar-(active|inactive)$/,
+  /^progress-bar-frame-(active|inactive)$/,
+  /^progress-bar-track-(active|inactive)$/,
 ];
 
 // Family classifier — slug-name regex match. Buckets every cicn into

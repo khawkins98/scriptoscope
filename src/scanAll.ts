@@ -24,6 +24,7 @@ import {
   promoteDisclosures,
   promotePlacards,
   promoteWindowHeaders,
+  promoteProgressBars,
 } from './controls/index.js';
 
 const WINDOW_SOURCE_SELECTOR =
@@ -47,6 +48,7 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
   const disclosures = promoteDisclosures(root as Element);
   const placards = promotePlacards(root as Element);
   const windowHeaders = promoteWindowHeaders(root as Element);
+  const progressBars = promoteProgressBars(root as Element);
   return {
     windows: windows.length,
     buttons: buttons.length,
@@ -56,6 +58,7 @@ export function scanAll(root: ParentNode = document): ScanAllResult {
     disclosures: disclosures.length,
     placards: placards.length,
     windowHeaders: windowHeaders.length,
+    progressBars: progressBars.length,
   };
 }
 
@@ -68,6 +71,7 @@ export interface ScanAllResult {
   disclosures: number;
   placards: number;
   windowHeaders: number;
+  progressBars: number;
 }
 
 /**
@@ -118,6 +122,7 @@ function onMutations(mutations: MutationRecord[]): void {
       promoteDisclosures(root);
       promotePlacards(root);
       promoteWindowHeaders(root);
+      promoteProgressBars(root);
     }
   }
 }

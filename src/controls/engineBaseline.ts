@@ -349,6 +349,64 @@ const ENGINE_BASELINE_CSS = `
   box-shadow: none;
 }
 
+/* ─── Progress bars ──────────────────────────────────────────────────
+   Three painted layers (frame / track / fill). CSS fallback uses
+   palette gradients on each. Per-layer [data-aaron-cicn-loaded]
+   suppresses the matching CSS visual when the cicn paints over it. */
+
+.aaron-progress {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+  height: 14px;
+  vertical-align: middle;
+  --progress: 0;
+}
+.aaron-progress__frame {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--aaron-colr-window-frame, #888);
+  border-radius: 2px;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+.aaron-progress__track {
+  position: absolute;
+  inset: 1px;
+  background: var(--aaron-colr-bg-disabled, #e0e0e0);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.aaron-progress__fill {
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    var(--aaron-colr-accent, #316ac5) 0%,
+    color-mix(in srgb, var(--aaron-colr-accent, #316ac5) 75%, #000) 100%
+  );
+  transition: width 150ms;
+}
+
+/* Disabled state — neutralize accent fill */
+.aaron-progress[data-state="disabled"] .aaron-progress__fill,
+.aaron-progress[aria-disabled="true"] .aaron-progress__fill {
+  background: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.3));
+}
+
+/* Cicn-loaded overrides */
+.aaron-progress__frame[data-aaron-cicn-loaded] {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.aaron-progress__track[data-aaron-cicn-loaded] {
+  background: none;
+  border-radius: 0;
+}
+.aaron-progress__fill[data-aaron-cicn-loaded] {
+  background: none;
+}
+
 /* ─── Text fields (input + textarea) ───────────────────────────────── */
 /* Same path as buttons / checkboxes (#71, #72): no field/frame cicn
    slugs in either canonical bundle. CSS-drawn inset bezel, palette-

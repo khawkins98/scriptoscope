@@ -117,6 +117,8 @@ export {
   promotePlacards,
   AaronWindowHeader,
   promoteWindowHeaders,
+  AaronProgress,
+  promoteProgressBars,
   installEngineBaseline,
   type AaronButtonOptions,
   type AaronCheckableOptions,
@@ -125,4 +127,5 @@ export {
   type DisclosureFacing,
   type AaronPlacardOptions,
   type AaronWindowHeaderOptions,
+  type AaronProgressOptions,
 } from './controls/index.js';

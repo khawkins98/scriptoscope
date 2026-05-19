@@ -25,4 +25,9 @@ export {
   promoteWindowHeaders,
   type AaronWindowHeaderOptions,
 } from './AaronWindowHeader.js';
+export {
+  AaronProgress,
+  promoteProgressBars,
+  type AaronProgressOptions,
+} from './AaronProgress.js';
 export { installEngineBaseline } from './engineBaseline.js';

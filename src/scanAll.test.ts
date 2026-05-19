@@ -42,6 +42,7 @@ describe('scanAll (one-shot)', () => {
       disclosures: 0,
       placards: 0,
       windowHeaders: 0,
+      progressBars: 0,
     });
   });
 
