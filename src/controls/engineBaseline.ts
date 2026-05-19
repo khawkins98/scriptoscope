@@ -204,6 +204,24 @@ const ENGINE_BASELINE_CSS = `
   background: var(--aaron-colr-fg-disabled, rgba(0, 0, 0, 0.4));
 }
 
+/* ─── Cicn-driven overrides ───────────────────────────────────────────
+   When attachThemeToCheckable paints a cicn onto the chrome span, the
+   cicn already includes the check mark / radio dot. Suppress the CSS-
+   drawn pseudo-elements + transparent the background so the cicn isn't
+   competing with engine-baseline strokes. */
+.aaron-checkbox__chrome[data-aaron-cicn-loaded],
+.aaron-radio__chrome[data-aaron-cicn-loaded] {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.aaron-checkbox__chrome[data-aaron-cicn-loaded]::before,
+.aaron-checkbox__chrome[data-aaron-cicn-loaded]::after,
+.aaron-radio__chrome[data-aaron-cicn-loaded]::before,
+.aaron-radio__chrome[data-aaron-cicn-loaded]::after {
+  display: none;
+}
+
 /* ─── Text fields (input + textarea) ───────────────────────────────── */
 /* Same path as buttons / checkboxes (#71, #72): no field/frame cicn
    slugs in either canonical bundle. CSS-drawn inset bezel, palette-
