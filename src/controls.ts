@@ -180,19 +180,37 @@ export async function composeSlider(
   const state = opts.state ?? 'normal';
   const horiz = orientation === 'horizontal';
 
-  const tkPrefix = state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
-  const track =
-    (await loadByKey(theme, `${tkPrefix}non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-track`)) ??
-    (await loadByKey(theme, `non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-track`));
+  // Resolve by RESOURCE ID (slugs vary per scheme; ids are stable). The
+  // non-directional slider: horizontal track -10131 (pressed -10130 /
+  // inactive -10132) + thumbs -10129 · vertical track -10115 (-10114 /
+  // -10116) + thumbs -10113.
+  const tA = horiz ? 10131 : 10115;
+  const tP = horiz ? 10130 : 10114;
+  const tI = horiz ? 10132 : 10116;
+  const tId = state === 'pressed' ? tP : state === 'disabled' || state === 'inactive' ? tI : tA;
+  const track = (await loadById(theme, tId)) ?? (await loadById(theme, tA));
   if (!track) return null;
-  const thumbs = await loadByKey(theme, `non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-thumbs`);
+  const thumbs = await loadById(theme, horiz ? 10129 : 10113);
 
   const thickness = horiz ? track.height : track.width;
+  const longSrc = horiz ? track.width : track.height;
   const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
 
-  // groove: stretch the track along the axis
-  if (horiz) out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
-  else out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: thickness, h: length });
+  // groove: 3-slice along the axis — keep the rounded end caps 1:1, stretch
+  // the uniform middle. (Full-stretch would smear the caps.) Cap width is a
+  // few px; clamp so two caps fit.
+  const end = Math.min(6, Math.floor((longSrc - 1) / 2));
+  const mid = longSrc - end * 2;
+  const dmid = length - end * 2;
+  if (horiz) {
+    out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
+    out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
+    out.copyBits(track, { x: end, y: 0, w: mid, h: thickness }, { x: end, y: 0, w: dmid, h: thickness });
+  } else {
+    out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
+    out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
+    out.copyBits(track, { x: 0, y: end, w: thickness, h: mid }, { x: 0, y: end, w: thickness, h: dmid });
+  }
 
   // thumb: pick the state row from the sprite sheet, stamp at value
   if (thumbs) {
@@ -295,14 +313,21 @@ export async function composeProgress(
     out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h });
   }
 
-  // 3) fill across 0..value of the interior, ON TOP of the frame — TILED
-  //    horizontally (the fill is a repeating texture/section, not a single
-  //    stretched cell), stretched only on the cross axis to the interior.
+  // 3) fill across 0..value of the interior, ON TOP of the frame — 3-slice
+  //    along the bar: keep the section's rounded end caps 1:1, stretch the
+  //    middle (NOT tiled — tiling repeats the section into visible chevrons).
   if (fill && value > 0 && iw > 0 && ih > 0) {
     const fw = Math.round(value * iw);
-    for (let x = 0; x < fw; x += fill.width) {
-      const cw = Math.min(fill.width, fw - x);
-      out.copyBits(fill, { x: 0, y: 0, w: cw, h: fill.height }, { x: ix + x, y: iy, w: cw, h: ih });
+    if (fw > 0 && fw <= fill.width) {
+      out.copyBits(fill, { x: 0, y: 0, w: fill.width, h: fill.height }, { x: ix, y: iy, w: fw, h: ih });
+    } else if (fw > 0) {
+      // cap = the rounded-corner width (~a few px); keep it small so a
+      // non-empty middle remains even for narrow (12px) fill sections.
+      const cap = Math.min(4, Math.max(1, (fill.width - 2) >> 1));
+      const fmid = fill.width - cap * 2;
+      out.copyBits(fill, { x: 0, y: 0, w: cap, h: fill.height }, { x: ix, y: iy, w: cap, h: ih });
+      out.copyBits(fill, { x: fill.width - cap, y: 0, w: cap, h: fill.height }, { x: ix + fw - cap, y: iy, w: cap, h: ih });
+      out.copyBits(fill, { x: cap, y: 0, w: fmid, h: fill.height }, { x: ix + cap, y: iy, w: fw - cap * 2, h: ih });
     }
   }
   return out;
@@ -417,17 +442,21 @@ export function baselineButton(label: string, opts: BaselineButtonOptions = {}):
   const b = document.createElement('button');
   b.textContent = label;
   b.disabled = !!opts.disabled;
+  // Platinum push button: rounded face with a top-light gradient, a dark
+  // outer frame, a white top-inner highlight + soft bottom-inner shadow.
+  // The default button gets the classic black ring (1px light gap, then a
+  // 2px black rounded outline) via stacked box-shadows.
+  const bevel = 'inset 0 1px 0 #ffffff, inset 0 -1px 1px rgba(0,0,0,0.14)';
   Object.assign(b.style, {
-    font: '12px Chicago, Charcoal, Geneva, sans-serif',
-    padding: '2px 14px',
-    minWidth: '58px',
-    color: opts.disabled ? '#888' : '#000',
-    background: 'linear-gradient(#ffffff, #cfcfcf)',
-    border: '1px solid #555555',
-    borderRadius: '9px',
-    boxShadow: opts.default
-      ? '0 0 0 2px #000, inset 0 1px 0 #ffffff'
-      : 'inset 0 1px 0 #ffffff, inset 0 -1px 0 #b0b0b0',
+    font: '12px Charcoal, Chicago, Geneva, sans-serif',
+    padding: '3px 16px',
+    minWidth: '62px',
+    margin: '3px',
+    color: opts.disabled ? '#9a9a9a' : '#000',
+    background: opts.disabled ? '#e0e0e0' : 'linear-gradient(180deg, #fefefe 0%, #ececec 48%, #cdcdcd 100%)',
+    border: '1px solid #5a5a5a',
+    borderRadius: '10px',
+    boxShadow: opts.default ? `${bevel}, 0 0 0 1px #d4d4d4, 0 0 0 3px #000000` : bevel,
     cursor: opts.disabled ? 'default' : 'pointer',
   } satisfies Partial<CSSStyleDeclaration>);
   return b;
