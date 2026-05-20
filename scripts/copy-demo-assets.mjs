@@ -9,7 +9,7 @@
 // just to copy them verbatim after the build. This keeps the relative
 // `assets/themes/<name>/<file>` URLs the demo's CSS uses working as-is.
 
-import { cp, mkdir } from 'node:fs/promises';
+import { cp, mkdir, readdir, access } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,6 +17,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 const outAssets = resolve(root, 'dist/demo/assets');
 
+async function exists(p) {
+  try { await access(p); return true; } catch { return false; }
+}
 async function copy(src, dst) {
   await mkdir(dirname(dst), { recursive: true });
   await cp(src, dst, { recursive: true });
@@ -24,10 +27,7 @@ async function copy(src, dst) {
 }
 
 await mkdir(outAssets, { recursive: true });
-await copy(
-  resolve(root, 'demo/assets/themes'),
-  resolve(outAssets, 'themes'),
-);
+// Reference screenshots fetched by <img src> in the demo.
 await copy(
   resolve(root, 'demo/assets/references'),
   resolve(outAssets, 'references'),
@@ -36,13 +36,14 @@ await copy(
 // Canonical theme bundles (themes/<slug>/) — served at /themes/ in dev via
 // the serveThemesPlugin in vite.config.js and copied verbatim here for the
 // gh-pages deploy so loadTheme('/themes/<slug>/') works at production URLs.
+// Copy EVERY bundle (any themes/<slug>/ with a theme.json), so the deployed
+// demo matches the dev demo no matter which schemes are listed.
 const outThemes = resolve(root, 'dist/demo/themes');
 await mkdir(outThemes, { recursive: true });
-for (const slug of ['masswerk-7-le', 'masswerk-dark-ergobox2']) {
-  await copy(
-    resolve(root, 'themes', slug),
-    resolve(outThemes, slug),
-  );
+const themesDir = resolve(root, 'themes');
+for (const slug of await readdir(themesDir)) {
+  if (!(await exists(resolve(themesDir, slug, 'theme.json')))) continue;
+  await copy(resolve(themesDir, slug), resolve(outThemes, slug));
 }
 
 console.log('Demo assets copied.');

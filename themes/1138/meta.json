@@ -2,12 +2,12 @@
   "name": "1138",
   "author": {
     "name": "Erik Ekengren",
-    "year": "1998"
+    "year": 1998
   },
   "origin": {
     "kind": "kaleidoscope-port",
     "originalFormat": "ksc",
-    "originalSchemeId": "1138",
+    "originalSchemeId": 1138,
     "originalLicense": "Distributed as freeware via Kaleidoscope (kaleidoscope.net) circa 1999-2003. Site no longer reachable; archived copy via kaleidoscope.hryjksn.com.",
     "sourceUrl": "https://kaleidoscope.hryjksn.com/",
     "sourceArchive": "https://web.archive.org/web/20140226161241im_/http://www.kaleidoscope.net/schemes/schemes/1138.sit"

@@ -52,12 +52,11 @@
     const rows = document.getElementById('rows');
 
     const THEMES = [
-      { slug: 'masswerk-7-le', label: 'mass:werk 7 Le', ref: 'masswerk-7-le.jpg' },
-      { slug: 'masswerk-dark-ergobox2', label: 'Dark ErgoBox 2', ref: 'masswerk-dark-ergobox2.jpg' },
-      { slug: 'acid', label: 'Acid', ref: 'acid.png' },
+      { slug: 'apple-platinum-2', label: 'Apple Platinum 2', ref: 'apple-platinum-2.png' },
+      { slug: 'beos-r503', label: 'BeOS R5.0.3', ref: 'beos-r503.png' },
       { slug: '1990', label: '1990', ref: '1990.png' },
       { slug: '1138', label: '1138', ref: '1138.png' },
-      { slug: 'big-blue', label: 'Big Blue', ref: 'big-blue.png' },
+      { slug: '1984', label: '1984', ref: '1984.png' },
       { slug: 'evolution', label: 'Evolution', ref: 'evolution.png' },
     ];
 
@@ -70,30 +69,46 @@
     }
     const add = (frame, buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
 
-    // A classic-Mac desktop icon (DataBox drive / Trash / folder) drawn as a
-    // small neutral SVG with a label tile. These are OS icons, not scheme
-    // chrome — placeholders so the composite matches the canonical
-    // Kaleidoscope preview's LAYOUT.
+    // Folder icons for the Finder window content — neutral SVGs (OS icons,
+    // not scheme chrome).
     const ICON_SVG = {
-      disk: '<svg width="34" height="24" viewBox="0 0 34 24"><rect x="1" y="7" width="32" height="15" rx="2" fill="#d2d2d2" stroke="#4d4d4d"/><rect x="3" y="2" width="20" height="8" rx="1" fill="#e2e2e2" stroke="#4d4d4d"/><circle cx="27" cy="14" r="2.5" fill="#7d7d7d"/></svg>',
-      trash: '<svg width="22" height="26" viewBox="0 0 22 26"><rect x="3" y="6" width="16" height="17" rx="2" fill="#d2d2d2" stroke="#4d4d4d"/><rect x="1" y="3" width="20" height="3.5" rx="1" fill="#e2e2e2" stroke="#4d4d4d"/><g stroke="#909090"><line x1="8" y1="9" x2="8" y2="20"/><line x1="11" y1="9" x2="11" y2="20"/><line x1="14" y1="9" x2="14" y2="20"/></g></svg>',
       folder: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#dccfa3" stroke="#7a6a3a" stroke-width="1"/><path d="M2 9 h32 v13 h-32 z" fill="#e8dcb6" stroke="#7a6a3a" stroke-width="1"/></svg>',
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
     };
-    function deskIcon(kind, label, pos) {
+
+    // A segmented TAB control (e.g. On | Off), tinted with the scheme's
+    // header colors. Selected cell uses the header fill/text; others a light
+    // Platinum face. Reads as tabs rather than two separate push buttons.
+    function segmentedTabs(theme, labels, selectedIdx) {
+      const hc = theme.manifest?.headerColors?.active ?? {};
+      const fill = hc.fill ?? '#5a5a5a';
+      const text = hc.text ?? '#ffffff';
+      const frame = hc.frame ?? '#555555';
       const wrap = document.createElement('div');
-      Object.assign(wrap.style, { position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', font: '9px Charcoal, Geneva, sans-serif', color: '#000', ...pos });
-      const ic = document.createElement('div'); ic.innerHTML = ICON_SVG[kind]; wrap.appendChild(ic.firstChild);
-      if (label) { const l = document.createElement('div'); l.textContent = label; l.style.cssText = 'background:#fff;padding:0 2px;line-height:1.2;border:1px solid #bbb'; wrap.appendChild(l); }
+      Object.assign(wrap.style, {
+        display: 'inline-flex', border: `1px solid ${frame}`, borderRadius: '3px',
+        overflow: 'hidden', font: '11px Charcoal, Geneva, sans-serif',
+      });
+      labels.forEach((label, i) => {
+        const cell = document.createElement('div');
+        const sel = i === selectedIdx;
+        Object.assign(cell.style, {
+          padding: '2px 12px', borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
+          background: sel ? fill : 'linear-gradient(180deg,#fff,#dcdcdc)',
+          color: sel ? text : '#000', fontWeight: sel ? '700' : '400',
+        });
+        cell.textContent = label;
+        wrap.appendChild(cell);
+      });
       return wrap;
     }
 
     // Compose the canonical Kaleidoscope scheme-preview layout: a "Hello!"
     // Finder window (scheme-name info bar, two folders, a radio/checkbox row,
-    // edge scrollbars + grow box), an overlapping "On/Off" modal dialog
-    // (segmented buttons, a progress bar, a disclosure + default OK), and the
-    // DataBox / Trash desktop icons — the same arrangement the reference
-    // screenshots use, so the live render is directly comparable.
+    // edge scrollbars + grow box) with an overlapping "On/Off" modal dialog
+    // (segmented buttons, a progress bar, a disclosure + default OK) — the
+    // same arrangement the reference screenshots use, so the live render is
+    // directly comparable.
     async function buildScene(theme) {
       const desk = document.createElement('div');
       Object.assign(desk.style, {
@@ -148,22 +163,18 @@
       if (dc) {
         Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', background: '#fff', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
-        const onoff = document.createElement('div'); onoff.style.cssText = 'display:flex;gap:4px';
-        onoff.append(await btn('On', { default: true, minWidth: 32 }), await btn('Off', { minWidth: 32 }));
-        dc.appendChild(onoff);
+        // On/Off is a segmented TAB control (not two push buttons), tinted
+        // with the scheme's header colors for the selected cell.
+        dc.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
         const pg = await composeProgress(theme, { length: 86, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
         const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
         const disc = await composeDisclosure(theme, { direction: 'right' });
         if (disc) foot.appendChild(cv(disc));
-        foot.appendChild(await btn('OK', { default: true, minWidth: 34 }));
+        foot.appendChild(await btn('OK', { default: true }));
         dc.appendChild(foot);
       }
       desk.appendChild(dlg);
-
-      // ── desktop icons ──
-      desk.appendChild(deskIcon('disk', 'DataBox', { right: '6px', top: '5px' }));
-      desk.appendChild(deskIcon('trash', 'Trash', { right: '9px', bottom: '4px' }));
       return desk;
     }
 

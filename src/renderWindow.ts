@@ -39,9 +39,15 @@ export async function renderWindow(
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
   const wt = resolveWindowType(theme, slug);
-  if (!wt) throw new Error(`renderWindow: no usable windowType (wanted "${slug}")`);
-  const cicnPath = wt.chrome[state] ?? wt.chrome.active;
-  if (!cicnPath) throw new Error(`renderWindow: no chrome for state "${state}"`);
+  // Some schemes ship NO window-frame chrome — they inherit the OS default
+  // Platinum window (e.g. "Apple Platinum 2": its window resources are 16px
+  // proxy icons, and there's no wnd# side recipe). Render a procedural
+  // default window from the scheme's declared header colors so every theme
+  // still produces a window (North Star: render any scheme).
+  if (!wt || !(wt.chrome[state] ?? wt.chrome.active)) {
+    return buildBaselineWindow(theme, { title, state, contentW, contentH, scale });
+  }
+  const cicnPath = wt.chrome[state] ?? wt.chrome.active!;
   // (chromeElement lookup kept for validation / future metadata use)
   findChromeElement(theme, cicnPath);
 
@@ -54,7 +60,7 @@ export async function renderWindow(
   // the title region in the titlebar's fill color and draws the text in
   // the scheme's text color; we recover both by sampling the bar we just
   // composed — so it respects each scheme's actual geometry, incl. the
-  // schemes that ship no palette (1990/acid/evolution). The center
+  // schemes that ship no declared header colors. The center
   // placement matches the kDEF (title is centered on the content rect).
   if (title && frame.top > 6) {
     // Title colors: prefer the scheme's DECLARED header colors (decoded
@@ -83,14 +89,19 @@ export async function renderWindow(
     composed.buffer.drawOver(glyphs, bandX + pad, Math.round((frame.top - glyphs.height) / 2));
   }
 
-  // ── window root: positioned at the content rect ──
+  // ── window root: bounds the FULL window footprint (chrome included), so
+  // the element's box encloses everything it draws. The chrome used to bleed
+  // outside a content-sized box via negative canvas offsets, which got
+  // clipped when the window was embedded in an overflow:hidden container
+  // (cropped title bars). Now the canvas fills the root at 0,0 and the
+  // content is INSET by the frame thickness. ──
   const win = document.createElement('div');
   win.className = 'aw-window';
   win.dataset.awState = state;
   Object.assign(win.style, {
     position: 'relative',
-    width: `${contentW * scale}px`,
-    height: `${contentH * scale}px`,
+    width: `${fullWidth * scale}px`,
+    height: `${fullHeight * scale}px`,
   } satisfies Partial<CSSStyleDeclaration>);
 
   // ── chrome canvas: native-res buffer, CSS-scaled, behind content ──
@@ -103,8 +114,8 @@ export async function renderWindow(
   ctx.putImageData(composed.buffer.toImageData(), 0, 0);
   Object.assign(canvas.style, {
     position: 'absolute',
-    left: `${-frame.left * scale}px`,
-    top: `${-frame.top * scale}px`,
+    left: '0',
+    top: '0',
     width: `${fullWidth * scale}px`,
     height: `${fullHeight * scale}px`,
     imageRendering: 'pixelated',
@@ -112,12 +123,15 @@ export async function renderWindow(
     pointerEvents: 'none',
   } satisfies Partial<CSSStyleDeclaration>);
 
-  // ── content body, on top of the (transparent) content hole ──
+  // ── content body, inset by the frame so it sits over the chrome's hole ──
   const content = document.createElement('div');
   content.className = 'aw-content';
   Object.assign(content.style, {
     position: 'absolute',
-    inset: '0',
+    left: `${frame.left * scale}px`,
+    top: `${frame.top * scale}px`,
+    width: `${contentW * scale}px`,
+    height: `${contentH * scale}px`,
     background: '#fff',
     boxSizing: 'border-box',
     overflow: 'auto',
@@ -125,6 +139,78 @@ export async function renderWindow(
   } satisfies Partial<CSSStyleDeclaration>);
 
   win.append(canvas, content);
+  return win;
+}
+
+/**
+ * Procedural DEFAULT window for schemes that ship no window-frame chrome
+ * (they inherit the OS-default Platinum window). DOM/CSS only — analogous
+ * to the baseline controls. Uses the scheme's declared header colors for
+ * the titlebar fill/text so it still reads as that scheme. Returns the same
+ * `.aw-window` / `.aw-content` structure consumers expect.
+ */
+function buildBaselineWindow(
+  theme: LoadedTheme,
+  opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number },
+): HTMLElement {
+  const { title, state, contentW, contentH, scale } = opts;
+  const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
+  const fill = hc.fill ?? '#cccccc';
+  const text = hc.text ?? '#000000';
+  const frameC = hc.frame ?? '#555555';
+  const stripe = hc.darkTinge ?? hc.darkBevel ?? 'rgba(0,0,0,0.12)';
+  const titleH = 19;
+
+  const win = document.createElement('div');
+  win.className = 'aw-window';
+  win.dataset.awState = state;
+  Object.assign(win.style, {
+    position: 'relative',
+    border: `1px solid ${frameC}`,
+    background: fill,
+    boxSizing: 'border-box',
+  } satisfies Partial<CSSStyleDeclaration>);
+
+  // titlebar: horizontal pinstripe (Platinum racing stripes) in the header
+  // fill, centered title in the header text color, close + zoom/collapse boxes
+  const bar = document.createElement('div');
+  Object.assign(bar.style, {
+    position: 'relative', height: `${titleH * scale}px`,
+    borderBottom: `1px solid ${frameC}`,
+    background: `repeating-linear-gradient(0deg, ${fill} 0 1px, ${stripe} 1px 2px)`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    font: `${Math.round(11 * scale)}px Charcoal, Chicago, Geneva, sans-serif`,
+    color: text,
+  } satisfies Partial<CSSStyleDeclaration>);
+  const widget = (left: number): HTMLDivElement => {
+    const w = document.createElement('div');
+    Object.assign(w.style, {
+      position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+      [left >= 0 ? 'left' : 'right']: `${Math.abs(left) * scale}px`,
+      width: `${11 * scale}px`, height: `${11 * scale}px`,
+      border: `1px solid ${frameC}`, background: fill,
+      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.5)`,
+    } satisfies Partial<CSSStyleDeclaration>);
+    return w;
+  };
+  bar.appendChild(widget(5)); // close box (left)
+  bar.appendChild(widget(-18)); // zoom box (right)
+  bar.appendChild(widget(-5)); // collapse box (right)
+  if (title) {
+    const t = document.createElement('span');
+    t.textContent = title;
+    Object.assign(t.style, { background: fill, padding: `0 ${4 * scale}px`, position: 'relative', zIndex: '1' });
+    bar.appendChild(t);
+  }
+  win.appendChild(bar);
+
+  const content = document.createElement('div');
+  content.className = 'aw-content';
+  Object.assign(content.style, {
+    position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
+    background: '#fff', overflow: 'hidden', boxSizing: 'border-box',
+  } satisfies Partial<CSSStyleDeclaration>);
+  win.appendChild(content);
   return win;
 }
 

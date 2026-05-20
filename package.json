@@ -48,7 +48,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "screenshots": "node tools/scheme-screenshots.mjs",
-    "build:themes": "node scripts/build-theme-bundles.mjs"
+    "build:themes": "node scripts/extract-scheme.mjs --all"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

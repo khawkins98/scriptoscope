@@ -8,7 +8,7 @@
 //
 // Usage:
 //   node tools/scheme-screenshots.mjs                    # all schemes
-//   node tools/scheme-screenshots.mjs acid 1990          # subset
+//   node tools/scheme-screenshots.mjs 1984 1990          # subset
 //   node tools/scheme-screenshots.mjs --base http://...  # different host
 //
 // Requires the dev server running (npm run dev) or pass --base.
@@ -25,9 +25,8 @@ const outDir = resolve(repoRoot, 'docs/screenshots');
 const ALL_SCHEMES = [
   'masswerk-7-le',
   'masswerk-dark-ergobox2',
-  'acid',
   '1138',
-  'big-blue',
+  '1984',
   '1990',
   'evolution',
 ];

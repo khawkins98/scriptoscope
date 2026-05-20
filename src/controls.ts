@@ -308,7 +308,7 @@ export async function composeProgress(
 
   // 2) frame border: 9-slice so corners stay crisp. Some schemes' frames
   //    have a transparent interior (track shows through), others an opaque
-  //    one (big-blue is solid white) — either way the fill goes on TOP next.
+  //    one (1984 is solid white) — either way the fill goes on TOP next.
   if (frame) {
     out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h });
   }
@@ -351,10 +351,13 @@ export interface ButtonOptions {
  * ships no push-button cicns (→ baselineButton).
  */
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
-  const stateKey = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  const face = (await loadByKey(theme, `push-button-${stateKey}`)) ?? (await loadByKey(theme, 'push-button-active'));
+  // Resolve by RESOURCE ID (slugs vary / are absent, e.g. apple-platinum-2's
+  // cicns are unnamed): face -10239 active / -10238 pressed / -10240 inactive;
+  // default-button ring -10231 active / -10232 inactive.
+  const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
+  const face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239));
   if (!face) return null; // baseline path
-  const ring = opts.default ? await loadByKey(theme, 'push-button-ring-active') : null;
+  const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
 
   const label = opts.label ?? '';
   const fIns = sliceInset(face.width, face.height);
@@ -362,15 +365,15 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // The face center carries a 1px text-color MARKER sentinel (like the
   // window-title marker), so we sample a CLEAN interior pixel at the slice
   // inset for both the fill color and the label-contrast decision — the
-  // center pixel would mislead (acid's marker is light on a black face).
+  // center pixel would mislead (some schemes' marker is light on a dark face).
   const [cr, cg, cb, ca] = face.getPixel(fIns, fIns);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
   // Disabled buttons gray the label (the inactive face cicn is often
   // identical to the active one, so the dimmed label is the only cue).
   const fg = opts.fg ?? (opts.disabled ? '#808080' : lum < 128 ? '#ffffff' : '#000000');
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
-  const padX = 10;
-  const innerW = Math.max(opts.minWidth ?? 52, (glyphs ? glyphs.width : 0) + padX * 2);
+  const padX = 12;
+  const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = face.height;
 
   let out: PixelBuffer;
@@ -410,11 +413,19 @@ export async function composeCheckable(
   kind: 'checkbox' | 'radio',
   opts: { label?: string; checked?: boolean; disabled?: boolean; fg?: string } = {},
 ): Promise<PixelBuffer | null> {
-  const on = opts.checked ? 'on' : 'off';
-  const glyph =
-    kind === 'radio'
-      ? (await loadByKey(theme, `radio-buttons-${on}-${opts.disabled ? 'inactive' : 'active'}`))
-      : (await loadByKey(theme, `normal-${on}-${opts.disabled ? 'disabled' : 'normal'}`));
+  // Resolve by RESOURCE ID. radio: on -9488 active / -9489 inactive,
+  // off -9491 active / -9492 inactive · checkbox: checked -9500 active /
+  // -9501 inactive, empty -9503 active / -9504 inactive. (Schemes that ship
+  // no themed checkbox/radio — e.g. apple-platinum-2 — return null → baseline.)
+  let wantId: number, activeId: number;
+  if (kind === 'radio') {
+    activeId = opts.checked ? 9488 : 9491;
+    wantId = opts.disabled ? (opts.checked ? 9489 : 9492) : activeId;
+  } else {
+    activeId = opts.checked ? 9500 : 9503;
+    wantId = opts.disabled ? (opts.checked ? 9501 : 9504) : activeId;
+  }
+  const glyph = (await loadById(theme, wantId)) ?? (await loadById(theme, activeId));
   if (!glyph) return null;
   const label = opts.label ?? '';
   const glyphs = label ? rasterizeText(label, 9, opts.fg ?? '#000000') : null;
@@ -453,7 +464,7 @@ export function baselineButton(label: string, opts: BaselineButtonOptions = {}):
   Object.assign(b.style, {
     font: '12px Charcoal, Chicago, Geneva, sans-serif',
     padding: '3px 16px',
-    minWidth: `${opts.minWidth ?? 62}px`,
+    minWidth: `${opts.minWidth ?? 56}px`,
     margin: '3px',
     color: opts.disabled ? '#9a9a9a' : '#000',
     background: opts.disabled ? '#e0e0e0' : 'linear-gradient(180deg, #fefefe 0%, #ececec 48%, #cdcdcd 100%)',
