@@ -3,6 +3,7 @@ import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
 import { rasterizeText } from './textRaster.js';
+import type { PixelBuffer } from './pixelBuffer.js';
 
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
@@ -48,27 +49,30 @@ export async function renderWindow(
   const composed = composeWindowChrome(cicn, wt, contentW, contentH);
   const { frame, fullWidth, fullHeight } = composed;
 
-  // ── title: rasterized INTO the chrome buffer (single source of truth) ──
-  // Clear a band (mask the pinstripe) in the titlebar's interior, then
-  // alpha-over the glyphs. Native-res so it pixelates with the chrome.
-  const pal = theme.manifest.palette ?? {};
-  const tbBg = (state === 'inactive' ? pal['titlebar-inactive-bg'] : pal['titlebar-active-bg']) ?? '#cccccc';
-  const tbFg = (state === 'inactive' ? pal['titlebar-inactive-fg'] : pal['titlebar-active-fg']) ?? '#000000';
+  // ── title: rasterized INTO the chrome buffer, colors DERIVED from the
+  // composited titlebar (not the palette / hard-coded). The kDEF erases
+  // the title region in the titlebar's fill color and draws the text in
+  // the scheme's text color; we recover both by sampling the bar we just
+  // composed — so it respects each scheme's actual geometry, incl. the
+  // schemes that ship no palette (1990/acid/evolution). The center
+  // placement matches the kDEF (title is centered on the content rect).
   if (title && frame.top > 6) {
-    // ~46% of the titlebar height — matches the period title cap height
-    // (Chicago 12 in a ~22px bar reads ~9-10px tall).
+    // Sample the dominant (modal) opaque color across the titlebar band:
+    // that's the fill BASE (stripes/ornament are the minority), i.e. the
+    // color the kDEF erases the title region to.
+    const [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
+    // Text color: contrast against the erase base (light bar → black,
+    // dark bar → white). Stand-in until cinf's text-color pixel is wired.
+    const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
+    const fgHex = lum < 128 ? '#ffffff' : '#000000';
+
     const textH = Math.max(7, Math.round(frame.top * 0.46));
-    const glyphs = rasterizeText(title, textH, tbFg);
+    const glyphs = rasterizeText(title, textH, fgHex);
     const pad = 3;
     const bandW = glyphs.width + pad * 2;
     const bandX = Math.round((fullWidth - bandW) / 2);
-    const bandY = 1;
-    const bandH = frame.top - 2;
-    const [br, bg, bb] = parseHexColor(tbBg);
-    composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, br, bg, bb, 255);
-    const glyphX = bandX + pad;
-    const glyphY = Math.round((frame.top - glyphs.height) / 2);
-    composed.buffer.drawOver(glyphs, glyphX, glyphY);
+    composed.buffer.fillRect({ x: bandX, y: 1, w: bandW, h: frame.top - 2 }, er, eg, eb, 255);
+    composed.buffer.drawOver(glyphs, bandX + pad, Math.round((frame.top - glyphs.height) / 2));
   }
 
   // ── window root: positioned at the content rect ──
@@ -140,14 +144,27 @@ function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undef
   return Object.values(wts)[0];
 }
 
-/** Parse `#rgb` / `#rrggbb` → [r,g,b]. Falls back to mid-gray. */
-function parseHexColor(hex: string): [number, number, number] {
-  let h = hex.trim().replace(/^#/, '');
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
-  if (h.length !== 6) return [204, 204, 204];
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+/**
+ * The dominant (most frequent) fully-opaque color in a region of a
+ * buffer. Used to recover a titlebar's fill BASE color from the
+ * composited chrome — the fill dominates by area, stripes/ornament are
+ * the minority, so the mode is the base. Colors are quantized to 4-bit
+ * channels to fold near-identical shades together. Falls back to gray.
+ */
+function dominantColor(buf: PixelBuffer, rect: { x: number; y: number; w: number; h: number }): [number, number, number] {
+  const counts = new Map<number, { n: number; r: number; g: number; b: number }>();
+  for (let y = rect.y; y < rect.y + rect.h; y++) {
+    for (let x = rect.x; x < rect.x + rect.w; x++) {
+      const [r, g, b, a] = buf.getPixel(x, y);
+      if (a < 255) continue;
+      const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+      const e = counts.get(key);
+      if (e) { e.n++; e.r += r; e.g += g; e.b += b; }
+      else counts.set(key, { n: 1, r, g, b });
+    }
+  }
+  let best: { n: number; r: number; g: number; b: number } | null = null;
+  for (const e of counts.values()) if (!best || e.n > best.n) best = e;
+  if (!best) return [204, 204, 204];
+  return [Math.round(best.r / best.n), Math.round(best.g / best.n), Math.round(best.b / best.n)];
 }
