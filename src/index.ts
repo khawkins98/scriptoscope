@@ -30,7 +30,11 @@ export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export { PixelBuffer, type PixRect } from './pixelBuffer.js';
 export { loadCicnBuffer } from './cicnImage.js';
 export { rasterizeText } from './textRaster.js';
-export { platinumCheckable, platinumSlider, type PlatinumCheckOptions, type PlatinumSliderOptions } from './platinum.js';
+export {
+  platinumCheckable, platinumSlider, platinumButton, platinumScrollbar,
+  type PlatinumCheckOptions, type PlatinumSliderOptions,
+  type PlatinumButtonOptions, type PlatinumScrollbarOptions,
+} from './platinum.js';
 export {
   composeScrollbar,
   composeSlider,

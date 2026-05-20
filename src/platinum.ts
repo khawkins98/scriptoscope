@@ -17,6 +17,7 @@
 // All values are documented so the renderers stay faithful + portable.
 
 import { PixelBuffer } from './pixelBuffer.js';
+import { rasterizeText } from './textRaster.js';
 
 type RGBA = [number, number, number, number];
 
@@ -155,6 +156,114 @@ export function platinumSlider(opts: PlatinumSliderOptions = {}): PixelBuffer {
   } else {
     const travel = length - thumbCross;
     drawThumb(Math.round((thickness - thumbAlong) / 2), Math.round(value * travel), thumbAlong, thumbCross);
+  }
+  return out;
+}
+
+/** Raised gray face (white→#cdcdcd vertical gradient) in [x,y,w,h]. */
+function raisedFace(b: PixelBuffer, x: number, y: number, w: number, h: number, disabled = false): void {
+  for (let j = 0; j < h; j++) {
+    const t = j / Math.max(1, h - 1);
+    const base = disabled ? 224 : Math.round(FACE_TOP[0] + (FACE_BOT[0] - FACE_TOP[0]) * t);
+    for (let i = 0; i < w; i++) px(b, x + i, y + j, [base, base, base, 255]);
+  }
+  strokeRect(b, x, y, w, h, disabled ? MARK_OFF : FRAME);
+  for (let i = 1; i < w - 1; i++) px(b, x + i, y + 1, HILITE);
+  for (let i = 1; i < h - 1; i++) px(b, x + 1, y + i, HILITE);
+}
+
+export interface PlatinumButtonOptions {
+  label?: string;
+  default?: boolean;
+  disabled?: boolean;
+  minWidth?: number;
+}
+
+/**
+ * Procedural Platinum push button: 20px tall raised gray face, 1px frame,
+ * label centered (Charcoal-ish). Default button gets a 2px black ring with a
+ * 1px gap. Geometry: height 20, padX 12, minWidth 56, ring pad 3.
+ */
+export function platinumButton(opts: PlatinumButtonOptions = {}): PixelBuffer {
+  const h = 20;
+  const fg = opts.disabled ? '#9a9a9a' : '#000000';
+  const glyphs = opts.label ? rasterizeText(opts.label, 11, fg) : null;
+  const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + 24);
+  const ringPad = opts.default ? 3 : 0;
+  const out = PixelBuffer.alloc(innerW + ringPad * 2, h + ringPad * 2);
+  const bx = ringPad, by = ringPad;
+  if (opts.default) {
+    strokeRect(out, 0, 0, out.width, out.height, MARK); // 1px black ring
+    strokeRect(out, 1, 1, out.width - 2, out.height - 2, MARK);
+  }
+  raisedFace(out, bx, by, innerW, h, opts.disabled);
+  if (glyphs) out.drawOver(glyphs, bx + Math.round((innerW - glyphs.width) / 2), by + Math.round((h - glyphs.height) / 2));
+  return out;
+}
+
+/** Filled triangle arrow pointing 'l'|'r'|'u'|'d', fit in a size×size box. */
+function arrow(b: PixelBuffer, x: number, y: number, size: number, dir: 'l' | 'r' | 'u' | 'd', c: RGBA): void {
+  const n = Math.floor(size * 0.42); // arrow half-extent
+  const cx = x + Math.floor(size / 2), cy = y + Math.floor(size / 2);
+  for (let i = 0; i <= n; i++) {
+    const span = n - i;
+    for (let s = -span; s <= span; s++) {
+      if (dir === 'l') px(b, cx - n + i + Math.floor(n / 2), cy + s, c);
+      else if (dir === 'r') px(b, cx + n - i - Math.floor(n / 2), cy + s, c);
+      else if (dir === 'u') px(b, cx + s, cy - n + i + Math.floor(n / 2), c);
+      else px(b, cx + s, cy + n - i - Math.floor(n / 2), c);
+    }
+  }
+}
+
+export interface PlatinumScrollbarOptions {
+  orientation?: 'horizontal' | 'vertical';
+  length?: number;
+  value?: number; // 0..1
+  thumbExtent?: number; // fraction of track, 0..1
+  disabled?: boolean;
+}
+
+/**
+ * Procedural Platinum scrollbar (16px thick): a raised arrow box at each end
+ * (triangle), a sunken gray track between, and a raised thumb positioned by
+ * value. Geometry: thickness 16, arrow box 16×16, thumb ≥ 24 along the axis.
+ */
+export function platinumScrollbar(opts: PlatinumScrollbarOptions = {}): PixelBuffer {
+  const horiz = (opts.orientation ?? 'vertical') === 'horizontal';
+  const T = 16;
+  const length = Math.max(T * 3, opts.length ?? 120);
+  const value = Math.min(1, Math.max(0, opts.value ?? 0));
+  const ext = Math.min(1, Math.max(0.1, opts.thumbExtent ?? 0.4));
+  const out = horiz ? PixelBuffer.alloc(length, T) : PixelBuffer.alloc(T, length);
+  const SUNK: RGBA = [200, 200, 200, 255];
+
+  // sunken track across the whole bar
+  if (horiz) { out.fillRect({ x: 0, y: 0, w: length, h: T }, SUNK[0], SUNK[1], SUNK[2], 255); strokeRect(out, 0, 0, length, T, FRAME); }
+  else { out.fillRect({ x: 0, y: 0, w: T, h: length }, SUNK[0], SUNK[1], SUNK[2], 255); strokeRect(out, 0, 0, T, length, FRAME); }
+
+  // arrow boxes at both ends (raised face + triangle pointing outward)
+  const mk = opts.disabled ? MARK_OFF : MARK;
+  if (horiz) {
+    raisedFace(out, 0, 0, T, T, opts.disabled); arrow(out, 0, 0, T, 'l', mk);
+    raisedFace(out, length - T, 0, T, T, opts.disabled); arrow(out, length - T, 0, T, 'r', mk);
+  } else {
+    raisedFace(out, 0, 0, T, T, opts.disabled); arrow(out, 0, 0, T, 'u', mk);
+    raisedFace(out, 0, length - T, T, T, opts.disabled); arrow(out, 0, length - T, T, 'd', mk);
+  }
+
+  // thumb in the track region between the arrow boxes
+  const trackStart = T;
+  const trackLen = Math.max(0, length - T * 2);
+  const thumbLen = Math.max(20, Math.round(trackLen * ext));
+  const pos = trackStart + Math.round(value * Math.max(0, trackLen - thumbLen));
+  if (trackLen >= thumbLen) {
+    if (horiz) raisedFace(out, pos, 0, thumbLen, T, opts.disabled);
+    else raisedFace(out, 0, pos, T, thumbLen, opts.disabled);
+    // platinum grip: 3 short lines at the thumb center
+    const gc = opts.disabled ? MARK_OFF : SHADOW;
+    if (horiz) { const mx = pos + Math.round(thumbLen / 2); for (let k = -2; k <= 2; k += 2) for (let yy = 5; yy <= 10; yy++) px(out, mx + k, yy, gc); }
+    else { const my = pos + Math.round(thumbLen / 2); for (let k = -2; k <= 2; k += 2) for (let xx = 5; xx <= 10; xx++) px(out, xx, my + k, gc); }
   }
   return out;
 }
