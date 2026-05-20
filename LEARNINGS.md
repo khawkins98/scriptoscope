@@ -1362,3 +1362,33 @@ It CAN'T (in the same timebox):
 Net value: **moderate.** Confirmed several design decisions weren't guesses, surfaced two concrete actionable changes (bgAnchor + Colr decoder), reframed one open question. Cost: ~4 hours.
 
 Future deeper traces should: (1) install Ghidra + load the PEF for the PowerPC kDEF (has symbol info), (2) follow specific named functions like `DrawWindow*` rather than scanning all instructions.
+
+## 2026-05-19 — Clean-break v2 reset (the churn got too expensive)
+
+After the spec-trilogy rebuild + the chrome composer iterations, the project had ~608 tests (540 unit + 68 e2e) and a per-PR ceremony that broke on every HTML-structure revision — while we were *still* figuring out the right structure to map Kaleidoscope chrome into. The owner called a clean break: new `v2-reset` branch, `src/` blanked to a stub, **no tests**, build up from zero. v1 stays frozen on `main`.
+
+Preserved (the expensive stuff): the extracted theme bundles (`themes/<slug>/`, 1375 files), the docs/specs, the reference screenshots, and the `.rsrc → theme.json` decoder (relocated `src/themes/loader/` → `tools/theme-loader/` — it's archaeology tooling, not UI runtime). Dropped: the entire UI implementation + all tests.
+
+**Lesson:** when structure is genuinely unsettled, a heavy test suite is an anchor, not a safety net — every structural experiment costs a test-rewrite tax. Reset the *implementation*, keep the *artifacts + knowledge*. The decoder/bundles/docs were the real assets; the runtime was a guess that needed redoing anyway.
+
+## 2026-05-19 — CSS is the wrong primitive; Kaleidoscope is an imperative compositor
+
+Slice-by-slice rebuild kept hitting walls on the titlebar "racing stripe." The reveal: the stripe is **not in the window cicn** — the cicn holds only widget glyphs + frame on plain gray; its middle is dotted "divider" columns that *mark the fill zone*. The live window replaces them by `CopyBits`-stretching a **1px-wide vertical column** horizontally (a column through a horizontal-stripe pattern looks dotted at native size; stretched, it reproduces the stripe). Confirmed empirically: stretching column x=25 of 7 Le's active-document-window reproduces the exact racing stripe.
+
+That's why declarative CSS (border-image, gradients) kept fighting us — it has no clean "stretch a 1px slice of a bitmap" op, which is Kaleidoscope's bread and butter. **Pivot: build a pure pixel-buffer compositor** (`src/pixelBuffer.ts`) that replays the QuickDraw ops — `copyBits` with sample-and-hold — and blit the finished buffer to a `<canvas>` *behind real DOM content*. CSS does only positioning + integer upscale (`image-rendering: pixelated`). The title text rasterizes into the buffer too (single source of truth, period bitmap-font look). This is the "native compatibility runtime" — fully owned, faithful by construction.
+
+## 2026-05-20 — Full kDEF decompilation (the prediction came true)
+
+The prior entry said "install Ghidra + follow named functions." Did exactly that, and it unlocked the layout logic.
+
+**Three tooling lessons that made it work:**
+1. **Objdump the 68k as `MC68020`, not `68000`.** The kDEF uses `0xff` BSR.L long branches (68020+). As `68000`, objdump mis-decodes them → control flow is garbage. As `MC68020`, every call resolves.
+2. **NOP-patch the A-traps before Ghidra.** Ghidra's generic m68k decoder treats Mac A-line traps (`$Axxx` — CopyBits etc.) as illegal instructions, so every drawing function truncates at its first OS call. Replace the 1445 trap words (objdump marks them `.short 0xaXXX`) with `0x4e71` (NOP) → Ghidra decompiles through them → **198/210 functions as readable C**. You lose trap semantics but keep the integer layout math, which is what you're after.
+3. **Define the embedded jump tables as data.** 14 switch tables live inline in the code; if Ghidra disassembles through them it produces bad data. Read each table's size from its `cmpi #N` bound, define as a word array.
+
+**What the code revealed (now in `docs/kdef-layout-recipes.md` + `kdef-disassembly-findings.md §8/§9`):**
+- **Window frames = recipe walk.** The `wnd#` side list is a structural frame-piece segment list (proven: the Modal Dialog has no widgets yet uses the same `p1/p8` codes). Fixed segments copy 1:1; grow segments (codes 5/6/8) stretch. Widgets are baked into the cicn; the recipe edge-anchors them as the window grows.
+- **Part positioning = a 3×3 anchor grid + center** (`0x35b0`), per-part offsets (`@44` anchor mode, `@46/@48` offsets, `@50` title sub-anchor). This is the Appearance-Manager model — close→left, zoom/shade→right, grow box→bottom-right. My left-to-right layout was the wrong model; that's what "felt hacked."
+- **Buttons = 3 state cicns (`-10240/-10239/-10238`) 9-sliced** into the rect. **Scrollbars = orientation × 4-state cicn selection** (`-8286…` horiz / `-8278…` vert), 1px track stretch, value-positioned thumb.
+
+**Methodology reversal from the prior entry:** with the right tooling (objdump-as-020 + A-trap NOP + table-defining + Ghidra), single-instruction tracing of named drawers IS feasible in a session — the opposite of the "can't trace inner loops in the timebox" conclusion. The blocker was never the difficulty; it was using `objdump` linear-sweep alone without a decompiler.
