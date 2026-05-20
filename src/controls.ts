@@ -436,6 +436,9 @@ export async function composeCheckable(
 export interface BaselineButtonOptions {
   default?: boolean;
   disabled?: boolean;
+  /** Minimum button width in px (default 62). Use a small value for compact
+   *  buttons like a segmented On/Off pair. */
+  minWidth?: number;
 }
 
 export function baselineButton(label: string, opts: BaselineButtonOptions = {}): HTMLButtonElement {
@@ -450,7 +453,7 @@ export function baselineButton(label: string, opts: BaselineButtonOptions = {}):
   Object.assign(b.style, {
     font: '12px Charcoal, Chicago, Geneva, sans-serif',
     padding: '3px 16px',
-    minWidth: '62px',
+    minWidth: `${opts.minWidth ?? 62}px`,
     margin: '3px',
     color: opts.disabled ? '#9a9a9a' : '#000',
     background: opts.disabled ? '#e0e0e0' : 'linear-gradient(180deg, #fefefe 0%, #ececec 48%, #cdcdcd 100%)',

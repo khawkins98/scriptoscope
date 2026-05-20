@@ -70,33 +70,100 @@
     }
     const add = (frame, buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
 
+    // A classic-Mac desktop icon (DataBox drive / Trash / folder) drawn as a
+    // small neutral SVG with a label tile. These are OS icons, not scheme
+    // chrome — placeholders so the composite matches the canonical
+    // Kaleidoscope preview's LAYOUT.
+    const ICON_SVG = {
+      disk: '<svg width="34" height="24" viewBox="0 0 34 24"><rect x="1" y="7" width="32" height="15" rx="2" fill="#d2d2d2" stroke="#4d4d4d"/><rect x="3" y="2" width="20" height="8" rx="1" fill="#e2e2e2" stroke="#4d4d4d"/><circle cx="27" cy="14" r="2.5" fill="#7d7d7d"/></svg>',
+      trash: '<svg width="22" height="26" viewBox="0 0 22 26"><rect x="3" y="6" width="16" height="17" rx="2" fill="#d2d2d2" stroke="#4d4d4d"/><rect x="1" y="3" width="20" height="3.5" rx="1" fill="#e2e2e2" stroke="#4d4d4d"/><g stroke="#909090"><line x1="8" y1="9" x2="8" y2="20"/><line x1="11" y1="9" x2="11" y2="20"/><line x1="14" y1="9" x2="14" y2="20"/></g></svg>',
+      folder: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#dccfa3" stroke="#7a6a3a" stroke-width="1"/><path d="M2 9 h32 v13 h-32 z" fill="#e8dcb6" stroke="#7a6a3a" stroke-width="1"/></svg>',
+      folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
+    };
+    function deskIcon(kind, label, pos) {
+      const wrap = document.createElement('div');
+      Object.assign(wrap.style, { position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', font: '9px Charcoal, Geneva, sans-serif', color: '#000', ...pos });
+      const ic = document.createElement('div'); ic.innerHTML = ICON_SVG[kind]; wrap.appendChild(ic.firstChild);
+      if (label) { const l = document.createElement('div'); l.textContent = label; l.style.cssText = 'background:#fff;padding:0 2px;line-height:1.2;border:1px solid #bbb'; wrap.appendChild(l); }
+      return wrap;
+    }
+
+    // Compose the canonical Kaleidoscope scheme-preview layout: a "Hello!"
+    // Finder window (scheme-name info bar, two folders, a radio/checkbox row,
+    // edge scrollbars + grow box), an overlapping "On/Off" modal dialog
+    // (segmented buttons, a progress bar, a disclosure + default OK), and the
+    // DataBox / Trash desktop icons — the same arrangement the reference
+    // screenshots use, so the live render is directly comparable.
     async function buildScene(theme) {
       const desk = document.createElement('div');
-      Object.assign(desk.style, { position: 'relative', width: '440px', height: '300px', background: '#a9a9a9', overflow: 'hidden' });
-      const win = await renderWindow(theme, { title: 'Hello!', width: 200, height: 150, scale: 1 });
-      Object.assign(win.style, { position: 'absolute', left: '24px', top: '34px' });
+      Object.assign(desk.style, {
+        position: 'relative', width: '232px', height: '190px', overflow: 'hidden',
+        background: '#9d9d9d',
+        backgroundImage: 'repeating-conic-gradient(#9a9a9a 0 25%, #a4a4a4 0 50%)',
+        backgroundSize: '4px 4px',
+      });
+      const cv = (buf) => bufferToCanvas(buf, 1);
+      const place = (buf, css) => { if (!buf) return; const c = cv(buf); Object.assign(c.style, { position: 'absolute', ...css }); return c; };
+
+      // ── main "Hello!" Finder window (top-left) ──
+      const winW = 132, winH = 96;
+      const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1 });
+      Object.assign(win.style, { position: 'absolute', left: '6px', top: '8px' });
       const content = win.querySelector('.aw-content');
       if (content) {
-        const sb = await composeScrollbar(theme, { orientation: 'horizontal', length: 200, value: 0.2 });
-        if (sb) { const cv = bufferToCanvas(sb, 1); Object.assign(cv.style, { position: 'absolute', left: '0', bottom: '0' }); content.appendChild(cv); }
+        Object.assign(content.style, { background: '#fff', overflow: 'hidden' });
+        // scheme-name info bar (the Finder window's volume header)
+        const info = document.createElement('div');
+        info.textContent = theme.manifest?.name ?? '';
+        Object.assign(info.style, { position: 'absolute', left: '0', top: '0', right: '0', height: '13px', boxSizing: 'border-box', padding: '1px 4px', borderBottom: '1px solid #aaa', background: '#e6e6e6', font: '9px Charcoal, Geneva, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden' });
+        content.appendChild(info);
+        // two folder icons
+        const folders = document.createElement('div');
+        Object.assign(folders.style, { position: 'absolute', left: '8px', top: '18px', display: 'flex', gap: '10px' });
+        const f1 = document.createElement('div'); f1.innerHTML = ICON_SVG.folderOpen;
+        const f2 = document.createElement('div'); f2.innerHTML = ICON_SVG.folder;
+        folders.append(f1.firstChild, f2.firstChild);
+        content.appendChild(folders);
+        // radio / checkbox control row
+        const chk = async (kind, o) => { const b = await composeCheckable(theme, kind, { label: '', ...o }); return b ? cv(b) : baselineCheckable(kind, '', o); };
+        const ctlRow = document.createElement('div');
+        Object.assign(ctlRow.style, { position: 'absolute', left: '8px', top: '52px', display: 'flex', gap: '7px', alignItems: 'center' });
+        ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
+        content.appendChild(ctlRow);
+        // edge scrollbars + grow box (Finder window furniture)
+        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25 });
+        const vc = place(vsb, { right: '0', top: '0' }); if (vc) content.appendChild(vc);
+        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25 });
+        const hc = place(hsb, { left: '0', bottom: '0' }); if (hc) content.appendChild(hc);
+        const grow = document.createElement('div');
+        Object.assign(grow.style, { position: 'absolute', right: '0', bottom: '0', width: '15px', height: '15px', background: '#e6e6e6', borderLeft: '1px solid #999', borderTop: '1px solid #999' });
+        content.appendChild(grow);
       }
-      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 170, height: 110, scale: 1 });
-      Object.assign(dlg.style, { position: 'absolute', left: '230px', top: '120px', zIndex: '5' });
+      desk.appendChild(win);
+
+      // ── "On/Off" modal dialog (overlapping, center-right) ──
+      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 100, height: 82, scale: 1 });
+      Object.assign(dlg.style, { position: 'absolute', left: '96px', top: '56px', zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
-        Object.assign(dc.style, { padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' });
-        const sl = await composeSlider(theme, { orientation: 'horizontal', length: 130, value: 0.4 });
-        if (sl) dc.appendChild(bufferToCanvas(sl, 1));
-        const chk = async (kind, label, o) => { const b = await composeCheckable(theme, kind, { label, ...o }); return b ? bufferToCanvas(b, 1) : baselineCheckable(kind, label, o); };
-        const btn = async (label, o) => { const b = await composeButton(theme, { label, ...o }); return b ? bufferToCanvas(b, 1) : baselineButton(label, o); };
-        const radios = document.createElement('div'); radios.style.cssText = 'display:flex;gap:12px;align-items:center';
-        radios.append(await chk('radio', 'On', { checked: true }), await chk('radio', 'Off'));
-        dc.appendChild(radios);
-        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;margin-top:auto;align-items:center';
-        btns.append(await btn('Cancel', {}), await btn('OK', { default: true }));
-        dc.appendChild(btns);
+        Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', background: '#fff', boxSizing: 'border-box' });
+        const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
+        const onoff = document.createElement('div'); onoff.style.cssText = 'display:flex;gap:4px';
+        onoff.append(await btn('On', { default: true, minWidth: 32 }), await btn('Off', { minWidth: 32 }));
+        dc.appendChild(onoff);
+        const pg = await composeProgress(theme, { length: 86, value: 0.45 });
+        if (pg) dc.appendChild(cv(pg));
+        const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
+        const disc = await composeDisclosure(theme, { direction: 'right' });
+        if (disc) foot.appendChild(cv(disc));
+        foot.appendChild(await btn('OK', { default: true, minWidth: 34 }));
+        dc.appendChild(foot);
       }
-      desk.append(win, dlg);
+      desk.appendChild(dlg);
+
+      // ── desktop icons ──
+      desk.appendChild(deskIcon('disk', 'DataBox', { right: '6px', top: '5px' }));
+      desk.appendChild(deskIcon('trash', 'Trash', { right: '9px', bottom: '4px' }));
       return desk;
     }
 
