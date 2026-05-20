@@ -35,6 +35,8 @@ export {
   composeSlider,
   composeDisclosure,
   composeProgress,
+  baselineButton,
+  baselineCheckable,
   bufferToCanvas,
   type ScrollbarOptions,
   type SliderOptions,

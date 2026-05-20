@@ -53,9 +53,11 @@
 
   <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (themed cicns)</h2>
   <div id="controls" class="stage"></div>
+  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (baseline Platinum)</h2>
+  <div id="baseline" class="stage"></div>
 
   <script type="module">
-    import { VERSION, loadTheme, renderWindow, composeScrollbar, composeSlider, composeDisclosure, composeProgress, bufferToCanvas } from '../src/index.ts';
+    import { VERSION, loadTheme, renderWindow, composeScrollbar, composeSlider, composeDisclosure, composeProgress, baselineButton, baselineCheckable, bufferToCanvas } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const stage = document.getElementById('stage');
 
@@ -120,6 +122,25 @@
         frame.textContent = String(err);
       }
       controls.appendChild(c);
+    }
+
+    // ── baseline (procedural Platinum) controls — theme-independent ──
+    {
+      const { c, frame } = col('button / checkbox / radio');
+      frame.style.display = 'flex';
+      frame.style.gap = '10px';
+      frame.style.alignItems = 'center';
+      frame.style.flexWrap = 'wrap';
+      frame.append(
+        baselineButton('Cancel'),
+        baselineButton('OK', { default: true }),
+        baselineButton('Help', { disabled: true }),
+        baselineCheckable('checkbox', 'Show invisibles', { checked: true }),
+        baselineCheckable('checkbox', 'Disabled', { disabled: true }),
+        baselineCheckable('radio', 'On', { checked: true }),
+        baselineCheckable('radio', 'Off'),
+      );
+      document.getElementById('baseline').appendChild(c);
     }
   </script>
 </body>
