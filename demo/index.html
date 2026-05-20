@@ -46,7 +46,8 @@
       VERSION, loadTheme, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
       composeButton, composeCheckable,
-      baselineButton, baselineCheckable, bufferToCanvas,
+      baselineButton, bufferToCanvas,
+      platinumCheckable, platinumSlider,
     } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
@@ -68,6 +69,23 @@
       return { c, frame };
     }
     const add = (frame, buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
+
+    // Checkbox/radio: themed (scheme cicns, label baked in) where shipped,
+    // else a procedural gray-Platinum glyph + DOM label.
+    async function checkableEl(theme, kind, label, o = {}) {
+      const buf = await composeCheckable(theme, kind, { label, ...o });
+      if (buf) return bufferToCanvas(buf, 1);
+      const row = document.createElement('label');
+      row.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font:12px Charcoal,Geneva,sans-serif;color:' + (o.disabled ? '#9a9a9a' : '#000');
+      row.appendChild(bufferToCanvas(platinumCheckable(kind, o), 1));
+      if (label) { const t = document.createElement('span'); t.textContent = label; row.appendChild(t); }
+      return row;
+    }
+    // Slider: themed where shipped, else procedural gray-Platinum.
+    async function sliderEl(theme, o = {}) {
+      const buf = (await composeSlider(theme, o)) ?? platinumSlider(o);
+      return bufferToCanvas(buf, 1);
+    }
 
     // Folder icons for the Finder window content — neutral SVGs (OS icons,
     // not scheme chrome).
@@ -161,7 +179,7 @@
         folders.append(f1.firstChild, f2.firstChild);
         content.appendChild(folders);
         // radio / checkbox control row
-        const chk = async (kind, o) => { const b = await composeCheckable(theme, kind, { label: '', ...o }); return b ? cv(b) : baselineCheckable(kind, '', o); };
+        const chk = (kind, o) => checkableEl(theme, kind, '', o);
         const ctlRow = document.createElement('div');
         Object.assign(ctlRow.style, { position: 'absolute', left: '8px', top: '52px', display: 'flex', gap: '7px', alignItems: 'center' });
         ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
@@ -221,7 +239,7 @@
         const r2 = document.createElement('div'); r2.className = 'ctl-row';
         add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35 }));
         add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5 }));
-        add(r2, await composeSlider(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
+        r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
         add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
         add(r2, await composeDisclosure(theme, { direction: 'right' }));
         add(r2, await composeDisclosure(theme, { direction: 'down' }));
@@ -240,11 +258,7 @@
           return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o);
         };
         brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
-        const chk = async (kind, label, o) => {
-          const buf = await composeCheckable(theme, kind, { label, ...o });
-          return buf ? bufferToCanvas(buf, 1) : baselineCheckable(kind, label, o);
-        };
-        stack.append(brow, await chk('checkbox', 'Show invisibles', { checked: true }), await chk('radio', 'On', { checked: true }));
+        stack.append(brow, await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
         frame.appendChild(stack);
         row.appendChild(c);
       }

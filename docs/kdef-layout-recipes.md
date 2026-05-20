@@ -165,6 +165,30 @@ Anchored bottom-right via the §9 placement path (mode 8). Sizes
 15×15–21×21 (doc-window) / 14×14–18×18 (utility) `[DOC]`; old 17×17
 scaled to fit if wrong size.
 
+## 11. Procedural Platinum baseline (`src/platinum.ts`)
+
+The genuine Mac OS 8 "Platinum" chrome is NOT shippable as Kaleidoscope
+cicn/ppat: the 8.5/8.6 System files draw it with `WDEF`/`CDEF` *code* (no
+`wnd#`, no `thme`, no window-range cicns), and every "Platinum" Kaleidoscope
+scheme (Apple Platinum 2, Black/Carl's/Chiper's Platinum) ships a partial set
+that *defers* windows + standard controls to the OS. So a scheme that omits a
+control's cicn falls back to a procedural gray-Platinum reimplementation.
+
+**Geometry (native px, classic Appearance):**
+- **checkbox / radio**: 12×12. 1px `#555` frame; checkbox has a 1px white
+  top-left inner highlight + `#9a9a9a` bottom-right shadow (raised). Checkmark
+  = 2px-thick stroke (short descend (3,6)→(5,8), long ascend (5,8)→(9,3)).
+  Radio = ø12 ring, ø4 center dot. Mixed = a 2px dash at y6.
+- **slider**: 16px control thickness; 6px sunken groove centered on the cross
+  axis (`#9a9a9a` near edge / white far edge, `#c8c8c8` fill); raised thumb
+  11 (cross) × 16 (along), 1px frame + top-left highlight, white→`#cdcdcd`
+  vertical face gradient, positioned by value over `length − 11` of travel.
+
+Disabled swaps the frame/mark to `#888`. Buttons + checkboxes/radios that the
+scheme DOES ship still render from its cicns (resolve-by-id); these only fill
+the gaps (e.g. apple-platinum-2 ships scrollbars/buttons but no
+checkbox/radio/slider).
+
 ---
 
 ## Element → drawer reference (kDEF 0, 68k)
