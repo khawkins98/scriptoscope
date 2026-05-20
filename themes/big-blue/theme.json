@@ -4205,5 +4205,25 @@
     "aqua-hey": {
       "asset": "ppats/ppat-17182-aqua-hey.png"
     }
+  },
+  "headerColors": {
+    "active": {
+      "frame": "#003366",
+      "fill": "#3366cc",
+      "text": "#99ccff",
+      "lightTinge": "#6699ff",
+      "darkTinge": "#003366",
+      "lightBevel": "#6699ff",
+      "darkBevel": "#003366"
+    },
+    "inactive": {
+      "frame": "#001f52",
+      "fill": "#295ab5",
+      "text": "#ffffff",
+      "lightTinge": "#5a8ce7",
+      "darkTinge": "#001f52",
+      "lightBevel": "#5a8ce7",
+      "darkBevel": "#001f52"
+    }
   }
 }

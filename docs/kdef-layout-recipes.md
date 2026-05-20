@@ -50,8 +50,16 @@ Fully traced; see kdef-findings §8 + §9. Recipe:
   Grow segments (part codes **5/6/8**) stretch their own pixels
   (sample-and-hold). This edge-anchors the baked widgets (left stays,
   right shifts) as the window grows.
-- **Title text**: a centered part (anchor mode 0/3) — cleared band +
-  glyphs in the titlebar fg color.
+- **Title text**: a centered part (anchor mode 0/3). The title region is
+  erased to the header **fill** color and the text drawn in the header
+  **text** color — both from the scheme's window-header cluts (`-14335`
+  active / `-14336` inactive), part code 1 (fill) + part code 2 (text)
+  per the "Creating Color Schemes" doc. (The doc also notes a 2px
+  text-color marker line in the window cicn; the clut carries the same
+  colors and is reliably decodable, so we read the clut.) Decoded by
+  `tools/theme-loader/decoders/clut.js` → `theme.json` `headerColors`.
+  Fallback when a scheme ships no header clut: sample the composed bar's
+  dominant fill + pick text by contrast.
 - **Frame thickness**: from `part-0`'s body rect inset.
 - cicn IDs by state: `-14336` inactive doc / `-14335` active /
   `-14332` collapsed-inactive / `-14331` collapsed-active; utility

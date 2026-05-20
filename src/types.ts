@@ -62,9 +62,25 @@ export interface Palette {
   [key: string]: string | undefined;
 }
 
+/**
+ * Window title-bar colors, decoded from the scheme's header cluts
+ * (-14335 active / -14336 inactive) by part code: `text` (part 2) and
+ * `fill` (part 1) drive the title; the rest are frame/tinge/bevel.
+ */
+export interface HeaderColors {
+  frame?: string;
+  fill?: string;
+  text?: string;
+  lightTinge?: string;
+  darkTinge?: string;
+  lightBevel?: string;
+  darkBevel?: string;
+}
+
 export interface ThemeManifest {
   name: string;
   palette?: Palette;
+  headerColors?: { active?: HeaderColors; inactive?: HeaderColors };
   windowTypes: Record<string, WindowType>;
   chromeElements: Record<string, ChromeElement>;
 }
