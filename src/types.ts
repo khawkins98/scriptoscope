@@ -83,6 +83,12 @@ export interface ThemeManifest {
   headerColors?: { active?: HeaderColors; inactive?: HeaderColors };
   windowTypes: Record<string, WindowType>;
   chromeElements: Record<string, ChromeElement>;
+  /**
+   * Window-content (body) background, from the scheme's Icon/List View
+   * cinf bgPatternId. `pattern` is a bundle-relative ppat asset path the
+   * runtime tiles behind window content. Absent → OS default (white).
+   */
+  bodyBackground?: { pattern?: string };
 }
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */

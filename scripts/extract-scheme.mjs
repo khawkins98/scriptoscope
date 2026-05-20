@@ -160,6 +160,24 @@ if (active || inactive) {
   if (inactive) theme.headerColors.inactive = inactive;
 }
 
+// Window body background: the Icon/List View cinf's bgPatternId ppat,
+// tiled behind window content (absent → OS-default white).
+const viewBg = (() => {
+  for (const id of [-9551, -9550]) {
+    const r = entries.find((x) => x.type === 'cinf' && x.id === id);
+    if (!r) continue;
+    try { const d = decodeCinf(r.data); if (d?.bgPatternId) return d.bgPatternId; } catch { /* skip */ }
+  }
+  return 0;
+})();
+if (viewBg) {
+  const abs = Math.abs(viewBg);
+  for (const v of Object.values(theme.patterns ?? {})) {
+    const m = /ppat-n?-?(\d+)/.exec(v.asset ?? '');
+    if (m && parseInt(m[1], 10) === abs) { theme.bodyBackground = { pattern: v.asset }; break; }
+  }
+}
+
 try { validateTheme(theme); } catch (err) {
   console.error(`[${slug}] schema validation FAILED:`, err.message);
   process.exit(1);

@@ -4621,5 +4621,8 @@
       "lightBevel": "#5a8ce7",
       "darkBevel": "#001f52"
     }
+  },
+  "bodyBackground": {
+    "pattern": "ppats/ppat-4035-aqua-this-blur.png"
   }
 }

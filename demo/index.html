@@ -126,7 +126,7 @@
       Object.assign(win.style, { position: 'absolute', left: '6px', top: '8px' });
       const content = win.querySelector('.aw-content');
       if (content) {
-        Object.assign(content.style, { background: '#fff', overflow: 'hidden' });
+        Object.assign(content.style, { overflow: 'hidden' });
         // scheme-name info bar (the Finder window's volume header)
         const info = document.createElement('div');
         info.textContent = theme.manifest?.name ?? '';
@@ -161,7 +161,7 @@
       Object.assign(dlg.style, { position: 'absolute', left: '96px', top: '56px', zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
-        Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', background: '#fff', boxSizing: 'border-box' });
+        Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
         // On/Off is a segmented TAB control (not two push buttons), tinted
         // with the scheme's header colors for the selected cell.

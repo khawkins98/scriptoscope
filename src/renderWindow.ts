@@ -132,10 +132,10 @@ export async function renderWindow(
     top: `${frame.top * scale}px`,
     width: `${contentW * scale}px`,
     height: `${contentH * scale}px`,
-    background: '#fff',
     boxSizing: 'border-box',
     overflow: 'auto',
     zIndex: '1',
+    ...bodyBackgroundStyle(theme),
   } satisfies Partial<CSSStyleDeclaration>);
 
   win.append(canvas, content);
@@ -208,10 +208,27 @@ function buildBaselineWindow(
   content.className = 'aw-content';
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
-    background: '#fff', overflow: 'hidden', boxSizing: 'border-box',
+    overflow: 'hidden', boxSizing: 'border-box',
+    ...bodyBackgroundStyle(theme),
   } satisfies Partial<CSSStyleDeclaration>);
   win.appendChild(content);
   return win;
+}
+
+/**
+ * Content-area background style: tile the scheme's body pattern (the
+ * Icon/List View cinf bgPatternId ppat) at native pixel size if declared,
+ * else the OS-default white. Pixelated so the small ppat tile stays crisp.
+ */
+function bodyBackgroundStyle(theme: LoadedTheme): Partial<CSSStyleDeclaration> {
+  const pat = theme.manifest.bodyBackground?.pattern;
+  if (!pat) return { background: '#ffffff' };
+  return {
+    backgroundColor: '#ffffff',
+    backgroundImage: `url("${assetUrl(theme, pat)}")`,
+    backgroundRepeat: 'repeat',
+    imageRendering: 'pixelated',
+  };
 }
 
 /**

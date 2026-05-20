@@ -4678,5 +4678,8 @@
       "lightBevel": "#444444",
       "darkBevel": "#111111"
     }
+  },
+  "bodyBackground": {
+    "pattern": "ppats/ppat-n9551-unnamed.png"
   }
 }
