@@ -45,7 +45,8 @@ export async function renderWindow(
   // default window from the scheme's declared header colors so every theme
   // still produces a window (North Star: render any scheme).
   if (!wt || !(wt.chrome[state] ?? wt.chrome.active)) {
-    return buildBaselineWindow(theme, { title, state, contentW, contentH, scale });
+    const utility = /utility|mini|floating|palette/.test(slug);
+    return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility });
   }
   const cicnPath = wt.chrome[state] ?? wt.chrome.active!;
   // (chromeElement lookup kept for validation / future metadata use)
@@ -151,9 +152,9 @@ export async function renderWindow(
  */
 function buildBaselineWindow(
   theme: LoadedTheme,
-  opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number },
+  opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean },
 ): HTMLElement {
-  const { title, state, contentW, contentH, scale } = opts;
+  const { title, state, contentW, contentH, scale, utility } = opts;
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
   const text = hc.text ?? '#000000';
@@ -193,9 +194,11 @@ function buildBaselineWindow(
     } satisfies Partial<CSSStyleDeclaration>);
     return w;
   };
+  // Document windows: close (left) + zoom & windowshade (right). Utility /
+  // "mini" windows: close (left) + a single windowshade (right), no zoom.
   bar.appendChild(widget(5)); // close box (left)
-  bar.appendChild(widget(-18)); // zoom box (right)
-  bar.appendChild(widget(-5)); // collapse box (right)
+  bar.appendChild(widget(-5)); // windowshade (right)
+  if (!utility) bar.appendChild(widget(-18)); // zoom box (right) — doc windows only
   if (title) {
     const t = document.createElement('span');
     t.textContent = title;
