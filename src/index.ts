@@ -31,6 +31,13 @@ export { PixelBuffer, type PixRect } from './pixelBuffer.js';
 export { loadCicnBuffer } from './cicnImage.js';
 export { rasterizeText } from './textRaster.js';
 export {
+  composeScrollbar,
+  bufferToCanvas,
+  type ScrollbarOptions,
+  type Orientation,
+  type ControlState,
+} from './controls.js';
+export {
   composeWindowChrome,
   frameFromBody,
   titlebarSeam,

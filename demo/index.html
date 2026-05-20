@@ -51,8 +51,11 @@
   </header>
   <div id="stage"></div>
 
+  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (themed cicns)</h2>
+  <div id="controls" class="stage"></div>
+
   <script type="module">
-    import { VERSION, loadTheme, renderWindow } from '../src/index.ts';
+    import { VERSION, loadTheme, renderWindow, composeScrollbar, bufferToCanvas } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const stage = document.getElementById('stage');
 
@@ -94,6 +97,26 @@
       frame.appendChild(img);
       row.appendChild(c);
       stage.appendChild(row);
+    }
+
+    // ── control gallery: scrollbars (themed cicns) ──
+    const controls = document.getElementById('controls');
+    for (const s of schemes) {
+      const theme = await loadTheme(`/themes/${s.slug}`);
+      const { c, frame } = col(`${s.label} · scrollbars`);
+      frame.style.display = 'flex';
+      frame.style.gap = '16px';
+      frame.style.alignItems = 'flex-start';
+      try {
+        const h = await composeScrollbar(theme, { orientation: 'horizontal', length: 160, value: 0.35 });
+        const v = await composeScrollbar(theme, { orientation: 'vertical', length: 120, value: 0.5 });
+        if (h) frame.appendChild(bufferToCanvas(h, 2));
+        if (v) frame.appendChild(bufferToCanvas(v, 2));
+        if (!h && !v) frame.textContent = '(no scrollbar cicns — baseline path)';
+      } catch (err) {
+        frame.textContent = String(err);
+      }
+      controls.appendChild(c);
     }
   </script>
 </body>
