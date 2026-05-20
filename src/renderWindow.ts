@@ -1,4 +1,4 @@
-import type { LoadedTheme, WindowState } from './types.js';
+import type { LoadedTheme, WindowState, WindowType } from './types.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
@@ -37,8 +37,8 @@ export async function renderWindow(
   const contentH = opts.height ?? 120;
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
-  const wt = theme.manifest.windowTypes[slug];
-  if (!wt) throw new Error(`renderWindow: no windowType "${slug}"`);
+  const wt = resolveWindowType(theme, slug);
+  if (!wt) throw new Error(`renderWindow: no usable windowType (wanted "${slug}")`);
   const cicnPath = wt.chrome[state] ?? wt.chrome.active;
   if (!cicnPath) throw new Error(`renderWindow: no chrome for state "${state}"`);
   // (chromeElement lookup kept for validation / future metadata use)
@@ -114,6 +114,30 @@ export async function renderWindow(
 
   win.append(canvas, content);
   return win;
+}
+
+/**
+ * Resolve a window type robustly across bundles. Some schemes use the
+ * friendly slug (`document-window`); others (acid, evolution, big-blue)
+ * key by raw resource id (`wnd--14336`). Try, in order: exact slug,
+ * any key containing the slug's noun, the doc-window resource ids, then
+ * the first window type that publishes a `part-0` body.
+ */
+function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
+  const wts = theme.manifest.windowTypes ?? {};
+  if (wts[slug]) return wts[slug];
+  const noun = slug.replace(/-window$/, '');
+  for (const [k, v] of Object.entries(wts)) {
+    if (k.includes(noun)) return v;
+  }
+  // raw doc-window resource ids (-14336 inactive / -14335 active family)
+  for (const id of ['wnd--14336', 'wnd--14335', 'wnd--14332', 'wnd--14331']) {
+    if (wts[id]) return wts[id];
+  }
+  for (const v of Object.values(wts)) {
+    if (v.parts?.['part-0']) return v;
+  }
+  return Object.values(wts)[0];
 }
 
 /** Parse `#rgb` / `#rrggbb` → [r,g,b]. Falls back to mid-gray. */

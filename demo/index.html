@@ -32,13 +32,12 @@
       padding: 16px;
       border: 1px solid #999;
       box-shadow: inset 0 0 0 1px #fff6;
+      overflow: hidden; /* rough-cut: contain bulbous chrome to its cell */
     }
     .reference img {
       image-rendering: pixelated;
       display: block;
-      /* native 240×200, shown at integer 2× so it's pixel-comparable */
-      width: 480px;
-      height: 400px;
+      /* native pixel size — 1:1 with the rendered output */
     }
     .note { font-size: 12px; opacity: 0.7; max-width: 280px; }
     code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
@@ -47,7 +46,7 @@
 <body>
   <header>
     <h1>Aaron UI <span id="ver"></span> — recipe compositor</h1>
-    <p>Document windows fully composed from each scheme's <code>wnd#</code> recipe (2×) — title rasterized into the buffer too — with the reference in the third column.</p>
+    <p>Composed from each scheme's <code>wnd#</code> recipe + control cicns, at <strong>native pixel size</strong> (1:1 with the reference screenshots).</p>
   </header>
   <div id="stage"></div>
 
@@ -55,6 +54,10 @@
   <div id="controls" class="stage"></div>
   <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (baseline Platinum)</h2>
   <div id="baseline" class="stage"></div>
+  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Ambitious themes — rough cut (window per scheme)</h2>
+  <div id="ambitious" class="stage"></div>
+  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Scene assembly — 1:1 target (rough cut)</h2>
+  <div id="scene-wrap" style="padding:16px 24px 48px;"></div>
 
   <script type="module">
     import { VERSION, loadTheme, renderWindow, composeScrollbar, composeSlider, composeDisclosure, composeProgress, baselineButton, baselineCheckable, bufferToCanvas } from '../src/index.ts';
@@ -85,7 +88,7 @@
       for (const state of states) {
         const { c, frame } = col(`${s.label} · ${state}`);
         try {
-          frame.appendChild(await renderWindow(theme, { title: 'Hello!', width: 150, height: 100, scale: 2, state }));
+          frame.appendChild(await renderWindow(theme, { title: 'Hello!', width: 150, height: 100, scale: 1, state }));
         } catch (err) {
           frame.textContent = String(err);
         }
@@ -95,7 +98,6 @@
       const img = document.createElement('img');
       img.src = s.ref;
       img.style.imageRendering = 'pixelated';
-      img.style.maxWidth = '340px';
       frame.appendChild(img);
       row.appendChild(c);
       stage.appendChild(row);
@@ -109,7 +111,7 @@
       frame.style.display = 'flex';
       frame.style.gap = '16px';
       frame.style.alignItems = 'flex-start';
-      const add = (buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 2)); };
+      const add = (buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
       try {
         add(await composeScrollbar(theme, { orientation: 'horizontal', length: 160, value: 0.35 }));
         add(await composeScrollbar(theme, { orientation: 'vertical', length: 120, value: 0.5 }));
@@ -141,6 +143,59 @@
         baselineCheckable('radio', 'Off'),
       );
       document.getElementById('baseline').appendChild(c);
+    }
+
+    // ── ambitious themes: one document window per scheme (rough cut) ──
+    const ambitious = document.getElementById('ambitious');
+    for (const slug of ['masswerk-7-le', 'acid', '1990', '1138', 'big-blue', 'evolution']) {
+      const { c, frame } = col(slug);
+      try {
+        const theme = await loadTheme(`/themes/${slug}`);
+        frame.appendChild(await renderWindow(theme, { title: slug, width: 150, height: 90, scale: 1 }));
+      } catch (err) {
+        frame.textContent = String(err);
+      }
+      ambitious.appendChild(c);
+    }
+
+    // ── scene assembly: 7 Le desktop, document window + dialog + controls ──
+    try {
+      const theme = await loadTheme('/themes/masswerk-7-le');
+      const desk = document.createElement('div');
+      Object.assign(desk.style, {
+        position: 'relative', width: '640px', height: '420px',
+        background: '#a9a9a9', border: '1px solid #777', overflow: 'hidden',
+      });
+      // document window
+      const win = await renderWindow(theme, { title: 'Hello!', width: 260, height: 200, scale: 1 });
+      Object.assign(win.style, { position: 'absolute', left: '40px', top: '50px' });
+      const content = win.querySelector('.aw-content');
+      if (content) {
+        content.style.padding = '8px';
+        const sb = await composeScrollbar(theme, { orientation: 'horizontal', length: 240, value: 0.2 });
+        if (sb) { const cv = bufferToCanvas(sb, 1); cv.style.position = 'absolute'; cv.style.left = '0'; cv.style.bottom = '0'; content.appendChild(cv); }
+      }
+      // dialog
+      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 200, height: 130, scale: 1 });
+      Object.assign(dlg.style, { position: 'absolute', left: '330px', top: '150px', zIndex: '5' });
+      const dc = dlg.querySelector('.aw-content');
+      if (dc) {
+        Object.assign(dc.style, { padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' });
+        const sl = await composeSlider(theme, { orientation: 'horizontal', length: 150, value: 0.4 });
+        if (sl) dc.appendChild(bufferToCanvas(sl, 1));
+        const radios = document.createElement('div');
+        radios.style.display = 'flex'; radios.style.gap = '14px';
+        radios.append(baselineCheckable('radio', 'On', { checked: true }), baselineCheckable('radio', 'Off'));
+        dc.appendChild(radios);
+        const btns = document.createElement('div');
+        btns.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:auto';
+        btns.append(baselineButton('Cancel'), baselineButton('OK', { default: true }));
+        dc.appendChild(btns);
+      }
+      desk.append(win, dlg);
+      document.getElementById('scene-wrap').appendChild(desk);
+    } catch (err) {
+      document.getElementById('scene-wrap').textContent = String(err);
     }
   </script>
 </body>
