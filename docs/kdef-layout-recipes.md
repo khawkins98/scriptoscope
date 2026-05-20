@@ -74,20 +74,30 @@ Compositor status: implemented (recipe walk, no heuristics).
 
 Compositor status: NOT yet implemented (v2 renders windows only).
 
-## 3. Scrollbars `[DRAWER]` — drawer `0x66b4` (+ thumb `0x72f0`)
+## 3. Scrollbars `[CODE]` — drawer `0x66b4` (+ thumb `0x72f0`)
 
-- cicn IDs: track/arrows `-8288/-8287/-8286/-8285` (and `-8280/-8279`
-  pressed variants); thumb ghost `-8272/-8271`; accent thumbs start at
-  `-9472` `[DOC]`.
+State → cicn (decompiled `0x66b4`): two orientations × four states. The
+control fields `@0x15` (orientation), `@0x32` (pressed), `@0x14`
+(disabled), and active-flag (`*(*(ctl@4)+0x11)` in `1..0xfd`) select:
+
+| orientation | normal-inactive | normal-active | disabled | pressed |
+|---|---|---|---|---|
+| `@0x15 != 0` (**horizontal**) | `-8286` | `-8285` | `-8287` | `-8288` |
+| `@0x15 == 0` (**vertical**) | `-8278` | `-8277` | `-8279` | `-8280` |
+
+- **Small-bar special case**: when `width (param_1[2]-param_1[0]) < 17`,
+  the layout centers (`half = w/2`, `mid = left + w/2`) — a collapsed
+  layout for short scrollbars, drawn via `FUN_1018`.
 - **Track**: stretch a single row/column (1px) between the arrow boxes
   `[DOC]`: *"the row/column where the track meets the arrow is drawn
   using pixels from the track cicn."*
-- **Arrows**: fixed-size boxes anchored at each end (9-slice or 1:1
-  stamp).
-- **Thumb**: positioned by control value along the track; the ghost
-  cicn is the drag preview.
+- **Arrows**: fixed boxes at each end.
+- **Thumb**: positioned by value (`FUN_990` with the value/range from
+  `ctl@4`); ghost cicn `-8272/-8271` is the drag preview (`0x72f0`).
+- Accent thumbs start at `-9472` `[DOC]`.
 
-Layout math not yet instruction-traced — next drawer to decompile.
+Remaining: the exact track-stretch + thumb-position arithmetic
+(`FUN_1018`/`FUN_990`).
 
 ## 4. Progress bars `[DRAWER]/[DOC]`
 
