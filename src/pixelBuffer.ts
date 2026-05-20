@@ -76,6 +76,43 @@ export class PixelBuffer {
     }
   }
 
+  /** Fill a rectangle with a solid RGBA color (srcCopy). */
+  fillRect(rect: PixRect, r: number, g: number, b: number, a = 255): void {
+    for (let y = rect.y; y < rect.y + rect.h; y++) {
+      for (let x = rect.x; x < rect.x + rect.w; x++) {
+        this.setPixel(x, y, r, g, b, a);
+      }
+    }
+  }
+
+  /**
+   * Composite `src` over this buffer at (dx, dy) with straight-alpha
+   * source-over blending. Used for glyphs: transparent pixels leave the
+   * destination untouched, opaque pixels overwrite.
+   */
+  drawOver(src: PixelBuffer, dx: number, dy: number): void {
+    for (let y = 0; y < src.height; y++) {
+      for (let x = 0; x < src.width; x++) {
+        const [r, g, b, a] = src.getPixel(x, y);
+        if (a === 0) continue;
+        if (a === 255) {
+          this.setPixel(dx + x, dy + y, r, g, b, 255);
+          continue;
+        }
+        const [dr, dg, db, da] = this.getPixel(dx + x, dy + y);
+        const sa = a / 255;
+        this.setPixel(
+          dx + x,
+          dy + y,
+          Math.round(r * sa + dr * (1 - sa)),
+          Math.round(g * sa + dg * (1 - sa)),
+          Math.round(b * sa + db * (1 - sa)),
+          Math.max(a, da),
+        );
+      }
+    }
+  }
+
   /** Copy the buffer into a fresh ImageData for blitting to a canvas. */
   toImageData(): ImageData {
     const out = new ImageData(this.width, this.height);

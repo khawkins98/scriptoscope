@@ -17,9 +17,10 @@
     header h1 { font-size: 18px; margin: 0; }
     header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; }
     .stage {
-      display: flex; flex-wrap: wrap; gap: 40px;
-      padding: 28px 24px 48px;
+      display: flex; flex-wrap: nowrap; gap: 24px;
+      padding: 16px 24px 24px;
       align-items: flex-start;
+      overflow-x: auto;
     }
     .col { display: flex; flex-direction: column; gap: 10px; }
     .col h2 {
@@ -28,7 +29,7 @@
     }
     .frame {
       background: #c8c8c8;
-      padding: 28px;
+      padding: 16px;
       border: 1px solid #999;
       box-shadow: inset 0 0 0 1px #fff6;
     }
@@ -46,19 +47,9 @@
 <body>
   <header>
     <h1>Aaron UI <span id="ver"></span> — recipe compositor</h1>
-    <p>Document windows composed from each scheme's <code>wnd#</code> recipe (2×), across states + two schemes, beside the references.</p>
+    <p>Document windows fully composed from each scheme's <code>wnd#</code> recipe (2×) — title rasterized into the buffer too — with the reference in the third column.</p>
   </header>
-  <div class="stage" id="stage"></div>
-  <div class="stage refs">
-    <div class="col reference">
-      <h2>7 Le reference (2×)</h2>
-      <div class="frame"><img src="./assets/references/masswerk-7-le.jpg" alt="7 Le reference" /></div>
-    </div>
-    <div class="col reference">
-      <h2>ErgoBox 2 reference</h2>
-      <div class="frame"><img src="./assets/references/masswerk-dark-ergobox2.jpg" alt="ErgoBox reference" style="width:auto;height:auto;" /></div>
-    </div>
-  </div>
+  <div id="stage"></div>
 
   <script type="module">
     import { VERSION, loadTheme, renderWindow } from '../src/index.ts';
@@ -66,29 +57,43 @@
     const stage = document.getElementById('stage');
 
     const schemes = [
-      { slug: 'masswerk-7-le', label: '7 Le' },
-      { slug: 'masswerk-dark-ergobox2', label: 'ErgoBox 2' },
+      { slug: 'masswerk-7-le', label: '7 Le', ref: './assets/references/masswerk-7-le.jpg' },
+      { slug: 'masswerk-dark-ergobox2', label: 'ErgoBox 2', ref: './assets/references/masswerk-dark-ergobox2.jpg' },
     ];
     const states = ['active', 'inactive'];
 
+    function col(label) {
+      const c = document.createElement('div');
+      c.className = 'col';
+      const h = document.createElement('h2');
+      h.textContent = label;
+      const frame = document.createElement('div');
+      frame.className = 'frame';
+      c.append(h, frame);
+      return { c, frame };
+    }
+
     for (const s of schemes) {
       const theme = await loadTheme(`/themes/${s.slug}`);
+      const row = document.createElement('div');
+      row.className = 'stage';
       for (const state of states) {
-        const col = document.createElement('div');
-        col.className = 'col';
-        const h = document.createElement('h2');
-        h.textContent = `${s.label} · ${state}`;
-        const frame = document.createElement('div');
-        frame.className = 'frame';
+        const { c, frame } = col(`${s.label} · ${state}`);
         try {
-          const win = await renderWindow(theme, { title: 'Hello!', width: 200, height: 110, scale: 2, state });
-          frame.appendChild(win);
+          frame.appendChild(await renderWindow(theme, { title: 'Hello!', width: 150, height: 100, scale: 2, state }));
         } catch (err) {
           frame.textContent = String(err);
         }
-        col.append(h, frame);
-        stage.appendChild(col);
+        row.appendChild(c);
       }
+      const { c, frame } = col(`${s.label} · reference`);
+      const img = document.createElement('img');
+      img.src = s.ref;
+      img.style.imageRendering = 'pixelated';
+      img.style.maxWidth = '340px';
+      frame.appendChild(img);
+      row.appendChild(c);
+      stage.appendChild(row);
     }
   </script>
 </body>

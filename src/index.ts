@@ -29,6 +29,7 @@ export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export { PixelBuffer, type PixRect } from './pixelBuffer.js';
 export { loadCicnBuffer } from './cicnImage.js';
+export { rasterizeText } from './textRaster.js';
 export {
   composeWindowChrome,
   frameFromBody,

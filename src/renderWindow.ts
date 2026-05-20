@@ -2,6 +2,7 @@ import type { LoadedTheme, WindowState } from './types.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
+import { rasterizeText } from './textRaster.js';
 
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
@@ -47,6 +48,29 @@ export async function renderWindow(
   const composed = composeWindowChrome(cicn, wt, contentW, contentH);
   const { frame, fullWidth, fullHeight } = composed;
 
+  // ── title: rasterized INTO the chrome buffer (single source of truth) ──
+  // Clear a band (mask the pinstripe) in the titlebar's interior, then
+  // alpha-over the glyphs. Native-res so it pixelates with the chrome.
+  const pal = theme.manifest.palette ?? {};
+  const tbBg = (state === 'inactive' ? pal['titlebar-inactive-bg'] : pal['titlebar-active-bg']) ?? '#cccccc';
+  const tbFg = (state === 'inactive' ? pal['titlebar-inactive-fg'] : pal['titlebar-active-fg']) ?? '#000000';
+  if (title && frame.top > 6) {
+    // ~46% of the titlebar height — matches the period title cap height
+    // (Chicago 12 in a ~22px bar reads ~9-10px tall).
+    const textH = Math.max(7, Math.round(frame.top * 0.46));
+    const glyphs = rasterizeText(title, textH, tbFg);
+    const pad = 3;
+    const bandW = glyphs.width + pad * 2;
+    const bandX = Math.round((fullWidth - bandW) / 2);
+    const bandY = 1;
+    const bandH = frame.top - 2;
+    const [br, bg, bb] = parseHexColor(tbBg);
+    composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, br, bg, bb, 255);
+    const glyphX = bandX + pad;
+    const glyphY = Math.round((frame.top - glyphs.height) / 2);
+    composed.buffer.drawOver(glyphs, glyphX, glyphY);
+  }
+
   // ── window root: positioned at the content rect ──
   const win = document.createElement('div');
   win.className = 'aw-window';
@@ -88,38 +112,18 @@ export async function renderWindow(
     zIndex: '1',
   } satisfies Partial<CSSStyleDeclaration>);
 
-  // ── title pill: clear background masks the pinstripe behind the text ──
-  const pal = theme.manifest.palette ?? {};
-  const tbBg = state === 'inactive' ? pal['titlebar-inactive-bg'] : pal['titlebar-active-bg'];
-  const tbFg = state === 'inactive' ? pal['titlebar-inactive-fg'] : pal['titlebar-active-fg'];
-  const label = document.createElement('div');
-  label.className = 'aw-title';
-  Object.assign(label.style, {
-    position: 'absolute',
-    left: `${-frame.left * scale}px`,
-    top: `${-frame.top * scale}px`,
-    width: `${fullWidth * scale}px`,
-    height: `${frame.top * scale}px`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-    zIndex: '2',
-  } satisfies Partial<CSSStyleDeclaration>);
-  if (title) {
-    const pill = document.createElement('span');
-    pill.textContent = title;
-    Object.assign(pill.style, {
-      backgroundColor: tbBg ?? '#cccccc',
-      padding: `0 ${4 * scale}px`,
-      fontSize: `${Math.round(9 * scale)}px`,
-      fontWeight: '700',
-      whiteSpace: 'nowrap',
-      color: tbFg ?? '#000000',
-    } satisfies Partial<CSSStyleDeclaration>);
-    label.appendChild(pill);
-  }
-
-  win.append(canvas, content, label);
+  win.append(canvas, content);
   return win;
+}
+
+/** Parse `#rgb` / `#rrggbb` → [r,g,b]. Falls back to mid-gray. */
+function parseHexColor(hex: string): [number, number, number] {
+  let h = hex.trim().replace(/^#/, '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (h.length !== 6) return [204, 204, 204];
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
 }
