@@ -78,6 +78,139 @@ export async function composeScrollbar(
   return out;
 }
 
+export interface SliderOptions {
+  orientation?: Orientation;
+  length?: number;
+  value?: number;
+  state?: ControlState;
+}
+
+/**
+ * Compose a slider (kdef-layout-recipes §8): stretch the groove track
+ * along the axis, stamp the thumb at the value position. 7 Le's thumb
+ * cicns are 15×64 sprite sheets — 4 stacked 15×16 states
+ * (blank / normal / pressed / disabled).
+ */
+export async function composeSlider(
+  theme: LoadedTheme,
+  opts: SliderOptions = {},
+): Promise<PixelBuffer | null> {
+  const orientation = opts.orientation ?? 'horizontal';
+  const length = Math.max(32, opts.length ?? 120);
+  const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
+  const state = opts.state ?? 'normal';
+  const horiz = orientation === 'horizontal';
+
+  const tkPrefix = state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
+  const track =
+    (await loadByKey(theme, `${tkPrefix}non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-track`)) ??
+    (await loadByKey(theme, `non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-track`));
+  if (!track) return null;
+  const thumbs = await loadByKey(theme, `non-directional-${horiz ? 'horizontal' : 'vertical'}-slider-thumbs`);
+
+  const thickness = horiz ? track.height : track.width;
+  const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
+
+  // groove: stretch the track along the axis
+  if (horiz) out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
+  else out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: thickness, h: length });
+
+  // thumb: pick the state row from the sprite sheet, stamp at value
+  if (thumbs) {
+    const stateRow = state === 'pressed' ? 2 : state === 'disabled' || state === 'inactive' ? 3 : 1;
+    const tw = horiz ? thumbs.width : thumbs.width; // thumb cell is the short dimension wide
+    // sheet stacks 4 states along the LONG axis
+    const cells = 4;
+    if (horiz) {
+      const cellH = Math.floor(thumbs.height / cells);
+      const thumbW = thumbs.width;
+      const pos = Math.round(value * Math.max(0, length - thumbW));
+      out.copyBits(thumbs, { x: 0, y: stateRow * cellH, w: thumbW, h: cellH }, { x: pos, y: 0, w: thumbW, h: cellH });
+    } else {
+      const cellW = Math.floor(thumbs.width / cells);
+      const thumbH = thumbs.height;
+      const pos = Math.round(value * Math.max(0, length - thumbH));
+      out.copyBits(thumbs, { x: stateRow * cellW, y: 0, w: cellW, h: thumbH }, { x: 0, y: pos, w: cellW, h: thumbH });
+    }
+    void tw;
+  }
+  return out;
+}
+
+export interface DisclosureOptions {
+  direction?: 'right' | 'down';
+  state?: ControlState;
+}
+
+/** Compose a disclosure triangle: a fixed 12×12 state glyph, stamped 1:1. */
+export async function composeDisclosure(
+  theme: LoadedTheme,
+  opts: DisclosureOptions = {},
+): Promise<PixelBuffer | null> {
+  const dir = opts.direction ?? 'right';
+  const state = opts.state ?? 'normal';
+  const prefix = state === 'pressed' ? 'pressed-' : state === 'disabled' || state === 'inactive' ? 'inactive-' : '';
+  // note: the bundle has a typo "tringle" for inactive-right
+  const keys = [
+    `${prefix}${dir}-pointing-disclosure-triangle`,
+    `${prefix}${dir}-pointing-disclosure-tringle`,
+    `${dir}-pointing-disclosure-triangle`,
+  ];
+  for (const k of keys) {
+    const g = await loadByKey(theme, k);
+    if (g) return g;
+  }
+  return null;
+}
+
+export interface ProgressOptions {
+  length?: number;
+  value?: number;
+  state?: ControlState;
+}
+
+/**
+ * Compose a determinate progress bar (kdef-layout-recipes §4): stretch
+ * the unfilled track across the bar, overlay the fill cicn across the
+ * 0..value portion (inset to the interior), cap with the frame ends.
+ */
+export async function composeProgress(
+  theme: LoadedTheme,
+  opts: ProgressOptions = {},
+): Promise<PixelBuffer | null> {
+  const length = Math.max(16, opts.length ?? 160);
+  const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
+  const active = (opts.state ?? 'normal') !== 'inactive';
+  const sfx = active ? 'active' : 'inactive';
+
+  const track = await loadByKey(theme, `progress-bar-track-${sfx}`);
+  if (!track) return null;
+  const fill = await loadByKey(theme, `progress-bar-${sfx}`);
+  const frame = await loadByKey(theme, `progress-bar-frame-${sfx}`);
+
+  const h = frame ? frame.height : track.height;
+  const out = PixelBuffer.alloc(length, h);
+
+  // unfilled track across the whole bar (vertically centered)
+  const tY = Math.round((h - track.height) / 2);
+  out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: tY, w: length, h: track.height });
+
+  // fill across 0..value
+  if (fill && value > 0) {
+    const fillW = Math.round(value * length);
+    const fY = Math.round((h - fill.height) / 2);
+    if (fillW > 0) out.copyBits(fill, { x: 0, y: 0, w: fill.width, h: fill.height }, { x: 0, y: fY, w: fillW, h: fill.height });
+  }
+
+  // frame end caps (left + mirrored right) — first pass: stamp at ends
+  if (frame) {
+    const cap = Math.min(frame.width, Math.floor(length / 2));
+    out.copyBits(frame, { x: 0, y: 0, w: cap, h: frame.height }, { x: 0, y: 0, w: cap, h: frame.height });
+    out.copyBits(frame, { x: frame.width - cap, y: 0, w: cap, h: frame.height }, { x: length - cap, y: 0, w: cap, h: frame.height });
+  }
+  return out;
+}
+
 /** Blit a composed control buffer to a CSS-scaled, pixelated canvas. */
 export function bufferToCanvas(buf: PixelBuffer, scale = 1): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
