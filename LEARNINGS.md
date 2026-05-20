@@ -1392,3 +1392,13 @@ The prior entry said "install Ghidra + follow named functions." Did exactly that
 - **Buttons = 3 state cicns (`-10240/-10239/-10238`) 9-sliced** into the rect. **Scrollbars = orientation × 4-state cicn selection** (`-8286…` horiz / `-8278…` vert), 1px track stretch, value-positioned thumb.
 
 **Methodology reversal from the prior entry:** with the right tooling (objdump-as-020 + A-trap NOP + table-defining + Ghidra), single-instruction tracing of named drawers IS feasible in a session — the opposite of the "can't trace inner loops in the timebox" conclusion. The blocker was never the difficulty; it was using `objdump` linear-sweep alone without a decompiler.
+
+## 2026-05-20 — Resolve controls by RESOURCE ID, never by bundle slug
+
+Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed black bars or nothing. Root cause: the composers looked elements up by human-readable bundle key, and those keys are **not** stable — the same Kaleidoscope resource is named "normal-horizontal-scrollbar" (7 Le) / "horizontal-scrollbar-active" (acid, 1990) / "horizontal-scroll-bar-track-arrows" (1138). The **resource id is the authoritative selector** (it's what the kDEF switches on), and it's preserved in every asset filename as `cicn-n8286-…`. Match on `abs(id)` → works for all themes. Lesson: any drop-in compatibility layer must key off the spec's ids, treating bundle slugs as decoration.
+
+**Two scrollbar cicn FORMATS, told apart by aspect ratio:** wide composite (48×16 etc.) bakes the arrow boxes into the two ends → 3-slice along the long axis, do NOT stamp arrows. Square cell (7 Le 16×16) has no arrows (OS draws them) → stretch one interior slice. The "arrow cicns" I almost stamped (`-10111` "normal-right-point-arrow") are actually the **disclosure-triangle** resource range (`-10102..-10112`) — a bundle mislabel; the real scroll arrows are inside the composite.
+
+**Two gotchas that look like missing assets but aren't:**
+- Button faces carry a 1px text-color **marker** at the center (same idea as the window-title marker). 9-slicing stretches it into a cross through the label. Sample a clean pixel at the slice inset for both fill + fg-contrast; the center pixel also lies about contrast (acid's marker is light on a black face → forced invisible black text).
+- Progress **frame** interiors differ: 1990's is transparent, big-blue's is opaque white. Draw track → frame → fill so the fill always lands on top regardless. Measure the frame border from the cicn (alpha drop-out), with an opaque-interior fallback.
