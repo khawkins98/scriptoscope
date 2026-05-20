@@ -81,13 +81,21 @@ export async function renderWindow(
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
 
-    const textH = Math.max(7, Math.round(frame.top * 0.46));
+    // Title text is ~Chicago 12px, NOT a fraction of the frame thickness —
+    // thick decorative frames (1990 40px, evolution) must not scale the title
+    // up (that produced giant, clipped titles like "Options"→"tio"). The
+    // erase BAND is sized to the text (+pad) and vertically centered in the
+    // title bar, so it only clears a strip behind the title and the chrome
+    // pattern keeps repeating around it.
+    const textH = Math.max(8, Math.min(13, frame.top - 6));
     const glyphs = rasterizeText(title, textH, fgHex);
-    const pad = 3;
+    const pad = 4;
     const bandW = glyphs.width + pad * 2;
+    const bandH = Math.min(frame.top - 2, glyphs.height + 2);
     const bandX = Math.round((fullWidth - bandW) / 2);
-    composed.buffer.fillRect({ x: bandX, y: 1, w: bandW, h: frame.top - 2 }, er, eg, eb, 255);
-    composed.buffer.drawOver(glyphs, bandX + pad, Math.round((frame.top - glyphs.height) / 2));
+    const bandY = Math.max(1, Math.round((frame.top - bandH) / 2));
+    composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, er, eg, eb, 255);
+    composed.buffer.drawOver(glyphs, bandX + pad, bandY + Math.round((bandH - glyphs.height) / 2));
   }
 
   // ── window root: bounds the FULL window footprint (chrome included), so
@@ -243,31 +251,42 @@ function bodyBackgroundStyle(theme: LoadedTheme): Partial<CSSStyleDeclaration> {
  */
 function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
   const wts = theme.manifest.windowTypes ?? {};
-  if (wts[slug]) return wts[slug];
+  const ok = (k: string): WindowType | undefined => (wts[k] && looksLikeWindow(wts[k]) ? wts[k] : undefined);
+  if (wts[slug] && looksLikeWindow(wts[slug])) return wts[slug];
 
   // "mini" / utility / floating palette windows — the small floating windows
   // schemes ship distinct chrome for (short title bar, thin frame). Prefer a
-  // titled utility window, then no-title, then side-floating, then the raw
-  // utility-window resource ids (-14316/-14315 active, -14320/-14319 inactive).
+  // titled utility window, then no-title, side-floating, the raw utility ids,
+  // then a real dialog/modal/document window. NEVER the part-0 scan, which can
+  // surface a window mis-paired with a grow-box cicn.
   if (/utility|mini|floating|palette/.test(slug)) {
     const prefs = ['titled-utility-window', 'no-title-utility-window', 'side-floating-utility-window',
-      'wnd--14316', 'wnd--14315', 'wnd--14320', 'wnd--14319'];
-    for (const k of prefs) if (wts[k]) return wts[k];
-    for (const [k, v] of Object.entries(wts)) if (/utility|floating/.test(k)) return v;
+      'wnd--14316', 'wnd--14315', 'wnd--14320', 'wnd--14319',
+      'movable-modal', 'dialog', 'wnd--14326', 'document-window', 'wnd--14335'];
+    for (const k of prefs) { const w = ok(k); if (w) return w; }
+    for (const [k, v] of Object.entries(wts)) if (/utility|floating/.test(k) && looksLikeWindow(v)) return v;
   }
 
   const noun = slug.replace(/-window$/, '');
-  for (const [k, v] of Object.entries(wts)) {
-    if (k.includes(noun)) return v;
-  }
+  for (const [k, v] of Object.entries(wts)) if (k.includes(noun) && looksLikeWindow(v)) return v;
+
   // raw doc-window resource ids (-14336 inactive / -14335 active family)
-  for (const id of ['wnd--14336', 'wnd--14335', 'wnd--14332', 'wnd--14331']) {
-    if (wts[id]) return wts[id];
+  for (const id of ['document-window', 'wnd--14336', 'wnd--14335', 'wnd--14332', 'wnd--14331']) {
+    const w = ok(id); if (w) return w;
   }
-  for (const v of Object.values(wts)) {
-    if (v.parts?.['part-0']) return v;
-  }
-  return Object.values(wts)[0];
+  for (const v of Object.values(wts)) if (looksLikeWindow(v)) return v;
+  return undefined; // nothing usable → caller renders the procedural default
+}
+
+/**
+ * A window type usable for rendering: has a part-0 body and a chrome cicn
+ * that's an actual window frame — NOT a grow-box cicn (some bundles mis-pair
+ * a dialog/utility wnd# with the grow-box) and not an empty chrome map.
+ */
+function looksLikeWindow(wt: WindowType): boolean {
+  const ch = wt.chrome?.active ?? wt.chrome?.inactive;
+  if (!ch || /grow-box/.test(ch)) return false;
+  return !!wt.parts?.['part-0']?.rect;
 }
 
 /** `#rgb` / `#rrggbb` → [r,g,b]; falls back to gray. */
