@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aaron UI v2 — slice 1</title>
+  <title>Aaron UI v2 — runtime</title>
   <style>
     :root { color-scheme: light; }
     body {
@@ -11,191 +11,137 @@
       font: 14px/1.5 -apple-system, system-ui, sans-serif;
       background: #b9b9b9;
       color: #1a1a1a;
-      min-height: 100vh;
     }
-    header { padding: 20px 24px 0; }
+    header { padding: 20px 24px 4px; }
     header h1 { font-size: 18px; margin: 0; }
     header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; }
-    .stage {
-      display: flex; flex-wrap: nowrap; gap: 24px;
-      padding: 16px 24px 24px;
-      align-items: flex-start;
-      overflow-x: auto;
-    }
-    .col { display: flex; flex-direction: column; gap: 10px; }
-    .col h2 {
-      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-      opacity: 0.55; margin: 0; font-weight: 700;
+
+    .theme-row { border-top: 1px solid #999; padding: 8px 24px 20px; }
+    .theme-row > h2 { font-size: 15px; margin: 8px 0 2px; }
+    .row { display: flex; flex-wrap: nowrap; gap: 20px; align-items: flex-start; overflow-x: auto; padding-bottom: 6px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .col h3 {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+      opacity: 0.5; margin: 0; font-weight: 700;
     }
     .frame {
-      background: #c8c8c8;
-      padding: 16px;
-      border: 1px solid #999;
-      box-shadow: inset 0 0 0 1px #fff6;
-      overflow: hidden; /* rough-cut: contain bulbous chrome to its cell */
+      background: #c8c8c8; padding: 14px; border: 1px solid #999;
+      box-shadow: inset 0 0 0 1px #fff6; overflow: hidden;
     }
-    .reference img {
-      image-rendering: pixelated;
-      display: block;
-      /* native pixel size — 1:1 with the rendered output */
-    }
-    .note { font-size: 12px; opacity: 0.7; max-width: 280px; }
-    code { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+    .frame img { image-rendering: pixelated; display: block; }
+    .ctl-stack { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+    .ctl-row { display: flex; gap: 12px; align-items: flex-start; }
+    .btn-stack { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Aaron UI <span id="ver"></span> — recipe compositor</h1>
-    <p>Composed from each scheme's <code>wnd#</code> recipe + control cicns, at <strong>native pixel size</strong> (1:1 with the reference screenshots).</p>
+    <h1>Aaron UI <span id="ver"></span> — runtime</h1>
+    <p>Each Kaleidoscope theme, rendered on the fly at <strong>native pixel size</strong>: scene · controls · buttons · reference screenshot.</p>
   </header>
-  <div id="stage"></div>
-
-  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (themed cicns)</h2>
-  <div id="controls" class="stage"></div>
-  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Controls (baseline Platinum)</h2>
-  <div id="baseline" class="stage"></div>
-  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Ambitious themes — rough cut (window per scheme)</h2>
-  <div id="ambitious" class="stage"></div>
-  <h2 style="padding:0 24px;margin:8px 0 0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;">Scene assembly — 1:1 target (rough cut)</h2>
-  <div id="scene-wrap" style="padding:16px 24px 48px;"></div>
+  <div id="rows"></div>
 
   <script type="module">
-    import { VERSION, loadTheme, renderWindow, composeScrollbar, composeSlider, composeDisclosure, composeProgress, baselineButton, baselineCheckable, bufferToCanvas } from '../src/index.ts';
+    import {
+      VERSION, loadTheme, renderWindow,
+      composeScrollbar, composeSlider, composeDisclosure, composeProgress,
+      baselineButton, baselineCheckable, bufferToCanvas,
+    } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
-    const stage = document.getElementById('stage');
+    const rows = document.getElementById('rows');
 
-    const schemes = [
-      { slug: 'masswerk-7-le', label: '7 Le', ref: './assets/references/masswerk-7-le.jpg' },
-      { slug: 'masswerk-dark-ergobox2', label: 'ErgoBox 2', ref: './assets/references/masswerk-dark-ergobox2.jpg' },
+    const THEMES = [
+      { slug: 'masswerk-7-le', label: 'mass:werk 7 Le', ref: 'masswerk-7-le.jpg' },
+      { slug: 'masswerk-dark-ergobox2', label: 'Dark ErgoBox 2', ref: 'masswerk-dark-ergobox2.jpg' },
+      { slug: 'acid', label: 'Acid', ref: 'acid.png' },
+      { slug: '1990', label: '1990', ref: '1990.png' },
+      { slug: '1138', label: '1138', ref: '1138.png' },
+      { slug: 'big-blue', label: 'Big Blue', ref: 'big-blue.png' },
+      { slug: 'evolution', label: 'Evolution', ref: 'evolution.png' },
     ];
-    const states = ['active', 'inactive'];
 
-    function col(label) {
-      const c = document.createElement('div');
-      c.className = 'col';
-      const h = document.createElement('h2');
-      h.textContent = label;
-      const frame = document.createElement('div');
-      frame.className = 'frame';
+    function colEl(label) {
+      const c = document.createElement('div'); c.className = 'col';
+      const h = document.createElement('h3'); h.textContent = label;
+      const frame = document.createElement('div'); frame.className = 'frame';
       c.append(h, frame);
       return { c, frame };
     }
+    const add = (frame, buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
 
-    for (const s of schemes) {
-      const theme = await loadTheme(`/themes/${s.slug}`);
-      const row = document.createElement('div');
-      row.className = 'stage';
-      for (const state of states) {
-        const { c, frame } = col(`${s.label} · ${state}`);
-        try {
-          frame.appendChild(await renderWindow(theme, { title: 'Hello!', width: 150, height: 100, scale: 1, state }));
-        } catch (err) {
-          frame.textContent = String(err);
-        }
-        row.appendChild(c);
-      }
-      const { c, frame } = col(`${s.label} · reference`);
-      const img = document.createElement('img');
-      img.src = s.ref;
-      img.style.imageRendering = 'pixelated';
-      frame.appendChild(img);
-      row.appendChild(c);
-      stage.appendChild(row);
-    }
-
-    // ── control gallery: scrollbars (themed cicns) ──
-    const controls = document.getElementById('controls');
-    for (const s of schemes) {
-      const theme = await loadTheme(`/themes/${s.slug}`);
-      const { c, frame } = col(`${s.label} · scrollbars`);
-      frame.style.display = 'flex';
-      frame.style.gap = '16px';
-      frame.style.alignItems = 'flex-start';
-      const add = (buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
-      try {
-        add(await composeScrollbar(theme, { orientation: 'horizontal', length: 160, value: 0.35 }));
-        add(await composeScrollbar(theme, { orientation: 'vertical', length: 120, value: 0.5 }));
-        add(await composeSlider(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
-        add(await composeProgress(theme, { length: 120, value: 0.6 }));
-        add(await composeDisclosure(theme, { direction: 'right' }));
-        add(await composeDisclosure(theme, { direction: 'down' }));
-        if (!frame.childElementCount) frame.textContent = '(no themed control cicns — baseline path)';
-      } catch (err) {
-        frame.textContent = String(err);
-      }
-      controls.appendChild(c);
-    }
-
-    // ── baseline (procedural Platinum) controls — theme-independent ──
-    {
-      const { c, frame } = col('button / checkbox / radio');
-      frame.style.display = 'flex';
-      frame.style.gap = '10px';
-      frame.style.alignItems = 'center';
-      frame.style.flexWrap = 'wrap';
-      frame.append(
-        baselineButton('Cancel'),
-        baselineButton('OK', { default: true }),
-        baselineButton('Help', { disabled: true }),
-        baselineCheckable('checkbox', 'Show invisibles', { checked: true }),
-        baselineCheckable('checkbox', 'Disabled', { disabled: true }),
-        baselineCheckable('radio', 'On', { checked: true }),
-        baselineCheckable('radio', 'Off'),
-      );
-      document.getElementById('baseline').appendChild(c);
-    }
-
-    // ── ambitious themes: one document window per scheme (rough cut) ──
-    const ambitious = document.getElementById('ambitious');
-    for (const slug of ['masswerk-7-le', 'acid', '1990', '1138', 'big-blue', 'evolution']) {
-      const { c, frame } = col(slug);
-      try {
-        const theme = await loadTheme(`/themes/${slug}`);
-        frame.appendChild(await renderWindow(theme, { title: slug, width: 150, height: 90, scale: 1 }));
-      } catch (err) {
-        frame.textContent = String(err);
-      }
-      ambitious.appendChild(c);
-    }
-
-    // ── scene assembly: 7 Le desktop, document window + dialog + controls ──
-    try {
-      const theme = await loadTheme('/themes/masswerk-7-le');
+    async function buildScene(theme) {
       const desk = document.createElement('div');
-      Object.assign(desk.style, {
-        position: 'relative', width: '640px', height: '420px',
-        background: '#a9a9a9', border: '1px solid #777', overflow: 'hidden',
-      });
-      // document window
-      const win = await renderWindow(theme, { title: 'Hello!', width: 260, height: 200, scale: 1 });
-      Object.assign(win.style, { position: 'absolute', left: '40px', top: '50px' });
+      Object.assign(desk.style, { position: 'relative', width: '440px', height: '300px', background: '#a9a9a9', overflow: 'hidden' });
+      const win = await renderWindow(theme, { title: 'Hello!', width: 200, height: 150, scale: 1 });
+      Object.assign(win.style, { position: 'absolute', left: '24px', top: '34px' });
       const content = win.querySelector('.aw-content');
       if (content) {
-        content.style.padding = '8px';
-        const sb = await composeScrollbar(theme, { orientation: 'horizontal', length: 240, value: 0.2 });
-        if (sb) { const cv = bufferToCanvas(sb, 1); cv.style.position = 'absolute'; cv.style.left = '0'; cv.style.bottom = '0'; content.appendChild(cv); }
+        const sb = await composeScrollbar(theme, { orientation: 'horizontal', length: 200, value: 0.2 });
+        if (sb) { const cv = bufferToCanvas(sb, 1); Object.assign(cv.style, { position: 'absolute', left: '0', bottom: '0' }); content.appendChild(cv); }
       }
-      // dialog
-      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 200, height: 130, scale: 1 });
-      Object.assign(dlg.style, { position: 'absolute', left: '330px', top: '150px', zIndex: '5' });
+      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 170, height: 110, scale: 1 });
+      Object.assign(dlg.style, { position: 'absolute', left: '230px', top: '120px', zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
-        Object.assign(dc.style, { padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' });
-        const sl = await composeSlider(theme, { orientation: 'horizontal', length: 150, value: 0.4 });
+        Object.assign(dc.style, { padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' });
+        const sl = await composeSlider(theme, { orientation: 'horizontal', length: 130, value: 0.4 });
         if (sl) dc.appendChild(bufferToCanvas(sl, 1));
-        const radios = document.createElement('div');
-        radios.style.display = 'flex'; radios.style.gap = '14px';
+        const radios = document.createElement('div'); radios.style.cssText = 'display:flex;gap:12px';
         radios.append(baselineCheckable('radio', 'On', { checked: true }), baselineCheckable('radio', 'Off'));
         dc.appendChild(radios);
-        const btns = document.createElement('div');
-        btns.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:auto';
+        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;margin-top:auto';
         btns.append(baselineButton('Cancel'), baselineButton('OK', { default: true }));
         dc.appendChild(btns);
       }
       desk.append(win, dlg);
-      document.getElementById('scene-wrap').appendChild(desk);
-    } catch (err) {
-      document.getElementById('scene-wrap').textContent = String(err);
+      return desk;
+    }
+
+    for (const t of THEMES) {
+      const section = document.createElement('div'); section.className = 'theme-row';
+      const title = document.createElement('h2'); title.textContent = t.label;
+      const row = document.createElement('div'); row.className = 'row';
+      section.append(title, row);
+
+      let theme;
+      try { theme = await loadTheme(`/themes/${t.slug}`); }
+      catch (e) { row.textContent = `failed to load: ${e}`; rows.appendChild(section); continue; }
+
+      // scene
+      { const { c, frame } = colEl('scene'); try { frame.appendChild(await buildScene(theme)); } catch (e) { frame.textContent = String(e); } row.appendChild(c); }
+      // controls
+      {
+        const { c, frame } = colEl('controls');
+        const stack = document.createElement('div'); stack.className = 'ctl-stack';
+        const r1 = document.createElement('div'); r1.className = 'ctl-row';
+        const r2 = document.createElement('div'); r2.className = 'ctl-row';
+        add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35 }));
+        add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5 }));
+        add(r2, await composeSlider(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
+        add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
+        add(r2, await composeDisclosure(theme, { direction: 'right' }));
+        add(r2, await composeDisclosure(theme, { direction: 'down' }));
+        stack.append(r1, r2);
+        if (!r1.childElementCount && !r2.childElementCount) frame.textContent = '(no themed control cicns — baseline)';
+        else frame.appendChild(stack);
+        row.appendChild(c);
+      }
+      // buttons (baseline)
+      {
+        const { c, frame } = colEl('buttons');
+        const stack = document.createElement('div'); stack.className = 'btn-stack';
+        const brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px';
+        brow.append(baselineButton('Cancel'), baselineButton('OK', { default: true }), baselineButton('Help', { disabled: true }));
+        stack.append(brow,
+          baselineCheckable('checkbox', 'Show invisibles', { checked: true }),
+          baselineCheckable('radio', 'On', { checked: true }));
+        frame.appendChild(stack);
+        row.appendChild(c);
+      }
+      // reference
+      { const { c, frame } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${t.ref}`; frame.appendChild(img); row.appendChild(c); }
+
+      rows.appendChild(section);
     }
   </script>
 </body>
