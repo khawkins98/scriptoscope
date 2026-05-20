@@ -81,9 +81,11 @@
     // Platinum face. Reads as tabs rather than two separate push buttons.
     function segmentedTabs(theme, labels, selectedIdx) {
       const hc = theme.manifest?.headerColors?.active ?? {};
-      const fill = hc.fill ?? '#5a5a5a';
-      const text = hc.text ?? '#ffffff';
       const frame = hc.frame ?? '#555555';
+      // Selected tab is the depressed/active one: the scheme's (dark) frame
+      // color with light text — matches the classic Mac tab look and stays
+      // high-contrast even when the header FILL is light (e.g. Platinum gray).
+      const selBg = hc.darkTinge && hc.darkTinge !== hc.fill ? hc.darkTinge : frame;
       const wrap = document.createElement('div');
       Object.assign(wrap.style, {
         display: 'inline-flex', border: `1px solid ${frame}`, borderRadius: '3px',
@@ -94,8 +96,8 @@
         const sel = i === selectedIdx;
         Object.assign(cell.style, {
           padding: '2px 12px', borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
-          background: sel ? fill : 'linear-gradient(180deg,#fff,#dcdcdc)',
-          color: sel ? text : '#000', fontWeight: sel ? '700' : '400',
+          background: sel ? selBg : 'linear-gradient(180deg,#f6f6f6,#d4d4d4)',
+          color: sel ? '#ffffff' : '#000', fontWeight: sel ? '700' : '400',
         });
         cell.textContent = label;
         wrap.appendChild(cell);
@@ -157,7 +159,7 @@
       desk.appendChild(win);
 
       // ── "On/Off" modal dialog (overlapping, center-right) ──
-      const dlg = await renderWindow(theme, { windowType: 'movable-modal-dialog', title: '', width: 100, height: 82, scale: 1 });
+      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 100, height: 82, scale: 1 });
       Object.assign(dlg.style, { position: 'absolute', left: '96px', top: '56px', zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {

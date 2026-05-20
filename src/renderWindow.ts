@@ -241,6 +241,18 @@ function bodyBackgroundStyle(theme: LoadedTheme): Partial<CSSStyleDeclaration> {
 function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
   const wts = theme.manifest.windowTypes ?? {};
   if (wts[slug]) return wts[slug];
+
+  // "mini" / utility / floating palette windows — the small floating windows
+  // schemes ship distinct chrome for (short title bar, thin frame). Prefer a
+  // titled utility window, then no-title, then side-floating, then the raw
+  // utility-window resource ids (-14316/-14315 active, -14320/-14319 inactive).
+  if (/utility|mini|floating|palette/.test(slug)) {
+    const prefs = ['titled-utility-window', 'no-title-utility-window', 'side-floating-utility-window',
+      'wnd--14316', 'wnd--14315', 'wnd--14320', 'wnd--14319'];
+    for (const k of prefs) if (wts[k]) return wts[k];
+    for (const [k, v] of Object.entries(wts)) if (/utility|floating/.test(k)) return v;
+  }
+
   const noun = slug.replace(/-window$/, '');
   for (const [k, v] of Object.entries(wts)) {
     if (k.includes(noun)) return v;
