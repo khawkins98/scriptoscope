@@ -24,6 +24,8 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
 import { validateTheme } from '../tools/theme-loader/validateTheme.js';
+import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
+import { decodeClut, headerColorsFromClut } from '../tools/theme-loader/decoders/clut.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -90,6 +92,27 @@ function buildBundle(slug) {
 
   // Build the schema-conformant theme.json.
   const theme = buildThemeJson(remappedManifest, { meta });
+
+  // Window title/header colors come from the header cluts (-14335 active /
+  // -14336 inactive), which the extractor doesn't capture — decode them
+  // straight from the bundle's scheme.rsrc. Part codes: 0=frame, 1=fill,
+  // 2=text (Kaleidoscope "Creating Color Schemes" doc). The window title
+  // bar draws its text in the text color over the fill color.
+  const rsrcPath = resolve(destDir, 'scheme.rsrc');
+  if (existsSync(rsrcPath)) {
+    const entries = parseResourceFork(new Uint8Array(readFileSync(rsrcPath)));
+    const cl = (id) => {
+      const e = entries.find((r) => r.type === 'clut' && r.id === id);
+      return e ? headerColorsFromClut(decodeClut(e.data)) : null;
+    };
+    const active = cl(-14335);
+    const inactive = cl(-14336);
+    if (active || inactive) {
+      theme.headerColors = {};
+      if (active) theme.headerColors.active = active;
+      if (inactive) theme.headerColors.inactive = inactive;
+    }
+  }
 
   // Validate before writing — abort on schema violation.
   try {

@@ -57,14 +57,22 @@ export async function renderWindow(
   // schemes that ship no palette (1990/acid/evolution). The center
   // placement matches the kDEF (title is centered on the content rect).
   if (title && frame.top > 6) {
-    // Sample the dominant (modal) opaque color across the titlebar band:
-    // that's the fill BASE (stripes/ornament are the minority), i.e. the
-    // color the kDEF erases the title region to.
-    const [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
-    // Text color: contrast against the erase base (light bar → black,
-    // dark bar → white). Stand-in until cinf's text-color pixel is wired.
-    const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
-    const fgHex = lum < 128 ? '#ffffff' : '#000000';
+    // Title colors: prefer the scheme's DECLARED header colors (decoded
+    // from the -14335/-14336 cluts: text = part 2, fill = part 1). These
+    // are the kDEF's actual title text + erase colors. Fall back to
+    // sampling the composed bar (dominant fill) + contrast text only when
+    // a scheme ships no header clut.
+    const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
+    let er: number, eg: number, eb: number;
+    let fgHex: string;
+    if (hc.fill && hc.text) {
+      [er, eg, eb] = hexToRgb(hc.fill);
+      fgHex = hc.text;
+    } else {
+      [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
+      const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
+      fgHex = lum < 128 ? '#ffffff' : '#000000';
+    }
 
     const textH = Math.max(7, Math.round(frame.top * 0.46));
     const glyphs = rasterizeText(title, textH, fgHex);
@@ -142,6 +150,14 @@ function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undef
     if (v.parts?.['part-0']) return v;
   }
   return Object.values(wts)[0];
+}
+
+/** `#rgb` / `#rrggbb` → [r,g,b]; falls back to gray. */
+function hexToRgb(hex: string): [number, number, number] {
+  let h = hex.trim().replace(/^#/, '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (h.length !== 6) return [204, 204, 204];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
 /**
