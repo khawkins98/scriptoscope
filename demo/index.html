@@ -55,7 +55,7 @@
   <div id="controls" class="stage"></div>
 
   <script type="module">
-    import { VERSION, loadTheme, renderWindow, composeScrollbar, bufferToCanvas } from '../src/index.ts';
+    import { VERSION, loadTheme, renderWindow, composeScrollbar, composeSlider, composeDisclosure, composeProgress, bufferToCanvas } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const stage = document.getElementById('stage');
 
@@ -107,12 +107,15 @@
       frame.style.display = 'flex';
       frame.style.gap = '16px';
       frame.style.alignItems = 'flex-start';
+      const add = (buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 2)); };
       try {
-        const h = await composeScrollbar(theme, { orientation: 'horizontal', length: 160, value: 0.35 });
-        const v = await composeScrollbar(theme, { orientation: 'vertical', length: 120, value: 0.5 });
-        if (h) frame.appendChild(bufferToCanvas(h, 2));
-        if (v) frame.appendChild(bufferToCanvas(v, 2));
-        if (!h && !v) frame.textContent = '(no scrollbar cicns — baseline path)';
+        add(await composeScrollbar(theme, { orientation: 'horizontal', length: 160, value: 0.35 }));
+        add(await composeScrollbar(theme, { orientation: 'vertical', length: 120, value: 0.5 }));
+        add(await composeSlider(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
+        add(await composeProgress(theme, { length: 120, value: 0.6 }));
+        add(await composeDisclosure(theme, { direction: 'right' }));
+        add(await composeDisclosure(theme, { direction: 'down' }));
+        if (!frame.childElementCount) frame.textContent = '(no themed control cicns — baseline path)';
       } catch (err) {
         frame.textContent = String(err);
       }

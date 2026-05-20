@@ -32,8 +32,14 @@ export { loadCicnBuffer } from './cicnImage.js';
 export { rasterizeText } from './textRaster.js';
 export {
   composeScrollbar,
+  composeSlider,
+  composeDisclosure,
+  composeProgress,
   bufferToCanvas,
   type ScrollbarOptions,
+  type SliderOptions,
+  type DisclosureOptions,
+  type ProgressOptions,
   type Orientation,
   type ControlState,
 } from './controls.js';
