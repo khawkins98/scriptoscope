@@ -127,11 +127,19 @@ export function findStripeColumn(cicn: PixelBuffer, x0: number, x1: number, top:
 }
 
 /**
- * Compose the top edge by walking the wnd# recipe (the principled path,
- * per kdef-disassembly-findings §8.4): each segment is stamped 1:1 from
- * its cicn span, except fill (p8) segments which stretch to absorb the
- * window's extra width. The extra is split evenly across fill segments,
- * so the divider/title stays centered and widgets stay pinned.
+ * Compose the top edge by walking the wnd# recipe — the literal kDEF
+ * behavior (kdef-disassembly-findings §8, §9.5): each segment is a
+ * `CopyBits` from its own cicn span. Fixed segments (corners, edges,
+ * baked-in widget columns, the p10/p4 border pieces) copy 1:1, which
+ * edge-anchors the widgets as the window grows. Grow segments (codes
+ * 5/6/8 — the "single column between grow regions") stretch their own
+ * pixels via sample-and-hold to absorb the window's extra width, split
+ * proportionally to native grow width.
+ *
+ * No heuristics: the column(s) each grow segment stretches come straight
+ * from the recipe, not a scan. The divider sandwich (p5/p6) widens
+ * slightly but sits behind the centered title; the stripe (p8) is
+ * column-invariant under horizontal stretch so it stays crisp.
  */
 function composeTopEdgeFromRecipe(
   out: PixelBuffer,
@@ -141,47 +149,30 @@ function composeTopEdgeFromRecipe(
   fullW: number,
 ): void {
   const segs = recipeSegments(recipe, cicn.width);
-
-  // Group contiguous fill segments into grow zones; each zone is filled
-  // by stretching ONE column (the doc's "single column between grow
-  // regions"), so an embedded divider sandwich doesn't widen and the
-  // zone reads as continuous stripe. Fixed segments stamp 1:1.
-  interface Unit { x0: number; x1: number; fill: boolean }
-  const units: Unit[] = [];
-  for (const seg of segs) {
-    const prev = units[units.length - 1];
-    if (seg.fill && prev && prev.fill) {
-      prev.x1 = seg.x1; // extend the current grow zone
-    } else {
-      units.push({ x0: seg.x0, x1: seg.x1, fill: seg.fill });
-    }
-  }
-
-  const totalGrowNative = units.reduce((s, u) => (u.fill ? s + (u.x1 - u.x0) : s), 0);
+  const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
   const extra = Math.max(0, fullW - cicn.width);
-  let growsLeft = units.filter((u) => u.fill).length;
+  let growsLeft = segs.filter((g) => g.fill).length;
   let extraRem = extra;
   let outX = 0;
-  for (const u of units) {
-    const nativeW = u.x1 - u.x0;
-    if (!u.fill) {
-      out.copyBits(cicn, { x: u.x0, y: 0, w: nativeW, h: top }, { x: outX, y: 0, w: nativeW, h: top });
-      outX += nativeW;
-      continue;
+  for (const seg of segs) {
+    const nativeW = seg.x1 - seg.x0;
+    let outW = nativeW;
+    if (seg.fill) {
+      const share =
+        growsLeft === 1
+          ? extraRem
+          : totalGrowNative > 0
+            ? Math.round((extra * nativeW) / totalGrowNative)
+            : 0;
+      extraRem -= share;
+      growsLeft--;
+      outW = nativeW + share;
     }
-    // grow zone: native + share of extra (proportional to native width);
-    // the last grow zone soaks up the rounding remainder.
-    const share =
-      growsLeft === 1
-        ? extraRem
-        : totalGrowNative > 0
-          ? Math.round((extra * nativeW) / totalGrowNative)
-          : 0;
-    extraRem -= share;
-    growsLeft--;
-    const outW = nativeW + share;
-    const stripeX = findStripeColumn(cicn, u.x0, u.x1, top);
-    out.copyBits(cicn, { x: stripeX, y: 0, w: 1, h: top }, { x: outX, y: 0, w: outW, h: top });
+    out.copyBits(
+      cicn,
+      { x: seg.x0, y: 0, w: nativeW, h: top },
+      { x: outX, y: 0, w: outW, h: top },
+    );
     outX += outW;
   }
 }

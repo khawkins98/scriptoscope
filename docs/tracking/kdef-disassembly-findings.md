@@ -237,15 +237,56 @@ left-anchored parts (close box) keep their left x; right-anchored parts
 widgets. That's the faithful model — and it explains why left-to-right
 layout "feels hacked."
 
-### 9.4 Still open
+### 9.4 The placement modes — DECODED (all 10 cases)
 
-- The exact behavior of each placement mode (the 10 cases at `0x391c…`)
-  and the −1/1/2/3/4 anchor values — partially read (centering), not
-  fully enumerated.
-- Where `@44`/`@50` come from for a scheme with no cinf (7 Le's doc
-  window has `sourceCinfId: null`): likely a default-by-part-code or
-  derived from the rect's position. The cinf carries explicit anchors
-  when present (§13.4), so cinf-bearing schemes read them directly.
+At the switch (`0x3900`): `d7 = cx = (left+right+1)/2`, `fp@-284 = cy =
+(top+bottom+1)/2`, `d4 = piece width`, `d6 = piece height`, and the
+piece rect starts at the origin. `part@48` = x-offset, `part@46` =
+y-offset (per-part insets from the anchored edge). Each case places the
+piece, then most run a secondary `@50` sub-switch for title-relative
+nudging. Selector = `part@44 + 1`:
+
+| `part@44` | handler | placement |
+|---|---|---|
+| `-1`, `1` | `0x3a44` | **left edge**, V-centered: `left = content.left + @48` |
+| `0` | `0x391c` | **center** both: `left = cx − w/2`, `top = cy − h/2` |
+| `2` | `0x3ace` | **right edge**, V-centered: `left = content.right − w − @48` |
+| `3` | `0x3b5a` | **top edge**, H-centered: `top = content.top + @46` |
+| `4` | `0x3be4` | **bottom edge**, H-centered: `top = content.bottom − h − @46` |
+| `5` | `0x3c74` | **top-left** corner: `(content.left+@48, content.top+@46)` |
+| `6` | `0x3c9a` | **bottom-left**: `(content.left+@48, content.bottom−h−@46)` |
+| `7` | `0x3cc2` | **top-right**: `(content.right−w−@48, content.top+@46)` |
+| `8` | `0x3cea` | **bottom-right**: `(content.right−w−@48, content.bottom−h−@46)` |
+
+So it's a **3×3 anchor grid + center** with pixel offsets — the classic
+Appearance-Manager part placement. Edge/corner anchors are what make
+the close box stick left, zoom/windowshade stick right, and the grow
+box stick bottom-right as the window resizes.
+
+### 9.5 Scope — which path draws what
+
+`0x35b0` is the **part/control placement** path (grow box, scrollbar
+parts, cinf-anchored elements) — it positions ONE part by its anchor.
+The window TITLEBAR frame + its baked-in widgets are drawn by the
+**recipe walk** (§8): fixed segments (incl. widget columns) copy 1:1,
+grow segments stretch — which already edge-anchors the baked widgets
+(left stays, right shifts) as the window grows. The TITLE TEXT is a
+centered part (mode 0/3). So:
+- titlebar frame/stripe/widgets → recipe walk (§8)
+- title text + grow box + scrollbar parts → anchor placement (§9)
+
+Do NOT apply §9 anchor math to the titlebar's baked widgets — the
+recipe already handles them. The compositor fix is to make the §8 fill
+faithful (drop the `findStripeColumn` heuristic; stretch grow segments
+straight from the recipe).
+
+### 9.6 Still open
+
+- Where `@44`/`@46`/`@48`/`@50` come from for a cinf-less scheme (7 Le's
+  doc window has `sourceCinfId: null`) — default-by-part-code, or
+  derived. The cinf carries explicit anchors when present (§13.4).
+- Renumber: this section was authored before §8; numbering is
+  non-sequential (§9 then §8) — historical, leave as-is.
 
 ### 9.5 Tooling
 
