@@ -76,6 +76,38 @@ export class PixelBuffer {
     }
   }
 
+  /**
+   * 9-slice blit `src` (region `sr`) into dest rect `dr`: the four
+   * corners (inset `ins` px) copy 1:1, the four edges stretch along one
+   * axis, the center stretches both. This is how the kDEF scales control
+   * cicns — buttons, progress frames (kdef-layout-recipes §0).
+   */
+  nineSlice(
+    src: PixelBuffer,
+    sr: PixRect,
+    ins: { l: number; t: number; r: number; b: number },
+    dr: PixRect,
+  ): void {
+    const { l, t, r, b } = ins;
+    const smx = sr.w - l - r;
+    const smy = sr.h - t - b;
+    const dmx = dr.w - l - r;
+    const dmy = dr.h - t - b;
+    const cp = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
+      if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+      this.copyBits(src, { x: sr.x + sx, y: sr.y + sy, w: sw, h: sh }, { x: dr.x + dx, y: dr.y + dy, w: dw, h: dh });
+    };
+    cp(0, 0, l, t, 0, 0, l, t); // TL
+    cp(sr.w - r, 0, r, t, dr.w - r, 0, r, t); // TR
+    cp(0, sr.h - b, l, b, 0, dr.h - b, l, b); // BL
+    cp(sr.w - r, sr.h - b, r, b, dr.w - r, dr.h - b, r, b); // BR
+    cp(l, 0, smx, t, l, 0, dmx, t); // top
+    cp(l, sr.h - b, smx, b, l, dr.h - b, dmx, b); // bottom
+    cp(0, t, l, smy, 0, t, l, dmy); // left
+    cp(sr.w - r, t, r, smy, dr.w - r, t, r, dmy); // right
+    cp(l, t, smx, smy, l, t, dmx, dmy); // center
+  }
+
   /** Fill a rectangle with a solid RGBA color (srcCopy). */
   fillRect(rect: PixRect, r: number, g: number, b: number, a = 255): void {
     for (let y = rect.y; y < rect.y + rect.h; y++) {

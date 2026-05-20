@@ -2,6 +2,13 @@ import type { LoadedTheme } from './types.js';
 import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
+import { rasterizeText } from './textRaster.js';
+
+/** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
+ *  a 15px button face (FUN_30a8): floor((min(w,h)-3)/2). */
+function sliceInset(w: number, h: number): number {
+  return Math.max(2, Math.floor((Math.min(w, h) - 3) / 2));
+}
 
 /**
  * Look up a chromeElement by its bundle key (e.g.
@@ -208,6 +215,87 @@ export async function composeProgress(
     out.copyBits(frame, { x: 0, y: 0, w: cap, h: frame.height }, { x: 0, y: 0, w: cap, h: frame.height });
     out.copyBits(frame, { x: frame.width - cap, y: 0, w: cap, h: frame.height }, { x: length - cap, y: 0, w: cap, h: frame.height });
   }
+  return out;
+}
+
+export interface ButtonOptions {
+  label?: string;
+  default?: boolean;
+  pressed?: boolean;
+  disabled?: boolean;
+  minWidth?: number;
+  /** Title color (themed buttons carry no text-color metadata yet). */
+  fg?: string;
+}
+
+/**
+ * Compose a THEMED push button (kdef-layout-recipes §2, FUN_30a8):
+ * 9-slice the `push-button-{active|pressed|inactive}` face into the
+ * button rect; for the default button wrap the `push-button-ring`
+ * around it; rasterize the label centered. Returns null if the scheme
+ * ships no push-button cicns (→ baselineButton).
+ */
+export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
+  const stateKey = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
+  const face = (await loadByKey(theme, `push-button-${stateKey}`)) ?? (await loadByKey(theme, 'push-button-active'));
+  if (!face) return null; // baseline path
+  const ring = opts.default ? await loadByKey(theme, 'push-button-ring-active') : null;
+
+  const label = opts.label ?? '';
+  // Themed buttons carry no text-color metadata; pick black/white by the
+  // face's center luminance so labels stay legible on dark themes (1990).
+  const [cr, cg, cb] = face.getPixel(face.width >> 1, face.height >> 1);
+  const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
+  const fg = opts.fg ?? (lum < 128 ? '#ffffff' : '#000000');
+  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
+  const padX = 10;
+  const innerW = Math.max(opts.minWidth ?? 52, (glyphs ? glyphs.width : 0) + padX * 2);
+  const innerH = face.height;
+  const fIns = sliceInset(face.width, face.height);
+  const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
+
+  let out: PixelBuffer;
+  let fx = 0;
+  let fy = 0;
+  if (ring) {
+    const pad = Math.max(2, Math.round((ring.width - face.width) / 2));
+    out = PixelBuffer.alloc(innerW + pad * 2, innerH + pad * 2);
+    const rIns = sliceInset(ring.width, ring.height);
+    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
+    fx = pad;
+    fy = pad;
+  } else {
+    out = PixelBuffer.alloc(innerW, innerH);
+  }
+  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: fx, y: fy, w: innerW, h: innerH });
+  if (glyphs) out.drawOver(glyphs, fx + Math.round((innerW - glyphs.width) / 2), fy + Math.round((innerH - glyphs.height) / 2));
+  return out;
+}
+
+/**
+ * Compose a THEMED checkbox/radio glyph + label into a buffer. Stamps
+ * the fixed-size state cicn 1:1 (radio: `radio-buttons-{on|off}-...`;
+ * checkbox: `normal-{on|off}-...`). Returns null → baselineCheckable.
+ */
+export async function composeCheckable(
+  theme: LoadedTheme,
+  kind: 'checkbox' | 'radio',
+  opts: { label?: string; checked?: boolean; disabled?: boolean; fg?: string } = {},
+): Promise<PixelBuffer | null> {
+  const on = opts.checked ? 'on' : 'off';
+  const glyph =
+    kind === 'radio'
+      ? (await loadByKey(theme, `radio-buttons-${on}-${opts.disabled ? 'inactive' : 'active'}`))
+      : (await loadByKey(theme, `normal-${on}-${opts.disabled ? 'disabled' : 'normal'}`));
+  if (!glyph) return null;
+  const label = opts.label ?? '';
+  const glyphs = label ? rasterizeText(label, 9, opts.fg ?? '#000000') : null;
+  const gap = 5;
+  const w = glyph.width + (glyphs ? gap + glyphs.width : 0);
+  const h = Math.max(glyph.height, glyphs ? glyphs.height : 0);
+  const out = PixelBuffer.alloc(w, h);
+  out.copyBits(glyph, { x: 0, y: 0, w: glyph.width, h: glyph.height }, { x: 0, y: Math.round((h - glyph.height) / 2), w: glyph.width, h: glyph.height });
+  if (glyphs) out.drawOver(glyphs, glyph.width + gap, Math.round((h - glyphs.height) / 2));
   return out;
 }
 
