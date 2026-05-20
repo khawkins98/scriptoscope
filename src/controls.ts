@@ -11,6 +11,24 @@ function sliceInset(w: number, h: number): number {
 }
 
 /**
+ * Measure a border-ring cicn's border thickness: scan in from the middle
+ * row/column until alpha drops out (the transparent interior begins). Used
+ * to inset a progress track inside its frame and to size the frame's
+ * 9-slice corners. Falls back to a small inset if the cicn has no
+ * transparent interior.
+ */
+function frameBorder(buf: PixelBuffer): number {
+  const my = buf.height >> 1;
+  let l = 0;
+  while (l < buf.width && buf.getPixel(l, my)[3] >= 40) l++;
+  const mx = buf.width >> 1;
+  let t = 0;
+  while (t < buf.height && buf.getPixel(mx, t)[3] >= 40) t++;
+  if (l >= buf.width >> 1 || t >= buf.height >> 1) return Math.max(1, Math.min(2, (Math.min(buf.width, buf.height) - 1) >> 1));
+  return Math.max(1, Math.min(l, t));
+}
+
+/**
  * Look up a chromeElement by its bundle key (e.g.
  * `'normal-horizontal-scrollbar'`) and load its cicn into a PixelBuffer.
  * Returns null if the scheme doesn't ship that element (→ baseline path).
@@ -19,6 +37,26 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
   const el = theme.manifest.chromeElements?.[key];
   if (!el?.asset) return null;
   return loadCicnBuffer(assetUrl(theme, el.asset));
+}
+
+/**
+ * Look up a chromeElement by its Kaleidoscope RESOURCE ID and load it.
+ * The id is the authoritative selector the kDEF uses (e.g. -8286 = the
+ * horizontal scrollbar track); bundle slugs for the same resource vary
+ * wildly between schemes ("normal-horizontal-scrollbar" vs
+ * "horizontal-scrollbar-active" vs "horizontal-scroll-bar-track-arrows"),
+ * so resolving by id is the only thing that works across every theme.
+ * Asset filenames encode the id as `cicn-n8286-...` / `cicn--10240-...`;
+ * control resources are all negative, so we match on the absolute value.
+ */
+async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+  const abs = Math.abs(id);
+  const ce = theme.manifest.chromeElements ?? {};
+  for (const v of Object.values(ce)) {
+    const m = /cicn-n?-?(\d+)/.exec(v.asset ?? '');
+    if (m && parseInt(m[1]!, 10) === abs) return loadCicnBuffer(assetUrl(theme, v.asset));
+  }
+  return null;
 }
 
 export type Orientation = 'horizontal' | 'vertical';
@@ -53,32 +91,66 @@ export async function composeScrollbar(
   const state = opts.state ?? 'normal';
 
   const horiz = orientation === 'horizontal';
-  const trackKey = `${state === 'pressed' ? 'pressed' : state === 'disabled' ? 'disabled' : 'normal'}-${horiz ? 'horizontal' : 'vertical'}-scrollbar`;
-  const track = (await loadByKey(theme, trackKey)) ?? (await loadByKey(theme, `normal-${horiz ? 'horizontal' : 'vertical'}-scrollbar`));
+
+  // Track cicn by RESOURCE ID (kdef-layout-recipes §3). Slugs vary per
+  // scheme; the id is stable. h: -8286 normal / -8285 pressed / -8288
+  // disabled · v: -8278 / -8277 / -8280.
+  const idN = horiz ? 8286 : 8278;
+  const idP = horiz ? 8285 : 8277;
+  const idD = horiz ? 8288 : 8280;
+  const wantId = state === 'pressed' ? idP : state === 'disabled' ? idD : idN;
+  const track = (await loadById(theme, wantId)) ?? (await loadById(theme, idN));
   if (!track) return null; // baseline path
-  const thumb = await loadByKey(theme, `${horiz ? 'horizontal' : 'vertical'}-thumb`);
+
+  // Thumb by resource id: -10206 h / -10208 v (pressed -10205 / -10207).
+  const thumb = await loadById(theme, horiz ? (state === 'pressed' ? 10205 : 10206) : state === 'pressed' ? 10207 : 10208);
 
   const thickness = horiz ? track.height : track.width;
-  const out = horiz
-    ? PixelBuffer.alloc(length, thickness)
-    : PixelBuffer.alloc(thickness, length);
+  const longSrc = horiz ? track.width : track.height;
+  const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
 
-  // ── track: stretch the track cell along the axis ──
-  if (horiz) {
-    out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
+  // Two cicn FORMATS (empirically, by aspect ratio):
+  //  • wide composite (48×16, 43×16, 33×16 …) — the arrow boxes are baked
+  //    into the two ends and the track sits between them. Render as a
+  //    3-slice along the long axis: copy each end 1:1, stretch the middle.
+  //    Arrows are part of the bitmap; we never stamp them separately.
+  //  • single track cell (7 Le, 16×16) — square, no baked arrows (those
+  //    are left to the OS). Stretch one interior slice for a clean track.
+  const composite = longSrc >= thickness * 2;
+  let trackStart = 0;
+  let trackLen = length;
+
+  if (composite) {
+    const end = Math.min(thickness, Math.floor((longSrc - 1) / 2));
+    const mid = longSrc - end * 2;
+    const dmid = length - end * 2;
+    if (horiz) {
+      out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
+      out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
+      out.copyBits(track, { x: end, y: 0, w: mid, h: thickness }, { x: end, y: 0, w: dmid, h: thickness });
+    } else {
+      out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
+      out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
+      out.copyBits(track, { x: 0, y: end, w: thickness, h: mid }, { x: 0, y: end, w: thickness, h: dmid });
+    }
+    trackStart = end;
+    trackLen = Math.max(0, length - end * 2);
+  } else if (horiz) {
+    const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
+    out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
   } else {
-    out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: thickness, h: length });
+    const sy = Math.max(1, Math.min(track.height - 2, track.height >> 1));
+    out.copyBits(track, { x: 0, y: sy, w: track.width, h: 1 }, { x: 0, y: 0, w: thickness, h: length });
   }
 
-  // ── thumb: stamp at the value-proportional position (1:1, no scale) ──
+  // ── thumb: positioned by value within the track region (between arrows) ──
   if (thumb) {
     const thumbLen = horiz ? thumb.width : thumb.height;
-    const travel = Math.max(0, length - thumbLen);
-    const pos = Math.round(value * travel);
+    const pos = trackStart + Math.round(value * Math.max(0, trackLen - thumbLen));
     if (horiz) {
-      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: 0, w: thumb.width, h: thumb.height });
+      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: Math.round((thickness - thumb.height) / 2), w: thumb.width, h: thumb.height });
     } else {
-      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: 0, y: pos, w: thumb.width, h: thumb.height });
+      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: Math.round((thickness - thumb.width) / 2), y: pos, w: thumb.width, h: thumb.height });
     }
   }
 
@@ -188,32 +260,50 @@ export async function composeProgress(
   const length = Math.max(16, opts.length ?? 160);
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
   const active = (opts.state ?? 'normal') !== 'inactive';
-  const sfx = active ? 'active' : 'inactive';
 
-  const track = await loadByKey(theme, `progress-bar-track-${sfx}`);
-  if (!track) return null;
-  const fill = await loadByKey(theme, `progress-bar-${sfx}`);
-  const frame = await loadByKey(theme, `progress-bar-frame-${sfx}`);
+  // Resolve by RESOURCE ID (kdef-layout-recipes §4): frame -10080/-10077,
+  // unfilled track -10078/-10075, fill section -10079/-10076. Bundle slugs
+  // for these differ across schemes ("progress-bar-frame-active" vs
+  // "progress-indicator-frame"); the id is the stable selector.
+  const frame = await loadById(theme, active ? 10080 : 10077);
+  const track = await loadById(theme, active ? 10078 : 10075);
+  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079));
+  if (!frame && !track) return null;
 
-  const h = frame ? frame.height : track.height;
+  const h = frame ? frame.height : track!.height;
   const out = PixelBuffer.alloc(length, h);
 
-  // unfilled track across the whole bar (vertically centered)
-  const tY = Math.round((h - track.height) / 2);
-  out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: tY, w: length, h: track.height });
+  // The frame is a border ring with a transparent interior; its border
+  // thickness (the inset where alpha drops out) sets where the track/fill
+  // live and the 9-slice corner size. Measure it from the cicn itself.
+  const border = frame ? frameBorder(frame) : 1;
+  const ix = border;
+  const iw = Math.max(0, length - border * 2);
+  const iy = border;
+  const ih = Math.max(0, h - border * 2);
 
-  // fill across 0..value
-  if (fill && value > 0) {
-    const fillW = Math.round(value * length);
-    const fY = Math.round((h - fill.height) / 2);
-    if (fillW > 0) out.copyBits(fill, { x: 0, y: 0, w: fill.width, h: fill.height }, { x: 0, y: fY, w: fillW, h: fill.height });
+  // 1) unfilled track stretched across the interior (the empty look for
+  //    schemes whose frame has a transparent interior, e.g. 1990).
+  if (track && iw > 0 && ih > 0) {
+    out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: ix, y: iy, w: iw, h: ih });
   }
 
-  // frame end caps (left + mirrored right) — first pass: stamp at ends
+  // 2) frame border: 9-slice so corners stay crisp. Some schemes' frames
+  //    have a transparent interior (track shows through), others an opaque
+  //    one (big-blue is solid white) — either way the fill goes on TOP next.
   if (frame) {
-    const cap = Math.min(frame.width, Math.floor(length / 2));
-    out.copyBits(frame, { x: 0, y: 0, w: cap, h: frame.height }, { x: 0, y: 0, w: cap, h: frame.height });
-    out.copyBits(frame, { x: frame.width - cap, y: 0, w: cap, h: frame.height }, { x: length - cap, y: 0, w: cap, h: frame.height });
+    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h });
+  }
+
+  // 3) fill across 0..value of the interior, ON TOP of the frame — TILED
+  //    horizontally (the fill is a repeating texture/section, not a single
+  //    stretched cell), stretched only on the cross axis to the interior.
+  if (fill && value > 0 && iw > 0 && ih > 0) {
+    const fw = Math.round(value * iw);
+    for (let x = 0; x < fw; x += fill.width) {
+      const cw = Math.min(fill.width, fw - x);
+      out.copyBits(fill, { x: 0, y: 0, w: cw, h: fill.height }, { x: ix + x, y: iy, w: cw, h: ih });
+    }
   }
   return out;
 }
@@ -242,17 +332,21 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const ring = opts.default ? await loadByKey(theme, 'push-button-ring-active') : null;
 
   const label = opts.label ?? '';
-  // Themed buttons carry no text-color metadata; pick black/white by the
-  // face's center luminance so labels stay legible on dark themes (1990).
-  const [cr, cg, cb] = face.getPixel(face.width >> 1, face.height >> 1);
+  const fIns = sliceInset(face.width, face.height);
+  const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
+  // The face center carries a 1px text-color MARKER sentinel (like the
+  // window-title marker), so we sample a CLEAN interior pixel at the slice
+  // inset for both the fill color and the label-contrast decision — the
+  // center pixel would mislead (acid's marker is light on a black face).
+  const [cr, cg, cb, ca] = face.getPixel(fIns, fIns);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  const fg = opts.fg ?? (lum < 128 ? '#ffffff' : '#000000');
+  // Disabled buttons gray the label (the inactive face cicn is often
+  // identical to the active one, so the dimmed label is the only cue).
+  const fg = opts.fg ?? (opts.disabled ? '#808080' : lum < 128 ? '#ffffff' : '#000000');
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
   const padX = 10;
   const innerW = Math.max(opts.minWidth ?? 52, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = face.height;
-  const fIns = sliceInset(face.width, face.height);
-  const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
 
   let out: PixelBuffer;
   let fx = 0;
@@ -268,6 +362,15 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
     out = PixelBuffer.alloc(innerW, innerH);
   }
   out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: fx, y: fy, w: innerW, h: innerH });
+  // Flatten the interior to a solid fill: the button face is flat (bevels
+  // live in the border, handled by the 9-slice edges/corners), and this
+  // erases the smeared center marker that the stretch would otherwise turn
+  // into a cross through the label.
+  if (ca > 0) {
+    const cw = innerW - fIns * 2;
+    const ch = innerH - fIns * 2;
+    if (cw > 0 && ch > 0) out.fillRect({ x: fx + fIns, y: fy + fIns, w: cw, h: ch }, cr, cg, cb, 255);
+  }
   if (glyphs) out.drawOver(glyphs, fx + Math.round((innerW - glyphs.width) / 2), fy + Math.round((innerH - glyphs.height) / 2));
   return out;
 }
