@@ -127,53 +127,104 @@ export function findStripeColumn(cicn: PixelBuffer, x0: number, x1: number, top:
 }
 
 /**
- * Compose the top edge by walking the wnd# recipe — the literal kDEF
- * behavior (kdef-disassembly-findings §8, §9.5): each segment is a
- * `CopyBits` from its own cicn span. Fixed segments (corners, edges,
- * baked-in widget columns, the p10/p4 border pieces) copy 1:1, which
- * edge-anchors the widgets as the window grows. Grow segments (codes
- * 5/6/8 — the "single column between grow regions") stretch their own
- * pixels via sample-and-hold to absorb the window's extra width, split
- * proportionally to native grow width.
+ * Geometry for walking ONE window edge. The kDEF draws each of the four
+ * frame edges (top/bottom/left/right) by the same algorithm — this
+ * struct is the per-edge parameterization.
  *
- * No heuristics: the column(s) each grow segment stretches come straight
- * from the recipe, not a scan. The divider sandwich (p5/p6) widens
- * slightly but sits behind the centered title; the stripe (p8) is
- * column-invariant under horizontal stretch so it stays crisp.
+ * The "walk axis" is the long axis of the edge (X for top/bottom, Y for
+ * left/right). The "cross axis" is the frame thickness direction.
  */
-function composeTopEdgeFromRecipe(
+interface EdgeGeometry {
+  /** true = walk along X (top/bottom); false = walk along Y (left/right). */
+  horizontal: boolean;
+  /** cicn cross-axis origin: which rows (top/bottom) or cols (left/right) of the cicn this edge samples. */
+  crossSrc: number;
+  /** frame thickness on this edge (rows for top/bottom, cols for left/right). */
+  crossLen: number;
+  /** output cross-axis position to draw the edge strip at. */
+  crossDst: number;
+  /**
+   * Extra output pixels the grow segments must absorb along the walk
+   * axis = (output body span) − (cicn body span). For top/bottom this is
+   * contentW − cicnBodyW; for left/right, contentH − cicnBodyH.
+   */
+  extra: number;
+}
+
+/**
+ * Compose ONE window edge by walking its wnd# recipe — the literal kDEF
+ * frame-draw (kdef-disassembly-findings §8, §9.5; kdef-layout-recipes §1).
+ *
+ * The recipe partitions the cicn edge into segments at the `at` offsets.
+ * Each segment is a `CopyBits` from its own cicn span:
+ *   - FIXED segments (corners, edges, baked-in widget columns, border
+ *     pieces — any part code NOT in the grow set) copy 1:1, so they keep
+ *     their native size and stay anchored to their end of the window as
+ *     it grows.
+ *   - GROW segments (the "single row/column between grow regions" — part
+ *     codes 5/6/8) stretch their own pixels via sample-and-hold to
+ *     absorb `geo.extra`, split proportionally to native length.
+ *
+ * Output position starts at the recipe's first `at` (positions before
+ * the body map 1:1, so output-pos == cicn-pos there) and accumulates as
+ * each segment is placed — exactly the kDEF's "insert N pixels at the
+ * grow regions" behavior. Masking is automatic: the cicn PNGs carry the
+ * Kaleidoscope mask as alpha, and copyBits preserves alpha, so
+ * non-rectangular/bulbous frames clip themselves.
+ *
+ * PORTING NOTE: this is axis-agnostic. `horizontal` swaps which rect
+ * dimension is the walk axis vs. the fixed cross-axis. The same routine
+ * handles all four edges; only `EdgeGeometry` differs per edge.
+ */
+function composeEdgeFromRecipe(
   out: PixelBuffer,
   cicn: PixelBuffer,
   recipe: EdgeStep[],
-  top: number,
-  fullW: number,
+  geo: EdgeGeometry,
 ): void {
-  const segs = recipeSegments(recipe, cicn.width);
+  // axisMax = the recipe's last boundary; the entry AT it is a zero-width
+  // sentinel that closes the final real segment.
+  const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
+  const segs = recipeSegments(recipe, lastAt);
+  if (segs.length === 0) return;
+
   const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
-  const extra = Math.max(0, fullW - cicn.width);
   let growsLeft = segs.filter((g) => g.fill).length;
-  let extraRem = extra;
-  let outX = 0;
+  let extraRem = Math.max(0, geo.extra);
+
+  // Output walk-axis position starts where the recipe starts (segs are
+  // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
+  let outPos = segs[0]!.x0;
+
   for (const seg of segs) {
-    const nativeW = seg.x1 - seg.x0;
-    let outW = nativeW;
+    const nativeLen = seg.x1 - seg.x0;
+    let outLen = nativeLen;
     if (seg.fill) {
+      // last grow segment soaks up the rounding remainder so edges tile exactly
       const share =
         growsLeft === 1
           ? extraRem
           : totalGrowNative > 0
-            ? Math.round((extra * nativeW) / totalGrowNative)
+            ? Math.round((geo.extra * nativeLen) / totalGrowNative)
             : 0;
       extraRem -= share;
       growsLeft--;
-      outW = nativeW + share;
+      outLen = nativeLen + share;
     }
-    out.copyBits(
-      cicn,
-      { x: seg.x0, y: 0, w: nativeW, h: top },
-      { x: outX, y: 0, w: outW, h: top },
-    );
-    outX += outW;
+    if (geo.horizontal) {
+      out.copyBits(
+        cicn,
+        { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen },
+        { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen },
+      );
+    } else {
+      out.copyBits(
+        cicn,
+        { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen },
+        { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen },
+      );
+    }
+    outPos += outLen;
   }
 }
 
@@ -217,10 +268,18 @@ export interface ComposedChrome {
  * The content rect (contentW × contentH) is left transparent so real DOM
  * content shows through when the buffer is blitted behind it.
  *
- * Model (faithful to the kDEF, per kdef-disassembly-findings §13.2):
- *   - widget caps: CopyBits the cicn's end regions 1:1 (no scale)
- *   - titlebar fill: CopyBits a 1px stripe column, stretched across the gap
- *   - side/bottom frame: CopyBits a 1px frame slice, stretched along the edge
+ * Faithful to the kDEF window draw (kdef-layout-recipes §1): all FOUR
+ * frame edges are drawn by walking their wnd# recipe via the one
+ * `composeEdgeFromRecipe` routine. Top/bottom span the full width
+ * (corners included as their fixed end-segments); left/right fill the
+ * vertical span between. Where a window type ships no edge recipe, fall
+ * back to a seam-based top + 1px side/bottom stretch.
+ *
+ * Geometry: the cicn is the minimum-window template. Its body inset
+ * (part-0) gives the per-edge frame thickness; that thickness is the
+ * cross-axis source/extent for each edge (it captures even thick bulbous
+ * frames, e.g. evolution's 53px top). The walk axis maps the cicn body
+ * span to the larger content span, stretching grow segments to fill.
  */
 export function composeWindowChrome(
   cicn: PixelBuffer,
@@ -231,41 +290,57 @@ export function composeWindowChrome(
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
   const frame = frameFromBody(body.rect, cicn.width, cicn.height);
+  const [bl, bt, br, bb] = body.rect; // cicn body rect [left, top, right, bottom]
+  const cicnBodyW = br - bl; // cicn body width (the stretchable horizontal span)
+  const cicnBodyH = bb - bt; // cicn body height (stretchable vertical span)
 
   const fullW = frame.left + contentW + frame.right;
   const fullH = frame.top + contentH + frame.bottom;
   const out = PixelBuffer.alloc(fullW, fullH);
 
-  // ── titlebar (top strip) ──
-  if (windowType.edges?.top && windowType.edges.top.length > 0) {
-    composeTopEdgeFromRecipe(out, cicn, windowType.edges.top, frame.top, fullW);
+  const edges = windowType.edges;
+
+  // ── top edge: walk X across the full width, sampling cicn rows [0, top] ──
+  if (edges?.top?.length) {
+    composeEdgeFromRecipe(out, cicn, edges.top, {
+      horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
+      extra: contentW - cicnBodyW,
+    });
   } else {
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
   }
 
-  // ── side edges (sample a 1px frame slice from the body row, stretch down) ──
-  const bodyRow = frame.top;
-  if (frame.left > 0) {
-    out.copyBits(
-      cicn,
-      { x: 0, y: bodyRow, w: frame.left, h: 1 },
-      { x: 0, y: frame.top, w: frame.left, h: contentH },
-    );
+  // ── bottom edge: walk X, sampling cicn rows [H-bottom, H] ──
+  if (frame.bottom > 0 && edges?.bottom?.length) {
+    composeEdgeFromRecipe(out, cicn, edges.bottom, {
+      horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW,
+    });
+  } else if (frame.bottom > 0) {
+    out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
+      { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
   }
-  if (frame.right > 0) {
-    out.copyBits(
-      cicn,
-      { x: cicn.width - frame.right, y: bodyRow, w: frame.right, h: 1 },
-      { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH },
-    );
+
+  // ── left edge: walk Y, sampling cicn cols [0, left] ──
+  if (frame.left > 0 && edges?.left?.length) {
+    composeEdgeFromRecipe(out, cicn, edges.left, {
+      horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
+      extra: contentH - cicnBodyH,
+    });
+  } else if (frame.left > 0) {
+    out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
+      { x: 0, y: frame.top, w: frame.left, h: contentH });
   }
-  // ── bottom edge (sample the cicn's bottom rows, stretch across) ──
-  if (frame.bottom > 0) {
-    out.copyBits(
-      cicn,
-      { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
-      { x: 0, y: frame.top + contentH, w: fullW, h: frame.bottom },
-    );
+
+  // ── right edge: walk Y, sampling cicn cols [W-right, W] ──
+  if (frame.right > 0 && edges?.right?.length) {
+    composeEdgeFromRecipe(out, cicn, edges.right, {
+      horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH,
+    });
+  } else if (frame.right > 0) {
+    out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
+      { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
   }
 
   return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH };

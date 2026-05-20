@@ -57,7 +57,13 @@ Fully traced; see kdef-findings §8 + §9. Recipe:
   `-14332` collapsed-inactive / `-14331` collapsed-active; utility
   windows `-14320..-14313`; modal/alert `-14328/-14326/-14324/-14322`.
 
-Compositor status: implemented (recipe walk, no heuristics).
+Compositor status: implemented. All FOUR edges walk their recipe via one
+axis-agnostic `composeEdgeFromRecipe` (top/bottom along X incl. corners;
+left/right along Y between). Validated: 7 Le (plain) unchanged, acid
+(24-segment Mondrian sides) + evolution (53px bulbous tube) now render
+their full ornate frames instead of a 1px side-stretch. Masking is
+automatic via the cicn PNG alpha. Open: exact grow-distribution rule
+(currently proportional) + protruding ornaments beyond the part-0 inset.
 
 ## 2. Push / bevel buttons `[CODE]` — drawer `0x30a8`
 
