@@ -211,6 +211,70 @@ export async function composeProgress(
   return out;
 }
 
+// ─── Baseline (procedural Platinum) controls ───────────────────────────
+// Kaleidoscope leaves standard controls to the OS unless the scheme ships
+// cicns (kdef-findings §2.2). 7 Le ships none, so these render as the
+// Platinum default — DOM elements with procedural styling, not cicn
+// composites. Accessible + the faithful path for cicn-less schemes.
+
+export interface BaselineButtonOptions {
+  default?: boolean;
+  disabled?: boolean;
+}
+
+export function baselineButton(label: string, opts: BaselineButtonOptions = {}): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.textContent = label;
+  b.disabled = !!opts.disabled;
+  Object.assign(b.style, {
+    font: '12px Chicago, Charcoal, Geneva, sans-serif',
+    padding: '2px 14px',
+    minWidth: '58px',
+    color: opts.disabled ? '#888' : '#000',
+    background: 'linear-gradient(#ffffff, #cfcfcf)',
+    border: '1px solid #555555',
+    borderRadius: '9px',
+    boxShadow: opts.default
+      ? '0 0 0 2px #000, inset 0 1px 0 #ffffff'
+      : 'inset 0 1px 0 #ffffff, inset 0 -1px 0 #b0b0b0',
+    cursor: opts.disabled ? 'default' : 'pointer',
+  } satisfies Partial<CSSStyleDeclaration>);
+  return b;
+}
+
+export function baselineCheckable(
+  kind: 'checkbox' | 'radio',
+  label: string,
+  opts: { checked?: boolean; disabled?: boolean } = {},
+): HTMLLabelElement {
+  const wrap = document.createElement('label');
+  Object.assign(wrap.style, {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    font: '12px Chicago, Charcoal, Geneva, sans-serif',
+    color: opts.disabled ? '#888' : '#000',
+  } satisfies Partial<CSSStyleDeclaration>);
+  const box = document.createElement('span');
+  Object.assign(box.style, {
+    width: '12px',
+    height: '12px',
+    background: 'linear-gradient(#ffffff, #dcdcdc)',
+    border: '1px solid #555555',
+    borderRadius: kind === 'radio' ? '50%' : '2px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    lineHeight: '1',
+  } satisfies Partial<CSSStyleDeclaration>);
+  if (opts.checked) box.textContent = kind === 'radio' ? '●' : '✓';
+  const text = document.createElement('span');
+  text.textContent = label;
+  wrap.append(box, text);
+  return wrap;
+}
+
 /** Blit a composed control buffer to a CSS-scaled, pixelated canvas. */
 export function bufferToCanvas(buf: PixelBuffer, scale = 1): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
