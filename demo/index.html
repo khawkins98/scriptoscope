@@ -179,6 +179,8 @@
 
       // scene
       { const { c, frame } = colEl('scene'); try { frame.appendChild(await buildScene(theme)); } catch (e) { frame.textContent = String(e); } row.appendChild(c); }
+      // reference — next to the scene for direct side-by-side comparison
+      { const { c, frame } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${t.ref}`; frame.appendChild(img); row.appendChild(c); }
       // controls
       {
         const { c, frame } = colEl('controls');
@@ -214,8 +216,6 @@
         frame.appendChild(stack);
         row.appendChild(c);
       }
-      // reference
-      { const { c, frame } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${t.ref}`; frame.appendChild(img); row.appendChild(c); }
 
       rows.appendChild(section);
     }
