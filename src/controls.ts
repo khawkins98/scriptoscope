@@ -106,14 +106,17 @@ export async function composeScrollbar(
 
   const horiz = orientation === 'horizontal';
 
-  // Track cicn by RESOURCE ID (kdef-layout-recipes §3). Slugs vary per
-  // scheme; the id is stable. h: -8286 normal / -8285 pressed / -8288
-  // disabled · v: -8278 / -8277 / -8280.
-  const idN = horiz ? 8286 : 8278;
-  const idP = horiz ? 8285 : 8277;
-  const idD = horiz ? 8288 : 8280;
-  const wantId = state === 'pressed' ? idP : state === 'disabled' ? idD : idN;
-  const track = (await loadById(theme, wantId)) ?? (await loadById(theme, idN));
+  // Track cicn by RESOURCE ID. The state→id mapping is taken from the kDEF
+  // scrollbar drawer (decompiled FUN_000066b4), which is authoritative — the
+  // bundle slugs mislabel these (e.g. -8287 "empty" is the kDEF's disabled,
+  // -8288 "disabled" is actually pressed):
+  //   horizontal: active -8285 / inactive -8286 / disabled -8287 / pressed -8288
+  //   vertical:   active -8277 / inactive -8278 / disabled -8279 / pressed -8280
+  const idInactive = horiz ? 8286 : 8278;
+  const idDisabled = horiz ? 8287 : 8279;
+  const idPressed = horiz ? 8288 : 8280;
+  const wantId = state === 'pressed' ? idPressed : state === 'disabled' ? idDisabled : idInactive;
+  const track = (await loadById(theme, wantId)) ?? (await loadById(theme, idInactive));
   if (!track) return null; // baseline path
 
   // Thumb by resource id: -10206 h / -10208 v (pressed -10205 / -10207).
