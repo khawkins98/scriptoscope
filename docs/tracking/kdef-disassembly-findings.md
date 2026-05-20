@@ -186,6 +186,79 @@ Disassembly artifacts kept under `/tmp/aaron-disasm/` (not committed). Reproduci
 
 ---
 
+## 9. Widget POSITIONING is anchor-based, not recipe-order (2026-05-20)
+
+Third-pass trace (Ghidra 12.1 installed + objdump as MC68020, which
+fixes the `0xff` BSR.L long-branch mis-decode). The faithfulness gap in
+the v2 compositor is positioning: it lays widgets out left-to-right in
+recipe order, but the kDEF **anchors each part to an edge/center and
+repositions it as the window grows.**
+
+### 9.1 The part-placement function (`0x35b0`, runs 0x35b0–0x4216)
+
+Decodes (objdump; Ghidra truncates on the raw resource's bad-data
+spots, so this is read from assembly):
+
+- Loads the window's CONTENT rect into locals: `*obj@8 → [top,left]`,
+  `*obj@12 → [bottom,right]` (fp@-16..-10). Width = right−left
+  (fp@-282), height = bottom−top.
+- Computes the rect CENTER: `cx=(left+right+1)/2`, `cy=(top+bottom+1)/2`
+  (the recurring `divsw #2`).
+- Gets the piece's intrinsic size `d4×d6` — either a fixed grow-box
+  size (16 or 32 px, chosen by `width < 32`) or from a cicn's bounds
+  (`part@34` = cicn handle).
+- Then the **placement switch** at `0x3900`: `d0 = part@44 + 1`,
+  bounded to 0..9, `jmp` via the 10-word table at `0x3908`. Each case
+  positions the `d4×d6` piece relative to the center/edges by the
+  centering math. A second 6-case switch (`0x3d28`) is the default
+  path when `part@32 == 0` (no explicit placement).
+
+### 9.2 The part-struct fields that drive placement
+
+`a2 = (*obj)@28` then per-part `*a2`:
+
+| Field | Meaning |
+|---|---|
+| `@32` (word) | has-explicit-placement flag (0 → default switch `0x3d28`) |
+| `@34` (long) | cicn handle for the piece's artwork / intrinsic size |
+| `@42` (word) | width offset (`width − part@42`) |
+| `@44` (word) | **placement mode** — selector for the `0x3900` 10-case switch (anchor: which edge/center the piece sticks to) |
+| `@50` (word) | **anchor** — checked against −1/1/2/3/4 to decide whether to subtract the piece size from the span (i.e. right/bottom-anchor vs left/top) |
+| outer `@17` (byte) | a per-window anchor/inset flag (≠0,−1,−2 → 1px inset) |
+
+### 9.3 What this means for the compositor
+
+Widgets are NOT placed by walking the recipe left-to-right. Each named
+part has its MINIMUM-window rect (the wnd# rect list) plus an anchor:
+left-anchored parts (close box) keep their left x; right-anchored parts
+(zoom, windowshade) move with the right edge
+(`x' = windowWidth − (cicnWidth − rectRight)`); centered parts center on
+`cx`. The recipe fill (§8) paints the stripe BETWEEN the anchored
+widgets. That's the faithful model — and it explains why left-to-right
+layout "feels hacked."
+
+### 9.4 Still open
+
+- The exact behavior of each placement mode (the 10 cases at `0x391c…`)
+  and the −1/1/2/3/4 anchor values — partially read (centering), not
+  fully enumerated.
+- Where `@44`/`@50` come from for a scheme with no cinf (7 Le's doc
+  window has `sourceCinfId: null`): likely a default-by-part-code or
+  derived from the rect's position. The cinf carries explicit anchors
+  when present (§13.4), so cinf-bearing schemes read them directly.
+
+### 9.5 Tooling
+
+Ghidra 12.1 (`brew install ghidra`) + openjdk@21. Headless decompile:
+`analyzeHeadless <proj> <name> -import kDEF_0.bin -processor
+68000:BE:32:MC68020 -postScript DecompFrame.java` (Java script, since
+12.1 dropped Jython). Define the embedded jump tables (`0x3908`:10w,
+`0x3978`:6w, `0x3d28`:6w, `0x1f22`:28w) as data first or analysis runs
+through them. Decompiler still truncates on bad-data; reading the
+objdump (`-m m68k:68020`) of the specific case handlers is more reliable.
+
+---
+
 ## 8. Recipe-walk resolution — §13.1 CLOSED (2026-05-20)
 
 Second-pass trace, driven by the v2 compositor needing a principled
