@@ -185,8 +185,20 @@ function composeEdgeFromRecipe(
   // axisMax = the recipe's last boundary; the entry AT it is a zero-width
   // sentinel that closes the final real segment.
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
-  const segs = recipeSegments(recipe, lastAt);
-  if (segs.length === 0) return;
+  const raw = recipeSegments(recipe, lastAt);
+  if (raw.length === 0) return;
+
+  // Coalesce adjacent grow segments into one block. The recipe fragments
+  // the fill zone into several 1–3px sub-segments (part 5/6/8), but it is
+  // one continuous repeating-background region (the titlebar pinstripe /
+  // motif). Keeping it whole lets us TILE its motif as a unit rather than
+  // stretch each sub-segment, which is what gives correct repetition.
+  const segs: RecipeSegment[] = [];
+  for (const s of raw) {
+    const prev = segs[segs.length - 1];
+    if (prev && prev.fill && s.fill && prev.x1 === s.x0) prev.x1 = s.x1;
+    else segs.push({ ...s });
+  }
 
   const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
   let growsLeft = segs.filter((g) => g.fill).length;
@@ -210,19 +222,26 @@ function composeEdgeFromRecipe(
       extraRem -= share;
       growsLeft--;
       outLen = nativeLen + share;
+      // TILE the motif: repeat the native span at 1:1 across the grown
+      // output (NOT sample-and-hold stretch, which smears a multi-px
+      // pinstripe/box pattern into bands). For a 1px fill column this is
+      // identical to a stretch, so plain pinstripe themes are unaffected.
+      for (let off = 0; off < outLen; off += nativeLen) {
+        const w = Math.min(nativeLen, outLen - off);
+        if (geo.horizontal) {
+          out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w, h: geo.crossLen }, { x: outPos + off, y: geo.crossDst, w, h: geo.crossLen });
+        } else {
+          out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: w }, { x: geo.crossDst, y: outPos + off, w: geo.crossLen, h: w });
+        }
+      }
+      outPos += outLen;
+      continue;
     }
+    // FIXED segment: copy 1:1.
     if (geo.horizontal) {
-      out.copyBits(
-        cicn,
-        { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen },
-        { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen },
-      );
+      out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
     } else {
-      out.copyBits(
-        cicn,
-        { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen },
-        { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen },
-      );
+      out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
     }
     outPos += outLen;
   }
