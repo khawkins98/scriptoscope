@@ -35,6 +35,7 @@ export {
   composeSlider,
   composeDisclosure,
   composeProgress,
+  composeTab,
   composeButton,
   composeCheckable,
   baselineButton,

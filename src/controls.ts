@@ -17,6 +17,20 @@ function sliceInset(w: number, h: number): number {
  * 9-slice corners. Falls back to a small inset if the cicn has no
  * transparent interior.
  */
+/** Bounding box of the buffer's non-transparent pixels (alpha > 0). */
+function opaqueBounds(buf: PixelBuffer): { x0: number; y0: number; x1: number; y1: number } {
+  let x0 = buf.width, y0 = buf.height, x1 = -1, y1 = -1;
+  for (let y = 0; y < buf.height; y++)
+    for (let x = 0; x < buf.width; x++)
+      if (buf.getPixel(x, y)[3] > 0) {
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (y < y0) y0 = y;
+        if (y > y1) y1 = y;
+      }
+  return { x0, y0, x1, y1 };
+}
+
 function frameBorder(buf: PixelBuffer): number {
   const my = buf.height >> 1;
   let l = 0;
@@ -258,6 +272,50 @@ export async function composeDisclosure(
     if (g) return g;
   }
   return null;
+}
+
+export interface TabOptions {
+  label?: string;
+  /** Disabled tab uses -12317 if shipped. */
+  disabled?: boolean;
+}
+
+/**
+ * Compose one popup-window TAB (kdef-layout-recipes §6) from the scheme's
+ * tab cicn (-12319 active / -12317 disabled). The tab is 3-sliced along its
+ * width — fixed rounded ends, stretched middle — to fit the label, which is
+ * drawn in the tab's text-color marker (the middle column's marker pixel).
+ * Returns null if the scheme ships no tab cicn (caller falls back to a
+ * CSS segmented control).
+ */
+export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
+  const tab = (await loadById(theme, opts.disabled ? 12317 : 12319)) ?? (await loadById(theme, 12319));
+  if (!tab) return null;
+  const b = opaqueBounds(tab);
+  if (b.x1 < b.x0 || b.y1 < b.y0) return null;
+  const bw = b.x1 - b.x0 + 1;
+  const bh = b.y1 - b.y0 + 1;
+
+  // Text color = the marker pixel near the tab's center (the cicn's text-color
+  // marker). Tabs are outlines (transparent interior) so the label sits on the
+  // light content behind — use the marker only when it's opaque and dark
+  // enough to read; otherwise black.
+  const [mr, mg, mb, ma] = tab.getPixel((b.x0 + b.x1) >> 1, (b.y0 + b.y1) >> 1);
+  const mLum = 0.299 * mr + 0.587 * mg + 0.114 * mb;
+  const fg = ma > 200 && mLum < 170 ? `#${[mr, mg, mb].map((c) => c.toString(16).padStart(2, '0')).join('')}` : '#000000';
+
+  const label = opts.label ?? '';
+  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.4)), fg) : null;
+  const cap = Math.max(2, Math.min(9, Math.floor((bw - 1) / 2)));
+  const outW = Math.max(bw, (glyphs ? glyphs.width : 0) + cap * 2 + 8);
+  const out = PixelBuffer.alloc(outW, bh);
+
+  // 3-slice the tab box across its width: fixed ends 1:1, stretched middle.
+  out.copyBits(tab, { x: b.x0, y: b.y0, w: cap, h: bh }, { x: 0, y: 0, w: cap, h: bh });
+  out.copyBits(tab, { x: b.x1 - cap + 1, y: b.y0, w: cap, h: bh }, { x: outW - cap, y: 0, w: cap, h: bh });
+  out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w: bw - cap * 2, h: bh }, { x: cap, y: 0, w: outW - cap * 2, h: bh });
+  if (glyphs) out.drawOver(glyphs, Math.round((outW - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2));
+  return out;
 }
 
 export interface ProgressOptions {

@@ -44,7 +44,7 @@
   <script type="module">
     import {
       VERSION, loadTheme, renderWindow,
-      composeScrollbar, composeSlider, composeDisclosure, composeProgress,
+      composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
       composeButton, composeCheckable,
       baselineButton, baselineCheckable, bufferToCanvas,
     } from '../src/index.ts';
@@ -79,6 +79,25 @@
     // A segmented TAB control (e.g. On | Off), tinted with the scheme's
     // header colors. Selected cell uses the header fill/text; others a light
     // Platinum face. Reads as tabs rather than two separate push buttons.
+    // Tab strip from the scheme's popup-window tab cicn (-12319) where it
+    // ships one; the selected tab sits flush, the others recessed 2px. Falls
+    // back to the CSS segmented control for schemes with no tab cicn.
+    async function tabStrip(theme, labels, selectedIdx) {
+      const tabs = await Promise.all(labels.map((l) => composeTab(theme, { label: l })));
+      if (tabs.some((t) => !t)) return segmentedTabs(theme, labels, selectedIdx);
+      const h = Math.max(...tabs.map((t) => t.height)) + 2;
+      const wrap = document.createElement('div');
+      Object.assign(wrap.style, { display: 'inline-flex', alignItems: 'flex-end', height: `${h}px` });
+      tabs.forEach((t, i) => {
+        const c = bufferToCanvas(t, 1);
+        c.style.marginBottom = i === selectedIdx ? '0' : '-1px';
+        c.style.opacity = i === selectedIdx ? '1' : '0.7';
+        c.style.alignSelf = i === selectedIdx ? 'flex-start' : 'flex-end';
+        wrap.appendChild(c);
+      });
+      return wrap;
+    }
+
     function segmentedTabs(theme, labels, selectedIdx) {
       const hc = theme.manifest?.headerColors?.active ?? {};
       const frame = hc.frame ?? '#555555';
@@ -165,9 +184,9 @@
       if (dc) {
         Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
-        // On/Off is a segmented TAB control (not two push buttons), tinted
-        // with the scheme's header colors for the selected cell.
-        dc.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
+        // On/Off TAB control — from the scheme's popup-window tab cicn where
+        // shipped, else a header-color-tinted CSS segmented control.
+        dc.appendChild(await tabStrip(theme, ['On', 'Off'], 0));
         const pg = await composeProgress(theme, { length: 86, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
         const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
