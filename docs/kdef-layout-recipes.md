@@ -165,6 +165,43 @@ Anchored bottom-right via the §9 placement path (mode 8). Sizes
 15×15–21×21 (doc-window) / 14×14–18×18 (utility) `[DOC]`; old 17×17
 scaled to fit if wrong size.
 
+## 11.5 Title placement onto the repeating fill `[CODE]/[DOC]`
+
+How the kDEF puts the window title onto the titlebar — and why it varies per
+theme — reconciled from the decompiled placement fn `0x35b0` + the period doc.
+
+**The fill repeats first, then the title is stamped into it.** Per *Creating
+Color Schemes* (§8.1): the frame draws corners 1:1 and **"stretches the single
+row/column between the grow regions to draw the sides. It then stamps the tab
+on top… stretching the middle column (which includes the text color pixel) to
+make room for the title."** So the titlebar background is the recipe-walk fill
+(our grow segments, tiled), and the title is centered in the **grow/fill zone**
+— the stretched middle — NOT on the full window width.
+
+**Placement = anchor (`0x35b0`).** The decompiled placement fn reads the part's
+anchor byte `@0x11` and a margin `@0x2a`, does a width-fit check
+(`barWidth − margin < titleWidth` → truncate/re-anchor), then erases the title
+region to the **solid header fill color** (clut part 1) and draws the text in
+the **text color** (clut part 2). The fill *pattern* is NOT redrawn under the
+text — the text sits on a clean solid band, with the repeating fill around it.
+
+**Why it varies per theme:** the grow/fill zone is whatever the recipe leaves
+between the baked widget clusters. Window with a left close-box cluster + right
+zoom/shade cluster → the grow zone (and thus the title) is offset right of the
+left cluster. BeOS's title tab, 1990's offset title box, 7 Le's centered title
+all fall out of "center in the grow zone" for free.
+
+**What we implement:** `composeEdgeFromRecipe` returns the top edge's grow-zone
+output span; `composeWindowChrome` exposes it as `titleRegion`; `renderWindow`
+centers the title there (clamped), band sized to the text + vertically centered
+in the bar. Text height is capped (~Chicago 12), not scaled to a thick frame.
+
+**Still open** (tracks kdef-findings §9.6): the exact horizontal *sub-anchor*
+(`@50`) — center vs left/right within the grow zone — isn't in the `wnd#` we
+decode (only part rects + the side recipe), so we always center in the grow
+zone. The cinf carries explicit anchors when present but the doc-window cicns
+are cinf-less in our corpus. Centering-in-grow-zone is the faithful default.
+
 ## 11. Procedural Platinum baseline (`src/platinum.ts`)
 
 The genuine Mac OS 8 "Platinum" chrome is NOT shippable as Kaleidoscope

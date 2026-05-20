@@ -92,7 +92,12 @@ export async function renderWindow(
     const pad = 4;
     const bandW = glyphs.width + pad * 2;
     const bandH = Math.min(frame.top - 2, glyphs.height + 2);
-    const bandX = Math.round((fullWidth - bandW) / 2);
+    // Center the title in the titlebar's FILL zone (the grow region the kDEF
+    // stretches "to make room for the title"), not on the full width — so it
+    // sits on the repeating area and clears the baked widgets. Clamp into the
+    // bar. (composeWindowChrome.titleRegion; full-width fallback for no-grow.)
+    const tr = composed.titleRegion;
+    const bandX = Math.max(0, Math.min(fullWidth - bandW, Math.round(tr.x + (tr.w - bandW) / 2)));
     const bandY = Math.max(1, Math.round((frame.top - bandH) / 2));
     composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, er, eg, eb, 255);
     composed.buffer.drawOver(glyphs, bandX + pad, bandY + Math.round((bandH - glyphs.height) / 2));

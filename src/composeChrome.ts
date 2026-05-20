@@ -181,12 +181,12 @@ function composeEdgeFromRecipe(
   cicn: PixelBuffer,
   recipe: EdgeStep[],
   geo: EdgeGeometry,
-): void {
+): { start: number; end: number } | null {
   // axisMax = the recipe's last boundary; the entry AT it is a zero-width
   // sentinel that closes the final real segment.
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
   const raw = recipeSegments(recipe, lastAt);
-  if (raw.length === 0) return;
+  if (raw.length === 0) return null;
 
   // Coalesce adjacent grow segments into one block. The recipe fragments
   // the fill zone into several 1–3px sub-segments (part 5/6/8), but it is
@@ -207,6 +207,11 @@ function composeEdgeFromRecipe(
   // Output walk-axis position starts where the recipe starts (segs are
   // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
   let outPos = segs[0]!.x0;
+  // Track the grow/fill zone's OUTPUT span — this is the region the kDEF
+  // "stretches to make room for the title" (Creating Color Schemes doc),
+  // i.e. where the title is anchored, offset per-theme by the baked widgets.
+  let growStart = -1;
+  let growEnd = -1;
 
   for (const seg of segs) {
     const nativeLen = seg.x1 - seg.x0;
@@ -222,6 +227,8 @@ function composeEdgeFromRecipe(
       extraRem -= share;
       growsLeft--;
       outLen = nativeLen + share;
+      if (growStart < 0) growStart = outPos;
+      growEnd = outPos + outLen;
       // TILE the motif: repeat the native span at 1:1 across the grown
       // output (NOT sample-and-hold stretch, which smears a multi-px
       // pinstripe/box pattern into bands). For a 1px fill column this is
@@ -245,6 +252,7 @@ function composeEdgeFromRecipe(
     }
     outPos += outLen;
   }
+  return growStart >= 0 ? { start: growStart, end: growEnd } : null;
 }
 
 /**
@@ -280,6 +288,14 @@ export interface ComposedChrome {
   /** Full footprint size (content rect + chrome margins), in cicn px. */
   fullWidth: number;
   fullHeight: number;
+  /**
+   * Output X-span of the top edge's grow/fill zone — the region the kDEF
+   * "stretches to make room for the title". The title is centered HERE (not
+   * on the full width), so it lands on the repeating fill area and is
+   * offset correctly past the baked widgets, per-theme. Full-width fallback
+   * when the top edge has no grow zone (e.g. acid).
+   */
+  titleRegion: { x: number; w: number };
 }
 
 /**
@@ -320,8 +336,9 @@ export function composeWindowChrome(
   const edges = windowType.edges;
 
   // ── top edge: walk X across the full width, sampling cicn rows [0, top] ──
+  let topFill: { start: number; end: number } | null = null;
   if (edges?.top?.length) {
-    composeEdgeFromRecipe(out, cicn, edges.top, {
+    topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       extra: contentW - cicnBodyW,
     });
@@ -362,5 +379,8 @@ export function composeWindowChrome(
       { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
   }
 
-  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH };
+  const titleRegion = topFill && topFill.end > topFill.start
+    ? { x: topFill.start, w: topFill.end - topFill.start }
+    : { x: 0, w: fullW };
+  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion };
 }
