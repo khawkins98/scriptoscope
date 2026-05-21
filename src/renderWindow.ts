@@ -156,6 +156,8 @@ export async function renderWindow(
   } satisfies Partial<CSSStyleDeclaration>);
 
   win.append(canvas, content);
+  // Expose the composed result (incl. the slice placement map) for diagnostics.
+  (win as unknown as { _awComposed?: typeof composed })._awComposed = composed;
   return win;
 }
 

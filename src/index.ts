@@ -60,6 +60,10 @@ export {
   frameFromBody,
   titlebarSeam,
   findStripeColumn,
+  partRole,
   type Frame,
   type ComposedChrome,
+  type PlacementSlice,
+  type SliceMode,
+  type PixRectXY,
 } from './composeChrome.js';
