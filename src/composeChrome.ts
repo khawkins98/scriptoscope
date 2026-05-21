@@ -185,9 +185,25 @@ interface EdgeGeometry {
   widgetSpans: Array<[number, number]>;
 }
 
-/** One placed segment: its native walk-axis span and its output span (for
- *  mapping widget positions through the stretch in pass 2). */
-interface PlacedSegment { x0: number; x1: number; out0: number; out1: number; fill: boolean; }
+/** How a slice's source pixels were laid into the output. */
+export type SliceMode = 'fixed' | 'stretch' | 'tile' | 'gradient' | 'clean' | 'plate' | 'stamp';
+
+/** A rectangle in pixel space. */
+export interface PixRectXY { x: number; y: number; w: number; h: number; }
+
+/**
+ * One placed slice: the cicn SOURCE region, how it was rendered, and the
+ * OUTPUT rect(s) it produced (one for stretch/fixed/etc., many for tile).
+ * `x0/x1/out0/out1` are the walk-axis spans kept for widget position-mapping;
+ * the rest powers the diagnostic slice inspector.
+ */
+interface PlacedSegment {
+  x0: number; x1: number; out0: number; out1: number; fill: boolean;
+  code: number;
+  mode: SliceMode;
+  src: PixRectXY;
+  rects: PixRectXY[];
+}
 
 /**
  * Compose ONE window edge by walking its wnd# recipe — the literal kDEF
@@ -318,10 +334,18 @@ function composeEdgeFromRecipe(
   let growStart = -1, growEnd = -1;
   const placed: PlacedSegment[] = [];
   const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
+  // walk-axis span → full src/output rect (axis-agnostic).
+  const srcRect = (a: number, len: number): PixRectXY =>
+    geo.horizontal ? { x: a, y: geo.crossSrc, w: len, h: geo.crossLen } : { x: geo.crossSrc, y: a, w: geo.crossLen, h: len };
+  const outRect = (a: number, len: number): PixRectXY =>
+    geo.horizontal ? { x: a, y: geo.crossDst, w: len, h: geo.crossLen } : { x: geo.crossDst, y: a, w: geo.crossLen, h: len };
 
   for (const seg of segs) {
     const nativeLen = seg.x1 - seg.x0;
     let outLen = nativeLen;
+    let mode: SliceMode;
+    let src: PixRectXY;
+    const rects: PixRectXY[] = [];
     if (seg.isPlate) {
       // The title plate: grows to the title width and renders as the single
       // clean plate column stretched (sample-and-hold) — a uniform plate the
@@ -329,7 +353,8 @@ function composeEdgeFromRecipe(
       outLen = nativeLen + plateExtra;
       plateStart = outPos; plateEnd = outPos + outLen;
       out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
-      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true });
+      mode = 'plate'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true, code: seg.code, mode, src, rects });
       outPos += outLen;
       continue;
     }
@@ -355,6 +380,7 @@ function composeEdgeFromRecipe(
         // fill column) instead of the segment's own art, so the baked widget
         // isn't tiled/smeared. The widget is stamped once on top in pass 2.
         out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+        mode = 'clean'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
       } else if (isGradientPart(seg.code)) {
         // GRADIENT (p18): scale the whole native segment to the output span
         // (sample-and-hold), so the gradient stretches evenly — never tiled
@@ -365,6 +391,7 @@ function composeEdgeFromRecipe(
         } else {
           out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
         }
+        mode = 'gradient'; src = srcRect(seg.x0, nativeLen); rects.push(outRect(outPos, outLen));
       } else if (geo.tileMotif) {
         // TOP edge: TILE the motif — repeat the native span 1:1 across the
         // grown output (NOT sample-and-hold, which smears a multi-px
@@ -373,7 +400,9 @@ function composeEdgeFromRecipe(
         for (let off = 0; off < outLen; off += nativeLen) {
           const w = Math.min(nativeLen, outLen - off);
           out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w, h: geo.crossLen }, { x: outPos + off, y: geo.crossDst, w, h: geo.crossLen });
+          rects.push(outRect(outPos + off, w));
         }
+        mode = 'tile'; src = srcRect(seg.x0, nativeLen);
       } else {
         // SIDES / BOTTOM: stretch the single row/column "between the grow
         // regions" (§8.1). Sample one mid-line of the grow span and
@@ -386,8 +415,9 @@ function composeEdgeFromRecipe(
         } else {
           out.copyBits(cicn, { x: geo.crossSrc, y: mid, w: geo.crossLen, h: 1 }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
         }
+        mode = 'stretch'; src = srcRect(mid, 1); rects.push(outRect(outPos, outLen));
       }
-      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true });
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true, code: seg.code, mode, src, rects });
       outPos += outLen;
       continue;
     }
@@ -397,7 +427,8 @@ function composeEdgeFromRecipe(
     } else {
       out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
     }
-    placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: false });
+    mode = 'fixed'; src = srcRect(seg.x0, nativeLen); rects.push(outRect(outPos, outLen));
+    placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: false, code: seg.code, mode, src, rects });
     outPos += outLen;
   }
   // Prefer the grown plate span, then the p5/p6 title region, then the fill.
@@ -454,6 +485,38 @@ export interface ComposedChrome {
    * the top edge has no fill (no recipe / no grow zone).
    */
   titleFillSrcX: number;
+  /**
+   * Slice-by-slice placement map for the diagnostic inspector: every recipe
+   * segment + stamped widget, with its cicn SOURCE rect, render mode, part
+   * code/role, and the OUTPUT rect(s) it produced (one per tile repeat).
+   * Empty for the seam-fallback / no-recipe path.
+   */
+  placement: PlacementSlice[];
+}
+
+/** One slice in the diagnostic placement map. */
+export interface PlacementSlice {
+  edge: 'top' | 'bottom' | 'left' | 'right' | 'widget';
+  code: number;
+  role: string;
+  mode: SliceMode;
+  src: PixRectXY;
+  rects: PixRectXY[];
+}
+
+/** Human label for a part code, for the diagnostic. */
+export function partRole(code: number): string {
+  switch (code) {
+    case 0: return 'corner/anchor';
+    case 1: return 'border/widget';
+    case 2: return 'close box';
+    case 3: return 'zoom box';
+    case 4: return 'shade/widget';
+    case 5: case 6: return 'title region';
+    case 8: return 'side fill';
+    case 18: return 'gradient';
+    default: return `fill p${code}`;
+  }
 }
 
 /**
@@ -518,8 +581,9 @@ export function composeWindowChrome(
   }
 
   // ── bottom edge: walk X, sampling cicn rows [H-bottom, H] ──
+  let botFill: ReturnType<typeof composeEdgeFromRecipe> = null;
   if (frame.bottom > 0 && edges?.bottom?.length) {
-    composeEdgeFromRecipe(out, cicn, edges.bottom, {
+    botFill = composeEdgeFromRecipe(out, cicn, edges.bottom, {
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false, plateWidth: 0,
       widgetSpans: [],
@@ -530,8 +594,9 @@ export function composeWindowChrome(
   }
 
   // ── left edge: walk Y, sampling cicn cols [0, left] ──
+  let leftFill: ReturnType<typeof composeEdgeFromRecipe> = null;
   if (frame.left > 0 && edges?.left?.length) {
-    composeEdgeFromRecipe(out, cicn, edges.left, {
+    leftFill = composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
     });
@@ -541,8 +606,9 @@ export function composeWindowChrome(
   }
 
   // ── right edge: walk Y, sampling cicn cols [W-right, W] ──
+  let rightFill: ReturnType<typeof composeEdgeFromRecipe> = null;
   if (frame.right > 0 && edges?.right?.length) {
-    composeEdgeFromRecipe(out, cicn, edges.right, {
+    rightFill = composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
     });
@@ -558,6 +624,7 @@ export function composeWindowChrome(
   // growth-anchored output position — found by mapping its native x through
   // the recorded segment placement. Widgets sitting only in fixed/corner
   // segments are already drawn 1:1 by pass 1, so we skip them.
+  const widgetSlices: PlacementSlice[] = [];
   if (topFill?.placed?.length) {
     const placed = topFill.placed;
     const mapX = (nx: number): number => {
@@ -576,12 +643,25 @@ export function composeWindowChrome(
       const hh = w.b - w.t;
       const outX = Math.round(mapX(w.l));
       out.copyBits(cicn, { x: w.l, y: w.t, w: ww, h: hh }, { x: outX, y: w.t, w: ww, h: hh });
+      widgetSlices.push({ edge: 'widget', code: -1, role: 'stamped widget', mode: 'stamp', src: { x: w.l, y: w.t, w: ww, h: hh }, rects: [{ x: outX, y: w.t, w: ww, h: hh }] });
     }
   }
+
+  // ── aggregate the slice placement map (for the diagnostic inspector) ──
+  const placement: PlacementSlice[] = [];
+  const collect = (edge: PlacementSlice['edge'], r: { placed: PlacedSegment[] } | null) => {
+    if (!r) return;
+    for (const p of r.placed) placement.push({ edge, code: p.code, role: partRole(p.code), mode: p.mode, src: p.src, rects: p.rects });
+  };
+  collect('top', topFill);
+  collect('bottom', botFill);
+  collect('left', leftFill);
+  collect('right', rightFill);
+  placement.push(...widgetSlices);
 
   const titleRegion = topFill && topFill.end > topFill.start
     ? { x: topFill.start, w: topFill.end - topFill.start }
     : { x: 0, w: fullW };
   const titleFillSrcX = topFill ? topFill.fillSrcX : -1;
-  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX };
+  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, placement };
 }
