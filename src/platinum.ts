@@ -208,10 +208,12 @@ function arrow(b: PixelBuffer, x: number, y: number, size: number, dir: 'l' | 'r
   for (let i = 0; i <= n; i++) {
     const span = n - i;
     for (let s = -span; s <= span; s++) {
-      if (dir === 'l') px(b, cx - n + i + Math.floor(n / 2), cy + s, c);
-      else if (dir === 'r') px(b, cx + n - i - Math.floor(n / 2), cy + s, c);
-      else if (dir === 'u') px(b, cx + s, cy - n + i + Math.floor(n / 2), c);
-      else px(b, cx + s, cy + n - i - Math.floor(n / 2), c);
+      // i=0 is the wide base, i=n the single-pixel tip; the tip must point
+      // the named way (a right arrow ▶ has its tip on the RIGHT).
+      if (dir === 'r') px(b, cx - n + i + Math.floor(n / 2), cy + s, c);
+      else if (dir === 'l') px(b, cx + n - i - Math.floor(n / 2), cy + s, c);
+      else if (dir === 'd') px(b, cx + s, cy - n + i + Math.floor(n / 2), c);
+      else px(b, cx + s, cy + n - i - Math.floor(n / 2), c); // 'u'
     }
   }
 }
