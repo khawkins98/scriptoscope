@@ -9,26 +9,18 @@ function partCode(slug: string): number {
 
 /**
  * Grow-region (fill / stretch) part codes — segments that absorb the window's
- * extra width by stretching.
- *
- * K2 (architecture-spec §3–4) says "everything is stretch except null (0) and
- * named widgets (1–4)" — i.e. 5/6/8/10/11/15/17/18. But that assumes the kDEF
- * stamps the rectList widgets SEPARATELY on top; we render each recipe segment
- * straight from the cicn, so a segment carrying baked widget/corner art (which
- * 10/11/15/17 routinely do in title bars — e.g. 1138's utility window codes
- * `p15`/`p16` ARE the close/zoom boxes, `p10` is the right corner) would SMEAR
- * if stretched. So our reliable background-fill set is {5, 6, 8, 18}:
- *   - 5/6 = the title "divider sandwich" (the title plate lives here).
- *   - 8   = universal stretch fill (side pinstripe/panels).
- *   - 18  = GRADIENT (sample-and-hold scale — see `isGradientPart`); evolution's
- *           coil needs this or window growth piles into the title region.
- * 10/11/15/17 stay FIXED (stamped 1:1) along with 0 (corner/anchor) and the
- * widgets (1–4). Revisit only if a scheme needs one to stretch — which would
- * mean modelling the rectList widget-stamp pass so the background can stretch
- * underneath.
+ * extra width by stretching. Per K2 (architecture-spec §3–4): **everything is
+ * stretch EXCEPT null (0) and the named widgets (1–4)** — i.e. 5/6/8/10/11/
+ * 15/17/18. This is now safe to use in full because `composeWindowChrome` runs
+ * the kDEF's SECOND pass: it clean-fills the background under any rectList
+ * widget rect (so a fill segment carrying baked widget art doesn't smear/tile
+ * the widget) and then stamps the widget once at native size on top. Without
+ * that pass, a fill segment over a widget (1138's utility close/zoom boxes,
+ * the doc window's zoom cluster inside the `p8` side fill) tiled the widget art
+ * into duplicates.
  */
 function isFillPart(code: number): boolean {
-  return code === 5 || code === 6 || code === 8 || code === 18;
+  return code >= 5;
 }
 
 /** Gradient stretch part (K2 §Window Gradients): sample-and-hold scale the
@@ -183,7 +175,19 @@ interface EdgeGeometry {
    * native, growth distributes evenly as before).
    */
   plateWidth: number;
+  /**
+   * Native walk-axis spans `[start, end]` of the rectList WIDGETS on this edge
+   * (close/zoom/collapse boxes). A fill segment overlapping one is rendered as
+   * CLEAN background (the fill column, not its own art) so the baked widget
+   * isn't tiled/smeared — the widget is stamped once on top in pass 2. Empty on
+   * edges with no widgets.
+   */
+  widgetSpans: Array<[number, number]>;
 }
+
+/** One placed segment: its native walk-axis span and its output span (for
+ *  mapping widget positions through the stretch in pass 2). */
+interface PlacedSegment { x0: number; x1: number; out0: number; out1: number; fill: boolean; }
 
 /**
  * Compose ONE window edge by walking its wnd# recipe — the literal kDEF
@@ -215,7 +219,7 @@ function composeEdgeFromRecipe(
   cicn: PixelBuffer,
   recipe: EdgeStep[],
   geo: EdgeGeometry,
-): { start: number; end: number; fillSrcX: number } | null {
+): { start: number; end: number; fillSrcX: number; placed: PlacedSegment[] } | null {
   // axisMax = the recipe's last boundary; the entry AT it is a zero-width
   // sentinel that closes the final real segment.
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
@@ -312,6 +316,8 @@ function composeEdgeFromRecipe(
   let plateStart = -1, plateEnd = -1;
   let titleStart = -1, titleEnd = -1;
   let growStart = -1, growEnd = -1;
+  const placed: PlacedSegment[] = [];
+  const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
 
   for (const seg of segs) {
     const nativeLen = seg.x1 - seg.x0;
@@ -323,6 +329,7 @@ function composeEdgeFromRecipe(
       outLen = nativeLen + plateExtra;
       plateStart = outPos; plateEnd = outPos + outLen;
       out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true });
       outPos += outLen;
       continue;
     }
@@ -343,7 +350,12 @@ function composeEdgeFromRecipe(
         if (titleStart < 0) titleStart = outPos;
         titleEnd = outPos + outLen;
       }
-      if (isGradientPart(seg.code)) {
+      if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
+        // A fill segment OVER a rectList widget: render clean background (the
+        // fill column) instead of the segment's own art, so the baked widget
+        // isn't tiled/smeared. The widget is stamped once on top in pass 2.
+        out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+      } else if (isGradientPart(seg.code)) {
         // GRADIENT (p18): scale the whole native segment to the output span
         // (sample-and-hold), so the gradient stretches evenly — never tiled
         // (which would repeat the ramp) and never a 1px column (which would
@@ -375,6 +387,7 @@ function composeEdgeFromRecipe(
           out.copyBits(cicn, { x: geo.crossSrc, y: mid, w: geo.crossLen, h: 1 }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
         }
       }
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true });
       outPos += outLen;
       continue;
     }
@@ -384,12 +397,13 @@ function composeEdgeFromRecipe(
     } else {
       out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
     }
+    placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: false });
     outPos += outLen;
   }
   // Prefer the grown plate span, then the p5/p6 title region, then the fill.
-  if (plateStart >= 0) return { start: plateStart, end: plateEnd, fillSrcX };
-  if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX };
-  return growStart >= 0 ? { start: growStart, end: growEnd, fillSrcX } : null;
+  if (plateStart >= 0) return { start: plateStart, end: plateEnd, fillSrcX, placed };
+  if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX, placed };
+  return growStart >= 0 ? { start: growStart, end: growEnd, fillSrcX, placed } : null;
 }
 
 /**
@@ -480,12 +494,24 @@ export function composeWindowChrome(
 
   const edges = windowType.edges;
 
+  // rectList WIDGETS in the top band (close/zoom/collapse boxes) — native
+  // x-spans, so the recipe walk clean-fills the background under them and we
+  // stamp each once on top (pass 2). part-0 is the body, not a widget.
+  const topWidgets: Array<{ l: number; t: number; r: number; b: number }> = [];
+  for (const [slug, part] of Object.entries(windowType.parts)) {
+    if (slug === 'part-0' || !part.rect) continue;
+    const [l, t, r, b] = part.rect;
+    if (t < frame.top && r > l && b > t) topWidgets.push({ l, t, r, b });
+  }
+  const topWidgetSpans = topWidgets.map((w) => [w.l, w.r] as [number, number]);
+
   // ── top edge: walk X across the full width, sampling cicn rows [0, top] ──
-  let topFill: { start: number; end: number; fillSrcX: number } | null = null;
+  let topFill: { start: number; end: number; fillSrcX: number; placed: PlacedSegment[] } | null = null;
   if (edges?.top?.length) {
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       extra: contentW - cicnBodyW, tileMotif: true, plateWidth: opts.titlePlateWidth ?? 0,
+      widgetSpans: topWidgetSpans,
     });
   } else {
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
@@ -496,6 +522,7 @@ export function composeWindowChrome(
     composeEdgeFromRecipe(out, cicn, edges.bottom, {
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false, plateWidth: 0,
+      widgetSpans: [],
     });
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
@@ -506,7 +533,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0,
+      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -517,11 +544,39 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0,
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
       { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
+  }
+
+  // ── PASS 2: stamp the rectList widgets at native size ──
+  // The kDEF draws the frame background (pass 1, above) then stamps the
+  // close/zoom/collapse boxes on top. We stamp each top widget whose
+  // background was clean-filled (it overlapped a fill segment) at its
+  // growth-anchored output position — found by mapping its native x through
+  // the recorded segment placement. Widgets sitting only in fixed/corner
+  // segments are already drawn 1:1 by pass 1, so we skip them.
+  if (topFill?.placed?.length) {
+    const placed = topFill.placed;
+    const mapX = (nx: number): number => {
+      for (const p of placed) {
+        if (nx >= p.x0 && nx <= p.x1) {
+          const span = p.x1 - p.x0;
+          return span > 0 ? p.out0 + ((nx - p.x0) * (p.out1 - p.out0)) / span : p.out0;
+        }
+      }
+      return nx; // outside the recipe (before first / after last) → 1:1
+    };
+    for (const w of topWidgets) {
+      const overFill = placed.some((p) => p.fill && w.l < p.x1 && w.r > p.x0);
+      if (!overFill) continue; // drawn by pass 1's fixed copy
+      const ww = w.r - w.l;
+      const hh = w.b - w.t;
+      const outX = Math.round(mapX(w.l));
+      out.copyBits(cicn, { x: w.l, y: w.t, w: ww, h: hh }, { x: outX, y: w.t, w: ww, h: hh });
+    }
   }
 
   const titleRegion = topFill && topFill.end > topFill.start
