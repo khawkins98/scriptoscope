@@ -431,6 +431,31 @@ function composeEdgeFromRecipe(
     placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: false, code: seg.code, mode, src, rects });
     outPos += outLen;
   }
+
+  // FAR-EDGE CAP (top/bottom only): some recipes stop short of the cicn's right
+  // edge — the recipe extent (lastAt) is less than the cicn width, leaving the
+  // far corner undescribed (BeOS's top recipe ends at x75 of a 92px cicn → a
+  // 17px gap at the top-right). The body stretch makes outPos land exactly at
+  // (fullWidth − capLen), so stamp the leftover cicn columns [lastAt, width]
+  // there as a fixed corner cap. (Sides don't need this — their far corners
+  // belong to the top/bottom edges.)
+  if (geo.horizontal) {
+    const capLen = cicn.width - lastAt;
+    // Only when the cap region has real (opaque) art. A purely transparent cap
+    // means the cicn just has trailing padding and `frame.right` is overstated
+    // (BeOS) — stamping nothing would only mask the gap; leave it so the audit
+    // keeps flagging the frame-geometry issue honestly.
+    let capOpaque = false;
+    for (let cx = lastAt; cx < cicn.width && !capOpaque; cx++)
+      for (let cy = geo.crossSrc; cy < geo.crossSrc + geo.crossLen; cy++)
+        if (cicn.getPixel(cx, cy)[3] > 16) { capOpaque = true; break; }
+    if (capLen > 0 && capOpaque) {
+      out.copyBits(cicn, { x: lastAt, y: geo.crossSrc, w: capLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: capLen, h: geo.crossLen });
+      placed.push({ x0: lastAt, x1: cicn.width, out0: outPos, out1: outPos + capLen, fill: false, code: 0, mode: 'fixed', src: srcRect(lastAt, capLen), rects: [outRect(outPos, capLen)] });
+      outPos += capLen;
+    }
+  }
+
   // Prefer the grown plate span, then the p5/p6 title region, then the fill.
   if (plateStart >= 0) return { start: plateStart, end: plateEnd, fillSrcX, placed };
   if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX, placed };
