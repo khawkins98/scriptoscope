@@ -85,6 +85,37 @@ function pixelHex(buf: PixelBuffer, x: number, y: number): string | null {
   return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 }
 
+/**
+ * Draw a solid triangular scroll-arrow glyph centered in the size×size box
+ * at (bx,by), pointing in `dir`. Platinum schemes (e.g. apple-platinum-2)
+ * ship the arrow-button FACE as a cicn but leave the glyph itself to the
+ * CDEF — so we stamp the face, then draw this glyph on top.
+ */
+function drawArrowGlyph(
+  buf: PixelBuffer,
+  bx: number,
+  by: number,
+  size: number,
+  dir: 'l' | 'r' | 'u' | 'd',
+  [r, g, b]: [number, number, number],
+): void {
+  const depth = Math.max(2, Math.floor((size - 6) / 2)); // ~3 for a 16px button
+  const cx = bx + (size >> 1);
+  const cy = by + (size >> 1);
+  const off = Math.ceil(depth / 2);
+  for (let d = 0; d <= depth; d++) {
+    const halfH = depth - d; // full base at d=0, single-px tip at d=depth
+    for (let t = -halfH; t <= halfH; t++) {
+      let px: number, py: number;
+      if (dir === 'r') { px = cx - off + d; py = cy + t; }
+      else if (dir === 'l') { px = cx + off - d; py = cy + t; }
+      else if (dir === 'd') { px = cx + t; py = cy - off + d; }
+      else { px = cx + t; py = cy + off - d; }
+      buf.setPixel(px, py, r, g, b, 255);
+    }
+  }
+}
+
 export type Orientation = 'horizontal' | 'vertical';
 export type ControlState = 'normal' | 'pressed' | 'disabled' | 'inactive';
 
@@ -164,6 +195,30 @@ export async function composeScrollbar(
     }
     trackStart = end;
     trackLen = Math.max(0, length - end * 2);
+  } else if (length >= thickness * 3) {
+    // Single square cell = a Platinum arrow-BUTTON face with no baked glyph
+    // (apple-platinum-2's 16×16 bevelled square). Stamp the face at both
+    // ends as the two arrow buttons, stretch its interior for the track
+    // between, then draw the arrow glyph procedurally (the CDEF's job).
+    const btn = thickness;
+    const arrowDark: [number, number, number] = state === 'disabled' ? [165, 165, 165] : [72, 72, 72];
+    if (horiz) {
+      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: btn, h: thickness });
+      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: length - btn, y: 0, w: btn, h: thickness });
+      const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
+      out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: btn, y: 0, w: length - btn * 2, h: thickness });
+      drawArrowGlyph(out, 0, 0, btn, 'l', arrowDark);
+      drawArrowGlyph(out, length - btn, 0, btn, 'r', arrowDark);
+    } else {
+      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: thickness, h: btn });
+      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: length - btn, w: thickness, h: btn });
+      const sy = Math.max(1, Math.min(track.height - 2, track.height >> 1));
+      out.copyBits(track, { x: 0, y: sy, w: track.width, h: 1 }, { x: 0, y: btn, w: thickness, h: length - btn * 2 });
+      drawArrowGlyph(out, 0, 0, btn, 'u', arrowDark);
+      drawArrowGlyph(out, 0, length - btn, btn, 'd', arrowDark);
+    }
+    trackStart = btn;
+    trackLen = Math.max(0, length - btn * 2);
   } else if (horiz) {
     const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
     out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: 0, y: 0, w: length, h: thickness });
