@@ -38,6 +38,23 @@ Two raster fits recur:
 - **3-slice / 1-px-column stretch** (titlebar fill, scrollbar track):
   fixed ends + a single stretched row/column between.
 
+**Per-region GROW POLICY (the load-bearing idea — see §11.6).** The recipe /
+sprite tells you *where* a region is and a coarse role, but NOT how it resizes.
+Every region carries one of these policies, and you cannot read it off the part
+code alone — you classify by role + the actual cicn **pixels** + the **content**
+being laid out:
+- **Fixed** — copy 1:1, anchor to an end (corners, baked widgets, grow box).
+- **Fill-container** — tile/stretch to absorb the container's leftover space
+  (side fill `p8`, scrollbar track).
+- **Grow-to-content** — expand to fit a content-driven size that comes from
+  OUTSIDE the recipe: the title plate grows to the rendered title width; a tab
+  grows to its label; a progress fill grows to its value.
+- **Repeat-per-item** — one cell stamped per data item (list rows).
+
+The classic trap: treating every "fill" code as one fill-container bucket. The
+title plate is *grow-to-content*, and a clean plate vs. a decoration sharing the
+same fill code is distinguished only in the bitmap (variance + saturation).
+
 ---
 
 ## 1. Windows `[CODE]` — drawers `0x9312`,`0xa5f4`,`0xad62`,`0xb7cc`,`0xc2c2` → frame `0x35b0`
@@ -50,16 +67,16 @@ Fully traced; see kdef-findings §8 + §9. Recipe:
   Grow segments (part codes **5/6/8**) stretch their own pixels
   (sample-and-hold). This edge-anchors the baked widgets (left stays,
   right shifts) as the window grows.
-- **Title text**: a centered part (anchor mode 0/3). The title region is
-  erased to the header **fill** color and the text drawn in the header
-  **text** color — both from the scheme's window-header cluts (`-14335`
-  active / `-14336` inactive), part code 1 (fill) + part code 2 (text)
-  per the "Creating Color Schemes" doc. (The doc also notes a 2px
-  text-color marker line in the window cicn; the clut carries the same
-  colors and is reliably decodable, so we read the clut.) Decoded by
-  `tools/theme-loader/decoders/clut.js` → `theme.json` `headerColors`.
-  Fallback when a scheme ships no header clut: sample the composed bar's
-  dominant fill + pick text by contrast.
+- **Title text** (full model in §11.6): the title sits on the **title
+  PLATE** — the clean fill column in the title region — which **grows to the
+  title width** (the kDEF inserts the title width at the seam; decorations
+  after it shift). The text draws **transparently** on the stretched plate
+  (NOT an erased solid box). Text colour = the header **text** color from the
+  window-header cluts (`-14335` active / `-14336` inactive, part 2), decoded by
+  `tools/theme-loader/decoders/clut.js` → `theme.json` `headerColors`; fallback
+  = contrast vs. the composed plate. The plate column is found in the bitmap
+  (lowest luminance-variance + saturation), not by part code — 1138's plate and
+  1990's LEDs share a fill code.
 - **Frame thickness**: from `part-0`'s body rect inset.
 - cicn IDs by state: `-14336` inactive doc / `-14335` active /
   `-14332` collapsed-inactive / `-14331` collapsed-active; utility
@@ -165,24 +182,67 @@ Anchored bottom-right via the §9 placement path (mode 8). Sizes
 15×15–21×21 (doc-window) / 14×14–18×18 (utility) `[DOC]`; old 17×17
 scaled to fit if wrong size.
 
-## 11.6 Title placement — SOLVED: the p5/p6 recipe segment IS the title region `[CODE]`
+## 11.6 Title placement — SOLVED: the title PLATE grows to the title width `[CODE]`
 
-The signal we hunted for IS in the theme — in the **recipe**, not a separate
-field. The recipe part codes aren't one undifferentiated "grow" bucket:
-- **p8** = side fill (stretches for *window* growth).
-- **p5/p6** = the **title region** — the "divider sandwich" / the middle column
-  the kDEF "stretches to make room for the title" (§8.1). The title is placed
-  *here*, and its position is wherever the author put the p5/p6 segment.
+This is the one that took the longest. The full model — and **the gap that
+made it hard** — is worth stating precisely, because the same shape recurs for
+other geometry (tabs, list rows, progress fills, scrollbar tracks).
 
-Verified by reading the segment position against the references: 1990's p5/p6
-is at cicn x46–64 → **left** of the 170px bar (title left ✓); 1138's is at
-x46–56 → **dead center** of its 103px bar (title center ✓). So title H-position
-is deterministic + per-theme, with zero hand-tuning.
+### The recipe is necessary but NOT sufficient
 
-Implemented: `composeEdgeFromRecipe` returns the p5/p6 output span as
-`titleRegion`; `renderWindow` centers the title in it (full-width fallback for
-schemes with no p5/p6, e.g. the baseline window). The diagnostic strip
-(demo) colors p5/p6 green so the title region is visible per theme.
+The `wnd#` recipe encodes only two things: **where** each segment sits (`at`
+offsets) and a **coarse role code** (corner / border / widget / fill 5·6·8).
+We kept trying to derive the whole layout from that metadata. Three things it
+does *not* encode are exactly what we were missing:
+
+1. **The per-segment stretch POLICY.** Three exist; the code doesn't tell them
+   apart:
+   - **Fixed** (corners, widgets): copy 1:1, anchored to an end.
+   - **Fill-to-window** (side fill `p8`): tiles/stretches to absorb leftover
+     *window* width.
+   - **Grow-to-content** (the title PLATE): grows by the *title's* width — a
+     size that comes from **outside the recipe entirely** (the rasterized
+     text). Treating all fill (5/6/8) as one "stretch to fill the window"
+     bucket is the original error.
+2. **Plate vs. decoration is in the PIXELS, not the recipe.** 1138's clean
+   plate and 1990's coloured LED dots carry the **same** fill code — the recipe
+   can't distinguish them. The signal is in the cicn bitmap: the **plate is the
+   visually clean column** (low luminance variance + low saturation),
+   decorations are structured/colourful. Score each title-region segment's
+   centre column by `stddev(luminance) + mean(saturation)`; the minimum is the
+   plate. (`composeEdgeFromRecipe`, `colNoise`.)
+3. **Content size feeds BACK into the geometry.** The kDEF "inserts N pixels at
+   the title seam" where N = title width — so composition must be title-aware.
+   `renderWindow` rasterizes the title FIRST, then passes the plate width to
+   `composeWindowChrome`; the plate segment absorbs `titleWidth − native` of the
+   growth, the rest distributes to the other fill, and the decorations after it
+   shift right. The title text then draws **transparently** on the stretched
+   plate (no erase box, no re-tiled band).
+
+### Implementation
+
+- `composeEdgeFromRecipe` picks the plate column (the `colNoise` minimum across
+  code-5/6 segments; fall back to side-fill `p8`), keeps that segment
+  **standalone through coalescing** (so it can grow alone — coalescing the fill
+  was actively harmful: it merged plate + decoration + side-fill into one block
+  and destroyed the distinction), grows it to `geo.plateWidth`, and renders it
+  as the plate column stretched (uniform, not tiled). Returns the grown plate's
+  output span as `titleRegion`.
+- `renderWindow` centres the title on `titleRegion`, transparent. Utility/mini
+  windows draw NO visible title (modern convention) — label on `aria-label` +
+  `role=dialog` only.
+- Verified: 1138 light plate (pyramid pushed left), 1990 dark plate (LED dots
+  pushed right), 1984/beos plates (widgets pushed right), evolution coil plate.
+
+### Generalises beyond titles
+
+The triad **recipe position + pixel classification + content-driven sizing** is
+the general layout model. Each sprite region has a *policy*: fixed /
+fill-container / grow-to-content / repeat-per-item — and you cannot read the
+policy off the part code alone. Tabs grow to the label; list rows repeat per
+item; progress fills grow to the value; scrollbar tracks fill the container;
+button faces 9-slice to the label. When a new control "repeats for some layouts
+but not others," that's this same plate-vs-fill-vs-fixed distinction.
 
 ---
 
