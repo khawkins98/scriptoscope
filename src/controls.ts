@@ -388,6 +388,21 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
   return out;
 }
 
+/**
+ * Compose a window grow box (the bottom-right resize control) from the
+ * scheme's cicn — active -14333 (apple-platinum-2 uses -14330) /
+ * inactive -14334. Stamped 1:1 (it's a fixed-size corner glyph, 15–20px).
+ * Returns null when the scheme ships no grow box (→ caller's CSS fallback).
+ */
+export async function composeGrowBox(
+  theme: LoadedTheme,
+  opts: { state?: ControlState } = {},
+): Promise<PixelBuffer | null> {
+  const inactive = opts.state === 'inactive';
+  if (inactive) return loadById(theme, 14334);
+  return (await loadById(theme, 14333)) ?? (await loadById(theme, 14330));
+}
+
 export interface ProgressOptions {
   length?: number;
   value?: number;

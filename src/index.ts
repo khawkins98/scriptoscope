@@ -43,6 +43,7 @@ export {
   composeTab,
   composeButton,
   composeCheckable,
+  composeGrowBox,
   baselineButton,
   baselineCheckable,
   bufferToCanvas,

@@ -45,7 +45,7 @@
     import {
       VERSION, loadTheme, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
-      composeButton, composeCheckable,
+      composeButton, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
     } from '../src/index.ts';
@@ -210,9 +210,16 @@
         const vc = place(vsb, { right: '0', top: '0' }); if (vc) content.appendChild(vc);
         const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25 });
         const hc = place(hsb, { left: '0', bottom: '0' }); if (hc) content.appendChild(hc);
-        const grow = document.createElement('div');
-        Object.assign(grow.style, { position: 'absolute', right: '0', bottom: '0', width: '15px', height: '15px', background: '#e6e6e6', borderLeft: '1px solid #999', borderTop: '1px solid #999' });
-        content.appendChild(grow);
+        // grow box: the scheme's actual bottom-right resize cicn where shipped,
+        // else a plain Platinum-gray corner.
+        const growBuf = await composeGrowBox(theme, { state });
+        if (growBuf) {
+          const gc = place(growBuf, { right: '0', bottom: '0' }); if (gc) content.appendChild(gc);
+        } else {
+          const grow = document.createElement('div');
+          Object.assign(grow.style, { position: 'absolute', right: '0', bottom: '0', width: '15px', height: '15px', background: '#e6e6e6', borderLeft: '1px solid #999', borderTop: '1px solid #999' });
+          content.appendChild(grow);
+        }
       }
       desk.appendChild(win);
 
