@@ -92,12 +92,12 @@ export async function renderWindow(
     const pad = 4;
     const bandW = glyphs.width + pad * 2;
     const bandH = Math.min(frame.top - 2, glyphs.height + 2);
-    // Center the title in the titlebar's FILL zone (the grow region the kDEF
-    // stretches "to make room for the title"), not on the full width — so it
-    // sits on the repeating area and clears the baked widgets. Clamp into the
-    // bar. (composeWindowChrome.titleRegion; full-width fallback for no-grow.)
-    const tr = composed.titleRegion;
-    const bandX = Math.max(0, Math.min(fullWidth - bandW, Math.round(tr.x + (tr.w - bandW) / 2)));
+    // Title X: centered on the bar (the kDEF DEFAULT anchor). Per-theme
+    // anchors (1990's left title box, BeOS's left tab) are governed by the
+    // part anchor signal (@44/@50) we don't yet extract — grow-geometry
+    // heuristics don't match (see docs/tracking title-placement notes), so we
+    // hold at the safe default until that signal is decoded.
+    const bandX = Math.max(0, Math.min(fullWidth - bandW, Math.round((fullWidth - bandW) / 2)));
     const bandY = Math.max(1, Math.round((frame.top - bandH) / 2));
     composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, er, eg, eb, 255);
     composed.buffer.drawOver(glyphs, bandX + pad, bandY + Math.round((bandH - glyphs.height) / 2));

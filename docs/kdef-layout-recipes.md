@@ -165,42 +165,55 @@ Anchored bottom-right via the §9 placement path (mode 8). Sizes
 15×15–21×21 (doc-window) / 14×14–18×18 (utility) `[DOC]`; old 17×17
 scaled to fit if wrong size.
 
-## 11.5 Title placement onto the repeating fill `[CODE]/[DOC]`
+## 11.5 Title placement — what the SIGNAL actually is `[CODE]/[DOC]`
 
-How the kDEF puts the window title onto the titlebar — and why it varies per
-theme — reconciled from the decompiled placement fn `0x35b0` + the period doc.
+The question: how does a scheme indicate where the title goes, and how does the
+bar accommodate it? Investigated via the decompiled placement fn `0x35b0`, the
+cinf (TMPL 129) spec, and a full dump of every cinf in 1990/1138.
 
-**The fill repeats first, then the title is stamped into it.** Per *Creating
-Color Schemes* (§8.1): the frame draws corners 1:1 and **"stretches the single
-row/column between the grow regions to draw the sides. It then stamps the tab
-on top… stretching the middle column (which includes the text color pixel) to
-make room for the title."** So the titlebar background is the recipe-walk fill
-(our grow segments, tiled), and the title is centered in the **grow/fill zone**
-— the stretched middle — NOT on the full window width.
+**Two separable things — position (anchor) vs background (repeat):**
 
-**Placement = anchor (`0x35b0`).** The decompiled placement fn reads the part's
-anchor byte `@0x11` and a margin `@0x2a`, does a width-fit check
-(`barWidth − margin < titleWidth` → truncate/re-anchor), then erases the title
-region to the **solid header fill color** (clut part 1) and draws the text in
-the **text color** (clut part 2). The fill *pattern* is NOT redrawn under the
-text — the text sits on a clean solid band, with the repeating fill around it.
+1. **Background fill repeats; the title is stamped on top.** Per *Creating
+   Color Schemes* (§8.1): corners copy 1:1, the **"single row/column between
+   the grow regions"** stretches/tiles to draw the sides (our recipe walk +
+   grow-segment tiling), then the title region is **erased to the solid header
+   fill color** (clut part 1) and text drawn in the **text color** (part 2).
+   The title does NOT get its own repeating tile — it sits on the stretched
+   fill. (1138's apparent "title tile" is just the grow fill tiled behind it.)
 
-**Why it varies per theme:** the grow/fill zone is whatever the recipe leaves
-between the baked widget clusters. Window with a left close-box cluster + right
-zoom/shade cluster → the grow zone (and thus the title) is offset right of the
-left cluster. BeOS's title tab, 1990's offset title box, 7 Le's centered title
-all fall out of "center in the grow zone" for free.
+2. **Position = an ANCHOR, not a repeat.** `0x35b0` anchors the title in a
+   title RECT (the available bar region) by the part anchor byte `@0x11` +
+   margin `@0x2a`, with a fit check (`barWidth − margin < titleWidth` →
+   truncate). The PER-ELEMENT anchor signal is the **cinf `textPixel` (x,y)**
+   (TMPL 129): the coordinate that anchors the label AND whose pixel is the
+   text color. Confirmed across control cinf — buttons `textPx=(4,4)`, large
+   bevel `(7,7)`, tabs/SSF `(15,8)`, placards, text/arrow parts all carry it.
 
-**What we implement:** `composeEdgeFromRecipe` returns the top edge's grow-zone
-output span; `composeWindowChrome` exposes it as `titleRegion`; `renderWindow`
-centers the title there (clamped), band sized to the text + vertically centered
-in the bar. Text height is capped (~Chicago 12), not scaled to a thick frame.
+**The catch for WINDOW TITLES: there is no window-title cinf.** Dumping all 91
+cinf in 1990 (and 1138): every cinf is a *control* background (view-BG, SBB/
+NBB/LBB buttons, progress, tabs, placard, dialog/alert BG, text/arrow parts) —
+**none** is the window title, and the window cicns (`-14335/-14336`) are
+cinf-less. So the window title has **no per-scheme position signal**; the kDEF
+falls back to its default anchor (centered in the bar / available region).
 
-**Still open** (tracks kdef-findings §9.6): the exact horizontal *sub-anchor*
-(`@50`) — center vs left/right within the grow zone — isn't in the `wnd#` we
-decode (only part rects + the side recipe), so we always center in the grow
-zone. The cinf carries explicit anchors when present but the doc-window cicns
-are cinf-less in our corpus. Centering-in-grow-zone is the faithful default.
+**Heuristics from fill geometry DON'T work** (tested): centering in the
+first-fill→last-fill grow span put 1990 +23px right of center; the *widest*
+grow segment put it +77px right — but the 1990/BeOS *references* show the title
+left. Those references are the **old web renderer's** output (the user flagged
+this), an approximation — not genuine kDEF — so they're not ground truth for
+the default anchor.
+
+**Conclusion / what we do:** window title → **center on the bar** (the kDEF
+default; faithful for cinf-less windows). `composeWindowChrome.titleRegion`
+still exposes the grow-fill span for diagnostics. Text height capped (~Chicago
+12), erase band sized to the text + vertically centered, so the fill keeps
+repeating around it.
+
+**Real next lever (extractable signal):** decode the cinf `textPixel` into the
+theme and use it to anchor **control** labels (buttons/tabs/placards) — that IS
+the authored signal and we currently just center those. Window-title anchoring
+would need either a window cinf (absent here) or the `wnd#` part anchor
+(`@44/@50`) which `decodeWnd` doesn't yet parse (kdef-findings §9.6).
 
 ## 11. Procedural Platinum baseline (`src/platinum.ts`)
 
