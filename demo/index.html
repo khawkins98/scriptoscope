@@ -47,7 +47,7 @@
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
       composeButton, composeCheckable,
       baselineButton, bufferToCanvas,
-      platinumCheckable, platinumSlider, platinumButton, platinumScrollbar,
+      platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
     } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
@@ -229,8 +229,8 @@
         const pg = await composeProgress(theme, { length: 86, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
         const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
-        const disc = await composeDisclosure(theme, { direction: 'right' });
-        if (disc) foot.appendChild(cv(disc));
+        const disc = (await composeDisclosure(theme, { direction: 'right' })) ?? platinumDisclosure({ direction: 'right' });
+        foot.appendChild(cv(disc));
         foot.appendChild(await btn('OK', { default: true }));
         dc.appendChild(foot);
       }
@@ -259,6 +259,21 @@
       const SC = 3;
       const top = [...wt.edges.top].sort((a, b) => a.at - b.at);
       const lastAt = Math.max(...top.map((s) => s.at));
+      // The ACTUAL window cicn art (title-bar region), at the same ×SC scale +
+      // x-origin as the recipe strip below — so each part-role segment lines up
+      // under the sprite art it samples (you can see the title region's box
+      // sit under the green p5/p6 segment).
+      if (ce) {
+        const ftop = (wt.parts['part-0'] && wt.parts['part-0'].rect[1]) || 20;
+        const artWrap = document.createElement('div');
+        Object.assign(artWrap.style, { width: `${cicnW * SC}px`, height: `${ftop * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
+        const img = document.createElement('img');
+        img.src = `${theme.baseUrl}/${ce.asset}`;
+        img.title = `${ce.asset} (${ce.width}×${ce.height}) — active document window cicn`;
+        Object.assign(img.style, { width: `${cicnW * SC}px`, imageRendering: 'pixelated', display: 'block' });
+        artWrap.appendChild(img);
+        wrap.appendChild(artWrap);
+      }
       const bar = document.createElement('div');
       Object.assign(bar.style, { display: 'flex', width: `${cicnW * SC}px`, height: '20px', border: '1px solid #888', boxSizing: 'border-box', marginTop: '3px' });
       for (let i = 0; i < top.length; i++) {
@@ -294,6 +309,8 @@
       add(r2, platinumSlider({ orientation: 'horizontal', length: 120, value: 0.4 }));
       r2.appendChild(bufferToCanvas(platinumCheckable('checkbox', { checked: true }), 1));
       r2.appendChild(bufferToCanvas(platinumCheckable('radio', { checked: true }), 1));
+      r2.appendChild(bufferToCanvas(platinumDisclosure({ direction: 'right' }), 1));
+      r2.appendChild(bufferToCanvas(platinumDisclosure({ direction: 'down' }), 1));
       const r3 = document.createElement('div'); r3.className = 'ctl-row';
       add(r3, platinumButton({ label: 'Cancel' }));
       add(r3, platinumButton({ label: 'OK', default: true }));

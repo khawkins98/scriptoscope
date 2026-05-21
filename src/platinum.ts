@@ -216,6 +216,17 @@ function arrow(b: PixelBuffer, x: number, y: number, size: number, dir: 'l' | 'r
   }
 }
 
+/**
+ * Procedural Platinum disclosure triangle (12×12): a filled black triangle,
+ * right-pointing (collapsed) or down-pointing (expanded).
+ */
+export function platinumDisclosure(opts: { direction?: 'right' | 'down'; disabled?: boolean } = {}): PixelBuffer {
+  const S = 12;
+  const b = PixelBuffer.alloc(S, S);
+  arrow(b, 0, 0, S, opts.direction === 'down' ? 'd' : 'r', opts.disabled ? MARK_OFF : MARK);
+  return b;
+}
+
 export interface PlatinumScrollbarOptions {
   orientation?: 'horizontal' | 'vertical';
   length?: number;
