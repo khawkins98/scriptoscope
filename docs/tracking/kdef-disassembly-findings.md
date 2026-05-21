@@ -280,11 +280,26 @@ recipe already handles them. The compositor fix is to make the §8 fill
 faithful (drop the `findStripeColumn` heuristic; stretch grow segments
 straight from the recipe).
 
-### 9.6 Still open
+### 9.6 RESOLVED (2026-05-21) — the window-title anchor is not in scheme data
 
-- Where `@44`/`@46`/`@48`/`@50` come from for a cinf-less scheme (7 Le's
-  doc window has `sourceCinfId: null`) — default-by-part-code, or
-  derived. The cinf carries explicit anchors when present (§13.4).
+Settled where `@44/@50` come from for a window title: **nowhere in the
+scheme**. Proof:
+- **TMPL 1240** (the authoritative `wnd#` format, embedded in every scheme)
+  is exactly `Rectangle List` + `Top/Bottom/Left/Right Side` — no title rect,
+  no anchor field. `decodeWnd` consumes 100% of the bytes; re-checked all
+  `wnd#` in 1990/1138/1984/beos/evolution → **0 trailing bytes** in every one.
+- **No window-title cinf exists.** Dumped all 91 cinf in 1990 (and 1138):
+  every cinf is a *control* background (view-BG, bevel buttons, progress,
+  tabs, placard, dialog/alert BG, text/arrow parts). The window cicns
+  (`-14335/-14336`) are cinf-less.
+
+So `@44/@50` are kDEF **runtime defaults by part-code** (no per-scheme
+override for the title). The default is centered. The renderer centering the
+title on the bar is therefore faithful; the old web-renderer reference images
+that show 1990/BeOS titles in a left box/tab are that renderer's
+approximation, NOT genuine kDEF — do not treat them as ground truth for the
+title anchor. The cinf `textPixel` IS the per-element anchor signal, but only
+for the controls that ship a cinf (used now for button label color, §11.5).
 - Renumber: this section was authored before §8; numbering is
   non-sequential (§9 then §8) — historical, leave as-is.
 
