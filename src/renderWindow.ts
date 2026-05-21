@@ -172,7 +172,13 @@ function buildBaselineWindow(
   const fill = hc.fill ?? '#cccccc';
   const text = hc.text ?? '#000000';
   const frameC = hc.frame ?? '#555555';
-  const stripe = hc.darkTinge ?? hc.darkBevel ?? 'rgba(0,0,0,0.12)';
+  // Active titlebar shows the Platinum racing-stripe pinstripe; inactive is
+  // flat (the OS active/inactive cue). The stripe is the scheme's darkTinge
+  // when it actually differs from the fill, else a darkened fill so it stays
+  // visible (apple-platinum's darkTinge == fill, which read as inactive).
+  const active = state !== 'inactive';
+  const stripe = hc.darkTinge && hc.darkTinge !== fill ? hc.darkTinge : darkenHex(fill, 0.14);
+  const barBg = active ? `repeating-linear-gradient(0deg, ${fill} 0 1px, ${stripe} 1px 2px)` : fill;
   const titleH = 19;
 
   const win = document.createElement('div');
@@ -191,7 +197,7 @@ function buildBaselineWindow(
   Object.assign(bar.style, {
     position: 'relative', height: `${titleH * scale}px`,
     borderBottom: `1px solid ${frameC}`,
-    background: `repeating-linear-gradient(0deg, ${fill} 0 1px, ${stripe} 1px 2px)`,
+    background: barBg,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     font: `${Math.round(11 * scale)}px Charcoal, Chicago, Geneva, sans-serif`,
     color: text,
@@ -292,6 +298,13 @@ function looksLikeWindow(wt: WindowType): boolean {
   const ch = wt.chrome?.active ?? wt.chrome?.inactive;
   if (!ch || /grow-box/.test(ch)) return false;
   return !!wt.parts?.['part-0']?.rect;
+}
+
+/** Darken a hex color by `amt` (0..1). Used for the baseline pinstripe. */
+function darkenHex(hex: string, amt: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  const d = (c: number) => Math.max(0, Math.round(c * (1 - amt)));
+  return `#${[d(r), d(g), d(b)].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 }
 
 /** `#rgb` / `#rrggbb` → [r,g,b]; falls back to gray. */
