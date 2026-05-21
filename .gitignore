@@ -41,3 +41,6 @@ playwright/.cache/
 # See docs/RESEARCH-SPIKE-THEMES.md. Never committed to git.
 .scratch/
 .gstack/
+
+# Generated diagnostic renders (regenerable via npm run diag:render)
+themes/*/diag/
