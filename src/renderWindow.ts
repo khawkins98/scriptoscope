@@ -274,17 +274,32 @@ function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undef
   const ok = (k: string): WindowType | undefined => (wts[k] && looksLikeWindow(wts[k]) ? wts[k] : undefined);
   if (wts[slug] && looksLikeWindow(wts[slug])) return wts[slug];
 
-  // "mini" / utility / floating palette windows — the small floating windows
-  // schemes ship distinct chrome for (short title bar, thin frame). Prefer a
-  // titled utility window, then no-title, side-floating, the raw utility ids,
-  // then a real dialog/modal/document window. NEVER the part-0 scan, which can
-  // surface a window mis-paired with a grow-box cicn.
+  // "mini" / utility / floating palette windows have their OWN edge recipe +
+  // chrome cicn (short title bar, thin frame). Schemes key these inconsistently
+  // — `titled-utility-window` in some, raw `wnd--14296` in others — so detect
+  // by the CHROME CICN ASSET NAME (stable across schemes), NOT the type key.
+  // Require the candidate to ship its own top recipe, or it would fall through
+  // to the document edges (the bug this fixes). Prefer a titled utility window
+  // (has a title bar), then any utility, then a floating palette; skip the
+  // collapsed (windowshade-rolled) variants.
   if (/utility|mini|floating|palette/.test(slug)) {
-    const prefs = ['titled-utility-window', 'no-title-utility-window', 'side-floating-utility-window',
-      'wnd--14316', 'wnd--14315', 'wnd--14320', 'wnd--14319',
-      'movable-modal', 'dialog', 'wnd--14326', 'document-window', 'wnd--14335'];
-    for (const k of prefs) { const w = ok(k); if (w) return w; }
-    for (const [k, v] of Object.entries(wts)) if (/utility|floating/.test(k) && looksLikeWindow(v)) return v;
+    let best: WindowType | undefined;
+    let bestScore = 0;
+    let bestSegs = -1;
+    for (const [k, v] of Object.entries(wts)) {
+      if (/collapsed/.test(k) || !v.edges?.top?.length || !v.parts?.['part-0']?.rect) continue;
+      // Need a renderable ACTIVE chrome cicn (not a grow-box mis-pair); a
+      // recipe-only type with no bitmap (e.g. beos's titled-utility) can't draw.
+      const asset = (v.chrome?.active ?? '').toLowerCase();
+      if (!asset || /grow-box/.test(asset)) continue;
+      const score = /titled-utility/.test(asset) ? 4 : /utility/.test(asset) ? 3 : /floating|palette/.test(asset) ? 2 : 0;
+      if (score === 0) continue;
+      const segs = v.edges.top.length;
+      if (score > bestScore || (score === bestScore && segs > bestSegs)) { bestScore = score; bestSegs = segs; best = v; }
+    }
+    if (best) return best;
+    // No dedicated utility chrome → a dialog/modal reads as a small window.
+    for (const k of ['movable-modal', 'dialog', 'document-window']) { const w = ok(k); if (w) return w; }
   }
 
   const noun = slug.replace(/-window$/, '');
