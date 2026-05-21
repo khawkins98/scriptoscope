@@ -149,6 +149,15 @@ interface EdgeGeometry {
    * contentW − cicnBodyW; for left/right, contentH − cicnBodyH.
    */
   extra: number;
+  /**
+   * Top edge ONLY: TILE the grow motif (repeat the native span 1:1) so a
+   * multi-px titlebar pinstripe/box pattern reproduces correctly. The
+   * SIDES and BOTTOM instead stretch the single row/column "between the
+   * grow regions" (§8.1) — sample-and-hold one mid-line across the whole
+   * grow span. Tiling a multi-px side fill (e.g. BeOS's 5px slice) repeats
+   * its notch into railroad ticks; stretching one line gives a smooth border.
+   */
+  tileMotif: boolean;
 }
 
 /**
@@ -200,6 +209,24 @@ function composeEdgeFromRecipe(
     else segs.push({ ...s });
   }
 
+  // No-fill fallback: some edges (e.g. BeOS's bottom `0 1 18 1`) ship no
+  // grow code (5/6/8) at all, so nothing would stretch and the edge stops
+  // at its native length — leaving the rest of a wider window uncovered.
+  // Designate the widest interior, non-corner (code≠0) segment as the
+  // stretch zone so the edge spans the full window; the trailing caps
+  // (e.g. a bottom-right resize box) stay anchored to their end.
+  if (geo.extra > 0 && !segs.some((s) => s.fill)) {
+    let widest = -1;
+    let widestLen = 0;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i]!;
+      if (s.code === 0) continue; // corners stay fixed
+      const len = s.x1 - s.x0;
+      if (len > widestLen) { widestLen = len; widest = i; }
+    }
+    if (widest >= 0) segs[widest]!.fill = true;
+  }
+
   const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
   let growsLeft = segs.filter((g) => g.fill).length;
   let extraRem = Math.max(0, geo.extra);
@@ -237,16 +264,26 @@ function composeEdgeFromRecipe(
         if (titleStart < 0) titleStart = outPos;
         titleEnd = outPos + outLen;
       }
-      // TILE the motif: repeat the native span at 1:1 across the grown
-      // output (NOT sample-and-hold stretch, which smears a multi-px
-      // pinstripe/box pattern into bands). For a 1px fill column this is
-      // identical to a stretch, so plain pinstripe themes are unaffected.
-      for (let off = 0; off < outLen; off += nativeLen) {
-        const w = Math.min(nativeLen, outLen - off);
-        if (geo.horizontal) {
+      if (geo.tileMotif) {
+        // TOP edge: TILE the motif — repeat the native span 1:1 across the
+        // grown output (NOT sample-and-hold, which smears a multi-px
+        // pinstripe/box pattern into bands). For a 1px fill column this is
+        // identical to a stretch, so plain pinstripe themes are unaffected.
+        for (let off = 0; off < outLen; off += nativeLen) {
+          const w = Math.min(nativeLen, outLen - off);
           out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w, h: geo.crossLen }, { x: outPos + off, y: geo.crossDst, w, h: geo.crossLen });
+        }
+      } else {
+        // SIDES / BOTTOM: stretch the single row/column "between the grow
+        // regions" (§8.1). Sample one mid-line of the grow span and
+        // sample-and-hold it across the whole grown output — a uniform
+        // border, never the repeated notch that tiling a multi-px slice
+        // (e.g. BeOS's 5px side fill) produces.
+        const mid = seg.x0 + Math.floor(nativeLen / 2);
+        if (geo.horizontal) {
+          out.copyBits(cicn, { x: mid, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
         } else {
-          out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: w }, { x: geo.crossDst, y: outPos + off, w: geo.crossLen, h: w });
+          out.copyBits(cicn, { x: geo.crossSrc, y: mid, w: geo.crossLen, h: 1 }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
         }
       }
       outPos += outLen;
@@ -350,7 +387,7 @@ export function composeWindowChrome(
   if (edges?.top?.length) {
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      extra: contentW - cicnBodyW,
+      extra: contentW - cicnBodyW, tileMotif: true,
     });
   } else {
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
@@ -360,7 +397,7 @@ export function composeWindowChrome(
   if (frame.bottom > 0 && edges?.bottom?.length) {
     composeEdgeFromRecipe(out, cicn, edges.bottom, {
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false,
     });
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
@@ -371,7 +408,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH,
+      extra: contentH - cicnBodyH, tileMotif: false,
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -382,7 +419,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH,
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false,
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
