@@ -187,6 +187,46 @@ For chrome `cicn`'s, this implies:
 | Popup menus | Text half + arrow half side-by-side, both "simply stretched"; arrow cicn stamped on top |
 | Disclosure triangles | No cinf; cicn at native size; optional 5-frame animation |
 
+### 4.4a What sets a segment's "rendered width" — the size DRIVER (learned 2026-05-21)
+
+§4.2 says each stretch segment "stretches across the segment's **rendered
+width**" — but the recipe never states what that rendered width *is*. That
+omission was the single biggest source of title-placement dead-ends. There are
+two different size drivers, both called "stretch," and the recipe doesn't tag
+which a segment uses:
+
+- **Window-driven** (the side fill, `p8`): rendered width = native + the
+  window's leftover growth. Absorbs how much bigger the window is than the cicn.
+- **Content-driven** (the **title plate**): rendered width = native + the
+  rasterized **title's** width. The kDEF "inserts the title's width at the title
+  seam" (K2: window header "simply stretched" *to make room for the title*).
+  This size comes from OUTSIDE the recipe and the window dimensions entirely —
+  from the text being laid out.
+
+The original error was lumping the title region into the window-driven fill (one
+proportional distribution across all `5/6/8`). Correct model: the plate segment
+absorbs the **title** width first; the remaining window growth distributes to
+the other fill; the decorations after the plate shift right. Implemented in
+`composeEdgeFromRecipe` (`plateWidth` from `renderWindow`, which rasterizes the
+title first) — see kdef-layout-recipes §11.6.
+
+**This is exactly the K2 "1-pixel stretch region" convention (§4.1), rediscovered.**
+The author designates a single clean pixel as the title's stretch region and
+makes the rest a null/decoration. We don't have the author's annotation, so we
+**recover the 1px stretch column from the bitmap**: within the `(6)(5)(6)`
+title sandwich, score each segment's centre column by `stddev(luminance) +
+mean(saturation)` and take the minimum — the clean plate pixel. This matters
+because real schemes embed a **decoration inside the title zone** that the
+idealized "stretch the slice" model would smear: 1138's central pyramid, 1990's
+coloured LED dots both sit in `5/6` segments. The clean-column score skips them;
+the decoration then renders at native size and shifts as the plate grows.
+
+Generalises: every region has a *size driver* — **fixed** (native),
+**fill-container** (window/track leftover), **grow-to-content** (title plate,
+tab label, progress value), **repeat-per-item** (list rows). The part code
+gives the role; the driver + the clean-stretch-pixel come from role + bitmap +
+the content being laid out, not the code alone.
+
 ### 4.4 Tile-vs-stretch decision tree
 
 ```

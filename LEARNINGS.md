@@ -1428,3 +1428,49 @@ Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed bl
 **Title background = the stretched fill PLATE, not a solid erase box (and not a fixed slice number).** The title region (recipe codes 5/6) holds the title PLATE *plus* decorations — 1138's central pyramid, 1990's coloured LED dots — so a fixed "use slice 5/6" pick lands on the decoration. The plate is the CLEAN column: lowest luminance variance + lowest saturation across the title-region segment centres. `composeEdgeFromRecipe` scores each and exposes the winner as `titleFillSrcX`; `renderWindow` lays that one cicn column across the title band (= the plate stretched to the title width) and draws the glyphs transparently on top. This replaced a solid `fillRect` in the declared header-fill colour, which clashed with the bar (1138's mid-grey box on a light bar). Verified clean on 1138 (light), 1990 (dark, LEDs now beside not behind), 1984 (blue), evolution, beos.
 
 **The title plate GROWS to the title width (geometry), it isn't a band painted over static chrome.** The kDEF inserts the title's width at the title seam, so `renderWindow` rasterizes the title first and passes the plate width to `composeWindowChrome`; the plate segment (the clean title-region column from the variance+saturation metric) is kept STANDALONE through coalescing and absorbs `titleWidth − native` of the window growth, with the remainder distributed to the other fill. Decorations within the title region (1138's pyramid, 1990's LED dots, 1984/beos widgets) get pushed aside as the plate widens — instead of the title overlapping a fixed-size space. Title text then draws transparently on the stretched plate (no erase box, no re-tiled band). Utility/mini/floating windows render label-free (modern convention) with the title on `aria-label` + `role=dialog` only — both the cicn and baseline (no-wnd#) paths.
+
+## 2026-05-21 — The missing gap: a segment's SIZE DRIVER (recipe + bitmap + content, not recipe alone)
+
+We finally cracked the repeating/growing titlebar background. The thing that
+made it hard for so long is worth stating sharply, because it generalises to
+all the other geometry (tabs, list rows, progress fills, scrollbar tracks).
+
+**What the data gave us:** the `wnd#` recipe encodes WHERE each segment sits
+(`at` offsets) and a coarse ROLE code (corner / widget / fill 5·6·8). The K2
+Reference (architecture-spec §3–4) adds the semantics: `5/6` = the `(6)(5)(6)`
+"divider sandwich" around the title pill; `8` = universal stretch fill; default
+behaviour is **stretch the cicn slice across the segment's rendered width**;
+fastest is a **1-pixel stretch region** (stretch one clean pixel's colour).
+
+**The gap — three things none of that encodes:**
+
+1. **A segment's SIZE DRIVER.** "Stretch across the rendered width" never says
+   what sets the rendered width. Two drivers exist, both called "stretch":
+   *window-driven* (side fill `p8` absorbs leftover window width) and
+   *content-driven* (the title PLATE grows by the rasterized **title** width —
+   a size from outside the recipe AND outside the window dims). The original
+   error: lumping the title region into the window-driven fill (one proportional
+   distribution across all `5/6/8`). The plate is content-driven — the kDEF
+   inserts the title's width at the title seam, decorations shift right.
+   So `renderWindow` rasterizes the title FIRST and feeds its width back into
+   `composeWindowChrome` as `plateWidth`. Composition is title-aware; it isn't a
+   compose-then-overlay two-pass.
+
+2. **Plate vs. decoration lives in the PIXELS, not the code.** 1138's clean
+   plate and 1990's LED dots share a fill code; the recipe can't tell them
+   apart. The plate is the clean column (min `stddev(luminance)+mean(saturation)`)
+   — which turns out to BE the K2 "1-pixel stretch region" the author
+   designated, recovered from the bitmap because we don't have their annotation.
+   Real schemes embed decorations inside the title zone that the idealized
+   "stretch the slice" model smears; the clean-column score skips them.
+
+3. **Coalescing fill was actively harmful.** Merging adjacent `5/6/8` into one
+   block (done for side-fill motif tiling) destroyed the sandwich and merged
+   plate + decoration + side-fill. The plate must stay standalone to grow alone.
+
+**The generalised model:** layout = **recipe position + bitmap classification +
+content-driven sizing**. Every region has a *size driver* — fixed /
+fill-container / grow-to-content / repeat-per-item — and you cannot read the
+driver off the part code. When a control "repeats/grows for some layouts but not
+others," it's this distinction. The recipe is necessary but not sufficient; the
+answer needs the recipe AND the pixels AND the content size.
