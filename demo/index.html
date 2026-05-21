@@ -198,20 +198,32 @@
     // same arrangement the reference screenshots use, so the live render is
     // directly comparable.
     async function buildScene(theme, state = 'active') {
+      const cv = (buf) => bufferToCanvas(buf, 1);
+      const place = (buf, css) => { if (!buf) return; const c = cv(buf); Object.assign(c.style, { position: 'absolute', ...css }); return c; };
+
+      // The legacy raster previews show the document window FILLING the canvas
+      // (minimal desktop margin) with the Options dialog overlapping the right
+      // half from the title-bar line down. So size the desk to the main
+      // window's footprint and place the dialog top-right.
       const desk = document.createElement('div');
       Object.assign(desk.style, {
-        position: 'relative', width: '232px', height: '190px', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden',
         background: '#9d9d9d',
         backgroundImage: 'repeating-conic-gradient(#9a9a9a 0 25%, #a4a4a4 0 50%)',
         backgroundSize: '4px 4px',
       });
-      const cv = (buf) => bufferToCanvas(buf, 1);
-      const place = (buf, css) => { if (!buf) return; const c = cv(buf); Object.assign(c.style, { position: 'absolute', ...css }); return c; };
 
-      // ── main "Hello!" Finder window (top-left) ──
-      const winW = 132, winH = 96;
+      // ── main "Hello!" Finder window — fills the preview ──
+      const winW = 178, winH = 98;
       const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1, state });
-      Object.assign(win.style, { position: 'absolute', left: '6px', top: '8px' });
+      // The window root carries its full footprint (cicn path sets width/height;
+      // baseline window is sized by content + a ~19px title bar + 1px borders).
+      const mainW = parseInt(win.style.width) || (winW + 4);
+      const mainH = parseInt(win.style.height) || (winH + 22);
+      const contentEl = win.querySelector('.aw-content');
+      const mainTop = contentEl && parseInt(contentEl.style.top) ? parseInt(contentEl.style.top) : 19;
+      Object.assign(desk.style, { width: `${mainW}px`, height: `${mainH}px` });
+      Object.assign(win.style, { position: 'absolute', left: '0', top: '0' });
       const content = win.querySelector('.aw-content');
       if (content) {
         Object.assign(content.style, { overflow: 'hidden' });
@@ -257,9 +269,15 @@
       }
       desk.appendChild(win);
 
-      // ── "On/Off" modal dialog (overlapping, center-right) ──
-      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 100, height: 82, scale: 1, state });
-      Object.assign(dlg.style, { position: 'absolute', left: '96px', top: '56px', zIndex: '5' });
+      // ── "On/Off" Options dialog — utility window, overlapping top-right ──
+      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 92, height: 60, scale: 1, state });
+      const dlgW = parseInt(dlg.style.width) || (92 + 4);
+      const dlgH = parseInt(dlg.style.height) || (60 + 22);
+      // Right-aligned (small margin), top at the main window's title-bar line —
+      // the placement the legacy previews use. Clamped to stay inside the desk.
+      const dlgLeft = Math.max(0, mainW - dlgW - 6);
+      const dlgTop = Math.max(2, Math.min(mainH - dlgH - 4, mainTop));
+      Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
         Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
