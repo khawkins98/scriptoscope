@@ -190,7 +190,7 @@ function composeEdgeFromRecipe(
   cicn: PixelBuffer,
   recipe: EdgeStep[],
   geo: EdgeGeometry,
-): { start: number; end: number } | null {
+): { start: number; end: number; fillSrcX: number } | null {
   // axisMax = the recipe's last boundary; the entry AT it is a zero-width
   // sentinel that closes the final real segment.
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
@@ -225,6 +225,42 @@ function composeEdgeFromRecipe(
       if (len > widestLen) { widestLen = len; widest = i; }
     }
     if (widest >= 0) segs[widest]!.fill = true;
+  }
+
+  // Source column of the title PLATE — the clean fill the title text is
+  // stretched over (transparent text, no erase box). The title region (code
+  // 5/6) holds the plate AND decorations: 1138's central pyramid, 1990's
+  // coloured LED dots. The plate is the CLEAN column — low vertical variance
+  // and low saturation; decorations are structured and/or colourful. Score
+  // each title-region segment's centre column by (stddev of luminance + mean
+  // saturation) and take the minimum. Fall back to the widest side-fill (code
+  // 8) column when a scheme ships no title region. Top edge only (horizontal).
+  let fillSrcX = -1;
+  if (geo.horizontal) {
+    const colNoise = (xc: number): number => {
+      const y0 = geo.crossSrc + 2;
+      const y1 = geo.crossSrc + Math.max(3, geo.crossLen - 2);
+      let n = 0, sumL = 0, sumL2 = 0, sumSat = 0;
+      for (let y = y0; y < y1; y++) {
+        const [r, g, b, a] = cicn.getPixel(xc, y);
+        if (a < 200) continue;
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        sumL += lum; sumL2 += lum * lum;
+        sumSat += Math.max(r, g, b) - Math.min(r, g, b);
+        n++;
+      }
+      if (n === 0) return Infinity;
+      const variance = sumL2 / n - (sumL / n) ** 2;
+      return Math.sqrt(Math.max(0, variance)) + sumSat / n;
+    };
+    const titleSegs = raw.filter((r) => r.code === 5 || r.code === 6);
+    const cands = titleSegs.length ? titleSegs : raw.filter((r) => r.fill);
+    let best = Infinity;
+    for (const r of cands) {
+      const xc = Math.floor((r.x0 + r.x1) / 2);
+      const score = colNoise(xc);
+      if (score < best) { best = score; fillSrcX = xc; }
+    }
   }
 
   const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
@@ -298,8 +334,8 @@ function composeEdgeFromRecipe(
     outPos += outLen;
   }
   // Prefer the p5/p6 title region; fall back to the whole fill span.
-  if (titleStart >= 0) return { start: titleStart, end: titleEnd };
-  return growStart >= 0 ? { start: growStart, end: growEnd } : null;
+  if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX };
+  return growStart >= 0 ? { start: growStart, end: growEnd, fillSrcX } : null;
 }
 
 /**
@@ -343,6 +379,13 @@ export interface ComposedChrome {
    * when the top edge has no grow zone (e.g. acid).
    */
   titleRegion: { x: number; w: number };
+  /**
+   * cicn SOURCE column of the titlebar's fill pattern (the side-fill p8, else
+   * the widest grow segment) — the column to re-tile behind the title text so
+   * it sits on the bar's own repeating pattern, not a flat erase box. −1 when
+   * the top edge has no fill (no recipe / no grow zone).
+   */
+  titleFillSrcX: number;
 }
 
 /**
@@ -383,7 +426,7 @@ export function composeWindowChrome(
   const edges = windowType.edges;
 
   // ── top edge: walk X across the full width, sampling cicn rows [0, top] ──
-  let topFill: { start: number; end: number } | null = null;
+  let topFill: { start: number; end: number; fillSrcX: number } | null = null;
   if (edges?.top?.length) {
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
@@ -429,5 +472,6 @@ export function composeWindowChrome(
   const titleRegion = topFill && topFill.end > topFill.start
     ? { x: topFill.start, w: topFill.end - topFill.start }
     : { x: 0, w: fullW };
-  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion };
+  const titleFillSrcX = topFill ? topFill.fillSrcX : -1;
+  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX };
 }

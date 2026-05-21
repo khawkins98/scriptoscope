@@ -70,23 +70,18 @@ export async function renderWindow(
     // sampling the composed bar (dominant fill) + contrast text only when
     // a scheme ships no header clut.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
-    let er: number, eg: number, eb: number;
     let fgHex: string;
-    if (hc.fill && hc.text) {
-      [er, eg, eb] = hexToRgb(hc.fill);
+    if (hc.text) {
       fgHex = hc.text;
     } else {
-      [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
+      const [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
       const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
 
     // Title text is ~Chicago 12px, NOT a fraction of the frame thickness —
     // thick decorative frames (1990 40px, evolution) must not scale the title
-    // up (that produced giant, clipped titles like "Options"→"tio"). The
-    // erase BAND is sized to the text (+pad) and vertically centered in the
-    // title bar, so it only clears a strip behind the title and the chrome
-    // pattern keeps repeating around it.
+    // up (that produced giant, clipped titles like "Options"→"tio").
     const textH = Math.max(8, Math.min(13, frame.top - 6));
     const glyphs = rasterizeText(title, textH, fgHex);
     const pad = 4;
@@ -99,7 +94,13 @@ export async function renderWindow(
     const tr = composed.titleRegion;
     const bandX = Math.max(0, Math.min(fullWidth - bandW, Math.round(tr.x + (tr.w - bandW) / 2)));
     const bandY = Math.max(1, Math.round((frame.top - bandH) / 2));
-    composed.buffer.fillRect({ x: bandX, y: bandY, w: bandW, h: bandH }, er, eg, eb, 255);
+    // Re-tile the titlebar's OWN fill pattern behind the title instead of an
+    // arbitrary solid box (the kDEF "erases the title region in the fill" — the
+    // fill is a PATTERN, not a flat colour). Sample the bar's fill column from
+    // the cicn and lay it across the band so the title sits on the same
+    // repeating pattern as the rest of the bar. No fill column (no recipe) →
+    // text straight on the composed chrome.
+    paintTitleFill(composed.buffer, cicn, composed.titleFillSrcX, { x: bandX, y: bandY, w: bandW, h: bandH });
     composed.buffer.drawOver(glyphs, bandX + pad, bandY + Math.round((bandH - glyphs.height) / 2));
   }
 
@@ -298,6 +299,28 @@ function looksLikeWindow(wt: WindowType): boolean {
   const ch = wt.chrome?.active ?? wt.chrome?.inactive;
   if (!ch || /grow-box/.test(ch)) return false;
   return !!wt.parts?.['part-0']?.rect;
+}
+
+/**
+ * Paint the title band with the titlebar's OWN fill pattern: copy the cicn's
+ * fill column (`srcX`) across the band, row-for-row. The top edge is composed
+ * with the cicn rows mapped 1:1 in Y, so cicn row y == output row y — sampling
+ * `src[srcX, y]` reproduces the bar's vertical profile (e.g. the horizontal
+ * pinstripe) under the title, seamless with the surrounding chrome. No-op when
+ * `srcX < 0` (no fill column → title draws straight on the composed chrome).
+ */
+function paintTitleFill(
+  dst: PixelBuffer,
+  src: PixelBuffer,
+  srcX: number,
+  rect: { x: number; y: number; w: number; h: number },
+): void {
+  if (srcX < 0 || srcX >= src.width) return;
+  for (let y = rect.y; y < rect.y + rect.h; y++) {
+    const sy = Math.min(src.height - 1, Math.max(0, y));
+    const [r, g, b] = src.getPixel(srcX, sy);
+    for (let x = rect.x; x < rect.x + rect.w; x++) dst.setPixel(x, y, r, g, b, 255);
+  }
 }
 
 /** Darken a hex color by `amt` (0..1). Used for the baseline pinstripe. */
