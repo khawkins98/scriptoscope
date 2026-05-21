@@ -1474,3 +1474,32 @@ fill-container / grow-to-content / repeat-per-item — and you cannot read the
 driver off the part code. When a control "repeats/grows for some layouts but not
 others," it's this distinction. The recipe is necessary but not sufficient; the
 answer needs the recipe AND the pixels AND the content size.
+
+## 2026-05-21 — Detect, don't override: the fill-code set + mini-window resolution
+
+Two more "general detection, not per-theme overrides" wins, both from reading
+the K2 vocabulary instead of hand-patching.
+
+**The stretch set is `code ≥ 5`, not just 5/6/8.** Per K2 (architecture-spec
+§3–4) *everything* is stretch fill EXCEPT null (`0`, drawn here as a fixed
+corner/anchor) and the named widgets (`1–4`, baked close/zoom/shade). We'd
+hard-coded 5/6/8, so evolution's `p18` gradient coil, 1138's `p11`, and 1984's
+`p15` were stamped 1:1 — they absorbed no window growth, so the growth piled
+into the title region (evolution's big dark gap after the title). `isFillPart`
+is now `code >= 5`. **Code 18 is the GRADIENT part** (K2 §Window Gradients):
+scale the whole segment sample-and-hold, NOT tile (which repeats the ramp) and
+NOT a 1px column (which flattens it) — `isGradientPart` + a dedicated branch.
+
+**Mini/utility windows: resolve by the CHROME CICN ASSET NAME, not the type
+key.** The Options dialog was rendering with the document window's edges. Cause:
+`resolveWindowType`'s utility branch matched friendly type keys
+(`titled-utility-window`) + a few hard-coded ids, but schemes key these
+inconsistently — 1990/evolution use raw `wnd--14296`/`wnd--14304` — so they fell
+through to `document-window`. Fix: score every window type by its chrome cicn
+asset name (`/titled-utility/` > `/utility/` > `/floating/`), require it to ship
+its OWN top recipe (else it can't be a distinct mini frame) AND a renderable
+active chrome (beos's `titled-utility` is recipe-only with no active cicn → use
+its `no-title-utility` / side-utility cicn instead), skip `collapsed` variants.
+General lesson: window-type KEYS are unreliable across schemes; the cicn ASSET
+NAME (and resource id) is the stable selector — same principle as resolving
+controls by resource id, not slug.
