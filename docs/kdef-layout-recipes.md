@@ -165,7 +165,28 @@ Anchored bottom-right via the §9 placement path (mode 8). Sizes
 15×15–21×21 (doc-window) / 14×14–18×18 (utility) `[DOC]`; old 17×17
 scaled to fit if wrong size.
 
-## 11.5 Title placement — what the SIGNAL actually is `[CODE]/[DOC]`
+## 11.6 Title placement — SOLVED: the p5/p6 recipe segment IS the title region `[CODE]`
+
+The signal we hunted for IS in the theme — in the **recipe**, not a separate
+field. The recipe part codes aren't one undifferentiated "grow" bucket:
+- **p8** = side fill (stretches for *window* growth).
+- **p5/p6** = the **title region** — the "divider sandwich" / the middle column
+  the kDEF "stretches to make room for the title" (§8.1). The title is placed
+  *here*, and its position is wherever the author put the p5/p6 segment.
+
+Verified by reading the segment position against the references: 1990's p5/p6
+is at cicn x46–64 → **left** of the 170px bar (title left ✓); 1138's is at
+x46–56 → **dead center** of its 103px bar (title center ✓). So title H-position
+is deterministic + per-theme, with zero hand-tuning.
+
+Implemented: `composeEdgeFromRecipe` returns the p5/p6 output span as
+`titleRegion`; `renderWindow` centers the title in it (full-width fallback for
+schemes with no p5/p6, e.g. the baseline window). The diagnostic strip
+(demo) colors p5/p6 green so the title region is visible per theme.
+
+---
+
+## 11.5 Title placement — earlier dead-ends (kept for context) `[CODE]/[DOC]`
 
 The question: how does a scheme indicate where the title goes, and how does the
 bar accommodate it? Investigated via the decompiled placement fn `0x35b0`, the

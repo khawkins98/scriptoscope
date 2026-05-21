@@ -207,12 +207,13 @@ function composeEdgeFromRecipe(
   // Output walk-axis position starts where the recipe starts (segs are
   // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
   let outPos = segs[0]!.x0;
-  // Track the grow/fill zone's OUTPUT span (first fill → last fill) — exposed
-  // as titleRegion for diagnostics + future anchor work. NOTE: the title is
-  // NOT reliably centered here (tested: neither this span nor the widest grow
-  // segment matches the references) — title position is anchor-driven, see the
-  // title-placement findings (kdef-layout-recipes §11.5). renderWindow centers
-  // on the bar by default.
+  // Track the TITLE REGION's OUTPUT span — the recipe's p5/p6 "divider
+  // sandwich" segments (codes 5/6), which the kDEF stretches "to make room for
+  // the title" (§8.1). This is distinct from the p8 side-fill: it's where the
+  // title goes, and its position varies per theme (1990 left, 1138 center).
+  // Fall back to the whole fill span when a scheme has no p5/p6.
+  let titleStart = -1;
+  let titleEnd = -1;
   let growStart = -1;
   let growEnd = -1;
 
@@ -232,6 +233,10 @@ function composeEdgeFromRecipe(
       outLen = nativeLen + share;
       if (growStart < 0) growStart = outPos;
       growEnd = outPos + outLen;
+      if (seg.code === 5 || seg.code === 6) {
+        if (titleStart < 0) titleStart = outPos;
+        titleEnd = outPos + outLen;
+      }
       // TILE the motif: repeat the native span at 1:1 across the grown
       // output (NOT sample-and-hold stretch, which smears a multi-px
       // pinstripe/box pattern into bands). For a 1px fill column this is
@@ -255,6 +260,8 @@ function composeEdgeFromRecipe(
     }
     outPos += outLen;
   }
+  // Prefer the p5/p6 title region; fall back to the whole fill span.
+  if (titleStart >= 0) return { start: titleStart, end: titleEnd };
   return growStart >= 0 ? { start: growStart, end: growEnd } : null;
 }
 
