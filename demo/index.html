@@ -52,6 +52,27 @@
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
 
+    // Active/inactive toggle — our scene renderer can show BOTH window states
+    // live (the reference screenshots are frozen in one state). Re-renders the
+    // scene column for every theme on change.
+    let sceneState = 'active';
+    const scenes = [];
+    async function renderScene(entry) {
+      entry.frame.textContent = '';
+      try { entry.frame.appendChild(await buildScene(entry.theme, sceneState)); }
+      catch (e) { entry.frame.textContent = String(e); }
+    }
+    {
+      const bar = document.createElement('div');
+      bar.style.cssText = 'padding:0 24px 8px;display:flex;gap:8px;align-items:center;font:13px system-ui';
+      const lab = document.createElement('label'); lab.style.cssText = 'display:flex;gap:6px;align-items:center;cursor:pointer';
+      const cb = document.createElement('input'); cb.type = 'checkbox';
+      cb.onchange = async () => { sceneState = cb.checked ? 'inactive' : 'active'; for (const e of scenes) await renderScene(e); };
+      lab.append(cb, document.createTextNode('Show windows as inactive'));
+      bar.appendChild(lab);
+      document.querySelector('header').appendChild(bar);
+    }
+
     const THEMES = [
       { slug: 'apple-platinum-2', label: 'Apple Platinum 2', ref: 'apple-platinum-2.png' },
       { slug: 'beos-r503', label: 'BeOS R5.0.3', ref: 'beos-r503.png' },
@@ -148,7 +169,7 @@
     // (segmented buttons, a progress bar, a disclosure + default OK) — the
     // same arrangement the reference screenshots use, so the live render is
     // directly comparable.
-    async function buildScene(theme) {
+    async function buildScene(theme, state = 'active') {
       const desk = document.createElement('div');
       Object.assign(desk.style, {
         position: 'relative', width: '232px', height: '190px', overflow: 'hidden',
@@ -161,7 +182,7 @@
 
       // ── main "Hello!" Finder window (top-left) ──
       const winW = 132, winH = 96;
-      const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1 });
+      const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1, state });
       Object.assign(win.style, { position: 'absolute', left: '6px', top: '8px' });
       const content = win.querySelector('.aw-content');
       if (content) {
@@ -196,7 +217,7 @@
       desk.appendChild(win);
 
       // ── "On/Off" modal dialog (overlapping, center-right) ──
-      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 100, height: 82, scale: 1 });
+      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 100, height: 82, scale: 1, state });
       Object.assign(dlg.style, { position: 'absolute', left: '96px', top: '56px', zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
@@ -293,7 +314,7 @@
       catch (e) { row.textContent = `failed to load: ${e}`; rows.appendChild(section); continue; }
 
       // scene
-      { const { c, frame } = colEl('scene'); try { frame.appendChild(await buildScene(theme)); } catch (e) { frame.textContent = String(e); } row.appendChild(c); }
+      { const { c, frame } = colEl('scene'); const entry = { theme, frame }; scenes.push(entry); await renderScene(entry); row.appendChild(c); }
       // reference — next to the scene for direct side-by-side comparison
       { const { c, frame } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${t.ref}`; frame.appendChild(img); row.appendChild(c); }
       // controls
