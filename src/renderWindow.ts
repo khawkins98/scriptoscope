@@ -53,55 +53,51 @@ export async function renderWindow(
   findChromeElement(theme, cicnPath);
 
   const cicn = await loadCicnBuffer(assetUrl(theme, cicnPath));
-  const composed = composeWindowChrome(cicn, wt, contentW, contentH);
+
+  // Utility / mini / floating windows carry NO visible title in a modern
+  // context — the label is screen-reader-only (set as aria-label below).
+  const isUtility = /utility|mini|floating|palette/.test(slug);
+  const showTitle = !!title && !isUtility;
+
+  // ── title geometry: the kDEF inserts the title's width at the title seam,
+  // so we rasterize the title FIRST (the glyph width sets how far the plate
+  // grows), then compose the chrome with that plate width. The plate slice
+  // stretches to fit the title, pushing the decorations + side fill right;
+  // the title then sits on the clean stretched plate with a TRANSPARENT
+  // background (no erase box). ──
+  const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
+  const pad = 4;
+  let glyphs: PixelBuffer | null = null;
+  let plateWidth = 0;
+  let textH = 0;
+  if (showTitle && frameTop > 6) {
+    textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
+    glyphs = rasterizeText(title, textH, '#000000'); // width pass; recoloured below
+    plateWidth = glyphs.width + pad * 2;
+  }
+
+  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { titlePlateWidth: plateWidth });
   const { frame, fullWidth, fullHeight } = composed;
 
-  // ── title: rasterized INTO the chrome buffer, colors DERIVED from the
-  // composited titlebar (not the palette / hard-coded). The kDEF erases
-  // the title region in the titlebar's fill color and draws the text in
-  // the scheme's text color; we recover both by sampling the bar we just
-  // composed — so it respects each scheme's actual geometry, incl. the
-  // schemes that ship no declared header colors. The center
-  // placement matches the kDEF (title is centered on the content rect).
-  if (title && frame.top > 6) {
-    // Title colors: prefer the scheme's DECLARED header colors (decoded
-    // from the -14335/-14336 cluts: text = part 2, fill = part 1). These
-    // are the kDEF's actual title text + erase colors. Fall back to
-    // sampling the composed bar (dominant fill) + contrast text only when
-    // a scheme ships no header clut.
+  if (glyphs && frame.top > 6) {
+    // Title colour: the scheme's DECLARED header text colour (from the
+    // -14335/-14336 clut), else contrast against the composed plate.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
+    const tr = composed.titleRegion;
     let fgHex: string;
     if (hc.text) {
       fgHex = hc.text;
     } else {
-      const [er, eg, eb] = dominantColor(composed.buffer, { x: 0, y: 1, w: fullWidth, h: frame.top - 2 });
+      const [er, eg, eb] = dominantColor(composed.buffer, { x: tr.x, y: 1, w: Math.max(1, tr.w), h: frame.top - 2 });
       const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
-
-    // Title text is ~Chicago 12px, NOT a fraction of the frame thickness —
-    // thick decorative frames (1990 40px, evolution) must not scale the title
-    // up (that produced giant, clipped titles like "Options"→"tio").
-    const textH = Math.max(8, Math.min(13, frame.top - 6));
-    const glyphs = rasterizeText(title, textH, fgHex);
-    const pad = 4;
-    const bandW = glyphs.width + pad * 2;
-    const bandH = Math.min(frame.top - 2, glyphs.height + 2);
-    // Title X: centered in the recipe's TITLE REGION (the p5/p6 segment the
-    // kDEF stretches to make room for the title), which is offset per-theme
-    // (1990 left, 1138 center). composeWindowChrome.titleRegion; clamped into
-    // the bar; full-width fallback when a scheme has no p5/p6 region.
-    const tr = composed.titleRegion;
-    const bandX = Math.max(0, Math.min(fullWidth - bandW, Math.round(tr.x + (tr.w - bandW) / 2)));
-    const bandY = Math.max(1, Math.round((frame.top - bandH) / 2));
-    // Re-tile the titlebar's OWN fill pattern behind the title instead of an
-    // arbitrary solid box (the kDEF "erases the title region in the fill" — the
-    // fill is a PATTERN, not a flat colour). Sample the bar's fill column from
-    // the cicn and lay it across the band so the title sits on the same
-    // repeating pattern as the rest of the bar. No fill column (no recipe) →
-    // text straight on the composed chrome.
-    paintTitleFill(composed.buffer, cicn, composed.titleFillSrcX, { x: bandX, y: bandY, w: bandW, h: bandH });
-    composed.buffer.drawOver(glyphs, bandX + pad, bandY + Math.round((bandH - glyphs.height) / 2));
+    const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
+    // Centre the title on the (grown) plate span; clamp into the bar. The
+    // glyphs draw with a transparent background straight onto the plate.
+    const gx = Math.max(0, Math.min(fullWidth - g.width, Math.round(tr.x + (tr.w - g.width) / 2)));
+    const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
+    composed.buffer.drawOver(g, gx, gy);
   }
 
   // ── window root: bounds the FULL window footprint (chrome included), so
@@ -113,6 +109,12 @@ export async function renderWindow(
   const win = document.createElement('div');
   win.className = 'aw-window';
   win.dataset.awState = state;
+  // The title is always exposed to assistive tech, even when it isn't drawn
+  // (utility/mini windows show no visible label in a modern context).
+  if (title) {
+    win.setAttribute('role', isUtility ? 'dialog' : 'group');
+    win.setAttribute('aria-label', title);
+  }
   Object.assign(win.style, {
     position: 'relative',
     width: `${fullWidth * scale}px`,
@@ -185,6 +187,10 @@ function buildBaselineWindow(
   const win = document.createElement('div');
   win.className = 'aw-window';
   win.dataset.awState = state;
+  if (title) {
+    win.setAttribute('role', utility ? 'dialog' : 'group');
+    win.setAttribute('aria-label', title);
+  }
   Object.assign(win.style, {
     position: 'relative',
     border: `1px solid ${frameC}`,
@@ -219,7 +225,9 @@ function buildBaselineWindow(
   bar.appendChild(widget(5)); // close box (left)
   bar.appendChild(widget(-5)); // windowshade (right)
   if (!utility) bar.appendChild(widget(-18)); // zoom box (right) — doc windows only
-  if (title) {
+  // Visible title on document windows only; utility/mini windows are
+  // label-free in a modern context (the aria-label carries it for AT).
+  if (title && !utility) {
     const t = document.createElement('span');
     t.textContent = title;
     Object.assign(t.style, { background: fill, padding: `0 ${4 * scale}px`, position: 'relative', zIndex: '1' });
@@ -299,28 +307,6 @@ function looksLikeWindow(wt: WindowType): boolean {
   const ch = wt.chrome?.active ?? wt.chrome?.inactive;
   if (!ch || /grow-box/.test(ch)) return false;
   return !!wt.parts?.['part-0']?.rect;
-}
-
-/**
- * Paint the title band with the titlebar's OWN fill pattern: copy the cicn's
- * fill column (`srcX`) across the band, row-for-row. The top edge is composed
- * with the cicn rows mapped 1:1 in Y, so cicn row y == output row y — sampling
- * `src[srcX, y]` reproduces the bar's vertical profile (e.g. the horizontal
- * pinstripe) under the title, seamless with the surrounding chrome. No-op when
- * `srcX < 0` (no fill column → title draws straight on the composed chrome).
- */
-function paintTitleFill(
-  dst: PixelBuffer,
-  src: PixelBuffer,
-  srcX: number,
-  rect: { x: number; y: number; w: number; h: number },
-): void {
-  if (srcX < 0 || srcX >= src.width) return;
-  for (let y = rect.y; y < rect.y + rect.h; y++) {
-    const sy = Math.min(src.height - 1, Math.max(0, y));
-    const [r, g, b] = src.getPixel(srcX, sy);
-    for (let x = rect.x; x < rect.x + rect.w; x++) dst.setPixel(x, y, r, g, b, 255);
-  }
 }
 
 /** Darken a hex color by `amt` (0..1). Used for the baseline pinstripe. */

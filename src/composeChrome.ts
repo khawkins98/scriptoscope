@@ -29,6 +29,9 @@ interface RecipeSegment {
   x1: number;
   code: number;
   fill: boolean;
+  /** The title PLATE segment: grows to the title width and renders as the
+   *  clean plate column stretched (not tiled). Set on the top edge only. */
+  isPlate?: boolean;
 }
 
 /** Turn an edge recipe into ordered source segments along the axis. */
@@ -158,6 +161,14 @@ interface EdgeGeometry {
    * its notch into railroad ticks; stretching one line gives a smooth border.
    */
   tileMotif: boolean;
+  /**
+   * Top edge only: desired OUTPUT width of the title plate. The kDEF inserts
+   * the title's width at the title seam — so the plate segment grows to this
+   * width (pushing the decorations + side fill right), and the rest of the
+   * window growth goes to the other fill segments. 0 = no title (plate stays
+   * native, growth distributes evenly as before).
+   */
+  plateWidth: number;
 }
 
 /**
@@ -197,45 +208,17 @@ function composeEdgeFromRecipe(
   const raw = recipeSegments(recipe, lastAt);
   if (raw.length === 0) return null;
 
-  // Coalesce adjacent grow segments into one block. The recipe fragments
-  // the fill zone into several 1–3px sub-segments (part 5/6/8), but it is
-  // one continuous repeating-background region (the titlebar pinstripe /
-  // motif). Keeping it whole lets us TILE its motif as a unit rather than
-  // stretch each sub-segment, which is what gives correct repetition.
-  const segs: RecipeSegment[] = [];
-  for (const s of raw) {
-    const prev = segs[segs.length - 1];
-    if (prev && prev.fill && s.fill && prev.x1 === s.x0) prev.x1 = s.x1;
-    else segs.push({ ...s });
-  }
-
-  // No-fill fallback: some edges (e.g. BeOS's bottom `0 1 18 1`) ship no
-  // grow code (5/6/8) at all, so nothing would stretch and the edge stops
-  // at its native length — leaving the rest of a wider window uncovered.
-  // Designate the widest interior, non-corner (code≠0) segment as the
-  // stretch zone so the edge spans the full window; the trailing caps
-  // (e.g. a bottom-right resize box) stay anchored to their end.
-  if (geo.extra > 0 && !segs.some((s) => s.fill)) {
-    let widest = -1;
-    let widestLen = 0;
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i]!;
-      if (s.code === 0) continue; // corners stay fixed
-      const len = s.x1 - s.x0;
-      if (len > widestLen) { widestLen = len; widest = i; }
-    }
-    if (widest >= 0) segs[widest]!.fill = true;
-  }
-
-  // Source column of the title PLATE — the clean fill the title text is
-  // stretched over (transparent text, no erase box). The title region (code
-  // 5/6) holds the plate AND decorations: 1138's central pyramid, 1990's
-  // coloured LED dots. The plate is the CLEAN column — low vertical variance
-  // and low saturation; decorations are structured and/or colourful. Score
-  // each title-region segment's centre column by (stddev of luminance + mean
-  // saturation) and take the minimum. Fall back to the widest side-fill (code
-  // 8) column when a scheme ships no title region. Top edge only (horizontal).
+  // ── pick the title PLATE (top edge only): the clean fill column the title
+  // text is stretched over. The title region (code 5/6) holds the plate AND
+  // decorations — 1138's central pyramid, 1990's coloured LED dots — so a
+  // fixed slice number lands on the decoration. Score each title-region
+  // segment's centre column by (stddev of luminance + mean saturation): the
+  // plate is the CLEAN column (low variance, low saturation), decorations are
+  // structured/colourful. The winning SEGMENT becomes the plate, which grows
+  // to the title width; everything after it shifts right. Fall back to the
+  // side fill (code 8) when a scheme ships no title region. ──
   let fillSrcX = -1;
+  let plateX0 = -1, plateX1 = -1;
   if (geo.horizontal) {
     const colNoise = (xc: number): number => {
       const y0 = geo.crossSrc + 2;
@@ -259,37 +242,83 @@ function composeEdgeFromRecipe(
     for (const r of cands) {
       const xc = Math.floor((r.x0 + r.x1) / 2);
       const score = colNoise(xc);
-      if (score < best) { best = score; fillSrcX = xc; }
+      if (score < best) { best = score; fillSrcX = xc; plateX0 = r.x0; plateX1 = r.x1; }
     }
   }
+  const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
-  const totalGrowNative = segs.reduce((s, g) => (g.fill ? s + (g.x1 - g.x0) : s), 0);
-  let growsLeft = segs.filter((g) => g.fill).length;
-  let extraRem = Math.max(0, geo.extra);
+  // Coalesce adjacent grow segments into one block. The recipe fragments
+  // the fill zone into several 1–3px sub-segments (part 5/6/8), but it is
+  // one continuous repeating-background region (the titlebar pinstripe /
+  // motif). Keeping it whole lets us TILE its motif as a unit rather than
+  // stretch each sub-segment, which is what gives correct repetition. The
+  // plate segment is kept STANDALONE (never merged) so it can grow alone.
+  const segs: RecipeSegment[] = [];
+  for (const s of raw) {
+    const isPlate = usePlate && s.x0 === plateX0 && s.x1 === plateX1;
+    const prev = segs[segs.length - 1];
+    if (prev && prev.fill && s.fill && prev.x1 === s.x0 && !prev.isPlate && !isPlate) prev.x1 = s.x1;
+    else segs.push({ ...s, isPlate });
+  }
+
+  // No-fill fallback: some edges (e.g. BeOS's bottom `0 1 18 1`) ship no
+  // grow code (5/6/8) at all, so nothing would stretch and the edge stops
+  // at its native length — leaving the rest of a wider window uncovered.
+  // Designate the widest interior, non-corner (code≠0) segment as the
+  // stretch zone so the edge spans the full window; the trailing caps
+  // (e.g. a bottom-right resize box) stay anchored to their end.
+  if (geo.extra > 0 && !segs.some((s) => s.fill)) {
+    let widest = -1;
+    let widestLen = 0;
+    for (let i = 0; i < segs.length; i++) {
+      const s = segs[i]!;
+      if (s.code === 0) continue; // corners stay fixed
+      const len = s.x1 - s.x0;
+      if (len > widestLen) { widestLen = len; widest = i; }
+    }
+    if (widest >= 0) segs[widest]!.fill = true;
+  }
+
+  // Growth budget: the plate first absorbs (titleWidth − its native), clamped
+  // to the window's total extra; the REST distributes across the other fill
+  // segments. (When there's no plate this is the plain even distribution.)
+  const plateSeg = segs.find((s) => s.isPlate);
+  const plateNative = plateSeg ? plateSeg.x1 - plateSeg.x0 : 0;
+  const plateExtra = plateSeg ? Math.max(0, Math.min(geo.plateWidth - plateNative, Math.max(0, geo.extra))) : 0;
+  const otherExtra = Math.max(0, geo.extra - plateExtra);
+  const totalGrowNative = segs.reduce((s, g) => (g.fill && !g.isPlate ? s + (g.x1 - g.x0) : s), 0);
+  let growsLeft = segs.filter((g) => g.fill && !g.isPlate).length;
+  let extraRem = otherExtra;
 
   // Output walk-axis position starts where the recipe starts (segs are
   // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
   let outPos = segs[0]!.x0;
-  // Track the TITLE REGION's OUTPUT span — the recipe's p5/p6 "divider
-  // sandwich" segments (codes 5/6), which the kDEF stretches "to make room for
-  // the title" (§8.1). This is distinct from the p8 side-fill: it's where the
-  // title goes, and its position varies per theme (1990 left, 1138 center).
-  // Fall back to the whole fill span when a scheme has no p5/p6.
-  let titleStart = -1;
-  let titleEnd = -1;
-  let growStart = -1;
-  let growEnd = -1;
+  // TITLE REGION output span: the plate's span when we grow one, else the
+  // p5/p6 fill span, else the whole fill span. The title centres here.
+  let plateStart = -1, plateEnd = -1;
+  let titleStart = -1, titleEnd = -1;
+  let growStart = -1, growEnd = -1;
 
   for (const seg of segs) {
     const nativeLen = seg.x1 - seg.x0;
     let outLen = nativeLen;
+    if (seg.isPlate) {
+      // The title plate: grows to the title width and renders as the single
+      // clean plate column stretched (sample-and-hold) — a uniform plate the
+      // title sits on, decorations pushed right.
+      outLen = nativeLen + plateExtra;
+      plateStart = outPos; plateEnd = outPos + outLen;
+      out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+      outPos += outLen;
+      continue;
+    }
     if (seg.fill) {
       // last grow segment soaks up the rounding remainder so edges tile exactly
       const share =
         growsLeft === 1
           ? extraRem
           : totalGrowNative > 0
-            ? Math.round((geo.extra * nativeLen) / totalGrowNative)
+            ? Math.round((otherExtra * nativeLen) / totalGrowNative)
             : 0;
       extraRem -= share;
       growsLeft--;
@@ -333,7 +362,8 @@ function composeEdgeFromRecipe(
     }
     outPos += outLen;
   }
-  // Prefer the p5/p6 title region; fall back to the whole fill span.
+  // Prefer the grown plate span, then the p5/p6 title region, then the fill.
+  if (plateStart >= 0) return { start: plateStart, end: plateEnd, fillSrcX };
   if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX };
   return growStart >= 0 ? { start: growStart, end: growEnd, fillSrcX } : null;
 }
@@ -411,6 +441,7 @@ export function composeWindowChrome(
   windowType: WindowType,
   contentW: number,
   contentH: number,
+  opts: { titlePlateWidth?: number } = {},
 ): ComposedChrome {
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
@@ -430,7 +461,7 @@ export function composeWindowChrome(
   if (edges?.top?.length) {
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      extra: contentW - cicnBodyW, tileMotif: true,
+      extra: contentW - cicnBodyW, tileMotif: true, plateWidth: opts.titlePlateWidth ?? 0,
     });
   } else {
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
@@ -440,7 +471,7 @@ export function composeWindowChrome(
   if (frame.bottom > 0 && edges?.bottom?.length) {
     composeEdgeFromRecipe(out, cicn, edges.bottom, {
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false, plateWidth: 0,
     });
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
@@ -451,7 +482,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH, tileMotif: false,
+      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0,
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -462,7 +493,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false,
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0,
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
