@@ -64,13 +64,25 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * control resources are all negative, so we match on the absolute value.
  */
 async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+  const el = elementById(theme, id);
+  return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
+}
+
+/** The chromeElement whose asset encodes resource `id` (for textAnchor etc). */
+function elementById(theme: LoadedTheme, id: number) {
   const abs = Math.abs(id);
-  const ce = theme.manifest.chromeElements ?? {};
-  for (const v of Object.values(ce)) {
+  for (const v of Object.values(theme.manifest.chromeElements ?? {})) {
     const m = /cicn-n?-?(\d+)/.exec(v.asset ?? '');
-    if (m && parseInt(m[1]!, 10) === abs) return loadCicnBuffer(assetUrl(theme, v.asset));
+    if (m && parseInt(m[1]!, 10) === abs) return v;
   }
   return null;
+}
+
+/** Hex string for a buffer pixel, or null if transparent/out of range. */
+function pixelHex(buf: PixelBuffer, x: number, y: number): string | null {
+  const [r, g, b, a] = buf.getPixel(x, y);
+  if (a < 200) return null;
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
 }
 
 export type Orientation = 'horizontal' | 'vertical';
@@ -429,9 +441,13 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // center pixel would mislead (some schemes' marker is light on a dark face).
   const [cr, cg, cb, ca] = face.getPixel(fIns, fIns);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  // Disabled buttons gray the label (the inactive face cicn is often
-  // identical to the active one, so the dimmed label is the only cue).
-  const fg = opts.fg ?? (opts.disabled ? '#808080' : lum < 128 ? '#ffffff' : '#000000');
+  // Label color: prefer the AUTHORED text color — the pixel at the cinf
+  // textPixel (textAnchor), which is the kDEF's label color signal. Fall back
+  // to a luminance-picked b/w only when the scheme ships no cinf. Disabled
+  // always grays (the inactive face is often identical to active).
+  const ta = elementById(theme, faceId)?.textAnchor;
+  const authored = ta ? pixelHex(face, ta[0], ta[1]) : null;
+  const fg = opts.fg ?? (opts.disabled ? '#808080' : authored ?? (lum < 128 ? '#ffffff' : '#000000'));
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
   const padX = 12;
   const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);

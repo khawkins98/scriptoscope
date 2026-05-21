@@ -209,11 +209,15 @@ still exposes the grow-fill span for diagnostics. Text height capped (~Chicago
 12), erase band sized to the text + vertically centered, so the fill keeps
 repeating around it.
 
-**Real next lever (extractable signal):** decode the cinf `textPixel` into the
-theme and use it to anchor **control** labels (buttons/tabs/placards) — that IS
-the authored signal and we currently just center those. Window-title anchoring
-would need either a window cinf (absent here) or the `wnd#` part anchor
-(`@44/@50`) which `decodeWnd` doesn't yet parse (kdef-findings §9.6).
+**Implemented (the extractable signal):** the cinf `textPixel` is surfaced as
+`chromeElement.textAnchor` and `composeButton` now colors the label with the
+**authored** pixel there (e.g. 1990's buttons render their intended mid-gray
+`#777` label, not a luminance-guessed white; 1984 white / beos black already
+matched). Position stays centered — for a 9-slice button the textAnchor sits at
+the (re-centered) face center, so it doesn't move; the signal's real payoff
+here is color fidelity. Falls back to the contrast pick for cinf-less schemes
+(apple-platinum-2). Window-title anchoring still needs a window cinf (absent) or
+the `wnd#` part anchor `@44/@50` (`decodeWnd` doesn't parse it; kdef-findings §9.6).
 
 ## 11. Procedural Platinum baseline (`src/platinum.ts`)
 

@@ -51,6 +51,12 @@ export interface ChromeElement {
   asset: string;
   width: number;
   height: number;
+  /**
+   * Label/text anchor `[x, y]` from the element's cinf `textPixel` (TMPL
+   * 129): the coordinate the label is anchored at, and whose pixel in the
+   * cicn is the authored text color. Null when the scheme ships no cinf.
+   */
+  textAnchor?: [number, number] | null;
 }
 
 export interface Palette {
