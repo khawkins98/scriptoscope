@@ -1512,3 +1512,26 @@ its `no-title-utility` / side-utility cicn instead), skip `collapsed` variants.
 General lesson: window-type KEYS are unreliable across schemes; the cicn ASSET
 NAME (and resource id) is the stable selector — same principle as resolving
 controls by resource id, not slug.
+
+## 2026-05-21 — Diagnostic tooling: the placement map as the single source of truth
+
+To debug rendering in absolute terms (not by eyeballing screenshots), the
+compositor now records a **placement map** (`ComposedChrome.placement`): for
+every slice it draws — recipe segment or stamped widget — the cicn SOURCE rect,
+the render MODE (fixed/stretch/tile/gradient/clean/plate/stamp), the part
+code/role, and the OUTPUT rect(s) (one per tile). One data structure powers
+three tools: (1) the demo **slice inspector** — forward (click a slice → its
+usages light up) AND inverse (hover a pixel → name its slice); (2) a headless
+**render CLI** (`diag:render`) that runs the real `composeWindowChrome` in Node
+(via a minimal PNG decoder + `new PixelBuffer(w,h,rgba)`) and dumps PNG + JSON;
+(3) a headless **audit** (`diag:audit`) that checks placement invariants
+(coverage / code→mode / widget-stamping / mega-tile) and prints warnings as
+`theme · window · edge · slice`, exit-coded for CI.
+
+**The audit immediately paid for itself**: it found a real demo-theme bug (beos
+document-window's top-right gap) that screenshots had missed, and pinned it to a
+cause (recipe extent < cicn width → undrawn far corner; plus beos's trailing
+transparent cicn padding overstating `frame.right`). Lesson: once the renderer
+exposes WHY each output pixel looks the way it does (provenance), regressions
+become greppable instead of visual — and the compositor's own invariants become
+testable without a browser.
