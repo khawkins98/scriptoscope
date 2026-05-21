@@ -8,19 +8,27 @@ function partCode(slug: string): number {
 }
 
 /**
- * Grow-region (fill) part codes — segments that stretch to absorb the
- * window's extra width. Per the period authoring doc the sides are
- * "the single row or column of pixels between the grow regions."
+ * Grow-region (fill / stretch) part codes — segments that absorb the
+ * window's extra width. Per the K2 Scheme Reference (architecture-spec §3–4):
+ * **everything is "stretch" EXCEPT null (0) and the named-widget references
+ * (1–4)**. So the stretch set is 5, 6, 8, 10, 11, 15, 17, 18 (and any other
+ * code ≥5 a scheme invents). Treating only 5/6/8 as fill left evolution's p18
+ * gradient coil + 1138's p11 + 1984's p15 stamped 1:1 — they didn't absorb
+ * window growth, so the growth piled into the title region (the big dark gap
+ * after evolution's title). Code 18 specifically is the GRADIENT part (scales
+ * the section, stretching each pixel equally) — see `isGradientPart`.
  *
- * Observed vocabulary across 7 Le + ErgoBox: the divider/stripe codes
- * 5, 6, 8 are the grow regions. Everything else is fixed and stamped
- * 1:1 — including edge pieces like p10 / p4 (which carry the corner
- * border and must NOT stretch, or the black corner smears into a
- * block). The K2 Scheme Reference would give the authoritative code
- * set; revisit if a scheme reveals another grow code.
+ * Codes 0 (null → drawn as a fixed corner/anchor here) and 1–4 (baked widgets:
+ * close/zoom/shade) stay FIXED and stamped 1:1.
  */
 function isFillPart(code: number): boolean {
-  return code === 5 || code === 6 || code === 8;
+  return code >= 5;
+}
+
+/** Gradient stretch part (K2 §Window Gradients): sample-and-hold scale the
+ *  whole segment rather than tile its motif. */
+function isGradientPart(code: number): boolean {
+  return code === 18;
 }
 
 interface RecipeSegment {
@@ -329,7 +337,17 @@ function composeEdgeFromRecipe(
         if (titleStart < 0) titleStart = outPos;
         titleEnd = outPos + outLen;
       }
-      if (geo.tileMotif) {
+      if (isGradientPart(seg.code)) {
+        // GRADIENT (p18): scale the whole native segment to the output span
+        // (sample-and-hold), so the gradient stretches evenly — never tiled
+        // (which would repeat the ramp) and never a 1px column (which would
+        // flatten it). Works on either axis.
+        if (geo.horizontal) {
+          out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+        } else {
+          out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
+        }
+      } else if (geo.tileMotif) {
         // TOP edge: TILE the motif — repeat the native span 1:1 across the
         // grown output (NOT sample-and-hold, which smears a multi-px
         // pinstripe/box pattern into bands). For a 1px fill column this is
