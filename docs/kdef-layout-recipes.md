@@ -62,11 +62,15 @@ same fill code is distinguished only in the bitmap (variance + saturation).
 Fully traced; see kdef-findings §8 + §9. Recipe:
 
 - **Frame + stripe + baked widgets**: walk the `wnd#` side recipe.
-  Fixed segments (corners, edges, the `p10`/`p4` border pieces, and the
-  cicn columns that contain the close/zoom/windowshade glyphs) copy 1:1.
-  Grow segments (part codes **5/6/8**) stretch their own pixels
-  (sample-and-hold). This edge-anchors the baked widgets (left stays,
-  right shifts) as the window grows.
+  FIXED segments — null (`0`, the corner/anchor) and named widgets (`1–4`:
+  close/zoom/shade) — copy 1:1, edge-anchored (left stays, right shifts).
+  GROW segments are **every other code (`≥5`)** per the K2 vocabulary —
+  5/6/8/10/11/15/17/18 — they stretch to absorb window growth (`isFillPart =
+  code >= 5`; treating only 5/6/8 as grow left evolution's `p18` coil + 1138
+  `p11` + 1984 `p15` stamped 1:1, piling the growth into the title region).
+  **Code 18 = the GRADIENT part**: sample-and-hold *scale* the whole segment
+  (don't tile the ramp, don't flatten to 1px) — `isGradientPart`. See also
+  §11.6 for the title PLATE (a grow segment with a content-driven width).
 - **Title text** (full model in §11.6): the title sits on the **title
   PLATE** — the clean fill column in the title region — which **grows to the
   title width** (the kDEF inserts the title width at the seam; decorations
