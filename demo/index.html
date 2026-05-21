@@ -384,13 +384,17 @@
       const placement = composed.placement;
 
       const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
-      const winBox = document.createElement('div'); winBox.style.cssText = 'position:relative;flex:0 0 auto';
+      const winCol = document.createElement('div'); winCol.style.cssText = 'flex:0 0 auto';
+      const winBox = document.createElement('div'); winBox.style.cssText = 'position:relative;cursor:crosshair';
       win.style.position = 'relative';
       winBox.appendChild(win);
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
       winBox.appendChild(overlay);
-      wrap.appendChild(winBox);
+      const readout = document.createElement('div');
+      readout.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.75;margin-top:4px;min-height:13px';
+      winCol.append(winBox, readout);
+      wrap.appendChild(winCol);
 
       const cicnAsset = docWindowCicn(theme);
       let cicnImg = null;
@@ -444,7 +448,22 @@
       renderRows();
       wrap.appendChild(list);
       details.appendChild(wrap);
-      winBox.onmouseleave = () => show(sticky);
+
+      // INVERSE lookup: hover the rendered window → which slice made that pixel.
+      // Topmost (last-drawn) match wins. Lets you point at a wrong-looking spot
+      // and read off the exact slice + mode that produced it.
+      winBox.addEventListener('mousemove', (ev) => {
+        const r = winBox.getBoundingClientRect();
+        const nx = (ev.clientX - r.left) / SC, ny = (ev.clientY - r.top) / SC;
+        let hit = null;
+        for (const s of placement) for (const rc of s.rects) if (nx >= rc.x && nx < rc.x + rc.w && ny >= rc.y && ny < rc.y + rc.h) hit = s;
+        if (hit) {
+          show(hit);
+          const usage = hit.mode === 'tile' ? `tiled ×${hit.rects.length}` : hit.mode;
+          readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → ${hit.edge} p${hit.code} ${hit.role} · ${usage} · src ${hit.src.x},${hit.src.y} ${hit.src.w}×${hit.src.h}`;
+        } else { readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → (content area / no chrome slice)`; }
+      });
+      winBox.addEventListener('mouseleave', () => { show(sticky); readout.textContent = ''; });
       return details;
     }
 
