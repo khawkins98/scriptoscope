@@ -191,11 +191,17 @@ function buildBaselineWindow(
     win.setAttribute('role', utility ? 'dialog' : 'group');
     win.setAttribute('aria-label', title);
   }
+  // Explicit footprint (border-box) so callers can read the window's full size
+  // — `width`/`height` match the cicn path, e.g. the scene sizes its desk to it.
+  const fullW = contentW + 2; // 1px frame each side
+  const fullH = titleH + 1 + contentH + 2; // bar + bar border-bottom + top/bottom frame
   Object.assign(win.style, {
     position: 'relative',
     border: `1px solid ${frameC}`,
     background: fill,
     boxSizing: 'border-box',
+    width: `${fullW * scale}px`,
+    height: `${fullH * scale}px`,
   } satisfies Partial<CSSStyleDeclaration>);
 
   // titlebar: horizontal pinstripe (Platinum racing stripes) in the header
