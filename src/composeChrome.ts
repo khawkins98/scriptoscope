@@ -207,9 +207,12 @@ function composeEdgeFromRecipe(
   // Output walk-axis position starts where the recipe starts (segs are
   // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
   let outPos = segs[0]!.x0;
-  // Track the grow/fill zone's OUTPUT span — this is the region the kDEF
-  // "stretches to make room for the title" (Creating Color Schemes doc),
-  // i.e. where the title is anchored, offset per-theme by the baked widgets.
+  // Track the grow/fill zone's OUTPUT span (first fill → last fill) — exposed
+  // as titleRegion for diagnostics + future anchor work. NOTE: the title is
+  // NOT reliably centered here (tested: neither this span nor the widest grow
+  // segment matches the references) — title position is anchor-driven, see the
+  // title-placement findings (kdef-layout-recipes §11.5). renderWindow centers
+  // on the bar by default.
   let growStart = -1;
   let growEnd = -1;
 
