@@ -8,21 +8,27 @@ function partCode(slug: string): number {
 }
 
 /**
- * Grow-region (fill / stretch) part codes — segments that absorb the
- * window's extra width. Per the K2 Scheme Reference (architecture-spec §3–4):
- * **everything is "stretch" EXCEPT null (0) and the named-widget references
- * (1–4)**. So the stretch set is 5, 6, 8, 10, 11, 15, 17, 18 (and any other
- * code ≥5 a scheme invents). Treating only 5/6/8 as fill left evolution's p18
- * gradient coil + 1138's p11 + 1984's p15 stamped 1:1 — they didn't absorb
- * window growth, so the growth piled into the title region (the big dark gap
- * after evolution's title). Code 18 specifically is the GRADIENT part (scales
- * the section, stretching each pixel equally) — see `isGradientPart`.
+ * Grow-region (fill / stretch) part codes — segments that absorb the window's
+ * extra width by stretching.
  *
- * Codes 0 (null → drawn as a fixed corner/anchor here) and 1–4 (baked widgets:
- * close/zoom/shade) stay FIXED and stamped 1:1.
+ * K2 (architecture-spec §3–4) says "everything is stretch except null (0) and
+ * named widgets (1–4)" — i.e. 5/6/8/10/11/15/17/18. But that assumes the kDEF
+ * stamps the rectList widgets SEPARATELY on top; we render each recipe segment
+ * straight from the cicn, so a segment carrying baked widget/corner art (which
+ * 10/11/15/17 routinely do in title bars — e.g. 1138's utility window codes
+ * `p15`/`p16` ARE the close/zoom boxes, `p10` is the right corner) would SMEAR
+ * if stretched. So our reliable background-fill set is {5, 6, 8, 18}:
+ *   - 5/6 = the title "divider sandwich" (the title plate lives here).
+ *   - 8   = universal stretch fill (side pinstripe/panels).
+ *   - 18  = GRADIENT (sample-and-hold scale — see `isGradientPart`); evolution's
+ *           coil needs this or window growth piles into the title region.
+ * 10/11/15/17 stay FIXED (stamped 1:1) along with 0 (corner/anchor) and the
+ * widgets (1–4). Revisit only if a scheme needs one to stretch — which would
+ * mean modelling the rectList widget-stamp pass so the background can stretch
+ * underneath.
  */
 function isFillPart(code: number): boolean {
-  return code >= 5;
+  return code === 5 || code === 6 || code === 8 || code === 18;
 }
 
 /** Gradient stretch part (K2 §Window Gradients): sample-and-hold scale the
