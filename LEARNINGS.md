@@ -1480,15 +1480,23 @@ answer needs the recipe AND the pixels AND the content size.
 Two more "general detection, not per-theme overrides" wins, both from reading
 the K2 vocabulary instead of hand-patching.
 
-**The stretch set is `code ≥ 5`, not just 5/6/8.** Per K2 (architecture-spec
-§3–4) *everything* is stretch fill EXCEPT null (`0`, drawn here as a fixed
-corner/anchor) and the named widgets (`1–4`, baked close/zoom/shade). We'd
-hard-coded 5/6/8, so evolution's `p18` gradient coil, 1138's `p11`, and 1984's
-`p15` were stamped 1:1 — they absorbed no window growth, so the growth piled
-into the title region (evolution's big dark gap after the title). `isFillPart`
-is now `code >= 5`. **Code 18 is the GRADIENT part** (K2 §Window Gradients):
-scale the whole segment sample-and-hold, NOT tile (which repeats the ramp) and
-NOT a 1px column (which flattens it) — `isGradientPart` + a dedicated branch.
+**The stretch set is `{5,6,8,18}` — wider than 5/6/8, but NARROWER than the
+full K2 `≥5`.** Evolution's `p18` gradient coil was stamped 1:1 (absorbed no
+growth → the big dark gap after its title), so add **18 = the GRADIENT part**
+(K2 §Window Gradients): sample-and-hold *scale* the whole segment, NOT tile
+(repeats the ramp) and NOT a 1px column (flattens it) — `isGradientPart` + a
+dedicated branch. BUT the full K2 rule ("everything but null(0)+widgets(1–4) is
+stretch" = 5/6/8/10/11/15/17/18) over-reaches: K2 assumes the kDEF stamps the
+rectList widgets SEPARATELY on top, while we render each recipe segment straight
+from the cicn. Codes 10/11/15/17 routinely carry baked widget/corner art in
+title bars — 1138's utility window `p15`/`p16` ARE the close/zoom boxes, `p10`
+the right corner — and stretching those smears them (the "mini-window border
+glitches"). So `isFillPart = code∈{5,6,8,18}`; 10/11/15/17 stay fixed. The
+honest fix for the full set is to model the rectList widget-stamp pass first,
+then the background under the widgets could stretch. **Meta-lesson: a documented
+spec rule ("everything ≥5 is stretch") can be right about the FORMAT yet wrong
+for our PIPELINE — we collapsed two kDEF passes (stretch bg + stamp widgets)
+into one recipe walk, so we must keep widget-bearing codes fixed.**
 
 **Mini/utility windows: resolve by the CHROME CICN ASSET NAME, not the type
 key.** The Options dialog was rendering with the document window's edges. Cause:

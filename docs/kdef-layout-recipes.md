@@ -62,15 +62,22 @@ same fill code is distinguished only in the bitmap (variance + saturation).
 Fully traced; see kdef-findings §8 + §9. Recipe:
 
 - **Frame + stripe + baked widgets**: walk the `wnd#` side recipe.
-  FIXED segments — null (`0`, the corner/anchor) and named widgets (`1–4`:
-  close/zoom/shade) — copy 1:1, edge-anchored (left stays, right shifts).
-  GROW segments are **every other code (`≥5`)** per the K2 vocabulary —
-  5/6/8/10/11/15/17/18 — they stretch to absorb window growth (`isFillPart =
-  code >= 5`; treating only 5/6/8 as grow left evolution's `p18` coil + 1138
-  `p11` + 1984 `p15` stamped 1:1, piling the growth into the title region).
-  **Code 18 = the GRADIENT part**: sample-and-hold *scale* the whole segment
-  (don't tile the ramp, don't flatten to 1px) — `isGradientPart`. See also
-  §11.6 for the title PLATE (a grow segment with a content-driven width).
+  GROW (stretch) segments = **{5, 6, 8, 18}**: title sandwich (5/6),
+  universal fill (8), gradient (18). Everything else copies 1:1, edge-anchored
+  (left stays, right shifts). **Code 18 = the GRADIENT part**: sample-and-hold
+  *scale* the whole segment (don't tile the ramp, don't flatten to 1px) —
+  `isGradientPart`; evolution's coil needs this or window growth piles into the
+  title region.
+  - **Why not the full K2 set (5/6/8/10/11/15/17/18)?** K2 says everything but
+    null(0)+widgets(1–4) is stretch — but that assumes the kDEF stamps the
+    rectList widgets SEPARATELY on top. We render each recipe segment straight
+    from the cicn, and 10/11/15/17 routinely carry baked widget/corner art in
+    title bars (1138's utility `p15`/`p16` ARE the close/zoom boxes, `p10` the
+    right corner). Stretching those smears them ("mini-window border glitches").
+    So those codes stay FIXED. Revisit only by modelling the separate rectList
+    widget-stamp pass (then the background underneath could stretch).
+  - See §11.6 for the title PLATE (a 5/6 grow segment with a content-driven
+    width).
 - **Title text** (full model in §11.6): the title sits on the **title
   PLATE** — the clean fill column in the title region — which **grows to the
   title width** (the kDEF inserts the title width at the seam; decorations
