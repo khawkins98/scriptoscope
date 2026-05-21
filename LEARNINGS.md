@@ -1480,23 +1480,24 @@ answer needs the recipe AND the pixels AND the content size.
 Two more "general detection, not per-theme overrides" wins, both from reading
 the K2 vocabulary instead of hand-patching.
 
-**The stretch set is `{5,6,8,18}` — wider than 5/6/8, but NARROWER than the
-full K2 `≥5`.** Evolution's `p18` gradient coil was stamped 1:1 (absorbed no
-growth → the big dark gap after its title), so add **18 = the GRADIENT part**
-(K2 §Window Gradients): sample-and-hold *scale* the whole segment, NOT tile
-(repeats the ramp) and NOT a 1px column (flattens it) — `isGradientPart` + a
-dedicated branch. BUT the full K2 rule ("everything but null(0)+widgets(1–4) is
-stretch" = 5/6/8/10/11/15/17/18) over-reaches: K2 assumes the kDEF stamps the
-rectList widgets SEPARATELY on top, while we render each recipe segment straight
-from the cicn. Codes 10/11/15/17 routinely carry baked widget/corner art in
-title bars — 1138's utility window `p15`/`p16` ARE the close/zoom boxes, `p10`
-the right corner — and stretching those smears them (the "mini-window border
-glitches"). So `isFillPart = code∈{5,6,8,18}`; 10/11/15/17 stay fixed. The
-honest fix for the full set is to model the rectList widget-stamp pass first,
-then the background under the widgets could stretch. **Meta-lesson: a documented
-spec rule ("everything ≥5 is stretch") can be right about the FORMAT yet wrong
-for our PIPELINE — we collapsed two kDEF passes (stretch bg + stamp widgets)
-into one recipe walk, so we must keep widget-bearing codes fixed.**
+**Windows render in TWO passes; the stretch set is the full K2 `code ≥ 5`.**
+(Supersedes an earlier `{5,6,8,18}` workaround.) The kDEF draws a window frame
+in two passes: **(1)** stretch/tile the background from the side recipes, **(2)**
+stamp the rectList widgets (close/zoom/collapse boxes) at native size on top.
+We had only pass 1 — walking the recipe and reading widget art inline from the
+cicn — so a fill segment carrying a baked widget either *tiled it into
+duplicates* (1138 doc window's zoom cluster sits inside the `p8` side fill → two
+copies) or, with the `{5,6,8,18}` workaround, forced widget-bearing codes
+(10/11/15/17) to stay fixed and stopped backgrounds stretching. Now
+`composeWindowChrome`: runs `isFillPart = code ≥ 5` (full K2); in the recipe
+walk a fill segment overlapping a **rectList widget rect** renders CLEAN
+background (the fill column, not its own art) so the baked widget isn't
+tiled/smeared; records each segment's native→output placement; then pass 2
+stamps each top-band widget once at its growth-mapped position. Code 18 is still
+the GRADIENT part (`isGradientPart`: sample-and-hold scale, not tile/flatten).
+**Meta-lesson: a documented spec rule ("everything ≥5 is stretch") was right
+about the FORMAT but failed in our PIPELINE until we matched the kDEF's pass
+structure — the fix was to add the missing pass, not to narrow the rule.**
 
 **Mini/utility windows: resolve by the CHROME CICN ASSET NAME, not the type
 key.** The Options dialog was rendering with the document window's edges. Cause:
