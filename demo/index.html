@@ -115,6 +115,34 @@
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
     };
 
+    // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/). Pick the
+    // first few "object" icons (32px, not full-bleed scheme logos) as Finder
+    // content. Cached per theme; returns [] when a scheme ships no icons
+    // (→ the SVG folders are used instead).
+    const _iconCache = new Map();
+    async function schemeIcons(theme, n) {
+      if (!_iconCache.has(theme.baseUrl)) {
+        _iconCache.set(theme.baseUrl, (async () => {
+          try {
+            const r = await fetch(`${theme.baseUrl}/icons/index.json`);
+            if (!r.ok) return [];
+            const idx = await r.json();
+            return idx
+              .filter((i) => i.type === 'icl4' && i.coverage > 0.18 && i.coverage < 0.95)
+              .slice(0, 8);
+          } catch { return []; }
+        })());
+      }
+      const list = await _iconCache.get(theme.baseUrl);
+      return list.slice(0, n).map((i) => {
+        const img = document.createElement('img');
+        img.src = `${theme.baseUrl}/icons/${i.file}`;
+        img.title = `${i.type} ${i.id} — scheme icon`;
+        Object.assign(img.style, { width: '28px', height: '28px', imageRendering: 'pixelated', display: 'block' });
+        return img;
+      });
+    }
+
     // A segmented TAB control (e.g. On | Off), tinted with the scheme's
     // header colors. Selected cell uses the header fill/text; others a light
     // Platinum face. Reads as tabs rather than two separate push buttons.
@@ -192,12 +220,18 @@
         info.textContent = theme.manifest?.name ?? '';
         Object.assign(info.style, { position: 'absolute', left: '0', top: '0', right: '0', height: '13px', boxSizing: 'border-box', padding: '1px 4px', borderBottom: '1px solid #aaa', background: '#e6e6e6', font: '9px Charcoal, Geneva, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden' });
         content.appendChild(info);
-        // two folder icons
+        // content icons — the scheme's OWN icons where it ships them, else
+        // the neutral folder SVGs.
         const folders = document.createElement('div');
         Object.assign(folders.style, { position: 'absolute', left: '8px', top: '18px', display: 'flex', gap: '10px' });
-        const f1 = document.createElement('div'); f1.innerHTML = ICON_SVG.folderOpen;
-        const f2 = document.createElement('div'); f2.innerHTML = ICON_SVG.folder;
-        folders.append(f1.firstChild, f2.firstChild);
+        const icons = await schemeIcons(theme, 2);
+        if (icons.length) {
+          icons.forEach((ic) => folders.appendChild(ic));
+        } else {
+          const f1 = document.createElement('div'); f1.innerHTML = ICON_SVG.folderOpen;
+          const f2 = document.createElement('div'); f2.innerHTML = ICON_SVG.folder;
+          folders.append(f1.firstChild, f2.firstChild);
+        }
         content.appendChild(folders);
         // radio / checkbox control row
         const chk = (kind, o) => checkableEl(theme, kind, '', o);
