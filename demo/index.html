@@ -217,6 +217,46 @@
       return desk;
     }
 
+    // Per-theme diagnostic: the top-edge recipe as a color-coded strip, so we
+    // can SEE each segment's part-code role (corner / border / widget / the
+    // p5/p6 "title region" / p8 fill) and where the title region sits.
+    function diagnosticStrip(theme) {
+      const ROLE = { 0: ['#cfcfcf', 'corner'], 1: ['#9a9a9a', 'border'], 2: ['#dd3366', 'close'], 3: ['#dd8800', 'zoom'], 4: ['#33aa88', 'shade'], 5: ['#3cb043', 'TITLE'], 6: ['#3cb043', 'TITLE'], 8: ['#3f7fd0', 'fill'], 10: ['#aa00aa', 'piece'] };
+      const pc = (s) => { const m = /^part-(\d+)$/.exec(s || ''); return m ? +m[1] : -1; };
+      const wrap = document.createElement('div');
+      Object.assign(wrap.style, { margin: '8px 0 0', font: '10px ui-monospace, Menlo, monospace', color: '#333' });
+      const wts = theme.manifest.windowTypes || {};
+      const wt = wts['document-window'] || Object.values(wts).find((w) => w.edges && w.edges.top && w.edges.top.length);
+      const hd = document.createElement('div'); hd.style.cssText = 'opacity:.6;text-transform:uppercase;letter-spacing:.05em;font-size:9px;font-weight:700';
+      hd.textContent = 'window geometry — top-edge recipe (part roles)';
+      wrap.appendChild(hd);
+      if (!wt || !wt.edges || !wt.edges.top || !wt.edges.top.length) {
+        const e = document.createElement('div'); e.textContent = '(no wnd# recipe — default/baseline window)'; e.style.opacity = '.6'; wrap.appendChild(e); return wrap;
+      }
+      const ce = Object.values(theme.manifest.chromeElements || {}).find((v) => v.asset === wt.chrome.active);
+      const cicnW = ce ? ce.width : 100;
+      const SC = 3;
+      const top = [...wt.edges.top].sort((a, b) => a.at - b.at);
+      const lastAt = Math.max(...top.map((s) => s.at));
+      const bar = document.createElement('div');
+      Object.assign(bar.style, { display: 'flex', width: `${cicnW * SC}px`, height: '20px', border: '1px solid #888', boxSizing: 'border-box', marginTop: '3px' });
+      for (let i = 0; i < top.length; i++) {
+        const x0 = top[i].at, x1 = i + 1 < top.length ? top[i + 1].at : lastAt, w = x1 - x0;
+        if (w <= 0) continue;
+        const code = pc(top[i].part), role = ROLE[code] || ['#ffaa00', 'p' + code];
+        const seg = document.createElement('div');
+        Object.assign(seg.style, { width: `${w * SC}px`, background: role[0], borderRight: '1px solid rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '8px', overflow: 'hidden' });
+        seg.textContent = String(code); seg.title = `${role[1]} — part code ${code}, cicn x${x0}–${x1} (${w}px)`;
+        bar.appendChild(seg);
+      }
+      wrap.appendChild(bar);
+      const leg = document.createElement('div'); leg.style.cssText = 'margin-top:3px;font-size:9px';
+      leg.innerHTML = [['TITLE (p5/p6)', '#3cb043'], ['fill (p8)', '#3f7fd0'], ['corner (p0)', '#cfcfcf'], ['border (p1)', '#9a9a9a'], ['widget (p2/3/4)', '#dd8800']]
+        .map(([k, c]) => `<span style="display:inline-block;width:9px;height:9px;background:${c};vertical-align:middle;margin:0 3px 0 8px;border:1px solid #aaa"></span>${k}`).join('');
+      wrap.appendChild(leg);
+      return wrap;
+    }
+
     // Procedural Platinum baseline showcase — the gray fallback chrome a
     // cicn-less scheme inherits. Exercises platinumScrollbar/Button/etc.
     {
@@ -288,6 +328,7 @@
         row.appendChild(c);
       }
 
+      section.appendChild(diagnosticStrip(theme));
       rows.appendChild(section);
     }
   </script>
