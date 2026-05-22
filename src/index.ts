@@ -20,6 +20,7 @@ export type {
   Rect,
   WindowPart,
   WindowType,
+  WindowCinf,
   ChromeElement,
   Palette,
   ThemeManifest,
@@ -58,8 +59,6 @@ export {
 export {
   composeWindowChrome,
   frameFromBody,
-  titlebarSeam,
-  findStripeColumn,
   partRole,
   type Frame,
   type ComposedChrome,

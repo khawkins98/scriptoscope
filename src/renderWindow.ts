@@ -59,35 +59,51 @@ export async function renderWindow(
   const isUtility = /utility|mini|floating|palette/.test(slug);
   const showTitle = !!title && !isUtility;
 
-  // ── title geometry: the kDEF inserts the title's width at the title seam,
-  // so we rasterize the title FIRST (the glyph width sets how far the plate
-  // grows), then compose the chrome with that plate width. The plate slice
-  // stretches to fit the title, pushing the decorations + side fill right;
-  // the title then sits on the clean stretched plate with a TRANSPARENT
-  // background (no erase box). ──
+  // ── title geometry: the title TEXT is a CENTRED part, independent of the
+  // frame growth (kDEF placement mode 0). We rasterize it and stamp it centred
+  // on the window content centre; the chrome itself is composed by the
+  // part-code recipe walk (the title bezel cells 5/6 hold the centred text). ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
-  const pad = 4;
   let glyphs: PixelBuffer | null = null;
-  let plateWidth = 0;
   let textH = 0;
   if (showTitle && frameTop > 6) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     glyphs = rasterizeText(title, textH, '#000000'); // width pass; recoloured below
-    plateWidth = glyphs.width + pad * 2;
   }
 
-  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { titlePlateWidth: plateWidth });
+  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null });
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour: the scheme's DECLARED header text colour (from the
-    // -14335/-14336 clut), else contrast against the composed plate.
+    // Title colour, in spec priority order: (1) the cicn text-colour MARKER —
+    // the pixel at the cinf textPixel / the ≤2px rect-list marker column, which
+    // IS the authored title-text colour (white for evolution, blue for 1984);
+    // (2) the scheme's declared header text colour (the -14335/-14336 clut);
+    // (3) a luminance-picked b/w contrast against the bar.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
     const tr = composed.titleRegion;
-    let fgHex: string;
-    if (hc.text) {
+    let fgHex: string | null = null;
+    if (composed.titleFillSrcX >= 0) {
+      // Sample the brightest opaque pixel near the marker column in the cicn —
+      // the authored text-colour pixel (markers are a 1–2px coloured line).
+      const mx = composed.titleFillSrcX;
+      let best: [number, number, number] | null = null;
+      let bestScore = -1;
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let y = 1; y < frame.top - 1; y++) {
+          const [r, g2, b, a] = cicn.getPixel(mx + dx, y);
+          if (a < 200) continue;
+          // prefer the most saturated / extreme pixel (the colour signal)
+          const mxc = Math.max(r, g2, b), mnc = Math.min(r, g2, b);
+          const score = (mxc - mnc) + Math.abs(128 - (r + g2 + b) / 3);
+          if (score > bestScore) { bestScore = score; best = [r, g2, b]; }
+        }
+      }
+      if (best) fgHex = `#${best.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+    }
+    if (!fgHex && hc.text) {
       fgHex = hc.text;
-    } else {
+    } else if (!fgHex) {
       const [er, eg, eb] = dominantColor(composed.buffer, { x: tr.x, y: 1, w: Math.max(1, tr.w), h: frame.top - 2 });
       const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
       fgHex = lum < 128 ? '#ffffff' : '#000000';

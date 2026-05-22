@@ -34,6 +34,28 @@ export interface WindowEdges {
   right: EdgeStep[];
 }
 
+/**
+ * The window-frame `cinf` (Color INFo) geometry the kDEF reads alongside
+ * the `wnd#` recipe + cicn. `tileSides` gates the per-cell fill draw
+ * (0 = stretch, 1 = tile/repeat per the cicn cell size). `cornerSize` /
+ * `sideThickness` describe the fixed corner block and frame thickness.
+ * `textPixel` is the cicn coordinate whose colour is the title-text colour.
+ *
+ * NOTE: in the bundled corpus NO scheme ships a cinf for the document
+ * window itself (the cinf resources are all menu/button/slider/tab/dialog
+ * elements). When a window has no cinf this is `null` and the compositor
+ * uses tileSides=0 (stretch), the recipe's own corner cells, and the
+ * declared header text colour. See compositor-spec.md "known gaps".
+ */
+export interface WindowCinf {
+  cornerSize: number;
+  sideThickness: number;
+  /** 0 = stretch the fill cells, 1 = tile (repeat at the cicn cell size). */
+  tileSides: number;
+  /** cicn [x, y] whose pixel colour is the authored title-text colour. */
+  textPixel?: [number, number] | null;
+}
+
 export interface WindowType {
   /** State → relative path of the chrome cicn for that state. */
   chrome: Partial<Record<WindowState, string>>;
@@ -45,6 +67,13 @@ export interface WindowType {
   parts: Record<string, WindowPart>;
   /** Per-edge fill recipe (the wnd# side lists). */
   edges?: WindowEdges;
+  /**
+   * The window-frame cinf geometry, when the scheme ships one paired with
+   * this window type's cicn family. Null/absent for every scheme in the
+   * bundled corpus (windows have no dedicated cinf) → compositor defaults
+   * to stretch (tileSides=0). See WindowCinf.
+   */
+  cinf?: WindowCinf | null;
 }
 
 export interface ChromeElement {
