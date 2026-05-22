@@ -86,6 +86,28 @@ the bar fill here, or a mis-coalesced motif? Likely benign.
 
 ---
 
+## Update 2026-05-22 (pm) — width-based stretch/fixed rule (the big one)
+
+Replaced the tile-vs-stretch heuristics (`tileMotif`, body-boundary corner
+pinning) with the authoritative WIDTH rule from Kaleidoscope's `Creating Color
+Schemes` doc (see kdef-disassembly-findings §8.6): a grow region is a "single
+row or column of pixels", so **thin (≤2px) segments STRETCH and any wider
+segment is STATIC art drawn ONCE (fixed)** — regardless of part code (in
+decorated schemes `p8` is the WIDE static art and `p1` is the THIN grow column,
+the inverse of the simple corpus). **Document windows never tile.**
+
+Fixes the whole class the user kept flagging: 1990's star/"1990"/camo no longer
+repeat, 1984's bottom button cluster draws once (anchored right) with the 1px
+slice stretching to fill the gap. `diag:audit`: 1138/1984/1990/evolution
+document-windows all clean. The audit's old `p1 widget-ref stretched` and
+mega-tile checks were retired (a thin `p1` stretching is now correct; tiling
+never happens) and a `tile should never happen` check added.
+
+Residual warnings (12, all NON-document / not demo-visible): utility/dialog/
+popup coverage stops short (far-corner class), evolution utility gradient-as-
+plate, `wnd--14296` side-edge widget not stamped. Deferred: utility-window
+racing-stripe TILING (the doc's one tiling exception).
+
 ## Update 2026-05-22 — corner findings + an extractor regression
 
 - **1990 bottom corners (RESOLVED):** the reported missing corners were a stale

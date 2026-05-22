@@ -29,6 +29,18 @@ function isGradientPart(code: number): boolean {
   return code === 18;
 }
 
+/**
+ * Max width (px) of a GROW column. Kaleidoscope's "Creating Color Schemes"
+ * authoring doc: the kDEF draws an edge by drawing the corners, then
+ * "stretches the single row or column of pixels between the various grow
+ * regions to draw the sides." So a grow region is ~1px; we allow ≤2 for
+ * authored 2px seams. ANY segment wider than this is STATIC art (a corner,
+ * a baked widget cluster, a decoration, a button row) and is drawn ONCE at
+ * native size — never stretched or tiled, which would smear/repeat it.
+ * (The lone exception is a p18 gradient, which is wide but scales smoothly.)
+ */
+const STRETCH_MAX = 2;
+
 interface RecipeSegment {
   /** cicn source span along the edge axis. */
   x0: number;
@@ -159,31 +171,13 @@ interface EdgeGeometry {
    */
   extra: number;
   /**
-   * Top edge ONLY: TILE the grow motif (repeat the native span 1:1) so a
-   * multi-px titlebar pinstripe/box pattern reproduces correctly. The
-   * SIDES and BOTTOM instead stretch the single row/column "between the
-   * grow regions" (§8.1) — sample-and-hold one mid-line across the whole
-   * grow span. Tiling a multi-px side fill (e.g. BeOS's 5px slice) repeats
-   * its notch into railroad ticks; stretching one line gives a smooth border.
-   */
-  tileMotif: boolean;
-  /**
    * Top edge only: desired OUTPUT width of the title plate. The kDEF inserts
    * the title's width at the title seam — so the plate segment grows to this
    * width (pushing the decorations + side fill right), and the rest of the
-   * window growth goes to the other fill segments. 0 = no title (plate stays
-   * native, growth distributes evenly as before).
+   * window growth goes to the other grow columns. 0 = no title (plate stays
+   * native, growth distributes across the grow columns as before).
    */
   plateWidth: number;
-  /**
-   * Body span on the WALK axis (`bl..br` for top/bottom, `bt..bb` for
-   * left/right). Fill segments lying entirely OUTSIDE this span are corner
-   * pieces (e.g. 1990's bottom-right star at cicn x≥br): they render FIXED at
-   * native size, anchored to their end, instead of growing/tiling — which
-   * would repeat the corner art.
-   */
-  bodyLo: number;
-  bodyHi: number;
   /**
    * Native walk-axis spans `[start, end]` of the rectList WIDGETS on this edge
    * (close/zoom/collapse boxes). A fill segment overlapping one is rendered as
@@ -219,14 +213,19 @@ interface PlacedSegment {
  * frame-draw (kdef-disassembly-findings §8, §9.5; kdef-layout-recipes §1).
  *
  * The recipe partitions the cicn edge into segments at the `at` offsets.
- * Each segment is a `CopyBits` from its own cicn span:
- *   - FIXED segments (corners, edges, baked-in widget columns, border
- *     pieces — any part code NOT in the grow set) copy 1:1, so they keep
- *     their native size and stay anchored to their end of the window as
- *     it grows.
- *   - GROW segments (the "single row/column between grow regions" — part
- *     codes 5/6/8) stretch their own pixels via sample-and-hold to
- *     absorb `geo.extra`, split proportionally to native length.
+ * Each segment is a `CopyBits` from its own cicn span. Behaviour is decided
+ * by the segment's WIDTH, per Kaleidoscope's "Creating Color Schemes" doc
+ * ("draws the corners, then stretches the single row or column of pixels
+ * between the various grow regions"):
+ *   - FIXED segments (corners, AND any segment wider than STRETCH_MAX —
+ *     baked widget clusters, button rows, decorations) copy 1:1, keeping
+ *     their native size and staying anchored to their end as the window
+ *     grows. Wide art is drawn ONCE, never repeated or smeared.
+ *   - GROW columns (thin, ≤STRETCH_MAX px — the "single row/column between
+ *     the grow regions") sample-and-hold one column to absorb `geo.extra`,
+ *     split proportionally to native length.
+ *   - GRADIENT (p18) is the one wide segment that grows: sampled-and-held
+ *     across its output span so the ramp scales smoothly.
  *
  * Output position starts at the recipe's first `at` (positions before
  * the body map 1:1, so output-pos == cicn-pos there) and accumulates as
@@ -290,69 +289,63 @@ function composeEdgeFromRecipe(
   }
   const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
-  // Coalesce adjacent grow segments into one block. The recipe fragments
-  // the fill zone into several 1–3px sub-segments (part 5/6/8), but it is
-  // one continuous repeating-background region (the titlebar pinstripe /
-  // motif). Keeping it whole lets us TILE its motif as a unit rather than
-  // stretch each sub-segment, which is what gives correct repetition. The
-  // plate segment is kept STANDALONE (never merged) so it can grow alone.
-  const segs: RecipeSegment[] = [];
-  for (const s of raw) {
-    const isPlate = usePlate && s.x0 === plateX0 && s.x1 === plateX1;
-    const prev = segs[segs.length - 1];
-    if (prev && prev.fill && s.fill && prev.x1 === s.x0 && !prev.isPlate && !isPlate) prev.x1 = s.x1;
-    else segs.push({ ...s, isPlate });
-  }
+  // Segments stand ALONE — no coalescing. The kDEF draws each recipe segment
+  // independently, and a segment's WIDTH decides its behaviour (see STRETCH_MAX
+  // and composeEdgeFromRecipe's header). Coalescing adjacent fills into one
+  // wide block would mis-classify thin grow columns as wide static art.
+  const segs: RecipeSegment[] = raw.map((s) => ({
+    ...s,
+    isPlate: usePlate && s.x0 === plateX0 && s.x1 === plateX1,
+  }));
 
-  // CORNER pieces: a fill segment lying entirely OUTSIDE the body span on the
-  // walk axis is a corner/decoration (1990's bottom-right star at cicn x≥br),
-  // not stretchable fill. Render it FIXED at native size so growing/tiling
-  // doesn't repeat the corner art — but ONLY when OTHER fill remains inside the
-  // body to absorb the growth, or coverage breaks (BeOS's only bottom fill is
-  // p18 sitting at x=br; it must keep stretching). Plate is always inside.
-  // (gradients are exempt — they scale smoothly with no repeat, so a gradient
-  // corner stays a gradient rather than being pinned.)
-  const innerFill = segs.some((s) => s.fill && !s.isPlate && s.x0 < geo.bodyHi && s.x1 > geo.bodyLo);
-  if (innerFill) {
-    for (const s of segs) {
-      if (s.fill && !s.isPlate && !isGradientPart(s.code) && (s.x0 >= geo.bodyHi || s.x1 <= geo.bodyLo)) s.fill = false;
-    }
-  }
+  // Per-segment growth behaviour, by WIDTH (Kaleidoscope's authoring doc):
+  //   plate    — the title grow column (grows to the title width)
+  //   gradient — p18: wide but scales smoothly (sample-and-hold whole segment)
+  //   stretch  — a thin (≤STRETCH_MAX) grow column between static pieces
+  //   fixed    — a corner OR any wide segment: STATIC art, drawn once, anchored
+  type GrowMode = 'plate' | 'gradient' | 'stretch' | 'fixed';
+  const growModeOf = (s: RecipeSegment): GrowMode => {
+    if (s.isPlate) return 'plate';
+    if (isGradientPart(s.code)) return 'gradient';
+    if (s.code !== 0 && s.x1 - s.x0 <= STRETCH_MAX) return 'stretch';
+    return 'fixed';
+  };
+  const modes = segs.map(growModeOf);
+  const isGrow = (m: GrowMode) => m !== 'fixed';
 
-  // No-fill fallback: some edges (e.g. BeOS's bottom `0 1 18 1`) ship no
-  // grow code (5/6/8) at all, so nothing would stretch and the edge stops
-  // at its native length — leaving the rest of a wider window uncovered.
-  // Designate the widest interior, non-corner (code≠0) segment as the
-  // stretch zone so the edge spans the full window; the trailing caps
-  // (e.g. a bottom-right resize box) stay anchored to their end.
-  if (geo.extra > 0 && !segs.some((s) => s.fill)) {
-    let widest = -1;
-    let widestLen = 0;
-    for (let i = 0; i < segs.length; i++) {
-      const s = segs[i]!;
-      if (s.code === 0) continue; // corners stay fixed
+  // Coverage fallback: a recipe of only wide static segments + corners has no
+  // thin grow column, so nothing would absorb the window's extra width and the
+  // edge would stop short. Promote the THINNEST interior (non-corner) segment
+  // to a grow column so the edge spans the full width; the wide caps stay
+  // anchored to their ends.
+  if (geo.extra > 0 && !modes.some(isGrow)) {
+    let pick = -1, pickLen = Infinity;
+    segs.forEach((s, i) => {
       const len = s.x1 - s.x0;
-      if (len > widestLen) { widestLen = len; widest = i; }
-    }
-    if (widest >= 0) segs[widest]!.fill = true;
+      if (s.code !== 0 && len < pickLen) { pickLen = len; pick = i; }
+    });
+    if (pick >= 0) modes[pick] = 'stretch';
   }
 
   // Growth budget: the plate first absorbs (titleWidth − its native), clamped
-  // to the window's total extra; the REST distributes across the other fill
-  // segments. (When there's no plate this is the plain even distribution.)
-  const plateSeg = segs.find((s) => s.isPlate);
-  const plateNative = plateSeg ? plateSeg.x1 - plateSeg.x0 : 0;
-  const plateExtra = plateSeg ? Math.max(0, Math.min(geo.plateWidth - plateNative, Math.max(0, geo.extra))) : 0;
+  // to the window's total extra; the REST distributes across the grow columns
+  // (+ any gradient) proportional to native length.
+  const plateIdx = modes.indexOf('plate');
+  const plateNative = plateIdx >= 0 ? segs[plateIdx]!.x1 - segs[plateIdx]!.x0 : 0;
+  const plateExtra = plateIdx >= 0
+    ? Math.max(0, Math.min(geo.plateWidth - plateNative, Math.max(0, geo.extra)))
+    : 0;
   const otherExtra = Math.max(0, geo.extra - plateExtra);
-  const totalGrowNative = segs.reduce((s, g) => (g.fill && !g.isPlate ? s + (g.x1 - g.x0) : s), 0);
-  let growsLeft = segs.filter((g) => g.fill && !g.isPlate).length;
+  let totalGrowNative = 0;
+  segs.forEach((s, i) => { if (modes[i] === 'stretch' || modes[i] === 'gradient') totalGrowNative += s.x1 - s.x0; });
+  let growsLeft = modes.filter((m) => m === 'stretch' || m === 'gradient').length;
   let extraRem = otherExtra;
 
   // Output walk-axis position starts where the recipe starts (segs are
   // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
   let outPos = segs[0]!.x0;
   // TITLE REGION output span: the plate's span when we grow one, else the
-  // p5/p6 fill span, else the whole fill span. The title centres here.
+  // p5/p6 grow span, else the whole grow span. The title centres here.
   let plateStart = -1, plateEnd = -1;
   let titleStart = -1, titleEnd = -1;
   let growStart = -1, growEnd = -1;
@@ -364,13 +357,16 @@ function composeEdgeFromRecipe(
   const outRect = (a: number, len: number): PixRectXY =>
     geo.horizontal ? { x: a, y: geo.crossDst, w: len, h: geo.crossLen } : { x: geo.crossDst, y: a, w: geo.crossLen, h: len };
 
-  for (const seg of segs) {
+  for (let i = 0; i < segs.length; i++) {
+    const seg = segs[i]!;
+    const gm = modes[i]!;
     const nativeLen = seg.x1 - seg.x0;
     let outLen = nativeLen;
     let mode: SliceMode;
     let src: PixRectXY;
     const rects: PixRectXY[] = [];
-    if (seg.isPlate) {
+
+    if (gm === 'plate') {
       // The title plate: grows to the title width and renders as the single
       // clean plate column stretched (sample-and-hold) — a uniform plate the
       // title sits on, decorations pushed right.
@@ -382,8 +378,9 @@ function composeEdgeFromRecipe(
       outPos += outLen;
       continue;
     }
-    if (seg.fill) {
-      // last grow segment soaks up the rounding remainder so edges tile exactly
+
+    if (gm === 'gradient' || gm === 'stretch') {
+      // last grow segment soaks up the rounding remainder so edges meet exactly
       const share =
         growsLeft === 1
           ? extraRem
@@ -399,40 +396,26 @@ function composeEdgeFromRecipe(
         if (titleStart < 0) titleStart = outPos;
         titleEnd = outPos + outLen;
       }
-      if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
-        // A fill segment OVER a rectList widget: render clean background (the
-        // fill column) instead of the segment's own art, so the baked widget
-        // isn't tiled/smeared. The widget is stamped once on top in pass 2.
-        out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
-        mode = 'clean'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
-      } else if (isGradientPart(seg.code)) {
+      if (gm === 'gradient') {
         // GRADIENT (p18): scale the whole native segment to the output span
-        // (sample-and-hold), so the gradient stretches evenly — never tiled
-        // (which would repeat the ramp) and never a 1px column (which would
-        // flatten it). Works on either axis.
+        // (sample-and-hold), so the ramp stretches evenly — never a 1px column
+        // (which would flatten it). Works on either axis.
         if (geo.horizontal) {
           out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
         } else {
           out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
         }
         mode = 'gradient'; src = srcRect(seg.x0, nativeLen); rects.push(outRect(outPos, outLen));
-      } else if (geo.tileMotif) {
-        // TOP edge: TILE the motif — repeat the native span 1:1 across the
-        // grown output (NOT sample-and-hold, which smears a multi-px
-        // pinstripe/box pattern into bands). For a 1px fill column this is
-        // identical to a stretch, so plain pinstripe themes are unaffected.
-        for (let off = 0; off < outLen; off += nativeLen) {
-          const w = Math.min(nativeLen, outLen - off);
-          out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w, h: geo.crossLen }, { x: outPos + off, y: geo.crossDst, w, h: geo.crossLen });
-          rects.push(outRect(outPos + off, w));
-        }
-        mode = 'tile'; src = srcRect(seg.x0, nativeLen);
+      } else if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
+        // A thin grow column over a rectList widget: render clean background
+        // (the plate column), not the segment's art — the widget is stamped
+        // once on top in pass 2. (Rare: widgets are wide → usually fixed.)
+        out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+        mode = 'clean'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
       } else {
-        // SIDES / BOTTOM: stretch the single row/column "between the grow
-        // regions" (§8.1). Sample one mid-line of the grow span and
-        // sample-and-hold it across the whole grown output — a uniform
-        // border, never the repeated notch that tiling a multi-px slice
-        // (e.g. BeOS's 5px side fill) produces.
+        // GROW column: sample one mid-line of the thin span and sample-and-hold
+        // it across the grown output — the kDEF's "stretch the single row or
+        // column of pixels between the grow regions."
         const mid = seg.x0 + Math.floor(nativeLen / 2);
         if (geo.horizontal) {
           out.copyBits(cicn, { x: mid, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
@@ -445,7 +428,8 @@ function composeEdgeFromRecipe(
       outPos += outLen;
       continue;
     }
-    // FIXED segment: copy 1:1.
+
+    // FIXED: a corner or wide static art — copy 1:1, anchored to its position.
     if (geo.horizontal) {
       out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
     } else {
@@ -622,8 +606,7 @@ export function composeWindowChrome(
   if (edges?.top?.length) {
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      extra: contentW - cicnBodyW, tileMotif: true, plateWidth: opts.titlePlateWidth ?? 0,
-      bodyLo: bl, bodyHi: br,
+      extra: contentW - cicnBodyW, plateWidth: opts.titlePlateWidth ?? 0,
       widgetSpans: topWidgetSpans,
     });
   } else {
@@ -639,7 +622,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     leftFill = composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [], bodyLo: bt, bodyHi: bb,
+      extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [],
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -651,7 +634,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     rightFill = composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [], bodyLo: bt, bodyHi: bb,
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [],
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
@@ -664,11 +647,8 @@ export function composeWindowChrome(
   // band — otherwise the bottom corners show plain side-fill stripes. ──
   if (frame.bottom > 0 && edges?.bottom?.length) {
     botFill = composeEdgeFromRecipe(out, cicn, edges.bottom, {
-      // TILE like the top edge (not 1px-stretch): the bottom-edge fill carries
-      // the bottom corners + any motif (1990's camo panels + corner art);
-      // stretching a 1px column flattens them to stripes. Sides stay stretch.
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: true, plateWidth: 0, bodyLo: bl, bodyHi: br,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, plateWidth: 0,
       widgetSpans: [],
     });
   } else if (frame.bottom > 0) {

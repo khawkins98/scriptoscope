@@ -50,9 +50,11 @@ for (const slug of slugs) {
       if (s.edge === 'widget') continue;
       if (s.code === 0 && s.mode !== 'fixed') warns.push(`${s.edge} p0 corner rendered '${s.mode}' (expected fixed)`);
       if (s.code === 18 && s.mode !== 'gradient') warns.push(`${s.edge} p18 gradient rendered '${s.mode}'`);
-      if (s.code >= 1 && s.code <= 4 && (s.mode === 'tile' || s.mode === 'stretch' || s.mode === 'gradient'))
-        warns.push(`${s.edge} p${s.code} widget-ref rendered '${s.mode}' (would smear the baked widget)`);
-      if (s.mode === 'tile' && s.rects.length > 30) warns.push(`${s.edge} p${s.code} tiled ×${s.rects.length} (implausible — mis-classified widget/motif?)`);
+      // Width-based model (Creating Color Schemes): document edges STRETCH thin
+      // grow columns and draw wide art FIXED — they never TILE. (The thin-only
+      // rule is enforced in composeEdgeFromRecipe; a stretched slice always
+      // samples a 1px column, so it can't be audited from `src` post-hoc.)
+      if (s.mode === 'tile') warns.push(`${s.edge} p${s.code} tiled (document edges should never tile)`);
     }
 
     // ── coverage: each horizontal edge's output rects tile [minX, fullW] ──

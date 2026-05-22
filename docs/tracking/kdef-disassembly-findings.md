@@ -397,13 +397,65 @@ mechanism, the marginal value is low. Revisit only if a scheme renders
 visibly wrong on the model above. (If/when needed: emulator golden images
 across window sizes would pin the distribution faster than 68k tracing.)
 
-### 8.6 Reproduce
+### 8.6 IMPLEMENTED (2026-05-22) — the rule is WIDTH-based, not part-code-based
+
+§8.4 above assumed `p8` IS the narrow 1px stripe and the wide segments are
+something else. That holds for the simple corpus (7 Le's pinstripe) but is
+**inverted for decorated schemes**, which broke our renderer:
+
+| scheme · edge | `p8` "side fill" segments | `p1` "border" segments |
+|---|---|---|
+| 1984 · bottom | **48px** (a button cluster — STATIC) | **1px** (the grow column) |
+| 1990 · bottom | **13–36px** (camo panels, "1990", star — STATIC) | **1px** (the connecting rods — GROW) |
+| evolution · all | mix; wide `p1` (13px) is a baked widget | **1px** `p1` between p18 gradients |
+
+So the part code does **not** reliably say fill-vs-static. The reliable
+signal is the one §8.1 actually states: the grow region is a **single row
+or column of pixels** — i.e. it is THIN. Everything wider is static art the
+author wants preserved (drawn once). Two passages from `Creating Color
+Schemes` pin both halves:
+
+> "Normal document windows are drawn by **simply stretching the icon**...
+> draws the four corners first, then it draws the edges by **stretching the
+> colors along the edge**, and finally fills the inside with the background
+> color at the center."
+
+> "When drawing the racing stripe pattern **for utility windows**,
+> Kaleidoscope **does not stretch the icon; rather, it tiles the icon**."
+
+The implemented rule in `composeEdgeFromRecipe` (`STRETCH_MAX = 2`):
+
+- **corners (`p0`) and any segment > STRETCH_MAX px → FIXED** (CopyBits 1:1,
+  anchored to its position; drawn ONCE — never tiled or stretched, which
+  would repeat/smear baked decoration, widget clusters, button rows).
+- **thin segments (≤ STRETCH_MAX, any code ≠ 0) → STRETCH** a 1px sampled
+  column to absorb the window's extra size (the "single row or column
+  between the grow regions"). Growth distributes across them ∝ native width.
+- **`p18` gradient → sample-and-hold the whole segment** (the one wide
+  segment that grows; scales the ramp smoothly).
+- **title plate → grow the clean title column to the title width.**
+- **document windows never TILE.** Tiling is the utility-window racing-stripe
+  exception only (NOT yet implemented — see below); their fills currently
+  stretch, which is identical for a ≤1px stripe and acceptable otherwise.
+
+This replaced the prior per-edge `tileMotif` flag + body-boundary corner
+heuristics, which over-tiled wide decorated edges (1990's star/"1990"
+repeated, 1984's buttons tiled ×4). Validated visually + via `diag:audit`
+across 1138/1984/1990/evolution document windows (all clean coverage).
+
+**Deferred:** (a) utility-window racing-stripe TILING (the doc's explicit
+exception); (b) gradient-as-plate flattening on evolution utility windows;
+(c) coverage gaps on dialog/alert/side-floating types whose recipes stop
+short of the cicn width (same far-corner class as before).
+
+### 8.7 Reproduce
 
 ```
 unar "Kaleidoscope 1.8.2 Installer.app"        # → Kaleidoscope (cdev)
 node tools/theme-loader … dump kDEF 0          # → kDEF_0.bin (60,732 B)
 m68k-elf-objdump -D -b binary -m m68k:68000 -EB kDEF_0.bin
 # raw wnd# decode: parseResourceFork(scheme.rsrc) → decodeWnd, print true part codes
+# the authoring doc: Kaleidoscope Goodies/Creating Schemes/Creating Color Schemes
 ```
 
 ---
