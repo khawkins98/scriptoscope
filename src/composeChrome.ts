@@ -245,7 +245,7 @@ function composeEdgeFromRecipe(
   let fillSrcX = -1;
   let plateX0 = -1, plateX1 = -1;
   if (geo.horizontal) {
-    const colNoise = (xc: number): number => {
+    const colStats = (xc: number): { score: number; meanLum: number } => {
       const y0 = geo.crossSrc + 2;
       const y1 = geo.crossSrc + Math.max(3, geo.crossLen - 2);
       let n = 0, sumL = 0, sumL2 = 0, sumSat = 0;
@@ -257,17 +257,31 @@ function composeEdgeFromRecipe(
         sumSat += Math.max(r, g, b) - Math.min(r, g, b);
         n++;
       }
-      if (n === 0) return Infinity;
-      const variance = sumL2 / n - (sumL / n) ** 2;
-      return Math.sqrt(Math.max(0, variance)) + sumSat / n;
+      if (n === 0) return { score: Infinity, meanLum: 0 };
+      const mean = sumL / n;
+      const variance = sumL2 / n - mean * mean;
+      return { score: Math.sqrt(Math.max(0, variance)) + sumSat / n, meanLum: mean };
     };
     const titleSegs = raw.filter((r) => r.code === 5 || r.code === 6);
-    const cands = titleSegs.length ? titleSegs : raw.filter((r) => r.fill);
-    let best = Infinity;
-    for (const r of cands) {
+    const cands = (titleSegs.length ? titleSegs : raw.filter((r) => r.fill)).map((r) => {
       const xc = Math.floor((r.x0 + r.x1) / 2);
-      const score = colNoise(xc);
-      if (score < best) { best = score; fillSrcX = xc; plateX0 = r.x0; plateX1 = r.x1; }
+      return { r, xc, ...colStats(xc) };
+    });
+    // A flat near-black column INSIDE the title region is often a shadow / inner
+    // bezel (the metal→content edge), not the title bar — and it out-"cleans"
+    // the real bar because black is perfectly uniform. Drop DARK OUTLIERS: a
+    // candidate whose luminance is far below the title region's MEDIAN. This
+    // distinguishes evolution's bezel (meanLum 16 vs a metallic median ~105 →
+    // outlier, dropped) from a genuinely dark title bar like 1990's black LED
+    // (meanLum ~23 vs a dark median ~23 → not an outlier, kept). Relative (not
+    // absolute) so it works whatever the bar's overall tone.
+    const lums = cands.map((c) => c.meanLum).filter((l) => l > 0).sort((a, b) => a - b);
+    const median = lums.length ? lums[Math.floor(lums.length / 2)]! : 0;
+    const pool = cands.filter((c) => c.meanLum >= median * 0.5);
+    const usePool = pool.length ? pool : cands;
+    let best = Infinity;
+    for (const c of usePool) {
+      if (c.score < best) { best = c.score; fillSrcX = c.xc; plateX0 = c.r.x0; plateX1 = c.r.x1; }
     }
   }
   const usePlate = geo.plateWidth > 0 && plateX0 >= 0;

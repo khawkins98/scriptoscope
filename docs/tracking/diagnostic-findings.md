@@ -99,7 +99,18 @@ olive — while its cicn title marker is **white** (confirmed at cicn y10-13,
 correct — meaning no clut-based rule can tell evolution and 1990 apart; only the
 cicn marker can.)
 
-**Fix applied:** corrected evolution's `headerColors.active.text` to `#ffffff`
+**Plate-column fix (the "black box behind the title"):** the plate picker
+scored title-region columns by stddev+saturation and took the *cleanest*, which
+for evolution was the flat-black inner-**bezel** column (col70, meanLum 16) —
+not the metallic title bar (col69, meanLum 125) — producing a black box behind
+the title. Now it drops **dark outliers**: candidates whose luminance is far
+below the title region's MEDIAN are skipped. Evolution's bezel (16 vs median
+~105) is dropped → plate lands on col69 (metallic, blends with the chrome);
+1990's LED bar (meanLum ~23 vs a dark median ~23) is NOT an outlier → kept, so
+its black title display still works. Validated: plate columns 1138=46, 1984=43,
+1990=46, evolution=69 (was 70).
+
+**Title-colour fix:** corrected evolution's `headerColors.active.text` to `#ffffff`
 (its cicn marker) directly in `themes/evolution/theme.json`. A generic
 runtime/extract-time marker locator was attempted and abandoned: in decorated
 cicns the doc's "2px line" signature fires on every metallic gradient step, and
