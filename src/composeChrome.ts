@@ -605,18 +605,9 @@ export function composeWindowChrome(
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
   }
 
-  // ── bottom edge: walk X, sampling cicn rows [H-bottom, H] ──
+  // (bottom edge is drawn LAST — see below — so its corners overdraw any
+  // overshoot from the left/right edges into the bottom-corner band.)
   let botFill: ReturnType<typeof composeEdgeFromRecipe> = null;
-  if (frame.bottom > 0 && edges?.bottom?.length) {
-    botFill = composeEdgeFromRecipe(out, cicn, edges.bottom, {
-      horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: false, plateWidth: 0,
-      widgetSpans: [],
-    });
-  } else if (frame.bottom > 0) {
-    out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
-      { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
-  }
 
   // ── left edge: walk Y, sampling cicn cols [0, left] ──
   let leftFill: ReturnType<typeof composeEdgeFromRecipe> = null;
@@ -640,6 +631,24 @@ export function composeWindowChrome(
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
       { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
+  }
+
+  // ── bottom edge: walk X, sampling cicn rows [H-bottom, H]. Drawn AFTER the
+  // side edges so the bottom-left/right CORNERS (the recipe's end segments)
+  // overdraw the side fill that the left/right edges stretch into the bottom
+  // band — otherwise the bottom corners show plain side-fill stripes. ──
+  if (frame.bottom > 0 && edges?.bottom?.length) {
+    botFill = composeEdgeFromRecipe(out, cicn, edges.bottom, {
+      // TILE like the top edge (not 1px-stretch): the bottom-edge fill carries
+      // the bottom corners + any motif (1990's camo panels + corner art);
+      // stretching a 1px column flattens them to stripes. Sides stay stretch.
+      horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: true, plateWidth: 0,
+      widgetSpans: [],
+    });
+  } else if (frame.bottom > 0) {
+    out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },
+      { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
   }
 
   // ── PASS 2: stamp the rectList widgets at native size ──
