@@ -241,97 +241,227 @@ function composeEdgeFromRecipe(
   const raw = recipeSegments(recipe, lastAt);
   if (raw.length === 0) return null;
 
-  // ── Classify each segment by the Kaleidoscope 2.3.1 part-code jump table
-  // (docs/tracking/kdef231-recipe-walk.md, decoded from kDEF231_0.asm). The
-  // engine decides fixed-vs-stretch PURELY on the part code — no pixel content,
-  // width, or uniformity test. ──
-  //   FIXED  : 1, 2, 3, 4, 5, 6, 7, 9, 10, default — drawn 1:1 at src width.
-  //            (5/6 are the title bezel: fixed when the title fits, never grow.)
-  //   STRETCH: 0, 8, 11, 13, 14, 15, 16, 17 — even share of the slack; the cell
-  //            TILES its own cicn band across the grown width (1px band ⇒ a
-  //            uniform fill; wide band ⇒ repeats).
-  //   TILE   : 12 — like stretch but rounded to a whole multiple of src width.
-  //   SCALE  : 18 — single scaled CopyBits (drawn once, mapped src→dst).
-  type CellMode = 'fixed' | 'stretch' | 'tile' | 'scale';
-  const cellMode = (code: number): CellMode => {
-    if (code === 18) return 'scale';
-    if (code === 12) return 'tile';
-    if (code === 0 || code === 8 || code === 11 || code === 13 || code === 14 ||
-        code === 15 || code === 16 || code === 17) return 'stretch';
-    return 'fixed';
-  };
-  const modes = raw.map((s) => cellMode(s.code));
-  const isGrow = (m: CellMode) => m !== 'fixed';
+  // ── the title PLATE column (top edge only). The kDEF stretches "the middle
+  // column of pixels which includes the text color pixel" to make room for the
+  // title (authoring doc) — i.e. the plate column is a RECORDED MARKER, not a
+  // column we score from pixels. `geo.titleMarkerX` carries that marker (the
+  // 1px rectList rect that sits at the title-bar text position; see
+  // composeWindowChrome). Clamp it into the title region (p5/p6); if no marker
+  // was found, fall back to the title region's left edge. The plate is the
+  // title-region SEGMENT containing that column; it grows to the title width.
+  // (Replaced a stddev+saturation column scorer + a dark-outlier bezel patch —
+  // both were guessing the marker the scheme data already records.) ──
+  let fillSrcX = -1;
+  let plateX0 = -1, plateX1 = -1;
+  if (geo.horizontal) {
+    const titleSegs = raw.filter((r) => r.code === 5 || r.code === 6);
+    if (titleSegs.length) {
+      const tX0 = Math.min(...titleSegs.map((s) => s.x0));
+      const tX1 = Math.max(...titleSegs.map((s) => s.x1));
+      const markerX = geo.titleMarkerX >= 0 ? Math.min(Math.max(geo.titleMarkerX, tX0), tX1 - 1) : tX0;
+      const seg = titleSegs.find((s) => markerX >= s.x0 && markerX < s.x1) ?? titleSegs[0]!;
+      fillSrcX = markerX; plateX0 = seg.x0; plateX1 = seg.x1;
+    } else {
+      // No title region: stretch the widest fill segment's centre (rare).
+      const fills = raw.filter((r) => r.fill);
+      if (fills.length) {
+        const f = fills.reduce((a, b) => (b.x1 - b.x0 > a.x1 - a.x0 ? b : a));
+        fillSrcX = Math.floor((f.x0 + f.x1) / 2); plateX0 = f.x0; plateX1 = f.x1;
+      }
+    }
+  }
+  const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
-  // Coverage fallback: if a recipe has no grow cell but the window is wider,
-  // promote the widest non-corner cell so the edge still spans the full width.
+  // Segments stand ALONE — no coalescing. The kDEF draws each recipe segment
+  // independently. Coalescing adjacent segments into one wide block would
+  // mis-classify a thin grow column glued to a static panel.
+  const segs: RecipeSegment[] = raw.map((s) => ({
+    ...s,
+    isPlate: usePlate && s.x0 === plateX0 && s.x1 === plateX1,
+  }));
+
+  const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
+
+  // STRETCHABILITY is decided by CONTENT, not part code or width. Kaleidoscope
+  // "stretches the single row or column of pixels between the grow regions":
+  // sampling ONE line of the segment and repeating it across the grown output
+  // is LOSSLESS only when every line along the walk axis is identical. So a
+  // segment is a grow column iff it is UNIFORM along the walk axis; anything
+  // with cross-axis structure (a button row, a baked decoration, a stepped
+  // bevel) is STATIC art and must be drawn once (fixed).
+  //
+  // This is what the part code only approximated: in the corpus `p1` happens
+  // to be the (uniform) border and `p8` the (structured) decorative panel —
+  // the inverse of their names — but a thin `p8` (1138's flat side row) and a
+  // wide uniform `p1` (BeOS's 65px bottom border) both break the name/width
+  // proxy. Uniformity gets every case right (probed across the corpus: grow
+  // columns score 100%, static panels ≤50%).
+  const STRETCH_UNIFORMITY = 0.9;
+  const COLOR_TOL = 16;
+  const isStretchable = (s: RecipeSegment): boolean => {
+    const len = s.x1 - s.x0;
+    if (len <= 1) return true; // a single line is trivially uniform
+    const mid = s.x0 + Math.floor(len / 2); // the line we'd actually sample
+    const eq = (p: Uint8ClampedArray | number[], q: Uint8ClampedArray | number[]) =>
+      Math.abs(p[0]! - q[0]!) <= COLOR_TOL && Math.abs(p[1]! - q[1]!) <= COLOR_TOL &&
+      Math.abs(p[2]! - q[2]!) <= COLOR_TOL && Math.abs(p[3]! - q[3]!) <= COLOR_TOL;
+    let match = 0;
+    if (geo.horizontal) {
+      for (let x = s.x0; x < s.x1; x++) {
+        let ok = true;
+        for (let y = geo.crossSrc; y < geo.crossSrc + geo.crossLen; y++)
+          if (!eq(cicn.getPixel(x, y), cicn.getPixel(mid, y))) { ok = false; break; }
+        if (ok) match++;
+      }
+    } else {
+      for (let y = s.x0; y < s.x1; y++) {
+        let ok = true;
+        for (let x = geo.crossSrc; x < geo.crossSrc + geo.crossLen; x++)
+          if (!eq(cicn.getPixel(x, y), cicn.getPixel(x, mid))) { ok = false; break; }
+        if (ok) match++;
+      }
+    }
+    return match / len >= STRETCH_UNIFORMITY;
+  };
+
+  // Per-segment growth behaviour:
+  //   plate   — the title grow column (grows to the title width)
+  //   stretch — uniform along the walk axis: a grow column (absorbs growth)
+  //   fixed   — corner / baked widget / structured static art: drawn once
+  type GrowMode = 'plate' | 'stretch' | 'fixed';
+  const growModeOf = (s: RecipeSegment): GrowMode => {
+    if (s.isPlate) return 'plate';
+    if (s.code === 0) return 'fixed';      // corner
+    if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
+    // (Removed the p5/p6 "bracket = fixed" rule: it over-fit evolution's bezel
+    // and regressed 1138's pinstripe bar. The real recipe-walk lives in the
+    // WDEF -14330 we don't have, so the honest fallback is the same uniformity
+    // test for ALL non-corner/non-widget segments, p5/p6 included.)
+    // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
+    // walk axis (→ stretch, lossless) while a structured p18 (evolution's
+    // metallic links + corner blobs, coded p18 but full of cross-axis detail)
+    // is NOT uniform (→ fixed, drawn once). Special-casing p18 as a scalable
+    // gradient smeared evolution's 59px corner and let the wide links hog the
+    // growth from the 1px grow gaps. Uniformity handles both correctly.
+    return isStretchable(s) ? 'stretch' : 'fixed';
+  };
+  const modes = segs.map(growModeOf);
+  const isGrow = (m: GrowMode) => m !== 'fixed';
+
+  // Coverage fallback: a recipe of only wide static segments + corners has no
+  // thin grow column, so nothing would absorb the window's extra width and the
+  // edge would stop short. Promote the THINNEST interior (non-corner) segment
+  // to a grow column so the edge spans the full width; the wide caps stay
+  // anchored to their ends.
   if (geo.extra > 0 && !modes.some(isGrow)) {
-    let pick = -1, w = -1;
-    raw.forEach((s, i) => { const len = s.x1 - s.x0; if (s.code !== 0 && len > w) { w = len; pick = i; } });
+    let pick = -1, pickLen = Infinity;
+    segs.forEach((s, i) => {
+      const len = s.x1 - s.x0;
+      if (s.code !== 0 && len < pickLen) { pickLen = len; pick = i; }
+    });
     if (pick >= 0) modes[pick] = 'stretch';
   }
 
-  // ── Growth distribution (kDEF 0x5178): EVEN share of the slack across the
-  // grow cells, remainder spread left→right. Fixed cells keep their src width;
-  // the grow cells split (total content − fixed widths). NOT proportional. ──
-  const firstAt = raw[0]!.x0;
-  const fixedTotal = raw.reduce((sum, s, i) => (modes[i] === 'fixed' ? sum + (s.x1 - s.x0) : sum), 0);
-  const totalContent = (lastAt - firstAt) + Math.max(0, geo.extra);
-  const nGrow = modes.filter(isGrow).length;
-  let budgetLeft = Math.max(0, totalContent - fixedTotal);
-  let growsLeft = nGrow;
+  // Growth budget: the plate first absorbs (titleWidth − its native), clamped
+  // to the window's total extra; the REST distributes across the grow columns
+  // proportional to native length. (Only uniform grow columns absorb growth —
+  // structured art, gradients-coded-as-links, and corners stay native.)
+  const plateIdx = modes.indexOf('plate');
+  const plateNative = plateIdx >= 0 ? segs[plateIdx]!.x1 - segs[plateIdx]!.x0 : 0;
+  const plateExtra = plateIdx >= 0
+    ? Math.max(0, Math.min(geo.plateWidth - plateNative, Math.max(0, geo.extra)))
+    : 0;
+  const otherExtra = Math.max(0, geo.extra - plateExtra);
+  let totalGrowNative = 0;
+  segs.forEach((s, i) => { if (modes[i] === 'stretch') totalGrowNative += s.x1 - s.x0; });
+  let growsLeft = modes.filter((m) => m === 'stretch').length;
+  let extraRem = otherExtra;
 
-  let outPos = firstAt;
-  let titleStart = -1, titleEnd = -1, growStart = -1, growEnd = -1, fillSrcX = -1;
+  // Output walk-axis position starts where the recipe starts (segs are
+  // sorted, so segs[0].x0 is the first cicn-axis offset = output offset).
+  let outPos = segs[0]!.x0;
+  // TITLE REGION output span: the plate's span when we grow one, else the
+  // p5/p6 grow span, else the whole grow span. The title centres here.
+  let plateStart = -1, plateEnd = -1;
+  let titleStart = -1, titleEnd = -1;
+  let growStart = -1, growEnd = -1;
   const placed: PlacedSegment[] = [];
+  // walk-axis span → full src/output rect (axis-agnostic).
   const srcRect = (a: number, len: number): PixRectXY =>
     geo.horizontal ? { x: a, y: geo.crossSrc, w: len, h: geo.crossLen } : { x: geo.crossSrc, y: a, w: geo.crossLen, h: len };
   const outRect = (a: number, len: number): PixRectXY =>
     geo.horizontal ? { x: a, y: geo.crossDst, w: len, h: geo.crossLen } : { x: geo.crossDst, y: a, w: geo.crossLen, h: len };
-  // Draw a cicn band [bandX0, bandW] into the output cell [o, outLen]: a single
-  // scaled blit for SCALE / 1px bands, else TILE the band (step by src width,
-  // clip the last tile) — the kDEF's 0x10320 (scale) vs 0xfeae (tile).
-  const blitCell = (mode: CellMode, bandX0: number, bandW: number, o: number, outLen: number): PixRectXY[] => {
-    if (mode === 'scale' || bandW <= 1) {
-      if (geo.horizontal) out.copyBits(cicn, { x: bandX0, y: geo.crossSrc, w: bandW, h: geo.crossLen }, { x: o, y: geo.crossDst, w: outLen, h: geo.crossLen });
-      else out.copyBits(cicn, { x: geo.crossSrc, y: bandX0, w: geo.crossLen, h: bandW }, { x: geo.crossDst, y: o, w: geo.crossLen, h: outLen });
-      return [outRect(o, outLen)];
-    }
-    const rects: PixRectXY[] = [];
-    for (let off = 0; off < outLen; off += bandW) {
-      const w = Math.min(bandW, outLen - off);
-      if (geo.horizontal) out.copyBits(cicn, { x: bandX0, y: geo.crossSrc, w, h: geo.crossLen }, { x: o + off, y: geo.crossDst, w, h: geo.crossLen });
-      else out.copyBits(cicn, { x: geo.crossSrc, y: bandX0, w: geo.crossLen, h: w }, { x: geo.crossDst, y: o + off, w: geo.crossLen, h: w });
-      rects.push(outRect(o + off, w));
-    }
-    return rects;
-  };
 
-  for (let i = 0; i < raw.length; i++) {
-    const seg = raw[i]!;
-    const m = modes[i]!;
-    const srcW = seg.x1 - seg.x0;
-    let outLen: number;
-    let sliceMode: SliceMode;
-    if (m === 'fixed') {
-      outLen = srcW;
-      sliceMode = 'fixed';
-    } else {
-      let share = growsLeft === 1 ? budgetLeft : Math.floor((Math.max(0, totalContent - fixedTotal)) / nGrow);
-      if (m === 'tile' && srcW > 0) share = Math.max(srcW, Math.round(share / srcW) * srcW);
-      budgetLeft -= share;
+  for (let i = 0; i < segs.length; i++) {
+    const seg = segs[i]!;
+    const gm = modes[i]!;
+    const nativeLen = seg.x1 - seg.x0;
+    let outLen = nativeLen;
+    let mode: SliceMode;
+    let src: PixRectXY;
+    const rects: PixRectXY[] = [];
+
+    if (gm === 'plate') {
+      // The title plate: grows to the title width and renders as the single
+      // clean plate column stretched (sample-and-hold) — a uniform plate the
+      // title sits on, decorations pushed right.
+      outLen = nativeLen + plateExtra;
+      plateStart = outPos; plateEnd = outPos + outLen;
+      out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+      mode = 'plate'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true, code: seg.code, mode, src, rects });
+      outPos += outLen;
+      continue;
+    }
+
+    if (gm === 'stretch') {
+      // last grow segment soaks up the rounding remainder so edges meet exactly
+      const share =
+        growsLeft === 1
+          ? extraRem
+          : totalGrowNative > 0
+            ? Math.round((otherExtra * nativeLen) / totalGrowNative)
+            : 0;
+      extraRem -= share;
       growsLeft--;
-      outLen = Math.max(0, share);
-      sliceMode = m === 'scale' ? 'gradient' : m === 'tile' ? 'tile' : 'stretch';
+      outLen = nativeLen + share;
       if (growStart < 0) growStart = outPos;
       growEnd = outPos + outLen;
+      if (seg.code === 5 || seg.code === 6) {
+        if (titleStart < 0) titleStart = outPos;
+        titleEnd = outPos + outLen;
+      }
+      if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
+        // A thin grow column over a rectList widget: render clean background
+        // (the plate column), not the segment's art — the widget is stamped
+        // once on top in pass 2. (Rare: widgets are wide → usually fixed.)
+        out.copyBits(cicn, { x: fillSrcX, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+        mode = 'clean'; src = srcRect(fillSrcX, 1); rects.push(outRect(outPos, outLen));
+      } else {
+        // GROW column: sample one mid-line of the thin span and sample-and-hold
+        // it across the grown output — the kDEF's "stretch the single row or
+        // column of pixels between the grow regions."
+        const mid = seg.x0 + Math.floor(nativeLen / 2);
+        if (geo.horizontal) {
+          out.copyBits(cicn, { x: mid, y: geo.crossSrc, w: 1, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+        } else {
+          out.copyBits(cicn, { x: geo.crossSrc, y: mid, w: geo.crossLen, h: 1 }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
+        }
+        mode = 'stretch'; src = srcRect(mid, 1); rects.push(outRect(outPos, outLen));
+      }
+      placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: true, code: seg.code, mode, src, rects });
+      outPos += outLen;
+      continue;
     }
-    if ((seg.code === 5 || seg.code === 6)) {
-      if (titleStart < 0) { titleStart = outPos; fillSrcX = seg.x0; }
-      titleEnd = outPos + outLen;
+
+    // FIXED: a corner or wide static art — copy 1:1, anchored to its position.
+    if (geo.horizontal) {
+      out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
+    } else {
+      out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
     }
-    const rects = blitCell(m, seg.x0, srcW, outPos, outLen);
-    placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: m !== 'fixed', code: seg.code, mode: sliceMode, src: srcRect(seg.x0, srcW), rects });
+    mode = 'fixed'; src = srcRect(seg.x0, nativeLen); rects.push(outRect(outPos, outLen));
+    placed.push({ x0: seg.x0, x1: seg.x1, out0: outPos, out1: outPos + outLen, fill: false, code: seg.code, mode, src, rects });
     outPos += outLen;
   }
 
@@ -359,13 +489,10 @@ function composeEdgeFromRecipe(
     }
   }
 
-  // Title region span (the p5/p6 cells), for the title-colour contrast fallback;
-  // else the grow span; else the whole edge. (The title TEXT is centred on the
-  // window centre in renderWindow, independent of this.)
-  if (fillSrcX < 0) fillSrcX = firstAt;
+  // Prefer the grown plate span, then the p5/p6 title region, then the fill.
+  if (plateStart >= 0) return { start: plateStart, end: plateEnd, fillSrcX, placed };
   if (titleStart >= 0) return { start: titleStart, end: titleEnd, fillSrcX, placed };
-  if (growStart >= 0) return { start: growStart, end: growEnd, fillSrcX, placed };
-  return { start: firstAt, end: outPos, fillSrcX, placed };
+  return growStart >= 0 ? { start: growStart, end: growEnd, fillSrcX, placed } : null;
 }
 
 /**
