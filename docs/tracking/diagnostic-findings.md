@@ -86,6 +86,29 @@ the bar fill here, or a mis-coalesced motif? Likely benign.
 
 ---
 
+## Update 2026-05-22 (title colour) — clut vs cicn text-colour marker
+
+The window title text colour is read from the header clut's part-2 entry
+(`headerColorsFromClut`). Per "Creating Color Schemes" the AUTHORITATIVE source
+is a pixel in the cicn ("a two-pixel horizontal line near the top"), not the
+clut. They usually agree, but evolution's clut is **degenerate** — frame/fill/
+bevels are all `#111111`/`#222222` placeholders and part-2 is a stray `#878700`
+olive — while its cicn title marker is **white** (confirmed at cicn y10-13,
+~`#fdfefd`), which is what the reference shows. (1990 has the identical degenerate
+`#878700` clut, but its cicn marker IS the olive/green LED colour, so 1990 is
+correct — meaning no clut-based rule can tell evolution and 1990 apart; only the
+cicn marker can.)
+
+**Fix applied:** corrected evolution's `headerColors.active.text` to `#ffffff`
+(its cicn marker) directly in `themes/evolution/theme.json`. A generic
+runtime/extract-time marker locator was attempted and abandoned: in decorated
+cicns the doc's "2px line" signature fires on every metallic gradient step, and
+distance-from-background / "colour appears in title region" heuristics each
+mis-fire on ≥1 theme (would regress 1138 black / 1984 blue). **Deferred:** read
+the title colour from the cicn marker at extraction time — needs the kDEF's exact
+marker offset from the trace, not a surface heuristic. evolution `inactive.text`
+left as extracted (`#ffff00`); no inactive reference to verify against yet.
+
 ## Update 2026-05-22 (pm) — width-based stretch/fixed rule (the big one)
 
 Replaced the tile-vs-stretch heuristics (`tileMotif`, body-boundary corner
