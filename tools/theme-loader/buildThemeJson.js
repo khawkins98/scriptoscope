@@ -111,13 +111,11 @@ export function buildThemeJson(manifest, options = {}) {
   // Record<"part-N", {rect: [l,t,r,b]}>. Edges convert {part:int, border:int}
   // to schema's {at: number, part: string}.
   //
-  // Chrome cicn pairing convention (validated against mass:werk 7 Le + ErgoBox):
-  //   wnd# -14336 "Document Window"
-  //     → cicn -14336 "Inactive Document Window"
-  //     → cicn -14335 "Active Document Window"           (id + 1)
-  //     → cicn -14332 "Collapsed Inactive Document Window" (id - 4)
-  //     → cicn -14331 "Collapsed Active Document Window"   (id - 5)
-  // We try a small neighborhood of IDs and probe their names for the state.
+  // Chrome cicn pairing is by the WDEF resource-id convention (see
+  // pairChromeStates): inactive = cicn at the wnd# id, active = cicn at id + 1.
+  //   wnd# -14336 "Document Window" → inactive cicn -14336, active cicn -14335.
+  // Collapsed windows are their own wnd# resources (e.g. -14332 "Collapsed
+  // Document Window" → -14332/-14331), paired the same way.
   const windowTypes = {};
   for (const wnd of wnds) {
     // Slug priority: scheme-author's name → canonical Mac OS ID
@@ -245,7 +243,26 @@ function findWindowCinf(wndId, byTypeAndId) {
 }
 
 /**
- * Find active/inactive/collapsed cicns paired with a window-type wnd#.
+ * Pair a window-type wnd# with its chrome cicns by the Mac OS WDEF resource-id
+ * convention — NOT by name. Names are unreliable (schemes leave the doc-window
+ * cicn unnamed, and the nearest *name-matching* cicn in an id neighbourhood is
+ * routinely the wrong one): the previous name-keyword probe mis-paired every
+ * secondary type, e.g. Movable Modal (wnd# −14324) grabbing the 16×16 "Active
+ * Dialog" −14327 instead of its own 41×32 frame −14323, which then drove the
+ * negative/oversized frame insets the compositor had to guard against.
+ *
+ * The convention every Kaleidoscope scheme follows (the active/inactive frame
+ * cicns sit immediately at the wnd# id):
+ *   inactive frame cicn = cicn at  wndId        (id + 0)
+ *   active   frame cicn = cicn at  wndId + 1    (id + 1)
+ *
+ * Verified across the bundled corpus (1138/1984/1990/evolution/beos-r503): for
+ * every wnd# the id+1 cicn is that type's "Active <Type>" frame, dimensionally
+ * consistent with its recipe + body rect. Single-state windows (popup) ship
+ * only id+0 — active falls back to it. Collapsed states are their OWN wnd#
+ * resources, paired the same way, so a window type's chrome needs only
+ * active/inactive.
+ *
  * @param {number} wndId
  * @param {Record<string, ManifestAsset>} byTypeAndId
  * @returns {Record<string, string>} state slug → PNG filename
@@ -253,39 +270,11 @@ function findWindowCinf(wndId, byTypeAndId) {
 function pairChromeStates(wndId, byTypeAndId) {
   /** @type {Record<string, string>} */
   const out = {};
-  // Probe a generous neighborhood; cicn IDs cluster around wnd# IDs.
-  // Range observed in mass:werk corpus: wndId ± 8 covers all expected pairs.
-  for (let delta = -8; delta <= 8; delta++) {
-    const cicn = byTypeAndId[`cicn:${wndId + delta}`];
-    if (!cicn) continue;
-    const role = classifyChromeRole(cicn.name || '');
-    if (role && !(role in out)) out[role] = cicn.file;
-  }
+  const inactive = byTypeAndId[`cicn:${wndId}`];
+  const active = byTypeAndId[`cicn:${wndId + 1}`] ?? inactive; // single-state → id+0
+  if (active) out.active = active.file;
+  if (inactive) out.inactive = inactive.file;
   return out;
-}
-
-/**
- * Classify a cicn name into a window-chrome state slug per the schema.
- * Returns null when the name doesn't indicate a chrome state — we don't
- * want random control cicns sucked into a windowType's chrome.
- * @param {string} name
- * @returns {string|null}
- */
-function classifyChromeRole(name) {
-  const n = name.toLowerCase();
-  // Need 'window' or 'dialog' or 'alert' in the name to be a chrome cicn
-  // (vs a control cicn like 'normal vertical scrollbar').
-  if (!/window|dialog|alert/.test(n)) return null;
-
-  const isActive   = /\bactive\b/.test(n) && !/inactive/.test(n);
-  const isInactive = /\binactive\b/.test(n);
-  const isCollapsed = /\bcollapsed\b/.test(n);
-
-  if (isCollapsed && isActive)   return 'collapsed-active';
-  if (isCollapsed && isInactive) return 'collapsed-inactive';
-  if (isActive)   return 'active';
-  if (isInactive) return 'inactive';
-  return null;
 }
 
 /**

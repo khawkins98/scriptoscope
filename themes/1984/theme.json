@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "1984/scheme.rsrc",
-  "generatedAt": "2026-05-20T12:05:41.566Z",
+  "generatedAt": "2026-05-22T20:14:59.181Z",
   "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/aaron-ui-composer-spec.md (spec C) §3.",
   "name": "1984",
   "author": {
@@ -19,10 +19,8 @@
   "windowTypes": {
     "dialog": {
       "chrome": {
-        "inactive": "cicns/cicn-n14336-document-window-inactive.png",
-        "active": "cicns/cicn-n14335-document-window-active.png",
-        "collapsed-inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png",
-        "collapsed-active": "cicns/cicn-n14331-document-window-collapsed-active.png"
+        "active": "cicns/cicn-n14327-dialog-active.png",
+        "inactive": "cicns/cicn-n14328-dialog-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -108,14 +106,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "alert": {
       "chrome": {
-        "inactive": "cicns/cicn-n14334-document-window-grow-box-inactive.png",
-        "active": "cicns/cicn-n14333-document-window-grow-box-active.png",
-        "collapsed-inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png",
-        "collapsed-active": "cicns/cicn-n14331-document-window-collapsed-active.png"
+        "active": "cicns/cicn-n14325-alert-active.png",
+        "inactive": "cicns/cicn-n14326-alert-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -209,12 +206,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "side-floating-utility-window": {
       "chrome": {
-        "inactive": "cicns/cicn-n14304-titled-utility-window-inactive.png",
-        "active": "cicns/cicn-n14303-titled-utility-window-active.png"
+        "active": "cicns/cicn-n14295-side-utility-window-active.png",
+        "inactive": "cicns/cicn-n14296-side-utility-window-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -340,12 +338,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "no-title-utility-window": {
       "chrome": {
-        "inactive": "cicns/cicn-n14296-side-utility-window-inactive.png",
-        "active": "cicns/cicn-n14295-side-utility-window-active.png"
+        "active": "cicns/cicn-n14287-titleless-utility-window-active.png",
+        "inactive": "cicns/cicn-n14288-titleless-utility-window-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -471,14 +470,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "collapsed-document-window": {
       "chrome": {
-        "inactive": "cicns/cicn-n14336-document-window-inactive.png",
-        "active": "cicns/cicn-n14335-document-window-active.png",
-        "collapsed-inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png",
-        "collapsed-active": "cicns/cicn-n14331-document-window-collapsed-active.png"
+        "active": "cicns/cicn-n14331-document-window-collapsed-active.png",
+        "inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -594,14 +592,13 @@
         "left": [],
         "right": []
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "document-window": {
       "chrome": {
-        "inactive": "cicns/cicn-n14336-document-window-inactive.png",
         "active": "cicns/cicn-n14335-document-window-active.png",
-        "collapsed-inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png",
-        "collapsed-active": "cicns/cicn-n14331-document-window-collapsed-active.png"
+        "inactive": "cicns/cicn-n14336-document-window-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -755,12 +752,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "movable-alert": {
       "chrome": {
-        "inactive": "cicns/cicn-n14328-dialog-inactive.png",
-        "active": "cicns/cicn-n14327-dialog-active.png"
+        "active": "cicns/cicn-n14321-movable-alert-active.png",
+        "inactive": "cicns/cicn-n14322-movable-alert-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -870,14 +868,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "movable-modal": {
       "chrome": {
-        "collapsed-inactive": "cicns/cicn-n14332-document-window-collapsed-inactive.png",
-        "collapsed-active": "cicns/cicn-n14331-document-window-collapsed-active.png",
-        "inactive": "cicns/cicn-n14328-dialog-inactive.png",
-        "active": "cicns/cicn-n14327-dialog-active.png"
+        "active": "cicns/cicn-n14323-movable-dialog-active.png",
+        "inactive": "cicns/cicn-n14324-movable-dialog-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -987,11 +984,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "popup-window": {
       "chrome": {
-        "active": "cicns/cicn-n12320-popup-window-active.png"
+        "active": "cicns/cicn-n12320-popup-window-active.png",
+        "inactive": "cicns/cicn-n12320-popup-window-active.png"
       },
       "parts": {
         "part-0": {
@@ -1108,12 +1107,13 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     },
     "titled-utility-window": {
       "chrome": {
-        "inactive": "cicns/cicn-n14309-document-window-inactive.png",
-        "active": "cicns/cicn-n14303-titled-utility-window-active.png"
+        "active": "cicns/cicn-n14303-titled-utility-window-active.png",
+        "inactive": "cicns/cicn-n14304-titled-utility-window-inactive.png"
       },
       "parts": {
         "part-0": {
@@ -1259,6 +1259,7 @@
           }
         ]
       },
+      "cinf": null,
       "bodyPattern": null
     }
   },
