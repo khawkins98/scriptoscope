@@ -282,68 +282,22 @@ function composeEdgeFromRecipe(
 
   const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
 
-  // STRETCHABILITY is decided by CONTENT, not part code or width. Kaleidoscope
-  // "stretches the single row or column of pixels between the grow regions":
-  // sampling ONE line of the segment and repeating it across the grown output
-  // is LOSSLESS only when every line along the walk axis is identical. So a
-  // segment is a grow column iff it is UNIFORM along the walk axis; anything
-  // with cross-axis structure (a button row, a baked decoration, a stepped
-  // bevel) is STATIC art and must be drawn once (fixed).
-  //
-  // This is what the part code only approximated: in the corpus `p1` happens
-  // to be the (uniform) border and `p8` the (structured) decorative panel —
-  // the inverse of their names — but a thin `p8` (1138's flat side row) and a
-  // wide uniform `p1` (BeOS's 65px bottom border) both break the name/width
-  // proxy. Uniformity gets every case right (probed across the corpus: grow
-  // columns score 100%, static panels ≤50%).
-  const STRETCH_UNIFORMITY = 0.9;
-  const COLOR_TOL = 16;
-  const isStretchable = (s: RecipeSegment): boolean => {
-    const len = s.x1 - s.x0;
-    if (len <= 1) return true; // a single line is trivially uniform
-    const mid = s.x0 + Math.floor(len / 2); // the line we'd actually sample
-    const eq = (p: Uint8ClampedArray | number[], q: Uint8ClampedArray | number[]) =>
-      Math.abs(p[0]! - q[0]!) <= COLOR_TOL && Math.abs(p[1]! - q[1]!) <= COLOR_TOL &&
-      Math.abs(p[2]! - q[2]!) <= COLOR_TOL && Math.abs(p[3]! - q[3]!) <= COLOR_TOL;
-    let match = 0;
-    if (geo.horizontal) {
-      for (let x = s.x0; x < s.x1; x++) {
-        let ok = true;
-        for (let y = geo.crossSrc; y < geo.crossSrc + geo.crossLen; y++)
-          if (!eq(cicn.getPixel(x, y), cicn.getPixel(mid, y))) { ok = false; break; }
-        if (ok) match++;
-      }
-    } else {
-      for (let y = s.x0; y < s.x1; y++) {
-        let ok = true;
-        for (let x = geo.crossSrc; x < geo.crossSrc + geo.crossLen; x++)
-          if (!eq(cicn.getPixel(x, y), cicn.getPixel(x, mid))) { ok = false; break; }
-        if (ok) match++;
-      }
-    }
-    return match / len >= STRETCH_UNIFORMITY;
-  };
 
-  // Per-segment growth behaviour:
-  //   plate   — the title grow column (grows to the title width)
-  //   stretch — uniform along the walk axis: a grow column (absorbs growth)
-  //   fixed   — corner / baked widget / structured static art: drawn once
+  // Per-segment growth behaviour, from the decoded Kaleidoscope 2.3.1 part-code
+  // jump table (docs/tracking/kdef231-recipe-walk.md): fixed-vs-stretch is the
+  // PART CODE, full stop — not pixel uniformity, not width.
+  //   stretch — codes 0, 8, 11, 13, 14, 15, 16, 17, 18 (absorb the slack)
+  //   fixed   — 1, 5, 6, 7, 9, 10, the named-widget cells, default
+  // A widget BAKED INTO a stretch cell (1138's zoom/shade live inside the code-8
+  // pinstripe band) is NOT tiled/smeared: the draw paints a clean fill column
+  // there and the widget is stamped once on top (pass 2). That's why we no
+  // longer force widget-overlapping cells to fixed.
   type GrowMode = 'plate' | 'stretch' | 'fixed';
   const growModeOf = (s: RecipeSegment): GrowMode => {
     if (s.isPlate) return 'plate';
-    if (s.code === 0) return 'fixed';      // corner
-    if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
-    // (Removed the p5/p6 "bracket = fixed" rule: it over-fit evolution's bezel
-    // and regressed 1138's pinstripe bar. The real recipe-walk lives in the
-    // WDEF -14330 we don't have, so the honest fallback is the same uniformity
-    // test for ALL non-corner/non-widget segments, p5/p6 included.)
-    // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
-    // walk axis (→ stretch, lossless) while a structured p18 (evolution's
-    // metallic links + corner blobs, coded p18 but full of cross-axis detail)
-    // is NOT uniform (→ fixed, drawn once). Special-casing p18 as a scalable
-    // gradient smeared evolution's 59px corner and let the wide links hog the
-    // growth from the 1px grow gaps. Uniformity handles both correctly.
-    return isStretchable(s) ? 'stretch' : 'fixed';
+    const c = s.code;
+    if (c === 0 || c === 8 || c === 11 || c === 13 || c === 14 || c === 15 || c === 16 || c === 17 || c === 18) return 'stretch';
+    return 'fixed';
   };
   const modes = segs.map(growModeOf);
   const isGrow = (m: GrowMode) => m !== 'fixed';
