@@ -385,7 +385,7 @@
       return col;
     }
 
-    function buildSliceView(win, cicnImg, SC, refSrc) {
+    function buildSliceView(win, cicnImg, SC, refSrc, ctx = {}) {
       const placement = win._awComposed.placement;
       const winH = (parseInt(win.style.height) || 200);
       const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
@@ -413,14 +413,26 @@
           overlay.appendChild(b);
         }
       };
-      // paste-ready, one-line slice description + a clipboard-copy with feedback
-      // in the readout. Shared by the list rows AND clicking the window itself.
+      // Clipboard copy: a self-contained DIAGNOSTIC BLOCK — theme, window type,
+      // render params, the slice (edge/part/role/mode/src/out), plus a legend +
+      // doc pointers so whoever reads the paste knows what the fields mean and
+      // where to dig in. Shared by the list rows AND clicking the window.
       const usageOf = (s) => (s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode);
-      const infoOf = (s) => `${s.edge} p${s.code} (${s.role}) · ${usageOf(s)} · src ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h} · out ${s.rects.map((r) => `${r.x},${r.y} ${r.w}×${r.h}`).join(' | ')}`;
-      const doCopy = async (info) => {
-        try { await navigator.clipboard.writeText(info); readout.style.color = '#0a7d2c'; readout.textContent = '✓ copied: ' + info; }
-        catch { readout.style.color = '#b00'; readout.textContent = '(clipboard blocked) ' + info; }
-        clearTimeout(readout._t); readout._t = setTimeout(() => { readout.style.color = ''; }, 1400);
+      const shortInfo = (s) => `${s.edge} p${s.code} (${s.role}) · ${usageOf(s)} · src ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`;
+      const infoBlock = (s) => [
+        'Aaron UI — window-chrome slice diagnostic',
+        `theme:   ${ctx.themeName ?? '?'} (${ctx.slug ?? '?'})`,
+        `window:  ${ctx.windowType ?? '?'} · ${ctx.w ?? '?'}×${ctx.h ?? '?'} content @${ctx.scale ?? 1}× · ${ctx.state ?? 'active'}`,
+        `slice:   ${s.edge} edge · part ${s.code} "${s.role}" · render=${usageOf(s)}`,
+        `source:  cicn rect ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`,
+        `output:  ${s.rects.map((r) => `${r.x},${r.y} ${r.w}×${r.h}`).join(' | ')}`,
+        'legend:  edge=window side · part=wnd# part code (role) · render: fixed/stretch/tile/gradient/clean(bg under widget)/plate(title)/stamp(widget) · source=cicn pixels sampled · output=pixels drawn (one per tile).',
+        'docs:    docs/diagnostic-tooling.md (the inspector) · docs/kdef-layout-recipes.md §0–1 (the slice/grow model) · docs/aaron-ui-architecture-spec.md §3–4 (part codes).',
+      ].join('\n');
+      const doCopy = async (s) => {
+        try { await navigator.clipboard.writeText(infoBlock(s)); readout.style.color = '#0a7d2c'; readout.textContent = '✓ copied diagnostic: ' + shortInfo(s); }
+        catch { readout.style.color = '#b00'; readout.textContent = '(clipboard blocked) ' + shortInfo(s); }
+        clearTimeout(readout._t); readout._t = setTimeout(() => { readout.style.color = ''; }, 1600);
       };
       const sliceAt = (nx, ny) => { let hit = null; for (const s of placement) for (const rc of s.rects) if (nx >= rc.x && nx < rc.x + rc.w && ny >= rc.y && ny < rc.y + rc.h) hit = s; return hit; };
 
@@ -450,7 +462,7 @@
             sticky = sticky === s ? null : s; show(sticky);
             [...rowsWrap.children].forEach((c) => (c.style.background = ''));
             if (sticky === s) row.style.background = '#ffe8ee';
-            doCopy(infoOf(s));
+            doCopy(s);
           };
           rowsWrap.appendChild(row);
         });
@@ -486,7 +498,7 @@
         const hit = sliceAt(nx, ny);
         sticky = hit; show(sticky);
         [...rowsWrap.children].forEach((c) => (c.style.background = ''));
-        if (hit) doCopy(infoOf(hit));
+        if (hit) doCopy(hit);
       });
       winBox.addEventListener('mouseleave', () => { show(sticky); readout.textContent = ''; });
       return wrap;
@@ -507,7 +519,9 @@
         const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
       }
       const cicnImg = await loadImgSafe(theme, docWindowCicn(theme));
-      details.appendChild(buildSliceView(win, cicnImg, 2));
+      const slug = (theme.baseUrl || '').split('/').pop();
+      const ctx = { themeName: theme.manifest.name || slug, slug, windowType: 'document-window', w: 172, h: 88, scale: 2, state: 'active' };
+      details.appendChild(buildSliceView(win, cicnImg, 2, undefined, ctx));
       return details;
     }
 
@@ -540,18 +554,27 @@
 
       const themeCache = new Map();
       const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(`/themes/${slug}`)); return themeCache.get(slug); };
-      // Friendly label for a window-type key (the keys are now canonical slugs;
-      // any leftover raw `wnd--NNNNN` from an unmapped id falls through as-is).
-      const prettyWindowType = (k) => k.replace(/^wnd-/, 'wnd ').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-      // Roughly the order a designer cares about: the main window, then modal
-      // dialogs, then floating utility palettes, then collapsed/popup oddments.
+      // Some bundles key window types by the raw wnd# resource id
+      // (`wnd--14288`) rather than a friendly slug — map those ids to the
+      // canonical kind (matches the extractor's CANONICAL_WNDTYPE_SLUGS) for a
+      // readable, consistently-ordered dropdown without touching the bundle.
+      const WND_ID_SLUG = {
+        '-14336': 'document-window', '-14335': 'document-window', '-14332': 'collapsed-document-window',
+        '-14328': 'dialog', '-14326': 'alert', '-14324': 'movable-modal', '-14322': 'movable-alert',
+        '-14304': 'titled-utility-window', '-14296': 'side-floating-utility-window', '-14288': 'no-title-utility-window',
+        '-12320': 'popup-window',
+      };
+      const canonSlug = (k) => { const m = /^wnd-(-?\d+)$/.exec(k); return m && WND_ID_SLUG[m[1]] ? WND_ID_SLUG[m[1]] : k; };
+      const prettyWindowType = (k) => canonSlug(k).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      // Designer-first order: main window, then modal dialogs, then floating
+      // utility palettes, then collapsed/popup oddments.
       const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window'];
       const populateWindowTypes = (theme) => {
         const wts = theme.manifest.windowTypes || {};
         wtypeSel.innerHTML = '';
         const keys = Object.keys(wts).sort((a, b) => {
-          const ia = WT_ORDER.indexOf(a), ib = WT_ORDER.indexOf(b);
-          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+          const ia = WT_ORDER.indexOf(canonSlug(a)), ib = WT_ORDER.indexOf(canonSlug(b));
+          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || prettyWindowType(a).localeCompare(prettyWindowType(b));
         });
         for (const k of keys) {
           const wt = wts[k]; const ok = wt.edges && wt.edges.top && wt.edges.top.length && wt.chrome && wt.chrome.active;
@@ -576,10 +599,11 @@
         out.textContent = '';
         const refMeta = THEMES.find((t) => t.slug === themeSel.value);
         const refSrc = refMeta ? `./assets/references/${refMeta.ref}` : null;
+        const ctx = { themeName: refMeta ? refMeta.label : themeSel.value, slug: themeSel.value, windowType: wtypeSel.value || '(default)', w: +wIn.value, h: +hIn.value, scale: SC, state: stateSel.value };
         if (win._awComposed && win._awComposed.placement && win._awComposed.placement.length) {
           const cicnImg = await loadImgSafe(theme, windowCicn(theme, wtypeSel.value));
           if (my !== token) return;
-          out.appendChild(buildSliceView(win, cicnImg, SC, refSrc));
+          out.appendChild(buildSliceView(win, cicnImg, SC, refSrc, ctx));
         } else {
           const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
           const box = document.createElement('div'); box.style.cssText = 'flex:0 0 auto;display:inline-block;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
