@@ -93,9 +93,13 @@ export async function renderWindow(
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
-    // Centre the title on the (grown) plate span; clamp into the bar. The
-    // glyphs draw with a transparent background straight onto the plate.
-    const gx = Math.max(0, Math.min(fullWidth - g.width, Math.round(tr.x + (tr.w - g.width) / 2)));
+    // The title text is a CENTERED part: the kDEF places it via the anchor grid
+    // (kdef-disassembly-findings §9.4, placement mode 0) at the window CONTENT
+    // CENTRE — NOT on the frame's grow distribution. Centring on the plate's
+    // output span made asymmetric frame growth shove the title sideways (the
+    // 1138 regression). Centre on cx = content centre, clamp into the bar.
+    const cx = frame.left + contentW / 2;
+    const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
     const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
     composed.buffer.drawOver(g, gx, gy);
   }
