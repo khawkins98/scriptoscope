@@ -93,8 +93,12 @@ Render at a few sizes and compare to `demo/assets/references/<slug>.png`:
 4. **Rewrite `diag:audit`** to the part-code model (its invariants assume the old
    model — "code 0 fixed", "no tile" — and now throw ~163 false warnings).
 
-## Where things stand (commit history on `v2-reset`)
-- `36d9ab4`: part-code classification live; all 5 render coherently (no garbage)
-  but structured fills read flat and widgets are clean-filled+stamped (not carved).
-- The full part-code/draw decode: `kdef231-recipe-walk.md`. The version story:
-  `kdef-trace-v2.md`. 1.8.2 material in `kdef-disassembly-findings.md` is historical.
+## References
+- `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
+  Kaleidoscope **2.3.1** kDEF (the engine our K2 schemes use). The source of
+  truth behind this spec.
+- `kdef-disassembly-findings.md` — earlier 1.8.2 binary archaeology, kept for the
+  version-stable bits (the QuickDraw/CopyBits model, the §9 part-placement anchor
+  grid). HISTORICAL for the recipe walk — see its header banner.
+- `diagnostic-tooling.md` — the in-browser slice inspector + the
+  `diag:render` / `diag:audit` CLIs for validating against the reference images.
