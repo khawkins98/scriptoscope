@@ -103,10 +103,17 @@ five themes' document-windows clean (only BeOS trailing-padding coverage quirk).
 The audit's old `p1 widget-ref stretched` + mega-tile checks were retired (a
 uniform `p1` stretching is correct; tiling never happens), added a no-tile check.
 
-Residual warnings (12, all NON-document / not demo-visible): utility/dialog/
-popup coverage stops short (far-corner class), evolution utility gradient-as-
-plate, `wnd--14296` side-edge widget not stamped. Deferred: utility-window
-racing-stripe TILING (the doc's one tiling exception).
+**Refinement (same day):** `p18` "gradient" is no longer special-cased —
+gradient-scaling smeared evolution's 59px corner (coded `p18`) and starved the
+1px grow gaps. `p18` now runs through the uniformity test like everything else
+(uniform → stretch, structured links/corners → fixed), so only uniform grow
+columns absorb growth. Evolution's metallic chain renders cleanly: links/corners
+native, 1px gaps stretch. BeOS bottom unchanged (p18 corner → fixed, p1 fills).
+
+Residual warnings (9, all NON-document / not demo-visible): utility/dialog/popup
+coverage stops short (far-corner class), `wnd--14296` side-edge widget not
+stamped. Deferred: utility-window racing-stripe TILING (the doc's one tiling
+exception).
 
 ## Update 2026-05-22 — corner findings + an extractor regression
 

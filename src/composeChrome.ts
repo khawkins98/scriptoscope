@@ -23,12 +23,6 @@ function isFillPart(code: number): boolean {
   return code >= 5;
 }
 
-/** Gradient stretch part (K2 §Window Gradients): sample-and-hold scale the
- *  whole segment rather than tile its motif. */
-function isGradientPart(code: number): boolean {
-  return code === 18;
-}
-
 
 interface RecipeSegment {
   /** cicn source span along the edge axis. */
@@ -331,16 +325,20 @@ function composeEdgeFromRecipe(
   };
 
   // Per-segment growth behaviour:
-  //   plate    — the title grow column (grows to the title width)
-  //   gradient — p18: scales smoothly (sample-and-hold the whole segment)
-  //   stretch  — uniform along the walk axis: a grow column
-  //   fixed    — corner / baked widget / structured static art: drawn once
-  type GrowMode = 'plate' | 'gradient' | 'stretch' | 'fixed';
+  //   plate   — the title grow column (grows to the title width)
+  //   stretch — uniform along the walk axis: a grow column (absorbs growth)
+  //   fixed   — corner / baked widget / structured static art: drawn once
+  type GrowMode = 'plate' | 'stretch' | 'fixed';
   const growModeOf = (s: RecipeSegment): GrowMode => {
     if (s.isPlate) return 'plate';
-    if (isGradientPart(s.code)) return 'gradient';
     if (s.code === 0) return 'fixed';      // corner
     if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
+    // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
+    // walk axis (→ stretch, lossless) while a structured p18 (evolution's
+    // metallic links + corner blobs, coded p18 but full of cross-axis detail)
+    // is NOT uniform (→ fixed, drawn once). Special-casing p18 as a scalable
+    // gradient smeared evolution's 59px corner and let the wide links hog the
+    // growth from the 1px grow gaps. Uniformity handles both correctly.
     return isStretchable(s) ? 'stretch' : 'fixed';
   };
   const modes = segs.map(growModeOf);
@@ -362,7 +360,8 @@ function composeEdgeFromRecipe(
 
   // Growth budget: the plate first absorbs (titleWidth − its native), clamped
   // to the window's total extra; the REST distributes across the grow columns
-  // (+ any gradient) proportional to native length.
+  // proportional to native length. (Only uniform grow columns absorb growth —
+  // structured art, gradients-coded-as-links, and corners stay native.)
   const plateIdx = modes.indexOf('plate');
   const plateNative = plateIdx >= 0 ? segs[plateIdx]!.x1 - segs[plateIdx]!.x0 : 0;
   const plateExtra = plateIdx >= 0
@@ -370,8 +369,8 @@ function composeEdgeFromRecipe(
     : 0;
   const otherExtra = Math.max(0, geo.extra - plateExtra);
   let totalGrowNative = 0;
-  segs.forEach((s, i) => { if (modes[i] === 'stretch' || modes[i] === 'gradient') totalGrowNative += s.x1 - s.x0; });
-  let growsLeft = modes.filter((m) => m === 'stretch' || m === 'gradient').length;
+  segs.forEach((s, i) => { if (modes[i] === 'stretch') totalGrowNative += s.x1 - s.x0; });
+  let growsLeft = modes.filter((m) => m === 'stretch').length;
   let extraRem = otherExtra;
 
   // Output walk-axis position starts where the recipe starts (segs are
@@ -411,7 +410,7 @@ function composeEdgeFromRecipe(
       continue;
     }
 
-    if (gm === 'gradient' || gm === 'stretch') {
+    if (gm === 'stretch') {
       // last grow segment soaks up the rounding remainder so edges meet exactly
       const share =
         growsLeft === 1
@@ -428,17 +427,7 @@ function composeEdgeFromRecipe(
         if (titleStart < 0) titleStart = outPos;
         titleEnd = outPos + outLen;
       }
-      if (gm === 'gradient') {
-        // GRADIENT (p18): scale the whole native segment to the output span
-        // (sample-and-hold), so the ramp stretches evenly — never a 1px column
-        // (which would flatten it). Works on either axis.
-        if (geo.horizontal) {
-          out.copyBits(cicn, { x: seg.x0, y: geo.crossSrc, w: nativeLen, h: geo.crossLen }, { x: outPos, y: geo.crossDst, w: outLen, h: geo.crossLen });
-        } else {
-          out.copyBits(cicn, { x: geo.crossSrc, y: seg.x0, w: geo.crossLen, h: nativeLen }, { x: geo.crossDst, y: outPos, w: geo.crossLen, h: outLen });
-        }
-        mode = 'gradient'; src = srcRect(seg.x0, nativeLen); rects.push(outRect(outPos, outLen));
-      } else if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
+      if (overlapsWidget(seg) && fillSrcX >= 0 && geo.horizontal) {
         // A thin grow column over a rectList widget: render clean background
         // (the plate column), not the segment's art — the widget is stamped
         // once on top in pass 2. (Rare: widgets are wide → usually fixed.)

@@ -49,11 +49,12 @@ for (const slug of slugs) {
     for (const s of P) {
       if (s.edge === 'widget') continue;
       if (s.code === 0 && s.mode !== 'fixed') warns.push(`${s.edge} p0 corner rendered '${s.mode}' (expected fixed)`);
-      if (s.code === 18 && s.mode !== 'gradient') warns.push(`${s.edge} p18 gradient rendered '${s.mode}'`);
-      // Width-based model (Creating Color Schemes): document edges STRETCH thin
-      // grow columns and draw wide art FIXED — they never TILE. (The thin-only
-      // rule is enforced in composeEdgeFromRecipe; a stretched slice always
-      // samples a 1px column, so it can't be audited from `src` post-hoc.)
+      // Uniformity model (Creating Color Schemes): a segment STRETCHES only if
+      // it is uniform along the walk axis (a grow column); structured art —
+      // including p18 segments that are decorative links/corners, not smooth
+      // ramps — is drawn FIXED. Document edges never TILE. (The uniformity rule
+      // is enforced in composeEdgeFromRecipe; a stretched slice always samples a
+      // 1px column, so the stretch/fixed split can't be re-derived from `src`.)
       if (s.mode === 'tile') warns.push(`${s.edge} p${s.code} tiled (document edges should never tile)`);
     }
 

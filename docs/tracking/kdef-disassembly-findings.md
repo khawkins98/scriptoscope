@@ -438,9 +438,20 @@ said "fixed", leaving a texture chunk + gradient instead of a clean border).
   column iff ≥90% of its walk-axis lines match the sampled (mid) line**;
   anything with cross-axis structure (button row, decoration, stepped bevel)
   is STATIC art → **FIXED**, drawn once.
-- `p0` corner and rectList-widget-overlapping segments are always FIXED;
-  `p18` is gradient; the title plate grows to the title width.
-- growth distributes across the grow columns (+ gradient) ∝ native length.
+- `p0` corner and rectList-widget-overlapping segments are always FIXED; the
+  title plate grows to the title width.
+- growth distributes across the grow columns ∝ native length.
+- **`p18` is NOT special-cased.** It was treated as a scalable gradient
+  (sample-and-hold the whole segment), but evolution's `p18` segments are
+  decorative metallic links + a 59px corner blob coded `p18`, not smooth
+  ramps — gradient-scaling smeared the 59px corner and let the wide links hog
+  growth from the 1px grow gaps (which then barely stretched). Routing `p18`
+  through the same uniformity test fixes both: a vertical ramp is uniform
+  (→ stretch, lossless) while structured links/corners are not (→ fixed). Only
+  uniform grow columns absorb growth, so evolution's 1px gaps now stretch and
+  the links/corners stay native. (If a future scheme needs a genuinely
+  scaling horizontal ramp, re-introduce a gradient mode gated on "uniform
+  along the CROSS axis" so it's distinguishable from decorative `p18`.)
 
 Probed across the corpus, the separation is clean: grow columns (1138 right
 `p1`, BeOS bottom `p1`, 1990/1984 1px `p1`) score 100% uniform; static panels
