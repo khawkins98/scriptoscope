@@ -75,35 +75,31 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour, in spec priority order: (1) the cicn text-colour MARKER —
-    // the pixel at the cinf textPixel / the ≤2px rect-list marker column, which
-    // IS the authored title-text colour (white for evolution, blue for 1984);
-    // (2) the scheme's declared header text colour (the -14335/-14336 clut);
-    // (3) a luminance-picked b/w contrast against the bar.
+    // Title colour, in spec priority order: (1) the scheme's DECLARED header
+    // text colour (the -14335/-14336 active/inactive clut, decoded by part
+    // code) — the authoritative title-text colour signal (white for evolution,
+    // blue-ish for 1984, black for 1138); (2) the cicn text-colour MARKER pixel
+    // (the cinf textPixel / ≤2px rect-list marker) IF it carries a saturated
+    // colour (in this corpus the marker column is just frame-grey, so it rarely
+    // wins); (3) a luminance-picked b/w contrast against the bar.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
     const tr = composed.titleRegion;
-    let fgHex: string | null = null;
-    if (composed.titleFillSrcX >= 0) {
-      // Sample the brightest opaque pixel near the marker column in the cicn —
-      // the authored text-colour pixel (markers are a 1–2px coloured line).
+    let fgHex: string | null = hc.text ?? null;
+    if (!fgHex && composed.titleFillSrcX >= 0) {
       const mx = composed.titleFillSrcX;
       let best: [number, number, number] | null = null;
-      let bestScore = -1;
+      let bestSat = 24; // require a real colour, not frame grey
       for (let dx = -1; dx <= 1; dx++) {
         for (let y = 1; y < frame.top - 1; y++) {
           const [r, g2, b, a] = cicn.getPixel(mx + dx, y);
           if (a < 200) continue;
-          // prefer the most saturated / extreme pixel (the colour signal)
-          const mxc = Math.max(r, g2, b), mnc = Math.min(r, g2, b);
-          const score = (mxc - mnc) + Math.abs(128 - (r + g2 + b) / 3);
-          if (score > bestScore) { bestScore = score; best = [r, g2, b]; }
+          const sat = Math.max(r, g2, b) - Math.min(r, g2, b);
+          if (sat > bestSat) { bestSat = sat; best = [r, g2, b]; }
         }
       }
       if (best) fgHex = `#${best.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
     }
-    if (!fgHex && hc.text) {
-      fgHex = hc.text;
-    } else if (!fgHex) {
+    if (!fgHex) {
       const [er, eg, eb] = dominantColor(composed.buffer, { x: tr.x, y: 1, w: Math.max(1, tr.w), h: frame.top - 2 });
       const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
       fgHex = lum < 128 ? '#ffffff' : '#000000';

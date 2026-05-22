@@ -317,30 +317,32 @@ function composeEdge(
   // Split a FIXED corner block off the leading/trailing ends so the rounded /
   // jointed corner art (1990's camo joints, evolution's pipe elbows, 1138's
   // rounded bezel) is drawn 1:1 and never stretched. We split only if the end
-  // cell is a growing cell (stretch/tile/scale) wider than the corner; the
-  // corner block becomes a fixed cell, the remainder keeps the original code.
-  const splitLeadingCorner = (cw: number): void => {
-    if (cw <= 0) return;
+  // cell is a growing cell (stretch/tile/scale) wider than the corner. The
+  // corner is CLAMPED so it never swallows a rect-list widget — the widget must
+  // stay wholly in the stretch cell so it carves+stamps cleanly (else it would
+  // be drawn twice: once in the fixed corner, once stamped).
+  const widgetMin = geo.widgetSpans.length ? Math.min(...geo.widgetSpans.map(([a]) => a)) : Infinity;
+  const widgetMax = geo.widgetSpans.length ? Math.max(...geo.widgetSpans.map(([, b]) => b)) : -Infinity;
+  {
     const c = cells[0]!;
-    if (c.cls === 'fixed' || c.cls === 'collapse') return;
-    const w = c.x1 - c.x0;
-    if (w <= cw) return;
-    cells.splice(0, 1,
-      { x0: c.x0, x1: c.x0 + cw, code: c.code, cls: 'fixed' },
-      { x0: c.x0 + cw, x1: c.x1, code: c.code, cls: c.cls });
-  };
-  const splitTrailingCorner = (cw: number): void => {
-    if (cw <= 0) return;
+    let cw = geo.corner[0];
+    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse' && c.x1 - c.x0 > cw) {
+      if (Number.isFinite(widgetMin)) cw = Math.min(cw, Math.max(0, widgetMin - c.x0));
+      if (cw > 0) cells.splice(0, 1,
+        { x0: c.x0, x1: c.x0 + cw, code: c.code, cls: 'fixed' },
+        { x0: c.x0 + cw, x1: c.x1, code: c.code, cls: c.cls });
+    }
+  }
+  {
     const c = cells[cells.length - 1]!;
-    if (c.cls === 'fixed' || c.cls === 'collapse') return;
-    const w = c.x1 - c.x0;
-    if (w <= cw) return;
-    cells.splice(cells.length - 1, 1,
-      { x0: c.x0, x1: c.x1 - cw, code: c.code, cls: c.cls },
-      { x0: c.x1 - cw, x1: c.x1, code: c.code, cls: 'fixed' });
-  };
-  splitLeadingCorner(geo.corner[0]);
-  splitTrailingCorner(geo.corner[1]);
+    let cw = geo.corner[1];
+    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse' && c.x1 - c.x0 > cw) {
+      if (Number.isFinite(widgetMax)) cw = Math.min(cw, Math.max(0, c.x1 - widgetMax));
+      if (cw > 0) cells.splice(cells.length - 1, 1,
+        { x0: c.x0, x1: c.x1 - cw, code: c.code, cls: c.cls },
+        { x0: c.x1 - cw, x1: c.x1, code: c.code, cls: 'fixed' });
+    }
+  }
 
   // The first cell's x0 is the recipe's start offset; the region before it
   // maps 1:1, so output starts there too.
@@ -378,40 +380,19 @@ function composeEdge(
       }
     }
   };
-  // Pick the most-UNIFORM source line within [s0,s1) along the walk axis: the
-  // line with the fewest cross-axis transitions (the clean pinstripe / fill
-  // cross-section). Stretch-holding this avoids smearing 2D corner/feature art
-  // — the emergent behaviour the kDEF gets free because its template fill cells
-  // are authored ~1px wide; our decoder split them into wide bands, so we
-  // re-find the clean column. (Pure 1px bands trivially return their one line.)
-  const sampleLine = (cicn2: PixelBuffer, s0: number, s1: number): number => {
-    if (s1 - s0 <= 1) return s0;
-    let best = s0, bestTrans = Infinity;
-    for (let s = s0; s < s1; s++) {
-      let trans = 0, prev = -1;
-      for (let t = 1; t < geo.crossLen - 1; t++) {
-        const px = geo.horizontal ? cicn2.getPixel(s, geo.crossSrc + t) : cicn2.getPixel(geo.crossSrc + t, s);
-        const bit = px[3] < 64 ? -1 : (0.3 * px[0] + 0.59 * px[1] + 0.11 * px[2]) < 128 ? 0 : 1;
-        if (prev !== -1 && bit !== prev) trans++;
-        prev = bit;
-      }
-      if (trans < bestTrans) { bestTrans = trans; best = s; }
-    }
-    return best;
-  };
-  // Fill a dst band from a src band per cinf.tileSides:
-  //   tile  → repeat the WHOLE src band at its native size (keeps a wide motif).
-  //   stretch → sample-and-hold the cell's most-uniform line across the dst
-  //             (keeps pinstripes/fills clean; no 2D smear).
+  // Fill a dst band from a src band per cinf.tileSides (kDEF Q5):
+  //   tile    → repeat the WHOLE src band at its native size (the partial last
+  //             tile is clipped). Keeps a motif's pixel size.
+  //   stretch → nearest-neighbour SCALE the whole src band to the dst. For
+  //             pinstripes (horizontal lines) this preserves the lines; for
+  //             camo / metallic pipes it scales the motif. Corners + widgets
+  //             are protected (fixed corner cells + carving) so this can't
+  //             smear them. This is the kDEF's `0xfeae`/scale behaviour.
   const drawFill = (s0: number, s1: number, dPos: number, dLen: number): void => {
     const sLen = s1 - s0;
     if (sLen <= 0 || dLen <= 0) return;
-    if (geo.tile) {
-      drawTile(s0, sLen, dPos, dLen);
-    } else {
-      const line = sampleLine(cicn, s0, s1);
-      drawStretch(line, 1, dPos, dLen);
-    }
+    if (geo.tile) drawTile(s0, sLen, dPos, dLen);
+    else drawStretch(s0, sLen, dPos, dLen);
   };
 
   // ── walk the cells ────────────────────────────────────────────────────────
@@ -484,12 +465,14 @@ function composeEdge(
       }
       while (gPtr < gaps.length) { events.push({ kind: 'gap', idx: gPtr }); gPtr++; }
 
-      // The clean fill cross-section for this cell (used to back the widgets):
-      // the most-uniform line across all gaps, so the carved-out region reads
-      // as continuous frame, not white or a feature smear.
-      const cleanS0 = gaps.length ? gaps[gaps.length - 1]!.s0 : c.x0;
-      const cleanS1 = gaps.length ? gaps[gaps.length - 1]!.s1 : c.x1;
-      const cleanLine = sampleLine(cicn, cleanS0, cleanS1);
+      // A representative fill column for backing the carved widget regions:
+      // the centre of the widest gap (continuous frame, not white). Falls back
+      // to the cell centre when there are no gaps (widget spans the whole cell).
+      const widestGap = gaps.reduce<{ s0: number; s1: number } | null>(
+        (best, g) => (!best || g.s1 - g.s0 > best.s1 - best.s0 ? g : best), null);
+      const backColumn = widestGap
+        ? Math.floor((widestGap.s0 + widestGap.s1) / 2)
+        : Math.floor((c.x0 + c.x1) / 2);
       for (const ev of events) {
         if (ev.kind === 'gap') {
           const g = gaps[ev.idx]!;
@@ -498,10 +481,10 @@ function composeEdge(
           drawFill(g.s0, g.s1, local, dw);
           local += dw;
         } else {
-          // Clean fill beneath the widget rect (the cell's uniform line), so
+          // Clean fill beneath the widget rect (a uniform fill column), so
           // pass 2 stamps the widget onto frame, not white / a smear.
           const ww = ev.b - ev.a;
-          drawStretch(cleanLine, 1, local, ww);
+          drawStretch(backColumn, 1, local, ww);
           local += ww;
         }
       }
@@ -651,6 +634,7 @@ export function composeWindowChrome(
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       outExtent: fullW, srcExtent: cicn.width, tile, widgetSpans: topWidgetSpans,
+      corner: [cLeft, cRight],
     }, widgetPresent);
   } else {
     composeSeamFallback(out, cicn, frame.top, fullW);
@@ -663,6 +647,7 @@ export function composeWindowChrome(
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       outExtent: fullH, srcExtent: cicn.height, tile,
       widgetSpans: leftWidgets.map((w) => [w.t, w.b] as [number, number]),
+      corner: [cTop, cBot],
     }, widgetPresent);
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 }, { x: 0, y: frame.top, w: frame.left, h: contentH });
@@ -675,6 +660,7 @@ export function composeWindowChrome(
       edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height, tile,
       widgetSpans: rightWidgets.map((w) => [w.t, w.b] as [number, number]),
+      corner: [cTop, cBot],
     }, widgetPresent);
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 }, { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
@@ -688,6 +674,7 @@ export function composeWindowChrome(
       edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width, tile,
       widgetSpans: botWidgets.map((w) => [w.l, w.r] as [number, number]),
+      corner: [cLeft, cRight],
     }, widgetPresent);
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom }, { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });

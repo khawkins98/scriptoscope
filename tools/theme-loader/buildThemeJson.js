@@ -152,6 +152,15 @@ export function buildThemeJson(manifest, options = {}) {
         left:   convertEdgeRecipe(wnd.data.leftSide),
         right:  convertEdgeRecipe(wnd.data.rightSide),
       },
+      // The window-frame cinf (cornerSize / sideThickness / tileSides /
+      // textPixel), when the scheme pairs one with this window type's cicn
+      // family. The kDEF reads it alongside the wnd# recipe to gate tile-vs-
+      // stretch and to colour the title. In the bundled corpus NO scheme ships
+      // a cinf for the document window (the cinf resources are all menu/button/
+      // slider/tab/dialog elements), so this is null for every observed scheme
+      // → the compositor defaults to stretch (tileSides=0). The path is wired so
+      // a scheme that DOES ship a window cinf surfaces it. See WindowCinf.
+      cinf: findWindowCinf(wnd.id, byTypeAndId),
       bodyPattern: null, // wnd# doesn't reference a body pattern directly;
                          // body composition comes from the chrome cicn's cinf.bgPatternId.
     };
@@ -202,6 +211,38 @@ export function buildThemeJson(manifest, options = {}) {
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Find the window-frame cinf paired with a window-type wnd#, if any.
+ *
+ * The kDEF reads a cinf alongside the wnd# (cornerSize / sideThickness /
+ * tileSides / textPixel). A window cinf, when present, shares a resource ID
+ * with one of the window's cicn family (the same id range as wnd#/cicn:
+ * the active/inactive/collapsed window cicns cluster around wndId). We probe
+ * that neighbourhood and the active-window id (wndId + 1).
+ *
+ * In every bundled scheme this returns null — windows ship NO cinf (the cinf
+ * resources are menu/button/slider/tab/dialog elements). The compositor then
+ * defaults to tileSides=0 (stretch). See src/types.ts WindowCinf.
+ *
+ * @param {number} wndId
+ * @param {Record<string, ManifestAsset>} byTypeAndId
+ * @returns {{cornerSize:number, sideThickness:number, tileSides:number, textPixel:[number,number]|null}|null}
+ */
+function findWindowCinf(wndId, byTypeAndId) {
+  for (let delta = -8; delta <= 8; delta++) {
+    const cinf = byTypeAndId[`cinf:${wndId + delta}`];
+    if (!cinf?.data) continue;
+    const d = cinf.data;
+    return {
+      cornerSize: d.cornerSize,
+      sideThickness: d.sideThickness,
+      tileSides: d.tileSides,
+      textPixel: d.textPixel ? [d.textPixel.x, d.textPixel.y] : null,
+    };
+  }
+  return null;
+}
 
 /**
  * Find active/inactive/collapsed cicns paired with a window-type wnd#.
