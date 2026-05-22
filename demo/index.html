@@ -552,7 +552,23 @@
       const scaleSel = sel([{ value: '1', label: '1×' }, { value: '2', label: '2×' }, { value: '3', label: '3×' }]); scaleSel.value = '2';
       const resetBtn = document.createElement('button'); resetBtn.type = 'button'; resetBtn.textContent = 'Reset';
       resetBtn.style.cssText = 'font:12px system-ui;padding:3px 12px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff';
-      ctrls.append(field('theme', themeSel), field('window type', wtypeSel), field('title', titleIn), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
+
+      // ── prev/next steppers so you can arrow through themes / window types /
+      // titles without opening a dropdown. The title also gets a shuffle button
+      // that jumps to a random sample title, for quickly eyeballing how chrome
+      // handles short vs. long titles (plate growth, centring, clipping). ──
+      const miniBtn = (txt, tip) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.title = tip; b.setAttribute('aria-label', tip); b.style.cssText = 'font:12px system-ui;padding:2px 7px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff;line-height:1.2'; return b; };
+      const withSteppers = (el, onPrev, onNext, ...extra) => { const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:4px;align-items:center'; const p = miniBtn('‹', 'previous'), n = miniBtn('›', 'next'); p.onclick = onPrev; n.onclick = onNext; row.append(p, el, n, ...extra); return row; };
+      const cycleSel = (s, dir) => { const len = s.options.length; if (len) s.selectedIndex = (s.selectedIndex + dir + len) % len; };
+      const themeStep = (dir) => async () => { cycleSel(themeSel, dir); populateWindowTypes(await getTheme(themeSel.value)); writeHash(); rerender(); };
+      const wtypeStep = (dir) => () => { cycleSel(wtypeSel, dir); writeHash(); rerender(); };
+      const SAMPLE_TITLES = ['Hello!', 'Untitled', 'README', 'Macintosh HD', 'System Folder', 'untitled folder', 'A', 'My Long Window Title Goes On And On', '404 Not Found', 'Résumé', 'kaleidoscope', 'New Document', 'iMovie', 'Get Info'];
+      const setTitle = (v) => { titleIn.value = v; writeHash(); rerender(); };
+      const titleIdxOf = () => { const i = SAMPLE_TITLES.indexOf(titleIn.value); return i < 0 ? 0 : i; };
+      const titleStep = (dir) => () => setTitle(SAMPLE_TITLES[(titleIdxOf() + dir + SAMPLE_TITLES.length) % SAMPLE_TITLES.length]);
+      const randomBtn = miniBtn('rand', 'random title');
+      randomBtn.onclick = () => { let i; do { i = Math.floor(Math.random() * SAMPLE_TITLES.length); } while (SAMPLE_TITLES.length > 1 && SAMPLE_TITLES[i] === titleIn.value); setTitle(SAMPLE_TITLES[i]); };
+      ctrls.append(field('theme', withSteppers(themeSel, themeStep(-1), themeStep(1))), field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
 
       const themeCache = new Map();
       const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(`/themes/${slug}`)); return themeCache.get(slug); };
