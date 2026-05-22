@@ -423,25 +423,36 @@ Schemes` pin both halves:
 > "When drawing the racing stripe pattern **for utility windows**,
 > Kaleidoscope **does not stretch the icon; rather, it tiles the icon**."
 
-The implemented rule in `composeEdgeFromRecipe` (`STRETCH_MAX = 2`):
+**First cut was WIDTH-based** (`STRETCH_MAX = 2`: thin → stretch, wide →
+fixed). That fixed 1984/1990 but broke two cases width can't see: a THIN `p8`
+that must stay fixed (1138's flat side row — 1px tall, so width said
+"stretch", but stretching it gives a flat border instead of the 3D bevel),
+and a WIDE uniform `p1` that must stretch (BeOS's 65px bottom border — width
+said "fixed", leaving a texture chunk + gradient instead of a clean border).
 
-- **corners (`p0`) and any segment > STRETCH_MAX px → FIXED** (CopyBits 1:1,
-  anchored to its position; drawn ONCE — never tiled or stretched, which
-  would repeat/smear baked decoration, widget clusters, button rows).
-- **thin segments (≤ STRETCH_MAX, any code ≠ 0) → STRETCH** a 1px sampled
-  column to absorb the window's extra size (the "single row or column
-  between the grow regions"). Growth distributes across them ∝ native width.
-- **`p18` gradient → sample-and-hold the whole segment** (the one wide
-  segment that grows; scales the ramp smoothly).
-- **title plate → grow the clean title column to the title width.**
-- **document windows never TILE.** Tiling is the utility-window racing-stripe
-  exception only (NOT yet implemented — see below); their fills currently
-  stretch, which is identical for a ≤1px stripe and acceptable otherwise.
+**Final rule is CONTENT-based — UNIFORMITY along the walk axis**
+(`isStretchable`, `STRETCH_UNIFORMITY = 0.9`, `COLOR_TOL = 16`):
 
-This replaced the prior per-edge `tileMotif` flag + body-boundary corner
-heuristics, which over-tiled wide decorated edges (1990's star/"1990"
-repeated, 1984's buttons tiled ×4). Validated visually + via `diag:audit`
-across 1138/1984/1990/evolution document windows (all clean coverage).
+- stretching samples ONE line of the segment and repeats it; that is lossless
+  iff every line along the walk axis is identical. So **a segment is a GROW
+  column iff ≥90% of its walk-axis lines match the sampled (mid) line**;
+  anything with cross-axis structure (button row, decoration, stepped bevel)
+  is STATIC art → **FIXED**, drawn once.
+- `p0` corner and rectList-widget-overlapping segments are always FIXED;
+  `p18` is gradient; the title plate grows to the title width.
+- growth distributes across the grow columns (+ gradient) ∝ native length.
+
+Probed across the corpus, the separation is clean: grow columns (1138 right
+`p1`, BeOS bottom `p1`, 1990/1984 1px `p1`) score 100% uniform; static panels
+(1138 right `p8` = 50%, 1990 top `p1` = 20%, 1990/1984 `p8` panels = 3%) score
+≤50%. The part code only *approximated* this — in decorated schemes `p1` is
+the (uniform) border and `p8` the (structured) panel, the INVERSE of their
+names — so neither code nor width is the real signal; uniformity is.
+
+This replaced the per-edge `tileMotif` flag + body-boundary corner heuristics,
+which over-tiled wide decorated edges. **Document windows never TILE.**
+Validated visually + `diag:audit` on all five themes' document windows (only
+BeOS's known trailing-transparent-padding coverage quirk remains).
 
 **Deferred:** (a) utility-window racing-stripe TILING (the doc's explicit
 exception); (b) gradient-as-plate flattening on evolution utility windows;

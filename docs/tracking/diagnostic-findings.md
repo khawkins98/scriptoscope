@@ -89,19 +89,19 @@ the bar fill here, or a mis-coalesced motif? Likely benign.
 ## Update 2026-05-22 (pm) — width-based stretch/fixed rule (the big one)
 
 Replaced the tile-vs-stretch heuristics (`tileMotif`, body-boundary corner
-pinning) with the authoritative WIDTH rule from Kaleidoscope's `Creating Color
-Schemes` doc (see kdef-disassembly-findings §8.6): a grow region is a "single
-row or column of pixels", so **thin (≤2px) segments STRETCH and any wider
-segment is STATIC art drawn ONCE (fixed)** — regardless of part code (in
-decorated schemes `p8` is the WIDE static art and `p1` is the THIN grow column,
-the inverse of the simple corpus). **Document windows never tile.**
+pinning) with a CONTENT-based rule: **a segment STRETCHES iff it is UNIFORM
+along the walk axis (≥90% of lines match the sampled line); structured art is
+FIXED (drawn once).** Corners/widget-overlaps fixed, p18 gradient, plate grows
+to title. **Document windows never tile.** (A first WIDTH-based cut — thin
+stretch / wide fixed — handled 1984/1990 but broke 1138's thin flat `p8` and
+BeOS's wide uniform `p1`; uniformity gets all cases. See kdef-disassembly §8.6.)
 
-Fixes the whole class the user kept flagging: 1990's star/"1990"/camo no longer
-repeat, 1984's bottom button cluster draws once (anchored right) with the 1px
-slice stretching to fill the gap. `diag:audit`: 1138/1984/1990/evolution
-document-windows all clean. The audit's old `p1 widget-ref stretched` and
-mega-tile checks were retired (a thin `p1` stretching is now correct; tiling
-never happens) and a `tile should never happen` check added.
+Fixes the whole class the user flagged: 1990 star/"1990"/camo once, 1984 button
+cluster once, 1138 right/left edges keep the 3D bevel (stretch the uniform `p1`,
+not the flat `p8`), BeOS bottom border stretches uniformly. `diag:audit`: all
+five themes' document-windows clean (only BeOS trailing-padding coverage quirk).
+The audit's old `p1 widget-ref stretched` + mega-tile checks were retired (a
+uniform `p1` stretching is correct; tiling never happens), added a no-tile check.
 
 Residual warnings (12, all NON-document / not demo-visible): utility/dialog/
 popup coverage stops short (far-corner class), evolution utility gradient-as-

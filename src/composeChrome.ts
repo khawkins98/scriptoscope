@@ -29,17 +29,6 @@ function isGradientPart(code: number): boolean {
   return code === 18;
 }
 
-/**
- * Max width (px) of a GROW column. Kaleidoscope's "Creating Color Schemes"
- * authoring doc: the kDEF draws an edge by drawing the corners, then
- * "stretches the single row or column of pixels between the various grow
- * regions to draw the sides." So a grow region is ~1px; we allow ≤2 for
- * authored 2px seams. ANY segment wider than this is STATIC art (a corner,
- * a baked widget cluster, a decoration, a button row) and is drawn ONCE at
- * native size — never stretched or tiled, which would smear/repeat it.
- * (The lone exception is a p18 gradient, which is wide but scales smoothly.)
- */
-const STRETCH_MAX = 2;
 
 interface RecipeSegment {
   /** cicn source span along the edge axis. */
@@ -214,18 +203,18 @@ interface PlacedSegment {
  *
  * The recipe partitions the cicn edge into segments at the `at` offsets.
  * Each segment is a `CopyBits` from its own cicn span. Behaviour is decided
- * by the segment's WIDTH, per Kaleidoscope's "Creating Color Schemes" doc
- * ("draws the corners, then stretches the single row or column of pixels
+ * by CONTENT (`isStretchable`), per Kaleidoscope's "Creating Color Schemes"
+ * doc ("draws the corners, then stretches the single row or column of pixels
  * between the various grow regions"):
- *   - FIXED segments (corners, AND any segment wider than STRETCH_MAX —
- *     baked widget clusters, button rows, decorations) copy 1:1, keeping
- *     their native size and staying anchored to their end as the window
- *     grows. Wide art is drawn ONCE, never repeated or smeared.
- *   - GROW columns (thin, ≤STRETCH_MAX px — the "single row/column between
- *     the grow regions") sample-and-hold one column to absorb `geo.extra`,
- *     split proportionally to native length.
- *   - GRADIENT (p18) is the one wide segment that grows: sampled-and-held
- *     across its output span so the ramp scales smoothly.
+ *   - GROW columns (UNIFORM along the walk axis — the "single row/column
+ *     between the grow regions") sample-and-hold one line to absorb
+ *     `geo.extra`, split proportionally to native length.
+ *   - FIXED segments (corners, baked widgets, AND any segment with cross-axis
+ *     structure — button rows, decorations, stepped bevels) copy 1:1, keeping
+ *     their native size and staying anchored to their end as the window grows.
+ *     Structured art is drawn ONCE, never repeated or smeared.
+ *   - GRADIENT (p18) grows by sample-and-hold across its output span so the
+ *     ramp scales smoothly.
  *
  * Output position starts at the recipe's first `at` (positions before
  * the body map 1:1, so output-pos == cicn-pos there) and accumulates as
@@ -290,25 +279,69 @@ function composeEdgeFromRecipe(
   const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
   // Segments stand ALONE — no coalescing. The kDEF draws each recipe segment
-  // independently, and a segment's WIDTH decides its behaviour (see STRETCH_MAX
-  // and composeEdgeFromRecipe's header). Coalescing adjacent fills into one
-  // wide block would mis-classify thin grow columns as wide static art.
+  // independently. Coalescing adjacent segments into one wide block would
+  // mis-classify a thin grow column glued to a static panel.
   const segs: RecipeSegment[] = raw.map((s) => ({
     ...s,
     isPlate: usePlate && s.x0 === plateX0 && s.x1 === plateX1,
   }));
 
-  // Per-segment growth behaviour, by WIDTH (Kaleidoscope's authoring doc):
+  const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
+
+  // STRETCHABILITY is decided by CONTENT, not part code or width. Kaleidoscope
+  // "stretches the single row or column of pixels between the grow regions":
+  // sampling ONE line of the segment and repeating it across the grown output
+  // is LOSSLESS only when every line along the walk axis is identical. So a
+  // segment is a grow column iff it is UNIFORM along the walk axis; anything
+  // with cross-axis structure (a button row, a baked decoration, a stepped
+  // bevel) is STATIC art and must be drawn once (fixed).
+  //
+  // This is what the part code only approximated: in the corpus `p1` happens
+  // to be the (uniform) border and `p8` the (structured) decorative panel —
+  // the inverse of their names — but a thin `p8` (1138's flat side row) and a
+  // wide uniform `p1` (BeOS's 65px bottom border) both break the name/width
+  // proxy. Uniformity gets every case right (probed across the corpus: grow
+  // columns score 100%, static panels ≤50%).
+  const STRETCH_UNIFORMITY = 0.9;
+  const COLOR_TOL = 16;
+  const isStretchable = (s: RecipeSegment): boolean => {
+    const len = s.x1 - s.x0;
+    if (len <= 1) return true; // a single line is trivially uniform
+    const mid = s.x0 + Math.floor(len / 2); // the line we'd actually sample
+    const eq = (p: Uint8ClampedArray | number[], q: Uint8ClampedArray | number[]) =>
+      Math.abs(p[0]! - q[0]!) <= COLOR_TOL && Math.abs(p[1]! - q[1]!) <= COLOR_TOL &&
+      Math.abs(p[2]! - q[2]!) <= COLOR_TOL && Math.abs(p[3]! - q[3]!) <= COLOR_TOL;
+    let match = 0;
+    if (geo.horizontal) {
+      for (let x = s.x0; x < s.x1; x++) {
+        let ok = true;
+        for (let y = geo.crossSrc; y < geo.crossSrc + geo.crossLen; y++)
+          if (!eq(cicn.getPixel(x, y), cicn.getPixel(mid, y))) { ok = false; break; }
+        if (ok) match++;
+      }
+    } else {
+      for (let y = s.x0; y < s.x1; y++) {
+        let ok = true;
+        for (let x = geo.crossSrc; x < geo.crossSrc + geo.crossLen; x++)
+          if (!eq(cicn.getPixel(x, y), cicn.getPixel(x, mid))) { ok = false; break; }
+        if (ok) match++;
+      }
+    }
+    return match / len >= STRETCH_UNIFORMITY;
+  };
+
+  // Per-segment growth behaviour:
   //   plate    — the title grow column (grows to the title width)
-  //   gradient — p18: wide but scales smoothly (sample-and-hold whole segment)
-  //   stretch  — a thin (≤STRETCH_MAX) grow column between static pieces
-  //   fixed    — a corner OR any wide segment: STATIC art, drawn once, anchored
+  //   gradient — p18: scales smoothly (sample-and-hold the whole segment)
+  //   stretch  — uniform along the walk axis: a grow column
+  //   fixed    — corner / baked widget / structured static art: drawn once
   type GrowMode = 'plate' | 'gradient' | 'stretch' | 'fixed';
   const growModeOf = (s: RecipeSegment): GrowMode => {
     if (s.isPlate) return 'plate';
     if (isGradientPart(s.code)) return 'gradient';
-    if (s.code !== 0 && s.x1 - s.x0 <= STRETCH_MAX) return 'stretch';
-    return 'fixed';
+    if (s.code === 0) return 'fixed';      // corner
+    if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
+    return isStretchable(s) ? 'stretch' : 'fixed';
   };
   const modes = segs.map(growModeOf);
   const isGrow = (m: GrowMode) => m !== 'fixed';
@@ -350,7 +383,6 @@ function composeEdgeFromRecipe(
   let titleStart = -1, titleEnd = -1;
   let growStart = -1, growEnd = -1;
   const placed: PlacedSegment[] = [];
-  const overlapsWidget = (s: RecipeSegment) => geo.widgetSpans.some(([a, b]) => s.x0 < b && s.x1 > a);
   // walk-axis span → full src/output rect (axis-agnostic).
   const srcRect = (a: number, len: number): PixRectXY =>
     geo.horizontal ? { x: a, y: geo.crossSrc, w: len, h: geo.crossLen } : { x: geo.crossSrc, y: a, w: geo.crossLen, h: len };
