@@ -259,12 +259,26 @@ edge. Full enumeration of affected types in the blocker section.
    OOB inset) now passes on all 52 window types (was 18 bad). The art is still
    wrong on the mis-paired types — **#2 (re-pairing) must follow** to give them
    the correct cicn so all four borders draw real frame, not nothing.
-2. **Re-pair cicn ↔ rect-list for the secondary window types** (the DATA core of
-   B2–B9): the body rects for movable-modal/-alert, side-floating-utility, popup,
-   1984/beos dialog, and the small `wnd--` types reference templates that don't
-   match the resolved cicn (rects sized for a title/large template against a 16×16
-   / 20×20 / 39×11 corner cicn, or treating cicn *content* as border). Audit the
-   decoder's window-type → cicn resolution + `part-0` rect extraction.
+2. ~~**Re-pair cicn ↔ rect-list for the secondary window types**~~ **DONE.**
+   Root cause was `pairChromeStates` (`buildThemeJson.js`): it picked the chrome
+   cicn by NAME-keyword match over a `wndId ± 8` neighbourhood, so the secondary
+   types grabbed the nearest name-matching cicn — a grow-box / a different window
+   type — instead of their own frame (e.g. Movable Modal wnd# −14324 → 16×16
+   "Active Dialog" −14327 instead of its 41×32 frame −14323). Replaced with the
+   Mac OS WDEF resource-id convention: **inactive = cicn at `wndId`, active = cicn
+   at `wndId + 1`** (single-state windows like popup → id+0). Verified across all
+   five schemes: the id+1 cicn is always that type's "Active <Type>" frame, and
+   the rule reproduces every previously-correct pairing (all five
+   document-windows stay on −14335, byte-identical frames). Re-ran
+   `extract-scheme --all` (PNG/manifest re-encode noise reverted; only
+   `theme.json` × 5 + the tool changed). 1990 & evolution restructured from raw
+   `wnd--####` keys to friendly slugs as a side-effect. **Results:** dialogs/
+   movable-modal/side-float now render correct thin/symmetric frames from the
+   right template (B2/B3/B4/B5 fixed at the root); the frame-invariant sweep
+   drops from 18 → 1 type still needing the negative-inset clamp (only
+   1138 collapsed-document-window, whose own wnd# body rect bottom=26 exceeds its
+   21px collapsed cicn — an inherent resource quirk, B9). Audit 6 → 3 warnings
+   (the 3 remaining are the B8 side-float carve gap, a MODEL issue — see #5).
 3. **beos doc-window right-tail (B1):** crop the transparent right margin or fix
    `part-0.right` so the right border isn't 22px of nothing.
 4. **Proxy/title-bezel carving (V1/V3):** the 1138 baked proxy box needs decoder
