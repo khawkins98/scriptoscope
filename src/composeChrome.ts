@@ -333,12 +333,10 @@ function composeEdgeFromRecipe(
     if (s.isPlate) return 'plate';
     if (s.code === 0) return 'fixed';      // corner
     if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
-    // Title-region "divider sandwich" (p5/p6): the kDEF stretches only the
-    // middle column (the PLATE, handled above) "to make room for the title";
-    // the sandwich's other p5/p6 segments are its structural bracket lines and
-    // stay FIXED. (This is the structural reason evolution's flat-black col70
-    // bezel mustn't stretch into a box — no luminance heuristic needed.)
-    if (s.code === 5 || s.code === 6) return 'fixed';
+    // (Removed the p5/p6 "bracket = fixed" rule: it over-fit evolution's bezel
+    // and regressed 1138's pinstripe bar. The real recipe-walk lives in the
+    // WDEF -14330 we don't have, so the honest fallback is the same uniformity
+    // test for ALL non-corner/non-widget segments, p5/p6 included.)
     // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
     // walk axis (→ stretch, lossless) while a structured p18 (evolution's
     // metallic links + corner blobs, coded p18 but full of cross-axis detail)

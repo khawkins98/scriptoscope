@@ -80,9 +80,60 @@ from `kDEF_0.asm`, NOT guessed. That is the next trace.
   dark `p1@35` to stretch). Symptom of not having the real rule — do not treat
   as final.
 
-## 6. Next: decode the recipe-walk in `kDEF_0.asm`
-Find the function that loads the `wnd#` side lists and walks each edge's
-`(part, border)` entries. Determine: (a) the part-code → fixed/stretch/widget
-table, (b) where the cicn source for each segment comes from, (c) how the
-window's extra width is distributed across the stretch segments. Cross-check asm
-vs `kdef_decomp_nop.c`. The answer must be simple (the litmus).
+## 6. RESULT — the recipe-walk is NOT in `kDEF_0` (`kdef-recipe-walk-decoded.md`)
+
+Decoding `kDEF_0.asm` end to end: **there is no recipe walk and no
+`switch(partCode)` in the kDEF.** The kDEF is a WDEF SHIM —
+`GetResource('WDEF', -14330)` (`0x9338`) + `jsr %a0@` (`0x9416`) to run that
+WDEF for region/draw work; the only fill the kDEF does itself is a cicn-strip
+**tile** loop (`0xde84`, stepping the dst by the cicn width). The `'wnd#'` /
+`'cicn'` literals never appear — the side list + cicn are passed in by the host.
+So **the exact fixed-vs-stretch algorithm lives in the WDEF resource, which is
+NOT in our artifacts** and cannot be instruction-decoded here.
+
+## 7. Consequence: no simple corpus-inferred rule fits all five themes
+
+We tried, against the corpus: part-code table, segment width, walk-axis
+uniformity, dark-outlier exclusion, and a p5/p6 "bracket=fixed" rule. Each
+resolves some cases and breaks others. The unresolvable conflict:
+- **1138** title bar must FILL with the light pinstripe as it widens — but the
+  pinstripe panels (`p11`/`p5`/`p8`) read as non-uniform (and `p8` carries the
+  zoom/shade widgets), so uniformity fixes them and the only thing left to
+  stretch is the 1px dark `p1@35` frame line → a dark band.
+- **evolution** the 1px `p5@70` bezel must NOT stretch (else a ~28px dark box),
+  but it is uniform → uniformity stretches it.
+Same codes, opposite required behaviour, and content (uniformity/luminance)
+can't separate "the title-bar fill that should grow" from "a uniform frame
+line that shouldn't." That separation is exactly what the WDEF encodes and we
+don't have.
+
+## 8. Leading hypothesis for a genuinely clean model (verify next)
+
+The kDEF's own fill is a **tile**, and the doc says document windows STRETCH
+while utility windows TILE — both 9-slice-shaped (corners fixed, edges
+filled). The `cinf` resource carries `cornerSize`, `sideThickness`, `tileSides`,
+`patternAnchor` (§13.2). So the real model is plausibly:
+
+> **9-slice from `cinf`:** fixed `cornerSize` corners; the four edges are FILLED
+> (stretch, or TILE when `cinf.tileSides`) at `sideThickness`; widgets anchored
+> via the rect-list + the §9 anchor grid; the title centred (§9.4). The `wnd#`
+> recipe + rect-list are for WIDGET anchoring + hit-testing, NOT per-segment
+> frame fixed/stretch.
+
+This is compact (the 68k litmus), uses data we have (cinf), and would naturally
+fill 1138's pinstripe (stretch the uniform edge) and repeat 1990/evolution's
+decorated borders (tile). **To verify:** decode `cinf` per theme (the loader has
+`decoders/cinf.js`; the resource-fork accessor shape needs fixing first) and
+check whether decorated themes set `tileSides` and simple ones don't. If so,
+rebuild the compositor around 9-slice+cinf and retire the per-segment recipe
+walk + all its heuristics.
+
+## 9. Code state left (2026-05-22)
+
+- Title centring on `cx` (§9.4) — kept, correct (`fcfbaf6`).
+- Plate column = the rect-list marker (Rule B) — kept, correct & simple.
+- Removed the p5/p6 "bracket=fixed" over-fit — frame fill is now PLAIN
+  uniformity for all non-corner/non-widget segments. Cleaner, but with two
+  known cosmetic limitations (1138 dark-ish left bar segment; evolution ~28px
+  bezel box) that only the WDEF rule or the §8 9-slice+cinf model can fully
+  resolve. Documented here rather than patched with more heuristics.
