@@ -540,13 +540,22 @@
 
       const themeCache = new Map();
       const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(`/themes/${slug}`)); return themeCache.get(slug); };
+      // Friendly label for a window-type key (the keys are now canonical slugs;
+      // any leftover raw `wnd--NNNNN` from an unmapped id falls through as-is).
+      const prettyWindowType = (k) => k.replace(/^wnd-/, 'wnd ').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      // Roughly the order a designer cares about: the main window, then modal
+      // dialogs, then floating utility palettes, then collapsed/popup oddments.
+      const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window'];
       const populateWindowTypes = (theme) => {
         const wts = theme.manifest.windowTypes || {};
         wtypeSel.innerHTML = '';
-        const keys = Object.keys(wts).sort();
+        const keys = Object.keys(wts).sort((a, b) => {
+          const ia = WT_ORDER.indexOf(a), ib = WT_ORDER.indexOf(b);
+          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+        });
         for (const k of keys) {
           const wt = wts[k]; const ok = wt.edges && wt.edges.top && wt.edges.top.length && wt.chrome && wt.chrome.active;
-          const op = document.createElement('option'); op.value = k; op.textContent = ok ? k : `${k} (baseline)`;
+          const op = document.createElement('option'); op.value = k; op.textContent = prettyWindowType(k) + (ok ? '' : ' (baseline)');
           wtypeSel.appendChild(op);
         }
         if (!keys.length) { const op = document.createElement('option'); op.value = ''; op.textContent = '(no wnd# — baseline only)'; wtypeSel.appendChild(op); }
