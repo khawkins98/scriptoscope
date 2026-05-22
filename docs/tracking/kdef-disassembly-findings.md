@@ -1,7 +1,22 @@
-# kDEF disassembly findings — Kaleidoscope 1.8.2 binary archaeology
+# kDEF disassembly findings — Kaleidoscope binary archaeology
 
-**Date:** 2026-05-19
-**Source binary:** `Kaleidoscope 1.8.2 Installer` (StuffIt InstallerMaker self-extracting), extracting `Kaleidoscope` (Control Panel, 504,938-byte resource fork).
+> ## ⚠️ VERSION NOTE (2026-05-22) — reference engine moved 1.8.2 → 2.3.1
+> Sections below were written against the **Kaleidoscope 1.8.2** kDEF. We have
+> since established that our schemes (1138/1984/1990/evolution/beos) are
+> **K2-format** (they carry `wnd#` recipes + `cinf`), and the **1.8.2 kDEF
+> predates the recipe model** — it references `'wnd#'` ZERO times. The
+> recipe-walk that actually draws our schemes is in the **2.3.1 kDEF** (refs
+> `'wnd#'` 17×; `kDEF231_0.bin`/`.asm`, GetResource('wnd#') @ `0x11918`/`0x1747c`).
+> **Treat 1.8.2 findings here as historical** for anything about the recipe
+> walk / fixed-vs-stretch / growth distribution — the authoritative source is
+> now 2.3.1 (see `kdef231-recipe-walk.md` + `kdef-trace-v2.md` §9b). General
+> facts (QuickDraw/CopyBits model §2; the authoring doc rules §8.1; the part
+> placement anchor grid §9.4) are version-stable and still apply.
+
+**Date:** 2026-05-19 (1.8.2 pass) · version note added 2026-05-22
+**Source binaries:** `Kaleidoscope 1.8.2 Installer` → `Kaleidoscope` control panel
+(504,938-byte resource fork) for §1–§9; `Kaleidoscope 2.3.1 Installer` →
+`kDEF231_0.bin` (107,726 B) for the recipe-walk (current work).
 **Status:** First-pass investigation. Closes some of spec B §13's open questions; opens others.
 
 This document records what was learned from inspecting Kaleidoscope's actual binary, with cross-references back to the K2 Scheme Reference + spec B (raster mapping) for each finding.
