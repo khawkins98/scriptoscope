@@ -94,7 +94,26 @@ export interface Frame {
 
 export function frameFromBody(bodyRect: Rect, cicnW: number, cicnH: number): Frame {
   const [left, top, right, bottom] = bodyRect;
-  return { left, top, right: cicnW - right, bottom: cicnH - bottom };
+  // Each border thickness is the cicn dimension minus the body rect's far edge.
+  // With a well-formed body rect (0 ≤ near < far ≤ cicnDim) every inset lands in
+  // [0, cicnDim] and this clamp is a strict no-op — the five document-windows are
+  // untouched. But several secondary window types pair a body rect with the WRONG
+  // (mis-resolved) cicn — e.g. 1138 movable-modal's `[7,24,34,25]` against a 16×16
+  // grow-box cicn — so `cicnW − right` goes NEGATIVE and `top` exceeds cicnH. Left
+  // unclamped, a negative inset makes composeWindowChrome silently drop that edge
+  // (the frame hangs open) and shrinks the buffer below the content rect; an inset
+  // larger than the cicn samples out-of-bounds rows that blit as transparent/white
+  // smears. Clamping to [0, cicnDim] guarantees a coherent (if minimal) frame —
+  // content always fits, no edge samples OOB — degrading gracefully until the
+  // cicn↔rect pairing DATA bug is fixed in the extractor. This is the kDEF
+  // robustness gap, not the kDEF model: a real scheme never mismatched these.
+  const clamp = (v: number, hi: number) => Math.max(0, Math.min(v, hi));
+  return {
+    left: clamp(left, cicnW),
+    top: clamp(top, cicnH),
+    right: clamp(cicnW - right, cicnW),
+    bottom: clamp(cicnH - bottom, cicnH),
+  };
 }
 
 /** A rectangle in pixel space (for the diagnostic placement map). */

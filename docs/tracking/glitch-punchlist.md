@@ -247,11 +247,18 @@ edge. Full enumeration of affected types in the blocker section.
 
 ## Triage / fix-order recommendation
 
-1. **Add a frame-inset guard in `frameFromBody` / `composeWindowChrome`** (clamp
-   negative insets to 0; when an edge collapses, either fall back or skip the
-   type cleanly) — kills the *open frames* in B4/B5/B7/B9 and stops silent edge
-   drops. This is the single highest-leverage MODEL fix. (But the underlying DATA
-   mismatch in #2 must follow or those types still render wrong, just not blank.)
+1. ~~**Add a frame-inset guard in `frameFromBody` / `composeWindowChrome`**~~
+   **DONE.** `frameFromBody` now clamps every inset to `[0, cicnDim]`. With a
+   well-formed body rect (`0 ≤ near < far ≤ cicnDim`) the clamp is a strict no-op
+   — the five document-windows render byte-identically (verified). For the
+   mis-paired secondary types the negative `right`/`bottom` clamp to 0 (the edge
+   is simply absent, not a smear) and the over-tall `top` clamps to `cicnH` (no
+   OOB sampling). Result: content always fits, no blank/open frame, no
+   white-smear edges — a coherent *degraded* frame until #2 lands. Audit
+   warnings 19 → 6; the frame-invariant sweep (no neg inset, full ≥ content, no
+   OOB inset) now passes on all 52 window types (was 18 bad). The art is still
+   wrong on the mis-paired types — **#2 (re-pairing) must follow** to give them
+   the correct cicn so all four borders draw real frame, not nothing.
 2. **Re-pair cicn ↔ rect-list for the secondary window types** (the DATA core of
    B2–B9): the body rects for movable-modal/-alert, side-floating-utility, popup,
    1984/beos dialog, and the small `wnd--` types reference templates that don't
