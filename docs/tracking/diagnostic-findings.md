@@ -83,3 +83,25 @@ the bar fill here, or a mis-coalesced motif? Likely benign.
 - `document-window` for 1138 / 1984 / 1990 / evolution: clean coverage, widgets
   de-duplicated, plate correct (the two-pass render holds up under audit).
 - `titled-utility-window` for 1138 / 1984: clean.
+
+---
+
+## Update 2026-05-22 — corner findings + an extractor regression
+
+- **1990 bottom corners (RESOLVED):** the reported missing corners were a stale
+  `theme.json` whose `pairChromeStates` mis-paired `document-window`'s ACTIVE
+  chrome to the grow-box cicn (`-14333`, 20×20) instead of the real active
+  window (`-14335`). Reverted the bundle → all four corners render. **Extractor
+  bug to fix:** current `buildThemeJson.pairChromeStates` prefers a
+  named-but-wrong cicn (`...grow-box-active`) over the unnamed-but-correct
+  active window — re-extracting any theme today reintroduces this. Fix the
+  pairing heuristic before re-extracting 1990/evolution for friendly slugs.
+- **BeOS bottom-right corner (data quirk, low priority):** the bottom-LEFT
+  corner renders (opaque `p0`), but the cicn's right region (x71–92) is fully
+  transparent padding — the real right border ends at x70, yet `frame.right`
+  = `cicn.width − br` = 22 reserves a 20px transparent gap (same root as the
+  top-right gap). A clean trim is blocked: beos's recipe extent (x75), body
+  right (x70), and opaque bound (~x72) disagree by a few px (malformed minimum-
+  window cicn), so trimming makes the top edge overshoot the trimmed width.
+  Proper fix needs a coordinated trim of recipe + body + bounds, verified via
+  `diag:audit` across all themes — deferred.
