@@ -176,6 +176,15 @@ interface EdgeGeometry {
    */
   plateWidth: number;
   /**
+   * Body span on the WALK axis (`bl..br` for top/bottom, `bt..bb` for
+   * left/right). Fill segments lying entirely OUTSIDE this span are corner
+   * pieces (e.g. 1990's bottom-right star at cicn x≥br): they render FIXED at
+   * native size, anchored to their end, instead of growing/tiling — which
+   * would repeat the corner art.
+   */
+  bodyLo: number;
+  bodyHi: number;
+  /**
    * Native walk-axis spans `[start, end]` of the rectList WIDGETS on this edge
    * (close/zoom/collapse boxes). A fill segment overlapping one is rendered as
    * CLEAN background (the fill column, not its own art) so the baked widget
@@ -293,6 +302,21 @@ function composeEdgeFromRecipe(
     const prev = segs[segs.length - 1];
     if (prev && prev.fill && s.fill && prev.x1 === s.x0 && !prev.isPlate && !isPlate) prev.x1 = s.x1;
     else segs.push({ ...s, isPlate });
+  }
+
+  // CORNER pieces: a fill segment lying entirely OUTSIDE the body span on the
+  // walk axis is a corner/decoration (1990's bottom-right star at cicn x≥br),
+  // not stretchable fill. Render it FIXED at native size so growing/tiling
+  // doesn't repeat the corner art — but ONLY when OTHER fill remains inside the
+  // body to absorb the growth, or coverage breaks (BeOS's only bottom fill is
+  // p18 sitting at x=br; it must keep stretching). Plate is always inside.
+  // (gradients are exempt — they scale smoothly with no repeat, so a gradient
+  // corner stays a gradient rather than being pinned.)
+  const innerFill = segs.some((s) => s.fill && !s.isPlate && s.x0 < geo.bodyHi && s.x1 > geo.bodyLo);
+  if (innerFill) {
+    for (const s of segs) {
+      if (s.fill && !s.isPlate && !isGradientPart(s.code) && (s.x0 >= geo.bodyHi || s.x1 <= geo.bodyLo)) s.fill = false;
+    }
   }
 
   // No-fill fallback: some edges (e.g. BeOS's bottom `0 1 18 1`) ship no
@@ -599,6 +623,7 @@ export function composeWindowChrome(
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       extra: contentW - cicnBodyW, tileMotif: true, plateWidth: opts.titlePlateWidth ?? 0,
+      bodyLo: bl, bodyHi: br,
       widgetSpans: topWidgetSpans,
     });
   } else {
@@ -614,7 +639,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     leftFill = composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
+      extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [], bodyLo: bt, bodyHi: bb,
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -626,7 +651,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     rightFill = composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [],
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, tileMotif: false, plateWidth: 0, widgetSpans: [], bodyLo: bt, bodyHi: bb,
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
@@ -643,7 +668,7 @@ export function composeWindowChrome(
       // the bottom corners + any motif (1990's camo panels + corner art);
       // stretching a 1px column flattens them to stripes. Sides stay stretch.
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: true, plateWidth: 0,
+      crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, tileMotif: true, plateWidth: 0, bodyLo: bl, bodyHi: br,
       widgetSpans: [],
     });
   } else if (frame.bottom > 0) {
