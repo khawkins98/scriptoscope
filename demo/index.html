@@ -373,7 +373,19 @@
     // Hover/click a slice to highlight EVERY output region it produced (tiled
     // slices light up N times); hover the window to read off the slice under the
     // cursor. Shared by the per-theme foldout and the interactive playground.
-    function buildSliceView(win, cicnImg, SC) {
+    // Build a labelled "reference screenshot" column (the legacy raster preview)
+    // for side-by-side comparison. Returns null when no ref is given.
+    function refColumn(refSrc) {
+      if (!refSrc) return null;
+      const col = document.createElement('div'); col.style.cssText = 'flex:0 0 auto';
+      const cap = document.createElement('div'); cap.textContent = 'reference'; cap.style.cssText = 'font:9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-bottom:2px';
+      const img = document.createElement('img'); img.src = refSrc; img.alt = 'reference screenshot';
+      img.style.cssText = 'display:block;image-rendering:pixelated;border:1px solid #ccc;max-width:320px;height:auto';
+      col.append(cap, img);
+      return col;
+    }
+
+    function buildSliceView(win, cicnImg, SC, refSrc) {
       const placement = win._awComposed.placement;
       const winH = (parseInt(win.style.height) || 200);
       const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
@@ -388,6 +400,8 @@
       readout.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.75;margin-top:4px;min-height:13px';
       winCol.append(winBox, readout);
       wrap.appendChild(winCol);
+      const refCol = refColumn(refSrc);
+      if (refCol) wrap.appendChild(refCol);
 
       let sticky = null;
       const show = (s) => {
@@ -527,15 +541,22 @@
         catch (e) { out.textContent = `render failed: ${e}`; return; }
         if (my !== token) return;
         out.textContent = '';
+        const refMeta = THEMES.find((t) => t.slug === themeSel.value);
+        const refSrc = refMeta ? `./assets/references/${refMeta.ref}` : null;
         if (win._awComposed && win._awComposed.placement && win._awComposed.placement.length) {
           const cicnImg = await loadImgSafe(theme, windowCicn(theme, wtypeSel.value));
           if (my !== token) return;
-          out.appendChild(buildSliceView(win, cicnImg, SC));
+          out.appendChild(buildSliceView(win, cicnImg, SC, refSrc));
         } else {
-          const box = document.createElement('div'); box.style.cssText = 'margin-top:8px;display:inline-block;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
+          const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
+          const box = document.createElement('div'); box.style.cssText = 'flex:0 0 auto;display:inline-block;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
           win.style.position = 'relative'; box.appendChild(win);
+          const col = document.createElement('div'); col.style.cssText = 'flex:0 0 auto';
           const note = document.createElement('div'); note.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.6;margin-top:4px'; note.textContent = '(baseline / no wnd# recipe — no slices to inspect)';
-          out.append(box, note);
+          col.append(box, note);
+          wrap.appendChild(col);
+          const refCol = refColumn(refSrc); if (refCol) wrap.appendChild(refCol);
+          out.appendChild(wrap);
         }
       };
 
