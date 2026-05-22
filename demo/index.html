@@ -364,8 +364,18 @@
       const wt = (theme.manifest.windowTypes || {})[key];
       return wt && wt.chrome ? (wt.chrome.active || wt.chrome.inactive) : null;
     }
+    // Load with a few retries: the dev server can briefly 404 an asset during
+    // an HMR reload, and a single failed load would otherwise leave a slice
+    // thumbnail (or the reference) permanently blank until the next rerender.
+    // The `?retry=` query busts a cached failure so the re-fetch actually hits.
     async function loadImgSafe(theme, asset) {
-      try { return asset ? await loadImg(`${theme.baseUrl}/${asset}`) : null; } catch { return null; }
+      if (!asset) return null;
+      const url = `${theme.baseUrl}/${asset}`;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try { return await loadImg(attempt ? `${url}?retry=${attempt}` : url); }
+        catch { await new Promise((r) => setTimeout(r, 150)); }
+      }
+      return null;
     }
 
     // The reusable slice VIEW: given a rendered window (with _awComposed) + the
@@ -380,6 +390,7 @@
       const col = document.createElement('div'); col.style.cssText = 'flex:0 0 auto';
       const cap = document.createElement('div'); cap.textContent = 'reference'; cap.style.cssText = 'font:9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-bottom:2px';
       const img = document.createElement('img'); img.src = refSrc; img.alt = 'reference screenshot';
+      img.onerror = () => { if (!img._retried) { img._retried = 1; img.src = refSrc + (refSrc.includes('?') ? '&' : '?') + 'retry=1'; } };
       img.style.cssText = 'display:block;image-rendering:pixelated;border:1px solid #ccc;max-width:320px;height:auto';
       col.append(cap, img);
       return col;
