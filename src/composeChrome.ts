@@ -169,6 +169,14 @@ interface EdgeGeometry {
    * edges with no widgets.
    */
   widgetSpans: Array<[number, number]>;
+  /**
+   * Top edge only: cicn x of the title text-colour MARKER (the 1px rectList
+   * rect Kaleidoscope reads to place/colour the title — authoring doc's
+   * "two-pixel horizontal line which includes the text color pixel"). This is
+   * the plate column. −1 when absent (then the plate falls back to the title
+   * region's left edge).
+   */
+  titleMarkerX: number;
 }
 
 /** How a slice's source pixels were laid into the output. */
@@ -233,64 +241,34 @@ function composeEdgeFromRecipe(
   const raw = recipeSegments(recipe, lastAt);
   if (raw.length === 0) return null;
 
-  // ── pick the title PLATE (top edge only): the clean fill column the title
-  // text is stretched over. The title region (code 5/6) holds the plate AND
-  // decorations — 1138's central pyramid, 1990's coloured LED dots — so a
-  // fixed slice number lands on the decoration. Score each title-region
-  // segment's centre column by (stddev of luminance + mean saturation): the
-  // plate is the CLEAN column (low variance, low saturation), decorations are
-  // structured/colourful. The winning SEGMENT becomes the plate, which grows
-  // to the title width; everything after it shifts right. Fall back to the
-  // side fill (code 8) when a scheme ships no title region. ──
+  // ── the title PLATE column (top edge only). The kDEF stretches "the middle
+  // column of pixels which includes the text color pixel" to make room for the
+  // title (authoring doc) — i.e. the plate column is a RECORDED MARKER, not a
+  // column we score from pixels. `geo.titleMarkerX` carries that marker (the
+  // 1px rectList rect that sits at the title-bar text position; see
+  // composeWindowChrome). Clamp it into the title region (p5/p6); if no marker
+  // was found, fall back to the title region's left edge. The plate is the
+  // title-region SEGMENT containing that column; it grows to the title width.
+  // (Replaced a stddev+saturation column scorer + a dark-outlier bezel patch —
+  // both were guessing the marker the scheme data already records.) ──
   let fillSrcX = -1;
   let plateX0 = -1, plateX1 = -1;
-  // Title-region segments that are dark-outlier bezels/seams (keyed `x0:x1`);
-  // growModeOf keeps these FIXED so they don't stretch into a box.
-  const bezelKeys = new Set<string>();
   if (geo.horizontal) {
-    const colStats = (xc: number): { score: number; meanLum: number } => {
-      const y0 = geo.crossSrc + 2;
-      const y1 = geo.crossSrc + Math.max(3, geo.crossLen - 2);
-      let n = 0, sumL = 0, sumL2 = 0, sumSat = 0;
-      for (let y = y0; y < y1; y++) {
-        const [r, g, b, a] = cicn.getPixel(xc, y);
-        if (a < 200) continue;
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        sumL += lum; sumL2 += lum * lum;
-        sumSat += Math.max(r, g, b) - Math.min(r, g, b);
-        n++;
-      }
-      if (n === 0) return { score: Infinity, meanLum: 0 };
-      const mean = sumL / n;
-      const variance = sumL2 / n - mean * mean;
-      return { score: Math.sqrt(Math.max(0, variance)) + sumSat / n, meanLum: mean };
-    };
     const titleSegs = raw.filter((r) => r.code === 5 || r.code === 6);
-    const cands = (titleSegs.length ? titleSegs : raw.filter((r) => r.fill)).map((r) => {
-      const xc = Math.floor((r.x0 + r.x1) / 2);
-      return { r, xc, ...colStats(xc) };
-    });
-    // A flat near-black column INSIDE the title region is often a shadow / inner
-    // bezel (the metal→content edge), not the title bar — and it out-"cleans"
-    // the real bar because black is perfectly uniform. Drop DARK OUTLIERS: a
-    // candidate whose luminance is far below the title region's MEDIAN. This
-    // distinguishes evolution's bezel (meanLum 16 vs a metallic median ~105 →
-    // outlier, dropped) from a genuinely dark title bar like 1990's black LED
-    // (meanLum ~23 vs a dark median ~23 → not an outlier, kept). Relative (not
-    // absolute) so it works whatever the bar's overall tone.
-    const lums = cands.map((c) => c.meanLum).filter((l) => l > 0).sort((a, b) => a - b);
-    const median = lums.length ? lums[Math.floor(lums.length / 2)]! : 0;
-    const pool = cands.filter((c) => c.meanLum >= median * 0.5);
-    const usePool = pool.length ? pool : cands;
-    let best = Infinity;
-    for (const c of usePool) {
-      if (c.score < best) { best = c.score; fillSrcX = c.xc; plateX0 = c.r.x0; plateX1 = c.r.x1; }
+    if (titleSegs.length) {
+      const tX0 = Math.min(...titleSegs.map((s) => s.x0));
+      const tX1 = Math.max(...titleSegs.map((s) => s.x1));
+      const markerX = geo.titleMarkerX >= 0 ? Math.min(Math.max(geo.titleMarkerX, tX0), tX1 - 1) : tX0;
+      const seg = titleSegs.find((s) => markerX >= s.x0 && markerX < s.x1) ?? titleSegs[0]!;
+      fillSrcX = markerX; plateX0 = seg.x0; plateX1 = seg.x1;
+    } else {
+      // No title region: stretch the widest fill segment's centre (rare).
+      const fills = raw.filter((r) => r.fill);
+      if (fills.length) {
+        const f = fills.reduce((a, b) => (b.x1 - b.x0 > a.x1 - a.x0 ? b : a));
+        fillSrcX = Math.floor((f.x0 + f.x1) / 2); plateX0 = f.x0; plateX1 = f.x1;
+      }
     }
-    // The dropped dark outliers are bezels/seams (not the bar): mark them so
-    // they render FIXED rather than stretching. Only when SOME bright bar
-    // exists (pool non-empty) — a wholly dark title bar (1990's LED) has no
-    // outliers and all its columns stay growable as before.
-    if (pool.length) for (const c of cands) if (c.meanLum < median * 0.5) bezelKeys.add(`${c.r.x0}:${c.r.x1}`);
   }
   const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
@@ -355,13 +333,12 @@ function composeEdgeFromRecipe(
     if (s.isPlate) return 'plate';
     if (s.code === 0) return 'fixed';      // corner
     if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
-    // A title-region column that is a DARK OUTLIER (a flat-black inner-bezel /
-    // seam, much darker than the title bar — evolution's col70) is structural,
-    // NOT a grow column: keep it FIXED so it doesn't absorb growth into a stray
-    // dark box beside the title. (Detected in the plate block below; a normal
-    // title column like 1984's gray col46 is NOT flagged and still stretches,
-    // which it needs for coverage.)
-    if (bezelKeys.has(`${s.x0}:${s.x1}`)) return 'fixed';
+    // Title-region "divider sandwich" (p5/p6): the kDEF stretches only the
+    // middle column (the PLATE, handled above) "to make room for the title";
+    // the sandwich's other p5/p6 segments are its structural bracket lines and
+    // stay FIXED. (This is the structural reason evolution's flat-black col70
+    // bezel mustn't stretch into a box — no luminance heuristic needed.)
+    if (s.code === 5 || s.code === 6) return 'fixed';
     // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
     // walk axis (→ stretch, lossless) while a structured p18 (evolution's
     // metallic links + corner blobs, coded p18 but full of cross-axis detail)
@@ -640,14 +617,18 @@ export function composeWindowChrome(
 
   const edges = windowType.edges;
 
-  // rectList WIDGETS in the top band (close/zoom/collapse boxes) — native
-  // x-spans, so the recipe walk clean-fills the background under them and we
-  // stamp each once on top (pass 2). part-0 is the body, not a widget.
+  // rectList rects in the top band. WIDE ones (close/zoom/collapse boxes) are
+  // widgets: the recipe walk clean-fills under them and pass 2 stamps each once.
+  // A NARROW (≤2px) rect is NOT a widget — it's the title text-colour MARKER
+  // (the plate column); record it and DON'T stamp it. part-0 is the body.
   const topWidgets: Array<{ l: number; t: number; r: number; b: number }> = [];
+  let titleMarkerX = -1;
   for (const [slug, part] of Object.entries(windowType.parts)) {
     if (slug === 'part-0' || !part.rect) continue;
     const [l, t, r, b] = part.rect;
-    if (t < frame.top && r > l && b > t) topWidgets.push({ l, t, r, b });
+    if (!(t < frame.top && r > l && b > t)) continue;
+    if (r - l <= 2) { if (titleMarkerX < 0) titleMarkerX = l; continue; }
+    topWidgets.push({ l, t, r, b });
   }
   const topWidgetSpans = topWidgets.map((w) => [w.l, w.r] as [number, number]);
 
@@ -657,7 +638,7 @@ export function composeWindowChrome(
     topFill = composeEdgeFromRecipe(out, cicn, edges.top, {
       horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       extra: contentW - cicnBodyW, plateWidth: opts.titlePlateWidth ?? 0,
-      widgetSpans: topWidgetSpans,
+      widgetSpans: topWidgetSpans, titleMarkerX,
     });
   } else {
     composeTopEdgeFromSeam(out, cicn, windowType, frame.top, fullW);
@@ -672,7 +653,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     leftFill = composeEdgeFromRecipe(out, cicn, edges.left, {
       horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [],
+      extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [], titleMarkerX: -1,
     });
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 },
@@ -684,7 +665,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     rightFill = composeEdgeFromRecipe(out, cicn, edges.right, {
       horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [],
+      crossDst: fullW - frame.right, extra: contentH - cicnBodyH, plateWidth: 0, widgetSpans: [], titleMarkerX: -1,
     });
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 },
@@ -699,7 +680,7 @@ export function composeWindowChrome(
     botFill = composeEdgeFromRecipe(out, cicn, edges.bottom, {
       horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, extra: contentW - cicnBodyW, plateWidth: 0,
-      widgetSpans: [],
+      widgetSpans: [], titleMarkerX: -1,
     });
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom },

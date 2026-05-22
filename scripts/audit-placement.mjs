@@ -39,8 +39,12 @@ for (const slug of slugs) {
     const { wt } = resolveWindow(manifest, key);
     let cicn;
     try { cicn = loadCicn(themeDir, wt.chrome.active); } catch (e) { console.log(`  ${key}: LOAD FAIL ${e.message}`); totalWarn++; continue; }
-    // a representative resize: ~2× the cicn body, with a title plate.
-    const composed = composeWindowChrome(cicn, wt, Math.max(120, cicn.width + 80), Math.max(60, cicn.height + 40), { titlePlateWidth: 44 });
+    // a representative resize: ~2× the cicn body. Only force a title plate for
+    // window types that actually HAVE a title region (p5/p6) — title-less
+    // utility/dialog recipes get no plate in real rendering, so plating them is
+    // an artificial scenario that fabricates coverage gaps.
+    const hasTitleRegion = (wt.edges?.top || []).some((s) => s.part === 'part-5' || s.part === 'part-6');
+    const composed = composeWindowChrome(cicn, wt, Math.max(120, cicn.width + 80), Math.max(60, cicn.height + 40), { titlePlateWidth: hasTitleRegion ? 44 : 0 });
     totalWin++;
     const warns = [];
     const P = composed.placement;
@@ -83,6 +87,7 @@ for (const slug of slugs) {
       if (k === 'part-0' || !part.rect) continue;
       const [l, t, r, b] = part.rect;
       if (t >= composed.frame.top || r <= l) continue; // not a top widget
+      if (r - l <= 2) continue; // a ≤2px rect is the title text-colour MARKER (plate column), not a widget
       const stamped = stampSrcs.has(`${l},${t}`);
       const inFixed = P.some((s) => s.edge === 'top' && s.mode === 'fixed' && l >= s.src.x && r <= s.src.x + s.src.w);
       if (!stamped && !inFixed) warns.push(`top widget ${k} [${l},${t} ${r - l}×${b - t}] neither stamped nor in a fixed segment (smear risk)`);
