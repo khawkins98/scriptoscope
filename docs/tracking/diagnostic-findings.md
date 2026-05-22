@@ -110,6 +110,16 @@ below the title region's MEDIAN are skipped. Evolution's bezel (16 vs median
 its black title display still works. Validated: plate columns 1138=46, 1984=43,
 1990=46, evolution=69 (was 70).
 
+Those dropped dark-outlier columns are ALSO kept FIXED in the grow classifier
+(not just de-prioritised for the plate): the kDEF stretches only the middle
+title column (the plate) "to make room for the title", so the divider-sandwich's
+bezels/seams are structural. Without this, evolution's flat-black col70 — being
+uniform — was classed as a grow column and stretched into a ~25px dark box
+beside the title; now it stays 1px. A normal (non-outlier) title column like
+1984's gray col46 is NOT flagged and still stretches, which it needs for top
+coverage. Gated to when a brighter bar exists, so 1990's all-dark LED is
+untouched.
+
 **Title-colour fix:** corrected evolution's `headerColors.active.text` to `#ffffff`
 (its cicn marker) directly in `themes/evolution/theme.json`. A generic
 runtime/extract-time marker locator was attempted and abandoned: in decorated

@@ -244,6 +244,9 @@ function composeEdgeFromRecipe(
   // side fill (code 8) when a scheme ships no title region. ──
   let fillSrcX = -1;
   let plateX0 = -1, plateX1 = -1;
+  // Title-region segments that are dark-outlier bezels/seams (keyed `x0:x1`);
+  // growModeOf keeps these FIXED so they don't stretch into a box.
+  const bezelKeys = new Set<string>();
   if (geo.horizontal) {
     const colStats = (xc: number): { score: number; meanLum: number } => {
       const y0 = geo.crossSrc + 2;
@@ -283,6 +286,11 @@ function composeEdgeFromRecipe(
     for (const c of usePool) {
       if (c.score < best) { best = c.score; fillSrcX = c.xc; plateX0 = c.r.x0; plateX1 = c.r.x1; }
     }
+    // The dropped dark outliers are bezels/seams (not the bar): mark them so
+    // they render FIXED rather than stretching. Only when SOME bright bar
+    // exists (pool non-empty) — a wholly dark title bar (1990's LED) has no
+    // outliers and all its columns stay growable as before.
+    if (pool.length) for (const c of cands) if (c.meanLum < median * 0.5) bezelKeys.add(`${c.r.x0}:${c.r.x1}`);
   }
   const usePlate = geo.plateWidth > 0 && plateX0 >= 0;
 
@@ -347,6 +355,13 @@ function composeEdgeFromRecipe(
     if (s.isPlate) return 'plate';
     if (s.code === 0) return 'fixed';      // corner
     if (overlapsWidget(s)) return 'fixed'; // baked close/zoom/shade box
+    // A title-region column that is a DARK OUTLIER (a flat-black inner-bezel /
+    // seam, much darker than the title bar — evolution's col70) is structural,
+    // NOT a grow column: keep it FIXED so it doesn't absorb growth into a stray
+    // dark box beside the title. (Detected in the plate block below; a normal
+    // title column like 1984's gray col46 is NOT flagged and still stretches,
+    // which it needs for coverage.)
+    if (bezelKeys.has(`${s.x0}:${s.x1}`)) return 'fixed';
     // p18 "gradient" is NOT special-cased: a vertical ramp is uniform along the
     // walk axis (→ stretch, lossless) while a structured p18 (evolution's
     // metallic links + corner blobs, coded p18 but full of cross-axis detail)
