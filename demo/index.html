@@ -359,33 +359,26 @@
     }
     function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
 
-    // Slice inspector: a per-theme foldout that renders the document window and
-    // lists every cicn SLICE the compositor placed (source crop + role + render
-    // mode + usage count). Hover/click a slice to highlight EVERY output region
-    // it produced on the window — tiled slices light up N times, stretched ones
-    // show one big region. Lets us point at an output area and say "that's slice
-    // p8 (side fill), but it should be p6 (title)" in absolute terms.
-    async function sliceInspector(theme) {
-      const details = document.createElement('details');
-      details.style.cssText = 'margin:12px 0 4px;font:11px ui-monospace,Menlo,monospace';
-      const summary = document.createElement('summary');
-      summary.textContent = 'slice inspector — window chrome (hover/click a slice to highlight its usages)';
-      summary.style.cssText = 'cursor:pointer;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7';
-      details.appendChild(summary);
+    // The chrome cicn asset for a given window-type key (for slice thumbnails).
+    function windowCicn(theme, key) {
+      const wt = (theme.manifest.windowTypes || {})[key];
+      return wt && wt.chrome ? (wt.chrome.active || wt.chrome.inactive) : null;
+    }
+    async function loadImgSafe(theme, asset) {
+      try { return asset ? await loadImg(`${theme.baseUrl}/${asset}`) : null; } catch { return null; }
+    }
 
-      const SC = 2, WW = 172, WH = 88;
-      let win;
-      try { win = await renderWindow(theme, { title: 'Hello!', width: WW, height: WH, scale: SC, state: 'active' }); }
-      catch (e) { const d = document.createElement('div'); d.textContent = '(render failed: ' + e + ')'; details.appendChild(d); return details; }
-      const composed = win._awComposed;
-      if (!composed || !composed.placement || !composed.placement.length) {
-        const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
-      }
-      const placement = composed.placement;
-
+    // The reusable slice VIEW: given a rendered window (with _awComposed) + the
+    // source cicn image + scale, build the window-with-overlay + the slice list.
+    // Hover/click a slice to highlight EVERY output region it produced (tiled
+    // slices light up N times); hover the window to read off the slice under the
+    // cursor. Shared by the per-theme foldout and the interactive playground.
+    function buildSliceView(win, cicnImg, SC) {
+      const placement = win._awComposed.placement;
+      const winH = (parseInt(win.style.height) || 200);
       const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
       const winCol = document.createElement('div'); winCol.style.cssText = 'flex:0 0 auto';
-      const winBox = document.createElement('div'); winBox.style.cssText = 'position:relative;cursor:crosshair';
+      const winBox = document.createElement('div'); winBox.style.cssText = 'position:relative;cursor:crosshair;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
       win.style.position = 'relative';
       winBox.appendChild(win);
       const overlay = document.createElement('div');
@@ -395,10 +388,6 @@
       readout.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.75;margin-top:4px;min-height:13px';
       winCol.append(winBox, readout);
       wrap.appendChild(winCol);
-
-      const cicnAsset = docWindowCicn(theme);
-      let cicnImg = null;
-      try { if (cicnAsset) cicnImg = await loadImg(`${theme.baseUrl}/${cicnAsset}`); } catch { /* no thumbs */ }
 
       let sticky = null;
       const show = (s) => {
@@ -412,7 +401,7 @@
       };
 
       const list = document.createElement('div');
-      list.style.cssText = `flex:1 1 300px;min-width:260px;max-height:${WH * SC + 24}px;overflow:auto;border:1px solid #ddd;background:#fafafa`;
+      list.style.cssText = `flex:1 1 300px;min-width:260px;max-height:${Math.max(160, winH + 24)}px;overflow:auto;border:1px solid #ddd;background:#fafafa`;
       let activeEdge = 'all';
       const rowsWrap = document.createElement('div');
       const renderRows = () => {
@@ -447,11 +436,9 @@
       list.append(filterRow, rowsWrap);
       renderRows();
       wrap.appendChild(list);
-      details.appendChild(wrap);
 
-      // INVERSE lookup: hover the rendered window → which slice made that pixel.
-      // Topmost (last-drawn) match wins. Lets you point at a wrong-looking spot
-      // and read off the exact slice + mode that produced it.
+      // INVERSE lookup: hover the window → which slice made that pixel (topmost
+      // / last-drawn wins).
       winBox.addEventListener('mousemove', (ev) => {
         const r = winBox.getBoundingClientRect();
         const nx = (ev.clientX - r.left) / SC, ny = (ev.clientY - r.top) / SC;
@@ -464,7 +451,98 @@
         } else { readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → (content area / no chrome slice)`; }
       });
       winBox.addEventListener('mouseleave', () => { show(sticky); readout.textContent = ''; });
+      return wrap;
+    }
+
+    // Per-theme foldout: render the document window + the slice view.
+    async function sliceInspector(theme) {
+      const details = document.createElement('details');
+      details.style.cssText = 'margin:12px 0 4px;font:11px ui-monospace,Menlo,monospace';
+      const summary = document.createElement('summary');
+      summary.textContent = 'slice inspector — window chrome (hover/click a slice to highlight its usages)';
+      summary.style.cssText = 'cursor:pointer;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7';
+      details.appendChild(summary);
+      let win;
+      try { win = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 2, state: 'active' }); }
+      catch (e) { const d = document.createElement('div'); d.textContent = '(render failed: ' + e + ')'; details.appendChild(d); return details; }
+      if (!win._awComposed || !win._awComposed.placement || !win._awComposed.placement.length) {
+        const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
+      }
+      const cicnImg = await loadImgSafe(theme, docWindowCicn(theme));
+      details.appendChild(buildSliceView(win, cicnImg, 2));
       return details;
+    }
+
+    // ── Interactive window playground ──────────────────────────────────────
+    // Pick any theme + window type, set the title/size/state/scale, render LIVE,
+    // and inspect slices — all in the browser, no CLI.
+    {
+      const section = document.createElement('div'); section.className = 'theme-row';
+      const h2 = document.createElement('h2'); h2.textContent = 'Window playground';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:11px system-ui;opacity:.6;margin:-4px 0 8px';
+      sub.textContent = 'Render any window type live. Hover the window to identify the slice under the cursor; click a slice in the list to highlight every place it is used.';
+      const ctrls = document.createElement('div');
+      ctrls.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;font:12px system-ui;margin-bottom:4px';
+      const out = document.createElement('div');
+      section.append(h2, sub, ctrls, out);
+      rows.appendChild(section);
+
+      const field = (labelText, el) => { const w = document.createElement('label'); w.style.cssText = 'display:flex;flex-direction:column;gap:2px;font-size:11px'; const s = document.createElement('span'); s.textContent = labelText; s.style.opacity = '.65'; w.append(s, el); return w; };
+      const sel = (opts) => { const s = document.createElement('select'); s.style.cssText = 'font:12px system-ui;padding:2px;max-width:240px'; for (const o of opts) { const op = document.createElement('option'); op.value = o.value; op.textContent = o.label; s.appendChild(op); } return s; };
+      const num = (v, min, max) => { const i = document.createElement('input'); i.type = 'number'; i.value = v; i.min = min; i.max = max; i.style.cssText = 'width:64px;font:12px system-ui;padding:2px'; return i; };
+
+      const themeSel = sel(THEMES.map((t) => ({ value: t.slug, label: t.label })));
+      const wtypeSel = sel([]);
+      const titleIn = document.createElement('input'); titleIn.type = 'text'; titleIn.value = 'Hello!'; titleIn.style.cssText = 'width:120px;font:12px system-ui;padding:2px';
+      const wIn = num(220, 40, 600), hIn = num(120, 30, 400);
+      const stateSel = sel([{ value: 'active', label: 'active' }, { value: 'inactive', label: 'inactive' }]);
+      const scaleSel = sel([{ value: '1', label: '1×' }, { value: '2', label: '2×' }, { value: '3', label: '3×' }]); scaleSel.value = '2';
+      ctrls.append(field('theme', themeSel), field('window type', wtypeSel), field('title', titleIn), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel));
+
+      const themeCache = new Map();
+      const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(`/themes/${slug}`)); return themeCache.get(slug); };
+      const populateWindowTypes = (theme) => {
+        const wts = theme.manifest.windowTypes || {};
+        wtypeSel.innerHTML = '';
+        const keys = Object.keys(wts).sort();
+        for (const k of keys) {
+          const wt = wts[k]; const ok = wt.edges && wt.edges.top && wt.edges.top.length && wt.chrome && wt.chrome.active;
+          const op = document.createElement('option'); op.value = k; op.textContent = ok ? k : `${k} (baseline)`;
+          wtypeSel.appendChild(op);
+        }
+        if (!keys.length) { const op = document.createElement('option'); op.value = ''; op.textContent = '(no wnd# — baseline only)'; wtypeSel.appendChild(op); }
+        if (wts['document-window']) wtypeSel.value = 'document-window';
+      };
+
+      let token = 0;
+      const rerender = async () => {
+        const my = ++token;
+        out.textContent = 'rendering…';
+        let theme; try { theme = await getTheme(themeSel.value); } catch (e) { out.textContent = `failed to load ${themeSel.value}: ${e}`; return; }
+        if (my !== token) return;
+        const SC = +scaleSel.value;
+        let win;
+        try { win = await renderWindow(theme, { windowType: wtypeSel.value || undefined, title: titleIn.value, width: +wIn.value, height: +hIn.value, scale: SC, state: stateSel.value }); }
+        catch (e) { out.textContent = `render failed: ${e}`; return; }
+        if (my !== token) return;
+        out.textContent = '';
+        if (win._awComposed && win._awComposed.placement && win._awComposed.placement.length) {
+          const cicnImg = await loadImgSafe(theme, windowCicn(theme, wtypeSel.value));
+          if (my !== token) return;
+          out.appendChild(buildSliceView(win, cicnImg, SC));
+        } else {
+          const box = document.createElement('div'); box.style.cssText = 'margin-top:8px;display:inline-block;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
+          win.style.position = 'relative'; box.appendChild(win);
+          const note = document.createElement('div'); note.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.6;margin-top:4px'; note.textContent = '(baseline / no wnd# recipe — no slices to inspect)';
+          out.append(box, note);
+        }
+      };
+
+      themeSel.onchange = async () => { populateWindowTypes(await getTheme(themeSel.value)); rerender(); };
+      for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = rerender;
+      for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(rerender, 250); };
+      (async () => { populateWindowTypes(await getTheme(themeSel.value)); rerender(); })();
     }
 
     // Procedural Platinum baseline showcase — the gray fallback chrome a
