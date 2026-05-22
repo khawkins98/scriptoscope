@@ -413,6 +413,16 @@
           overlay.appendChild(b);
         }
       };
+      // paste-ready, one-line slice description + a clipboard-copy with feedback
+      // in the readout. Shared by the list rows AND clicking the window itself.
+      const usageOf = (s) => (s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode);
+      const infoOf = (s) => `${s.edge} p${s.code} (${s.role}) · ${usageOf(s)} · src ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h} · out ${s.rects.map((r) => `${r.x},${r.y} ${r.w}×${r.h}`).join(' | ')}`;
+      const doCopy = async (info) => {
+        try { await navigator.clipboard.writeText(info); readout.style.color = '#0a7d2c'; readout.textContent = '✓ copied: ' + info; }
+        catch { readout.style.color = '#b00'; readout.textContent = '(clipboard blocked) ' + info; }
+        clearTimeout(readout._t); readout._t = setTimeout(() => { readout.style.color = ''; }, 1400);
+      };
+      const sliceAt = (nx, ny) => { let hit = null; for (const s of placement) for (const rc of s.rects) if (nx >= rc.x && nx < rc.x + rc.w && ny >= rc.y && ny < rc.y + rc.h) hit = s; return hit; };
 
       const list = document.createElement('div');
       list.style.cssText = `flex:1 1 300px;min-width:260px;max-height:${Math.max(160, winH + 24)}px;overflow:auto;border:1px solid #ddd;background:#fafafa`;
@@ -433,9 +443,15 @@
           const lbl = document.createElement('div'); lbl.style.cssText = 'flex:1;line-height:1.3';
           lbl.innerHTML = `<b>${s.edge}</b> p${s.code} · ${s.role}<br><span style="opacity:.6">src ${s.src.x},${s.src.y} ${sw}×${sh} — ${usage}</span>`;
           row.append(th, lbl);
+          row.title = 'click to highlight + copy this slice’s info';
           row.onmouseenter = () => show(s);
           row.onmouseleave = () => show(sticky);
-          row.onclick = () => { sticky = sticky === s ? null : s; show(sticky); row.style.background = sticky === s ? '#ffe8ee' : ''; };
+          row.onclick = () => {
+            sticky = sticky === s ? null : s; show(sticky);
+            [...rowsWrap.children].forEach((c) => (c.style.background = ''));
+            if (sticky === s) row.style.background = '#ffe8ee';
+            doCopy(infoOf(s));
+          };
           rowsWrap.appendChild(row);
         });
       };
@@ -453,16 +469,24 @@
 
       // INVERSE lookup: hover the window → which slice made that pixel (topmost
       // / last-drawn wins).
+      const pointAt = (ev) => { const r = winBox.getBoundingClientRect(); return [(ev.clientX - r.left) / SC, (ev.clientY - r.top) / SC]; };
       winBox.addEventListener('mousemove', (ev) => {
-        const r = winBox.getBoundingClientRect();
-        const nx = (ev.clientX - r.left) / SC, ny = (ev.clientY - r.top) / SC;
-        let hit = null;
-        for (const s of placement) for (const rc of s.rects) if (nx >= rc.x && nx < rc.x + rc.w && ny >= rc.y && ny < rc.y + rc.h) hit = s;
+        readout.style.color = '';
+        const [nx, ny] = pointAt(ev);
+        const hit = sliceAt(nx, ny);
         if (hit) {
           show(hit);
-          const usage = hit.mode === 'tile' ? `tiled ×${hit.rects.length}` : hit.mode;
-          readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → ${hit.edge} p${hit.code} ${hit.role} · ${usage} · src ${hit.src.x},${hit.src.y} ${hit.src.w}×${hit.src.h}`;
+          readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → ${hit.edge} p${hit.code} ${hit.role} · ${usageOf(hit)} · src ${hit.src.x},${hit.src.y} ${hit.src.w}×${hit.src.h}  (click to copy)`;
         } else { readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → (content area / no chrome slice)`; }
+      });
+      // Click the WINDOW itself → copy the slice under the cursor (same as
+      // clicking its row), and sticky-highlight it.
+      winBox.addEventListener('click', (ev) => {
+        const [nx, ny] = pointAt(ev);
+        const hit = sliceAt(nx, ny);
+        sticky = hit; show(sticky);
+        [...rowsWrap.children].forEach((c) => (c.style.background = ''));
+        if (hit) doCopy(infoOf(hit));
       });
       winBox.addEventListener('mouseleave', () => { show(sticky); readout.textContent = ''; });
       return wrap;
@@ -495,7 +519,7 @@
       const h2 = document.createElement('h2'); h2.textContent = 'Window playground';
       const sub = document.createElement('div');
       sub.style.cssText = 'font:11px system-ui;opacity:.6;margin:-4px 0 8px';
-      sub.textContent = 'Render any window type live. Hover the window to identify the slice under the cursor; click a slice in the list to highlight every place it is used.';
+      sub.textContent = 'Render any window type live. Hover the window to identify the slice under the cursor; click a slice in the list to highlight its usages and copy its info to the clipboard.';
       const ctrls = document.createElement('div');
       ctrls.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;font:12px system-ui;margin-bottom:4px';
       const out = document.createElement('div');
