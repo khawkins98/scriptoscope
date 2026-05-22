@@ -550,7 +550,9 @@
       const wIn = num(220, 40, 600), hIn = num(120, 30, 400);
       const stateSel = sel([{ value: 'active', label: 'active' }, { value: 'inactive', label: 'inactive' }]);
       const scaleSel = sel([{ value: '1', label: '1×' }, { value: '2', label: '2×' }, { value: '3', label: '3×' }]); scaleSel.value = '2';
-      ctrls.append(field('theme', themeSel), field('window type', wtypeSel), field('title', titleIn), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel));
+      const resetBtn = document.createElement('button'); resetBtn.type = 'button'; resetBtn.textContent = 'Reset';
+      resetBtn.style.cssText = 'font:12px system-ui;padding:3px 12px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff';
+      ctrls.append(field('theme', themeSel), field('window type', wtypeSel), field('title', titleIn), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
 
       const themeCache = new Map();
       const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(`/themes/${slug}`)); return themeCache.get(slug); };
@@ -617,10 +619,41 @@
         }
       };
 
-      themeSel.onchange = async () => { populateWindowTypes(await getTheme(themeSel.value)); rerender(); };
-      for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = rerender;
-      for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(rerender, 250); };
-      (async () => { populateWindowTypes(await getTheme(themeSel.value)); rerender(); })();
+      // ── URL-hash state: the controls serialize to location.hash so a refresh
+      // restores them; Reset clears it back to defaults. ──
+      // Default to a recipe theme (1138) so the playground opens showing slices,
+      // not the baseline (no-wnd#) Apple Platinum.
+      const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '220', h: '120', state: 'active', scale: '2' };
+      const writeHash = () => {
+        const p = new URLSearchParams({ theme: themeSel.value, wt: wtypeSel.value, title: titleIn.value, w: wIn.value, h: hIn.value, state: stateSel.value, scale: scaleSel.value });
+        history.replaceState(null, '', '#' + p.toString());
+      };
+      const applyControls = (st) => {
+        if (st.theme) themeSel.value = st.theme;
+        // window types depend on the theme — populate, then apply wt if valid
+        return getTheme(themeSel.value).then((theme) => {
+          populateWindowTypes(theme);
+          if (st.wt && [...wtypeSel.options].some((o) => o.value === st.wt)) wtypeSel.value = st.wt;
+          if (st.title !== undefined) titleIn.value = st.title;
+          if (st.w) wIn.value = st.w;
+          if (st.h) hIn.value = st.h;
+          if (st.state) stateSel.value = st.state;
+          if (st.scale) scaleSel.value = st.scale;
+        });
+      };
+
+      themeSel.onchange = async () => { populateWindowTypes(await getTheme(themeSel.value)); writeHash(); rerender(); };
+      for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = () => { writeHash(); rerender(); };
+      for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(() => { writeHash(); rerender(); }, 250); };
+      resetBtn.onclick = async () => { await applyControls(DEFAULTS); history.replaceState(null, '', location.pathname + location.search); rerender(); };
+
+      (async () => {
+        const h = location.hash.replace(/^#/, '');
+        const st = h ? Object.fromEntries(new URLSearchParams(h)) : DEFAULTS;
+        await applyControls(st);
+        if (h) writeHash(); // normalize
+        rerender();
+      })();
     }
 
     // Procedural Platinum baseline showcase — the gray fallback chrome a
