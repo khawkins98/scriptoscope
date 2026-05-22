@@ -128,6 +128,27 @@ check whether decorated themes set `tileSides` and simple ones don't. If so,
 rebuild the compositor around 9-slice+cinf and retire the per-segment recipe
 walk + all its heuristics.
 
+## 9b. BREAKTHROUGH — we were decoding the WRONG kDEF VERSION
+
+All of §1–§8 (and both sub-agent traces) read the **Kaleidoscope 1.8.2** kDEF.
+But our schemes (1138/1984/1990/evolution/beos) are **K2-format** — they ship
+`wnd#` recipes + dozens of `cinf` resources, and `wnd#`-driven chrome is a 2.x
+feature. Decisive check:
+
+| engine | kDEF size | `'wnd#'` (0x776e6423) refs |
+|---|---|---|
+| **1.8.2** (`kDEF_0.bin`) | 60,732 B | **0** |
+| **2.3.1** (`kDEF231_0.bin`) | 107,726 B | **17** |
+
+So the 1.8.2 kDEF has NO recipe-walk because the recipe model didn't exist yet —
+not because "the walk is WDEF-side." The `WDEF -14330` / macOS-ISO hunt was a
+red herring (that was 1.8.2's pre-recipe window def). The REAL recipe-walk is in
+the **2.3.1 kDEF**, extracted to `/tmp/kaleido-trace/kDEF231_0.bin` +
+`kDEF231_0.asm`, with `GetResource('wnd#')` anchors at `0x11918` / `0x1747c`.
+Decoding that (in progress) is the actual algorithm our schemes use — supersedes
+the inferred rules in §7/§8. (2.3.1 control panel also has 547 resources incl.
+its own WDEFs; still no `WDEF -14330` — confirming that ID was never the answer.)
+
 ## 9. Code state left (2026-05-22)
 
 - Title centring on `cx` (§9.4) — kept, correct (`fcfbaf6`).
