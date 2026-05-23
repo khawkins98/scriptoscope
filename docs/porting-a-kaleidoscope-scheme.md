@@ -54,14 +54,14 @@ If `wc -l` shows a small number (< 1000), the resource fork was probably strippe
 
 ## 3. Run the extractor
 
+Drop the scheme's raw resource fork at `themes/<your-slug>/scheme.rsrc` (+ an
+optional `meta.json`), then from the repo root:
+
 ```sh
-# From the repo root (cd back up):
-node tools/scheme-extractor/bin/extract.js \
-  --input  .scratch/schemes/<your-slug>/scheme.r \
-  --output demo/assets/themes/<your-slug>/ \
-  --verbose
+node scripts/extract-scheme.mjs <your-slug>
 ```
 
+It reads the resource fork directly (no macOS DeRez step) and writes in place.
 This emits:
 
 - `demo/assets/themes/<your-slug>/cicn-n<id>-<slug>.png` — one PNG per chrome cicn

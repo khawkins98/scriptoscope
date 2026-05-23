@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-// Extract a Kaleidoscope scheme bundle straight from its binary resource
-// fork (no macOS DeRez step). Mirrors tools/scheme-extractor/bin/extract.js
-// but: (a) reads the raw resource fork via parseResourceFork, (b) imports
-// the live decoders from tools/theme-loader, (c) writes PNGs into cicns/ +
-// ppats/ subdirs and decodes the header cluts — producing the same bundle
-// layout as the existing themes/<slug>/ dirs.
+// Extract a Kaleidoscope scheme bundle straight from its binary resource fork
+// (no macOS DeRez step): (a) reads the raw resource fork via parseResourceFork,
+// (b) imports the live decoders from tools/theme-loader, (c) writes PNGs into
+// cicns/ + ppats/ subdirs and decodes the header cluts — producing the
+// themes/<slug>/ bundle layout. This is the live extractor.
 //
 // Usage: node scripts/extract-scheme.mjs <slug>
 //   reads  themes/<slug>/scheme.rsrc  (+ optional meta.json)

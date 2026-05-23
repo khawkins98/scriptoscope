@@ -61,7 +61,7 @@ The `PROVENANCE.md` and `meta.json` carry the same factual info in different for
 
 ### `cicns/*.png` and `ppats/*.png`
 
-Extracted by `tools/scheme-extractor/`. PNG filenames preserve the `cicn-n<id>-<slug>.png` and `ppat-n<id>-<slug>.png` convention so the resource ID is recoverable from the filename. (`n<id>` is the Kaleidoscope-style negative ID rendered as e.g. `n14335` for resource `-14335`.)
+Extracted by `scripts/extract-scheme.mjs`. PNG filenames preserve the `cicn-n<id>-<slug>.png` and `ppat-n<id>-<slug>.png` convention so the resource ID is recoverable from the filename. (`n<id>` is the Kaleidoscope-style negative ID rendered as e.g. `n14335` for resource `-14335`.)
 
 PNGs are 32-bit RGBA; `cicns` carry alpha-channel transparency, `ppats` are fully opaque tiles.
 

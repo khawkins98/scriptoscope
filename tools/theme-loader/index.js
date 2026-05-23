@@ -1,8 +1,7 @@
-// Public API for @aaron-ui/scheme-extractor.
-//
-// All lib/ functions take Uint8Array / plain strings and return plain JS
-// objects — no Node-specific imports — so the same code can be loaded in
-// a browser (web-based extractor is the long-term goal).
+// Public API for the theme-loader — the .rsrc → theme.json decoders + the
+// runtime scheme loader. All functions take Uint8Array / plain strings and
+// return plain JS objects (no Node-specific imports) so the same code can run
+// in a browser (a web-based extractor is the long-term goal).
 
 export { parseDerezText } from './derez-parser.js';
 export { parseResourceFork } from './resource-fork.js';
