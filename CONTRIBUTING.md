@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Aaron UI.
 
-> **Status:** the project is on the **v3 part-code-compositor reset** — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the current model.
+> **Status:** the project is on the **v3 part-code-compositor reset** — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the current model. For any binary-level question — a routine address, a resource id, a struct offset, a coordinate mapping — the standing lookup reference is [`docs/tracking/kdef231-reference.md`](./docs/tracking/kdef231-reference.md).
 
 ## Your first code contribution
 

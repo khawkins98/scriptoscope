@@ -6,6 +6,11 @@ A one-to-one map of the Kaleidoscope **2.3.1** kDEF (the decompiled 68k WDEF at
 ledger is how we keep our own code a faithful mimic and make every divergence
 *explicit* instead of tribal.
 
+> The routine addresses below are catalogued in the standing
+> [`kdef231-reference.md`](./kdef231-reference.md) (§1 routine map). Use that to
+> look up what a routine *does* in the binary; use this ledger to see how — and
+> how faithfully — `composeChrome.ts` mirrors it.
+
 How to use it:
 - **Adding/changing compose logic?** Find the routine here first; the asm address
   is the ground truth (verify against it when a render disagrees).

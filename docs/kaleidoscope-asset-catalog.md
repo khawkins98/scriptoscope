@@ -259,10 +259,23 @@ Window chrome (Level 1–2) is implemented: the compositor composes every window
 
 Concrete consequences:
 
-- **Controls (Level 3)** have a confirmed data source for every planned widget — the asset catalog confirms the assets *physically exist* across the corpus, with regular naming. (The decoded draw recipes for the controls live in [`kdef-layout-recipes.md`](./kdef-layout-recipes.md); the window-chrome model is in [`compositor-spec.md`](./tracking/compositor-spec.md).)
+- **Controls (Level 3)** have a confirmed data source for every planned widget — the asset catalog confirms the assets *physically exist* across the corpus, with regular naming. (The decoded draw recipes for the controls live in [`tracking/kdef231-reference.md`](./tracking/kdef231-reference.md) — §1.2/§2.2 for the 2.3.1-verified button face + ring, §2.6 for the remaining `[DOC]`-confidence families; the window-chrome model is in [`compositor-spec.md`](./tracking/compositor-spec.md).)
 - **Level 2 chrome (other window types)** is done — the composition algorithm is identical across window types (one `composeWindowChrome` over the `wnd#` recipe), so adding a window type is data, not code.
 - **A conformance test suite** is partly realized: `diag:render` + `diag:audit` load, render, and compare each scheme against curated reference PNGs.
 - **New-scheme authoring** can target this catalog as its specification — a tool generating a Kaleidoscope-compatible scheme knows exactly which assets to produce for each conformance level.
+
+### 6.1 The procedural Platinum fallback (`src/platinum.ts`)
+
+*(Folded in from the retired `kdef-layout-recipes.md §11` — this is the spec for the first-party fallback geometry, not a Kaleidoscope decode.)*
+
+The genuine Mac OS 8 "Platinum" chrome is **not** shippable as Kaleidoscope `cicn`/`ppat`: the 8.5/8.6 System files draw it with `WDEF`/`CDEF` *code* (no `wnd#`, no `thme`, no window-range cicns), and every "Platinum" Kaleidoscope scheme (Apple Platinum 2, Black/Carl's/Chiper's Platinum) ships only a partial set that *defers* windows + standard controls to the OS. So when a scheme omits a control's cicn, Aaron UI falls back to a procedural gray-Platinum reimplementation. This is the **only** first-party chrome Aaron UI authors, and only to fill gaps — controls the scheme *does* ship still resolve by id from its cicns.
+
+Geometry (native px, classic Appearance):
+
+- **checkbox / radio**: 12×12. 1px `#555` frame; checkbox has a 1px white top-left inner highlight + `#9a9a9a` bottom-right shadow (raised). Checkmark = 2px-thick stroke (short descend (3,6)→(5,8), long ascend (5,8)→(9,3)). Radio = ø12 ring, ø4 centre dot. Mixed = a 2px dash at y6.
+- **slider**: 16px control thickness; 6px sunken groove centred on the cross axis (`#9a9a9a` near edge / white far edge, `#c8c8c8` fill); raised thumb 11 (cross) × 16 (along), 1px frame + top-left highlight, white→`#cdcdcd` vertical face gradient, positioned by value over `length − 11` of travel.
+
+Disabled swaps the frame/mark to `#888`. Example coverage: apple-platinum-2 ships scrollbars/buttons but no checkbox/radio/slider, so those three come from this fallback.
 
 ---
 
