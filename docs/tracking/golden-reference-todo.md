@@ -57,7 +57,13 @@ crop/normalise tooling) — hence deferred.
 1. **Golden-against-self regression.** Snapshot *our own* renders for the corpus;
    fail when a commit changes them unexpectedly. Catches *regressions* (did this
    change move pixels we didn't mean to?) even though it can't judge *correctness*.
-   Cheap, high value, no emulator. Probably the right first step.
+   Cheap, high value, no emulator. Probably the right first step. Build it on
+   `diag:render` (headless, pure-Node, straight from the compositor) — NOT on
+   browser screenshots. (A Playwright tool, `tools/scheme-screenshots.mjs`, did the
+   latter against the old multi-scene demo; it was retired in the v3 cleanup —
+   broken against the single-window playground and redundant with `diag:render`.
+   If browser-pipeline coverage is ever wanted, rebuild fresh against the
+   playground's `#theme=…` hash state with a real image diff.)
 2. **Structural diff, not pixel.** Compare derived geometry — per-side border
    thickness, corner continuity, title-region placement — at a loose tolerance
    against the existing previews. Survives palette/AA/version noise; would have
