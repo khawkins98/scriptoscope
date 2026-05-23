@@ -107,21 +107,17 @@ export async function renderWindow(
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
     // The title text is a CENTERED part: the kDEF measures + centres it (the
     // title-centre math in 0x4a64, see kdef231-recipe-walk.md Q4) at the window
-    // CONTENT CENTRE — NOT on the frame's grow distribution. Centring on the plate's
-    // output span made asymmetric frame growth shove the title sideways (the
-    // 1138 regression). Centre on cx = content centre, clamp into the bar.
+    // CONTENT CENTRE — NOT on the frame's grow distribution (so asymmetric frame
+    // growth never shoves the title sideways). cx = content centre, clamp into bar.
     const cx = frame.left + contentW / 2;
     const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
     const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
     composed.buffer.drawOver(g, gx, gy);
   }
 
-  // ── window root: bounds the FULL window footprint (chrome included), so
-  // the element's box encloses everything it draws. The chrome used to bleed
-  // outside a content-sized box via negative canvas offsets, which got
-  // clipped when the window was embedded in an overflow:hidden container
-  // (cropped title bars). Now the canvas fills the root at 0,0 and the
-  // content is INSET by the frame thickness. ──
+  // ── window root: bounds the FULL window footprint (chrome included), so the
+  // element's box encloses everything it draws. The canvas fills the root at
+  // 0,0 and the content is INSET by the frame thickness. ──
   const win = document.createElement('div');
   win.className = 'aw-window';
   win.dataset.awState = state;

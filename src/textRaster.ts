@@ -10,11 +10,9 @@ import { PixelBuffer } from './pixelBuffer.js';
  * is transparent (the caller clears the title band first, then alpha-
  * overs this in).
  *
- * NOTE: the glyph shapes come from the platform font here (a bold
- * geometric fallback), not the period Chicago bitmap font — a later
- * refinement is to bundle the actual scheme/system bitmap font. The
- * point of this module is that the title is now PART OF the composited
- * buffer, not a separate DOM overlay.
+ * NOTE: the glyph shapes come from the platform font (a bold geometric
+ * fallback), not the period Chicago bitmap font — bundling the actual
+ * scheme/system bitmap font is a known refinement.
  */
 export function rasterizeText(text: string, heightPx: number, color: string): PixelBuffer {
   const fontPx = Math.max(6, heightPx);
