@@ -4,28 +4,25 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 // ───────────────────────────────────────────────────────────────────────────
 // Window-chrome compositor — the Kaleidoscope 2.3.1 kDEF window-frame model.
 //
-// Built to docs/tracking/compositor-spec.md (THE canonical model), which is
-// itself built from the 2.3.1 kDEF decode (docs/tracking/kdef231-recipe-walk.md).
-// The pipeline mirrors the kDEF exactly:
+// A faithful replay of the 2.3.1 kDEF (a compact 68k WDEF). Canonical model:
+// docs/tracking/compositor-spec.md; instruction-level decode + addresses:
+// docs/tracking/kdef231-recipe-walk.md. Per window edge:
 //
-//   classify (part-code jump table §"Part-code classification")
-//     → distribute slack EVENLY across stretch cells, split symmetrically
-//       about the title  (§"Draw + distribution" / kdef §0x5178 ×2)
-//     → place each cell's SRC band → DST band  (kdef §0x5356)
-//     → blit: code 18 = ONE scaled CopyBits (kdef §0x10320); EVERYTHING ELSE
-//       TILES the src cell across the dst (kdef §0xfeae always tiles — there is
-//       no scaled CopyBits for ordinary fills; cinf.tileSides does NOT gate it)
+//   1. WALK the wnd# side-list into cells. Association is END-BASED (kdef
+//      §0x5356): segment i is `[border[i-1], border[i])` tagged `part[i]`. The
+//      segment loop starts at index 1 (kdef §0x4a64), so the leading
+//      `[0, border[0])` region is the fixed CORNER, drawn 1:1.
+//   2. CLASSIFY each cell by part code (jump table kdef §0x49d6 + §0x5178).
+//   3. DISTRIBUTE slack EVENLY across the stretch cells, split symmetrically
+//      about the title so the centred title stays centred (kdef §0x5178 ×2).
+//   4. BLIT: code 18 = ONE scaled CopyBits (kdef §0x10320); everything else
+//      TILES the src cell across the dst (kdef §0xfeae — always tiles; there is
+//      no scaled CopyBits for ordinary fills).
 //
-//   WIDGET CARVING (the key fix): close/zoom/shade widgets are BAKED into the
-//   cicn inside stretch cells (e.g. 1138's close box lives in the code-0 left
-//   cell, its zoom/shade in the code-8 pinstripe). We must NOT tile that baked
-//   art. Instead we carve each rect-list widget rect out of the stretch cell —
-//   tile the fill segments AROUND it, then stamp the widget ONCE from its
-//   rect-list rect, anchored (left widgets keep their x;
-//   right widgets ride the right edge as the fill before them grows).
-//
-//   TITLE TEXT is drawn separately in renderWindow.ts (centred on the content
-//   centre, in the cinf textPixel / header text colour) — not here.
+// The close/zoom/shade widgets are baked into the cicn title bar and fall inside
+// the FIXED title-bar cells, so step 4 draws them 1:1, anchored — no separate
+// widget pass. TITLE TEXT is drawn in renderWindow.ts (centred on the content
+// centre, in the header text colour) — not here.
 // ───────────────────────────────────────────────────────────────────────────
 
 /** Extract the integer part code from a `part-N` slug (−1 if malformed). */
@@ -192,24 +189,18 @@ interface RawCell {
 /**
  * Turn an edge recipe into ordered, classified source cells along the axis.
  *
- * END-BASED association (verified against the 2.3.1 kDEF placement routine
- * `0x5356`): a side-list `(part, border)` entry describes the cell that ENDS at
- * `border`, spanning from the PREVIOUS border — segment i is `[border[i-1],
- * border[i])` tagged `part[i]`. The part code travels with the border that
- * closes its cell, NOT the one that opens it. (We previously used the start-
- * based reading — `[border[i], border[i+1])` tagged `part[i]` — which shifted
- * every code by one cell: e.g. 1138's wide title-bar regions came out as the
- * stretch codes 0/8 instead of the FIXED code 1 they actually carry, so the
- * baked chevron ornaments landed in growing cells and repeated when tiled.)
+ * END-BASED association (kdef §0x5356): a side-list `(part, border)` entry
+ * describes the cell that ENDS at `border`, spanning from the PREVIOUS border —
+ * segment i is `[border[i-1], border[i])` tagged `part[i]`. The part code travels
+ * with the border that closes its cell.
  *
- * LEADING CORNER: the kDEF's segment loop (`0x4a64` / the draw loop) starts at
- * index 1 — it NEVER treats the pre-first-border region `[0, border[0])` as a
- * growing segment. That region is drawn 1:1 (the fixed corner). So when the
- * first border is > 0 (e.g. 1984's left edge, `border[0]=27` — the rounded
- * title-tab), the leading cell is FIXED regardless of its part code; only the
- * cells from `border[0]` onward classify by code. (When `border[0]=0` there is
- * no leading region and the first real cell is a normal segment.) This is the
- * grounded replacement for the old cornerSize-split heuristic.
+ * LEADING CORNER: the kDEF's segment loop (kdef §0x4a64) starts at index 1, so
+ * the pre-first-border region `[0, border[0])` is never a growing segment — it
+ * is drawn 1:1 (the fixed corner). So when `border[0] > 0` (e.g. 1984's left
+ * edge, `border[0]=27` — the rounded title-tab) the leading cell is FIXED
+ * regardless of its part code; cells from `border[0]` onward classify by code.
+ * When `border[0]=0` there is no leading region and the first cell is a normal
+ * segment.
  *
  * `border[-1]` is 0 (the edge origin); entries whose border equals the previous
  * one (the `border 0` origin marker, coincident borders) collapse to zero width.
@@ -369,11 +360,9 @@ function composeEdge(
   const cells = recipeCells(recipe, lastAt, widgetPresent);
   if (cells.length === 0) return null;
 
-  // Corner preservation is now intrinsic to the recipe walk, not a heuristic:
-  // the LEADING corner is `recipeCells`' first cell `[0, border[0])` (fixed,
-  // 1:1 — the kDEF segment loop starts past it); the TRAILING corner is the
-  // far-edge cap below (`[lastAt, srcExtent)`, stamped 1:1). The old
-  // cornerSize-split heuristic (geo.corner) is retired.
+  // Corners are intrinsic to the walk: the LEADING corner is `recipeCells`'
+  // first cell `[0, border[0])` (fixed, 1:1); the TRAILING corner is the
+  // far-edge cap below (`[lastAt, srcExtent)`, 1:1).
 
   // The first cell's x0 is the recipe's start offset; the region before it
   // maps 1:1, so output starts there too.
@@ -470,9 +459,11 @@ function composeEdge(
 }
 
 /**
- * Fallback for window types that ship no edge recipe: stamp the cicn's end
- * caps and stretch the middle column across the gap. Rare (every corpus scheme
- * ships recipes); kept so any scheme still renders a frame.
+ * Top-edge fallback for window types whose wnd# ships NO top side-list — the
+ * collapsed side-floating utilities (1138 collapsed-side-float, beos wnd--14292).
+ * The kDEF would draw no top segments there; this is a non-kDEF nicety that
+ * stamps the cicn end-caps and stretches the middle column so the strip still
+ * reads as a frame. (Sides/bottom have analogous 1px-column fallbacks inline.)
  */
 function composeSeamFallback(
   out: PixelBuffer,
@@ -606,10 +597,8 @@ export function composeWindowChrome(
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom }, { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
   }
 
-  // (No widget pass: with the end-based cell association + grounded corners the
-  // close/zoom/shade widgets land in FIXED title-bar cells and are drawn 1:1 by
-  // the edge walk above — verified 0 widgets in growing cells across the corpus.
-  // The old carve-out-of-stretch-cell + stamp pass is retired.)
+  // No separate widget pass: the close/zoom/shade widgets fall inside the FIXED
+  // title-bar cells and are drawn 1:1 by the edge walk above.
 
   // ── aggregate the slice placement map (for the diagnostic) ────────────────
   const placement: PlacementSlice[] = [];

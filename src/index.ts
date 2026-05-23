@@ -1,16 +1,13 @@
-// Aaron UI v2 — clean-break rebuild.
+// Aaron UI — a web-native runtime for classic-Mac Kaleidoscope schemes.
 //
-// A web-native runtime for classic-Mac Kaleidoscope schemes. We start
-// from zero and scale up a working implementation, learning the right
-// HTML/CSS structure empirically against the reference images and the
-// extracted theme bundles, rather than locking structure in early.
-//
-// Preserved from v1 (do not re-derive — see docs/):
-//   themes/<slug>/                            extracted bundles
-//                                             (theme.json + cicns/*.png)
-//   tools/theme-loader/                       .rsrc → theme.json decoder
-//   docs/tracking/compositor-spec.md          the window-chrome model
-//   docs/tracking/kdef231-recipe-walk.md      the 2.3.1 kDEF decode (truth)
+// Renders a scheme's window chrome 1:1 from its original binary resources by
+// replaying the Kaleidoscope 2.3.1 kDEF (a 68k WDEF) on a pixel buffer; CSS does
+// only positioning + integer upscale. Validated against the period reference
+// images. Key artifacts (see docs/ — don't re-derive):
+//   themes/<slug>/                       extracted bundles (theme.json + cicns/*.png)
+//   tools/theme-loader/                  .rsrc → theme.json decoder
+//   docs/tracking/compositor-spec.md     the window-chrome model
+//   docs/tracking/kdef231-recipe-walk.md the 2.3.1 kDEF decode (truth)
 
 export const VERSION = '2.0.0-dev';
 
