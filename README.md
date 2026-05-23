@@ -95,8 +95,9 @@ If a consumer wants period sounds or a desktop picture alongside a loaded scheme
 ## Documents
 
 - **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
-- **[`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md)** — the current window-chrome model.
-- **[`docs/tracking/kdef231-reference.md`](./docs/tracking/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for any binary-level question; it indexes the compositor spec, the recipe-walk, and the faithfulness ledger.
+- **[`docs/tracking/kdef-architecture.md`](./docs/tracking/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
+- **[`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md)** — the current window-chrome model (the implemented spec).
+- **[`docs/tracking/kdef231-reference.md`](./docs/tracking/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for **"where is X?"**; it indexes the architecture tour, the compositor spec, the recipe-walk, and the faithfulness ledger.
 - **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
 - **[`LEARNINGS.md`](./LEARNINGS.md)** — running log of gotchas and decisions, populated as we build.
