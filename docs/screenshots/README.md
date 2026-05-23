@@ -1,42 +1,50 @@
 # Scheme screenshots
 
-Per-scheme baseline renders of the main demo at 1200×900. One PNG per bundled theme. Regenerate after any change that touches the chrome renderer to see what changed visually.
+Per-scheme baseline renders of the demo playground. The intent: one PNG per
+corpus theme, regenerated after any change that touches the chrome renderer, so a
+PR diff shows what moved visually.
 
-## Regenerate
+> **Heads-up — the generator is currently stale.** `tools/scheme-screenshots.mjs`
+> is out of sync with the demo and does not produce correct per-scheme renders as
+> written (see "Known gaps" below). The PNGs checked in here predate the current
+> corpus. Treat them as rough historical baselines, not a trusted oracle, until
+> the tool is repaired. For the broader "we lack a trustworthy render oracle"
+> problem, see [`../tracking/golden-reference-todo.md`](../tracking/golden-reference-todo.md).
 
-```bash
-# Dev server must be running:
-npm run dev
+## Current corpus
 
-# In another shell:
-node tools/scheme-screenshots.mjs                 # all schemes
-node tools/scheme-screenshots.mjs acid 1990       # subset
-node tools/scheme-screenshots.mjs --base http://localhost:5173
-```
+The live corpus is defined by the bundles under `themes/`:
 
-Output: `docs/screenshots/<slug>.png` per scheme. Commit the deltas alongside the renderer change so the PR description can call out visual regressions / improvements.
-
-## How it works
-
-The demo accepts a `?theme=<slug>` URL parameter (see `tests/e2e/theme-url-param.spec.ts`). The screenshot script:
-
-1. Iterates every known slug (or just the subset passed as args).
-2. Launches Chromium via Playwright at 1200×900 viewport.
-3. Navigates to `${base}/?theme=${slug}`, waits for network idle + a brief settle for the async classifier + geometry derivation.
-4. Captures a fullPage:false screenshot to the output dir.
-
-Same path is exercised live when you visit `http://localhost:5173/?theme=acid` etc — useful for sharing a specific scheme.
-
-## Schemes covered
-
-| Slug | Display name | Author | Year |
-|---|---|---|---|
-| masswerk-7-le | mass:werk 7 Le | Norbert Landsteiner | 2001 |
-| masswerk-dark-ergobox2 | mass:werk Dark ErgoBox 2 | Norbert Landsteiner | 2011 |
-| acid | Acid (#1022) | SHIOCOP | 1999 |
-| 1138 | 1138 | Erik Ekengren | 1998 |
-| big-blue | Big Blue is Watching (#1984) | Geoffrey Hamilton | 1996 |
-| 1990 | 1990 | SHIOCOP | 1999 |
-| evolution | 1991 evolution | SHIOCOP | 1999 |
+| Slug | Display name |
+|---|---|
+| 1138 | 1138 |
+| 1984 | 1984 |
+| 1990 | 1990 |
+| apple-platinum-2 | Apple Platinum 2 |
+| beos-r503 | BeOS R5.0.3 |
+| evolution | Evolution |
 
 Provenance per scheme: `themes/<slug>/PROVENANCE.md`.
+
+Only `1138.png`, `1990.png`, and `evolution.png` are checked in here, and they
+predate the current renderer — `1984`, `apple-platinum-2`, and `beos-r503` have
+no baseline at all.
+
+## Known gaps (why the generator doesn't work as-is)
+
+`tools/scheme-screenshots.mjs` navigates to `${base}/?theme=<slug>` and expects
+the demo to select a theme from that query parameter. The current demo
+(`demo/index.html`) does **not** read a `?theme=` query string — its playground
+serializes state to `location.hash` (`#theme=<slug>&wt=…&w=…`) and reads it back
+from the hash. A bare `?theme=…` is ignored and the playground falls through to
+its default (`1138`). So the tool would screenshot the same default scheme for
+every slug.
+
+The tool's `ALL_SCHEMES` list is also stale: it still names the departed
+`masswerk-7-le` / `masswerk-dark-ergobox2` schemes and omits the current
+`1984` / `apple-platinum-2` / `beos-r503`. The `tests/e2e/theme-url-param.spec.ts`
+it cites no longer exists.
+
+To revive this flow, point the tool at the hash form the demo actually reads —
+e.g. `${base}/#theme=<slug>&wt=document-window&state=active&scale=2` — and sync
+`ALL_SCHEMES` to the corpus table above.

@@ -1,54 +1,37 @@
 # Aaron UI
 
-A web-native runtime for [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) themes — and the window manager that hosts them.
+A web-native runtime that renders classic [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) themes 1:1 from their own binary resources.
 
-Drop it into any page to get draggable, resizable windows. Then load any freeware-licensed Kaleidoscope scheme — System 7, Platinum, BeOS-tab, anything in the ≈4,010-scheme corpus — and the windows render with its chrome, controls, and colors. Aaron UI doesn't hand-author a "Platinum theme." It reads `cicn` / `ppat` / `cinf` / `wnd#` resources out of `.ksc` files and renders them with CSS, SVG, and JS. The default look you get when you `import 'aaron-ui'` is mass:werk's freeware-licensed "7 Le" scheme — a community-authored Platinum-faithful Kaleidoscope theme, bundled.
+Load any freeware-licensed Kaleidoscope scheme and Aaron UI draws its windows — chrome, controls, and colors — pixel-faithfully in the browser. Aaron UI doesn't hand-author a "Platinum theme" (or any theme). It reads each scheme's `cicn` artwork, `wnd#` layout recipe, and `cinf`/`Colr` metadata and replays the rendering itself: the window-chrome compositor (`src/composeChrome.ts`) is a clean-room reimplementation of the decompiled Kaleidoscope **2.3.1** kDEF (a 68k `WDEF`), driven by a part-code jump table. Get the engine right once and every scheme renders for free.
 
-> **Status: Phase 1 + most of Phase 4 shipped.** WM core (drag, resize, z-order, focus, ARIA, declarative scanner) plus the full theme runtime — schema + extractor + canonical bundles + `loadTheme()` + cinf/ppat/wnd# renderers + theme switching + bundled-default auto-load. `import 'aaron-ui'` now triggers the bundled mass:werk 7 Le scheme to fetch + apply on `DOMContentLoaded`; opt out via `import 'aaron-ui/no-default'`. Live demo: <https://khawkins98.github.io/aaron-ui/>. CI status: <https://github.com/khawkins98/aaron-ui/actions>.
->
-> **Phase 2 reframe (2026-05-17):** the original Phase 2 ("hand-author Platinum chrome from the HIG") is dropped. Aaron UI is a Kaleidoscope-compatibility runtime, not a theme re-authoring project — recreating Platinum from the HIG when mass:werk's "7 Le" already exists as freeware would duplicate work and weaken the product story. Phase 2 and Phase 4 collapse into one effort: ship the theme-engine runtime, with 7 Le as the bundled default. See [LEARNINGS.md](./LEARNINGS.md) for the full reasoning and [issue #23](https://github.com/khawkins98/aaron-ui/issues/23) for the work.
+The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`.
 
-## Quick start
+> **Status (v3, 2026-05-23):** the project went through a v2 clean-break and is now on the **v3 part-code-compositor reset** — the chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the 2.3.1 binary. The codebase is in prototype mode: the public surface is the `loadTheme()` / `renderWindow()` runtime in [`src/index.ts`](./src/index.ts), exercised by the demo. See [`docs/history.md`](./docs/history.md) for the full arc (and the "Dead ends — don't relitigate these" list — read it first). Live demo: <https://khawkins98.github.io/aaron-ui/>.
+
+## Trying it
+
+The runtime is exercised through the demo page, which loads bundles from `themes/<slug>/` and renders windows from them:
 
 ```sh
-npm install aaron-ui
+npm install
+npm run dev        # http://localhost:5173 — opens demo/index.html
 ```
 
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <script type="module">
-      // Default entry — auto-loads mass:werk 7 Le from `themes/masswerk-7-le/`.
-      // Make sure your web server is hosting that path (the npm package
-      // ships the files at `themes/masswerk-7-le/` for direct copying).
-      import { AaronWindow, attachThemeToWindow } from 'aaron-ui';
-      window.addEventListener('DOMContentLoaded', () => {
-        const w = new AaronWindow({ title: 'Hi', width: 320, height: 200 });
-        w.mount(document.body);
-        attachThemeToWindow(w.element); // chrome paints on first themechange
-      });
-    </script>
-  </head>
-  <body></body>
-</html>
+The core API is small. A scheme bundle is a directory (`theme.json` + decoded `cicns/`, `ppats/` PNGs); `loadTheme()` fetches it and `renderWindow()` composites a window from it:
+
+```ts
+import { loadTheme, renderWindow } from 'aaron-ui';
+
+const theme = await loadTheme('/themes/beos-r503');
+const win = await renderWindow(theme, {
+  title: 'Hello!',
+  width: 320, height: 200,
+  state: 'active',
+});
+document.body.appendChild(win);
 ```
 
-Opt out of the auto-load (own theme loading entirely):
-
-```js
-import { AaronWindow, loadTheme, attachThemeToWindow } from 'aaron-ui/no-default';
-await loadTheme('/path/to/your/scheme/');
-// ... same as above
-```
-
-Override where the default is fetched from (e.g., CDN hosting):
-
-```js
-import { setBundledDefaultUrl, AaronWindow } from 'aaron-ui';
-setBundledDefaultUrl('https://cdn.example.com/aaron/themes/masswerk-7-le/');
-// ... AaronWindow usage proceeds; auto-load fires against the new URL
-```
+See [`demo/index.html`](./demo/index.html) for the live integration and [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the chrome model.
 
 ## North Star
 
@@ -73,7 +56,7 @@ Three principles do the load-bearing work:
    </div>
    ```
 
-3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Aaron UI is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly via the [scheme-extractor](./tools/scheme-extractor/) pipeline and renders them with CSS, SVG, and JS per [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md). The corpus is the ≈4,010 community-authored schemes on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Aaron UI does not hand-author chrome from the HIG** — for the Platinum look, we ship mass:werk's freeware "7 Le" scheme bundled as the default. Every shipped theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Aaron UI produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
+3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Aaron UI is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Aaron UI does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Aaron UI produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
 > The name "Aaron" comes from Apple's internal codename for the Copland-era demo that previewed the Appearance Manager and Platinum default theme. With the project now scoped as a *Kaleidoscope-compatibility runtime* (not Appearance Manager re-implementation, not Platinum re-author), the etymology is poetic origin rather than tight description — and that's fine.
 
@@ -111,8 +94,10 @@ If a consumer wants period sounds or a desktop picture alongside a loaded scheme
 
 ## Documents
 
-- **[`PRD.md`](./PRD.md)** — what we're building and why.
-- **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes.
+- **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
+- **[`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md)** — the current window-chrome model.
+- **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
+- **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
 - **[`LEARNINGS.md`](./LEARNINGS.md)** — running log of gotchas and decisions, populated as we build.
 
 ## License

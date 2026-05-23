@@ -12,13 +12,13 @@
 
 The decoders answer *"what bytes are in the file?"* This document answers *"what controls and states do those bytes represent across the corpus, and what should my implementation handle?"*
 
-**Status:** 1.0 draft, derived from empirical audit of 7 schemes (1,277 cicns total) on 2026-05-18.
+**Status:** 1.0 draft. The §2 counts were a 2026-05-18 audit of an earlier 7-scheme corpus; the corpus has since changed (see §2). The control *vocabulary* (§3) and conformance levels (§5) are corpus-independent and still current.
 
 ---
 
-## 1. Why this catalog exists separately from the geometry spec
+## 1. Why this catalog exists separately from the compositor/format specs
 
-The geometry spec defines a `Theme` as a set of resources. It does not say *which controls a scheme will contain*, *what they will be named*, or *which subset an implementation must support to be useful*. Without this catalog, every implementer rediscovers the same things:
+The format and compositor specs (`src/types.ts`, [`compositor-spec.md`](./tracking/compositor-spec.md)) define a `Theme` as a set of resources and how chrome is drawn. They do not say *which controls a scheme will contain*, *what they will be named*, or *which subset an implementation must support to be useful*. Without this catalog, every implementer rediscovers the same things:
 
 - "Does every scheme have a slider thumb? In four directions?"
 - "Is `horizontal-scrollbar` always present, or is it sometimes `h-scroll-bar`? `horiztal-scrollbar` (typo)? `vertigo-scrollbar` (theme-specific name)?"
@@ -30,26 +30,26 @@ A catalog + conformance levels makes those answerable.
 
 ## 2. Empirical corpus
 
-Counts per scheme as of 2026-05-18:
+Counts for the current corpus (regenerate with the §8 snippet — these drift as the corpus changes):
 
 | Scheme | cicns | ppats | Naming style |
 |---|---:|---:|---|
 | 1138 | 223 | 11 | descriptive |
+| 1984 | 196 | 20 | descriptive |
 | 1990 | 190 | 7 | descriptive |
-| acid | 190 | 2 | descriptive |
-| big-blue | 196 | 20 | descriptive |
+| apple-platinum-2 | 205 | 18 | descriptive (partial set — no `wnd#`) |
+| beos-r503 | 247 | 3 | descriptive |
 | evolution | 190 | 4 | descriptive |
-| mass:werk 7 Le | 119 | 6 | descriptive (canonical) |
-| mass:werk Dark ErgoBox 2 | 159 | 25 | descriptive |
-| **Total** | **1,277** | **75** | |
 
-Across the corpus there are **499 unique cicn name stems** (after stripping the `cicn-nNNNN-` ID prefix and `.png` extension). This count overstates true semantic variety: many stems are spelling variants of the same slot (e.g., `horizontal-scrollbar`, `h-scroll-bar`, `horiztal-scrollbar`).
+(The earlier audit included `acid`, `big-blue`, and the two mass:werk schemes, now out of corpus.)
+
+Across a Kaleidoscope corpus there are typically several hundred unique cicn name stems (after stripping the `cicn-<id>-` ID prefix and `.png` extension). That count overstates true semantic variety: many stems are spelling variants of the same slot (e.g., `horizontal-scrollbar`, `h-scroll-bar`, `horiztal-scrollbar`).
 
 Reproducing the audit:
 
 ```bash
 for t in themes/*/cicns/; do ls "$t"; done \
-  | sed -E 's/cicn-n[0-9]+-//; s/\.png$//' \
+  | sed -E 's/cicn-n?[0-9]+-//; s/\.png$//' \
   | sort -u | wc -l
 ```
 
@@ -75,7 +75,7 @@ Every scheme audited contains some subset of these control families. A conformin
 | `finder-header` | active, inactive | Finder-style list-view header |
 | `grow-box` | active, inactive, pressed, various sizes per window type | Resize handle (sometimes per-window-type variants) |
 
-This corresponds 1:1 to Kaleidoscope's `wnd#` window-type list. Aaron UI's renderer currently consumes 1 (document-window) of these 11.
+This corresponds 1:1 to Kaleidoscope's `wnd#` window-type list. Aaron UI's compositor (`src/composeChrome.ts`) is window-type-generic — it composes every type the scheme's `wnd#` defines (document-window, collapsed, dialog, alert, movable variants, the utility-window family, popup-window). `npm run diag:render` exercises all of them per scheme.
 
 ### 3.2 Scrollbars (scroll family)
 
@@ -204,7 +204,7 @@ A renderer SHOULD classify cicns by **two complementary signals**:
 1. **Filename-pattern matching** (a fuzzy regex against a per-family vocabulary), used when names exist.
 2. **Resource-ID range matching** (cicn-n10075..n10090 covers progress bar variants in any scheme that follows Kaleidoscope SDK ID ranges), used as a fallback or cross-check.
 
-A renderer MUST NOT fail when a cicn doesn't classify — surface the asset as "unclassified" rather than silently dropping it. The diagnostics page in this project does exactly this and the unclassified list is itself a data point for catalog evolution.
+A renderer MUST NOT fail when a cicn doesn't classify — surface the asset as "unclassified" rather than silently dropping it. This project's `extraction-manifest.json` (per bundle) and `lint:themes` pass record every decoded asset, so the unclassified list is itself a data point for catalog evolution.
 
 ---
 
@@ -216,13 +216,13 @@ To allow honest partial implementations, this catalog defines four conformance l
 
 Renders chrome for the **document-window** type (active + inactive states) using cicn + cinf + wnd# data. May omit all other window types and all in-window controls.
 
-This is roughly the minimum that produces a visually-themed window. Aaron UI is currently at this level.
+This is roughly the minimum that produces a visually-themed window.
 
-**Required:** `chrome.document-window` slot, 9-slice or 3-slice composition per cinf classifier, ppat overlay if cinf references one.
+**Required:** `chrome.document-window` slot, recipe-walk composition (the `wnd#` part-code model — see [`compositor-spec.md`](./tracking/compositor-spec.md)), ppat overlay if a cinf references one.
 
 ### Level 2 — Full window-type chrome
 
-Renders chrome for **every window type** the scheme defines in its `wnd#` resource (dialog, alert, movable-dialog, utility-window, side-floating-utility-window, popup-window, etc.).
+Renders chrome for **every window type** the scheme defines in its `wnd#` resource (dialog, alert, movable-dialog, utility-window, side-floating-utility-window, popup-window, etc.). Aaron UI's compositor is at roughly this level — it is window-type-generic over the `wnd#` list (`npm run diag:render` renders all of them).
 
 **Required:** Level 1 + every `chrome.*` slot listed in §3.1, including collapsed and per-window-type grow-box variants where present.
 
@@ -249,19 +249,19 @@ Implementations SHOULD ship a conformance report listing, per scheme:
 - Cicns the renderer actually consumes at runtime
 - Unclassified residue (the gap that motivates catalog updates)
 
-Aaron UI's diagnostics page (`demo/diagnostics.html`) implements this as a "Coverage" section per scheme. Other renderers are encouraged to do the same.
+Aaron UI surfaces this kind of coverage/anomaly reporting through `npm run lint:themes` (static input-data checks, `scripts/lint-themes.mjs`) and `npm run diag:audit` (render-vs-reference placement audit, `scripts/audit-placement.mjs`). Other renderers are encouraged to ship something similar.
 
 ---
 
 ## 6. Implications for Aaron UI's roadmap
 
-This audit revealed that current utilization is roughly **3–5% of available assets** (4 of 120–220 cicns per scheme). The remaining 95% are extracted, classified into families by the diagnostics catalog, and waiting for renderer wiring.
+Window chrome (Level 1–2) is implemented: the compositor composes every window type the scheme's `wnd#` defines (~190–250 cicns are extracted per scheme; the chrome subset the recipe walks is the part currently drawn). The standard in-window controls (Level 3+) are extracted and classified but not yet wired into a control renderer.
 
 Concrete consequences:
 
-- **Phase 3 (controls)** has a confirmed data source for every planned widget. The geometry spec was already complete; the asset catalog confirms the assets *physically exist* in every scheme audited, with regular naming.
-- **Level 2 chrome (other window types)** is a near-term win — the cicns are present and the composition algorithm is identical to document-window. Mostly a registry-mapping change in the renderer.
-- **A conformance test suite** becomes possible: load each scheme, classify, render, compare against curated reference jpgs. The diagnostics page already does the first two steps.
+- **Controls (Level 3)** have a confirmed data source for every planned widget — the asset catalog confirms the assets *physically exist* across the corpus, with regular naming. (The decoded draw recipes for the controls live in [`kdef-layout-recipes.md`](./kdef-layout-recipes.md); the window-chrome model is in [`compositor-spec.md`](./tracking/compositor-spec.md).)
+- **Level 2 chrome (other window types)** is done — the composition algorithm is identical across window types (one `composeWindowChrome` over the `wnd#` recipe), so adding a window type is data, not code.
+- **A conformance test suite** is partly realized: `diag:render` + `diag:audit` load, render, and compare each scheme against curated reference PNGs.
 - **New-scheme authoring** can target this catalog as its specification — a tool generating a Kaleidoscope-compatible scheme knows exactly which assets to produce for each conformance level.
 
 ---
@@ -277,7 +277,7 @@ Concrete consequences:
 
 ## 8. Versioning & change control
 
-This catalog is versioned with the geometry spec. Breaking changes to slot names or conformance level definitions require a major version bump. Additions (new slots, new families) are minor.
+This catalog is versioned independently. Breaking changes to slot names or conformance level definitions require a major version bump. Additions (new slots, new families) are minor.
 
 Per-scheme audits SHOULD be regenerated whenever a new scheme is added to `themes/` or the extractor's naming logic changes.
 

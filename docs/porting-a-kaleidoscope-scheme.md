@@ -2,9 +2,9 @@
 
 Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By the end you have a bundle under `themes/<your-slug>/` that loads via `loadTheme()` and renders chrome end-to-end.
 
-**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme other than mass:werk's bundled "7 Le" default.
+**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`).
 
-**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoder). This doc is the *procedural* version.
+**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoders). The condensed version of this same flow lives in [`CONTRIBUTING.md` § Adding a theme](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme); this doc is the *long-form, troubleshooting* version.
 
 ---
 
@@ -12,12 +12,13 @@ Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By
 
 **Verify the scheme's license permits redistribution.** Check the scheme's original readme. Mass:werk's schemes are explicit: "freeware, redistribute as long as with this readme file." When a scheme lacks an explicit license, study it privately but **do not port until rights are confirmed**. Aaron UI's clean-room boundary is from Kaleidoscope's source code; the assets we ship come *only* from schemes whose authors granted redistribution.
 
-**Tools you need on macOS:**
+**Tools you need:**
 
-- `DeRez` (ships with Xcode Command Line Tools) — decompiles classic Mac resource forks to text
 - `unar` (Homebrew: `brew install unar`) — unpacks `.sit` / `.bin` / `.hqx` archives without losing resource forks
-- Node.js 20+ (the extractor + builder are pure ES modules)
+- Node.js 20+ (the extractor reads the raw resource fork directly — pure ES modules, no native deps)
 - This repo cloned with `npm install` run inside it
+
+You do **not** need `DeRez` or any macOS-only tooling. The extractor (`scripts/extract-scheme.mjs`) parses the binary resource fork itself via `tools/theme-loader/resource-fork.js`. All you have to supply is the raw resource fork as `scheme.rsrc`.
 
 ---
 
@@ -38,48 +39,56 @@ unar your-scheme.sit
 
 ---
 
-## 2. Decompile to a `.r` text file
+## 2. Extract the resource fork as `scheme.rsrc`
+
+The extractor wants the **raw resource fork** bytes — not a DeRez `.r` text dump. On macOS the resource fork lives in the file's `..namedfork/rsrc` stream; copy it out:
 
 ```sh
-# From the scheme directory unar created:
-DeRez "your-scheme-file" > scheme.r
+# From the scheme directory unar created — copy the resource fork to scheme.rsrc:
+mkdir -p ../../../themes/<your-slug>
+cp "your-scheme-file/..namedfork/rsrc" ../../../themes/<your-slug>/scheme.rsrc
 
-# Quick check — should be tens of thousands of lines.
-wc -l scheme.r
+# Quick sanity check — a real scheme fork is hundreds of KB.
+ls -l ../../../themes/<your-slug>/scheme.rsrc
 ```
 
-If `wc -l` shows a small number (< 1000), the resource fork was probably stripped during transit. Common cause: the archive was extracted through a non-Mac filesystem at some point. Re-download the `.sit` and `unar` again.
+If the copied file is tiny (a few hundred bytes or empty), the resource fork was stripped during transit — usually because the archive passed through a non-Mac filesystem. Re-download the `.sit` and `unar` it again. (Some `unar` builds emit the fork as a sibling `._name` AppleDouble file or a `rsrc` data file; whichever carries the resource-fork bytes is what you copy to `scheme.rsrc`.)
 
 ---
 
 ## 3. Run the extractor
 
-Drop the scheme's raw resource fork at `themes/<your-slug>/scheme.rsrc` (+ an
-optional `meta.json`), then from the repo root:
+With `themes/<your-slug>/scheme.rsrc` in place (and, ideally, a `meta.json`
+beside it — see step 4; the extractor auto-reads it if present), run from the
+repo root:
 
 ```sh
 node scripts/extract-scheme.mjs <your-slug>
 ```
 
-It reads the resource fork directly (no macOS DeRez step) and writes in place.
-This emits:
+It parses the resource fork directly (`tools/theme-loader/resource-fork.js`),
+decodes the `cicn` / `ppat` / `cinf` / `wnd#` / `clut` resources via the live
+decoders in `tools/theme-loader/decoders/`, and writes everything **in place**
+under `themes/<your-slug>/`:
 
-- `demo/assets/themes/<your-slug>/cicn-n<id>-<slug>.png` — one PNG per chrome cicn
-- `demo/assets/themes/<your-slug>/ppat-n<id>-<slug>.png` — one PNG per tile pattern
-- `demo/assets/themes/<your-slug>/extraction-manifest.json` — diagnostic record
-- `demo/assets/themes/<your-slug>/theme.json` — draft Aaron UI bundle manifest
+- `cicns/cicn-n<id>-<slug>.png` — one PNG per chrome cicn
+- `ppats/ppat-n<id>-<slug>.png` — one PNG per tile pattern
+- `extraction-manifest.json` — diagnostic record of every decoded resource
+- `theme.json` — the schema-validated Aaron UI bundle manifest (header text
+  colours decoded from the `-14335`/`-14336` cluts are folded in automatically)
 
-Spot-check a few PNGs in your image viewer to confirm they look like the chrome you'd expect. Especially the document-window cicn — it should look like the window border + titlebar of the scheme.
+There is no separate "build the bundle" step — `extract-scheme.mjs` builds and
+validates `theme.json` in the same pass (it calls `buildThemeJson` +
+`validateTheme` internally). If validation fails it aborts non-zero and names
+the offending field; fix and re-run.
+
+Spot-check a few PNGs in your image viewer to confirm they look like the chrome you'd expect. Especially the document-window cicn (`cicn-n14335-…`) — it should look like the window border + titlebar of the scheme.
 
 ---
 
-## 4. Create the canonical bundle skeleton
+## 4. Author the provenance sidecars
 
-Two hand-authored files live alongside the canonical bundle. They carry everything the binary scheme doesn't (author, license, palette).
-
-```sh
-mkdir -p themes/<your-slug>
-```
+Two hand-authored files live alongside the bundle. They carry everything the binary scheme doesn't (name, author, license, source). Author them **before** step 3 so the extractor folds `meta.json` into `theme.json` on the first pass — but you can also add them after and re-run the extractor.
 
 ### 4a. `themes/<your-slug>/meta.json`
 
@@ -96,112 +105,99 @@ mkdir -p themes/<your-slug>
     "kind": "kaleidoscope-port",
     "originalFormat": "ksc",
     "originalLicense": "<verbatim license string from the scheme's readme>",
-    "originalReadme": "<name of the readme file>",
     "sourceUrl": "https://macintoshgarden.org/apps/your-scheme"
-  },
-  "palette": {
-    "bg": "#cccccc",
-    "fg": "#000000",
-    "accent": "#316ac5",
-    "titlebar-active-bg": "#cccccc",
-    "titlebar-active-fg": "#000000",
-    "titlebar-inactive-bg": "#eeeeee",
-    "titlebar-inactive-fg": "#888888",
-    "window-frame": "#888888"
   }
 }
 ```
 
-The `originalLicense` field is **verbatim from the readme**, not paraphrased. Preserves the porter's interpretation context for future auditors.
+See `themes/beos-r503/meta.json` for a real one. The `originalLicense` field is **verbatim from the readme**, not paraphrased — it preserves the porter's interpretation context for future auditors.
 
-The `palette` is hand-picked pending a Colr decoder (a future ticket). Pull colors from the scheme's reference thumbnail by eye — they're applied as `--aaron-colr-*` CSS custom properties at the root.
+You do **not** hand-author a colour palette. Header text colours come from the `-14335`/`-14336` window cluts, decoded automatically into `theme.json.headerColors`; scheme-global flags come from `Colr`. (`buildThemeJson` still accepts an optional `meta.palette` block as an override, but no current corpus scheme uses it — leave it out unless you have a specific reason.)
 
 ### 4b. `themes/<your-slug>/PROVENANCE.md`
 
-Markdown companion to `meta.json`. Same factual content, formatted for humans. See `themes/masswerk-7-le/PROVENANCE.md` as the canonical template — copy and adapt.
+Markdown companion to `meta.json` — the same factual content, formatted for humans, so it renders on GitHub. Copy `themes/beos-r503/PROVENANCE.md` (or any current corpus bundle's) as the template and adapt it.
 
-The README has a "Why this is in the corpus" section explaining what makes this scheme worth porting (stylistic distinctiveness, historical significance, faithful Platinum reproduction, etc.). Be honest; don't fabricate provenance.
+Include a "Why this is in the corpus" note explaining what makes this scheme worth porting (stylistic distinctiveness, historical significance, faithful Platinum reproduction, etc.). Be honest; don't fabricate provenance. If `PROVENANCE.md` and `meta.json` ever drift, `PROVENANCE.md` is authoritative and `meta.json` should be corrected to match.
 
----
-
-## 5. Materialize the canonical bundle
+After authoring both, (re-)run the extractor so `meta.json` is merged into `theme.json`:
 
 ```sh
-node scripts/build-theme-bundles.mjs <your-slug>
-```
-
-The script:
-
-1. Reads `demo/assets/themes/<your-slug>/extraction-manifest.json`
-2. Copies cicn PNGs into `themes/<your-slug>/cicns/`
-3. Copies ppat PNGs into `themes/<your-slug>/ppats/`
-4. Merges your `meta.json` into the extractor's draft `theme.json`
-5. Validates the result against the schema (`src/types.ts` / `tools/theme-loader/validateTheme.js`)
-6. Writes the final `themes/<your-slug>/theme.json`
-
-If validation fails, the script aborts non-zero and explains which field violates the schema — `theme.json.windowTypes.<slug>.parts.part-1.rect[3]: expected finite number`, that level of dotted-path specificity. Fix and re-run.
-
-### Add your slug to the build script
-
-`scripts/build-theme-bundles.mjs` has an `ALL_BUNDLES` array that defaults to building both mass:werk schemes when called with no args. Add your slug so future `npm run build:demo` runs pick it up:
-
-```js
-const ALL_BUNDLES = ['masswerk-7-le', 'masswerk-dark-ergobox2', '<your-slug>'];
+node scripts/extract-scheme.mjs <your-slug>
 ```
 
 ---
 
-## 6. Smoke-test it locally
+## 5. Smoke-test it locally
 
 ```sh
 npm run dev
 ```
 
-In your browser, open `http://localhost:5173/theme-switcher-fixture.html`. The fixture's switcher has buttons for the two bundled schemes — to test yours, you can either:
+In your browser, open the demo (`http://localhost:5173/`). To load your scheme, use the JS console:
 
-- Add a button to the fixture (edit `demo/theme-switcher-fixture.html`)
-- Use the JS console:
-  ```js
-  await loadTheme('themes/<your-slug>/');
-  ```
-- Set `<html data-aaron-theme="themes/<your-slug>/">` and reload
+```js
+await loadTheme('themes/<your-slug>/');
+```
+
+(or set `<html data-aaron-theme="themes/<your-slug>/">` and reload, if the demo wires that up).
 
 You should see:
 
 - The window's chrome bitmap render with your scheme's titlebar
-- `wnd#`-derived hit overlays for close / zoom / windowshade (5 part divs in the titlebar for typical document-window schemes)
-- The page background pick up your `palette.bg` color
+- `wnd#`-derived hit overlays for close / zoom / windowshade in the titlebar
+- The header text drawn in the scheme's authored title colour (from the clut)
 
-If the chrome looks off (stretched wrong, missing borders), check that `theme.json.chromeElements.<name>.slice` has reasonable corner/side values. If they're absent, the scheme didn't ship cinf data for that cicn — Aaron UI degrades to a simple background-image render, which is fine for non-bordered chrome but visibly wrong for window frames.
+If the chrome looks off (stretched wrong, missing borders), inspect the
+recipe: the compositor walks `theme.json.windowTypes["document-window"].edges`
+(the `(partCode, border)` side lists) per the
+[compositor spec](./tracking/compositor-spec.md). A part code mislabelled by the
+decoder, or a window cinf the scheme didn't ship, is the usual cause.
+
+For a faster non-browser check, render the document window straight to a PNG:
+
+```sh
+npm run diag:render            # renders every corpus window type to themes/<slug>/diag/
+npm run diag:audit             # placement audit vs. the reference images
+```
 
 ---
 
-## 7. Side-by-side fidelity check
+## 6. Side-by-side fidelity check
 
-If the scheme had a reference thumbnail (often `Scheme Settings.jpg` or similar in the original archive), put a copy at `demo/assets/references/<your-slug>.jpg`. The landing demo can then show the original next to Aaron UI's render for visual comparison.
+Put a reference preview at `demo/assets/references/<your-slug>.png` (the corpus
+uses PNGs — `1138.png`, `beos-r503.png`, …). The demo and the `diag:audit` pass
+compare Aaron UI's render against it.
 
-If the scheme didn't ship a thumbnail, take a screenshot of Kaleidoscope's own "Scheme Settings" preview running under SheepShaver (or use a period screenshot from Macintosh Garden) and crop it to the relevant window.
+If the scheme shipped a thumbnail (often `Scheme Settings.jpg` or similar in the
+original archive), convert it to PNG and use that. Otherwise take a screenshot of
+Kaleidoscope's own "Scheme Settings" preview running under SheepShaver (or use a
+period screenshot from Macintosh Garden) and crop it to the relevant window.
 
 ---
 
-## 8. Open the PR
+## 7. Open the PR
 
 ```sh
 git checkout -b port/<your-slug>
-git add themes/<your-slug>/ demo/assets/themes/<your-slug>/ \
-        demo/assets/references/<your-slug>.jpg \
-        scripts/build-theme-bundles.mjs
-git commit -m "themes: port <Your Scheme Name> by <Author> (#XX)"
+git add themes/<your-slug>/ demo/assets/references/<your-slug>.png
+git commit -m "themes: port <Your Scheme Name> by <Author>"
 git push -u origin port/<your-slug>
 ```
+
+The whole bundle (PNGs, `theme.json`, `meta.json`, `PROVENANCE.md`,
+`extraction-manifest.json`, and the source `scheme.rsrc`) lives under
+`themes/<your-slug>/` and is committed together. To pick the new bundle up in
+the all-themes re-extract, no registry edit is needed — `npm run build:themes`
+runs `extract-scheme.mjs --all`, which discovers every `themes/*/scheme.rsrc`.
 
 PR body checklist:
 
 - [ ] License: quote the verbatim license string from the readme
 - [ ] Author: name + email/URL preserved in `meta.json` and `PROVENANCE.md`
 - [ ] Side-by-side screenshot: Aaron UI render next to the scheme's preview thumbnail
-- [ ] Smoke tested locally: window renders + theme swap works
-- [ ] `node scripts/build-theme-bundles.mjs <your-slug>` validates clean
+- [ ] Smoke tested locally: window renders (browser or `npm run diag:render`)
+- [ ] `node scripts/extract-scheme.mjs <your-slug>` validates clean
 
 ---
 
@@ -215,22 +211,34 @@ This is the ppat-overlay case (LEARNINGS 2026-05-16). Some schemes have white ci
 
 Part IDs are scheme-relative (LEARNINGS 2026-05-17 "wnd# part IDs are scheme-relative integers"). The integer-to-semantic-role mapping isn't standardized — every scheme decides which part is the close box. The runtime doesn't try to auto-classify; it just positions overlays at the rect coordinates wnd# specifies. If you're hooking up listeners (close on part-1 click, etc.), inspect your scheme's wnd# data first to find the right indices.
 
-### "The PNG dimensions don't match the rendered chrome size"
+### "The frame stretches wrong / a baked ornament smears as the window widens"
 
-This is the fixed-aspect-vs-stretch issue from the architecture spec (§10 impedance mismatches). Some scheme chrome is designed to scale (border-image with `cinf.tileSides`); some isn't (ErgoBox's projecting tab). The current runtime stretches all chrome via border-image, which can look weird for non-stretchable schemes. Document in PROVENANCE.md, file an issue if it's important to your use case.
+The v3 compositor doesn't border-image-stretch the whole bitmap. It walks the
+`wnd#` side recipe and classifies each `(partCode, border)` cell as fixed,
+stretch, tile, or scale (see [`compositor-spec.md`](./tracking/compositor-spec.md)
+§ Part-code classification). A smeared ornament usually means the cell carrying
+it is being classified as stretch when it should be fixed — i.e. a part-code
+mismatch between `theme.json` and what the kDEF expects. The
+[2.3.1 recipe-walk decode](./tracking/kdef231-recipe-walk.md) (see its
+"honest discrepancy" notes on evolution/beos) covers the known cases where the
+decoder's part numbering may not match the engine's. Document anything new in
+PROVENANCE.md and open an issue.
 
 ### "I lost the resource fork during extraction"
 
-Symptom: `DeRez scheme-file > scheme.r` produces a near-empty file. The resource fork was stripped — usually by extracting through Linux/Windows, or by some archive tools. Re-download the `.sit` and use `unar` on the original.
+Symptom: the copied `scheme.rsrc` is near-empty (a few hundred bytes), or
+`extract-scheme.mjs` parses zero `cicn`/`wnd#` resources. The resource fork was
+stripped — usually by extracting through Linux/Windows, or by some archive
+tools. Re-download the `.sit` and use `unar` on the original, then re-copy the
+`..namedfork/rsrc` stream (step 2).
 
 ---
 
 ## What you don't need to do
 
-- **Don't hand-edit `theme.json`** — it's generated. Edit `meta.json` and re-run the builder. Hand edits get clobbered next run.
-- **Don't commit the source `.r` file** — it's gitignored under `.scratch/`. Other porters will re-download from the upstream URL.
+- **Don't hand-edit `theme.json`** — it's generated. Edit `meta.json` and re-run `extract-scheme.mjs`. Hand edits get clobbered on the next extract.
 - **Don't author CSS, SVG, or any chrome assets from scratch.** The 2026-05-17 Kaleidoscope-runtime pivot establishes that Aaron UI doesn't hand-author chrome — it renders what Kaleidoscope schemes provide. If you want new chrome, use Kaleidoscope's own authoring tools (ResEdit + Kaleidoscope SDK under SheepShaver) to produce a `.ksc` and port it through this flow.
-- **Don't worry about sounds or desktop backgrounds.** Kaleidoscope schemes in practice didn't carry them; Aaron UI doesn't fabricate them. The `palette`, `chromeElements`, `windowTypes`, and `patterns` sections are the full bundle surface.
+- **Don't worry about sounds or desktop backgrounds.** Kaleidoscope schemes in practice didn't carry them; Aaron UI doesn't fabricate them. The `chromeElements`, `windowTypes`, `patterns`, and `headerColors` sections are the full bundle surface.
 
 ---
 
@@ -238,7 +246,7 @@ Symptom: `DeRez scheme-file > scheme.r` produces a near-empty file. The resource
 
 - [Kaleidoscope on Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) — ~4,010 schemes
 - [Mac Themes Garden](https://macthemes.garden/) — searchable thumbnail index
-- [mass:werk schemes](https://www.masswerk.at/schemes.php) — Aaron UI's bundled-default source
+- [mass:werk schemes](https://www.masswerk.at/schemes.php) — Norbert Landsteiner's freeware schemes
 - [SheepShaver](https://www.emaculation.com/doku.php/sheepshaver) — for authoring new schemes under emulated classic Mac OS
 
 For the resource-fork format itself, the decoders under `tools/theme-loader/` are the reference. For how a loaded scheme is drawn, see [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md).

@@ -2,6 +2,8 @@
 
 A Mac OS Appearance-style window manager + theme engine for the web.
 
+*This is the original product charter (~2026-05-16). The **vision** below — a framework-agnostic, declarative, clean-room Kaleidoscope-compatibility runtime — still holds. The **implementation** has since gone through a v2 clean-break and a v3 part-code-compositor reset, so the phased-delivery sketch, architecture sketches, and some file paths below are historical. For where the code actually is today, read [`docs/history.md`](./docs/history.md) and [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md).*
+
 This document is the project charter, ported from the upstream extraction ticket [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246). When this document and the upstream ticket disagree, **this document wins** — the ticket records the decision moment, but it lives in another repo and won't be updated as Aaron UI evolves.
 
 ---
@@ -46,8 +48,8 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 
 <!-- Theme switching, declarative. -->
 <select data-aaron-theme-switcher>
-  <option value="masswerk-7-le">mass:werk 7 Le (Platinum, bundled default)</option>
-  <option value="masswerk-dark-ergobox2">mass:werk Dark ErgoBox 2</option>
+  <option value="apple-platinum-2">Apple Platinum</option>
+  <option value="beos-r503">BeOS R5.0.3</option>
   <option value="https://example.com/themes/your-scheme/">A scheme served from somewhere else</option>
 </select>
 ```
@@ -59,7 +61,7 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 ```ts
 import { AaronWindow, loadTheme } from 'aaron-ui';
 
-await loadTheme('https://example.com/themes/masswerk-7-le/');
+await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({
   title: 'Dynamic Window',
   x: 200, y: 200, width: 400, height: 300,
@@ -71,11 +73,11 @@ const win = new AaronWindow({
 
 ### 3. Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope itself
 
-Aaron UI is **a web-native runtime for the Kaleidoscope theme genre — not a re-authoring project.** Period themes authored as Kaleidoscope schemes (`.ksc` files) are the corpus *and* the input format. We read their compiled resources (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly. The decoders live in [`src/themes/loader/`](./src/themes/loader/) — pure-JS, browser-portable — so the runtime can decode any well-formed scheme on the fly, the way Kaleidoscope itself did. Build-time bundles ([scheme-extractor CLI](./tools/scheme-extractor/) → `theme.json` + PNG cache) remain as a performance optimisation. We re-implement the *rendering* entirely in our own CSS / SVG / JS — Aaron UI never uses Kaleidoscope's source code, but it does honour Kaleidoscope's data layout.
+Aaron UI is **a web-native runtime for the Kaleidoscope theme genre — not a re-authoring project.** Period themes authored as Kaleidoscope schemes (`.ksc` files) are the corpus *and* the input format. We read their compiled resources (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly. The decoders live in [`tools/theme-loader/`](./tools/theme-loader/) — pure-JS, browser-portable — so the rendering can replay any well-formed scheme, the way Kaleidoscope itself did. Build-time bundles ([`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) → `theme.json` + PNG cache) are the current materialisation step. We re-implement the *rendering* entirely in our own CSS / SVG / JS — Aaron UI never uses Kaleidoscope's source code, but it does honour Kaleidoscope's data layout.
 
 **A consequence worth naming: classic-Mac Kaleidoscope authoring tools become Aaron UI authoring tools.** Anyone with ResEdit + the period Kaleidoscope SDK (or a modern emulator running them) can produce a `.ksc` that Aaron UI will load. The format is the contract; the runtime is incidental.
 
-We do **not** hand-author chrome from the HIG; we do **not** ship a first-party Platinum theme. The bundled default is mass:werk's freeware "7 Le" scheme — a community-authored Platinum-faithful Kaleidoscope reference — loaded through the same code path as every other theme.
+We do **not** hand-author chrome from the HIG; we do **not** ship a first-party Platinum theme. Every look is a community-authored Kaleidoscope scheme, loaded through the same code path as every other theme.
 
 **The clean-room boundary is from Kaleidoscope's source code, not from scheme assets.** This is the same distinction that holds for any reader of a file format: a Photoshop `.psd` parser can read files without touching Photoshop's source. Specifically:
 
@@ -83,16 +85,16 @@ We do **not** hand-author chrome from the HIG; we do **not** ship a first-party 
 - **We do** read Kaleidoscope's *published format documentation* (SDK docs, scheme-authoring guides — mirrored on Wayback) and the `TMPL` resources every scheme embeds, which self-document the binary layout.
 - **We do not** read Kaleidoscope's source code (the closed engine itself).
 - **We do not** read decompiled Mac OS Toolbox source or clean-room emulator implementations that have themselves derived from such material.
-- **Apple's own themes (`.afm`: Hi-Tech, Drawing Board, Gizmo) are out of scope.** License friction with Apple isn't worth managing, and the Kaleidoscope corpus is large enough (≈4,010 schemes, many Platinum-faithful, many freeware) that we don't need them.
+- **Apple's own themes (`.afm`: Hi-Tech, Drawing Board, Gizmo) are out of scope.** License friction with Apple isn't worth managing, and the Kaleidoscope corpus is large enough (thousands of schemes, many Platinum-faithful, many freeware) that we don't need them.
 - **We do not hand-author chrome from Apple's HIG.** The HIG remains useful background reading, but Aaron UI's job is to faithfully render whatever scheme the user loads — not to produce a competing first-party Platinum interpretation. The 2026-05-17 LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records the pivot.
 
-**Architectural consequence:** every theme bundle Aaron UI ships documents its provenance in `theme.json` — original Kaleidoscope scheme author, year, source URL, the readme-stated license. The bundled default is mass:werk's freeware "7 Le" scheme; no first-party Platinum is authored, ever. No Apple binaries are touched at any stage.
+**Architectural consequence:** every extracted theme bundle documents its provenance in `meta.json` / `PROVENANCE.md` — original Kaleidoscope scheme author, year, source URL, the readme-stated license. No first-party Platinum is authored, ever. No Apple binaries are touched at any stage.
 
 ---
 
 ## TL;DR
 
-Aaron UI is a standalone open-source library that gives any web page draggable, resizable windows with authentic Mac OS-era chrome. The first-class architectural concept is **themes** — loadable Kaleidoscope schemes (chrome `cicn`s + tile `ppat`s + `cinf`/`wnd#` geometry + `Colr` palette) read by Aaron UI's runtime and rendered with CSS / SVG / JS. The bundled default is mass:werk's freeware "7 Le" scheme; loading any other freeware-licensed Kaleidoscope scheme is a single `loadTheme()` call. Aaron UI never hand-authors a competing first-party theme.
+Aaron UI is a standalone open-source library that gives any web page draggable, resizable windows with authentic Mac OS-era chrome. The first-class architectural concept is **themes** — loadable Kaleidoscope schemes (chrome `cicn`s + tile `ppat`s + `cinf`/`wnd#` geometry + `Colr` palette) read by Aaron UI's runtime and rendered with CSS / SVG / JS. Loading any freeware-licensed Kaleidoscope scheme is a single `loadTheme()` call. Aaron UI never hand-authors a competing first-party theme.
 
 [classic-vibe-mac](https://github.com/khawkins98/classic-vibe-mac) is the first consumer. It is never a privileged one.
 
@@ -118,9 +120,9 @@ Three things shifted at once:
   - Color palette (`Colr` scheme settings)
   - *Not* desktop background, system sounds, or fonts — Kaleidoscope schemes in practice didn't carry these; Aaron UI doesn't fabricate them.
 - A starter theme library:
-  - **Bundled default: mass:werk's "7 Le"** — Platinum-faithful, freeware-licensed, single-author provenance. Shipped inside the npm package so `import 'aaron-ui'` renders something immediately, with no extra fetch.
-  - **Loadable Kaleidoscope schemes from the wider corpus** — ≈4,010 schemes on Macintosh Garden / Mac Themes Garden / [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/). Any with explicit freeware-with-redistribution readmes can be loaded directly by the runtime (phase-2 `loadKaleidoscopeScheme(bytes)`) or pre-extracted via the CLI for caching, then served from any URL.
-  - **Newly-authored schemes** — produced via period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK, on classic Mac OS or under emulation) and dropped into Aaron UI directly. Because we honour Kaleidoscope's format as the contract, the long-dormant authoring toolchain becomes a live authoring path again.
+  - **Extracted scheme bundles** — a curated set of freeware-licensed Kaleidoscope schemes (currently `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`), each with single-author provenance, pre-extracted into `themes/<slug>/` so `loadTheme()` can fetch them with no decode step at runtime.
+  - **Loadable Kaleidoscope schemes from the wider corpus** — the thousands of schemes on Macintosh Garden / Mac Themes Garden / [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/). Any with explicit freeware-with-redistribution readmes can be pre-extracted via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) and then served from any URL.
+  - **Newly-authored schemes** — produced via period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK, on classic Mac OS or under emulation) and ported into Aaron UI through the same extractor. Because we honour Kaleidoscope's format as the contract, the long-dormant authoring toolchain becomes a live authoring path again.
 
 (Framework-agnostic, HIG-faithful, and the integration model are all spelled out in §North Star above; not repeated here to avoid drift.)
 
@@ -179,12 +181,12 @@ Two integration paths, declarative first per the North Star:
 
 ```html
 <!-- Tell the page which theme to use. Exact attribute syntax is
-     a Phase 1 / Phase 4 design call; this is illustrative. -->
-<html data-aaron-theme="masswerk-7-le">
+     a design call; this is illustrative. -->
+<html data-aaron-theme="beos-r503">
   <head>
     <link rel="stylesheet" href="aaron-ui.css">
     <script type="module" src="aaron-ui.js"></script>
-    <link rel="aaron-theme" href="/themes/masswerk-7-le/theme.json">
+    <link rel="aaron-theme" href="/themes/beos-r503/theme.json">
   </head>
   <body>
     <div data-aaron-window data-aaron-title="Window">...</div>
@@ -197,20 +199,20 @@ Two integration paths, declarative first per the North Star:
 ```ts
 import { loadTheme, AaronWindow } from 'aaron-ui';
 
-await loadTheme('https://example.com/themes/masswerk-7-le/');
+await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({ title: 'Window', html: '...' });
 ```
 
-Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under mass:werk 7 Le → Dark ErgoBox 2 → another curated community scheme, one click each — declaratively, by changing a single `data-aaron-theme` attribute on `<html>`. (See `demo/themes.html` for an early walking skeleton of this.)
+Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under one curated community scheme → another, one click each — by switching the loaded scheme. (See [`demo/index.html`](./demo/index.html) for the current walking skeleton of this.)
 
 ## Phased delivery
 
 Sketch, not commitment. Maintainer may re-split. Each phase has a GitHub milestone + a tracker epic issue with full acceptance criteria.
 
-- ✅ **Phase 1 — WM core.** *Shipped.* Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus/minimize/maximize, mount/unmount lifecycle, declarative `data-aaron-window` scanner, ARIA + keyboard + focus-trap on modals. Live at https://khawkins98.github.io/aaron-ui/. [Milestone](https://github.com/khawkins98/aaron-ui/milestone/1) · 10 issues, all closed · 140 unit + 30 e2e tests · ~7 KB gzipped.
-- ❌ **Phase 2 — Platinum chrome (default theme).** *Dropped 2026-05-17.* Hand-authoring a Platinum theme from the HIG would duplicate mass:werk's freeware "7 Le" scheme (already Platinum-faithful) and weaken the "Aaron UI is a Kaleidoscope-compatibility runtime" product story. Phase 2 collapses into Phase 4. The bundled default is "7 Le", loaded through the same runtime as every other scheme. See [LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author"](./LEARNINGS.md) and the closing comment on [#21](https://github.com/khawkins98/aaron-ui/issues/21).
+- ✅ **Phase 1 — WM core.** *Shipped (later superseded by the v2/v3 resets, which refocused the project on the chrome compositor — see [`docs/history.md`](./docs/history.md)).* Window class, drag, 8-direction resize, z-order, focus, raise-on-click, programmatic open/close/focus/minimize/maximize, mount/unmount lifecycle, declarative `data-aaron-window` scanner, ARIA + keyboard + focus-trap on modals. Live at https://khawkins98.github.io/aaron-ui/. [Milestone](https://github.com/khawkins98/aaron-ui/milestone/1).
+- ❌ **Phase 2 — Platinum chrome (default theme).** *Dropped 2026-05-17.* Hand-authoring a Platinum theme from the HIG would duplicate freeware Platinum-faithful Kaleidoscope schemes that already exist and weaken the "Aaron UI is a Kaleidoscope-compatibility runtime" product story. Phase 2 collapses into Phase 4 — chrome comes only from loaded schemes, through the same runtime as every other scheme. See [LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author"](./LEARNINGS.md) and the closing comment on [#21](https://github.com/khawkins98/aaron-ui/issues/21).
 - **Phase 3 — Core controls.** Wire each control class (push button, default button, checkbox, radio, popup menu, tab, slider, progress, scrollbar) to consume `cicn` state-variant artwork + `cinf` 9-slice metadata from the loaded scheme. State machinery (`:active`, `[aria-disabled]`, `[data-checked]`) toggles the underlying asset URL. [Tracker issue #22](https://github.com/khawkins98/aaron-ui/issues/22).
-- **Phase 4 — Theme engine (absorbs former Phase 2).** Theme bundle format (per [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md) §7), `loadTheme()` API, runtime switching, `ppat` composition layer, `wnd#`-driven part-rect hit testing, `cinf`-driven 9-slice. Ship mass:werk's "7 Le" as bundled default and at least one additional loadable scheme (mass:werk's "Dark ErgoBox 2" is the current Tier-2 candidate). [Tracker issue #23](https://github.com/khawkins98/aaron-ui/issues/23).
+- **Phase 4 — Theme engine (absorbs former Phase 2).** Theme bundle format (see [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md)), `loadTheme()` API, runtime switching, `ppat` composition layer, `wnd#`-driven part-rect rendering, `cinf`-driven geometry. Ship a curated set of extracted schemes. *(The v3 reset rebuilt this around the part-code compositor — see [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md).)* [Tracker issue #23](https://github.com/khawkins98/aaron-ui/issues/23).
 - **Phase 5 — Dialogs & sheets.** Standard alert (note / caution / stop), modal dialog, sheet animations. [Tracker issue #24](https://github.com/khawkins98/aaron-ui/issues/24).
 - **Phase 6 — Polish.** Animations (zoom-to-icon close, windowshade roll-up), advanced theming hooks, demo site showcasing the theme library. [Tracker issue #25](https://github.com/khawkins98/aaron-ui/issues/25).
 
@@ -235,7 +237,7 @@ Items that don't map cleanly to a single phase:
 
 ## Architecture sketches
 
-These were suggestions when written; Phase 1 has now shipped and pinned them down. See [`src/window-manager/`](./src/window-manager/) for the actual implementation choices, and [`docs/runtime-rendering-architecture.md`](./docs/runtime-rendering-architecture.md) for the canonical output-contract spec covering DOM model, CSS strategy, composition layers, control state machine, WM↔runtime seam, and lifecycle sequences — the artifact Phase 4 tickets build against.
+These were suggestions when written. *The v2/v3 resets reorganised the code substantially — the WM-centric layout (`src/window-manager/`) and the old `runtime-rendering-architecture.md` spec no longer exist. For the actual implementation, see [`src/`](./src/) (the runtime lives in `composeChrome.ts` / `renderWindow.ts` / `loadTheme.ts`) and [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the current chrome model.* The sketches below are retained as historical intent.
 
 - **Two integration surfaces, declarative-first per the North Star:**
   - **Primary:** declarative scanner — on `DOMContentLoaded` and via `MutationObserver`, the library scans for `[data-aaron-window]` / `[data-aaron-button]` / etc. and promotes them into Aaron UI controls. CSS class selectors (`.aaron-window`, …) accepted as a fallback.
@@ -248,9 +250,9 @@ These were suggestions when written; Phase 1 has now shipped and pinned them dow
 ## Success criteria
 
 1. cv-mac swaps WinBox for Aaron UI in a single PR with zero behavioral regression at merge.
-2. A third party can `npm install aaron-ui` (or `<script src>`) and have draggable, mass:werk-7-Le-themed windows on a page in <50 LOC.
-3. At least two Kaleidoscope schemes load and switch live without page reload (the bundled 7 Le plus one additional loaded from an external URL).
-4. Visual spot-check against the source scheme: under the loaded mass:werk 7 Le, a panel of 5–10 controls renders pixel-faithfully enough that someone comparing against Kaleidoscope's own scheme preview would recognise it as the same scheme.
+2. A third party can `npm install aaron-ui` (or `<script src>`) and have draggable, Kaleidoscope-themed windows on a page in <50 LOC.
+3. At least two Kaleidoscope schemes load and switch live without page reload (one extracted bundle plus one additional loaded from an external URL).
+4. Visual spot-check against the source scheme: under a loaded scheme, a panel of 5–10 controls renders pixel-faithfully enough that someone comparing against Kaleidoscope's own scheme preview would recognise it as the same scheme.
 5. Bundle ≤30 KB gzipped for the WM core + theme runtime (excluding the bundled-default scheme's PNG assets, which are accounted separately).
 6. Accessibility audit (axe / keyboard-only walkthrough) passes for the core controls.
 
@@ -268,7 +270,7 @@ The right answer depends on how much we want Aaron UI used by closed-source proj
 
 ## Open questions for v1.0
 
-1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1+3+4 (WM + controls + theme runtime with bundled 7 Le) as the v1.0 target? *(Phase 1 has now shipped; Phase 2 has been dropped 2026-05-17 with its scope absorbed into Phase 4; npm-publish tracker [#28](https://github.com/khawkins98/aaron-ui/issues/28) will revisit.)*
+1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1+3+4 (WM + controls + theme runtime with a curated set of extracted schemes) as the v1.0 target? *(Phase 1 has now shipped; Phase 2 has been dropped 2026-05-17 with its scope absorbed into Phase 4; npm-publish tracker [#28](https://github.com/khawkins98/aaron-ui/issues/28) will revisit.)*
 2. **License** — see §License above. Tracker: [#26](https://github.com/khawkins98/aaron-ui/issues/26).
 3. ~~**Legal pass on theme reproductions.**~~ **Resolved 2026-05-16:** Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are out of scope entirely — license friction isn't worth it. Aaron UI focuses on Kaleidoscope-corpus schemes, prioritizing those with explicit freeware-with-redistribution readmes. See LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus."
 4. **Web Components alongside the class API** — yes from v1.0, or defer? Tracker: [#29](https://github.com/khawkins98/aaron-ui/issues/29) (non-binding recommendation: defer).
@@ -283,7 +285,7 @@ Alternatives considered (preserved for posterity): Aaron alone (unsearchable), A
 
 ## References
 
-- **Canonical architecture spec:** [`docs/kaleidoscope-geometry-spec.md`](./docs/kaleidoscope-geometry-spec.md) — Kaleidoscope resource layout (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`), proposed `theme.json` schema, mapping to Aaron UI primitives.
+- **Canonical architecture spec:** [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) — the current window-chrome model — plus [`docs/history.md`](./docs/history.md) for how it got there. (The original `docs/kaleidoscope-geometry-spec.md` this charter cited was retired in the v3 reset.) Resource layout (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) and bundle schema are documented in [`docs/kaleidoscope-asset-catalog.md`](./docs/kaleidoscope-asset-catalog.md) and [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md).
 - **Background reference (no longer a spec target):** [Mac OS 8 HIG, Appearance chapter](https://dev.os9.ca/techpubs/mac/HIGOS8Guide/thig-82.html) — useful for understanding the period design vocabulary; **not** what Aaron UI implements against. The runtime renders whatever scheme is loaded.
 - **Upstream extraction ticket:** [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246)
 - **Historical / cv-mac-side Platinum accuracy spec (not an Aaron UI deliverable):** [classic-vibe-mac #229](https://github.com/khawkins98/classic-vibe-mac/issues/229) — tracks cv-mac's WinBox-era CSS work; retained as reference, not as Aaron UI acceptance criteria.
@@ -292,4 +294,4 @@ Alternatives considered (preserved for posterity): Aaron alone (unsearchable), A
 - **Comparison: 98.css** — <https://jdan.github.io/98.css/> — the Windows 98 equivalent in spirit, though 98.css is hand-authored CSS rather than a format-faithful runtime.
 - **Period theme engine: Kaleidoscope** — <https://en.wikipedia.org/wiki/Kaleidoscope_(software)> — the third-party engine for classic Mac OS whose scheme format Aaron UI implements.
 - **Kaleidoscope scheme archives:** [Macintosh Garden — Kaleidoscope](https://macintoshgarden.org/apps/kaleidoscope) (≈4,010 schemes), [Mac Themes Garden](https://macthemes.garden/) (curated, thumbnailed index).
-- **Bundled default scheme reference:** [mass:werk schemes](https://www.masswerk.at/schemes.php) — N. Landsteiner's author-hosted set, including "7 Le" (Platinum-faithful, bundled as Aaron UI's default) and "Dark ErgoBox 2" (BeOS-tab dark, Tier-2 loadable candidate), both freeware-licensed.
+- **Example scheme source:** [mass:werk schemes](https://www.masswerk.at/schemes.php) — N. Landsteiner's author-hosted set of freeware-licensed Platinum-faithful Kaleidoscope schemes, an example of the kind of source the corpus draws from.
