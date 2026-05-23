@@ -1,5 +1,21 @@
 # Learnings
 
+> **Read this first — this is a historical, append-only running log.** Entries are
+> never deleted; they're added chronologically as the project ships. The
+> **authoritative current narrative and architecture now live elsewhere**:
+> [`docs/history.md`](docs/history.md) (especially its
+> "[Dead ends — don't relitigate these](docs/history.md#dead-ends--dont-relitigate-these)"
+> section) and the specs under [`docs/tracking/`](docs/tracking/) (start with
+> `compositor-spec.md`). **Many entries below predate the v3 part-code-compositor
+> reset (2026-05-22)** and describe approaches that have since been superseded —
+> CSS `border-image` / 9-slice chrome, stretching fill regions, uniformity- or
+> width-based stretch-vs-fixed decisions, start-based cell↔part-code association,
+> `cornerSize` heuristics, widget carving + a second stamping pass, the kDEF 1.8.2
+> decode, and the Kind A/B/C chrome classifier, among others. **Read them as
+> history; verify against the current docs before acting on them.** Entries that
+> directly contradict the current v3 model are tagged inline with a
+> `> ⚠️ Superseded` blockquote pointing back to `docs/history.md`.
+
 A running log of things we've learned building Aaron UI — gotchas, dead ends, surprises, and decisions worth remembering. The goal is to save the next person (or future-you) from rediscovering the same lessons.
 
 Entries are added as the project ships, with dated headers and enough narrative to be useful in six months without context. The companion file in [classic-vibe-mac/LEARNINGS.md](https://github.com/khawkins98/classic-vibe-mac/blob/main/LEARNINGS.md) is worth reading for the convention.
@@ -104,7 +120,7 @@ The PRD positions Aaron UI as "an API-compatible re-implementation of the Mac OS
 
 ### 2026-05-16 — Period chrome had no hover state; Aaron UI defaults to that
 
-Surfaced during the first scheme deconstruction ([`docs/scheme-deconstruction/masswerk-7-le.md`](docs/scheme-deconstruction/masswerk-7-le.md)). Mac OS 8 chrome had exactly three interaction states for any control: **Normal, Pressed, Disabled**. There is no "Hover" — that's a post-OS X / web-era concept. The `cicn` named-resource vocabulary in mass:werk 7 Le has 18 distinct state variants for checkboxes alone (3 sizes × 2 selections × 3 states), and none of them are hover.
+Surfaced during the first scheme deconstruction (`mass:werk 7 Le`; the working notes have since been retired with the scheme). Mac OS 8 chrome had exactly three interaction states for any control: **Normal, Pressed, Disabled**. There is no "Hover" — that's a post-OS X / web-era concept. The `cicn` named-resource vocabulary in mass:werk 7 Le has 18 distinct state variants for checkboxes alone (3 sizes × 2 selections × 3 states), and none of them are hover.
 
 **Application:**
 
@@ -119,7 +135,7 @@ Surfaced during the first scheme deconstruction ([`docs/scheme-deconstruction/ma
 
 ### 2026-05-16 — Themes don't bring sounds or desktop backgrounds; preset themes can offer them as extras
 
-Surfaced after deconstructing both [`mass:werk 7 Le`](docs/scheme-deconstruction/masswerk-7-le.md) and [`mass:werk Dark ErgoBox 2`](docs/scheme-deconstruction/masswerk-dark-ergobox2.md). Neither scheme ships `snd ` resources, a desktop background, or fonts. Kaleidoscope *supported* sound resources via its format, but in practice almost no schemes carried them; desktop backgrounds and fonts were never in the format. The OS supplied all three.
+Surfaced after deconstructing both `mass:werk 7 Le` and `mass:werk Dark ErgoBox 2` (both since dropped from the corpus; the working notes were retired with them). Neither scheme ships `snd ` resources, a desktop background, or fonts. Kaleidoscope *supported* sound resources via its format, but in practice almost no schemes carried them; desktop backgrounds and fonts were never in the format. The OS supplied all three.
 
 This affects the PRD's "theme bundle ships chrome + controls + desktop + sounds + colors + fonts" aspiration. After two deconstructions, the empirical pattern is clear:
 
@@ -192,6 +208,8 @@ Strategic pivot recorded explicitly. The PRD's original positioning ("API-compat
 
 ### 2026-05-16 — Chrome cicns alone don't reproduce a theme's full aesthetic; Kaleidoscope composites at runtime
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends" (CSS `border-image` / 9-slice chrome).
+
 Surfaced while building `demo/themes-raster.html` with extracted raster assets and comparing to mass:werk's own preview JPGs. Two findings, both with bundle-format consequences:
 
 **1. ErgoBox's cicn body is white, not gray.** The Document Window cicn renders pixel-perfectly as a white-body chrome with a small projecting tab. The masswerk reference thumbnail shows the same window with a *medium-gray* body. Inspecting the cicn's pixel data (via the scheme-extractor decoder) confirms the cicn is genuinely white — the gray in the reference is runtime composition, almost certainly a `ppat` pattern resource overlaid on the body region by Kaleidoscope at draw time. We have 25 `ppat` resources extracted from ErgoBox but the bundle format hasn't yet encoded "which ppat layers over which cicn region."
@@ -209,6 +227,8 @@ Surfaced while building `demo/themes-raster.html` with extracted raster assets a
 ---
 
 ### 2026-05-16 — Bitmap chrome rendering: 9-slice for variable elements, tile-repeat for periodic patterns, fixed-aspect for full-frame composites
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends" (9-slice / `border-image`; stretch-vs-fixed is the part code, not a per-category heuristic).
 
 Surfaced while iterating `demo/themes-raster.html` with actual extracted cicn raster assets and validating against the masswerk reference thumbnails via headless Chromium. Three findings, each with bundle-format consequences for Phase 4.
 
@@ -466,6 +486,8 @@ Options surveyed:
 
 ### 2026-05-17 — Inline styles beat constructable stylesheets for per-element chrome (in #40, at least)
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends" (cinf-driven `border-image` 9-slice chrome). The inline-vs-stylesheet call may still inform other CSS work, but the 9-slice rendering it describes is gone.
+
 The runtime rendering architecture spec (`docs/runtime-rendering-architecture.md` §5.1) prescribes a three-layer CSS cascade: engine baseline (static), theme-generated (constructable stylesheet, rebuilt per theme), per-window inline. Shipping [#40](https://github.com/khawkins98/aaron-ui/issues/40) (cinf-driven 9-slice), I had to decide where the cinf-derived `border-image` rules go: theme-generated stylesheet (one rule per chromeElement slug, targeted via `[data-aaron-cicn=<slug>]`) or per-element inline style.
 
 **Picked inline.** Reasons:
@@ -488,6 +510,8 @@ Caught while testing asset-URL escape behavior. A CSS-valid `background-image: u
 **Application:** when a CSS feature works in real browsers but jsdom can't roundtrip it, prefer testing the *output text* (via a pure generator) over the *DOM-after-assignment* state. The pure test catches the same bugs without depending on jsdom's CSSOM faithfulness. Add a Playwright e2e test if real-browser confirmation matters.
 
 ### 2026-05-17 — `border-image-slice: <N> fill` is mutually exclusive with a separate ppat body fill
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends" (CSS `border-image` chrome). We own the pixels now; `border-image-slice` is no longer the chrome mechanism.
 
 Shipping [#41](https://github.com/khawkins98/aaron-ui/issues/41) (ppat overlay), the CSS for "9-slice chrome with a body pattern" turned out to require dropping the `fill` keyword from `border-image-slice`. The reasoning:
 
@@ -549,6 +573,8 @@ First cut-through pass under the new CONTRIBUTING.md §"Periodic documentation c
 ---
 
 ### 2026-05-17 — wnd# part rects convert to percent-positioned overlays for free-resize chrome
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". wnd# part rects are hit-test metadata, not render geometry; chrome is composed via the part-code recipe walk, not percent-positioned overlays over a stretched `border-image`.
 
 Shipping [#42](https://github.com/khawkins98/aaron-ui/issues/42) (wnd#-driven hit targets). The rendering model from the architecture spec — "part rects expressed as percentage of the titlebar" — turned out to be near-trivial in practice once cinf 9-slice is already in place. Math:
 
@@ -717,6 +743,8 @@ Three design choices worth recording:
 
 ### 2026-05-17 — Visible chrome bug: window-type cicns have no cinf, so applyChromeElement painted them at native size
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The `background-size: 100% 100%` stretch fix described here is exactly the stretching the kDEF doesn't do (it tiles); the compositor now sizes from the drawable extent and walks the part-code recipe.
+
 Visual cut-through from gh-pages after the Phase 4 close caught a real rendering bug: chrome titlebars rendered as small ~74×25 tabs in the top-left of each window instead of stretching to fill. Diagnosed via the canonical bundle:
 
 ```
@@ -746,6 +774,8 @@ Second time this session that visual feedback from the deployed demo caught a re
 
 ### 2026-05-17 — Polish round 2: glyph crispness via the cicn-slice trick + 1px scheme-derived window border
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Parts no longer render as percent-positioned overlays sliced from a stretched titlebar; widgets ride the fixed recipe cells they sit in.
+
 After the first polish PR fixed the titlebar full-width stretch, the next visible problem was: close/zoom/windowshade controls inside the titlebar were also stretching with the background, distorting them into elongated smudges.
 
 **Fix:** parts now render as **crisp slices of the cicn at native pixel size**, positioned at the part's rect's percentage location within the titlebar. The implementation:
@@ -765,6 +795,8 @@ The background-position negative offset is the trick: it shifts the cicn so that
 **The deeper lesson:** when stretching the background image distorts what should be crisp, slice it out at native size and re-overlay. Same idea as CSS sprites. The cicn already contains the crisp glyph; the trick is showing only that region at native scale.
 
 ### 2026-05-17 — Scheme-derived 1px window border via cicn outer pixels
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The 1px `border-image` frame approximation is gone; the frame comes from the drawable extent + the side recipes.
 
 For the "no themed borders" feedback: applied the chrome cicn as a 1px-slice border-image on the window root. The cicn's outermost edge pixels become the window's borders — gray for 7 Le, near-black for ErgoBox. Implementation in `applyChromeFromTheme`:
 
@@ -786,6 +818,8 @@ windowEl.style.boxSizing = 'border-box';
 ---
 
 ### 2026-05-17 — wnd# composer V2 ships: named parts at native size, part 8 as fill
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Recipe entries are not per-segment paint commands, association is end-based (not the "named vs fill, part-8 = fill" model here), and cells are classified by the 2.3.1 part-code jump table.
 
 After PR #66's research and PR #67's canonical spec roll-up, V2 of the wnd# composer ([#64.1](https://github.com/khawkins98/aaron-ui/issues/64)) is now in place. Distinguishes:
 
@@ -856,6 +890,8 @@ Three Phase 3 controls now confirmed CSS-drawn: push button, checkbox, radio, te
 
 ### 2026-05-17 — Title pill via CSS custom properties pinned by the renderer
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The title plate is sized from the measured title width and grows the title region; the "widest coalesced fill run" heuristic over the wnd# top recipe is gone.
+
 For #64.2 (title-pill positioning), the cleanest interface between the runtime renderer and the consumer's CSS turned out to be **two CSS custom properties** stamped on the titlebar element: `--aaron-title-pill-left` and `--aaron-title-pill-right`. The renderer computes them from the wnd# top recipe (widest coalesced fill-segment run); the consumer's CSS reads them via `var()` with sensible fallbacks.
 
 **Why custom properties over inline `left:` / `right:` styles:** consumers retain full control over the title element's other styling (font, color, padding, focus treatment, etc.). The runtime contributes only the *constraint* — where the title is allowed to live. This matches the broader Aaron UI ethos that the runtime drives geometry, the consumer drives presentation.
@@ -867,6 +903,8 @@ For #64.2 (title-pill positioning), the cleanest interface between the runtime r
 ---
 
 ### 2026-05-17 — Side composition: same algorithm as top, just with the axes (and the anchor) swapped
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". This extends the per-segment composer + bottom-strip inference heuristics that the part-code walk replaced.
 
 For #64.3 I extended the V2 top composer to bottom/left/right. The structural decision worth recording: **don't generalize over directions prematurely**. I wrote three near-duplicate functions (`composeBottomEdge`, `composeLeftEdge`, `composeRightEdge`) rather than one parameterized `composeEdge(side)` — the per-edge differences (which axis to iterate, which cicn region to sample for fills, which container edge to anchor named parts to) compound just enough that the parameterized version would have been a knot of conditionals.
 
@@ -881,6 +919,8 @@ Later, I did factor `composeLeftEdge` + `composeRightEdge` into a private `compo
 ---
 
 ### 2026-05-18 — The chrome composer was structurally wrong; reference image is the authoritative spec
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The "3-slice template via CSS `border-image`" conclusion is itself a dead end; chrome is a part-code recipe walk, not 3-slice. (The "check the reference image first" methodology point still holds.)
 
 After three composer iterations (V1 stretched-segments, V2 named-vs-fill, V3 with side composition) the user surfaced screenshots showing the rendering still didn't read right — "still lots of weird artefacts." The root cause was a flawed mental model of how Kaleidoscope chrome works: I'd been assuming the cicn is a **per-segment composition** with named parts spreading proportionally across the titlebar width. The reference rendering (already on the page in the side-by-side fidelity window) shows otherwise: close-box pinned to the **left pixel edge**, zoom-box pinned to the **right pixel edge**, and the middle **tiles** the cicn's pinstripe pattern as the window grows.
 
@@ -898,6 +938,8 @@ This is structurally a **3-slice template**, which CSS `border-image` ships nati
 
 ### 2026-05-18 — Border THICKNESS is also per-scheme (1px for 7 Le, 6px for ErgoBox); derive both color + geometry from the cicn
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Frame insets come from the body rect vs the cicn's drawable extent (`frameFromBody`), not from scanning inward counting border pixels with a clamp heuristic.
+
 After shipping the 1px hairline (initial pass on this PR) the user immediately corrected: ErgoBox's reference shows a 6px beveled border with shading and patterns. Same scheme that needed a 3-slice titlebar approach needs a fundamentally different *side* approach too — its chrome cicn (132×64) carries a full bordered window, not just a titlebar.
 
 **Solution:** derive per-side thickness at runtime via pixel scanning. New `deriveFrameGeometry(url)` returns `{ color, top, right, bottom, left }`. Scans inward from each edge at the mid-axis counting consecutive "border" pixels (opaque + not near-white) until it hits a "body" pixel. For ErgoBox this returns `{ left: 6, right: 6, bottom: 7 }`; for 7 Le it returns the cap (titlebar-only cicn has no body), which gets clamped to `{ left: 1, right: 1, bottom: 2 }`.
@@ -909,6 +951,8 @@ After shipping the 1px hairline (initial pass on this PR) the user immediately c
 **Meta-lesson:** when correcting a course based on user feedback, look at MULTIPLE references before re-implementing. I assumed all schemes had thin hairline frames (because 7 Le does) and shipped a "drop the edge containers" PR. The ErgoBox reference would have revealed the structural-difference-per-scheme answer before any code was written. Both canonical bundles are on the demo page — always check both before generalizing.
 
 ### 2026-05-18 — Palette `window-frame` is often wrong; sample the cicn's outermost opaque pixel at runtime
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". This entry is built on the 1px-hairline-frame / dropped-edge-composer model; the frame now comes from the drawable extent + side recipes. (The general "prefer sampling source pixels over approximated palette hints" instinct may still apply.)
 
 The extractor pre-fills `theme.palette.window-frame` with a generic gray (`#888` for 7 Le), but the actual cicn's outermost opaque pixel is `#000` (solid black — the 1-bit Mac chrome). When the frame color was wired to `--aaron-colr-window-frame` in CSS, the rendered hairline read as a faint gray instead of the period-correct black line.
 
@@ -923,6 +967,8 @@ The extractor pre-fills `theme.palette.window-frame` with a generic gray (`#888`
 ---
 
 ### 2026-05-18 — Chrome cicns split into 3 kinds; classifier dispatches 3-slice vs 9-slice rendering
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The Kind A/B/C chrome-cicn classifier (and its 3-slice/9-slice dispatch) is a retired dead end; one general part-code recipe walk handles every cicn, no per-kind branches.
 
 After importing 5 exotic Kaleidoscope schemes from the archive (#89), the gallery exposed that **chrome cicns aren't structurally uniform** — they fall into three kinds:
 
@@ -996,6 +1042,8 @@ Phase 3 lands: every bundled scheme now has a `scheme.rsrc` file (the raw Mac OS
 
 ### 2026-05-18 — Phase 4a: recipe-driven top-edge composer (what Kaleidoscope itself did)
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". This composer treats each recipe entry as a paint command and dispatches a Kind B 9-slice in parallel; the v3 walk is end-based, classifies by part code, and tiles (never proportionally positions) fills.
+
 Replaces the CSS `border-image` shortcut for the titlebar top with a faithful walk of `wnd#.edges.top` + `parts` rects. Same algorithm Kaleidoscope's renderer used: for each `{at, part}` segment, if `part` is named → cut the part's cicn rect at native size + paint at PIXEL position `at` from the appropriate side edge; if fill → tile cicn pixels between named parts.
 
 **Key correction over PR #65/#68 V1/V2:** those used **proportional** positioning (`left: X%`). As windows grew, close-boxes drifted inward proportionally. The fix is **pixel-anchored** positioning from the matching screen edge — `cicn center.x < cicnWidth/2 → anchor LEFT (offset = at px from left)`, else `anchor RIGHT (offset = (cicnWidth - at - partWidth) px from right)`. Close-box stays pinned to left, zoom-box pinned to right, middle fills absorb the slack as the titlebar widens.
@@ -1017,6 +1065,8 @@ Replaces the CSS `border-image` shortcut for the titlebar top with a faithful wa
 
 ### 2026-05-18 — Phase 4b: recipe-driven bottom edge
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Part of the per-segment composer + Kind B 9-slice dispatch the part-code walk replaced.
+
 Mirror of `composeTopRecipe` for the bottom-edge container. Same logic with vertical anchoring flipped (named parts anchor to container *bottom* via `bottom: (cicnHeight - rect.bottom)`), and fills sample from the cicn's bottom rows via `background-position-y: bottom` so the bottom-strip frame line / decoration shows in the rendered bottom edge.
 
 **Wiring:** when the top recipe applies + a `[data-aaron-edge="bottom"]` container exists, we also run the bottom recipe. If bottom recipe applies → 9-slice on window root is *not* dispatched (would otherwise double-render). If bottom recipe doesn't apply but the cicn is Kind B → 9-slice still runs as before for sides + bottom.
@@ -1030,6 +1080,8 @@ Mirror of `composeTopRecipe` for the bottom-edge container. Same logic with vert
 ---
 
 ### 2026-05-18 — Phase 4c: recipe-driven left + right edges (loader rewrite complete)
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Same per-segment composer + Kind B 9-slice fallback the part-code walk replaced. (The loader-rewrite scope summary — `.rsrc` runtime decode, slug fallback table — is unaffected.)
 
 `composeSideRecipe(container, windowType, options, 'left' | 'right')` mirrors top + bottom with axes swapped:
 - Recipe `at` values are Y coordinates (positions down the side, not across)
@@ -1077,6 +1129,8 @@ The page shows, per scheme:
 
 ### 2026-05-18 — Phase 4 reverted: wnd# recipe entries are slice-boundary markers, not render commands
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The revert *target* here — back to 3-slice/9-slice via CSS `border-image` — is itself a dead end. In v3, recipe cells ARE walked (end-based) and classified by part code; they're not just slice-boundary markers feeding a `border-image`.
+
 The user spotted a structural bug in the recipe-driven composer (#96/#97/#98). For 7 Le, the live render showed **7 widgets** clustered across the titlebar; the cicn template clearly has only **3**.
 
 Root cause: I'd interpreted each `{at, part}` recipe entry as "render this part's rect at position `at`." For schemes where the same named part appears at multiple recipe positions (7 Le has `part-1` at `at=5, 24, 35, 74`), the composer duplicated widgets.
@@ -1119,6 +1173,8 @@ Fix: added a full chromeElements catalog grid to the diagnostics page so all ext
 
 ## 2026-05-18 — Kind C has reasonable workarounds; don't treat it as "broken" (#105)
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The Kind A/B/C classifier is retired, so "Kind C" no longer exists as a rendering path.
+
 When the chrome classifier returns "fixed-bitmap" (Kind C), I had been describing it as a hard limitation. It's actually a soft one: period Mac apps that used these schemes typically were fixed-size (splash screens, About boxes), so the constraint matches the original usage pattern.
 
 **Lesson:** the diagnostics page's verdict text should explain WHAT can be done about each limitation, not just that the limitation exists. Added three workaround options to the Kind C verdict (lock to native size, fixed-size-apps-only usage, future canvas-composite) plus a "Lock to native cicn width" button in the live render pane that snaps the slider to the cicn's authored width.
@@ -1139,6 +1195,8 @@ The fix: the discriminator should be **fill segments per edge** (entries whose p
 
 ## 2026-05-18 — Part rects are hit-test metadata, NOT render geometry (#112)
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The headline ("part rects are hit-test metadata, not render geometry") still holds, but the `composeRichRecipe` "every segment crops the cicn at its own edge position" rendering model it lives inside is gone — v3 walks end-based cells classified by part code.
+
 V1 of `composeRichRecipe` cropped named-widget segments to their part rect: "segment references part-1 → display cicn[part-1.rect]". For 1990's top edge this looked correct (close-box pixels appeared at the close-box position). On the bottom edge it produced visible mismapping — part-1 is referenced 7× on the bottom recipe but part-1's rect is at cicn y=11..19 (top region). Painting top-row widget pixels onto the bottom edge gave a scattered widget look.
 
 The fix (V2): **every segment crops the cicn at its own edge position**, regardless of whether it's named. The only thing that varies between widget vs fill is flex behavior (widget pins at native width; fill grows proportional to span). The part rect is metadata for *hit-testing* (which we may wire later as a click-target overlay), not for *rendering*.
@@ -1148,6 +1206,8 @@ The fix (V2): **every segment crops the cicn at its own edge position**, regardl
 **How to apply:** when designing renderers from the wnd#/cinf data, ask "is this geometry metadata for rendering, or topology metadata for behavior?" before using it. Most rect-like fields in Kaleidoscope's format are the latter.
 
 ## 2026-05-18 — Corner pinning is non-optional for recipe composers (#112)
+
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Corners are intrinsic to the walk (the fixed leading `[0,border[0])` cell), not a "pin the first/last fill segment of each edge" heuristic.
 
 V2 of the composer rendered all fill segments with `flex: span span auto` (grow proportional to recipe span). The result for 1990 at 380px window width: the top-left corner zone (containing distinctive red/blue/yellow widget squares) stretched to 2.2× cicn width, scattering the widgets across the top edge.
 
@@ -1318,6 +1378,8 @@ The reset: rather than continuing to iterate the rendering heuristics, we split 
 
 ## 2026-05-19 — Binary archaeology session (Kaleidoscope 1.8.2 + 2.3.1)
 
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends" (decoding kDEF 1.8.2 was the wrong engine — K2 schemes use 2.3.1). The architecture confirmations (QuickDraw/CopyBits, OS-drawn buttons, table-driven kDEF) hold; the tile-vs-stretch threshold and resize-matrix reframing here predate the 2.3.1 part-code decode that settled them.
+
 After landing the spec-trilogy rebuild (#132-#143), we did a 4-hour focused archaeology pass on the actual Kaleidoscope binaries (1.8.2 Installer.app + 2.3.1 Installer.bin). Findings + applications:
 
 ### What got confirmed (we weren't guessing anymore)
@@ -1379,6 +1441,8 @@ That's why declarative CSS (border-image, gradients) kept fighting us — it has
 
 ## 2026-05-20 — Full kDEF decompilation (the prediction came true)
 
+> ⚠️ Superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". This decompiled the **1.8.2** kDEF (the wrong engine for K2 schemes); its layout findings (the 3×3 anchor grid, the side-list-as-recipe-walk reading) were reframed by the 2.3.1 part-code jump-table decode (`kDEF231_0.asm`). The Ghidra tooling lessons (objdump-as-020, A-trap NOP-patching, defining jump tables) still apply.
+
 The prior entry said "install Ghidra + follow named functions." Did exactly that, and it unlocked the layout logic.
 
 **Three tooling lessons that made it work:**
@@ -1407,6 +1471,8 @@ Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed bl
 
 ## 2026-05-20 — Platinum is procedural; the title rides the grow zone
 
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The title-positioning mechanics here derive from the 1.8.2 decode (the `0x35b0` 3×3 anchor grid + grow-zone reasoning); v3 sizes the title plate from the measured title width per the 2.3.1 decode. The "no sourceable Platinum / Platinum is procedural" and "resolve-by-resource-id, not slug" findings still hold.
+
 **There is no sourceable Platinum scheme.** Proven three ways: the Mac OS 8.5 AND 8.6 System files draw windows/controls with `WDEF`/`CDEF` *code* (parsed their resource forks via `hfsutils` + MacBinary: 13 WDEF, 33 CDEF, zero `wnd#`/`thme`, no window-range cicns); and all four "Platinum" Kaleidoscope schemes (Apple Platinum 2, Black/Carl's/Chiper's) score 6–7/12 on `scripts/check-completeness.mjs` — **none ships a window frame `wnd#`**, by design (they defer windows + standard controls to the OS). So the Platinum baseline MUST be procedural (`src/platinum.ts`) — reimplementing the CDEFs in gray. It only fills gaps: a scheme's own cicns win (resolve-by-id); apple-platinum-2 ships scrollbars/buttons but needs procedural checkbox/radio/slider.
 
 **The window title rides the grow/fill zone, not the full width.** Per *Creating Color Schemes* + decompiled `0x35b0`: the kDEF stretches the titlebar fill "to make room for the title" and centers the title in that grow zone — so it's offset per-theme past the baked widget clusters (BeOS tab, 1990 offset box, all fall out of one rule). `composeEdgeFromRecipe` now returns the top grow-zone output span → `composeWindowChrome.titleRegion` → `renderWindow` centers there. Title text height is ~Chicago 12 capped (NOT `frame.top * x`, which blew up + clipped on thick frames → "Options"→"tio"); erase band is text-sized + vertically centered (chrome keeps repeating around it). Open: the horizontal sub-anchor `@50` (center vs left within the zone) isn't in the `wnd#` we decode.
@@ -1414,6 +1480,8 @@ Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed bl
 **resolve-by-RESOURCE-ID, not by slug** is the load-bearing pattern for everything (scrollbar -8286/-8278, button -10239, checkbox -9500, etc.) — bundle slugs are inconsistent/absent across schemes and even mislabel state (the scrollbar pressed/disabled slugs disagree with the decompiled kDEF `FUN_000066b4`; trust the id table from the code).
 
 ## 2026-05-21 — Per-edge tile-vs-stretch, single-cell Platinum scrollbars, scheme icons
+
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". Per-edge tile-vs-stretch is decided by the part code (the default blit always tiles), not a per-edge `tileMotif` flag or a uniformity sample; the title-plate "clean column via luminance-variance + saturation" pick is a uniformity heuristic the part-code model retired. (The resolve-by-resource-id and scheme-icon `icl4` findings still hold.)
 
 **The grow zone TILES on the top edge but STRETCHES on the sides/bottom.** The "grow regions tile" finding (2026-05-20) is right for the titlebar pinstripe but wrong for the side frames: BeOS's left/right fill is a 5px slice that, tiled down the window, repeats its notch into evenly-spaced "railroad-tie" ticks. Per *Creating Color Schemes* §8.1 the sides "stretch the single row/column between the grow regions." So `composeEdgeFromRecipe` now takes a `tileMotif` flag — `true` for the top (keep motif tiling), `false` for sides+bottom (sample one mid-line and sample-and-hold it to a uniform border). Among the displayed corpus only BeOS has multi-px side fills, so the change is otherwise invisible.
 
@@ -1430,6 +1498,8 @@ Scrollbars/sliders/progress rendered only for 7 Le; every other scheme showed bl
 **The title plate GROWS to the title width (geometry), it isn't a band painted over static chrome.** The kDEF inserts the title's width at the title seam, so `renderWindow` rasterizes the title first and passes the plate width to `composeWindowChrome`; the plate segment (the clean title-region column from the variance+saturation metric) is kept STANDALONE through coalescing and absorbs `titleWidth − native` of the window growth, with the remainder distributed to the other fill. Decorations within the title region (1138's pyramid, 1990's LED dots, 1984/beos widgets) get pushed aside as the plate widens — instead of the title overlapping a fixed-size space. Title text then draws transparently on the stretched plate (no erase box, no re-tiled band). Utility/mini/floating windows render label-free (modern convention) with the title on `aria-label` + `role=dialog` only — both the cicn and baseline (no-wnd#) paths.
 
 ## 2026-05-21 — The missing gap: a segment's SIZE DRIVER (recipe + bitmap + content, not recipe alone)
+
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The "plate vs decoration lives in the PIXELS" clean-column (variance/saturation) classification is a uniformity heuristic the part-code model retired — the part code decides behaviour. The content-driven title-plate insight (the plate grows to the measured title width) does carry into v3.
 
 We finally cracked the repeating/growing titlebar background. The thing that
 made it hard for so long is worth stating sharply, because it generalises to
@@ -1476,6 +1546,8 @@ others," it's this distinction. The recipe is necessary but not sufficient; the
 answer needs the recipe AND the pixels AND the content size.
 
 ## 2026-05-21 — Detect, don't override: the fill-code set + mini-window resolution
+
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The `code ≥ 5` fill set, the widget-carving (clean-background-over-rect) + second stamping pass, and the `{5,6,8,18}` set are all retired: v3 classifies each cell by the 2.3.1 jump table, corners are intrinsic, and widgets ride the fixed cells they sit in (no carve/stamp pass). The mini/utility-window "resolve by chrome cicn asset name, not type key" finding still holds.
 
 Two more "general detection, not per-theme overrides" wins, both from reading
 the K2 vocabulary instead of hand-patching.

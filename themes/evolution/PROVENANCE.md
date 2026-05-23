@@ -23,7 +23,7 @@ Aaron UI gratefully acknowledges:
 1. Downloaded `1991.sit` from the Wayback Machine snapshot above.
 2. Unpacked with `unar` (the StuffIt archive format).
 3. The resource fork was read directly (`<file>/..namedfork/rsrc`) and decompiled to text via `DeRez`.
-4. Run through `tools/scheme-extractor` to decode `cicn`, `ppat`, `cinf`, `wnd#` resources into PNGs + `theme.json`.
+4. Run through `scripts/extract-scheme.mjs` (decoders in `tools/theme-loader/`) to decode `cicn`, `ppat`, `cinf`, `wnd#` resources into PNGs + `theme.json`.
 
 See `extraction-manifest.json` for the per-resource extraction record.
 

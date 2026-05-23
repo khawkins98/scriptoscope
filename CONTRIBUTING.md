@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Aaron UI.
 
-> **Status:** Phase 1 (WM core) shipped. The contribution flow below is the real flow now — `npm install`, run tests, open a PR. Phase 4 (theme engine, which absorbed the former Phase 2 / Platinum chrome after the 2026-05-17 Kaleidoscope-runtime pivot) is in flight; see [milestones](https://github.com/khawkins98/aaron-ui/milestones) and the [Phase 4 child tickets under #23](https://github.com/khawkins98/aaron-ui/issues/23) for what's open.
+> **Status:** the project is on the **v3 part-code-compositor reset** — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the current model.
 
 ## Your first code contribution
 
@@ -18,32 +18,31 @@ Aaron UI is plain TypeScript with no framework dependency.
 
 2. **Start the dev server.**
    ```sh
-   npm run dev        # http://localhost:5173 — opens the demo page
+   npm run dev        # http://localhost:5173 — opens demo/index.html
    ```
 
-3. **Run the test suite.**
+3. **Check your work.** In prototype mode the project leans on the type checker and the render/audit diagnostics rather than a unit/e2e suite:
    ```sh
    npm run typecheck  # tsc --noEmit
-   npm run test:unit  # Vitest with jsdom (140+ tests)
-   npm run test:e2e   # Playwright against the dev server (30+ tests)
+   npm run diag:render  # render a window off a bundle to a PNG for eyeballing
+   npm run diag:audit   # audit part placement against the recipe
+   npm run lint:themes  # validate theme bundles
    ```
 
-4. **Make a change.** Pick from the open milestones or browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) for context. Safe first-time targets:
-   - Implement a single ticket within an open milestone.
+4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/tracking/glitch-punchlist.md`](./docs/tracking/glitch-punchlist.md) for context. Safe first-time targets:
+   - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
    - Improve a JSDoc comment that confused you the first time you read it.
-   - Add a missing test case to an existing spec file.
+   - Port an additional freeware scheme into the corpus (see "Adding a theme" below).
 
-4. **Push to a feature branch on your fork.**
+5. **Push to a feature branch on your fork.**
    ```sh
    git checkout -b feat/my-first-change
    git add <files>
-   git commit -m "feat(chrome): adjust title pill padding to match HIG"
+   git commit -m "fix(chrome): correct close-box placement under the 2.3.1 recipe"
    git push -u origin feat/my-first-change
    ```
 
-5. **Open a PR** from your fork's branch to `khawkins98/aaron-ui:main`. CI will run typecheck + tests.
-
-6. **Once CI is green, squash-merge.**
+6. **Open a PR** from your fork's branch to `khawkins98/aaron-ui:main`, with a typecheck-clean diff. (The maintainer commits directly to the working branch in prototype mode; PRs are the path for external contributions.)
 
 ## Branching
 
@@ -118,8 +117,8 @@ feat(api)!: rename AaronWindow constructor option `theme` to `themeId`
 
 ## Before opening a PR
 
-- Make sure typecheck + tests pass locally (or in CI on your branch).
-- Update [`PRD.md`](./PRD.md) if behavior or architecture changed.
+- Make sure `npm run typecheck` is clean, and that the relevant diagnostics (`diag:render`, `diag:audit`, `lint:themes`) still pass for any chrome/theme change.
+- Update [`PRD.md`](./PRD.md) / the [`docs/tracking/`](./docs/tracking/) specs if behavior or architecture changed.
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 
@@ -155,16 +154,16 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 Aaron UI is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
-Phase 4 work is in progress under [tracker #23](https://github.com/khawkins98/aaron-ui/issues/23). The porting flow as currently implemented:
+The porting flow as currently implemented (the corpus today is `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution` — use any of those, e.g. `beos-r503`, as a worked example):
 
-1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. Mass:werk's schemes are explicit ("freeware, redistribute freely"). When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
-2. **Run the scheme through the extractor.** `tools/scheme-extractor/bin/extract.js` decodes `cicn` / `ppat` / `cinf` / `wnd#` resources from the `.ksc` and emits PNG assets plus an `extraction-manifest.json`. See [`tools/scheme-extractor/README.md`](./tools/scheme-extractor/README.md).
-3. **Create `themes/<scheme-slug>/` with two hand-authored files:**
-   - **`meta.json`** — bundle metadata the binary scheme doesn't carry: `name`, `author`, `origin` (with the readme-stated license verbatim). See [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md) for the schema.
-   - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/masswerk-7-le/PROVENANCE.md` as the canonical example.
-4. **Materialize the canonical bundle.** Run `node scripts/build-theme-bundles.mjs <slug>` — the script copies PNGs into `themes/<slug>/cicns/` and `ppats/`, merges your `meta.json`, runs the extractor's `buildThemeJson`, validates against the schema, and writes `theme.json`. Validation failures abort the build.
-5. **Smoke test locally.** `npm run dev` and open the landing page; the switcher's `<select>` can be extended to include your slug, or load via the JS console: `await loadTheme('themes/<your-slug>/')`.
-6. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
+1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
+2. **Create `themes/<scheme-slug>/` and drop in the scheme's resource fork plus its metadata:**
+   - **`scheme.rsrc`** — the raw resource fork of the `.ksc` (the extractor reads this directly; no macOS DeRez step needed).
+   - **`meta.json`** — bundle metadata the binary scheme doesn't carry: `name`, `author`, `origin` (with the readme-stated license verbatim). See `themes/beos-r503/meta.json` for the shape and [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md) for the schema.
+   - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/beos-r503/PROVENANCE.md` as a canonical example.
+3. **Run the extractor.** `node scripts/extract-scheme.mjs <slug>` reads `themes/<slug>/scheme.rsrc` (+ your `meta.json`), decodes the `cicn` / `ppat` / `cinf` / `wnd#` / `clut` resources via [`tools/theme-loader/`](./tools/theme-loader/), writes the PNG assets into `cicns/` and `ppats/`, and emits `extraction-manifest.json` and a schema-validated `theme.json`. (Re-extract every bundle with `npm run build:themes`, which runs `extract-scheme.mjs --all`.)
+4. **Smoke test locally.** `npm run dev`, then open the demo and switch to your slug — or load it from the JS console: `await loadTheme('/themes/<your-slug>')`. For a quick headless check, `npm run diag:render` renders a window off a bundle to a PNG, and `npm run lint:themes` validates the bundle.
+5. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
 
 The complete step-by-step walk-through (with troubleshooting for common pitfalls) is in [`docs/porting-a-kaleidoscope-scheme.md`](./docs/porting-a-kaleidoscope-scheme.md).
 
@@ -186,4 +185,4 @@ For accessibility issues, please flag explicitly — those jump the queue.
 
 If Aaron UI is rendering a loaded Kaleidoscope scheme *differently from how Kaleidoscope itself renders that scheme*, that's a runtime bug — open an issue with a side-by-side screenshot of Aaron UI's render vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or a period screenshot if the scheme shipped one). Scheme fidelity is the project's central commitment.
 
-Issues of the form "this scheme doesn't look like the Mac OS 8 HIG" are a separate category — they're authorial choices of the *scheme*, not bugs in Aaron UI. If you want HIG-faithful chrome, load a HIG-faithful scheme (mass:werk's "7 Le" is the bundled default for exactly this reason).
+Issues of the form "this scheme doesn't look like the Mac OS 8 HIG" are a separate category — they're authorial choices of the *scheme*, not bugs in Aaron UI. If you want HIG-faithful chrome, load a HIG-faithful scheme (`apple-platinum-2` in the current corpus is a good one).
