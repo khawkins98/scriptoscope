@@ -33,6 +33,12 @@ const MARK_OFF: RGBA = [136, 136, 136, 255]; // disabled mark / frame
 
 const px = (b: PixelBuffer, x: number, y: number, c: RGBA) => b.setPixel(x, y, c[0], c[1], c[2], c[3]);
 
+/** Lighten (f>0, toward white) or darken (f<0) a colour by fraction |f|. */
+const shade = (c: RGBA, f: number): RGBA => {
+  const m = (v: number) => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f)));
+  return [m(c[0]), m(c[1]), m(c[2]), 255];
+};
+
 /** 1px rectangle outline [x,y,w,h]. */
 function strokeRect(b: PixelBuffer, x: number, y: number, w: number, h: number, c: RGBA): void {
   for (let i = 0; i < w; i++) { px(b, x + i, y, c); px(b, x + i, y + h - 1, c); }
@@ -335,11 +341,25 @@ export function platinumWindow(opts: PlatinumWindowOptions): {
   const FRAMEc = hexRGBA(opts.frame);
   const active = opts.active !== false;
 
-  // Title-bar fill + racing-stripe pinstripe (thin horizontal lines, active only).
+  // Title-bar fill + racing-stripe pinstripe: per the WDEF 0 decode the title bar
+  // is filled with the FF00FF00 QuickDraw pattern = horizontal lines on alternating
+  // rows. Reproduce as 1px STRIPE lines every other row over the FILL.
   b.fillRect({ x: 0, y: 0, w: W, h: titleH }, FILL[0], FILL[1], FILL[2], 255);
-  if (active) for (let y = 3; y < titleH - 3; y += 2) for (let x = 2; x < W - 2; x++) px(b, x, y, STRIPE);
-  for (let x = 1; x < W - 1; x++) { px(b, x, 1, HILITE); px(b, x, titleH - 1, FRAMEc); } // top highlight + bar divider
-  strokeRect(b, 0, 0, W, H, FRAMEc); // window outer frame
+  if (active) for (let y = 3; y < titleH - 2; y += 2) for (let x = 2; x < W - 2; x++) px(b, x, y, STRIPE);
+  // Title-bar 3-D bevel (the WDEF's 8-segment raised border): white highlight on
+  // the top + left inner edges, a shadow above the divider, then the 1px divider
+  // separating the bar from the content.
+  const SHADOW_G = shade(FILL, -0.28);
+  for (let x = 1; x < W - 1; x++) px(b, x, 1, HILITE);
+  for (let y = 1; y < titleH - 1; y++) px(b, 1, y, HILITE);
+  for (let x = 1; x < W - 1; x++) px(b, x, titleH - 2, SHADOW_G);
+  for (let x = 0; x < W; x++) px(b, x, titleH - 1, FRAMEc);
+  // Window outer frame, with the bottom + right edges darkened = the Platinum
+  // structure drop-shadow (the raised-window look).
+  strokeRect(b, 0, 0, W, H, FRAMEc);
+  const FRAME_SH = shade(FRAMEc, -0.3);
+  for (let x = 1; x < W; x++) px(b, x, H - 1, FRAME_SH);
+  for (let y = 1; y < H; y++) px(b, W - 1, y, FRAME_SH);
 
   // Title-bar boxes (11px), vertically centred. Close left; collapse + (doc-only)
   // zoom on the right.
