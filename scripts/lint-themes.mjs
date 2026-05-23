@@ -141,6 +141,44 @@ for (const slug of slugs) {
     console.log(`  ${key.padEnd(32)} ${tag}`);
     for (const [s, m] of out) console.log(`      ${s === 'E' ? '✗' : s === 'W' ? '!' : '·'} ${m}`);
   }
+
+  // ── control coverage: each control composer (src/controls.ts) resolves a
+  // control by RESOURCE ID. If a scheme ships that control's art under a
+  // DIFFERENT id than the composer looks up, the control silently falls back to
+  // a procedural/CSS rendering even though the RASTER exists — the exact bug
+  // behind the On/Off (composeTab looked up the never-shipped popup tab -12319
+  // while schemes ship the -998x tab family) and the beos progress (-10223/4 vs
+  // the -10080 family). Flag when a control's id FAMILY is present but the
+  // composer's own ids are not. (Family absent = a genuine fallback, e.g.
+  // apple-platinum-2 ships no checkbox/radio art — fine.)
+  const cicnIds = new Set(
+    Object.values(manifest.chromeElements || {})
+      .map((e) => (typeof e.sourceCicnId === 'number' ? Math.abs(e.sourceCicnId) : null))
+      .filter((n) => n != null),
+  );
+  const hasAny = (ids) => ids.some((id) => cicnIds.has(id));
+  const inFamily = (fams) => [...cicnIds].some((id) => fams.some(([lo, hi]) => id >= lo && id <= hi));
+  // control → { composer ids it loads (controls.ts), the id FAMILY meaning "art exists" }
+  const CONTROLS = [
+    { n: 'button',    ids: [10239, 10238, 10240],                              fam: [[10238, 10240]] },
+    { n: 'checkbox',  ids: [9500, 9503, 9501, 9504],                           fam: [[9500, 9504]] },
+    { n: 'radio',     ids: [9488, 9491, 9489, 9492],                           fam: [[9488, 9492]] },
+    { n: 'slider',    ids: [10205, 10206, 10207, 10208],                       fam: [[10205, 10208]] },
+    { n: 'scrollbar', ids: [8277, 8278, 8279, 8280, 8285, 8286, 8287, 8288],   fam: [[8277, 8288]] },
+    { n: 'progress',  ids: [10075, 10076, 10077, 10078, 10079, 10080, 10223, 10224], fam: [[10075, 10080], [10223, 10224]] },
+    { n: 'tab',       ids: [9972, 9975, 9980, 9983],                           fam: [[9969, 9984]] },
+    { n: 'growbox',   ids: [14330, 14333, 14334],                             fam: [[14330, 14334]] },
+  ];
+  const cwarn = [];
+  for (const c of CONTROLS) {
+    if (inFamily(c.fam) && !hasAny(c.ids))
+      cwarn.push(`control ${c.n}: ships art in its id family but composeX looks up [${c.ids.join(',')}] — none present → SILENT procedural fallback despite raster`);
+  }
+  if (cwarn.length) {
+    warns += cwarn.length;
+    console.log(`  ${'(control coverage)'.padEnd(32)} warn`);
+    for (const m of cwarn) console.log(`      ! ${m}`);
+  }
 }
 
 console.log(`\n-- linted ${wins} window(s): ${errors} error(s), ${warns} warning(s), ${notes} note(s) --`);
