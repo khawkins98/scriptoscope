@@ -1,5 +1,7 @@
 # Aaron UI — project history
 
+*Diátaxis type: **explanation** (project arc + dead-ends). This records how the runtime got here and what NOT to relitigate — it is **not** the authority on how the runtime works today. For that, see [`tracking/kdef-architecture.md`](./tracking/kdef-architecture.md) (design) and the code + [`tracking/compositor-spec.md`](./tracking/compositor-spec.md) (model).*
+
 How the window-chrome renderer got to where it is. Written for the next person
 (or the next us) so the dead ends don't get re-walked. ~274 commits, 2026-05-16
 to 2026-05-23.
@@ -160,7 +162,8 @@ piece, blocked on ground truth.
   keep a clean-room mimic; the binary is for *understanding*, not shipping.
 
 ## Map of the docs
-- `tracking/kdef231-reference.md` — **start here for any binary-level question.** The standing 2.3.1 kDEF reference: a lookup rubric of routine addresses, resource ids, struct offsets, and coordinate mappings. It indexes the three docs below.
+- `tracking/kdef-architecture.md` — **start here for "how does it work?"** The runtime architecture tour: subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window.
+- `tracking/kdef231-reference.md` — **start here for "where is X?"** The standing 2.3.1 kDEF reference: a lookup rubric of routine addresses, resource ids, struct offsets, and coordinate mappings. It indexes the docs below.
 - `tracking/compositor-spec.md` — the authoritative chrome model (the implemented consumer).
 - `tracking/kdef231-recipe-walk.md` — the part-code / draw decode (the deep derivation behind the reference + spec).
 - `tracking/kdef-faithfulness-ledger.md` — routine → our impl, with divergences.

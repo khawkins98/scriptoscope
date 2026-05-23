@@ -1,5 +1,7 @@
 # Compositor spec — the authoritative window-chrome model
 
+*Diátaxis type: **reference** (the implemented model/spec). For the "how does it work" tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
+
 This is the canonical artifact for (re)building `src/composeChrome.ts`. It
 consolidates the Kaleidoscope **2.3.1** kDEF decode (`kdef231-recipe-walk.md`,
 decoded from `kDEF231_0.asm`) PLUS the gaps we found while implementing it. The
