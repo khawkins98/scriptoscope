@@ -18,8 +18,8 @@
 //   "Left Side"   — same structure
 //   "Right Side"  — same structure
 //
-// See docs/aaron-ui-raster-mapping-spec.md (spec B) §2.4 + §6 for the
-// recipe-walking rules and rendering model.
+// The recipe-walking rules + rendering model (how these side-lists are drawn)
+// are in docs/tracking/kdef231-recipe-walk.md + compositor-spec.md.
 
 import { Reader } from './shared.js';
 

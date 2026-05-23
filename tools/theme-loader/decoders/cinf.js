@@ -15,9 +15,8 @@
 //   14      2      Embossing Pixel (y)         DWRD
 //   16      2      Embossing Pixel (x)         DWRD
 //
-// See spec B §13.3 for the open question on the full 15 resize
-// behaviors (from Scheme Factory MENU 139), parked against kDEF
-// disassembly. The (tileSides, patternAnchor) pair maps to behaviors
+// OPEN QUESTION: the full 15 resize behaviors (from Scheme Factory MENU 139),
+// parked against the kDEF disassembly. The (tileSides, patternAnchor) pair maps to behaviors
 // 0-9 via `tileSides * 5 + patternAnchor`; behaviors 10-14
 // (anchor-to-corner) likely encode via a value range not yet observed
 // in the corpus.
