@@ -277,9 +277,9 @@
 
       // ── "On/Off" Options dialog — utility window, overlapping top-right ──
       const DLG_W = 108, DLG_PAD = 5, DLG_INNER = DLG_W - DLG_PAD * 2; // content + usable width
-      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: DLG_W, height: 64, scale: 1, state });
+      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: DLG_W, height: 84, scale: 1, state });
       const dlgW = parseInt(dlg.style.width) || (DLG_W + 4);
-      const dlgH = parseInt(dlg.style.height) || (64 + 22);
+      const dlgH = parseInt(dlg.style.height) || (84 + 22);
       // Right-aligned (small margin), top at the main window's title-bar line —
       // the placement the legacy previews use. Clamped to stay inside the desk.
       const dlgLeft = Math.max(0, mainW - dlgW - 6);
@@ -287,7 +287,7 @@
       Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
-        Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box', overflow: 'hidden' });
+        Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
         // On/Off is a flat 2-SEGMENT TOGGLE, not tabs: the references draw it as
         // a flat rectangular pair (beos: dark "On" / light "Off"; 1984: two flat
@@ -295,7 +295,9 @@
         // "Tabs" cicns (-998x, see composeTab) are gray trapezoids that don't
         // match. So render the header-tinted segmented control directly.
         const onoff = segmentedTabs(theme, ['On', 'Off'], 0);
-        onoff.style.width = '100%'; // span the content (no overflow/clip); cells split
+        // Span the content width AND never shrink — a too-short column was
+        // squeezing the toggle and clipping its label text in half.
+        Object.assign(onoff.style, { width: '100%', flexShrink: '0' });
         dc.appendChild(onoff);
         const pg = await composeProgress(theme, { length: DLG_INNER, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
