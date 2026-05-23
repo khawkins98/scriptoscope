@@ -270,7 +270,7 @@
       desk.appendChild(win);
 
       // ── "On/Off" Options dialog — utility window, overlapping top-right ──
-      const dlg = await renderWindow(theme, { windowType: 'utility-window', title: 'Options', width: 92, height: 60, scale: 1, state });
+      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: 92, height: 60, scale: 1, state });
       const dlgW = parseInt(dlg.style.width) || (92 + 4);
       const dlgH = parseInt(dlg.style.height) || (60 + 22);
       // Right-aligned (small margin), top at the main window's title-bar line —

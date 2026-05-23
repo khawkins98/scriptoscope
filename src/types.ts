@@ -82,6 +82,15 @@ export interface ChromeElement {
   width: number;
   height: number;
   /**
+   * 9-slice geometry from the element's cinf (TMPL 129): `corner` = cinf
+   * `cornerSize` (byte 0) — the kDEF reads THIS as the 9-slice corner inset
+   * (`0x107fe`), not a value derived from the bitmap; `side` = `sideThickness`
+   * (byte 1); `tile` = the cinf `tileSides` flag (center/edges repeat rather
+   * than stretch — e.g. 1990's default-button ring). Null when the scheme
+   * ships no cinf for this element (→ fall back to a derived inset).
+   */
+  slice?: { corner: number; side: number; tile: boolean; resizeBehavior?: string } | null;
+  /**
    * Label/text anchor `[x, y]` from the element's cinf `textPixel` (TMPL
    * 129): the coordinate the label is anchored at, and whose pixel in the
    * cicn is the authored text color. Null when the scheme ships no cinf.
