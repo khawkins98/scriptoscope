@@ -33,10 +33,14 @@ there:
   derivation behind §1 chrome + §4 + §5). This reference *summarises* it.
 - `compositor-spec.md` — the implemented chrome model (the consumer of §4).
 - `kdef-faithfulness-ledger.md` — routine→`composeChrome.ts` map.
-- `kdef-layout-recipes.md` — older control recipes; its window sections (§1,
-  §11.x) are **1.8.2-era and contradicted** — see the corrections inline below.
-  Its CONTROLS sections were never instruction-verified; §1/§2/§6 of THIS doc
-  now verify the control IDs and the button/ring/9-slice paths against 2.3.1.
+- `kdef-layout-recipes.md` — **RETIRED** (2026-05-23). It was the older,
+  **1.8.2-era** control/window recipe doc; its window sections were contradicted
+  by the 2.3.1 decode, and §1/§2/§6 of THIS doc verify the control IDs and the
+  button/ring/9-slice paths against 2.3.1. Its still-useful 1.8.2-era control
+  material (progress / menu / disclosure / grow-box / bevel families + the
+  period-doc behavioural notes) was folded into **§2.6 below**; its procedural
+  Platinum-fallback geometry (`src/platinum.ts`) moved to
+  `../kaleidoscope-asset-catalog.md`. Do not look for the old file — it is gone.
 
 ---
 
@@ -107,9 +111,9 @@ table bytes). Standard CDEF message numbers in parens:
 
 | addr | role | cicn family | notes |
 |---|---|---|---|
-| `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per `kdef-layout-recipes.md §3`; `controls.ts` uses these IDs (verified consumer-side) |
+| `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per §2.6 (1.8.2-era); `controls.ts` uses these IDs (verified consumer-side) |
 | `0x788c`/bevel | bevel/checkbox/radio path | `-10232/-10231` mixed | hand-drawn fallback when cicn absent |
-| popup/tab | (msg-routed) | `-12320` frame / `-12319` tab | `kdef-layout-recipes.md §6` |
+| popup/tab | (msg-routed) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`) |
 
 ### 1.4 Window chrome — load / layout / draw
 
@@ -212,16 +216,17 @@ hi=-8271). They reveal the control families the kDEF expects:
 
 | id range | element | detail |
 |---|---|---|
-| `-10208`..`-10197` | **slider** part table (12 parts) | track + directional thumb variants; `0x4f7e`-era stores 12 ids per `kdef-layout-recipes §8` |
+| `-10208`..`-10197` | **slider** part table (12 parts) | track + directional thumb variants; `0x4f7e`-era stores 12 ids (1.8.2-era, see §2.6) |
 | `-10205`..`-10208` | slider thumb/track h+v | `controls.ts:166`: thumb -10206 h / -10208 v (pressed -10205/-10207) |
 | `-8288`/`-8280` | scrollbar pressed (h/v) | immediates at the drawer |
 | `-8272`/`-8271` | scrollbar thumb ghost | drag preview |
 | `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **computed, not a kDEF immediate** |
-| `-12320`/`-12319`/`-12318`/`-12317` | popup/tab: frame / tab / disabled-frame / disabled-tab | `controls.ts:362`; `kdef-layout-recipes §6` |
+| `-12320`/`-12319`/`-12318`/`-12317` | popup/tab: frame / tab / disabled-frame / disabled-tab | `controls.ts:362`; §2.6 |
 | `-12304`/`-12303` | popup variant **(?)** | immediates |
 
-> **Correction to `kdef-layout-recipes.md`:** that doc lists checkbox/radio as
-> `-10238`/`-10232/-10231` "ics". The 2.3.1 kDEF does NOT emit -9488..-9504 as
+> **Correction (carried over from the now-retired `kdef-layout-recipes.md`):**
+> that doc listed checkbox/radio as `-10238`/`-10232/-10231` "ics". The 2.3.1
+> kDEF does NOT emit -9488..-9504 as
 > immediates — those are derived (base+offset / manifest) and only appear on the
 > consumer side (`controls.ts`). -10232/-10231 are the **default-button ring**
 > mixed/active, not checkbox glyphs. Treat the old §5 ics IDs as **(?)**.
@@ -235,6 +240,34 @@ hi=-8271). They reveal the control families the kDEF expects:
 | `'clut'` (`0x106e6`) | scheme colour table. |
 | `'Copl'` | internal GWorld tag, NOT a scheme resource (do not extract). |
 | `-12345` (`0xCFC7`) | **NOT a resource id** — a sentinel transfer-mode marker written into a pixmap field at `0xff62`/`0x10954`. Ignore in any id sweep. |
+
+### 2.6 Control families known only at `[DOC]`/1.8.2 confidence (folded from the retired `kdef-layout-recipes.md`)
+
+These families were decoded against the **1.8.2** kDEF (a *different* binary —
+its drawer addresses, e.g. `0x30a8`/`0x66b4`, do **not** map to 2.3.1's
+`0x6688`/`0x7424`) and/or come from the period "Creating Color Schemes" authoring
+doc. They are **NOT 2.3.1-instruction-verified** — treat as `[DOC]`/`[DRAWER]`.
+What carries over reliably is the **resource-ID convention** (version-independent)
+plus the behavioural notes; the 2.3.1 *layout arithmetic* is a gap (§7.4/§7.9).
+
+| family | cicn / ppat ids | behaviour (period `[DOC]`) |
+|---|---|---|
+| **progress bar** | frame `-10080` (active) / `-10077` (inactive); track `-10075`; barber-pole `ppat -10064` (accent variants `-10063..-10057`) | determinate = frame 9-slice + accent-ramp fill; indeterminate uses only the top ~10px of the ppat, tiles the whole bar, shifts it **+4px right each draw** |
+| **menu / menu bar** | bg `-12288` / highlight `-12287` / accent `-12272`; accent menu-highlight cicns+ppats start `-12256` | menu bar + backgrounds are `ppat` fills; highlight is an accent cicn/ppat overlay |
+| **disclosure triangle** | `-10102..-10112` (right/down × normal/pressed/inactive) | fixed-size state glyphs stamped 1:1; 5-frame rotation animation. (NB: this range is sometimes mislabelled as "scroll arrows" in bundles — the real scroll arrows are baked into the composite scrollbar cicn.) |
+| **bevel button** | base `-10176`, variants `-10174..-10150`; mixed `-10232/-10231` | "same format as the push-button cicns" — 9-sliced like §1.2 |
+| **grow box** | (uses the doc-window corner glyph `-14334/-14333`, §2.1) | bottom-right-anchored; sizes 15×15–21×21 (doc window) / 14×14–18×18 (utility); a mis-sized 17×17 scales to fit |
+
+Behavioural `[DOC]` notes that have no 2.3.1 trace yet but constrain the layout:
+
+- **Popup/tab** (ids in §2.4): *"draws the four corners of the frame from the
+  cicn, stretches the single row/column between the grow regions for the sides,
+  then stamps the tab on top — stretching the middle column (which includes the
+  text-colour pixel) to fit the title. The **bottom six pixels of the tab cicn
+  overwrite the top six pixels of the frame.**"*
+- **Scrollbar** (ids in §2.3/§2.4): small-bar special case — when bar width < 17px
+  the layout collapses/centres; the track is a **1px row/column stretched** between
+  the fixed arrow boxes; accent thumbs start at `-9472`.
 
 ---
 
@@ -356,9 +389,9 @@ they never grow. Budget = `slack = (srcBorder[end]−srcBorder[start-1]) − req
 about the title because `0x4a64` calls `0x5178` twice (per half, split at the
 title anchor).
 
-> This SUPERSEDES `kdef-layout-recipes.md §1/§11.x` (the dead 1.8.2 reading: a
-> grow set `{5,6,8,18}` + a pixel-variance plate search). Fixed-vs-stretch is the
-> part code, full stop.
+> This SUPERSEDED the retired `kdef-layout-recipes.md §1/§11.x` (the dead 1.8.2
+> reading: a grow set `{5,6,8,18}` + a pixel-variance plate search).
+> Fixed-vs-stretch is the part code, full stop.
 
 ---
 
@@ -434,9 +467,11 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
    theme-loader names) are NOT mapped field-for-field (§3.5).
 3. **'pWin' companion resource** (`0x1175e`, `#1884776814`) — loaded for cinf-
    range ids; its layout/use is not decoded.
-4. **Scrollbar/slider/popup LAYOUT arithmetic** — drawer entry points and cicn
-   families are known (§1.3, §2), but the track-stretch / thumb-position math
-   (`kdef-layout-recipes §3/§8`) was never instruction-traced for 2.3.1.
+4. **Scrollbar/slider/popup/progress/menu/disclosure LAYOUT arithmetic** — drawer
+   entry points and cicn families are known (§1.3, §2.3–§2.6), but the
+   track-stretch / thumb-position / barber-pole / tab math was only ever decoded
+   against the **1.8.2** binary (folded into §2.6 at `[DOC]` confidence) and was
+   never instruction-traced for 2.3.1.
 5. **The `0x788c` hand-drawn bevel path** — entry + state selectors (`d5==254/255`)
    identified; the full MoveTo/LineTo coordinate sequence (the procedural
    button/checkbox geometry) is not transcribed.

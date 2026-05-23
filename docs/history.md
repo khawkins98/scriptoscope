@@ -160,11 +160,14 @@ piece, blocked on ground truth.
   keep a clean-room mimic; the binary is for *understanding*, not shipping.
 
 ## Map of the docs
-- `tracking/compositor-spec.md` — the authoritative chrome model.
-- `tracking/kdef231-recipe-walk.md` — the part-code / draw decode (source behind the spec).
+- `tracking/kdef231-reference.md` — **start here for any binary-level question.** The standing 2.3.1 kDEF reference: a lookup rubric of routine addresses, resource ids, struct offsets, and coordinate mappings. It indexes the three docs below.
+- `tracking/compositor-spec.md` — the authoritative chrome model (the implemented consumer).
+- `tracking/kdef231-recipe-walk.md` — the part-code / draw decode (the deep derivation behind the reference + spec).
 - `tracking/kdef-faithfulness-ledger.md` — routine → our impl, with divergences.
 - `tracking/glitch-punchlist.md` — per-scheme render-quality status.
 - `tracking/golden-reference-todo.md` — the deferred golden-diff net + its blocker.
 - `diagnostic-tooling.md` — the Playground + `diag:render` / `diag:audit` CLIs.
-- `kdef-layout-recipes.md`, `kaleidoscope-asset-catalog.md`,
-  `porting-a-kaleidoscope-scheme.md` — reference material.
+- `kaleidoscope-asset-catalog.md`, `porting-a-kaleidoscope-scheme.md`,
+  `theme-bundle-layout.md` — reference material. (The old 1.8.2-era
+  `kdef-layout-recipes.md` was retired 2026-05-23 — folded into
+  `tracking/kdef231-reference.md §2.6` + the asset catalog's Platinum-fallback §6.1.)

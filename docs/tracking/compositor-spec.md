@@ -6,6 +6,12 @@ decoded from `kDEF231_0.asm`) PLUS the gaps we found while implementing it. The
 schemes are **K2 / 2.x format** (they ship `wnd#` recipes + `cinf`); the 2.3.1
 kDEF is the engine that draws them. Earlier 1.8.2 material is historical.
 
+> **Looking up an address, resource id, struct offset, or coordinate?** Start at
+> [`kdef231-reference.md`](./kdef231-reference.md) — the standing 2.3.1 kDEF
+> reference that indexes this spec, the recipe-walk, and the faithfulness ledger
+> in one lookup table. This spec is the *implemented model*; that reference is the
+> *index over the binary*.
+
 The litmus: this was a small, deterministic 68k routine. The model below is
 simple and GENERAL — no per-theme special cases. If an implementation needs
 per-theme branches, it has the model wrong.

@@ -4,6 +4,10 @@ Research-only. No repo code changed. This decodes how the **Kaleidoscope
 2.3.1** `kDEF 0` (68k WDEF replacement) turns a `wnd#` `(partCode, border)`
 side list into a drawn window frame.
 
+> This is the **deep derivation** behind §1/§4/§5 of the standing
+> [`kdef231-reference.md`](./kdef231-reference.md). For a quick address / id /
+> coordinate lookup, go there first; come here for the full argument.
+
 **This supersedes `kdef-recipe-walk-decoded.md`**, which traced the **1.8.2**
 kDEF. 1.8.2 references `'wnd#'` ZERO times and predates the recipe model; its
 conclusion ("there is no per-segment recipe walk, span is the only signal") is
