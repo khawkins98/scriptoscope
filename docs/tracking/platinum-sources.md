@@ -53,9 +53,25 @@ one of:
    already have a procedural `platinumWindow` + controls to calibrate.
 
 Either way the output is OUR reimplementation (clean-room), more faithful than a
-GTK/Kvantum reinterpretation. Blocker: the ISO must be made accessible here (the
-extracted System file for #1, or captured screenshots for #2) — can't fetch/boot
-it in this environment.
+GTK/Kvantum reinterpretation.
+
+**ISO recon (2026-05-23, `Mac OS 8.6 Internal Edition.iso`, mounted via `hfsutils`
+`hmount`/`hls`).** The disc is in `~/Downloads/`. Findings:
+- `System Folder/Appearance/` holds only an empty `Sound Sets` — **no theme-file
+  artwork** (the default "Apple platinum" appearance is not a data theme).
+- **No separate Appearance extension** in `Extensions/` — so in 8.6 the Appearance
+  Manager / Platinum drawing is built into the **`System` file (6.4 MB, `zsys`)**
+  (plus `System Resources` 885 KB and the `Mac OS ROM`). That is the decompile
+  target for #1.
+- Implication: #1 means reverse-engineering the WDEF/CDEF out of a 6.4 MB mixed
+  PPC system file — far bigger than the self-contained 107 KB freeware Kaleidoscope
+  kDEF, and the most IP-fraught (Apple core OS). **#2 (emulator-capture) is the
+  better ROI** — boot this ISO (SheepShaver/Basilisk II), screenshot the real
+  controls/windows per state, calibrate `platinum.ts`. Needs an emulator (not
+  present in this env) or user-provided screenshots.
+- Not blocked meanwhile: the clean-room `platinumWindow` (branch) + apple-platinum-2's
+  raster control cicns already give a solid Platinum; the ISO is the ultimate-
+  fidelity stretch.
 
 ## What WOULD be cleanly usable
 
