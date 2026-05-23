@@ -180,13 +180,6 @@ interface EdgeGeometry {
   outExtent: number;
   /** the cicn template extent along the walk axis (full cicn width / height). */
   srcExtent: number;
-  /**
-   * Rect-list WIDGET spans `[start, end]` along the walk axis (close/zoom/
-   * shade boxes), in cicn coordinates. A fill cell overlapping one is drawn
-   * AROUND the widget; the widget itself is stamped once (carving). Title
-   * markers (≤2px) are NOT here. Empty on edges with no widgets.
-   */
-  widgetSpans: Array<[number, number]>;
 }
 
 interface RawCell {
@@ -441,88 +434,16 @@ function composeEdge(
       titleEnd = outPos + dstLen;
     }
 
-    // Carve any rect-list widgets that fall inside this cell out of the fill.
-    const widgetsHere = geo.widgetSpans
-      .filter(([a, b]) => a < c.x1 && b > c.x0)
-      .map(([a, b]) => [Math.max(a, c.x0), Math.min(b, c.x1)] as [number, number])
-      .sort((p, q) => p[0] - q[0]);
-
     if (c.cls === 'scale') {
       // code 18: a single scaled CopyBits — drawn ONCE, src band → dst band.
-      // (Carving doesn't apply: scale bands are decorative, not widgets.)
       drawStretch(c.x0, srcLen, outPos, dstLen);
     } else if (c.cls === 'fixed' || c.cls === 'collapse') {
-      // 1:1 copy, anchored to its position (corners, bezels, present widgets).
+      // 1:1 copy, anchored (corners, bezels, and the widgets — close/zoom/shade
+      // ride the FIXED title-bar regions, so they're drawn here at native size).
       drawStretch(c.x0, srcLen, outPos, srcLen); // dstLen == srcLen here
-    } else if (widgetsHere.length === 0) {
-      // plain fill cell: stretch (sample-and-hold) or tile per cinf.
-      drawFill(c.x0, c.x1, outPos, dstLen);
     } else {
-      // ── WIDGET CARVING ──────────────────────────────────────────────────
-      // Split the cell into fill segments around each widget. Each fill
-      // segment fills (stretch/tile) the SLACK proportionally to its own src
-      // width; the widgets keep native width. As the cell grows, the slack
-      // lands in the fill segments — so left widgets stay left and right
-      // widgets ride the right edge. The widget pixels themselves are stamped
-      // ONCE in pass 2 (here we just leave clean fill beneath them).
-      const cellSlack = dstLen - srcLen; // extra width this cell absorbs
-      // src widths of the fill gaps between/around widgets
-      const gaps: Array<{ s0: number; s1: number }> = [];
-      let cursor = c.x0;
-      for (const [a, b] of widgetsHere) {
-        if (a > cursor) gaps.push({ s0: cursor, s1: a });
-        cursor = Math.max(cursor, b);
-      }
-      if (cursor < c.x1) gaps.push({ s0: cursor, s1: c.x1 });
-      const gapSrcTotal = gaps.reduce((n, g) => n + (g.s1 - g.s0), 0);
-
-      // Distribute the slack across the gaps proportionally (remainder L→R),
-      // then walk widget+gap in source order placing each at the running outPos.
-      let slackLeft = cellSlack;
-      const gapExtra = new Map<number, number>();
-      gaps.forEach((g, gi) => {
-        const sw = g.s1 - g.s0;
-        const ex = gi === gaps.length - 1
-          ? slackLeft
-          : gapSrcTotal > 0 ? Math.round((cellSlack * sw) / gapSrcTotal) : 0;
-        gapExtra.set(gi, Math.max(0, ex));
-        slackLeft -= Math.max(0, ex);
-      });
-
-      let local = outPos;
-      // Interleave gaps and widgets in source order.
-      const events: Array<{ kind: 'gap'; idx: number } | { kind: 'widget'; a: number; b: number }> = [];
-      let gPtr = 0;
-      for (const [a, b] of widgetsHere) {
-        // any gap that starts before this widget
-        while (gPtr < gaps.length && gaps[gPtr]!.s0 < a) { events.push({ kind: 'gap', idx: gPtr }); gPtr++; }
-        events.push({ kind: 'widget', a, b });
-      }
-      while (gPtr < gaps.length) { events.push({ kind: 'gap', idx: gPtr }); gPtr++; }
-
-      // A representative fill column for backing the carved widget regions:
-      // the centre of the widest gap (continuous frame, not white). Falls back
-      // to the cell centre when there are no gaps (widget spans the whole cell).
-      const widestGap = gaps.reduce<{ s0: number; s1: number } | null>(
-        (best, g) => (!best || g.s1 - g.s0 > best.s1 - best.s0 ? g : best), null);
-      const backColumn = widestGap
-        ? Math.floor((widestGap.s0 + widestGap.s1) / 2)
-        : Math.floor((c.x0 + c.x1) / 2);
-      for (const ev of events) {
-        if (ev.kind === 'gap') {
-          const g = gaps[ev.idx]!;
-          const sw = g.s1 - g.s0;
-          const dw = sw + (gapExtra.get(ev.idx) ?? 0);
-          drawFill(g.s0, g.s1, local, dw);
-          local += dw;
-        } else {
-          // Clean fill beneath the widget rect (a uniform fill column), so
-          // pass 2 stamps the widget onto frame, not white / a smear.
-          const ww = ev.b - ev.a;
-          drawStretch(backColumn, 1, local, ww);
-          local += ww;
-        }
-      }
+      // growing fill cell (codes 0/8/11/12/13/14): tile the src band.
+      drawFill(c.x0, c.x1, outPos, dstLen);
     }
 
     placed.push({ x0: c.x0, x1: c.x1, out0: outPos, out1: outPos + dstLen, code: c.code, cls: c.cls });
@@ -620,47 +541,32 @@ export function composeWindowChrome(
   const cinf = opts.cinf ?? windowType.cinf ?? null;
   const edges = windowType.edges;
 
-  // ── rect-list classification ──────────────────────────────────────────────
-  // part-0 is the body. The remaining parts are widgets (close/zoom/shade) and
-  // the title MARKER. A ≤2px-wide rect in the top band is the marker (the cinf
-  // text-colour line, NOT a widget — never carved/stamped). Wider rects are
-  // widgets. We collect widgets per edge band by where their rect sits.
-  interface WRect { l: number; t: number; r: number; b: number; }
-  const topWidgets: WRect[] = [];
-  const botWidgets: WRect[] = [];
-  const leftWidgets: WRect[] = [];
-  const rightWidgets: WRect[] = [];
+  // ── rect-list scan ────────────────────────────────────────────────────────
+  // part-0 is the body. The remaining parts are the named widgets (close/zoom/
+  // shade) and the title MARKER (a ≤2px-wide rect in the top band = the cinf
+  // text-colour line). The kDEF draws the widgets as part of the FIXED title-bar
+  // cells (1:1), so we don't carve/stamp them separately — we only need:
+  //   • titleMarkerX — the marker column, for the title-text colour fallback.
+  //   • widgetPresent — gates the 2/3/4 (gap) vs 15/16/17 (widget cell) codes
+  //     (a window that ships widget rects has its named widgets present; the
+  //     bundled corpus always does).
   let titleMarkerX = -1;
+  let hasWidgetRect = false;
   for (const [slug, part] of Object.entries(windowType.parts)) {
     if (slug === 'part-0' || !part.rect) continue;
     const [l, t, r, b] = part.rect;
     if (r <= l || b <= t) continue; // empty rect (e.g. beos part-3 [0,0,0,0])
-    const w = r - l, h = b - t;
-    // Which band does this rect belong to?
-    if (t < frame.top && r > l) {
-      // top band
-      if (w <= 2) { if (titleMarkerX < 0) titleMarkerX = l; continue; }
-      topWidgets.push({ l, t, r, b });
-    } else if (b > cicn.height - frame.bottom) {
-      botWidgets.push({ l, t, r, b });
-    } else if (l < frame.left) {
-      if (h > 2) leftWidgets.push({ l, t, r, b });
-    } else if (r > cicn.width - frame.right) {
-      if (h > 2) rightWidgets.push({ l, t, r, b });
-    }
+    if (t < frame.top && r - l <= 2) { if (titleMarkerX < 0) titleMarkerX = l; continue; } // marker
+    hasWidgetRect = true;
   }
-  const topWidgetSpans = topWidgets.map((w) => [w.l, w.r] as [number, number]);
-
-  // Widget-present gate: a window that ships widget rects has its named
-  // widgets present (corpus is always so). Gate the 2/3/4 vs 15/16/17 codes.
-  const widgetPresent = topWidgets.length > 0 || windowType.parts['part-1'] != null;
+  const widgetPresent = hasWidgetRect || windowType.parts['part-1'] != null;
 
   // ── top edge ────────────────────────────────────────────────────────────
   let topRes: ReturnType<typeof composeEdge> = null;
   if (edges?.top?.length) {
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      outExtent: fullW, srcExtent: cicn.width, widgetSpans: topWidgetSpans,
+      outExtent: fullW, srcExtent: cicn.width,
     }, widgetPresent);
   } else {
     composeSeamFallback(out, cicn, frame.top, fullW);
@@ -672,7 +578,6 @@ export function composeWindowChrome(
     leftRes = composeEdge(out, cicn, edges.left, {
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       outExtent: fullH, srcExtent: cicn.height,
-      widgetSpans: leftWidgets.map((w) => [w.t, w.b] as [number, number]),
     }, widgetPresent);
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 }, { x: 0, y: frame.top, w: frame.left, h: contentH });
@@ -684,7 +589,6 @@ export function composeWindowChrome(
     rightRes = composeEdge(out, cicn, edges.right, {
       edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height,
-      widgetSpans: rightWidgets.map((w) => [w.t, w.b] as [number, number]),
     }, widgetPresent);
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 }, { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
@@ -697,59 +601,15 @@ export function composeWindowChrome(
     botRes = composeEdge(out, cicn, edges.bottom, {
       edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width,
-      widgetSpans: botWidgets.map((w) => [w.l, w.r] as [number, number]),
     }, widgetPresent);
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom }, { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
   }
 
-  // ── PASS 2: stamp the carved rect-list widgets ONCE, anchored ─────────────
-  // For each widget whose background was carved (it overlapped a stretch/tile/
-  // scale cell), map its native walk-axis position through that cell's growth
-  // and stamp the widget art there at native size. Widgets that sat only in
-  // fixed cells are already drawn 1:1 by pass 1.
-  const widgetSlices: PlacementSlice[] = [];
-  const stampTopBottom = (res: typeof topRes, widgets: WRect[], crossDstOff: (w: WRect) => number): void => {
-    if (!res?.placed?.length) return;
-    for (const w of widgets) {
-      const cell = res.placed.find((p) => w.l < p.x1 && w.r > p.x0);
-      if (!cell || cell.cls === 'fixed' || cell.cls === 'collapse') continue; // drawn 1:1 already
-      const span = cell.x1 - cell.x0;
-      // Anchor: left of the cell midpoint keeps left x; right of it rides the
-      // right edge (the fill before it absorbed the slack).
-      const grew = (cell.out1 - cell.out0) - span;
-      const midSrc = (cell.x0 + cell.x1) / 2;
-      const ww = w.r - w.l, hh = w.b - w.t;
-      const outX = (w.l + w.r) / 2 <= midSrc
-        ? cell.out0 + (w.l - cell.x0)
-        : cell.out0 + (w.l - cell.x0) + grew;
-      const dx = Math.round(outX);
-      const dy = crossDstOff(w);
-      out.copyBits(cicn, { x: w.l, y: w.t, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
-      widgetSlices.push({ edge: 'widget', code: -1, role: 'stamped widget', mode: 'stamp', src: { x: w.l, y: w.t, w: ww, h: hh }, rects: [{ x: dx, y: dy, w: ww, h: hh }] });
-    }
-  };
-  // top widgets: cross (y) is unchanged (top band starts at 0).
-  stampTopBottom(topRes, topWidgets, (w) => w.t);
-  // bottom widgets: cross (y) shifts to the output bottom band.
-  stampTopBottom(botRes, botWidgets, (w) => fullH - (cicn.height - w.t));
-
-  // side widgets (left/right): map along Y through the side cell growth.
-  const stampSide = (res: typeof leftRes, widgets: WRect[], crossDstOff: number): void => {
-    if (!res?.placed?.length) return;
-    for (const w of widgets) {
-      const cell = res.placed.find((p) => w.t < p.x1 && w.b > p.x0);
-      if (!cell || cell.cls === 'fixed' || cell.cls === 'collapse') continue;
-      const span = cell.x1 - cell.x0;
-      const grew = (cell.out1 - cell.out0) - span;
-      const midSrc = (cell.x0 + cell.x1) / 2;
-      const ww = w.r - w.l, hh = w.b - w.t;
-      const outY = (w.t + w.b) / 2 <= midSrc ? cell.out0 + (w.t - cell.x0) : cell.out0 + (w.t - cell.x0) + grew;
-      out.copyBits(cicn, { x: w.l, y: w.t, w: ww, h: hh }, { x: crossDstOff + (w.l - (crossDstOff === 0 ? 0 : cicn.width - frame.right)), y: Math.round(outY), w: ww, h: hh });
-    }
-  };
-  stampSide(leftRes, leftWidgets, 0);
-  stampSide(rightRes, rightWidgets, fullW - frame.right);
+  // (No widget pass: with the end-based cell association + grounded corners the
+  // close/zoom/shade widgets land in FIXED title-bar cells and are drawn 1:1 by
+  // the edge walk above — verified 0 widgets in growing cells across the corpus.
+  // The old carve-out-of-stretch-cell + stamp pass is retired.)
 
   // ── aggregate the slice placement map (for the diagnostic) ────────────────
   const placement: PlacementSlice[] = [];
@@ -778,7 +638,6 @@ export function composeWindowChrome(
   collect('bottom', botRes);
   collect('left', leftRes);
   collect('right', rightRes);
-  placement.push(...widgetSlices);
 
   const titleRegion = topRes && topRes.titleEnd > topRes.titleStart
     ? { x: topRes.titleStart, w: topRes.titleEnd - topRes.titleStart }
