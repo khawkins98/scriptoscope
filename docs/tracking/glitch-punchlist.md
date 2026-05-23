@@ -41,10 +41,10 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
 | theme | doc-window | dialog | alert | movable-modal/-alert | utility types | popup |
 |---|---|---|---|---|---|---|
 | **1138** | ok | ok | ok | ok | titled-util slightly busy (minor) | ok |
-| **1984** | V1(a) fixed; V1(b) faint arch (minor) | ok | M2 (red top edge?) | ok | ok | V2 (arrow notch) |
+| **1984** | ok (V1b faint arch, minor) | ok | ok | ok | ok | ok |
 | **1990** | ok | ok | ok | ok | ok | ok |
-| **evolution** | ok | ok | ok | ok | ok | ok |
-| **beos-r503** | M1 (faint double R/B edge) | ok | ok | ok | wnd--14292 dark patch (minor) | ok |
+| **evolution** | ok (M5 pucker, faint) | ok | ok | ok | ok | ok |
+| **beos-r503** | ok | ok | ok | ok | wnd--14292 dark patch (minor) | ok |
 
 `apple-platinum-2` ships no recipe-based window types (procedural baseline).
 1990 / evolution / beos render faithfully across **all** types.
@@ -75,26 +75,32 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
   widget/cell-alignment data fix. **MODEL/DATA.**
 - **Severity: minor** (faint).
 
-### V2 · 1984 · popup-window — notch/gap at the top-centre arrow
-- **What:** the top edge has a small protrusion (popup arrow) with a gap/notch
-  around it; the bar doesn't close cleanly across the centre.
-- **Cause:** **MODEL/GEOM** — the centre arrow widget interrupts the top fill.
-- **Severity: visible** (popup, lower traffic).
+### V2 · 1984 · popup-window — NOT A GLITCH (faithful)
+- Re-examined: the central upward protrusion (the popup menu tab) is the scheme's
+  cicn design, and the collapse cells (codes 5/6) draw it ONCE, centred — pixel-
+  exact to the cicn by construction (end-based fix). The bar fills symmetrically
+  via the 1px `part-8` cells; the white square at the tab base is in the cicn.
+  The "notch/gap" was a contact-sheet-thumbnail misread. Renders faithfully.
 
 ---
 
-## MINOR
+## MINOR (remaining — all faint)
 
-- **M1 · beos-r503 · document-window** — a faint double line on the right and
-  bottom border (the cicn's ~1px right margin reads as a second edge). The
-  earlier "transparent right tail" is gone; this is the residual. **DATA/decoder.**
-- **M2 · 1984 · alert** — a red line along the top edge. May be the scheme's
-  alert accent (intended) or a 1px corner artefact; confirm against the ref.
-- **M3 · beos-r503 · wnd--14292** (collapsed side-float) — a dark patch at the
-  bottom-right corner.
+- **M3 · beos-r503 · wnd--14292** (collapsed side-float, low-traffic) — a dark
+  patch at the bottom-right where the bottom edge ends, and the right side reads
+  open. The only genuine remaining artefact, on a rarely-used collapsed type.
 - **M4 · 1138 · titled-utility-window** — the two-segment title bar reads
   slightly busy (two widget clusters); faithful enough, flagged for polish.
-- **M5 · evolution · document-window** — top-left pipe-elbow seam pucker; minor.
+- **M5 · evolution · document-window** — top-left pipe-elbow seam pucker; faint.
+- (1984 doc-window **V1(b)** title-bar arch, above, is also minor.)
+
+## Re-checked and found FAITHFUL (not glitches)
+- **1984 alert "red top edge"** — the red band is baked into the alert cicn
+  (rows y2–5) — the scheme's intended alert accent, not an artefact.
+- **beos-r503 document-window "double R/B edge"** — that's the BeOS beveled
+  border (highlight + shadow), not a doubled line. The old transparent right-tail
+  is gone.
+- **1984 popup** (V2 above).
 
 ---
 
