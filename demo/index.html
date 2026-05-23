@@ -150,16 +150,17 @@
     // ships one; the selected tab sits flush, the others recessed 2px. Falls
     // back to the CSS segmented control for schemes with no tab cicn.
     async function tabStrip(theme, labels, selectedIdx) {
-      const tabs = await Promise.all(labels.map((l) => composeTab(theme, { label: l })));
+      const tabs = await Promise.all(labels.map((l, i) => composeTab(theme, { label: l, selected: i === selectedIdx })));
       if (tabs.some((t) => !t)) return segmentedTabs(theme, labels, selectedIdx);
-      const h = Math.max(...tabs.map((t) => t.height)) + 2;
+      const h = Math.max(...tabs.map((t) => t.height));
       const wrap = document.createElement('div');
+      // Bottom-align: the selected "front" tab cicn is taller, so it pokes up
+      // above the shorter "rear" (unselected) tabs — the classic tab look. The
+      // cicns already encode the selected/unselected appearance.
       Object.assign(wrap.style, { display: 'inline-flex', alignItems: 'flex-end', height: `${h}px` });
       tabs.forEach((t, i) => {
         const c = bufferToCanvas(t, 1);
-        c.style.marginBottom = i === selectedIdx ? '0' : '-1px';
-        c.style.opacity = i === selectedIdx ? '1' : '0.7';
-        c.style.alignSelf = i === selectedIdx ? 'flex-start' : 'flex-end';
+        c.style.marginRight = i < tabs.length - 1 ? '-1px' : '0'; // tabs share an edge
         wrap.appendChild(c);
       });
       return wrap;
@@ -172,9 +173,13 @@
       // color with light text — matches the classic Mac tab look and stays
       // high-contrast even when the header FILL is light (e.g. Platinum gray).
       const selBg = hc.darkTinge && hc.darkTinge !== hc.fill ? hc.darkTinge : frame;
+      // A FLAT segmented toggle (the references' On/Off look): flat rectangular
+      // cells, the selected one in the scheme's dark header colour, the rest a
+      // flat light fill — no gradient/rounded-button styling (which read as
+      // separate buttons before).
       const wrap = document.createElement('div');
       Object.assign(wrap.style, {
-        display: 'inline-flex', border: `1px solid ${frame}`, borderRadius: '3px',
+        display: 'inline-flex', border: `1px solid ${frame}`, borderRadius: '1px',
         overflow: 'hidden', font: '11px Charcoal, Geneva, sans-serif',
       });
       labels.forEach((label, i) => {
@@ -182,7 +187,7 @@
         const sel = i === selectedIdx;
         Object.assign(cell.style, {
           padding: '2px 12px', borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
-          background: sel ? selBg : 'linear-gradient(180deg,#f6f6f6,#d4d4d4)',
+          background: sel ? selBg : '#dcdcdc',
           color: sel ? '#ffffff' : '#000', fontWeight: sel ? '700' : '400',
         });
         cell.textContent = label;
@@ -282,9 +287,12 @@
       if (dc) {
         Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
-        // On/Off TAB control — from the scheme's popup-window tab cicn where
-        // shipped, else a header-color-tinted CSS segmented control.
-        dc.appendChild(await tabStrip(theme, ['On', 'Off'], 0));
+        // On/Off is a flat 2-SEGMENT TOGGLE, not tabs: the references draw it as
+        // a flat rectangular pair (beos: dark "On" / light "Off"; 1984: two flat
+        // blue cells), NOT the trapezoidal tab shape — and the scheme's actual
+        // "Tabs" cicns (-998x, see composeTab) are gray trapezoids that don't
+        // match. So render the header-tinted segmented control directly.
+        dc.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
         const pg = await composeProgress(theme, { length: 86, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
         const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';

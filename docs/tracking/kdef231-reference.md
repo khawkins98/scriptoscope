@@ -210,7 +210,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 | -14332/-14331/-14330 | collapsed window | -10208/-10207/-10206/-10205 | **slider** (track/thumb v+h) |
 | -12288/-12287 | menu bg / menu highlight | -8286/-8285 | **scrollbar** horiz (inactive/active) |
 | -12272 | menu accent | -8278/-8277 | scrollbar vert (inactive/active) |
-| -10224/-10223 | (?) — adjacent to slider range | -8272/-8271 | scrollbar **thumb ghost** (drag preview) |
+| -10224/-10223 | **progress bar** — beos 2-part (track/fill, no frame) | -8272/-8271 | scrollbar **thumb ghost** (drag preview) |
 
 ### 2.4 Slider / scrollbar / popup IDs (from immediates + `controls.ts`)
 
@@ -221,7 +221,9 @@ hi=-8271). They reveal the control families the kDEF expects:
 | `-8288`/`-8280` | scrollbar pressed (h/v) | immediates at the drawer |
 | `-8272`/`-8271` | scrollbar thumb ghost | drag preview |
 | `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **computed, not a kDEF immediate** |
-| `-12320`/`-12319`/`-12318`/`-12317` | popup/tab: frame / tab / disabled-frame / disabled-tab | `controls.ts:362`; §2.6 |
+| `-12320`/`-12319`/`-12318`/`-12317` | popup-MENU window: frame / tab / disabled-frame / disabled-tab | **NB:** no corpus scheme ships the tab faces `-12319`/`-12317` (only the `-12320` frame) |
+| `-9972`/`-9975` (SSF), `-9980`/`-9983` (LSF) + `-9969`/`-9977` pane | **segmented TAB control** (real pane tabs): front/"on" (selected, taller) vs rear/"off" (shorter) trapezoid + tab pane | `controls.ts composeTab`. NOT an On/Off toggle — that is a flat 2-segment control, drawn separately |
+| `-10080`/`-10078`/`-10079` · `-10223`/`-10224` | **progress bar**: 3-part frame/track/fill (most schemes) · 2-part track/fill, no frame (beos lavender) | `controls.ts composeProgress` |
 | `-12304`/`-12303` | popup variant **(?)** | immediates |
 
 > **Correction (carried over from the now-retired `kdef-layout-recipes.md`):**

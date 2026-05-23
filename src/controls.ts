@@ -339,45 +339,62 @@ export async function composeDisclosure(
 
 export interface TabOptions {
   label?: string;
-  /** Disabled tab uses -12317 if shipped. */
-  disabled?: boolean;
+  /** The SELECTED tab uses the "front"/"on" cicn (taller, raised); an
+   *  unselected tab uses the shorter "rear"/"off" cicn. */
+  selected?: boolean;
 }
 
 /**
- * Compose one popup-window TAB (kdef-layout-recipes §6) from the scheme's
- * tab cicn (-12319 active / -12317 disabled). The tab is 3-sliced along its
- * width — fixed rounded ends, stretched middle — to fit the label, which is
- * drawn in the tab's text-color marker (the middle column's marker pixel).
- * Returns null if the scheme ships no tab cicn (caller falls back to a
- * CSS segmented control).
+ * Compose one segmented TAB (e.g. an On|Off pair) from the scheme's tab cicns.
+ * Selected = the "front"/"on" tab (`-9972` SSF small / `-9980` LSF large — the
+ * taller, raised trapezoid); unselected = the shorter "rear"/"off" tab
+ * (`-9975` / `-9983`). The cicn is 3-sliced across its width — rounded top
+ * corners fixed, middle stretched — to fit the label. Returns null when the
+ * scheme ships no tab cicn (caller falls back to a CSS segmented control).
+ *
+ * NB: this is NOT the popup-menu tab `-12319` (a different control that no
+ * corpus scheme ships) — the segmented tab control is the `-998x` family
+ * (SSF/LSF front/rear tabs + tab pane). See docs/tracking/kdef231-reference.md.
  */
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
-  const tab = (await loadById(theme, opts.disabled ? 12317 : 12319)) ?? (await loadById(theme, 12319));
+  const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
+  let tab: PixelBuffer | null = null;
+  for (const id of ids) {
+    tab = await loadById(theme, id);
+    if (tab) break;
+  }
   if (!tab) return null;
   const b = opaqueBounds(tab);
   if (b.x1 < b.x0 || b.y1 < b.y0) return null;
   const bw = b.x1 - b.x0 + 1;
   const bh = b.y1 - b.y0 + 1;
 
-  // Text color = the marker pixel near the tab's center (the cicn's text-color
-  // marker). Tabs are outlines (transparent interior) so the label sits on the
-  // light content behind — use the marker only when it's opaque and dark
-  // enough to read; otherwise black.
-  const [mr, mg, mb, ma] = tab.getPixel((b.x0 + b.x1) >> 1, (b.y0 + b.y1) >> 1);
+  // Label color: the tab's center marker pixel is the authored text colour;
+  // use it when it actually contrasts with the (solid) tab face, else pick a
+  // contrasting b/w from the face — the tabs are filled (blue 1984 / gray beos),
+  // so the label must read against that fill, not the content behind.
+  const cx = (b.x0 + b.x1) >> 1;
+  const cy = (b.y0 + b.y1) >> 1;
+  const [mr, mg, mb, ma] = tab.getPixel(cx, cy);
+  const [fr, fgc, fbc] = tab.getPixel(Math.max(b.x0, cx - 4), cy); // face pixel, offset from marker
+  const faceLum = 0.299 * fr + 0.587 * fgc + 0.114 * fbc;
   const mLum = 0.299 * mr + 0.587 * mg + 0.114 * mb;
-  const fg = ma > 200 && mLum < 170 ? `#${[mr, mg, mb].map((c) => c.toString(16).padStart(2, '0')).join('')}` : '#000000';
+  const fg = ma > 200 && Math.abs(mLum - faceLum) > 40
+    ? `#${[mr, mg, mb].map((c) => c.toString(16).padStart(2, '0')).join('')}`
+    : faceLum < 128 ? '#ffffff' : '#000000';
 
   const label = opts.label ?? '';
-  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.4)), fg) : null;
-  const cap = Math.max(2, Math.min(9, Math.floor((bw - 1) / 2)));
-  const outW = Math.max(bw, (glyphs ? glyphs.width : 0) + cap * 2 + 8);
+  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;
+  const cap = Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
+  const outW = Math.max(bw, (glyphs ? glyphs.width : 0) + cap * 2 + 6);
   const out = PixelBuffer.alloc(outW, bh);
 
   // 3-slice the tab box across its width: fixed ends 1:1, stretched middle.
   out.copyBits(tab, { x: b.x0, y: b.y0, w: cap, h: bh }, { x: 0, y: 0, w: cap, h: bh });
   out.copyBits(tab, { x: b.x1 - cap + 1, y: b.y0, w: cap, h: bh }, { x: outW - cap, y: 0, w: cap, h: bh });
   out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w: bw - cap * 2, h: bh }, { x: cap, y: 0, w: outW - cap * 2, h: bh });
-  if (glyphs) out.drawOver(glyphs, Math.round((outW - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2));
+  // The body label sits slightly below center (the trapezoid's top is the bevel).
+  if (glyphs) out.drawOver(glyphs, Math.round((outW - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2) + 1);
   return out;
 }
 
@@ -419,9 +436,14 @@ export async function composeProgress(
   // unfilled track -10078/-10075, fill section -10079/-10076. Bundle slugs
   // for these differ across schemes ("progress-bar-frame-active" vs
   // "progress-indicator-frame"); the id is the stable selector.
+  // Two progress-bar families ship across the corpus: the 3-part Platinum-style
+  // frame/track/fill (-10080/-10078/-10079) most schemes use, and a 2-part
+  // track+fill cell with NO separate frame that others ship (beos: -10224 track
+  // + -10223 lavender fill). Fall back to the latter so those schemes draw a bar
+  // instead of nothing.
   const frame = await loadById(theme, active ? 10080 : 10077);
-  const track = await loadById(theme, active ? 10078 : 10075);
-  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079));
+  const track = (await loadById(theme, active ? 10078 : 10075)) ?? (await loadById(theme, 10078)) ?? (await loadById(theme, 10224));
+  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079)) ?? (await loadById(theme, 10223));
   if (!frame && !track) return null;
 
   const h = frame ? frame.height : track!.height;
