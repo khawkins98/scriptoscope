@@ -1,16 +1,6 @@
-// Minimal runtime validator for theme.json bundles — JS port of the critical
-// assertions from src/themes/schema/parseTheme.ts.
-//
-// WHY a separate JS port: the extractor is plain JS (so it can run in browsers
-// once the resource-fork parser lands), but the library validator is TS.
-// Importing the TS validator would require building dist/ first, which is
-// friction for end users running `scheme-extract --validate`. The JS port
-// covers the same field shapes with no dependencies.
-//
-// SOURCE OF TRUTH: src/themes/schema/parseTheme.ts. When the schema version
-// bumps or shapes change, mirror them here. The shared-fixture test in
-// src/themes/schema/parseTheme.test.ts and the buildThemeJson tests both
-// validate the same shapes, so drift surfaces quickly.
+// Minimal validator for theme.json bundles, used by the extractor (plain JS, no
+// dependencies, no dist/ build needed). It checks the field shapes of the
+// schema of record, src/types.ts — keep them in sync when the schema changes.
 
 export class ThemeValidationError extends Error {
   constructor(message, path) {

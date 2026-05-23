@@ -1,6 +1,6 @@
 # Scheme deconstruction — mass:werk 7 Le
 
-**First Kaleidoscope scheme deconstructed for Aaron UI.** Recorded as a reference for the theme bundle format. Kept as a worked example of how scheme contents map to a runtime-ready Theme; the canonical specs are now [`docs/aaron-ui-architecture-spec.md`](../aaron-ui-architecture-spec.md) (format) + [`docs/aaron-ui-raster-mapping-spec.md`](../aaron-ui-raster-mapping-spec.md) (mapping rules).
+**First Kaleidoscope scheme deconstructed for Aaron UI.** A worked example of how a scheme's resources map to a runtime-ready theme bundle. For the format, see the decoders under `tools/theme-loader/`; for how the chrome is drawn, [`docs/tracking/compositor-spec.md`](../tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](../tracking/kdef231-recipe-walk.md).
 
 ---
 

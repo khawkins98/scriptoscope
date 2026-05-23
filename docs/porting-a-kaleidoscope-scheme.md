@@ -4,7 +4,7 @@ Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By
 
 **Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme other than mass:werk's bundled "7 Le" default.
 
-**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), [`docs/aaron-ui-architecture-spec.md`](./aaron-ui-architecture-spec.md) (what's in a `.ksc`), [`docs/aaron-ui-raster-mapping-spec.md`](./aaron-ui-raster-mapping-spec.md) (how scheme resources map to DOM), [`docs/aaron-ui-composer-spec.md`](./aaron-ui-composer-spec.md) (the runtime). This doc is the *procedural* version of those.
+**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoder). This doc is the *procedural* version.
 
 ---
 
@@ -136,7 +136,7 @@ The script:
 2. Copies cicn PNGs into `themes/<your-slug>/cicns/`
 3. Copies ppat PNGs into `themes/<your-slug>/ppats/`
 4. Merges your `meta.json` into the extractor's draft `theme.json`
-5. Validates the result against the schema (`src/themes/schema/parseTheme.ts` / `tools/scheme-extractor/lib/validateTheme.js`)
+5. Validates the result against the schema (`src/types.ts` / `tools/theme-loader/validateTheme.js`)
 6. Writes the final `themes/<your-slug>/theme.json`
 
 If validation fails, the script aborts non-zero and explains which field violates the schema — `theme.json.windowTypes.<slug>.parts.part-1.rect[3]: expected finite number`, that level of dotted-path specificity. Fix and re-run.
@@ -241,4 +241,4 @@ Symptom: `DeRez scheme-file > scheme.r` produces a near-empty file. The resource
 - [mass:werk schemes](https://www.masswerk.at/schemes.php) — Aaron UI's bundled-default source
 - [SheepShaver](https://www.emaculation.com/doku.php/sheepshaver) — for authoring new schemes under emulated classic Mac OS
 
-For questions about the format itself, the architecture spec ([`docs/aaron-ui-architecture-spec.md`](./aaron-ui-architecture-spec.md)) is the authoritative reference. For how a parsed `Theme` becomes DOM, see specs B + C ([`docs/aaron-ui-raster-mapping-spec.md`](./aaron-ui-raster-mapping-spec.md), [`docs/aaron-ui-composer-spec.md`](./aaron-ui-composer-spec.md)).
+For the resource-fork format itself, the decoders under `tools/theme-loader/` are the reference. For how a loaded scheme is drawn, see [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md).
