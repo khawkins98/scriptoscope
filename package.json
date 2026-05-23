@@ -50,7 +50,8 @@
     "screenshots": "node tools/scheme-screenshots.mjs",
     "build:themes": "node scripts/extract-scheme.mjs --all",
     "diag:render": "node scripts/render-window.mjs",
-    "diag:audit": "node scripts/audit-placement.mjs"
+    "diag:audit": "node scripts/audit-placement.mjs",
+    "lint:themes": "node scripts/lint-themes.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
