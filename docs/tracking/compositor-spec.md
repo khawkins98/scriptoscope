@@ -49,9 +49,12 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
   remainder spread L→R. **Symmetric about the title:** find the title-region
   cell, split the side into left/right halves, distribute each half independently
   so the (centred) title stays centred.
-- **Per-cell blit:** `cinf.tileSides` selects tile vs stretch for the fill;
-  code 18 always SCALEs (one blit); code 12 always tiles. A 1px src band ⇒ a
-  uniform fill either way.
+- **Per-cell blit:** the kDEF default blit (`0xfeae`) **always TILES** the src
+  cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
+  for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
+  (`0x10320`) is a single scaled blit. A 1px src band ⇒ a uniform fill.
+  (Correction: an earlier draft of this spec said tileSides selects tile-vs-
+  stretch; the 2.3.1 decode shows the blit is unconditional tiling.)
 - **THE WIDGET GAP (the bug that produced garbage):** widgets are BAKED INTO the
   cicn inside stretch cells (e.g. 1138's zoom/shade live inside the code-8
   pinstripe band at cicn x75–95). You must NOT tile/scale that baked art across

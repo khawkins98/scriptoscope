@@ -12,15 +12,16 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 //     → distribute slack EVENLY across stretch cells, split symmetrically
 //       about the title  (§"Draw + distribution" / kdef §0x5178 ×2)
 //     → place each cell's SRC band → DST band  (kdef §0x5356)
-//     → blit: code 18 = ONE scaled CopyBits; code 12 = whole-multiple tile;
-//       everything else = stretch-or-tile per cinf.tileSides  (kdef §0xfeae)
+//     → blit: code 18 = ONE scaled CopyBits (kdef §0x10320); EVERYTHING ELSE
+//       TILES the src cell across the dst (kdef §0xfeae always tiles — there is
+//       no scaled CopyBits for ordinary fills; cinf.tileSides does NOT gate it)
 //
 //   WIDGET CARVING (the key fix): close/zoom/shade widgets are BAKED into the
 //   cicn inside stretch cells (e.g. 1138's close box lives in the code-0 left
-//   cell, its zoom/shade in the code-8 pinstripe). We must NOT tile/scale that
-//   baked art. Instead we carve each rect-list widget rect out of the stretch
-//   cell — fill the segments AROUND it (stretch/tile per cinf), then stamp the
-//   widget ONCE from its rect-list rect, anchored (left widgets keep their x;
+//   cell, its zoom/shade in the code-8 pinstripe). We must NOT tile that baked
+//   art. Instead we carve each rect-list widget rect out of the stretch cell —
+//   tile the fill segments AROUND it, then stamp the widget ONCE from its
+//   rect-list rect, anchored (left widgets keep their x;
 //   right widgets ride the right edge as the fill before them grows).
 //
 //   TITLE TEXT is drawn separately in renderWindow.ts (centred on the content
@@ -179,8 +180,6 @@ interface EdgeGeometry {
   outExtent: number;
   /** the cicn template extent along the walk axis (full cicn width / height). */
   srcExtent: number;
-  /** tile (true) vs stretch (false) the fill cells — cinf.tileSides. */
-  tile: boolean;
   /**
    * Fixed corner size at the LEADING (`[0]`) and TRAILING (`[1]`) ends of the
    * walk axis (px). The leading `corner[0]` and trailing `corner[1]` px of the
@@ -399,19 +398,16 @@ function composeEdge(
       }
     }
   };
-  // Fill a dst band from a src band per cinf.tileSides (kDEF Q5):
-  //   tile    → repeat the WHOLE src band at its native size (the partial last
-  //             tile is clipped). Keeps a motif's pixel size.
-  //   stretch → nearest-neighbour SCALE the whole src band to the dst. For
-  //             pinstripes (horizontal lines) this preserves the lines; for
-  //             camo / metallic pipes it scales the motif. Corners + widgets
-  //             are protected (fixed corner cells + carving) so this can't
-  //             smear them. This is the kDEF's `0xfeae`/scale behaviour.
+  // Fill a dst band from a src band. The 2.3.1 kDEF default blit (`0xfeae`,
+  // kdef231-recipe-walk.md Q5) ALWAYS TILES: it repeats the src cell at native
+  // size, clipping the final partial tile. There is no scaled CopyBits for
+  // ordinary fills (only part code 18 / `0x10320` scales, handled separately).
+  // A 1px src band ⇒ a uniform fill; structured fills (camo / pipes) keep their
+  // texture. cinf.tileSides does NOT gate this — `0xfeae` tiles regardless.
   const drawFill = (s0: number, s1: number, dPos: number, dLen: number): void => {
     const sLen = s1 - s0;
     if (sLen <= 0 || dLen <= 0) return;
-    if (geo.tile) drawTile(s0, sLen, dPos, dLen);
-    else drawStretch(s0, sLen, dPos, dLen);
+    drawTile(s0, sLen, dPos, dLen);
   };
 
   // ── walk the cells ────────────────────────────────────────────────────────
@@ -602,7 +598,6 @@ export function composeWindowChrome(
   const out = PixelBuffer.alloc(fullW, fullH);
 
   const cinf = opts.cinf ?? windowType.cinf ?? null;
-  const tile = (cinf?.tileSides ?? 0) !== 0;
   const edges = windowType.edges;
   // Corner block size: the cinf cornerSize when present, else the adjacent
   // frame thickness (the corner is the side×top intersection — that art block
@@ -652,7 +647,7 @@ export function composeWindowChrome(
   if (edges?.top?.length) {
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      outExtent: fullW, srcExtent: cicn.width, tile, widgetSpans: topWidgetSpans,
+      outExtent: fullW, srcExtent: cicn.width, widgetSpans: topWidgetSpans,
       corner: [cLeft, cRight],
     }, widgetPresent);
   } else {
@@ -664,7 +659,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     leftRes = composeEdge(out, cicn, edges.left, {
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      outExtent: fullH, srcExtent: cicn.height, tile,
+      outExtent: fullH, srcExtent: cicn.height,
       widgetSpans: leftWidgets.map((w) => [w.t, w.b] as [number, number]),
       corner: [cTop, cBot],
     }, widgetPresent);
@@ -677,7 +672,7 @@ export function composeWindowChrome(
   if (frame.right > 0 && edges?.right?.length) {
     rightRes = composeEdge(out, cicn, edges.right, {
       edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height, tile,
+      crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height,
       widgetSpans: rightWidgets.map((w) => [w.t, w.b] as [number, number]),
       corner: [cTop, cBot],
     }, widgetPresent);
@@ -691,7 +686,7 @@ export function composeWindowChrome(
   if (frame.bottom > 0 && edges?.bottom?.length) {
     botRes = composeEdge(out, cicn, edges.bottom, {
       edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width, tile,
+      crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width,
       widgetSpans: botWidgets.map((w) => [w.l, w.r] as [number, number]),
       corner: [cLeft, cRight],
     }, widgetPresent);
@@ -749,10 +744,11 @@ export function composeWindowChrome(
 
   // ── aggregate the slice placement map (for the diagnostic) ────────────────
   const placement: PlacementSlice[] = [];
+  // Fill cells (stretch + tile classes) all blit via the kDEF tile path now,
+  // so they report 'tile'; code 18 scales; bezels collapse; the rest are fixed.
   const modeOf = (cls: CellClass): SliceMode =>
-    cls === 'tile' ? (tile ? 'tile' : 'stretch')
+    cls === 'tile' || cls === 'stretch' ? 'tile'
       : cls === 'scale' ? 'scale'
-      : cls === 'stretch' ? (tile ? 'tile' : 'stretch')
       : cls === 'collapse' ? 'collapse'
       : 'fixed';
   const collect = (edge: PlacementSlice['edge'], res: typeof topRes): void => {
