@@ -186,7 +186,8 @@
         const cell = document.createElement('div');
         const sel = i === selectedIdx;
         Object.assign(cell.style, {
-          padding: '2px 12px', borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
+          flex: '1', textAlign: 'center', padding: '2px 8px',
+          borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
           background: sel ? selBg : '#dcdcdc',
           color: sel ? '#ffffff' : '#000', fontWeight: sel ? '700' : '400',
         });
@@ -275,9 +276,10 @@
       desk.appendChild(win);
 
       // ── "On/Off" Options dialog — utility window, overlapping top-right ──
-      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: 92, height: 60, scale: 1, state });
-      const dlgW = parseInt(dlg.style.width) || (92 + 4);
-      const dlgH = parseInt(dlg.style.height) || (60 + 22);
+      const DLG_W = 108, DLG_PAD = 5, DLG_INNER = DLG_W - DLG_PAD * 2; // content + usable width
+      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: DLG_W, height: 64, scale: 1, state });
+      const dlgW = parseInt(dlg.style.width) || (DLG_W + 4);
+      const dlgH = parseInt(dlg.style.height) || (64 + 22);
       // Right-aligned (small margin), top at the main window's title-bar line —
       // the placement the legacy previews use. Clamped to stay inside the desk.
       const dlgLeft = Math.max(0, mainW - dlgW - 6);
@@ -285,15 +287,17 @@
       Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
       const dc = dlg.querySelector('.aw-content');
       if (dc) {
-        Object.assign(dc.style, { padding: '5px', display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
+        Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box', overflow: 'hidden' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
         // On/Off is a flat 2-SEGMENT TOGGLE, not tabs: the references draw it as
         // a flat rectangular pair (beos: dark "On" / light "Off"; 1984: two flat
         // blue cells), NOT the trapezoidal tab shape — and the scheme's actual
         // "Tabs" cicns (-998x, see composeTab) are gray trapezoids that don't
         // match. So render the header-tinted segmented control directly.
-        dc.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
-        const pg = await composeProgress(theme, { length: 86, value: 0.45 });
+        const onoff = segmentedTabs(theme, ['On', 'Off'], 0);
+        onoff.style.width = '100%'; // span the content (no overflow/clip); cells split
+        dc.appendChild(onoff);
+        const pg = await composeProgress(theme, { length: DLG_INNER, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
         const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
         const disc = (await composeDisclosure(theme, { direction: 'right' })) ?? platinumDisclosure({ direction: 'right' });
