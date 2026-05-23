@@ -375,21 +375,34 @@ function composeEdge(
   if (cells.length === 0) return null;
 
   // ── corner preservation ───────────────────────────────────────────────────
-  // Split a FIXED corner block off the leading/trailing ends so the rounded /
-  // jointed corner art (1990's camo joints, evolution's pipe elbows, 1138's
-  // rounded bezel) is drawn 1:1 and never stretched. We split only if the end
-  // cell is a growing cell (stretch/tile/scale) wider than the corner. The
-  // corner is CLAMPED so it never swallows a rect-list widget — the widget must
-  // stay wholly in the stretch cell so it carves+stamps cleanly (else it would
-  // be drawn twice: once in the fixed corner, once stamped).
+  // Keep the leading/trailing `cornerSize` px FIXED so the rounded / jointed
+  // corner art (1990's camo joints, evolution's pipe elbows, 1984's rounded
+  // title-tab with the close box) is drawn 1:1 and never grown. Two cases for a
+  // GROWING end cell (a non-fixed/collapse stretch/tile/scale cell):
+  //   • cell WIDER than the corner → split off `cornerSize` as a fixed block,
+  //     leave the remainder growing.
+  //   • cell ⩽ the corner → the whole cell lies inside the corner block, so make
+  //     it fixed outright (e.g. 1984's left edge, whose leading code-0 cell is
+  //     EXACTLY `frame.top` tall — without this it grows + tiles the corner tab
+  //     down the side border).
+  // The corner is CLAMPED so it never swallows a rect-list widget — the widget
+  // must stay in the growing cell so it carves+stamps cleanly (else it'd be
+  // drawn twice: once in the fixed corner, once stamped).
   const widgetMin = geo.widgetSpans.length ? Math.min(...geo.widgetSpans.map(([a]) => a)) : Infinity;
   const widgetMax = geo.widgetSpans.length ? Math.max(...geo.widgetSpans.map(([, b]) => b)) : -Infinity;
+  const isGrowing = (cl: CellClass): boolean => cl === 'stretch' || cl === 'tile' || cl === 'scale';
   {
     const c = cells[0]!;
     let cw = geo.corner[0];
-    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse' && c.x1 - c.x0 > cw) {
+    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse') {
       if (Number.isFinite(widgetMin)) cw = Math.min(cw, Math.max(0, widgetMin - c.x0));
-      if (cw > 0) cells.splice(0, 1,
+      // Freezing the WHOLE leading cell as the corner is only safe when some
+      // OTHER cell can still absorb the edge's growth; otherwise this cell IS
+      // the side fill and must keep growing (else the edge can't reach full
+      // extent — a coverage gap).
+      if (cw >= c.x1 - c.x0) {
+        if (cells.slice(1).some((o) => isGrowing(o.cls))) cells[0] = { x0: c.x0, x1: c.x1, code: c.code, cls: 'fixed' };
+      } else if (cw > 0) cells.splice(0, 1,
         { x0: c.x0, x1: c.x0 + cw, code: c.code, cls: 'fixed' },
         { x0: c.x0 + cw, x1: c.x1, code: c.code, cls: c.cls });
     }
@@ -397,9 +410,11 @@ function composeEdge(
   {
     const c = cells[cells.length - 1]!;
     let cw = geo.corner[1];
-    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse' && c.x1 - c.x0 > cw) {
+    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse') {
       if (Number.isFinite(widgetMax)) cw = Math.min(cw, Math.max(0, c.x1 - widgetMax));
-      if (cw > 0) cells.splice(cells.length - 1, 1,
+      if (cw >= c.x1 - c.x0) {
+        if (cells.slice(0, -1).some((o) => isGrowing(o.cls))) cells[cells.length - 1] = { x0: c.x0, x1: c.x1, code: c.code, cls: 'fixed' };
+      } else if (cw > 0) cells.splice(cells.length - 1, 1,
         { x0: c.x0, x1: c.x1 - cw, code: c.code, cls: c.cls },
         { x0: c.x1 - cw, x1: c.x1, code: c.code, cls: 'fixed' });
     }
