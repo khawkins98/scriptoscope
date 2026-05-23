@@ -15,6 +15,12 @@ export default defineConfig({
     outDir: '../dist/demo',
     emptyOutDir: true,
     sourcemap: false,
+    // The demo's module script uses top-level await (loadTheme); target a baseline
+    // that allows it (TLA = Chrome 89+/FF89+/Safari15+, i.e. the modern evergreens
+    // the PRD targets). Without this, esbuild's default es2020 target fails the
+    // build with "Top-level await is not available" — which had been silently
+    // breaking the GitHub Pages deploy while CI (library-only build) stayed green.
+    target: 'es2022',
     rollupOptions: {
       input: {
         index: resolve(import.meta.dirname, 'demo/index.html'),
