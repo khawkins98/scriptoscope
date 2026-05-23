@@ -98,8 +98,16 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
 - **1984 alert "red top edge"** — the red band is baked into the alert cicn
   (rows y2–5) — the scheme's intended alert accent, not an artefact.
 - **beos-r503 document-window "double R/B edge"** — that's the BeOS beveled
-  border (highlight + shadow), not a doubled line. The old transparent right-tail
-  is gone.
+  border (highlight + shadow), not a doubled line.
+- **beos-r503 document-window right-tail / bottom-right gap** — FIXED. The beos
+  active-doc cicn is a 92px-wide resource whose frame art ends at column 74 (its
+  top/bottom recipes likewise stop at border 75); the 17px transparent tail had
+  been inflating `frame.right` to 22px (vs the real 5px, symmetric with the left)
+  and, because the bottom recipe stops at 75, leaving the bottom edge short of the
+  corner. The compositor now sizes the structure rect to the cicn's *drawable*
+  extent (`drawableExtent`, the mask the kDEF blits with), not its raw bounds — a
+  no-op for every well-formed frame, trims only beos's padded frames. Right border
+  is now a clean 5px and the bottom-right corner meets.
 - **1984 popup** (V2 above).
 
 ---

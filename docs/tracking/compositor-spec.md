@@ -60,6 +60,14 @@ retired — it holds as long as no widget lands in a growing cell.
 
 ## Draw + distribution
 
+- **Template extent = the cicn's DRAWABLE extent, not its raw bounds.** The kDEF
+  blits the template with its mask and walks each side over `[0, lastBorder)`, so
+  columns/rows past the last drawn pixel are slack in the resource, not part of
+  the window. The compositor sizes the structure rect to the last opaque column/
+  row (`drawableExtent`). A no-op for every well-formed frame (art reaches the
+  bitmap edge); it trims only beos's active-doc-window, a 92px resource whose
+  frame ends at col 74 / recipe border 75 — without it `frame.right` inflates to
+  22px (real: 5px) and the bottom recipe (stops at 75) falls short of the corner.
 - **Cell↔partCode is END-BASED** (`0x5356`): segment i is `[border[i-1],
   border[i])` tagged `part[i]` — the part code travels with the border that
   CLOSES its cell. The segment loop (`0x4a64`) starts at index 1, so the

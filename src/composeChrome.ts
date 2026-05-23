@@ -127,6 +127,35 @@ export function frameFromBody(bodyRect: Rect, cicnW: number, cicnH: number): Fra
   };
 }
 
+/**
+ * The cicn's DRAWABLE extent — the last column/row carrying opaque art, +1.
+ *
+ * The kDEF blits the template with its mask and walks each side recipe over
+ * `[0, lastBorder)`, so columns/rows past the last drawn pixel are never part of
+ * the window — they're slack in the resource bitmap. Most cicns end their art at
+ * the bitmap edge (extent == raw dims, a no-op here), but a few carry a
+ * transparent tail: beos's active document-window is a 92px-wide resource whose
+ * frame ends at column 74 (its top/bottom recipes likewise stop at border 75).
+ * Taking the raw 92 would inflate `frame.right` to 22px — vs the real 5px,
+ * symmetric with the 5px left — and, because the bottom recipe stops at 75, leave
+ * the bottom edge short of the corner (the bottom-right gap). Using the drawable
+ * extent makes the structure rect match the frame the recipe actually draws.
+ * Only ever shrinks; the origin stays at (0, 0).
+ */
+function drawableExtent(cicn: PixelBuffer): { w: number; h: number } {
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < cicn.height; y++) {
+    for (let x = 0; x < cicn.width; x++) {
+      if (cicn.getPixel(x, y)[3] > 16) {
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  return { w: maxX < 0 ? cicn.width : maxX + 1, h: maxY < 0 ? cicn.height : maxY + 1 };
+}
+
 /** A rectangle in pixel space (for the diagnostic placement map). */
 export interface PixRectXY { x: number; y: number; w: number; h: number; }
 
@@ -529,7 +558,12 @@ export function composeWindowChrome(
 ): ComposedChrome {
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
-  const frame = frameFromBody(body.rect, cicn.width, cicn.height);
+  // The template's drawable extent, not its raw resource bounds — a transparent
+  // tail past the art is not part of the window (see drawableExtent). For every
+  // well-formed frame in the corpus this equals the raw dims (a no-op); it trims
+  // only beos's padded active document-window (92→75 wide).
+  const { w: drawW, h: drawH } = drawableExtent(cicn);
+  const frame = frameFromBody(body.rect, drawW, drawH);
 
   const fullW = frame.left + contentW + frame.right;
   const fullH = frame.top + contentH + frame.bottom;
@@ -569,7 +603,7 @@ export function composeWindowChrome(
   if (edges?.top?.length) {
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      outExtent: fullW, srcExtent: cicn.width,
+      outExtent: fullW, srcExtent: drawW,
     }, widgetPresent, opts.titleWidthPx ?? 0);
   }
 
@@ -578,7 +612,7 @@ export function composeWindowChrome(
   if (frame.left > 0 && edges?.left?.length) {
     leftRes = composeEdge(out, cicn, edges.left, {
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
-      outExtent: fullH, srcExtent: cicn.height,
+      outExtent: fullH, srcExtent: drawH,
     }, widgetPresent);
   }
 
@@ -586,8 +620,8 @@ export function composeWindowChrome(
   let rightRes: ReturnType<typeof composeEdge> = null;
   if (frame.right > 0 && edges?.right?.length) {
     rightRes = composeEdge(out, cicn, edges.right, {
-      edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
-      crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height,
+      edge: 'right', horizontal: false, crossSrc: drawW - frame.right, crossLen: frame.right,
+      crossDst: fullW - frame.right, outExtent: fullH, srcExtent: drawH,
     }, widgetPresent);
   }
 
@@ -596,8 +630,8 @@ export function composeWindowChrome(
   let botRes: ReturnType<typeof composeEdge> = null;
   if (frame.bottom > 0 && edges?.bottom?.length) {
     botRes = composeEdge(out, cicn, edges.bottom, {
-      edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
-      crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width,
+      edge: 'bottom', horizontal: true, crossSrc: drawH - frame.bottom, crossLen: frame.bottom,
+      crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: drawW,
     }, widgetPresent);
   }
 
@@ -619,8 +653,8 @@ export function composeWindowChrome(
       placement.push({
         edge, code: p.code, role: partRole(p.code), mode: modeOf(p.cls),
         src: edge === 'top' || edge === 'bottom'
-          ? { x: p.x0, y: edge === 'top' ? 0 : cicn.height - frame.bottom, w: p.x1 - p.x0, h: edge === 'top' ? frame.top : frame.bottom }
-          : { x: edge === 'left' ? 0 : cicn.width - frame.right, y: p.x0, w: edge === 'left' ? frame.left : frame.right, h: p.x1 - p.x0 },
+          ? { x: p.x0, y: edge === 'top' ? 0 : drawH - frame.bottom, w: p.x1 - p.x0, h: edge === 'top' ? frame.top : frame.bottom }
+          : { x: edge === 'left' ? 0 : drawW - frame.right, y: p.x0, w: edge === 'left' ? frame.left : frame.right, h: p.x1 - p.x0 },
         rects: edge === 'top' || edge === 'bottom'
           ? [{ x: p.out0, y: edge === 'top' ? 0 : fullH - frame.bottom, w: p.out1 - p.out0, h: edge === 'top' ? frame.top : frame.bottom }]
           : [{ x: edge === 'left' ? 0 : fullW - frame.right, y: p.out0, w: edge === 'left' ? frame.left : frame.right, h: p.out1 - p.out0 }],
