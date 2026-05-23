@@ -72,13 +72,24 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
   stretch cells and stamped them in a second pass; that was a workaround for the
   start-based off-by-one putting widgets in stretch cells, and is now retired.)
 
-## Title TEXT (separate from the frame)
+## Title TEXT + plate
 
-The title text is a **centred part** (placement mode 0, kDEF `0x35b0`/§9.4):
-positioned at the window content centre (`cx = frame.left + contentW/2`),
-independent of frame growth, in the cicn's text-colour (the `textPixel`/marker;
-white for evolution, blue for 1984, etc., NOT the clut). Already implemented in
-`renderWindow.ts`. Vertical band comes from the marker rect's y-extent.
+The title text is a **centred part**: positioned at the window content centre
+(`cx = frame.left + contentW/2`), independent of frame growth, in the header
+text colour. Drawn in `renderWindow.ts`.
+
+The **title PLATE** (the "pill" behind the text) is the chrome side of the same
+mechanism, decoded at kDEF `0x4a64`: the kDEF measures the title via `StringWidth`
+($A888 → `fp@(-2)`), gates it (title-fits at `0x4f58`), then sizes the title-
+anchor cell's DEST span to that **measured title-text width**, centred (`0x5034`;
+the `/2` at `0x4ff8`/`0x501c`). That anchor cell is **code 5** — flanked by
+code-6 bezels (`0x4f74`/`0x4f90`) — and its src (a 1px pill column in 1138) is
+tiled across the reserved width (`0xfeae`); the two fill halves pin to its edges.
+So the plate **grows to fit the title**, not the other way round. Implemented:
+`renderWindow` passes the measured `titleWidthPx` into `composeWindowChrome`;
+`distributeSide` grows the code-5 cell to it (code-6 fixed); the edge walk tiles
+the plate src across it. Without this the plate stays its tiny src width and dark
+header text spills onto the bezel (the 1138 symptom).
 
 ## Validation cases (the reference images are ground truth)
 
