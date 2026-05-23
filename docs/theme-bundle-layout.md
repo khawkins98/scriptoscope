@@ -1,6 +1,6 @@
 # Theme bundle layout
 
-How an Aaron UI theme bundle is organized on disk. The `theme.json` schema is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a bundle is the kDEF model in [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md).
+How an Aaron UI theme bundle is organized on disk. The `theme.json` schema is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a bundle is the kDEF model in [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).
 
 ## Directory tree
 
@@ -132,6 +132,6 @@ A future `extras/` sidecar concept may permit opt-in sounds/desktop/fonts for fi
 | `theme.json` schema | [`src/types.ts`](../src/types.ts) |
 | theme.json validator | [`tools/theme-loader/validateTheme.js`](../tools/theme-loader/validateTheme.js) |
 | Extractor → theme.json builder | [`tools/theme-loader/buildThemeJson.js`](../tools/theme-loader/buildThemeJson.js) |
-| How the compositor draws a bundle | [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) (model); [`src/composeChrome.ts`](../src/composeChrome.ts) + [`src/renderWindow.ts`](../src/renderWindow.ts) (impl) |
+| How the compositor draws a bundle | [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) (model); [`src/composeChrome.ts`](../src/composeChrome.ts) + [`src/renderWindow.ts`](../src/renderWindow.ts) (impl) |
 | Canonical bundle layout *(this doc)* | `docs/theme-bundle-layout.md` |
 | Reproducible bundle builder | [`scripts/extract-scheme.mjs`](../scripts/extract-scheme.mjs) |

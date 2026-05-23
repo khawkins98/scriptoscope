@@ -1,7 +1,7 @@
 # Aaron UI — the kDEF runtime architecture (the tour)
 
-*Diátaxis type: **explanation**. This is the "how does the whole thing work?"
-tour — read it before you need to look anything up. For a routine address /
+*This is the "how does the whole thing work?" tour — read it before you need to
+look anything up. For a routine address /
 resource id / struct offset, go to the [reference](./kdef231-reference.md)
 instead; for the implemented chrome model, the [compositor
 spec](./compositor-spec.md). This doc names mechanisms and links *down* to those

@@ -29,4 +29,4 @@ for an automated pixel diff:
 
 For the full analysis of this oracle-trust problem and what a properly
 version-matched ground truth would require, see
-[`../../../docs/tracking/golden-reference-todo.md`](../../../docs/tracking/golden-reference-todo.md).
+[`../../../docs/spec/golden-reference-todo.md`](../../../docs/spec/golden-reference-todo.md).

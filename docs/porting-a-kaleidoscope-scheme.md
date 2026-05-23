@@ -4,7 +4,7 @@ Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By
 
 **Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`).
 
-**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoders). The condensed version of this same flow lives in [`CONTRIBUTING.md` § Adding a theme](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme); this doc is the *long-form, troubleshooting* version.
+**Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoders). The condensed version of this same flow lives in [`CONTRIBUTING.md` § Adding a theme](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme); this doc is the *long-form, troubleshooting* version.
 
 ---
 
@@ -151,7 +151,7 @@ You should see:
 If the chrome looks off (stretched wrong, missing borders), inspect the
 recipe: the compositor walks `theme.json.windowTypes["document-window"].edges`
 (the `(partCode, border)` side lists) per the
-[compositor spec](./tracking/compositor-spec.md). A part code mislabelled by the
+[compositor spec](./spec/compositor-spec.md). A part code mislabelled by the
 decoder, or a window cinf the scheme didn't ship, is the usual cause.
 
 For a faster non-browser check, render the document window straight to a PNG:
@@ -215,11 +215,11 @@ Part IDs are scheme-relative (LEARNINGS 2026-05-17 "wnd# part IDs are scheme-rel
 
 The v3 compositor doesn't border-image-stretch the whole bitmap. It walks the
 `wnd#` side recipe and classifies each `(partCode, border)` cell as fixed,
-stretch, tile, or scale (see [`compositor-spec.md`](./tracking/compositor-spec.md)
+stretch, tile, or scale (see [`compositor-spec.md`](./spec/compositor-spec.md)
 § Part-code classification). A smeared ornament usually means the cell carrying
 it is being classified as stretch when it should be fixed — i.e. a part-code
 mismatch between `theme.json` and what the kDEF expects. The
-[2.3.1 recipe-walk decode](./tracking/kdef231-recipe-walk.md) (see its
+[2.3.1 recipe-walk decode](./spec/kdef231-recipe-walk.md) (see its
 "honest discrepancy" notes on evolution/beos) covers the known cases where the
 decoder's part numbering may not match the engine's. Document anything new in
 PROVENANCE.md and open an issue.
@@ -249,4 +249,4 @@ tools. Re-download the `.sit` and use `unar` on the original, then re-copy the
 - [mass:werk schemes](https://www.masswerk.at/schemes.php) — Norbert Landsteiner's freeware schemes
 - [SheepShaver](https://www.emaculation.com/doku.php/sheepshaver) — for authoring new schemes under emulated classic Mac OS
 
-For the resource-fork format itself, the decoders under `tools/theme-loader/` are the reference. For how a loaded scheme is drawn, see [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md).
+For the resource-fork format itself, the decoders under `tools/theme-loader/` are the reference. For how a loaded scheme is drawn, see [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).

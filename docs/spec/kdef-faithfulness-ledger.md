@@ -1,6 +1,6 @@
 # kDEF faithfulness ledger
 
-*Diátaxis type: **reference** (the routine→`composeChrome.ts` map + divergences). For the architecture tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
+*The routine→`composeChrome.ts` map + divergences. For the architecture tour, see [`kdef-architecture.md`](./kdef-architecture.md); for binary lookups, [`kdef231-reference.md`](./kdef231-reference.md).*
 
 A one-to-one map of the Kaleidoscope **2.3.1** kDEF (the decompiled 68k WDEF at
 `/tmp/kaleido-trace/kDEF231_0.asm`) to our clean-room reimplementation in

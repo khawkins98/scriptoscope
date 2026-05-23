@@ -6,7 +6,7 @@ X came from slice Y via mode Z") instead of eyeballing screenshots.
 
 Everything is built on **`ComposedChrome.placement`**: `composeWindowChrome`
 records, for every slice it draws, the cicn SOURCE rect, the render MODE
-(`fixed` / `stretch` / `tile` / `gradient` / `clean` / `plate` / `stamp`), the
+(`fixed` / `stretch` / `tile` / `scale` / `collapse` / `stamp`), the
 part code + role, and the OUTPUT rect(s) it produced (one per tile repeat).
 
 ## In the browser — the slice inspector
@@ -20,7 +20,7 @@ strip). It renders the document window at 2× with two-way lookup:
   boxes; a stretched one shows a single wide box; a stamped widget, one box.
   Filter by edge (top/bottom/left/right/widget).
 - **Inverse** — hover anywhere on the rendered window → a readout names the slice
-  under the cursor: `@150,3 → top p5 title region · clean · src 46,0 1×20`.
+  under the cursor: `@150,3 → top p8 side-fill · tile · src 46,0 1×20`.
 
 Use it to say, e.g., "that top-right area is `p8` side-fill tiled, but it should
 be the `p6` title region" — pointing at exact slices.
@@ -51,12 +51,10 @@ warnings, so it can gate CI. Checks:
 
 - **coverage** — each edge's output rects tile it with no internal gaps (catches
   the "chrome doesn't reach the edge" class).
-- **code→mode** — `p0` stays fixed (corner); `p18` is gradient; widget refs
+- **code→mode** — `p0` stays fixed (corner); `p18` is scale; widget refs
   (`1–4`) aren't stretched (stretching smears the baked widget).
 - **widgets** — every top rectList widget is stamped or sits in a fixed segment.
 - **mega-tile** — no slice tiled an implausible number of times.
-
-Triaged findings live in [tracking/diagnostic-findings.md](tracking/diagnostic-findings.md).
 
 ## Files
 - `src/composeChrome.ts` — `placement` model + `partRole`.
