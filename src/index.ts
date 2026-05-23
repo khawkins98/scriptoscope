@@ -29,8 +29,9 @@ export { loadCicnBuffer } from './cicnImage.js';
 export { rasterizeText } from './textRaster.js';
 export {
   platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
+  platinumWindow,
   type PlatinumCheckOptions, type PlatinumSliderOptions,
-  type PlatinumButtonOptions, type PlatinumScrollbarOptions,
+  type PlatinumButtonOptions, type PlatinumScrollbarOptions, type PlatinumWindowOptions,
 } from './platinum.js';
 export {
   composeScrollbar,
