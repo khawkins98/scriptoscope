@@ -168,7 +168,7 @@ export function buildThemeJson(manifest, options = {}) {
     source: manifest.source,
     generatedAt: manifest.extractedAt,
     note:
-      'Draft theme.json produced by @aaron-ui/scheme-extractor. ' +
+      'Draft theme.json produced by scripts/extract-scheme.mjs. ' +
       'Schema: src/types.ts.',
   };
 
