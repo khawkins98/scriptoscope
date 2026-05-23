@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing to Aaron UI.
 
-> **Status:** the project is on the **v3 part-code-compositor reset** — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/tracking/compositor-spec.md`](./docs/tracking/compositor-spec.md) for the current model. For any binary-level question — a routine address, a resource id, a struct offset, a coordinate mapping — the standing lookup reference is [`docs/tracking/kdef231-reference.md`](./docs/tracking/kdef231-reference.md).
+> **Status:** the project is on the **v3 part-code-compositor reset** ("v3" = an architecture generation, not a release version — the package is pre-1.0) — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the current model. For any binary-level question — a routine address, a resource id, a struct offset, a coordinate mapping — the standing lookup reference is [`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md).
 
 ## Your first code contribution
 
@@ -29,7 +29,7 @@ Aaron UI is plain TypeScript with no framework dependency.
    npm run lint:themes  # validate theme bundles
    ```
 
-4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/tracking/glitch-punchlist.md`](./docs/tracking/glitch-punchlist.md) for context. Safe first-time targets:
+4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
    - Improve a JSDoc comment that confused you the first time you read it.
    - Port an additional freeware scheme into the corpus (see "Adding a theme" below).
@@ -51,7 +51,7 @@ Aaron UI is plain TypeScript with no framework dependency.
   `feat/<thing>`, `fix/<thing>`, `docs/<thing>`, `chore/<thing>`,
   `refactor/<thing>`, `test/<thing>`, `spike/<thing>` (research,
   do-not-merge).
-- Never commit directly to `main`. Open a PR.
+- External contributions come via PR against `main`; the maintainer commits directly to the working branch in prototype mode (see the Status note above).
 
 ## Commit messages — Conventional Commits
 
@@ -118,7 +118,7 @@ feat(api)!: rename AaronWindow constructor option `theme` to `themeId`
 ## Before opening a PR
 
 - Make sure `npm run typecheck` is clean, and that the relevant diagnostics (`diag:render`, `diag:audit`, `lint:themes`) still pass for any chrome/theme change.
-- Update [`PRD.md`](./PRD.md) / the [`docs/tracking/`](./docs/tracking/) specs if behavior or architecture changed.
+- Update [`PRD.md`](./PRD.md) / the [`docs/spec/`](./docs/spec/) specs if behavior or architecture changed.
 - Add a note to [`LEARNINGS.md`](./LEARNINGS.md) if you discovered something non-obvious along the way — Mac OS HIG quirks, browser quirks, theme-bundle format edge cases, accessibility tradeoffs, period-Mac trivia that informed a decision — future contributors will thank you.
 - Don't commit build artifacts (`dist/`, `node_modules/`, theme working files, etc.).
 

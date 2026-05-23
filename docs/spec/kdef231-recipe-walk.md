@@ -1,6 +1,6 @@
 # Kaleidoscope 2.3.1 kDEF — window-frame recipe walk (decoded)
 
-*Diátaxis type: **explanation** (the deep decode derivation — why the model is what it is). For the lookup rubric, see [`kdef231-reference.md`](./kdef231-reference.md); for the architecture tour, [`kdef-architecture.md`](./kdef-architecture.md).*
+*The deep decode derivation — why the model is what it is. For the lookup rubric, see [`kdef231-reference.md`](./kdef231-reference.md); for the architecture tour, [`kdef-architecture.md`](./kdef-architecture.md).*
 
 Research-only. No repo code changed. This decodes how the **Kaleidoscope
 2.3.1** `kDEF 0` (68k WDEF replacement) turns a `wnd#` `(partCode, border)`

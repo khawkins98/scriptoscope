@@ -1,6 +1,6 @@
 # Kaleidoscope 2.3.1 kDEF — standing reference (rubric of coordinate mappings + logic)
 
-*Diátaxis type: **reference** — consult for lookups (addresses / ids / offsets / coordinates). For the "how does it work" tour, see [`kdef-architecture.md`](./kdef-architecture.md).*
+*A lookup reference — consult for addresses / ids / offsets / coordinates. For the "how does it work" tour, see [`kdef-architecture.md`](./kdef-architecture.md).*
 
 **What this is.** A lookup reference for the decompiled Kaleidoscope **2.3.1**
 `kDEF 0` — the combined 68k code resource (107,726 bytes) that both (a) draws

@@ -7,7 +7,7 @@
 **Companion documents:**
 
 - `tools/theme-loader/` (decoders) — the **input format**: the cicn/cinf/wnd#/ppat/Colr binary layout, decoded.
-- [`docs/tracking/compositor-spec.md`](./tracking/compositor-spec.md) + [`docs/tracking/kdef231-recipe-walk.md`](./tracking/kdef231-recipe-walk.md) — **how the kDEF compositor draws** a scheme's chrome.
+- [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) — **how the kDEF compositor draws** a scheme's chrome.
 - `src/types.ts` — the theme.json schema the runtime consumes.
 
 The decoders answer *"what bytes are in the file?"* This document answers *"what controls and states do those bytes represent across the corpus, and what should my implementation handle?"*
@@ -18,7 +18,7 @@ The decoders answer *"what bytes are in the file?"* This document answers *"what
 
 ## 1. Why this catalog exists separately from the compositor/format specs
 
-The format and compositor specs (`src/types.ts`, [`compositor-spec.md`](./tracking/compositor-spec.md)) define a `Theme` as a set of resources and how chrome is drawn. They do not say *which controls a scheme will contain*, *what they will be named*, or *which subset an implementation must support to be useful*. Without this catalog, every implementer rediscovers the same things:
+The format and compositor specs (`src/types.ts`, [`compositor-spec.md`](./spec/compositor-spec.md)) define a `Theme` as a set of resources and how chrome is drawn. They do not say *which controls a scheme will contain*, *what they will be named*, or *which subset an implementation must support to be useful*. Without this catalog, every implementer rediscovers the same things:
 
 - "Does every scheme have a slider thumb? In four directions?"
 - "Is `horizontal-scrollbar` always present, or is it sometimes `h-scroll-bar`? `horiztal-scrollbar` (typo)? `vertigo-scrollbar` (theme-specific name)?"
@@ -218,7 +218,7 @@ Renders chrome for the **document-window** type (active + inactive states) using
 
 This is roughly the minimum that produces a visually-themed window.
 
-**Required:** `chrome.document-window` slot, recipe-walk composition (the `wnd#` part-code model — see [`compositor-spec.md`](./tracking/compositor-spec.md)), ppat overlay if a cinf references one.
+**Required:** `chrome.document-window` slot, recipe-walk composition (the `wnd#` part-code model — see [`compositor-spec.md`](./spec/compositor-spec.md)), ppat overlay if a cinf references one.
 
 ### Level 2 — Full window-type chrome
 
@@ -259,7 +259,7 @@ Window chrome (Level 1–2) is implemented: the compositor composes every window
 
 Concrete consequences:
 
-- **Controls (Level 3)** have a confirmed data source for every planned widget — the asset catalog confirms the assets *physically exist* across the corpus, with regular naming. (The decoded draw recipes for the controls live in [`tracking/kdef231-reference.md`](./tracking/kdef231-reference.md) — §1.2/§2.2 for the 2.3.1-verified button face + ring, §2.6 for the remaining `[DOC]`-confidence families; the window-chrome model is in [`compositor-spec.md`](./tracking/compositor-spec.md).)
+- **Controls (Level 3)** have a confirmed data source for every planned widget — the asset catalog confirms the assets *physically exist* across the corpus, with regular naming. (The decoded draw recipes for the controls live in [`spec/kdef231-reference.md`](./spec/kdef231-reference.md) — §1.2/§2.2 for the 2.3.1-verified button face + ring, §2.6 for the remaining `[DOC]`-confidence families; the window-chrome model is in [`compositor-spec.md`](./spec/compositor-spec.md).)
 - **Level 2 chrome (other window types)** is done — the composition algorithm is identical across window types (one `composeWindowChrome` over the `wnd#` recipe), so adding a window type is data, not code.
 - **A conformance test suite** is partly realized: `diag:render` + `diag:audit` load, render, and compare each scheme against curated reference PNGs.
 - **New-scheme authoring** can target this catalog as its specification — a tool generating a Kaleidoscope-compatible scheme knows exactly which assets to produce for each conformance level.

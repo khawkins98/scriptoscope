@@ -5,7 +5,7 @@
 > **authoritative current narrative and architecture now live elsewhere**:
 > [`docs/history.md`](docs/history.md) (especially its
 > "[Dead ends — don't relitigate these](docs/history.md#dead-ends--dont-relitigate-these)"
-> section) and the specs under [`docs/tracking/`](docs/tracking/) (start with
+> section) and the specs under [`docs/spec/`](docs/spec/) (start with
 > `compositor-spec.md`). **Many entries below predate the v3 part-code-compositor
 > reset (2026-05-22)** and describe approaches that have since been superseded —
 > CSS `border-image` / 9-slice chrome, stretching fill regions, uniformity- or
@@ -1362,7 +1362,7 @@ This reversed the design direction. Per-segment composition came back (the right
 
 ## 2026-05-19 — Three-layer architecture reset, spec A landed (#132)
 
-After PR #130's per-segment composer (span-threshold hybrid: small spans get 1px-stretch, large spans get full-slice stretch), we hit a wall. The remaining heuristic questions — "what exactly should each cinf field do?", "when does part-1 vs part-8 win at a corner?", "is the period-faithful tile policy actually stretch or repeat?" — can't be answered from K2 documentation alone. The actual algorithm lives in 60-100KB of 68k assembly inside Kaleidoscope's kDEF resources. Disassembling that is a multi-week ticket parked in `docs/tracking/kdef-disassembly.md`.
+After PR #130's per-segment composer (span-threshold hybrid: small spans get 1px-stretch, large spans get full-slice stretch), we hit a wall. The remaining heuristic questions — "what exactly should each cinf field do?", "when does part-1 vs part-8 win at a corner?", "is the period-faithful tile policy actually stretch or repeat?" — can't be answered from K2 documentation alone. The actual algorithm lives in 60-100KB of 68k assembly inside Kaleidoscope's kDEF resources. Disassembling that looked like a multi-week ticket at the time — it was later done (the 2.3.1 decode; see [`docs/spec/kdef231-recipe-walk.md`](./docs/spec/kdef231-recipe-walk.md) + [`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md)).
 
 The reset: rather than continuing to iterate the rendering heuristics, we split the problem into **three layered specs** that can each be written and validated independently:
 
@@ -1450,7 +1450,7 @@ The prior entry said "install Ghidra + follow named functions." Did exactly that
 2. **NOP-patch the A-traps before Ghidra.** Ghidra's generic m68k decoder treats Mac A-line traps (`$Axxx` — CopyBits etc.) as illegal instructions, so every drawing function truncates at its first OS call. Replace the 1445 trap words (objdump marks them `.short 0xaXXX`) with `0x4e71` (NOP) → Ghidra decompiles through them → **198/210 functions as readable C**. You lose trap semantics but keep the integer layout math, which is what you're after.
 3. **Define the embedded jump tables as data.** 14 switch tables live inline in the code; if Ghidra disassembles through them it produces bad data. Read each table's size from its `cmpi #N` bound, define as a word array.
 
-**What the code revealed** (this was the 1.8.2 decode; the surviving, version-independent findings were later consolidated into `docs/tracking/kdef231-reference.md` — both the old `kdef-layout-recipes.md` and `kdef-disassembly-findings.md` write-ups have since been retired):
+**What the code revealed** (this was the 1.8.2 decode; the surviving, version-independent findings were later consolidated into `docs/spec/kdef231-reference.md` — both the old `kdef-layout-recipes.md` and `kdef-disassembly-findings.md` write-ups have since been retired):
 - **Window frames = recipe walk.** The `wnd#` side list is a structural frame-piece segment list (proven: the Modal Dialog has no widgets yet uses the same `p1/p8` codes). Fixed segments copy 1:1; grow segments (codes 5/6/8) stretch. Widgets are baked into the cicn; the recipe edge-anchors them as the window grows.
 - **Part positioning = a 3×3 anchor grid + center** (`0x35b0`), per-part offsets (`@44` anchor mode, `@46/@48` offsets, `@50` title sub-anchor). This is the Appearance-Manager model — close→left, zoom/shade→right, grow box→bottom-right. My left-to-right layout was the wrong model; that's what "felt hacked."
 - **Buttons = 3 state cicns (`-10240/-10239/-10238`) 9-sliced** into the rect. **Scrollbars = orientation × 4-state cicn selection** (`-8286…` horiz / `-8278…` vert), 1px track stretch, value-positioned thumb.

@@ -1,6 +1,6 @@
 # Aaron UI — project history
 
-*Diátaxis type: **explanation** (project arc + dead-ends). This records how the runtime got here and what NOT to relitigate — it is **not** the authority on how the runtime works today. For that, see [`tracking/kdef-architecture.md`](./tracking/kdef-architecture.md) (design) and the code + [`tracking/compositor-spec.md`](./tracking/compositor-spec.md) (model).*
+*Project arc + dead-ends. This records how the runtime got here and what NOT to relitigate — it is **not** the authority on how the runtime works today. For that, see [`spec/kdef-architecture.md`](./spec/kdef-architecture.md) (design) and the code + [`spec/compositor-spec.md`](./spec/compositor-spec.md) (model).*
 
 How the window-chrome renderer got to where it is. Written for the next person
 (or the next us) so the dead ends don't get re-walked. ~274 commits, 2026-05-16
@@ -104,7 +104,7 @@ API-compatible mimic**), we added two nets:
   against the kDEF's structural assumptions (drawable-extent tail, body-in-bounds,
   top/bottom recipe spans the width, recipe-less insets). Each rule maps to a real
   bug class we'd hit. Baseline: 0 errors, 0 warnings, documented notes only.
-- **`docs/tracking/kdef-faithfulness-ledger.md`** — a routine-by-routine map of the
+- **`docs/spec/kdef-faithfulness-ledger.md`** — a routine-by-routine map of the
   kDEF to our code, marking each ✓ faithful / ≈ approximated / ✗ deliberately
   skipped, with how it's verified and the divergences in writing.
 
@@ -162,15 +162,15 @@ piece, blocked on ground truth.
   keep a clean-room mimic; the binary is for *understanding*, not shipping.
 
 ## Map of the docs
-- `tracking/kdef-architecture.md` — **start here for "how does it work?"** The runtime architecture tour: subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window.
-- `tracking/kdef231-reference.md` — **start here for "where is X?"** The standing 2.3.1 kDEF reference: a lookup rubric of routine addresses, resource ids, struct offsets, and coordinate mappings. It indexes the docs below.
-- `tracking/compositor-spec.md` — the authoritative chrome model (the implemented consumer).
-- `tracking/kdef231-recipe-walk.md` — the part-code / draw decode (the deep derivation behind the reference + spec).
-- `tracking/kdef-faithfulness-ledger.md` — routine → our impl, with divergences.
-- `tracking/glitch-punchlist.md` — per-scheme render-quality status.
-- `tracking/golden-reference-todo.md` — the deferred golden-diff net + its blocker.
+- `spec/kdef-architecture.md` — **start here for "how does it work?"** The runtime architecture tour: subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window.
+- `spec/kdef231-reference.md` — **start here for "where is X?"** The standing 2.3.1 kDEF reference: a lookup rubric of routine addresses, resource ids, struct offsets, and coordinate mappings. It indexes the docs below.
+- `spec/compositor-spec.md` — the authoritative chrome model (the implemented consumer).
+- `spec/kdef231-recipe-walk.md` — the part-code / draw decode (the deep derivation behind the reference + spec).
+- `spec/kdef-faithfulness-ledger.md` — routine → our impl, with divergences.
+- `spec/glitch-punchlist.md` — per-scheme render-quality status.
+- `spec/golden-reference-todo.md` — the deferred golden-diff net + its blocker.
 - `diagnostic-tooling.md` — the Playground + `diag:render` / `diag:audit` CLIs.
 - `kaleidoscope-asset-catalog.md`, `porting-a-kaleidoscope-scheme.md`,
   `theme-bundle-layout.md` — reference material. (The old 1.8.2-era
   `kdef-layout-recipes.md` was retired 2026-05-23 — folded into
-  `tracking/kdef231-reference.md §2.6` + the asset catalog's Platinum-fallback §6.1.)
+  `spec/kdef231-reference.md §2.6` + the asset catalog's Platinum-fallback §6.1.)
