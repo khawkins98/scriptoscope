@@ -35,12 +35,28 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 
 | code(s) | behaviour |
 |---|---|
-| 1, 5, 6, 7, 9, 10, default | **FIXED** — drawn 1:1 at src width. (5/6 are the title bezel: fixed when the title fits; collapse to 0 when it doesn't; never grow.) |
+| 1, 5, 6, 7, 9, default | **FIXED** — drawn 1:1 at src width. (5/6 are the title bezel: fixed when the title fits; collapse to 0 when it doesn't; never grow.) |
 | 0, 8, 11, 13, 14 | **STRETCH** — even share of the slack. |
+| 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): stretches when title-fits is set (`#1` on non-title sides). We classify it FIXED — render-correct for the corpus (see note). |
 | 15, 16, 17 | stretch iff the corresponding widget is PRESENT (cinf flag); else fixed. |
 | 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; stretch (gap fills) when absent. |
 | 12 | **TILE** — like stretch but the dst width is rounded to a whole multiple of src width. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
+
+**code 10 note:** the corpus's code-10 cells resolve to fixed: the 1138 utility
+windows are label-less (title-fits false → fixed) and their code-10 band has the
+close/zoom widget BAKED in (a grown cell would tile-smear it); 1984's doc-window
+code-10 is on a non-title edge over a UNIFORM bar (fixed ≡ stretch). Fully gating
+it would need the per-edge title-fits flag + the kDEF's separate rect-list
+widget-draw pass (`0x5ffc`/`0x5ddc`), with no visible change.
+
+**Widget draw:** the kDEF draws the named widgets in a SEPARATE pass over the
+rect-list (`0x5ffc` → `0x5ddc`, called from the draw dispatch), NOT in the recipe
+walk (`0x572e` never touches the rect-list `a4@1938`). We don't replicate that
+pass; instead the widgets ride the FIXED recipe cells they sit in (empirically
+all corpus widgets land in code 1/2/3/4 fixed/gap cells or the fixed leading
+corner), drawn 1:1 by the edge walk. This is why the carving/stamp pass could be
+retired — it holds as long as no widget lands in a growing cell.
 
 ## Draw + distribution
 

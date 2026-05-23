@@ -38,7 +38,7 @@ type CellClass = 'fixed' | 'stretch' | 'tile' | 'scale' | 'collapse';
  * Part-code classification — the decoded 2.3.1 jump table (`0x49d6`) plus the
  * `0x5178` fill chains, per compositor-spec.md "Part-code classification":
  *
- *   1, 5, 6, 7, 9, 10, default → FIXED (drawn 1:1).
+ *   1, 5, 6, 7, 9, default → FIXED (drawn 1:1).
  *     5/6 are the title bezel: fixed when the title fits, collapse to 0 when
  *     it doesn't; they never grow. We mark them 'collapse' so they hold their
  *     src width but never participate in the slack budget.
@@ -48,6 +48,19 @@ type CellClass = 'fixed' | 'stretch' | 'tile' | 'scale' | 'collapse';
  *     stretch (the gap fills) when absent.
  *   12 → TILE (dst rounded to a whole multiple of src width).
  *   18 → SCALE (a single scaled CopyBits, drawn once).
+ *
+ * CODE 10 is FLAG-GATED in the kDEF (jump table 0x4a0c returns the caller's flag
+ * byte): it stretches when the title-fits flag is set — which is #1 on the
+ * non-title side calls and the title-fits byte on the title side. We classify it
+ * FIXED, and that is render-correct for this corpus: the corpus's code-10 cells
+ * are either (a) on a title-LESS window's title edge (the utility windows draw
+ * no label → title-fits is false → fixed — and crucially their code-10 band has
+ * the close/zoom widget BAKED in, which a growing cell would tile-smear), or
+ * (b) on a non-title edge over a UNIFORM bar (1984 doc-window bottom/right),
+ * where fixed and stretch render identically. Faithfully gating code 10 would
+ * need the per-edge title-fits flag plumbed in + the kDEF's separate rect-list
+ * widget-draw pass (0x5ffc/0x5ddc, which we don't replicate) to keep a
+ * widget-bearing grown cell crisp — with no visible change to this corpus.
  *
  * `widgetPresent` is the cinf widget-state gate (we treat all named widgets as
  * present — the bundled corpus always ships the close/zoom/shade boxes).
@@ -78,7 +91,7 @@ function classifyPart(code: number, widgetPresent: boolean): CellClass {
       // the widget cell: stretches only when the widget is PRESENT
       return widgetPresent ? 'stretch' : 'fixed';
     default:
-      return 'fixed'; // 1, 7, 9, 10, and any unknown code
+      return 'fixed'; // 1, 7, 9, 10 (flag-gated → fixed here), and unknown codes
   }
 }
 
