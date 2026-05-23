@@ -44,25 +44,33 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 
 ## Draw + distribution
 
+- **Cell↔partCode is END-BASED** (`0x5356`): segment i is `[border[i-1],
+  border[i])` tagged `part[i]` — the part code travels with the border that
+  CLOSES its cell. The segment loop (`0x4a64`) starts at index 1, so the
+  pre-first-border region `[0, border[0])` is never a growing segment — it is the
+  **fixed leading CORNER, drawn 1:1**. The trailing `[border[N-1], srcExtent)` is
+  likewise a 1:1 corner. (Corner preservation is intrinsic to the walk — there is
+  no separate cornerSize heuristic.)
 - **Distribution** (`0x5178`): budget = (output edge extent − Σ fixed-cell src
   widths); each stretch cell gets `budget / numStretch` (EVEN, not proportional),
   remainder spread L→R. **Symmetric about the title:** find the title-region
   cell, split the side into left/right halves, distribute each half independently
-  so the (centred) title stays centred.
+  so the (centred) title stays centred. A half with NO stretch cell keeps its
+  source width and cedes the slack to the other half (asymmetric schemes like
+  1990's left-third title).
 - **Per-cell blit:** the kDEF default blit (`0xfeae`) **always TILES** the src
   cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
   for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
   (`0x10320`) is a single scaled blit. A 1px src band ⇒ a uniform fill.
   (Correction: an earlier draft of this spec said tileSides selects tile-vs-
   stretch; the 2.3.1 decode shows the blit is unconditional tiling.)
-- **THE WIDGET GAP (the bug that produced garbage):** widgets are BAKED INTO the
-  cicn inside stretch cells (e.g. 1138's zoom/shade live inside the code-8
-  pinstripe band at cicn x75–95). You must NOT tile/scale that baked art across
-  the grown cell. Instead: **carve the rect-list widget rects out of the stretch
-  cell** — draw the fill segments around them (stretch/tile), and draw each
-  widget ONCE from its rect-list rect, anchored. As the fill grows, left widgets
-  stay left and right widgets ride the right edge automatically (the fill before
-  a right widget absorbs the slack). This is the kDEF's widget anchoring.
+- **Widgets ride the FIXED cells (no carving):** the close/zoom/shade widgets are
+  baked into the cicn title bar, and with the end-based association they fall
+  inside the wide FIXED title-bar cells (code 1) — drawn 1:1 by the edge walk,
+  anchored, never tiled. Verified: 0 widgets land in a growing cell across all
+  corpus window types. (An earlier model carved the rect-list widget rects out of
+  stretch cells and stamped them in a second pass; that was a workaround for the
+  start-based off-by-one putting widgets in stretch cells, and is now retired.)
 
 ## Title TEXT (separate from the frame)
 
@@ -83,18 +91,21 @@ Render at a few sizes and compare to `demo/assets/references/<slug>.png`:
   dark box beside the title.
 - **beos**: yellow tab, clean uniform thin border that fills the bottom.
 
-## Known gaps to close in the rebuild
+## Status / remaining
 
-1. **Surface `cinf`** (cornerSize / sideThickness / tileSides / textPixel) into
-   the theme data + use it (corner size, tile-vs-stretch, title colour/position).
-   Needs an extractor pass + the runtime loader.
-2. **Carve rect-list widgets out of stretch cells** (the anchoring above) instead
-   of clean-filling + stamping — so widget regions stay crisp and the fill keeps
-   its texture instead of collapsing to one sampled column.
-3. **Structured wide fills** (camo/pipes): decide scale-band vs tile-per-cinf so
-   they keep texture instead of reading flat. Validate against the references.
-4. **Rewrite `diag:audit`** to the part-code model (its invariants assume the old
-   model — "code 0 fixed", "no tile" — and now throw ~163 false warnings).
+The model above is implemented in `composeChrome.ts` and the corpus renders
+faithfully (see `glitch-punchlist.md`). Resolved since the first draft: tile-not-
+stretch blit, end-based cell association, grounded corners, and the retirement of
+the widget-carving + cornerSize-split heuristics (widgets ride fixed cells now).
+Open:
+1. **`cinf` is not surfaced/used** (cornerSize / sideThickness / tileSides /
+   textPixel). The corpus ships no window `cinf`, so the compositor derives the
+   corner from the recipe and tiles unconditionally — faithful for this corpus,
+   but a scheme that DID ship a window cinf wouldn't be honoured.
+2. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
+   texture; a couple of corner joints read marginally off at extreme widths (M5).
+3. **1984 title-bar arch** (V1b): a baked tab-curve in a `part-15` stretch cell
+   that exceeds the corner — the one remaining ornament-in-stretch-cell case.
 
 ## References
 - `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
