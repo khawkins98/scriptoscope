@@ -274,7 +274,7 @@ function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: num
  * half distributes its own slack independently so the centred title stays
  * centred. When there is no title region, the whole side is one half.
  */
-function distributeSide(cells: RawCell[], outExtent: number, srcStart: number): number[] {
+function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, titleWidthPx = 0): number[] {
   // The title-region cells are the collapse run (codes 5/6).
   let tLo = -1, tHi = -1;
   for (let i = 0; i < cells.length; i++) {
@@ -289,10 +289,24 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number): 
     return widths;
   }
 
-  // Title bezel keeps its src width and anchors the split.
+  // Title region: the code-6 cells are fixed flanking bezels; the code-5 cell is
+  // the title PLATE. The kDEF reserves the MEASURED title-text width for it
+  // (0x4a64 measures via StringWidth → 0x5034 sets the title cell's DEST span to
+  // that width), tiling the plate's src across it (the "pill"). So code-5 grows
+  // to fit the title; code-6 keep their src width. With no title (titleWidthPx 0)
+  // the plate stays at its src width. Clamp so an over-long title still leaves
+  // the side a little room (the kDEF's title-fits gate, 0x4f58).
+  let bezelSrc = 0;
+  for (let i = tLo; i < tHi; i++) if (cells[i]!.code !== 5) bezelSrc += cells[i]!.x1 - cells[i]!.x0;
+  const plateCap = Math.max(0, outExtent - srcStart - bezelSrc - 4);
   let titleW = 0;
-  for (let i = tLo; i < tHi; i++) titleW += cells[i]!.x1 - cells[i]!.x0;
-  for (let i = tLo; i < tHi; i++) widths[i] = cells[i]!.x1 - cells[i]!.x0;
+  for (let i = tLo; i < tHi; i++) {
+    const c = cells[i]!;
+    const src = c.x1 - c.x0;
+    const w = c.code === 5 ? Math.min(Math.max(src, titleWidthPx), plateCap) : src;
+    widths[i] = w;
+    titleW += w;
+  }
 
   // Split the remaining output extent between the two halves. A half can only
   // absorb slack if it has at least one stretch cell; an all-fixed half holds
@@ -352,6 +366,7 @@ function composeEdge(
   recipe: EdgeStep[],
   geo: EdgeGeometry,
   widgetPresent: boolean,
+  titleWidthPx = 0,
 ): { placed: PlacedCell[]; titleStart: number; titleEnd: number } | null {
   // The recipe's last `at` closes the final cell; it is the src extent the
   // recipe describes (often == cicn extent, sometimes short — we cap fill at
@@ -367,7 +382,7 @@ function composeEdge(
   // The first cell's x0 is the recipe's start offset; the region before it
   // maps 1:1, so output starts there too.
   const srcStart = cells[0]!.x0;
-  const dstWidths = distributeSide(cells, geo.outExtent, srcStart);
+  const dstWidths = distributeSide(cells, geo.outExtent, srcStart, titleWidthPx);
 
   const placed: PlacedCell[] = [];
   let titleStart = -1, titleEnd = -1;
@@ -426,12 +441,14 @@ function composeEdge(
     if (c.cls === 'scale') {
       // code 18: a single scaled CopyBits — drawn ONCE, src band → dst band.
       drawStretch(c.x0, srcLen, outPos, dstLen);
-    } else if (c.cls === 'fixed' || c.cls === 'collapse') {
+    } else if (c.cls === 'fixed') {
       // 1:1 copy, anchored (corners, bezels, and the widgets — close/zoom/shade
       // ride the FIXED title-bar regions, so they're drawn here at native size).
       drawStretch(c.x0, srcLen, outPos, srcLen); // dstLen == srcLen here
     } else {
-      // growing fill cell (codes 0/8/11/12/13/14): tile the src band.
+      // growing fill cell (0/8/11/12/13/14) AND the title plate (collapse code 5,
+      // grown to the measured title width): tile the src band across the dst.
+      // For an unexpanded collapse cell dstLen == srcLen, so this is a 1:1 copy.
       drawFill(c.x0, c.x1, outPos, dstLen);
     }
 
@@ -518,7 +535,7 @@ export function composeWindowChrome(
   windowType: WindowType,
   contentW: number,
   contentH: number,
-  opts: { cinf?: WindowCinf | null } = {},
+  opts: { cinf?: WindowCinf | null; titleWidthPx?: number } = {},
 ): ComposedChrome {
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
@@ -558,7 +575,7 @@ export function composeWindowChrome(
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       outExtent: fullW, srcExtent: cicn.width,
-    }, widgetPresent);
+    }, widgetPresent, opts.titleWidthPx ?? 0);
   } else {
     composeSeamFallback(out, cicn, frame.top, fullW);
   }

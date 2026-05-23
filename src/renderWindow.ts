@@ -59,10 +59,12 @@ export async function renderWindow(
   const isUtility = /utility|mini|floating|palette/.test(slug);
   const showTitle = !!title && !isUtility;
 
-  // ── title geometry: the title TEXT is a CENTRED part, independent of the
-  // frame growth (kDEF placement mode 0). We rasterize it and stamp it centred
-  // on the window content centre; the chrome itself is composed by the
-  // part-code recipe walk (the title bezel cells 5/6 hold the centred text). ──
+  // ── title geometry: the title TEXT is a CENTRED part (kDEF placement mode 0).
+  // We rasterize it (width pass) BEFORE composing so the compositor can reserve
+  // the measured title-text width for the title-plate cell (code 5) — the kDEF
+  // measures the title via StringWidth and sizes that cell to it (0x4a64/0x5034),
+  // tiling the plate src across it (the "pill" behind the title). Without that
+  // the plate stays its tiny src width and the text spills onto the bezel. ──
   const frameTop = wt.parts['part-0']?.rect[1] ?? 0;
   let glyphs: PixelBuffer | null = null;
   let textH = 0;
@@ -70,8 +72,11 @@ export async function renderWindow(
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
     glyphs = rasterizeText(title, textH, '#000000'); // width pass; recoloured below
   }
+  // Plate width = measured title width + a little padding each side (the kDEF
+  // measures with trailing space, 0x4f18); 0 when there's no visible title.
+  const titleWidthPx = glyphs ? glyphs.width + 8 : 0;
 
-  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null });
+  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
