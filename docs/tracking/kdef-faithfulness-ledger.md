@@ -50,8 +50,10 @@ to a bug class we hit reactively before the linter existed:
 ## What no automated net catches yet (still eyeball-only)
 
 - Pixel-exact fidelity to the **reference images** — there is no golden render-vs-
-  reference diff yet (the "Layer 2" net). The structured-fill joints at extreme
-  widths (M5) and the 1984 title-bar arch (V1b) live here.
+  reference diff yet (the "Layer 2" net), and it's blocked on trustworthy ground
+  truth — see [golden-reference-todo.md](golden-reference-todo.md). The
+  structured-fill joints at extreme widths (M5) and the 1984 title-bar arch (V1b)
+  live here.
 - Anything requiring the **per-edge title-fits flag** or the **widget-draw pass**
   we skip — guarded only indirectly (corpus has no widget in a growing cell).
 
