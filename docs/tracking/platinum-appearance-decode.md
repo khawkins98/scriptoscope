@@ -42,6 +42,14 @@ $A863 · PenPat $A89D · PenSize $A89B · PenMode $A89C · GetResource $A9A0`.
 - `cicn` (15) — all 32×32 system/alert icons (NOT control glyphs).
 - `ppat 16` (128×128), `ppat 18` (8×8), `ppat 42` (16×16) — background/pen
   patterns (candidate: the 8×8 may be a fill pattern). Not yet characterized.
+- `cctb 0` (control colour table) — **also B&W default** (#000 frame / #fff body /
+  #000 text + #ccccff/#333366 selection), like `wctb 0`. So the Platinum control
+  grays are NOT in any resource — they're supplied by the **Appearance Manager**,
+  which is a **PPC CFM library** (`cfrg` directory present; code in the System data
+  fork), NOT a 68k resource. → the exact control gradient/colours are only
+  obtainable by reverse-engineering the PPC Appearance Manager (`DrawThemeButton`)
+  — a separate, much larger effort than these clean 68k WDEF/CDEF decodes. The
+  WINDOW (WDEF 0) is the one piece that draws Platinum *directly* in decodable 68k.
 
 ## WDEF 0 — window frame drawing recipe (DECODED)
 
