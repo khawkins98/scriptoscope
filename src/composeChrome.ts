@@ -181,15 +181,6 @@ interface EdgeGeometry {
   /** the cicn template extent along the walk axis (full cicn width / height). */
   srcExtent: number;
   /**
-   * Fixed corner size at the LEADING (`[0]`) and TRAILING (`[1]`) ends of the
-   * walk axis (px). The leading `corner[0]` and trailing `corner[1]` px of the
-   * edge are drawn 1:1 from the cicn (the rounded/jointed corner art) and never
-   * stretched; only the interior between them takes the recipe's growth. For
-   * top/bottom this is the adjacent side thickness; for left/right it's the
-   * adjacent top/bottom thickness. The kDEF's `cornerSize`.
-   */
-  corner: [number, number];
-  /**
    * Rect-list WIDGET spans `[start, end]` along the walk axis (close/zoom/
    * shade boxes), in cicn coordinates. A fill cell overlapping one is drawn
    * AROUND the widget; the widget itself is stamped once (carving). Title
@@ -218,9 +209,17 @@ interface RawCell {
  * stretch codes 0/8 instead of the FIXED code 1 they actually carry, so the
  * baked chevron ornaments landed in growing cells and repeated when tiled.)
  *
- * `border[-1]` is 0 (the edge origin), so the first entry tags the leading
- * `[0, border[0])` region; entries whose border equals the previous one (the
- * `border 0` origin marker, coincident borders) collapse to zero width.
+ * LEADING CORNER: the kDEF's segment loop (`0x4a64` / the draw loop) starts at
+ * index 1 — it NEVER treats the pre-first-border region `[0, border[0])` as a
+ * growing segment. That region is drawn 1:1 (the fixed corner). So when the
+ * first border is > 0 (e.g. 1984's left edge, `border[0]=27` — the rounded
+ * title-tab), the leading cell is FIXED regardless of its part code; only the
+ * cells from `border[0]` onward classify by code. (When `border[0]=0` there is
+ * no leading region and the first real cell is a normal segment.) This is the
+ * grounded replacement for the old cornerSize-split heuristic.
+ *
+ * `border[-1]` is 0 (the edge origin); entries whose border equals the previous
+ * one (the `border 0` origin marker, coincident borders) collapse to zero width.
  */
 function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolean): RawCell[] {
   const sorted = [...recipe].sort((a, b) => a.at - b.at);
@@ -232,7 +231,10 @@ function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolea
     prev = x1;
     if (x1 <= x0) continue; // zero-width (border-0 origin / coincident borders)
     const code = partCode(sorted[i]!.part);
-    cells.push({ x0, x1, code, cls: classifyPart(code, widgetPresent) });
+    // i===0 only emits when border[0] > 0 — that cell is the leading
+    // `[0, border[0])` region → the fixed corner, drawn 1:1 (never grows).
+    const cls: CellClass = i === 0 ? 'fixed' : classifyPart(code, widgetPresent);
+    cells.push({ x0, x1, code, cls });
   }
   return cells;
 }
@@ -374,51 +376,11 @@ function composeEdge(
   const cells = recipeCells(recipe, lastAt, widgetPresent);
   if (cells.length === 0) return null;
 
-  // ── corner preservation ───────────────────────────────────────────────────
-  // Keep the leading/trailing `cornerSize` px FIXED so the rounded / jointed
-  // corner art (1990's camo joints, evolution's pipe elbows, 1984's rounded
-  // title-tab with the close box) is drawn 1:1 and never grown. Two cases for a
-  // GROWING end cell (a non-fixed/collapse stretch/tile/scale cell):
-  //   • cell WIDER than the corner → split off `cornerSize` as a fixed block,
-  //     leave the remainder growing.
-  //   • cell ⩽ the corner → the whole cell lies inside the corner block, so make
-  //     it fixed outright (e.g. 1984's left edge, whose leading code-0 cell is
-  //     EXACTLY `frame.top` tall — without this it grows + tiles the corner tab
-  //     down the side border).
-  // The corner is CLAMPED so it never swallows a rect-list widget — the widget
-  // must stay in the growing cell so it carves+stamps cleanly (else it'd be
-  // drawn twice: once in the fixed corner, once stamped).
-  const widgetMin = geo.widgetSpans.length ? Math.min(...geo.widgetSpans.map(([a]) => a)) : Infinity;
-  const widgetMax = geo.widgetSpans.length ? Math.max(...geo.widgetSpans.map(([, b]) => b)) : -Infinity;
-  const isGrowing = (cl: CellClass): boolean => cl === 'stretch' || cl === 'tile' || cl === 'scale';
-  {
-    const c = cells[0]!;
-    let cw = geo.corner[0];
-    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse') {
-      if (Number.isFinite(widgetMin)) cw = Math.min(cw, Math.max(0, widgetMin - c.x0));
-      // Freezing the WHOLE leading cell as the corner is only safe when some
-      // OTHER cell can still absorb the edge's growth; otherwise this cell IS
-      // the side fill and must keep growing (else the edge can't reach full
-      // extent — a coverage gap).
-      if (cw >= c.x1 - c.x0) {
-        if (cells.slice(1).some((o) => isGrowing(o.cls))) cells[0] = { x0: c.x0, x1: c.x1, code: c.code, cls: 'fixed' };
-      } else if (cw > 0) cells.splice(0, 1,
-        { x0: c.x0, x1: c.x0 + cw, code: c.code, cls: 'fixed' },
-        { x0: c.x0 + cw, x1: c.x1, code: c.code, cls: c.cls });
-    }
-  }
-  {
-    const c = cells[cells.length - 1]!;
-    let cw = geo.corner[1];
-    if (cw > 0 && c.cls !== 'fixed' && c.cls !== 'collapse') {
-      if (Number.isFinite(widgetMax)) cw = Math.min(cw, Math.max(0, c.x1 - widgetMax));
-      if (cw >= c.x1 - c.x0) {
-        if (cells.slice(0, -1).some((o) => isGrowing(o.cls))) cells[cells.length - 1] = { x0: c.x0, x1: c.x1, code: c.code, cls: 'fixed' };
-      } else if (cw > 0) cells.splice(cells.length - 1, 1,
-        { x0: c.x0, x1: c.x1 - cw, code: c.code, cls: c.cls },
-        { x0: c.x1 - cw, x1: c.x1, code: c.code, cls: 'fixed' });
-    }
-  }
+  // Corner preservation is now intrinsic to the recipe walk, not a heuristic:
+  // the LEADING corner is `recipeCells`' first cell `[0, border[0])` (fixed,
+  // 1:1 — the kDEF segment loop starts past it); the TRAILING corner is the
+  // far-edge cap below (`[lastAt, srcExtent)`, stamped 1:1). The old
+  // cornerSize-split heuristic (geo.corner) is retired.
 
   // The first cell's x0 is the recipe's start offset; the region before it
   // maps 1:1, so output starts there too.
@@ -657,13 +619,6 @@ export function composeWindowChrome(
 
   const cinf = opts.cinf ?? windowType.cinf ?? null;
   const edges = windowType.edges;
-  // Corner block size: the cinf cornerSize when present, else the adjacent
-  // frame thickness (the corner is the side×top intersection — that art block
-  // stays fixed). The window ships no cinf in the corpus, so this is the frame.
-  const cTop = cinf?.cornerSize ?? frame.top;
-  const cBot = cinf?.cornerSize ?? frame.bottom;
-  const cLeft = cinf?.cornerSize ?? frame.left;
-  const cRight = cinf?.cornerSize ?? frame.right;
 
   // ── rect-list classification ──────────────────────────────────────────────
   // part-0 is the body. The remaining parts are widgets (close/zoom/shade) and
@@ -706,7 +661,6 @@ export function composeWindowChrome(
     topRes = composeEdge(out, cicn, edges.top, {
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       outExtent: fullW, srcExtent: cicn.width, widgetSpans: topWidgetSpans,
-      corner: [cLeft, cRight],
     }, widgetPresent);
   } else {
     composeSeamFallback(out, cicn, frame.top, fullW);
@@ -719,7 +673,6 @@ export function composeWindowChrome(
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       outExtent: fullH, srcExtent: cicn.height,
       widgetSpans: leftWidgets.map((w) => [w.t, w.b] as [number, number]),
-      corner: [cTop, cBot],
     }, widgetPresent);
   } else if (frame.left > 0) {
     out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 }, { x: 0, y: frame.top, w: frame.left, h: contentH });
@@ -732,7 +685,6 @@ export function composeWindowChrome(
       edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height,
       widgetSpans: rightWidgets.map((w) => [w.t, w.b] as [number, number]),
-      corner: [cTop, cBot],
     }, widgetPresent);
   } else if (frame.right > 0) {
     out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 }, { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
@@ -746,7 +698,6 @@ export function composeWindowChrome(
       edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width,
       widgetSpans: botWidgets.map((w) => [w.l, w.r] as [number, number]),
-      corner: [cLeft, cRight],
     }, widgetPresent);
   } else if (frame.bottom > 0) {
     out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom }, { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
