@@ -1,10 +1,9 @@
 // Runtime Kaleidoscope scheme loader — decode a .ksc / .rsrc resource
 // fork on the fly into an in-memory Theme.
 //
-// Replaces the build-time pipeline (DeRez → .r → extractor → theme.json
-// bundle) with a single runtime call. Same outputs (a Theme matching
-// docs/aaron-ui-composer-spec.md (spec C) §3), but no conversion step,
-// no per-scheme manual patches needed, no macOS-only toolchain.
+// A single runtime call instead of the build-time pipeline (extractor →
+// theme.json bundle). Same output shape (a Theme matching the src/types.ts
+// schema), but no conversion step and no macOS-only toolchain.
 //
 // Browser-portable: uses fetch + OffscreenCanvas (with a no-canvas
 // option for Node tests).

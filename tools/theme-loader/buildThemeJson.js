@@ -1,10 +1,8 @@
 // Build a schema-conformant theme.json from an extraction-manifest.json.
 //
 // The manifest is the extractor's raw output: per-resource decoded data plus
-// PNG filenames. The theme.json is the runtime contract per
-// docs/aaron-ui-composer-spec.md (spec C) §3 (typed in
-// src/themes/schema/types.ts, validated by parseTheme there +
-// validateTheme.js here).
+// PNG filenames. The theme.json is the runtime contract — typed in src/types.ts
+// (the schema of record), validated by validateTheme.js here.
 //
 // This module is pure: no Node imports, no file I/O. The CLI wraps it.
 
@@ -87,10 +85,10 @@ export function buildThemeJson(manifest, options = {}) {
             corner: cd.cornerSize,
             side: cd.sideThickness,
             tile: cd.tileSides !== 0,
-            // The full 15-value resize behavior per Scheme Factory MENU 139.
-            // See spec B §13.3 (parked against kDEF disassembly). Surfaced
-            // here so the runtime can honor per-region behavior (e.g.,
-            // 'repeat-bottom') rather than treating `tile` as a boolean.
+            // The full 15-value resize behavior (Scheme Factory MENU 139; see
+            // the open question in decoders/cinf.js). Surfaced here so the
+            // runtime can honor per-region behavior (e.g. 'repeat-bottom')
+            // rather than treating `tile` as a boolean.
             resizeBehavior: cd.resizeBehavior,
           }
         : null,
@@ -171,7 +169,7 @@ export function buildThemeJson(manifest, options = {}) {
     generatedAt: manifest.extractedAt,
     note:
       'Draft theme.json produced by @aaron-ui/scheme-extractor. ' +
-      'Schema per docs/aaron-ui-composer-spec.md (spec C) §3.',
+      'Schema: src/types.ts.',
   };
 
   // Merge sidecar meta (name, author, origin, options, palette) on top.

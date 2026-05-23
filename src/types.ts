@@ -1,6 +1,6 @@
-// Minimal theme-bundle types — only the fields slice 1 reads.
-// The full bundle schema is richer (see docs/aaron-ui-composer-spec.md);
-// we add fields here as the rebuild needs them, not before.
+// Theme-bundle types — the fields the runtime reads from theme.json. This file
+// is the schema of record; the full bundle (produced by the extractor) is
+// richer, and fields are surfaced here as the runtime needs them.
 
 export type WindowState =
   | 'active'
