@@ -218,11 +218,18 @@
       // half from the title-bar line down. So size the desk to the main
       // window's footprint and place the dialog top-right.
       const desk = document.createElement('div');
+      // Use the scheme's OWN desktop pattern (1138/1984/beos ship one — keys vary:
+      // desktop-pattern / blue-desktop / desktop-background) tiled at native px,
+      // not a generic checkerboard. Fall back to the checkerboard for schemes that
+      // ship no desktop ppat (1990/evolution/apple-platinum).
+      const _pats = theme.manifest.patterns || {};
+      const _deskKey = Object.keys(_pats).find((k) => /desktop/i.test(k));
+      const _deskUrl = _deskKey && _pats[_deskKey].asset ? `${theme.baseUrl.replace(/\/$/, '')}/${_pats[_deskKey].asset}` : null;
       Object.assign(desk.style, {
-        position: 'relative', overflow: 'hidden',
-        background: '#9d9d9d',
-        backgroundImage: 'repeating-conic-gradient(#9a9a9a 0 25%, #a4a4a4 0 50%)',
-        backgroundSize: '4px 4px',
+        position: 'relative', overflow: 'hidden', background: '#9d9d9d',
+        ...(_deskUrl
+          ? { backgroundImage: `url("${_deskUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated' }
+          : { backgroundImage: 'repeating-conic-gradient(#9a9a9a 0 25%, #a4a4a4 0 50%)', backgroundSize: '4px 4px' }),
       });
 
       // ── main "Hello!" Finder window — fills the preview ──
