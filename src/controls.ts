@@ -503,19 +503,27 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
 
   const label = opts.label ?? '';
-  const fIns = sliceInset(face.width, face.height);
+  const faceEl = elementById(theme, faceId) ?? elementById(theme, 10239);
+  // 9-slice corner inset = the cinf `cornerSize` the kDEF's slice engine
+  // (0x107fe) reads, NOT a value derived from the bitmap. Fall back to a
+  // derived inset only when the scheme ships no cinf for this face.
+  const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
-  // The face center carries a 1px text-color MARKER sentinel (like the
-  // window-title marker), so we sample a CLEAN interior pixel at the slice
-  // inset for both the fill color and the label-contrast decision — the
-  // center pixel would mislead (some schemes' marker is light on a dark face).
-  const [cr, cg, cb, ca] = face.getPixel(fIns, fIns);
+  // The face center carries a 1px text-color MARKER sentinel (the cinf
+  // textPixel) — its colour is the label colour, NOT a fill colour. Sample the
+  // interior FILL colour deliberately OFFSET from that marker: with the cinf
+  // corner inset the marker frequently sits exactly at [fIns,fIns] (1990's is
+  // [7,7] with corner 7), and sampling it would flood the flattened interior
+  // with the light label colour — a stripe struck across the button.
+  const ta = faceEl?.textAnchor;
+  const sx = ta ? Math.max(0, Math.min(face.width - 1, ta[0] - 3)) : fIns;
+  const sy = ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
+  const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
   // Label color: prefer the AUTHORED text color — the pixel at the cinf
   // textPixel (textAnchor), which is the kDEF's label color signal. Fall back
   // to a luminance-picked b/w only when the scheme ships no cinf. Disabled
   // always grays (the inactive face is often identical to active).
-  const ta = elementById(theme, faceId)?.textAnchor;
   const authored = ta ? pixelHex(face, ta[0], ta[1]) : null;
   const fg = opts.fg ?? (opts.disabled ? '#808080' : authored ?? (lum < 128 ? '#ffffff' : '#000000'));
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
@@ -527,9 +535,10 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   let fx = 0;
   let fy = 0;
   if (ring) {
+    const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
     const pad = Math.max(2, Math.round((ring.width - face.width) / 2));
     out = PixelBuffer.alloc(innerW + pad * 2, innerH + pad * 2);
-    const rIns = sliceInset(ring.width, ring.height);
+    const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
     out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
     fx = pad;
     fy = pad;
