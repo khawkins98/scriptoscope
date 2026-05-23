@@ -4,9 +4,10 @@
 // pixel is under our control. No canvas-2D shortcuts — canvas is used
 // only to load source bitmaps and to blit the finished buffer.
 //
-// Reference: docs/tracking/kdef-disassembly-findings.md §2.1 — kDEF
-// renders via CopyBits/CopyMask with sample-and-hold (nearest-neighbor)
-// scaling. That is exactly what `copyBits` below implements.
+// Reference: docs/tracking/kdef231-recipe-walk.md Q5 — kDEF renders via
+// CopyBits/CopyMask; the default blit (0xfeae) tiles the source cell and
+// code 18 (0x10320) does a single scaled CopyBits. `copyBits` below is the
+// primitive both build on (nearest-neighbour sample-and-hold scaling).
 
 /** A rectangle in pixel coordinates: top-left origin, width/height. */
 export interface PixRect {

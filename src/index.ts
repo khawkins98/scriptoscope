@@ -9,9 +9,8 @@
 //   themes/<slug>/                            extracted bundles
 //                                             (theme.json + cicns/*.png)
 //   tools/theme-loader/                       .rsrc → theme.json decoder
-//   docs/kaleidoscope-to-html-mapping.md      mapping reference
-//   docs/tracking/kdef-disassembly-findings.md   binary archaeology
-//   docs/aaron-ui-*-spec.md                   the v1 specs (reference)
+//   docs/tracking/compositor-spec.md          the window-chrome model
+//   docs/tracking/kdef231-recipe-walk.md      the 2.3.1 kDEF decode (truth)
 
 export const VERSION = '2.0.0-dev';
 

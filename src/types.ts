@@ -16,11 +16,12 @@ export interface WindowPart {
 }
 
 /**
- * One step of an edge recipe: at cicn pixel `at`, the segment begins;
- * `part` is its frame-piece slug (`part-N`, where N is the true wnd#
- * part code). Per docs/tracking/kdef-disassembly-findings §8: these are
- * structural pieces, not widget refs. A segment runs from one entry's
- * `at` to the next entry's `at`.
+ * One step of an edge recipe: `at` is a cicn-pixel border, `part` its
+ * frame-piece slug (`part-N`, where N is the true wnd# part code — structural
+ * pieces, not widget refs). Association is END-BASED (kDEF `0x5356`): the entry
+ * describes the cell that ENDS at `at`, spanning from the PREVIOUS border —
+ * segment i is `[border[i-1], border[i])` tagged `part[i]`. See
+ * docs/tracking/kdef231-recipe-walk.md Q2 and `recipeCells` in composeChrome.ts.
  */
 export interface EdgeStep {
   at: number;

@@ -105,9 +105,9 @@ export async function renderWindow(
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
-    // The title text is a CENTERED part: the kDEF places it via the anchor grid
-    // (kdef-disassembly-findings §9.4, placement mode 0) at the window CONTENT
-    // CENTRE — NOT on the frame's grow distribution. Centring on the plate's
+    // The title text is a CENTERED part: the kDEF measures + centres it (the
+    // title-centre math in 0x4a64, see kdef231-recipe-walk.md Q4) at the window
+    // CONTENT CENTRE — NOT on the frame's grow distribution. Centring on the plate's
     // output span made asymmetric frame growth shove the title sideways (the
     // 1138 regression). Centre on cx = content centre, clamp into the bar.
     const cx = frame.left + contentW / 2;

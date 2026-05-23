@@ -1,10 +1,13 @@
 # kDEF layout recipes — the exact compositor spec (per chrome element)
 
 Derived by decompiling Kaleidoscope's `kDEF 0` (68k). Goal: an exact,
-code-grounded recipe the v2 pixel compositor can implement faithfully —
-not screenshot approximations. See `tracking/kdef-disassembly-findings.md`
-for the trace methodology and the window-specific deep dives (§8 recipe
-walk, §9 anchor placement).
+code-grounded recipe the pixel compositor can implement faithfully — not
+screenshot approximations. This doc covers the CONTROLS (scrollbars, sliders,
+buttons, progress, tabs) that `src/controls.ts` implements; the WINDOW-frame
+model lives in `tracking/compositor-spec.md` + `tracking/kdef231-recipe-walk.md`
+(the authoritative 2.3.1 decode). NOTE: this controls spec has NOT been
+re-verified against the 2.3.1 binary the way the window model was — treat its
+claims with caution and verify against the asm when a render disagrees.
 
 **Confidence legend:** `[CODE]` traced to instructions · `[DRAWER]`
 drawer function + cicn IDs identified, layout model from code structure +

@@ -99,9 +99,8 @@ Render at a few sizes and compare to `demo/assets/references/<slug>.png`:
 ## References
 - `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
   Kaleidoscope **2.3.1** kDEF (the engine our K2 schemes use). The source of
-  truth behind this spec.
-- `kdef-disassembly-findings.md` — earlier 1.8.2 binary archaeology, kept for the
-  version-stable bits (the QuickDraw/CopyBits model, the §9 part-placement anchor
-  grid). HISTORICAL for the recipe walk — see its header banner.
+  truth behind this spec. (The decompiled asm itself — `/tmp/kaleido-trace/
+  kDEF231_0.asm` — is the ground truth; this doc + the recipe-walk are summaries,
+  so verify against the asm when they disagree with a reference render.)
 - `diagnostic-tooling.md` — the in-browser slice inspector + the
   `diag:render` / `diag:audit` CLIs for validating against the reference images.

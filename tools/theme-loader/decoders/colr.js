@@ -18,8 +18,8 @@
 // parse the documented 5 bytes; surface the rest as `extraBytes` for
 // downstream inspection.
 //
-// See docs/kaleidoscope-to-html-mapping.md §2.5 + docs/tracking/
-// kdef-disassembly-findings.md §4 for context.
+// Layout per the bundled-with-scheme `Colr` TMPL (Scheme Factory); the later
+// flags' byte order is undocumented, hence `extraBytes`.
 
 import { Reader } from './shared.js';
 
