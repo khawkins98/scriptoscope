@@ -41,7 +41,7 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
 | theme | doc-window | dialog | alert | movable-modal/-alert | utility types | popup |
 |---|---|---|---|---|---|---|
 | **1138** | ok | ok | ok | ok | titled-util slightly busy (minor) | ok |
-| **1984** | **V1** (widget bleed + arch) | ok | M2 (red top edge?) | ok | ok | V2 (arrow notch) |
+| **1984** | V1(a) fixed; V1(b) faint arch (minor) | ok | M2 (red top edge?) | ok | ok | V2 (arrow notch) |
 | **1990** | ok | ok | ok | ok | ok | ok |
 | **evolution** | ok | ok | ok | ok | ok | ok |
 | **beos-r503** | M1 (faint double R/B edge) | ok | ok | ok | wnd--14292 dark patch (minor) | ok |
@@ -53,17 +53,27 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
 
 ## VISIBLE
 
-### V1 · 1984 · document-window — left widgets bleed below the title bar + title-bar arch texture
-- **What:** (a) the close/zoom widgets on the title-bar's left corner are
-  stamped/bleed *down-left* into the left border below the title line (a stack of
-  rounded blobs hanging off the left edge); (b) the title-bar left shows a row of
-  small arch/comb shapes.
-- **Cause:** (a) **MODEL/GEOM** — the left-edge corner/widget sampling pulls the
-  title-corner art down the side band (the old "title-corner bleed"). (b) the
-  `part-15` close-cell band (cicn x19–30) tiles its arch decoration as the cell
-  grows; the reference bar is smooth. Likely the close-cell carve/fill sampling
-  the bar ornament rather than a flat fill.
-- **Severity: visible.**
+### V1(a) · 1984 · document-window — left widget/corner bleed — RESOLVED
+- Was: the rounded top-left title-tab (with the close box) repeated *down-left*
+  along the left border, because the left edge's leading cell `[0,27)` is code-0
+  (stretch) and exactly `cornerSize` (27) — the distribution grew it and the tile
+  blit repeated it. Fixed by completing the corner-split (an end cell that's ⩽
+  `cornerSize` is frozen FIXED when another cell can still fill the edge). The tab
+  + close box now draw once, matching the reference. Reference: the 1984 left tab
+  IS a fixed rounded ornament that protrudes down-left — drawn once, not scaled.
+
+### V1(b) · 1984 · document-window — title-bar tab-curve arch texture (minor)
+- **What:** a faint row of arch/comb shapes on the left of the title bar.
+- **Cause:** the rounded tab's curved right edge is baked across cicn x≈8–33,
+  spanning the fixed `part-2` close-gap AND the stretch `part-15` close-cell
+  `[19,30)`. The `part-15` portion tiles as the cell grows → repeats the curve.
+  The curve EXCEEDS `cornerSize` (24), so the corner-split can't capture it, and
+  the close widget rect `[8,19]` doesn't align with the `part-15` cell, so carving
+  doesn't cover it either. A large baked ornament split across cells — same class
+  as the 1138 chevron but harder. Faithful-ish (the binary does tile code-15) but
+  doesn't match the reference's smooth bar. Needs a wider ornament model or a
+  widget/cell-alignment data fix. **MODEL/DATA.**
+- **Severity: minor** (faint).
 
 ### V2 · 1984 · popup-window — notch/gap at the top-centre arrow
 - **What:** the top edge has a small protrusion (popup arrow) with a gap/notch
