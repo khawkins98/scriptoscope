@@ -205,14 +205,32 @@ interface RawCell {
   cls: CellClass;
 }
 
-/** Turn an edge recipe into ordered, classified source cells along the axis. */
-function recipeCells(recipe: EdgeStep[], axisMax: number, widgetPresent: boolean): RawCell[] {
+/**
+ * Turn an edge recipe into ordered, classified source cells along the axis.
+ *
+ * END-BASED association (verified against the 2.3.1 kDEF placement routine
+ * `0x5356`): a side-list `(part, border)` entry describes the cell that ENDS at
+ * `border`, spanning from the PREVIOUS border — segment i is `[border[i-1],
+ * border[i])` tagged `part[i]`. The part code travels with the border that
+ * closes its cell, NOT the one that opens it. (We previously used the start-
+ * based reading — `[border[i], border[i+1])` tagged `part[i]` — which shifted
+ * every code by one cell: e.g. 1138's wide title-bar regions came out as the
+ * stretch codes 0/8 instead of the FIXED code 1 they actually carry, so the
+ * baked chevron ornaments landed in growing cells and repeated when tiled.)
+ *
+ * `border[-1]` is 0 (the edge origin), so the first entry tags the leading
+ * `[0, border[0])` region; entries whose border equals the previous one (the
+ * `border 0` origin marker, coincident borders) collapse to zero width.
+ */
+function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolean): RawCell[] {
   const sorted = [...recipe].sort((a, b) => a.at - b.at);
   const cells: RawCell[] = [];
+  let prev = 0;
   for (let i = 0; i < sorted.length; i++) {
-    const x0 = sorted[i]!.at;
-    const x1 = i + 1 < sorted.length ? sorted[i + 1]!.at : axisMax;
-    if (x1 <= x0) continue; // zero-width sentinel / coincident borders
+    const x0 = prev;
+    const x1 = sorted[i]!.at;
+    prev = x1;
+    if (x1 <= x0) continue; // zero-width (border-0 origin / coincident borders)
     const code = partCode(sorted[i]!.part);
     cells.push({ x0, x1, code, cls: classifyPart(code, widgetPresent) });
   }
@@ -290,11 +308,36 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number): 
   for (let i = tLo; i < tHi; i++) titleW += cells[i]!.x1 - cells[i]!.x0;
   for (let i = tLo; i < tHi; i++) widths[i] = cells[i]!.x1 - cells[i]!.x0;
 
-  // The title's centre sits at the centre of the output side. Each half
-  // (left of the bezel, right of it) gets half the remaining output extent.
+  // Split the remaining output extent between the two halves. A half can only
+  // absorb slack if it has at least one stretch cell; an all-fixed half holds
+  // its source width and cedes the rest to the other half. So:
+  //   • both halves stretch  → even split, title stays centred (e.g. 1138).
+  //   • one half is all fixed → it keeps its src width, the title shifts toward
+  //     it, and the stretching half fills everything else (e.g. 1990, whose
+  //     chain stretch-cells all sit to the RIGHT of a left-third title — an even
+  //     split would strand the fixed left half and leave a coverage gap).
   const usable = outExtent - srcStart - titleW;
-  const leftDst = Math.floor(usable / 2);
-  const rightDst = usable - leftDst;
+  const halfInfo = (lo: number, hi: number): { src: number; nStretch: number } => {
+    let src = 0, nStretch = 0;
+    for (let i = lo; i < hi; i++) {
+      const c = cells[i]!;
+      src += c.x1 - c.x0;
+      if (c.cls === 'stretch' || c.cls === 'tile' || c.cls === 'scale') nStretch++;
+    }
+    return { src, nStretch };
+  };
+  const L = halfInfo(0, tLo), R = halfInfo(tHi, cells.length);
+  let leftDst: number, rightDst: number;
+  if (L.nStretch > 0 && R.nStretch === 0) {
+    rightDst = Math.min(R.src, usable);
+    leftDst = usable - rightDst;
+  } else if (R.nStretch > 0 && L.nStretch === 0) {
+    leftDst = Math.min(L.src, usable);
+    rightDst = usable - leftDst;
+  } else {
+    leftDst = Math.floor(usable / 2);
+    rightDst = usable - leftDst;
+  }
 
   const lw = distributeHalf(cells, 0, tLo, leftDst);
   for (let i = 0; i < tLo; i++) widths[i] = lw[i]!;
