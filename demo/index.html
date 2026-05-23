@@ -173,14 +173,17 @@
       // color with light text — matches the classic Mac tab look and stays
       // high-contrast even when the header FILL is light (e.g. Platinum gray).
       const selBg = hc.darkTinge && hc.darkTinge !== hc.fill ? hc.darkTinge : frame;
-      // A FLAT segmented toggle (the references' On/Off look): flat rectangular
-      // cells, the selected one in the scheme's dark header colour, the rest a
-      // flat light fill — no gradient/rounded-button styling (which read as
-      // separate buttons before).
+      // A BEVELED segmented toggle matching the references' On/Off: a recessed
+      // outer well (1px scheme-frame border + top inset shadow), the selected
+      // cell in the scheme's dark header colour with a PRESSED/recessed bevel,
+      // the unselected cells a light face with a RAISED bevel. The 3-D treatment
+      // (not a flat colour fill) is the thing the references have and a flat
+      // segmented control lacks.
       const wrap = document.createElement('div');
       Object.assign(wrap.style, {
-        display: 'inline-flex', border: `1px solid ${frame}`, borderRadius: '1px',
-        overflow: 'hidden', font: '11px Charcoal, Geneva, sans-serif',
+        display: 'flex', border: `1px solid ${frame}`,
+        font: '11px Charcoal, Geneva, sans-serif',
+        boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.28)',
       });
       labels.forEach((label, i) => {
         const cell = document.createElement('div');
@@ -188,8 +191,11 @@
         Object.assign(cell.style, {
           flex: '1', textAlign: 'center', padding: '2px 8px',
           borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
-          background: sel ? selBg : '#dcdcdc',
+          background: sel ? selBg : 'linear-gradient(180deg,#fcfcfc,#d4d4d4)',
           color: sel ? '#ffffff' : '#000', fontWeight: sel ? '700' : '400',
+          boxShadow: sel
+            ? 'inset 1px 1px 1px rgba(0,0,0,0.5)'        // selected → pressed/recessed
+            : 'inset 1px 1px 0 rgba(255,255,255,0.9)',   // unselected → raised highlight
         });
         cell.textContent = label;
         wrap.appendChild(cell);
@@ -294,10 +300,22 @@
         // blue cells), NOT the trapezoidal tab shape — and the scheme's actual
         // "Tabs" cicns (-998x, see composeTab) are gray trapezoids that don't
         // match. So render the header-tinted segmented control directly.
-        const onoff = segmentedTabs(theme, ['On', 'Off'], 0);
-        // Span the content width AND never shrink — a too-short column was
-        // squeezing the toggle and clipping its label text in half.
-        Object.assign(onoff.style, { width: '100%', flexShrink: '0' });
+        // On/Off from the scheme's OWN raster: a segmented pair of push-button
+        // cicns (9-sliced via their cinf), "On" = the PRESSED face (selected),
+        // "Off" = the NORMAL face — the scheme's textured button art, not a CSS
+        // approximation. Full-bleed to the dialog's inner edges. Falls back to
+        // the beveled CSS segmented toggle when the scheme ships no button cicn.
+        const segW = Math.floor(DLG_INNER / 2);
+        const onB = await composeButton(theme, { label: 'On', pressed: true, minWidth: segW });
+        const offB = await composeButton(theme, { label: 'Off', minWidth: segW });
+        const onoff = document.createElement('div');
+        Object.assign(onoff.style, { display: 'flex', flexShrink: '0', margin: `-${DLG_PAD}px -${DLG_PAD}px 4px` });
+        if (onB && offB) {
+          const oc = cv(onB); oc.style.marginRight = '-1px'; // abut (share the seam)
+          onoff.append(oc, cv(offB));
+        } else {
+          onoff.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
+        }
         dc.appendChild(onoff);
         const pg = await composeProgress(theme, { length: DLG_INNER, value: 0.45 });
         if (pg) dc.appendChild(cv(pg));
