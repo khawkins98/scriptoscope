@@ -110,11 +110,14 @@ export async function renderWindow(
       fgHex = lum < 128 ? '#ffffff' : '#000000';
     }
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
-    // The title text is a CENTERED part: the kDEF measures + centres it (the
-    // title-centre math in 0x4a64, see kdef231-recipe-walk.md Q4) at the window
-    // CONTENT CENTRE — NOT on the frame's grow distribution (so asymmetric frame
-    // growth never shoves the title sideways). cx = content centre, clamp into bar.
-    const cx = frame.left + contentW / 2;
+    // The title text centres on the TITLE REGION — the reserved title-plate the
+    // compositor places per the kDEF (0x4a64): centred in the bar when the recipe
+    // is symmetric (e.g. 1138, where this equals the content centre), but pinned
+    // toward whichever side can't grow when it's not — e.g. beos, whose title
+    // pins left into the yellow tab. (Earlier this used the content centre as a
+    // workaround for a pre-title-plate regression; the plate is now positioned
+    // faithfully, so we follow it.)
+    const cx = tr.x + tr.w / 2;
     const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
     const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
     composed.buffer.drawOver(g, gx, gy);
