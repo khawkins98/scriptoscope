@@ -78,13 +78,6 @@ function elementById(theme: LoadedTheme, id: number) {
   return null;
 }
 
-/** Hex string for a buffer pixel, or null if transparent/out of range. */
-function pixelHex(buf: PixelBuffer, x: number, y: number): string | null {
-  const [r, g, b, a] = buf.getPixel(x, y);
-  if (a < 200) return null;
-  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
-}
-
 /**
  * Draw a solid triangular scroll-arrow glyph centered in the size×size box
  * at (bx,by), pointing in `dir`. Platinum schemes (e.g. apple-platinum-2)
@@ -520,12 +513,19 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const sy = ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
   const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  // Label color: prefer the AUTHORED text color — the pixel at the cinf
-  // textPixel (textAnchor), which is the kDEF's label color signal. Fall back
-  // to a luminance-picked b/w only when the scheme ships no cinf. Disabled
-  // always grays (the inactive face is often identical to active).
-  const authored = ta ? pixelHex(face, ta[0], ta[1]) : null;
-  const fg = opts.fg ?? (opts.disabled ? '#808080' : authored ?? (lum < 128 ? '#ffffff' : '#000000'));
+  // Label color: the kDEF's button-face drawer (0x7424) reads NO text colour —
+  // the Control Manager draws the title in the system colour. The cinf
+  // textPixel/marker is NOT a reliable button-label colour: 1990's marker is
+  // mid-gray (119,119,119) and evolution's is black — both illegible, and
+  // neither matches the schemes' own previews, which draw a high-contrast
+  // light-on-dark label (~#bbb on near-black). So pick a contrasting b/w from
+  // the face luminance (matches the references); disabled always grays.
+  // Disabled dims the title (classic Mac grays a disabled control's label), but
+  // keep it CONTRASTING with the face so it stays legible-but-dim on a dark
+  // inactive face (a fixed mid-gray vanishes on 1138/1984's gray faces).
+  const fg = opts.fg ?? (opts.disabled
+    ? (lum < 128 ? '#b0b0b0' : '#707070')
+    : lum < 128 ? '#ffffff' : '#000000');
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
   const padX = 12;
   const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
