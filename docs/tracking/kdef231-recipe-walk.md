@@ -132,9 +132,16 @@ through `srcWidth` for the FIXED cells.
 `FUN_00005356` @ `0x5356` builds, per `(side, segIdx)`:
 
 - **SRC rect** from the SOURCE side-list at `a4@(2788)` (`lea a4@(2788)`, indexed
-  by `side*162` then `segIdx*4` — `0x53b8`, `0x53c8`, etc.). The src x-range of a
-  top/bottom segment is `[srcBorder[i-1], srcBorder[i])` — i.e. **its own
-  `[border[i],border[i+1])` x-range from the cicn (minimum-window) template.**
+  by `side*162` then `segIdx*4` — `0x53b8`, `0x53c8`, etc.). The src x-range of
+  segment `segIdx` is **`[srcBorder[segIdx-1], srcBorder[segIdx])`** — it reads
+  `SRC.left = border[segIdx-1]` (`0x53be`, index `segIdx-1`) and `SRC.right =
+  border[segIdx]` (`0x53ce`, index `segIdx`), and the draw loop (`0x5970`) pairs
+  that span with **`part[segIdx]`** (`d3 = entry[segIdx].part`). So the part code
+  travels with the border that ENDS the cell — segment i is `[border[i-1],
+  border[i])` tagged `part[i]` (END-BASED). (An earlier draft of this line also
+  wrote "its own `[border[i],border[i+1])`", which is the START-based reading and
+  is WRONG — the compositor shipped that off-by-one until it was corrected; see
+  `recipeCells` in `composeChrome.ts`.)
 - **DST rect** from the DEST side-list at `a4@(2140)` (`lea a4@(2140)`,
   `0x53d4`, `0x53e0`) — the window-relative borders computed by `0x5178`.
 

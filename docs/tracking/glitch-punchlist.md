@@ -158,9 +158,39 @@ edge. Full enumeration of affected types in the blocker section.
 
 ---
 
+## Compositor model fixes (v3 source-of-truth pass — RESOLVED)
+
+A sweep aligning `composeChrome.ts` to the 2.3.1 kDEF decode (commits on
+`v3-reset`) resolved the dominant doc-window items:
+
+1. **Negative-inset guard** (`frameFromBody` clamps to `[0, cicnDim]`).
+2. **Re-pair cicn↔wnd# by WDEF id** (`buildThemeJson.js`: active = id+1,
+   inactive = id+0) — fixed B2/B3/B4/B5/B7/B9 at the source.
+3. **Tile, not stretch** (`0xfeae` always tiles; only code 18 scales).
+4. **END-BASED cell↔partCode** (`recipeCells`): segment i = `[border[i-1],
+   border[i])` tagged `part[i]`, verified at kDEF `0x5356`. The compositor had
+   it start-based (off by one), which put 1138's wide title-bar regions on
+   stretch codes instead of the fixed code-1 they carry. Fixing it makes baked
+   ornaments (1138 chevron, 1990 "1990" badge + star) FIXED/drawn-once while the
+   1px stretch cells extend the fill — **this resolves V1 and M1.**
+5. **distributeSide** cedes a stretch-less half's slack to the stretching half
+   (1990's chain sits on one side of a left-third title).
+
+Net: all five document-windows render faithfully vs the references at 240–360px.
+Remaining doc-window item: **1984's close-cell band shows a minor arch texture
+when tiled** (smooth in the reference) — a small follow-up, see M-new below.
+
+---
+
 ## VISIBLE
 
-### V1 · 1138 · document-window · all sizes — proxy/title-bezel art smears diagonally across the title bar
+### V1 · 1138 · document-window — RESOLVED (end-based + tile, fix #4 above)
+Was: proxy/title-bezel art smeared diagonally across the title bar because the
+chevron ornaments sat in start-based stretch cells. End-based association puts
+the title-bar regions on the fixed code-1 → the chevron draws once, the
+racing-stripe fill extends crisply. Original report retained below for history:
+
+### V1 (orig) · 1138 · document-window · all sizes — proxy/title-bezel art smears diagonally across the title bar
 - **What:** a dark trapezoidal wedge (the window-proxy bezel baked into the cicn
   centre, x≈46–55 + the surrounding code-0/code-8 cells) is stretched into a
   diagonal black smear across the middle of the title bar; worsens with width
@@ -215,10 +245,16 @@ edge. Full enumeration of affected types in the blocker section.
 
 ## MINOR
 
-### M1 · 1990 · document-window — camo joints slightly stretched at wide sizes
-- Camo/chain texture holds well but a few corner joints read marginally stretched
-  at 360px. Faithful overall; flagged only for polish. **MODEL** (stretch vs tile
-  of structured fill). Severity: minor.
+### M1 · 1990 · document-window — RESOLVED (tile blit, fix #3 above)
+- Was: camo/chain joints stretched at wide sizes. The kDEF tile blit repeats the
+  chain motif at native size instead of scaling it, so the chain stays crisp and
+  the "1990" badge draws once. Resolved.
+
+### M-new · 1984 · document-window — close-cell band shows arch texture when tiled
+- The title-bar close-cell (`part-15`, src x19–30) tiles its band as the cell
+  grows, producing a row of small arch/tab shapes on the left of the bar; the
+  reference bar is smooth gray. Likely the close-cell carve/fill sampling the
+  bar's arch decoration rather than a flat fill. **MODEL/DATA.** Severity: minor.
 
 ### M2 · evolution · document-window — top-left pipe seam pucker; busy bottom joins
 - The metallic pipe border fills and reads faithfully; the top-left corner has a
