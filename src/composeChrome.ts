@@ -488,29 +488,6 @@ function composeEdge(
   return { placed, titleStart, titleEnd };
 }
 
-/**
- * Top-edge fallback for window types whose wnd# ships NO top side-list — the
- * collapsed side-floating utilities (1138 collapsed-side-float, beos wnd--14292).
- * The kDEF would draw no top segments there; this is a non-kDEF nicety that
- * stamps the cicn end-caps and stretches the middle column so the strip still
- * reads as a frame. (Sides/bottom have analogous 1px-column fallbacks inline.)
- */
-function composeSeamFallback(
-  out: PixelBuffer,
-  cicn: PixelBuffer,
-  top: number,
-  fullW: number,
-): void {
-  const cap = Math.min(Math.round(cicn.width / 3), Math.round(fullW / 2));
-  out.copyBits(cicn, { x: 0, y: 0, w: cap, h: top }, { x: 0, y: 0, w: cap, h: top });
-  out.copyBits(cicn, { x: cicn.width - cap, y: 0, w: cap, h: top }, { x: fullW - cap, y: 0, w: cap, h: top });
-  const midW = fullW - cap * 2;
-  if (midW > 0) {
-    const sx = Math.floor(cicn.width / 2);
-    out.copyBits(cicn, { x: sx, y: 0, w: 1, h: top }, { x: cap, y: 0, w: midW, h: top });
-  }
-}
-
 export interface ComposedChrome {
   buffer: PixelBuffer;
   frame: Frame;
@@ -553,7 +530,6 @@ export function composeWindowChrome(
   const body = windowType.parts['part-0'];
   if (!body) throw new Error('composeWindowChrome: windowType has no part-0 body rect');
   const frame = frameFromBody(body.rect, cicn.width, cicn.height);
-  const [, bt, ,] = body.rect; // cicn body rect top (for the no-recipe side fill)
 
   const fullW = frame.left + contentW + frame.right;
   const fullH = frame.top + contentH + frame.bottom;
@@ -582,6 +558,12 @@ export function composeWindowChrome(
   }
   const widgetPresent = hasWidgetRect || windowType.parts['part-1'] != null;
 
+  // An edge is composed ONLY if its wnd# ships a side-list. The kDEF draws no
+  // segments for a recipe-less side, so neither do we (it leaves that frame band
+  // transparent) — e.g. a collapsed window with only a top recipe renders as just
+  // its title bar. Every full window type ships all four recipes, so this only
+  // affects the collapsed / topless utility types. (No bespoke "fill it anyway"
+  // fallback — that was a non-kDEF override, now removed.)
   // ── top edge ────────────────────────────────────────────────────────────
   let topRes: ReturnType<typeof composeEdge> = null;
   if (edges?.top?.length) {
@@ -589,8 +571,6 @@ export function composeWindowChrome(
       edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
       outExtent: fullW, srcExtent: cicn.width,
     }, widgetPresent, opts.titleWidthPx ?? 0);
-  } else {
-    composeSeamFallback(out, cicn, frame.top, fullW);
   }
 
   // ── left edge ───────────────────────────────────────────────────────────
@@ -600,8 +580,6 @@ export function composeWindowChrome(
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
       outExtent: fullH, srcExtent: cicn.height,
     }, widgetPresent);
-  } else if (frame.left > 0) {
-    out.copyBits(cicn, { x: 0, y: bt, w: frame.left, h: 1 }, { x: 0, y: frame.top, w: frame.left, h: contentH });
   }
 
   // ── right edge ──────────────────────────────────────────────────────────
@@ -611,8 +589,6 @@ export function composeWindowChrome(
       edge: 'right', horizontal: false, crossSrc: cicn.width - frame.right, crossLen: frame.right,
       crossDst: fullW - frame.right, outExtent: fullH, srcExtent: cicn.height,
     }, widgetPresent);
-  } else if (frame.right > 0) {
-    out.copyBits(cicn, { x: cicn.width - frame.right, y: bt, w: frame.right, h: 1 }, { x: fullW - frame.right, y: frame.top, w: frame.right, h: contentH });
   }
 
   // ── bottom edge (drawn AFTER sides so its corners overdraw any side
@@ -623,8 +599,6 @@ export function composeWindowChrome(
       edge: 'bottom', horizontal: true, crossSrc: cicn.height - frame.bottom, crossLen: frame.bottom,
       crossDst: fullH - frame.bottom, outExtent: fullW, srcExtent: cicn.width,
     }, widgetPresent);
-  } else if (frame.bottom > 0) {
-    out.copyBits(cicn, { x: 0, y: cicn.height - frame.bottom, w: cicn.width, h: frame.bottom }, { x: 0, y: fullH - frame.bottom, w: fullW, h: frame.bottom });
   }
 
   // No separate widget pass: the close/zoom/shade widgets fall inside the FIXED
