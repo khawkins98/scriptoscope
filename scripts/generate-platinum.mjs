@@ -14,6 +14,7 @@ import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { drawDocumentWindow } from './generate-platinum/draw-document-window.mjs';
 import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
+import { graftControls } from './generate-platinum/graft-controls.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
 import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
@@ -74,6 +75,17 @@ writeFileSync(resolve(dest, 'extraction-manifest.json'),
 const metaPath = resolve(dest, 'meta.json');
 const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
 const theme = buildThemeJson({ source: 'apple-platinum-replica (generated)', extractedAt, counts, assets }, { meta });
+
+// Graft real Platinum control geometry from apple-platinum-2 (it has the control
+// cicns we lack; controls resolve by resource ID so they're found by slug-agnostic
+// lookup). Copies the cicns into our cicns/ and merges their chromeElements.
+const aplat2 = resolve(root, 'themes/apple-platinum-2');
+if (existsSync(aplat2)) {
+  const { grafted, copied, missing } = graftControls(aplat2, dest);
+  theme.chromeElements = { ...(theme.chromeElements || {}), ...grafted };
+  console.log(`[apple-platinum-replica] grafted ${copied} control cicns from apple-platinum-2` +
+    (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
+}
 
 try { validateTheme(theme); }
 catch (err) { console.error('schema validation FAILED:', err.message); process.exit(1); }

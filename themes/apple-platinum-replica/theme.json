@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T18:30:47.284Z",
+  "generatedAt": "2026-05-24T18:49:37.774Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -1302,6 +1302,278 @@
       "embossAnchor": null,
       "sourceCicnId": -12319,
       "sourceCinfId": null
+    },
+    "verticle-thumb": {
+      "asset": "cicns/cicn-n10208-verticle-thumb.png",
+      "width": 16,
+      "height": 30,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10208,
+      "sourceCinfId": null
+    },
+    "verticle-thumb-pressed": {
+      "asset": "cicns/cicn-n10207-verticle-thumb-pressed.png",
+      "width": 16,
+      "height": 30,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10207,
+      "sourceCinfId": null
+    },
+    "horizontal-thumb": {
+      "asset": "cicns/cicn-n10206-horizontal-thumb.png",
+      "width": 30,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10206,
+      "sourceCinfId": null
+    },
+    "horizontal-thumb-pressed": {
+      "asset": "cicns/cicn-n10205-horizontal-thumb-pressed.png",
+      "width": 30,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10205,
+      "sourceCinfId": null
+    },
+    "disabled-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8288-disabled-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8288,
+      "sourceCinfId": null
+    },
+    "empty-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8287-empty-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8287,
+      "sourceCinfId": null
+    },
+    "normal-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8286-normal-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8286,
+      "sourceCinfId": null
+    },
+    "pressed-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8285-pressed-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8285,
+      "sourceCinfId": null
+    },
+    "disabled-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8280-disabled-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8280,
+      "sourceCinfId": null
+    },
+    "empty-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8279-empty-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8279,
+      "sourceCinfId": null
+    },
+    "normal-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8278-normal-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8278,
+      "sourceCinfId": null
+    },
+    "pressed-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8277-pressed-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8277,
+      "sourceCinfId": null
+    },
+    "inactive-grow-box": {
+      "asset": "cicns/cicn-n14334-inactive-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14334,
+      "sourceCinfId": null
+    },
+    "active-grow-box": {
+      "asset": "cicns/cicn-n14330-active-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14330,
+      "sourceCinfId": null
+    },
+    "normal-back": {
+      "asset": "cicns/cicn-n9983-normal-back.png",
+      "width": 25,
+      "height": 21,
+      "slice": {
+        "corner": 12,
+        "side": 3,
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
+      },
+      "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
+      "textAnchor": [
+        12,
+        4
+      ],
+      "embossAnchor": [
+        0,
+        0
+      ],
+      "sourceCicnId": -9983,
+      "sourceCinfId": -9983
+    },
+    "normal-front": {
+      "asset": "cicns/cicn-n9980-normal-front.png",
+      "width": 25,
+      "height": 23,
+      "slice": {
+        "corner": 12,
+        "side": 3,
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
+      },
+      "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
+      "textAnchor": [
+        12,
+        4
+      ],
+      "embossAnchor": [
+        0,
+        0
+      ],
+      "sourceCicnId": -9980,
+      "sourceCinfId": -9980
+    },
+    "normal-back-2": {
+      "asset": "cicns/cicn-n9975-normal-back.png",
+      "width": 25,
+      "height": 16,
+      "slice": {
+        "corner": 12,
+        "side": 3,
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
+      },
+      "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
+      "textAnchor": [
+        12,
+        4
+      ],
+      "embossAnchor": [
+        0,
+        0
+      ],
+      "sourceCicnId": -9975,
+      "sourceCinfId": -9975
+    },
+    "normal-front-2": {
+      "asset": "cicns/cicn-n9972-normal-front.png",
+      "width": 25,
+      "height": 18,
+      "slice": {
+        "corner": 12,
+        "side": 3,
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
+      },
+      "bgPattern": null,
+      "bgAnchor": [
+        12,
+        5
+      ],
+      "textAnchor": [
+        12,
+        4
+      ],
+      "embossAnchor": [
+        0,
+        0
+      ],
+      "sourceCicnId": -9972,
+      "sourceCinfId": -9972
     }
   },
   "patterns": {
