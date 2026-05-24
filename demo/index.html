@@ -130,7 +130,13 @@
     // document/trash glyph in some schemes, so it's a last resort. Falls back to
     // coverage-ranked icons to fill, then to the SVG folders when a scheme ships
     // no icl4 at all (e.g. 1990).
-    const FINDER_ICON_IDS = [-3999, -3994, -3976, -3983, -3970, -3984, -4000, -16455];
+    // Kaleidoscope themed the standard System icon suite by resource id; pick
+    // the ones a Finder window would show, in that order: the Finder icon first,
+    // then the System Folder, then generic/open folders. (-3984 is Full Trash and
+    // -16455 a generic item — last resorts.) Not every theme ships every icon
+    // (only beos ships the Finder -16482), so this falls through to whatever
+    // folders the theme HAS, then coverage-ranked icons, then the SVG folders.
+    const FINDER_ICON_IDS = [-16482, -3983, -3999, -3997, -3994, -3976, -3970, -3984, -4000, -16455];
     const _iconCache = new Map();
     async function schemeIcons(theme, n) {
       if (!_iconCache.has(theme.baseUrl)) {
@@ -157,6 +163,39 @@
         Object.assign(img.style, { width: '28px', height: '28px', imageRendering: 'pixelated', display: 'block' });
         return img;
       });
+    }
+
+    // DIAGNOSTIC: a collapsible inventory of every icl4 icon a theme ships
+    // (image + resource id + name), so we can see exactly which standard system
+    // icons (Finder -16482, System Folder -3983, Generic Folder -3999, …) are
+    // present and pick the right ones for the scene. Named icons sort first.
+    async function iconInventory(theme) {
+      const det = document.createElement('details');
+      det.style.cssText = 'margin:4px 24px 16px; font:11px system-ui; color:#444';
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer; color:#555; font-weight:600; padding:4px 0';
+      det.appendChild(sum);
+      let all = [];
+      try { const r = await fetch(`${theme.baseUrl}/icons/index.json`); if (r.ok) all = await r.json(); } catch {}
+      const icl4 = all.filter((i) => i.type === 'icl4')
+        .sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || a.id - b.id);
+      sum.textContent = `Icon inventory — ${icl4.length} icl4 icons (click to expand)`;
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:8px 0';
+      for (const i of icl4) {
+        const cell = document.createElement('div');
+        cell.style.cssText = 'width:86px; text-align:center; font:9px/1.15 system-ui; color:#555';
+        const img = document.createElement('img');
+        img.src = `${theme.baseUrl}/icons/${i.file}`; img.loading = 'lazy';
+        Object.assign(img.style, { width: '32px', height: '32px', imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
+        const lab = document.createElement('div');
+        lab.textContent = `${i.id}${i.name ? '\n' + i.name.trim() : ''}`;
+        lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word';
+        cell.append(img, lab);
+        grid.appendChild(cell);
+      }
+      det.appendChild(grid);
+      return det;
     }
 
     // A segmented TAB control (e.g. On | Off), tinted with the scheme's
@@ -813,6 +852,7 @@
 
       section.appendChild(diagnosticStrip(theme));
       section.appendChild(await sliceInspector(theme));
+      section.appendChild(await iconInventory(theme));
       rows.appendChild(section);
     }
   </script>
