@@ -35,19 +35,27 @@ function vline(img, x, y0, y1, c) { for (let y = y0; y <= y1; y++) set(img, x, y
 // (top/left white highlight, bottom/right #777 shadow). Glyph (inset 2) in black.
 function drawWidget(img, x, y, p, glyph, size) {
   const s = size ?? METRICS.widget.size;
-  fill(img, x, y, s, s, p.plateBase);
-  // 1px black outer frame (the crisp box outline the reference shows).
-  hline(img, x, x + s - 1, y, p.frameOutline);
-  hline(img, x, x + s - 1, y + s - 1, p.frameOutline);
-  vline(img, x, y, y + s - 1, p.frameOutline);
-  vline(img, x + s - 1, y, y + s - 1, p.frameOutline);
-  // Inner raised bevel, inset 1: top/left white, bottom/right #777.
+  const frame = [34, 34, 34]; // #222 dark box frame (reference-sampled, not pure black)
+  // Convex "pillow" interior: a vertical gradient, darker at the top (#9a) →
+  // brighter at the bottom (#ee), sampled from a real Platinum close box
+  // (~170 top → ~238 bottom). This is the textured fill the flat #ccc face was
+  // missing. Lerp per interior row.
+  const top = 154, bot = 238;
+  for (let yy = 1; yy < s - 1; yy++) {
+    const t = (s <= 3) ? 0 : (yy - 1) / (s - 3);
+    const v = Math.round(top + (bot - top) * t);
+    for (let xx = 1; xx < s - 1; xx++) set(img, x + xx, y + yy, [v, v, v]);
+  }
+  // 1px white inner highlight on top + left edges (the raised pillow lip).
   if (s >= 5) {
     hline(img, x + 1, x + s - 2, y + 1, p.windowHighlight);
     vline(img, x + 1, y + 1, y + s - 2, p.windowHighlight);
-    hline(img, x + 1, x + s - 2, y + s - 2, p.pinstripeDark);
-    vline(img, x + s - 2, y + 1, y + s - 2, p.pinstripeDark);
   }
+  // 1px dark box frame (the crisp box outline the reference shows).
+  hline(img, x, x + s - 1, y, frame);
+  hline(img, x, x + s - 1, y + s - 1, frame);
+  vline(img, x, y, y + s - 1, frame);
+  vline(img, x + s - 1, y, y + s - 1, frame);
   // Glyphs, inset 2 so they sit inside the bevel.
   if (glyph === 'zoom') {
     hline(img, x + 2, x + s - 3, y + 2, p.frameOutline);
@@ -69,29 +77,36 @@ function drawPlateFrame(geo, isActive, p, content) {
   const px0 = geo.leftFixed + geo.leftFill; // plate cell start (27)
   const px1 = px0 + geo.plate;              // plate cell end   (57)
 
-  // 3. Title-bar fill.
+  // 3. Title-bar fill — banded vertical structure measured from a real Platinum
+  // bar (a flank column reads, top→bottom, below the black outline):
+  //   row 0:        white highlight        (raised top edge)
+  //   rows 1..2:    light #ccc bevel
+  //   middle band:  pinstripe white / #777  (the textured fill)
+  //   last 4 rows:  solid #ccc bevel
+  //   last row:     #999 shadow             (raised bottom edge)
+  // The pinstripe is INSET inside the solid bevel margins — it does NOT run the
+  // full bar height. (Edge-to-edge pinstripe was the visible "too busy / wrong
+  // scale" error: the real bar shows solid gray margins above and below.)
+  const stripeTop = titleTop + 3;  // after 1 highlight + 2 light rows
+  const stripeBot = titleBot - 5;  // before 4 solid rows + the shadow row
   for (let y = titleTop; y <= titleBot; y++) {
-    if (isActive) {
-      // Flanks: 2-row pinstripe — even rows white, odd rows #777 (full-width
-      // lines, parity measured from the first bar row).
-      const line = ((y - titleTop) % 2 === 0) ? p.pinstripeLight : p.pinstripeDark;
-      for (let x = inset; x < width - inset; x++) set(img, x, y, line);
+    let line;
+    if (!isActive) {
+      line = p.plateBase;                       // inactive bar: flat #ccc
+    } else if (y === titleTop) {
+      line = p.windowHighlight;                 // top highlight
+    } else if (y === titleBot) {
+      line = p.windowShadow;                    // bottom #999 shadow
+    } else if (y >= stripeTop && y <= stripeBot) {
+      line = ((y - stripeTop) % 2 === 0) ? p.pinstripeLight : p.pinstripeDark;
     } else {
-      // Inactive: flat solid #ccc bar (no pinstripe).
-      for (let x = inset; x < width - inset; x++) set(img, x, y, p.plateBase);
+      line = p.plateBase;                       // solid #ccc bevel margins
     }
+    for (let x = inset; x < width - inset; x++) set(img, x, y, line);
   }
-  // Plate cell: solid #ccc, overwriting the pinstripe. (Title sits here.)
+  // Plate cell: solid #ccc, overwriting the stripe band. (Title sits here.)
   for (let y = titleTop; y <= titleBot; y++)
     for (let x = px0; x < px1; x++) set(img, x, y, p.plateBase);
-
-  // 2. Window bevel: top inner row = white highlight, bottom inner row = #999
-  // shadow, drawn over the fill so the bar reads raised. (Active only — the
-  // inactive bar is flat per the decode.)
-  if (isActive) {
-    hline(img, inset, width - 1 - inset, titleTop, p.windowHighlight);
-    hline(img, inset, width - 1 - inset, titleBot, p.windowShadow);
-  }
 
   // Content body band: fill the body region with the `content` color (white for
   // documents, #ccc for dialog-family). The title bar's #999 bottom-shadow row
