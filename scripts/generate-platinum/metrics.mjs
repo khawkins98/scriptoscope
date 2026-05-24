@@ -13,11 +13,12 @@ export const METRICS = {
     zoomRightOffset: 4,          // zoom box:  title.right − 11 .. −4
     collapseGap: 2,              // collapse box sits inboard of zoom by this gap
   },
-  // Min-cicn cell widths (px) for the recipe: fixed left (corner+close),
-  // 1px stretch title cell, fixed right (zoom+collapse+corner).
+  // Min-cicn cell widths (px) for the recipe: fixed left (corner+close), a
+  // tileable title-fill strip (the compositor TILES it across the title width —
+  // paint a horizontally-seamless texture here), fixed right (zoom+collapse+corner).
   cells: {
     leftFixed: 4 + 7 + 4,        // inset + close box + margin = 15
-    titleStretch: 1,             // 1px band the compositor stretches/tiles
+    titleStretch: 8,             // 8px tileable title-fill strip (was 1px; widened for hand-painting)
     rightFixed: 4 + 7 + 2 + 7 + 4, // margin + zoom + gap + collapse + inset = 24
   },
 };
