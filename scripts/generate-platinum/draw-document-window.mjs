@@ -41,8 +41,8 @@ function drawFrame(titleFore, titleBack, p) {
     for (let x = inset; x < width - inset; x++) set(img, x, y, c);
   }
 
-  // Body band (the 1px stretch row below the title divider): mid-gray face.
-  fill(img, inset, titleBot + 2, width - 2 * inset, height - inset - (titleBot + 2), p.widgetFace);
+  // Body band (the 1px stretch row below the title divider): plate-gray face.
+  fill(img, inset, titleBot + 2, width - 2 * inset, height - inset - (titleBot + 2), p.plateBase);
 
   // Frame outline under the title bar (separates title from body).
   hline(img, inset, width - 1 - inset, titleBot + 1, p.frameOutline);
@@ -74,12 +74,12 @@ function drawFrame(titleFore, titleBack, p) {
 
 function drawWidget(img, x, y, p, glyph) {
   const s = METRICS.widget.size;
-  fill(img, x, y, s, s, p.widgetFace);
-  // raised bevel: top/left highlight, bottom/right shadow
-  hline(img, x, x + s - 1, y, p.bevelHighlight);
-  vline(img, x, y, y + s - 1, p.bevelHighlight);
-  hline(img, x, x + s - 1, y + s - 1, p.bevelShadow);
-  vline(img, x + s - 1, y, y + s - 1, p.bevelShadow);
+  fill(img, x, y, s, s, p.plateBase);
+  // raised bevel: top/left highlight (white), bottom/right shadow (#777)
+  hline(img, x, x + s - 1, y, p.windowHighlight);
+  vline(img, x, y, y + s - 1, p.windowHighlight);
+  hline(img, x, x + s - 1, y + s - 1, p.pinstripeDark);
+  vline(img, x + s - 1, y, y + s - 1, p.pinstripeDark);
   // glyph ink (frameOutline). close = none; zoom = inner-square outline; collapse = mid line.
   if (glyph === 'zoom') {
     hline(img, x + 1, x + s - 2, y + 1, p.frameOutline);
@@ -102,9 +102,12 @@ function drawStipple(titleFore, titleBack) {
 }
 
 export function drawDocumentWindow(palette) {
+  // Slot map to the new Platinum palette: the title pinstripe is the
+  // light/base pair, widgets use the plate face + window bevels.
+  const fore = palette.pinstripeLight, back = palette.plateBase;
   return {
-    active:   drawFrame(palette.titleFillFore, palette.titleFillBack, palette),
-    inactive: drawFrame(palette.titleFillBack, palette.titleFillBack, palette), // inactive: flat, no fore stripe
-    stipple:  drawStipple(palette.titleFillFore, palette.titleFillBack),
+    active:   drawFrame(fore, back, palette),
+    inactive: drawFrame(back, back, palette), // inactive: flat, no fore stripe
+    stipple:  drawStipple(fore, back),
   };
 }

@@ -1,12 +1,23 @@
 // scripts/generate-platinum/draw-window.mjs
-// Generic placeholder drawer for any Platinum window type. Parameterised by a
-// WindowTypeConfig (window-types.mjs) + the shared PALETTE/METRICS. Pure:
-// returns { active, inactive } RGBA buffers (the two min-size cicn sprites).
+// Platinum window-type drawer. Parameterised by a WindowTypeConfig
+// (window-types.mjs) + the shared PALETTE/METRICS. Pure: returns
+// { active, inactive } RGBA buffers (the two min-size cicn sprites).
 //
-// The art is a ROUGH scaffold meant to be hand-painted over in the atlas — the
-// load-bearing output is the dimensions + the slice recipe (manifest.mjs). It
-// lifts the document-window's row-uniform pinstripe + black-outline + 7×7
-// raised-bevel widget glyphs so the placeholder reads as Platinum chrome.
+// The document-window (geo.hasPlate) path reimplements the REAL Mac OS 8
+// Platinum title-bar drawing sequence decoded from WDEF 125
+// (docs/spec/platinum-wdef125-decode.md), using reference-sampled grays:
+//   1. 1px black outer frame around the whole min-cicn perimeter.
+//   2. Window bevel inside the outline: title-bar TOP inner row = white
+//      highlight, BOTTOM inner row = #999 shadow (raised bar).
+//   3. Title fill: flank regions get a 2-row pinstripe (even rows white,
+//      odd rows #777); the centered plate cell is solid #ccc (title sits here).
+//   4. Widgets: #ccc face, top/left white + bottom/right #777 bevel, black
+//      outline + black glyph.
+//   Inactive: the bar drops the pinstripe — solid #ccc flank + plate, same
+//   frame + beveled widgets, no white/#777 stripes.
+//
+// Other (non-plate) window types keep the simpler row-uniform pinstripe + body
+// band scaffold — they are not the subject of the WDEF-125 decode here.
 import { METRICS } from './metrics.mjs';
 import { geometryFor } from './window-types.mjs';
 
@@ -19,13 +30,15 @@ function fill(img, x0, y0, w, h, c) { for (let y = y0; y < y0 + h; y++) for (let
 function hline(img, x0, x1, y, c) { for (let x = x0; x <= x1; x++) set(img, x, y, c); }
 function vline(img, x, y0, y1, c) { for (let y = y0; y <= y1; y++) set(img, x, y, c); }
 
+// Raised widget box: #ccc face, top+left = white highlight, bottom+right = #777
+// shadow, 1px black outline drawn on top of the bevel edges, glyph in black.
 function drawWidget(img, x, y, p, glyph, size) {
   const s = size ?? METRICS.widget.size;
-  fill(img, x, y, s, s, p.widgetFace);
-  hline(img, x, x + s - 1, y, p.bevelHighlight);
-  vline(img, x, y, y + s - 1, p.bevelHighlight);
-  hline(img, x, x + s - 1, y + s - 1, p.bevelShadow);
-  vline(img, x + s - 1, y, y + s - 1, p.bevelShadow);
+  fill(img, x, y, s, s, p.plateBase);
+  hline(img, x, x + s - 1, y, p.windowHighlight);
+  vline(img, x, y, y + s - 1, p.windowHighlight);
+  hline(img, x, x + s - 1, y + s - 1, p.pinstripeDark);
+  vline(img, x + s - 1, y, y + s - 1, p.pinstripeDark);
   if (glyph === 'zoom') {
     hline(img, x + 1, x + s - 2, y + 1, p.frameOutline);
     hline(img, x + 1, x + s - 2, y + s - 2, p.frameOutline);
@@ -36,37 +49,73 @@ function drawWidget(img, x, y, p, glyph, size) {
   }
 }
 
-// Draw one frame state for an arbitrary window-type config.
+// The decoded document-window (plate) drawing sequence.
+function drawPlateFrame(geo, isActive, p) {
+  const { width, height, inset, barH, topFrame, widgetSlots } = geo;
+  const img = buf(width, height);
+
+  const titleTop = inset, titleBot = inset + barH - 1; // bar rows [1, 20]
+  const px0 = geo.leftFixed + geo.leftFill; // plate cell start (27)
+  const px1 = px0 + geo.plate;              // plate cell end   (57)
+
+  // 3. Title-bar fill.
+  for (let y = titleTop; y <= titleBot; y++) {
+    if (isActive) {
+      // Flanks: 2-row pinstripe — even rows white, odd rows #777 (full-width
+      // lines, parity measured from the first bar row).
+      const line = ((y - titleTop) % 2 === 0) ? p.pinstripeLight : p.pinstripeDark;
+      for (let x = inset; x < width - inset; x++) set(img, x, y, line);
+    } else {
+      // Inactive: flat solid #ccc bar (no pinstripe).
+      for (let x = inset; x < width - inset; x++) set(img, x, y, p.plateBase);
+    }
+  }
+  // Plate cell: solid #ccc, overwriting the pinstripe. (Title sits here.)
+  for (let y = titleTop; y <= titleBot; y++)
+    for (let x = px0; x < px1; x++) set(img, x, y, p.plateBase);
+
+  // 2. Window bevel: top inner row = white highlight, bottom inner row = #999
+  // shadow, drawn over the fill so the bar reads raised. (Active only — the
+  // inactive bar is flat per the decode.)
+  if (isActive) {
+    hline(img, inset, width - 1 - inset, titleTop, p.windowHighlight);
+    hline(img, inset, width - 1 - inset, titleBot, p.windowShadow);
+  }
+
+  // Title/body divider: the body band (row topFrame) is the dark separator.
+  hline(img, inset, width - 1 - inset, topFrame, p.frameOutline);
+
+  // 4. Widgets.
+  for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph, w.size);
+
+  // 1. 1px black outer window outline around the whole perimeter.
+  hline(img, 0, width - 1, 0, p.frameOutline);
+  vline(img, 0, 0, height - 1, p.frameOutline);
+  hline(img, 0, width - 1, height - 1, p.frameOutline);
+  vline(img, width - 1, 0, height - 1, p.frameOutline);
+
+  // 5. Title text + proxy icon are app-drawn at composite time — leave the
+  // plate clear. A single in-bounds title-text marker pixel at the cinf anchor.
+  set(img, inset, inset, p.titleText);
+  return img;
+}
+
+// Draw one frame state for a non-plate window-type config (scaffold).
 function drawFrame(cfg, geo, titleFore, titleBack, p) {
   const { width, height, inset, barH, hasTitle, topFrame, widgetSlots } = geo;
   const img = buf(width, height);
 
   if (hasTitle) {
-    // Title band: rows [inset, inset+barH) — row-uniform pinstripe
-    // (tile-invariant; see draw-document-window). The title/body divider is the
-    // body band itself: row `topFrame` (= inset + barH), drawn as the dark
-    // separator line (content overlays it at composite time).
     const titleTop = inset, titleBot = inset + barH - 1;
     for (let y = titleTop; y <= titleBot; y++) {
       const rowByte = METRICS.stipple[(y - titleTop) % METRICS.stipple.length];
       const c = rowByte ? titleFore : titleBack;
       for (let x = inset; x < width - inset; x++) set(img, x, y, c);
     }
-    // Title PLATE: overwrite the plate cell with a SOLID (un-pinstriped) fill —
-    // the gap the centred title sits on, with pinstripes flanking it. The plate
-    // spans x ∈ [leftFixed+leftFill, leftFixed+leftFill+plate).
-    if (geo.hasPlate) {
-      const px0 = geo.leftFixed + geo.leftFill;
-      const px1 = px0 + geo.plate;
-      for (let y = titleTop; y <= titleBot; y++)
-        for (let x = px0; x < px1; x++) set(img, x, y, p.titleFillBack);
-    }
     hline(img, inset, width - 1 - inset, topFrame, p.frameOutline);
     for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph, w.size);
   } else {
-    // Title-less frame: a flat mid-gray top frame band (dialog/alert/no-title),
-    // plus the 1px body band below it.
-    fill(img, inset, inset, width - 2 * inset, height - 2 * inset, p.widgetFace);
+    fill(img, inset, inset, width - 2 * inset, height - 2 * inset, p.plateBase);
   }
 
   // 1px black outer window outline.
@@ -75,7 +124,6 @@ function drawFrame(cfg, geo, titleFore, titleBack, p) {
   hline(img, 0, width - 1, height - 1, p.frameOutline);
   vline(img, width - 1, 0, height - 1, p.frameOutline);
 
-  // Title-text colour MARKER pixel at the cinf textPixel anchor (in bounds).
   set(img, inset, inset, p.titleText);
   return img;
 }
@@ -86,9 +134,16 @@ function drawFrame(cfg, geo, titleFore, titleBack, p) {
  */
 export function drawWindow(cfg, palette) {
   const geo = geometryFor(cfg);
+  if (geo.hasPlate) {
+    return {
+      geo,
+      active:   drawPlateFrame(geo, true, palette),
+      inactive: drawPlateFrame(geo, false, palette),
+    };
+  }
   return {
     geo,
-    active:   drawFrame(cfg, geo, palette.titleFillFore, palette.titleFillBack, palette),
-    inactive: drawFrame(cfg, geo, palette.titleFillBack, palette.titleFillBack, palette),
+    active:   drawFrame(cfg, geo, palette.pinstripeLight, palette.plateBase, palette),
+    inactive: drawFrame(cfg, geo, palette.plateBase, palette.plateBase, palette),
   };
 }
