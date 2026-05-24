@@ -1,17 +1,26 @@
 {
   "source": "generated",
-  "extractedAt": "2026-05-24T13:22:20.789Z",
+  "extractedAt": "2026-05-24T13:46:57.424Z",
   "counts": {
-    "total": 5,
-    "ok": 5,
+    "total": 53,
+    "ok": 53,
     "skipped": 0,
     "errored": 0
   },
   "assets": [
     {
+      "type": "ppat",
+      "id": 128,
+      "name": "Title Pinstripe",
+      "status": "ok",
+      "file": "ppats/ppat-128-title-pinstripe.png",
+      "width": 8,
+      "height": 8
+    },
+    {
       "type": "cicn",
       "id": -14336,
-      "name": "Document Window",
+      "name": "Document Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14336-document-window-inactive.png",
       "width": 47,
@@ -22,18 +31,9 @@
       "id": -14335,
       "name": "Active Document Window",
       "status": "ok",
-      "file": "cicns/cicn-n14335-active-document-window.png",
+      "file": "cicns/cicn-n14335-document-window-active.png",
       "width": 47,
       "height": 22
-    },
-    {
-      "type": "ppat",
-      "id": 128,
-      "name": "Title Pinstripe",
-      "status": "ok",
-      "file": "ppats/ppat-128-title-pinstripe.png",
-      "width": 8,
-      "height": 8
     },
     {
       "type": "wnd#",
@@ -90,6 +90,1086 @@
       "type": "cinf",
       "id": -14336,
       "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14332,
+      "name": "Collapsed Document Window (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14332-collapsed-document-window-inactive.png",
+      "width": 47,
+      "height": 22
+    },
+    {
+      "type": "cicn",
+      "id": -14331,
+      "name": "Active Collapsed Document Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14331-collapsed-document-window-active.png",
+      "width": 47,
+      "height": 22
+    },
+    {
+      "type": "wnd#",
+      "id": -14332,
+      "name": "Collapsed Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 20,
+              "left": 1,
+              "bottom": 21,
+              "right": 46
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 15
+          },
+          {
+            "part": 8,
+            "border": 23
+          },
+          {
+            "part": 1,
+            "border": 47
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14332,
+      "name": "Collapsed Document Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14328,
+      "name": "Dialog (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14328-dialog-inactive.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "cicn",
+      "id": -14327,
+      "name": "Active Dialog",
+      "status": "ok",
+      "file": "cicns/cicn-n14327-dialog-active.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "wnd#",
+      "id": -14328,
+      "name": "Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 1,
+              "left": 1,
+              "bottom": 2,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14328,
+      "name": "Dialog",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14326,
+      "name": "Alert (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14326-alert-inactive.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "cicn",
+      "id": -14325,
+      "name": "Active Alert",
+      "status": "ok",
+      "file": "cicns/cicn-n14325-alert-active.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "wnd#",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 1,
+              "left": 1,
+              "bottom": 2,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14324,
+      "name": "Movable Modal (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14324-movable-modal-inactive.png",
+      "width": 29,
+      "height": 19
+    },
+    {
+      "type": "cicn",
+      "id": -14323,
+      "name": "Active Movable Modal",
+      "status": "ok",
+      "file": "cicns/cicn-n14323-movable-modal-active.png",
+      "width": 29,
+      "height": 19
+    },
+    {
+      "type": "wnd#",
+      "id": -14324,
+      "name": "Movable Modal",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 17,
+              "left": 1,
+              "bottom": 18,
+              "right": 28
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 19
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 19
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14324,
+      "name": "Movable Modal",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14322,
+      "name": "Movable Alert (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14322-movable-alert-inactive.png",
+      "width": 29,
+      "height": 19
+    },
+    {
+      "type": "cicn",
+      "id": -14321,
+      "name": "Active Movable Alert",
+      "status": "ok",
+      "file": "cicns/cicn-n14321-movable-alert-active.png",
+      "width": 29,
+      "height": 19
+    },
+    {
+      "type": "wnd#",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 17,
+              "left": 1,
+              "bottom": 18,
+              "right": 28
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 19
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 19
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14304,
+      "name": "Titled Utility Window (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14304-titled-utility-window-inactive.png",
+      "width": 29,
+      "height": 14
+    },
+    {
+      "type": "cicn",
+      "id": -14303,
+      "name": "Active Titled Utility Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14303-titled-utility-window-active.png",
+      "width": 29,
+      "height": 14
+    },
+    {
+      "type": "wnd#",
+      "id": -14304,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 12,
+              "left": 1,
+              "bottom": 13,
+              "right": 28
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 14
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 14
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14304,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14300,
+      "name": "Collapsed Titled Utility (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14300-collapsed-titled-utility-inactive.png",
+      "width": 29,
+      "height": 14
+    },
+    {
+      "type": "cicn",
+      "id": -14299,
+      "name": "Active Collapsed Titled Utility",
+      "status": "ok",
+      "file": "cicns/cicn-n14299-collapsed-titled-utility-active.png",
+      "width": 29,
+      "height": 14
+    },
+    {
+      "type": "wnd#",
+      "id": -14300,
+      "name": "Collapsed Titled Utility",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 12,
+              "left": 1,
+              "bottom": 13,
+              "right": 28
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 1,
+            "border": 29
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14300,
+      "name": "Collapsed Titled Utility",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14296,
+      "name": "Side Floating Utility Window (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14296-side-floating-utility-window-inactive.png",
+      "width": 18,
+      "height": 14
+    },
+    {
+      "type": "cicn",
+      "id": -14295,
+      "name": "Active Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14295-side-floating-utility-window-active.png",
+      "width": 18,
+      "height": 14
+    },
+    {
+      "type": "wnd#",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 12,
+              "left": 1,
+              "bottom": 13,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 14
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 14
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14292,
+      "name": "Collapsed Side Utility (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14292-collapsed-side-utility-inactive.png",
+      "width": 18,
+      "height": 14
+    },
+    {
+      "type": "cicn",
+      "id": -14291,
+      "name": "Active Collapsed Side Utility",
+      "status": "ok",
+      "file": "cicns/cicn-n14291-collapsed-side-utility-active.png",
+      "width": 18,
+      "height": 14
+    },
+    {
+      "type": "wnd#",
+      "id": -14292,
+      "name": "Collapsed Side Utility",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 12,
+              "left": 1,
+              "bottom": 13,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14292,
+      "name": "Collapsed Side Utility",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14288,
+      "name": "No Title Utility Window (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14288-no-title-utility-window-inactive.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "cicn",
+      "id": -14287,
+      "name": "Active No Title Utility Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14287-no-title-utility-window-active.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "wnd#",
+      "id": -14288,
+      "name": "No Title Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 1,
+              "left": 1,
+              "bottom": 2,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 3
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14288,
+      "name": "No Title Utility Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14284,
+      "name": "Collapsed No Title Utility (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n14284-collapsed-no-title-utility-inactive.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "cicn",
+      "id": -14283,
+      "name": "Active Collapsed No Title Utility",
+      "status": "ok",
+      "file": "cicns/cicn-n14283-collapsed-no-title-utility-active.png",
+      "width": 18,
+      "height": 3
+    },
+    {
+      "type": "wnd#",
+      "id": -14284,
+      "name": "Collapsed No Title Utility",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 1,
+              "left": 1,
+              "bottom": 2,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14284,
+      "name": "Collapsed No Title Utility",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12320,
+      "name": "Popup Window (Inactive)",
+      "status": "ok",
+      "file": "cicns/cicn-n12320-popup-window-inactive.png",
+      "width": 18,
+      "height": 17
+    },
+    {
+      "type": "cicn",
+      "id": -12319,
+      "name": "Active Popup Window",
+      "status": "ok",
+      "file": "cicns/cicn-n12319-popup-window-active.png",
+      "width": 18,
+      "height": 17
+    },
+    {
+      "type": "wnd#",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 15,
+              "left": 1,
+              "bottom": 16,
+              "right": 17
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 1,
+            "border": 18
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 1,
+            "border": 17
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 1,
+            "border": 17
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12320,
+      "name": "Popup Window",
       "status": "ok",
       "data": {
         "cornerSize": 1,
