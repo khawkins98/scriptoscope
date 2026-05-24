@@ -12,7 +12,6 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
-import { drawDocumentWindow } from './generate-platinum/draw-document-window.mjs';
 import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
 import { graftControls } from './generate-platinum/graft-controls.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
@@ -25,16 +24,15 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dest = resolve(root, 'themes/apple-platinum-replica');
 const cicnDir = resolve(dest, 'cicns');
 mkdirSync(cicnDir, { recursive: true });
-mkdirSync(resolve(dest, 'ppats'), { recursive: true });
 
 // Clear stale generated cicns so renamed/removed types don't linger.
 for (const f of existsSync(cicnDir) ? readdirSync(cicnDir) : [])
   if (f.startsWith('cicn-')) rmSync(resolve(cicnDir, f));
 
-// Draw every type's sprites. The stipple ppat is shared (from the doc-window).
+// Draw every type's sprites (the procedural fallback). document-window is then
+// overridden by the screenshot slice below.
 const drawnBySlug = {};
 for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE);
-const stipple = drawDocumentWindow(PALETTE).stipple;
 
 // Override the document-window cicn with the screenshot-sliced raster — the real
 // Platinum pixels (pillow buttons, diagonal sheen, fine pinstripe) that the
@@ -50,7 +48,7 @@ if (existsSync(docSrc)) {
   console.warn('[apple-platinum-replica] WARN: doc-window source missing, using procedural draw');
 }
 
-const assets = buildAllWindowAssets(drawnBySlug, { stipple });
+const assets = buildAllWindowAssets(drawnBySlug);
 
 // Write each raster asset's PNG. cicn files come from cicnFiles(); the ppat
 // path is the manifest entry's `file`.
@@ -60,7 +58,6 @@ for (const cfg of WINDOW_TYPES) {
   imgByFile[files.inactive] = drawnBySlug[cfg.slug].inactive;
   imgByFile[files.active] = drawnBySlug[cfg.slug].active;
 }
-imgByFile['ppats/ppat-128-title-pinstripe.png'] = stipple;
 for (const a of assets) {
   if (!a.file) continue;
   const img = imgByFile[a.file];

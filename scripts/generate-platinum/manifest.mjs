@@ -14,8 +14,6 @@
 // compositor draws just the title bar, exactly like a real collapsed window.
 import { geometryFor, WINDOW_TYPES, FIXED, STRETCH, PLATE } from './window-types.mjs';
 
-const PPAT_STIPPLE = 128;
-
 /**
  * Build the wnd# side recipes + part-0 body rect for one type's geometry.
  * Mac rect order is {top,left,bottom,right}; borders are END-based px offsets.
@@ -76,17 +74,10 @@ function buildWndData(geo, cfg) {
 /**
  * Build the manifest assets for ALL window types from the drawn sprite map.
  * @param {Record<string, {active,inactive,geo}>} drawnBySlug
- * @param {{stipple:{width,height}}} extras  shared stipple ppat
- * @returns {Array} manifest assets (cicn/ppat/wnd#/cinf)
+ * @returns {Array} manifest assets (cicn/wnd#/cinf)
  */
-export function buildAllWindowAssets(drawnBySlug, extras) {
+export function buildAllWindowAssets(drawnBySlug) {
   const assets = [];
-
-  // One shared title pinstripe ppat (secondary; title fill is baked into cicns).
-  assets.push({
-    type: 'ppat', id: PPAT_STIPPLE, name: 'Title Pinstripe', status: 'ok',
-    file: 'ppats/ppat-128-title-pinstripe.png', width: extras.stipple.width, height: extras.stipple.height,
-  });
 
   for (const cfg of WINDOW_TYPES) {
     const drawn = drawnBySlug[cfg.slug];

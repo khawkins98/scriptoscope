@@ -1,22 +1,13 @@
 {
   "source": "generated",
-  "extractedAt": "2026-05-24T18:49:37.774Z",
+  "extractedAt": "2026-05-24T19:41:56.968Z",
   "counts": {
-    "total": 53,
-    "ok": 53,
+    "total": 52,
+    "ok": 52,
     "skipped": 0,
     "errored": 0
   },
   "assets": [
-    {
-      "type": "ppat",
-      "id": 128,
-      "name": "Title Pinstripe",
-      "status": "ok",
-      "file": "ppats/ppat-128-title-pinstripe.png",
-      "width": 8,
-      "height": 8
-    },
     {
       "type": "cicn",
       "id": -14336,
