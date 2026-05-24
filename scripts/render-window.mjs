@@ -41,7 +41,13 @@ const { key: wtKey, wt } = resolved;
 if (!wt?.chrome?.active) { console.error(`window type "${wtKey}" has no active chrome cicn`); process.exit(1); }
 
 const cicn = loadCicn(themeDir, wt.chrome.active);
-const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null });
+// Title width drives the part-5 plate: an explicit --plate N wins; else estimate
+// from the --title text (~6px/char + 12px plate padding), so the plate sizes to
+// the title exactly as the kDEF measures StringWidth.
+const titleWidthPx = opts.plate > 0
+  ? opts.plate
+  : (opts.title ? opts.title.length * 6 + 12 : 0);
+const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
 
 const diagDir = resolve(themeDir, 'diag');
 if (!existsSync(diagDir)) mkdirSync(diagDir, { recursive: true });

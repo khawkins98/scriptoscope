@@ -24,6 +24,7 @@ export const FRAME_INSET = 1; // L/R/B frame thickness (1px); top = titleBarHeig
 // Part codes (see classifyPart in src/composeChrome.ts):
 export const FIXED = 1;   // drawn 1:1 (corners, widget cells, frame bands)
 export const STRETCH = 8; // grows to absorb slack (title fill / side fill)
+export const PLATE = 5;   // title-plate bezel: grows to the measured title width, centred
 
 // Widget geometry (7×7 boxes), shared with draw-window.mjs.
 //   edgeMargin = gap from the frame inset to the first widget (and after the
@@ -43,9 +44,10 @@ export const WIDGET = { size: 7, gap: 2, edgeMargin: 4 };
 
 /** @type {WindowTypeConfig[]} */
 export const WINDOW_TYPES = [
-  // The DONE document window — kept pixel-identical (47×22, 19px bar, 3 widgets).
-  { slug: 'document-window',            name: 'Document Window',            wndId: -14336, titleBarHeight: 19, widgets: ['close', 'collapse', 'zoom'], collapsed: false, titleEdge: 'top', ref: '92×30' },
-  { slug: 'collapsed-document-window',  name: 'Collapsed Document Window',  wndId: -14332, titleBarHeight: 19, widgets: ['close', 'collapse', 'zoom'], collapsed: true,  titleEdge: 'top', ref: '92×25' },
+  // Document windows: a centred title PLATE (part-5) flanked by pinstripe-fill,
+  // chunky ~⅔-bar widgets. 20px bar (reference-matched). titlePlate ⇒ 5-cell top.
+  { slug: 'document-window',            name: 'Document Window',            wndId: -14336, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: false, titleEdge: 'top', titlePlate: true, ref: '92×30' },
+  { slug: 'collapsed-document-window',  name: 'Collapsed Document Window',  wndId: -14332, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '92×25' },
   { slug: 'dialog',                     name: 'Dialog',                     wndId: -14328, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
   { slug: 'alert',                      name: 'Alert',                      wndId: -14326, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
   { slug: 'movable-modal',              name: 'Movable Modal',              wndId: -14324, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', ref: '39×30' },
@@ -73,9 +75,42 @@ export const WINDOW_TYPES = [
  */
 export function geometryFor(cfg) {
   const inset = FRAME_INSET;
-  const { size, gap, edgeMargin } = WIDGET;
+  const { gap, edgeMargin } = WIDGET;
   const barH = cfg.titleBarHeight;
   const hasTitle = barH > 0;
+  const bodyH = 1;
+
+  // Per-type widget box size: chunky (~⅔ of the bar) but always fits the bar.
+  // clamp(barH - 7, 5, 13): a 20px bar → 13px boxes; an 11px utility bar → 5px
+  // (fixes the old fixed-7 that overran the 11px bar). Title-less ⇒ no widgets.
+  const size = hasTitle ? Math.max(5, Math.min(13, barH - 7)) : WIDGET.size;
+
+  // ── Title-plate document geometry: a 5-cell top (fixed corner · grow fill ·
+  // PLATE · grow fill · fixed corner). The plate is a solid un-pinstriped gap
+  // the centred title sits on; pinstripes only FLANK it. (Reference-matched.) ──
+  if (cfg.titlePlate) {
+    const pBarH = 20;
+    const widgetSize = 13;
+    const leftFixed = 21;  // close corner: [0,21)
+    const leftFill = 6;    // pinstripe fill left of the plate
+    const plate = 30;      // solid title plate (part-5; grows to the title)
+    const rightFill = 6;   // pinstripe fill right of the plate
+    const rightFixed = 35; // collapse+zoom corner: [63,98)
+    const width = leftFixed + leftFill + plate + rightFill + rightFixed; // 98
+    const topFrame = pBarH + inset;
+    const height = topFrame + bodyH + inset; // 20 + 1 + 1 + 1 = 23
+    const wy = 4;
+    const widgetSlots = [
+      { glyph: 'close',    x: 5,  y: wy, size: widgetSize }, // in [0,21)
+      { glyph: 'collapse', x: 66, y: wy, size: widgetSize }, // right group in [63,98)
+      { glyph: 'zoom',     x: 81, y: wy, size: widgetSize },
+    ];
+    return {
+      width, height, barH: pBarH, hasTitle: true, leftFixed,
+      fill: leftFill, rightFixed, bodyH, topFrame, widgetSlots, inset,
+      hasPlate: true, leftFill, plate, rightFill,
+    };
+  }
 
   // Split widgets into a left group (close) and a right group (collapse/zoom),
   // matching the document-window layout: close on the left, collapse+zoom right.
@@ -88,43 +123,31 @@ export function geometryFor(cfg) {
 
   // Left/right fixed corner widths. A widget group occupies a lead margin +
   // the boxes (gap-separated) + a trail margin; an empty group is just a small
-  // corner so the grow cell never abuts the frame outline.
+  // corner so the grow cell never abuts the frame outline. Box width is the
+  // per-barH `size` (so a widget never exceeds the bar it sits in).
   //   leftFixed  = inset + lead + boxes + trail
-  // DOCUMENT-WINDOW is kept pixel-identical to the original dedicated drawer:
-  // leftFixed 15 / rightFixed 24 (width 47), so it is pinned here.
-  let leftFixed, rightFixed;
-  if (cfg.slug === 'document-window' || cfg.slug === 'collapsed-document-window') {
-    leftFixed = 15;   // inset(1)+margin(4)+close(7)+trail(3)
-    rightFixed = 24;  // margin(4)+collapse(7)+gap(2)+zoom(7)+inset-side(4)
-  } else {
-    const groupW = (n) => (n ? inset + edgeMargin + n * size + (n - 1) * gap + edgeMargin : inset + edgeMargin);
-    leftFixed = groupW(leftWidgets.length);
-    rightFixed = groupW(rightWidgets.length);
-  }
+  const groupW = (n) => (n ? inset + edgeMargin + n * size + (n - 1) * gap + edgeMargin : inset + edgeMargin);
+  const leftFixed = groupW(leftWidgets.length);
+  const rightFixed = groupW(rightWidgets.length);
   const width = leftFixed + fill + rightFixed;
-
-  // Body band: ≥1px so the part-0 rect is non-degenerate. Collapsed windows
-  // keep the 1px band (their bottom/left/right recipes are empty, so only the
-  // title bar is ever drawn — the body band is never composited).
-  const bodyH = 1;
 
   // Height = top frame (barH or inset) + body band + bottom inset.
   const topFrame = hasTitle ? barH + inset : inset;
   const height = topFrame + bodyH + inset;
 
-  // Vertically centre the 7×7 widgets in the bar.
+  // Vertically centre the widgets in the bar.
   const wy = inset + Math.max(0, Math.floor((barH - size) / 2));
   const widgetSlots = [];
   // Left group: lead margin from the inset.
   let lx = inset + edgeMargin;
-  for (const glyph of leftWidgets) { widgetSlots.push({ glyph, x: lx, y: wy }); lx += size + gap; }
+  for (const glyph of leftWidgets) { widgetSlots.push({ glyph, x: lx, y: wy, size }); lx += size + gap; }
   // Right group: packed inside the right corner, leaving an edge margin to the
-  // frame outline. document-window pins zoom rightmost, collapse inboard.
+  // frame outline.
   const rightBlockW = rightWidgets.length
     ? rightWidgets.length * size + (rightWidgets.length - 1) * gap
     : 0;
   let rx = width - inset - edgeMargin - rightBlockW;
-  for (const glyph of rightWidgets) { widgetSlots.push({ glyph, x: rx, y: wy }); rx += size + gap; }
+  for (const glyph of rightWidgets) { widgetSlots.push({ glyph, x: rx, y: wy, size }); rx += size + gap; }
 
   return { width, height, barH, hasTitle, leftFixed, fill, rightFixed, bodyH, topFrame, widgetSlots, inset };
 }

@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T14:11:31.834Z",
+  "generatedAt": "2026-05-24T14:51:54.564Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -24,42 +24,50 @@
         "part-0": {
           "rect": [
             1,
-            20,
-            46,
-            21
+            21,
+            97,
+            22
           ]
         }
       },
       "edges": {
         "top": [
           {
-            "at": 15,
+            "at": 21,
             "part": "part-1"
           },
           {
-            "at": 23,
+            "at": 27,
             "part": "part-8"
           },
           {
-            "at": 47,
+            "at": 57,
+            "part": "part-5"
+          },
+          {
+            "at": 63,
+            "part": "part-8"
+          },
+          {
+            "at": 98,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 47,
+            "at": 98,
             "part": "part-1"
           }
         ],
         "left": [
           {
-            "at": 22,
+            "at": 23,
             "part": "part-1"
           }
         ],
         "right": [
           {
-            "at": 22,
+            "at": 23,
             "part": "part-1"
           }
         ]
@@ -84,24 +92,32 @@
         "part-0": {
           "rect": [
             1,
-            20,
-            46,
-            21
+            21,
+            97,
+            22
           ]
         }
       },
       "edges": {
         "top": [
           {
-            "at": 15,
+            "at": 21,
             "part": "part-1"
           },
           {
-            "at": 23,
+            "at": 27,
             "part": "part-8"
           },
           {
-            "at": 47,
+            "at": 57,
+            "part": "part-5"
+          },
+          {
+            "at": 63,
+            "part": "part-8"
+          },
+          {
+            "at": 98,
             "part": "part-1"
           }
         ],
@@ -250,7 +266,7 @@
           "rect": [
             1,
             17,
-            28,
+            30,
             18
           ]
         }
@@ -258,21 +274,21 @@
       "edges": {
         "top": [
           {
-            "at": 16,
+            "at": 18,
             "part": "part-1"
           },
           {
-            "at": 24,
+            "at": 26,
             "part": "part-8"
           },
           {
-            "at": 29,
+            "at": 31,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 29,
+            "at": 31,
             "part": "part-1"
           }
         ],
@@ -310,7 +326,7 @@
           "rect": [
             1,
             17,
-            28,
+            30,
             18
           ]
         }
@@ -318,21 +334,21 @@
       "edges": {
         "top": [
           {
-            "at": 16,
+            "at": 18,
             "part": "part-1"
           },
           {
-            "at": 24,
+            "at": 26,
             "part": "part-8"
           },
           {
-            "at": 29,
+            "at": 31,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 29,
+            "at": 31,
             "part": "part-1"
           }
         ],
@@ -370,7 +386,7 @@
           "rect": [
             1,
             12,
-            28,
+            26,
             13
           ]
         }
@@ -378,21 +394,21 @@
       "edges": {
         "top": [
           {
-            "at": 16,
+            "at": 14,
             "part": "part-1"
           },
           {
-            "at": 24,
+            "at": 22,
             "part": "part-8"
           },
           {
-            "at": 29,
+            "at": 27,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 29,
+            "at": 27,
             "part": "part-1"
           }
         ],
@@ -430,7 +446,7 @@
           "rect": [
             1,
             12,
-            28,
+            26,
             13
           ]
         }
@@ -438,15 +454,15 @@
       "edges": {
         "top": [
           {
-            "at": 16,
+            "at": 14,
             "part": "part-1"
           },
           {
-            "at": 24,
+            "at": 22,
             "part": "part-8"
           },
           {
-            "at": 29,
+            "at": 27,
             "part": "part-1"
           }
         ],
@@ -739,8 +755,8 @@
   "chromeElements": {
     "document-window-inactive": {
       "asset": "cicns/cicn-n14336-document-window-inactive.png",
-      "width": 47,
-      "height": 22,
+      "width": 98,
+      "height": 23,
       "slice": {
         "corner": 1,
         "side": 1,
@@ -765,8 +781,8 @@
     },
     "active-document-window": {
       "asset": "cicns/cicn-n14335-document-window-active.png",
-      "width": 47,
-      "height": 22,
+      "width": 98,
+      "height": 23,
       "slice": null,
       "bgPattern": null,
       "bgAnchor": null,
@@ -777,8 +793,8 @@
     },
     "collapsed-document-window-inactive": {
       "asset": "cicns/cicn-n14332-collapsed-document-window-inactive.png",
-      "width": 47,
-      "height": 22,
+      "width": 98,
+      "height": 23,
       "slice": {
         "corner": 1,
         "side": 1,
@@ -803,8 +819,8 @@
     },
     "active-collapsed-document-window": {
       "asset": "cicns/cicn-n14331-collapsed-document-window-active.png",
-      "width": 47,
-      "height": 22,
+      "width": 98,
+      "height": 23,
       "slice": null,
       "bgPattern": null,
       "bgAnchor": null,
@@ -891,7 +907,7 @@
     },
     "movable-modal-inactive": {
       "asset": "cicns/cicn-n14324-movable-modal-inactive.png",
-      "width": 29,
+      "width": 31,
       "height": 19,
       "slice": {
         "corner": 1,
@@ -917,7 +933,7 @@
     },
     "active-movable-modal": {
       "asset": "cicns/cicn-n14323-movable-modal-active.png",
-      "width": 29,
+      "width": 31,
       "height": 19,
       "slice": null,
       "bgPattern": null,
@@ -929,7 +945,7 @@
     },
     "movable-alert-inactive": {
       "asset": "cicns/cicn-n14322-movable-alert-inactive.png",
-      "width": 29,
+      "width": 31,
       "height": 19,
       "slice": {
         "corner": 1,
@@ -955,7 +971,7 @@
     },
     "active-movable-alert": {
       "asset": "cicns/cicn-n14321-movable-alert-active.png",
-      "width": 29,
+      "width": 31,
       "height": 19,
       "slice": null,
       "bgPattern": null,
@@ -967,7 +983,7 @@
     },
     "titled-utility-window-inactive": {
       "asset": "cicns/cicn-n14304-titled-utility-window-inactive.png",
-      "width": 29,
+      "width": 27,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -993,7 +1009,7 @@
     },
     "active-titled-utility-window": {
       "asset": "cicns/cicn-n14303-titled-utility-window-active.png",
-      "width": 29,
+      "width": 27,
       "height": 14,
       "slice": null,
       "bgPattern": null,
@@ -1005,7 +1021,7 @@
     },
     "collapsed-titled-utility-inactive": {
       "asset": "cicns/cicn-n14300-collapsed-titled-utility-inactive.png",
-      "width": 29,
+      "width": 27,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -1031,7 +1047,7 @@
     },
     "active-collapsed-titled-utility": {
       "asset": "cicns/cicn-n14299-collapsed-titled-utility-active.png",
-      "width": 29,
+      "width": 27,
       "height": 14,
       "slice": null,
       "bgPattern": null,
