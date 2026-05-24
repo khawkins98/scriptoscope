@@ -36,20 +36,19 @@ function vline(img, x, y0, y1, c) { for (let y = y0; y <= y1; y++) set(img, x, y
 function drawWidget(img, x, y, p, glyph, size) {
   const s = size ?? METRICS.widget.size;
   const frame = [34, 34, 34]; // #222 dark box frame (reference-sampled, not pure black)
-  // Convex "pillow" interior: a vertical gradient, darker at the top (#9a) →
-  // brighter at the bottom (#ee), sampled from a real Platinum close box
-  // (~170 top → ~238 bottom). This is the textured fill the flat #ccc face was
-  // missing. Lerp per interior row.
-  const top = 154, bot = 238;
+  // Convex 2-D "pillow" interior, sampled from a real Platinum close box: it
+  // brightens top→bottom (~150 top → ~226 bottom) AND dims toward the left/right
+  // edges (center is the bright sheen, edges fall ~28 darker). The old flat
+  // per-row vertical gradient missed the horizontal falloff — the box read flat.
+  const topV = 150, botV = 226, edgeDim = 28, cx = (s - 1) / 2;
   for (let yy = 1; yy < s - 1; yy++) {
-    const t = (s <= 3) ? 0 : (yy - 1) / (s - 3);
-    const v = Math.round(top + (bot - top) * t);
-    for (let xx = 1; xx < s - 1; xx++) set(img, x + xx, y + yy, [v, v, v]);
-  }
-  // 1px white inner highlight on top + left edges (the raised pillow lip).
-  if (s >= 5) {
-    hline(img, x + 1, x + s - 2, y + 1, p.windowHighlight);
-    vline(img, x + 1, y + 1, y + s - 2, p.windowHighlight);
+    const ty = (s <= 3) ? 0 : (yy - 1) / (s - 3);
+    const vy = topV + (botV - topV) * ty;
+    for (let xx = 1; xx < s - 1; xx++) {
+      const ex = cx ? Math.abs(xx - cx) / cx : 0;       // 0 center .. 1 edge
+      const v = Math.max(0, Math.round(vy - edgeDim * ex));
+      set(img, x + xx, y + yy, [v, v, v]);
+    }
   }
   // 1px dark box frame (the crisp box outline the reference shows).
   hline(img, x, x + s - 1, y, frame);
