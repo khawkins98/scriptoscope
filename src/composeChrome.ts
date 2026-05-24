@@ -398,6 +398,31 @@ interface PlacedCell {
 }
 
 /**
+ * Is a cell's source band UNIFORM along the growth axis — i.e. every line
+ * (column on a horizontal edge, row on a vertical edge) identical across the
+ * cross band? The kDEF's tile blit (`0xfeae`) repeats the whole src cell, so a
+ * uniform cell tiles invisibly while a structured one repeats its art. We use
+ * this only to guard the widget-CELL codes (15/16/17): the `0x49d6` table marks
+ * them STRETCH when the matching widget is present, but that rule assumes the
+ * cell is the flat fill BEHIND a separately-drawn widget. When a scheme bakes a
+ * one-off ORNAMENT into that cell instead (1984's rounded title-tab shoulder,
+ * compositor-spec open issue #3), tiling it scallops — so a non-uniform widget
+ * cell is drawn 1:1 (fixed) and the slack flows to the real flat fill.
+ */
+function axisUniform(cicn: PixelBuffer, geo: EdgeGeometry, x0: number, x1: number): boolean {
+  const cs = geo.crossSrc, ce = geo.crossSrc + geo.crossLen;
+  const px = (axis: number, cross: number): readonly number[] =>
+    geo.horizontal ? cicn.getPixel(axis, cross) : cicn.getPixel(cross, axis);
+  for (let a = x0 + 1; a < x1; a++) {
+    for (let c = cs; c < ce; c++) {
+      const p = px(a, c), q = px(x0, c);
+      if (p[0] !== q[0] || p[1] !== q[1] || p[2] !== q[2] || p[3] !== q[3]) return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Compose ONE window edge by walking its `wnd#` recipe per the spec model.
  * Returns the placed cells (for widget mapping + the diagnostic) plus the
  * title region's output span (for centring the title).
@@ -416,6 +441,19 @@ function composeEdge(
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
   const cells = recipeCells(recipe, lastAt, widgetPresent);
   if (cells.length === 0) return null;
+
+  // Widget-CELL codes (15/16/17) classify STRETCH when their widget is present
+  // (0x49d6), but only the flat fill BEHIND a widget is meant to tile. A scheme
+  // that bakes a one-off ornament into that cell (1984's title-tab shoulder)
+  // would otherwise tile it into a row of arches; draw such non-uniform cells
+  // 1:1 instead, so the slack flows to the genuine flat fill. (Flat widget
+  // cells stay STRETCH; non-widget fill codes are untouched.)
+  for (const c of cells) {
+    if ((c.code === 15 || c.code === 16 || c.code === 17) && c.cls === 'stretch'
+      && !axisUniform(cicn, geo, c.x0, c.x1)) {
+      c.cls = 'fixed';
+    }
+  }
 
   // Corners are intrinsic to the walk: the LEADING corner is `recipeCells`'
   // first cell `[0, border[0])` (fixed, 1:1); the TRAILING corner is the
