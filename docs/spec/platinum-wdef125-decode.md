@@ -701,10 +701,254 @@ else:                  drawBox(aux, boxRect)         # release -> normal bevel
   are firmly pinned.
 
 ## Color sourcing
-_(Task 6)_
+
+**Headline.** WDEF 125 hardcodes **no RGB values**. Every drawn color is read from
+a **per-window color table** and almost always **blended** by the helper `0x1356`.
+The literal Platinum grays are therefore **runtime data living in that color
+table** (the window's `wctb` / Appearance theme color set), *not* in this code.
+What the disassembly *does* pin: the field→feature map, the blend math, and the
+fact that the WDEF only **reads** these fields — it never writes color values.
+
+### Where the color record comes from (preamble, `0x114`–`0x152`)
+
+The color fields are **not** read from the local port copy `fp@(-44)` (that copy
+feeds only the two `Pattern`s — see below). They come from the window's
+**auxiliary window record** and its attached color table:
+
+- `0x116`–`0x11c`: `GetAuxWin(window a2, &fp@(-12))` (`0xaa42`) — fetch the
+  `AuxWinHandle` for this window.
+- `0x120`–`0x126`: deref the handle, read **`auxWinRec + 8` = `awCTable`** (the
+  window's color-table handle) into `d0`.
+- `0x12a`–`0x132`: `a3 = *awCTable` (deref to the `ColorTable` body), then
+  `HLock` (`0xa029`) it. **`a3` is the base pointer every color blend reads from**
+  (`a3@(+NN)`). `a4` mirrors it.
+- `0x14c`–`0x158`: a depth guard — read the `GDevice`/`PixMap` `pixelSize`
+  (`+32`); if `< 8` bits, **null out `a4`** so the deep-color widget path is
+  skipped on shallow screens.
+
+So the `+NN` offsets in the table below are **byte offsets into the window color
+table record** (`a3`), i.e. entries of the Appearance/`wctb` color set. Each entry
+is a 6-byte `RGBColor` (3×`UInt16`), which is why the offsets step by 8 (6-byte
+color + 2-byte index/pad, the classic `ColorSpec` stride).
+
+### The two `Pattern`s come from a *different* record (`fp@(-44)`)
+
+The preamble's **`PenPat`** (`0xa89d` @ `0xd0`, field `+58`) and **`BackPat`**
+(`0xa87c` @ `0xdc`, field `+32`) read the local **port-snapshot** copy `fp@(-44)`
+(built at `0x26`/`0x2a` and field-copied around `0x46`–`0xc2`), **not** the
+`awCTable` (`a3`). These are *pattern* slots, not the pinstripe (see the
+correction note below).
+
+### Field → feature color table
+
+All blends call `0x1356` as `blend(A, B, w) → dest`, computing
+`dest = A + (B−A)·w/15` per channel (see next subsection). `w` is the small
+`moveq #w` pushed just before the call. Fields are byte offsets into the color
+table `a3`.
+
+| call `0xADDR` | trap | feature | field(s) → result | weight `w` | blended? |
+|---|---|---|---|---|---|
+| `0x3fa` | `RGBForeColor` `aa14` | outer structure `FrameRect` fore | `+18` | — | no (direct) |
+| `0x404` | `RGBBackColor` `aa15` | outer structure `FrameRect` back | `+10` | — | no (direct) |
+| `0x588`→`0x594` | `RGBBackColor` `aa15` | title fill **back** (`EraseRect`) | blend(`+66`,`+74`) | 1 | yes |
+| `0x5b4`→`0x5c0` | `RGBForeColor` `aa14` | title fill **fore** A (`FillRect` pinstripe) | blend(`+50`,`+58`) | 8 | yes |
+| `0x5da` | `RGBForeColor` `aa14` | title-border `FrameRect` (1-px outline) | `+18` | — | no (direct) |
+| `0x5fe`→`0x60a` | `RGBForeColor` `aa14` | title bevel **highlight** (top/left) | blend(`+74`,`+98`) | 0 → =`+74` | yes |
+| `0x658`→`0x664` | `RGBForeColor` `aa14` | title bevel **shadow** (bottom/right) | blend(`+98`,`+106`) | 4 | yes |
+| `0x73a` | `RGBForeColor` `aa14` | collapse-box outline | `+18` | — | no (direct) |
+| `0x758`→`0x764` | `RGBBackColor` `aa15` | collapse-box face | blend(`+98`,`+74`) | 0 → =`+98` | yes |
+| `0x852`→`0x85e` | `RGBBackColor` `aa15` | title-text background | blend(`+66`,`+74`) | 1 | yes |
+| `0x868` | `RGBForeColor` `aa14` | **title text** color | `+26` | — | no (direct) |
+| `0x93c`→`0x948` | `RGBForeColor` `aa14` | close-box outline | blend(`+66`,`+106`) | 15 → ≈`+106` | yes |
+| `0x972`→`0x97e` | `RGBBackColor` `aa15` | close-box face | blend(`+74`,`+66`) | 4 | yes |
+| `0x99a`→`0x9a6` | `RGBForeColor` `aa14` | close-box highlight | blend(`+98`,`+74`) | 0 → =`+98` | yes |
+| `0xa42`→`0xa4e` | `RGBForeColor` `aa14` | zoom-box outline | blend(`+66`,`+106`) | 15 → ≈`+106` | yes |
+| `0xa78`→`0xa84` | `RGBBackColor` `aa15` | zoom-box face | blend(`+74`,`+66`) | 4 | yes |
+| `0xace`→`0xada` | `RGBForeColor` `aa14` | zoom-box highlight | blend(`+98`,`+74`) | 0 → =`+98` | yes |
+| `0xb6c` | `RGBForeColor` `aa14` | close pressed-fill outline | `+18` | — | no (direct) |
+| `0xb86`→`0xb92` | `RGBBackColor` `aa15` | close pressed-fill face | blend(`+66`,`+106`) | 15 → ≈`+106` | yes |
+| `0xc28` | `RGBForeColor` `aa14` | zoom pressed-fill outline | `+18` | — | no (direct) |
+| `0xc42`→`0xc4e` | `RGBBackColor` `aa15` | zoom pressed-fill face | blend(`+66`,`+106`) | 15 → ≈`+106` | yes |
+
+The field set is **coherent**: a small palette of base entries —
+`+10`/`+18`/`+26` (direct outline/text colors), and the blend inputs
+`+50`/`+58`/`+66`/`+74`/`+98`/`+106` — reused across every feature. `+98` and
+`+74` recur as the highlight/face poles, `+106`/`+66` as the shadow/dark poles,
+which is exactly the structure of a single neutral Platinum gray ramp (a base
+gray plus a lighter and a darker neighbour, mixed in 1/15 steps). The literal RGB
+of each entry is **runtime data** (see "could-not-pin").
+
+### The blend helper `0x1356` — the formula
+
+`0x1356` is a **per-channel linear interpolation between two `RGBColor`s**. Stack
+args (caller pushes in reverse): `A = fp@(8)`, `B = fp@(12)`, `w = fp@(16)` (a
+word), `dest = fp@(18)`. It loops the 3 RGB channels (counter `fp@(-16)` starts at
+3, advances each pointer by 2 at `0x1416`–`0x1422`).
+
+Setup at `0x136e`–`0x1374`: `frac = w · 4369` as a 16.16 fixed-point fraction —
+`4369 = round(65536/15)`, so `frac ≈ w/15` of a full unit. Per channel
+(`0x139a`–`0x1414`):
+
+1. `delta = B.chan − A.chan` (sign tracked in the flag `fp@(-14)`; both branches
+   compute `|B−A|` and remember the direction).
+2. `scaled = (|delta| · frac) >> 16` via the fixed-point multiply `0x1656`
+   (`(d0·d1)>>16`), then `÷ 65535` via `0x167e`/`0x16bc` (a 32/16 unsigned
+   divide). The `·4369 >>16` then `÷65535` pair is the compiler's rounded
+   realization of "× w/15" (4369/65536 vs 1/15 differ by ~1.5e-5; the trailing
+   ÷65535 trims the bias). Net: `scaled = round(|B−A| · w / 15)`.
+3. `dest.chan = A.chan ± scaled` (`+` if `B≥A`, `−` if `B<A`) — i.e.
+   **`dest.chan = A.chan + (B.chan − A.chan) · w/15`**.
+
+So:
+
+```
+blend(A, B, w):                  # w in 0..15
+    for chan in (r, g, b):
+        dest.chan = A.chan + (B.chan - A.chan) * w / 15   # rounded
+    return dest                  # written to *fp@(18)
+```
+
+Boundary behaviour (matches the weights used): `w=0 → dest = A`;
+`w=15 → dest ≈ B` (exact B up to the 4369-rounding); `w=8 → ≈ 53% toward B`;
+`w=4 → ≈ 27% toward B`; `w=1 → ≈ 7% toward B`. These produce **intermediate
+grays on a neutral ramp**, consistent with the Platinum look (the title fill is a
+near-A gray nudged 7% toward `+74`; bevels mix the base gray `+98` with a lighter
+`+74` / darker `+106` neighbour). **Ambiguity flagged:** the `·4369 / 65535` pair
+is a rounded `×w/15`; the exact rounding of the last 1 LSB per channel is
+implementation-detail and not worth chasing for Phase B — `A + (B−A)·w/15` is the
+faithful formula.
+
+### Aux-record origin — conclusion
+
+**The WDEF does not author the color values; it reads them from the window's
+color table, which is pre-populated by the Window/Appearance Manager.** Evidence:
+
+- `wNew 0x294` allocates only a **16-byte** handle via `NewHandleClear`
+  (`0xa122` @ `0x2a2`) and stores it at `window+130`. It then fills that handle
+  with **geometry only** — the port `portRect` bounds (`0x2b8`–`0x2c2`), an
+  `OffsetRect` (`0xa8a8` @ `0x2d8`), and a copy of a low-mem rect
+  (`0x2dc`–`0x2f0`). **No `RGBColor` is ever written.** This is the window's
+  `WStateData` (zoom user/standard-state rects), not a color record.
+- The colors instead come from `GetAuxWin` (`0xaa42` @ `0x11c`) → `awCTable`
+  (`auxWinRec+8`) → the dereferenced color table `a3`. The WDEF only **reads**
+  `a3@(+NN)` and `HLock`s it; it performs no store into those offsets.
+- Therefore the literal Platinum grays are **populated upstream** (the Window
+  Manager builds the per-window `wctb` from the Appearance theme) and this proc is
+  a pure consumer.
+
+**Phase-B pointer:** to reproduce the exact Platinum grays, decode the **window
+color table (`wctb`)** / Appearance theme color set, not this WDEF. The project's
+ISO recon already located a `wctb` plus `ppat`/`PAT` resources in the System file
+— that is where `+10/+18/+26/+50/+58/+66/+74/+98/+106` resolve to RGB.
+
+### Correction to the T3 pinstripe-source claim (cross-check)
+
+While consolidating the pattern path I found that the title-fill `Pattern`
+`fp@(-316)` is **not** a copy of color-table field `+58`. It is a **literal
+pattern baked into the code** and stuffed at draw time:
+
+- `0x4a4`–`0x4ac`: `StuffHex(&fp@(-316), pc@(0x8f2))` (`0xa866`). The source bytes
+  at `0x8f2` are the ASCII string **`"AA00AA00AA00AA00"`** → the 8-byte `Pattern`
+  `AA 00 AA 00 AA 00 AA 00` — the classic 1-px alternating-row pinstripe.
+- `0x4ae`–`0x536`: depending on the title rect's left/top **parity** (`& 1`) and
+  `varCode & 8` (top-vs-side titlebar), the pattern bytes are conditionally
+  inverted (`notb` @ `0x4e6`) and/or byte-rotated (`lsr #8` @ `0x532`) to
+  **phase-align** the stripes to the pixel grid. (The `andl #1`/`andl #8` tests at
+  `0x4ba`/`0x4c6`/`0x4fe` are this parity/phase logic — **not** active-state and
+  **not** stripe-parity-in-a-loop.)
+
+So field `+58` is used **only** as the `PenPat` (preamble `0xd0`) and as the *fore*
+blend input for the title fill (`blend(+50,+58)` @ `0x5b4`); the **tiled pinstripe
+texture itself is the code-baked `AA00…` pattern**, phase-adjusted. T3's
+"pinstripe = field `+58`" should be read as "field `+58` colors the fill; the
+pattern is the baked `AA00` texture." (Recorded here as the Task-6 resolution of
+T3's open "decode the `+58` pattern bytes" question: the pattern is *not* in the
+color table — it is `AA00AA00AA00AA00` in code at `0x8f2`.)
+
+### Could-not-pin / open questions (Color sourcing)
+
+- **Literal RGB values** at every `+NN` offset: **runtime data** in the window
+  `wctb` / Appearance theme — not derivable from this resource. Phase B must
+  decode the `wctb`/theme. (Expected outcome, not a failure.)
+- **Exact color-table layout** (`ColorSpec` index vs RGB ordering at each offset):
+  inferred as 6-byte `RGBColor` entries on an 8-byte stride from the offset
+  arithmetic; not proven byte-for-byte against a live table here.
+- **Trap `0xa910`** (preamble `0x2a`, fills the port snapshot `fp@(-44)`): the
+  exact trap name is not pinned, but its role is clear — it produces the local
+  CGrafPort-shaped snapshot whose `+58`/`+32` feed `PenPat`/`BackPat`. Colors do
+  **not** come from it.
 
 ## Active vs inactive title bar
-_(Task 6)_
+
+**Key correction to the T3/T4 premise: `jsr 0x310` is NOT an active/inactive
+test — it is a screen bit-depth probe**, and the `bge 0x570` branch it gates is a
+**deep-color-vs-shallow** switch, not active-vs-inactive.
+
+### What `0x310` actually returns (decoded `0x310`–`0x390`)
+
+`0x310` takes the title rect's top-left corner, `LocalToGlobal`s it (`0xa870` @
+`0x32c`), builds a 1-px probe rect, then calls **`GetMaxDevice`** (`0xaa27` @
+`0x352`) to find the deepest `GDevice` intersecting the title bar. It reads that
+device's `PixMap.pixelSize` (`+32`) and returns a **bit-depth bucket**:
+
+- no device → **1**
+- `pixelSize < 4` (1/2-bit) → **1**
+- `pixelSize < 8` (4-bit) → **4**
+- else (≥ 8-bit) → **8**
+
+At the title fill (`0x544`–`0x55a`): if the color table `a3` is **null** →
+`beq 0x55c` (flat path); else call `0x310` and `cmpl #8 / bge 0x570` — i.e. the
+**blended color path runs only on ≥ 8-bit screens with a color table present**.
+The `0x55c` path is the **shallow-depth / no-color-table fallback**, not the
+inactive state.
+
+### So where is active/inactive?
+
+**The active/inactive distinction is not branched on inside WDEF 125's drawing
+code.** There is no read of a `hilited` flag and no second set of color fields for
+the inactive state in the frame drawer. The drawing geometry and the *field
+offsets* are identical regardless of active state. The conclusion the evidence
+supports:
+
+- The Window Manager **pre-loads different RGB values into the same color-table
+  entries** (`a3@(+NN)`) depending on whether the window is active, and re-issues
+  the `wDraw` message when the highlight state changes. The WDEF reads the same
+  offsets and blends them the same way; the *values* differ. This is consistent
+  with the "WDEF is a pure consumer of the `wctb`" finding above.
+- The only state the WDEF itself tracks is the **pressed** (mouse-down) state of
+  the close/zoom boxes, via the WDEF-private low-mem toggle at `0x0B20` (decimal
+  2848): the `param==4/5/6` stubs `eorib #1` it (`0x1f2`, `0x20c`); the
+  whole-frame `param==0` `andib #-2` clears it (`0x1e6`). The pressed drawers
+  (`0xb10`/`0xbb6`) read it to choose pressed-fill vs normal-bevel.
+
+### What the *shallow / no-color-table* fallback looks like (the real branch)
+
+This is the one true two-way split in the title drawer, and it is depth/aux-driven
+(not hilite-driven):
+
+| | deep path (`≥8-bit` + color table), `0x570`+ | fallback path (`<8-bit` or no table), `0x55c`–`0x56c` |
+|---|---|---|
+| title fill | `RGBBackColor(blend +66/+74 w1)` → `EraseRect`; `RGBForeColor(blend +50/+58 w8)` + `PenMode(patOr)` → `FillRect(pattern)` | `FillRect(titleRect, pattern fp@(-316))` in the **default port colors** (no `RGB*Color` set) |
+| title border | `RGBForeColor(+18)` + `PenMode(patCopy)` → `FrameRect` | plain `FrameRect(titleRect)` (default colors) |
+| title bevel (3a/3b) | highlight `blend(+74,+98,0)` + shadow `blend(+98,+106,4)` polylines | **skipped** (`bra 0x694` jumps past the bevel) |
+| widgets | colored beveled boxes (`a4 != 0` path in `0x904`/`0x9dc`) | flat `EraseRect`+`FrameRect` boxes (`a4 == 0` path) — `a4` was nulled at `0x158` when depth `< 8` |
+| pinstripe pattern | baked `AA00…`, phase-adjusted (`0x4ac`+) | same baked `AA00…` pattern |
+
+So on a shallow screen (or a window with no color table) the title bar is a single
+flat `FillRect` of the `AA00` pinstripe in the port's black/white with a plain
+1-px border and **no bevel and no colored widgets** — the graceful B&W/16-color
+degrade. On a deep screen with the theme color table, the full blended Platinum
+treatment runs.
+
+### Could-not-pin (Active vs inactive)
+
+- **The literal active vs inactive grays**: runtime data — the Window Manager
+  swaps the values behind the same `a3@(+NN)` offsets per highlight state. This
+  WDEF contains **no** active/inactive color branch to decode; Phase B sources the
+  two value sets from the active/inactive `wctb` (or the Appearance theme's
+  active/inactive title-bar colors), same as the rest of the palette.
+- Whether the WM re-populates the table or swaps the whole `awCTable` handle on
+  hilite change is a **Window Manager** behaviour, outside this resource.
 
 ## Constants (the Phase-B inputs)
 _(Task 7)_
