@@ -147,11 +147,13 @@ table bytes). Standard CDEF message numbers in parens:
 > So a scheme encodes its title colour as a small marker SWATCH baked into the
 > window cicn — there is NO per-scheme title-colour clut/`wctb` (verified: the
 > `-14335`/`-14336` cluts are frame/bevel appearance only, and the `Colr`
-> resource is scheme metadata). **Runtime implication for Aaron UI:** the title
-> colour must be computed by sampling the loaded cicn at the marker pixel at
-> render time — not pre-baked into `theme.json`. (The exact marker coordinate
-> per scheme is still to be pinned empirically; see
-> `docs/tracking/title-text-color.md`.)
+> resource is scheme metadata). **Aaron UI shipped decision:** the exact marker
+> coordinate isn't reliably pinnable (the `0x6582(0)` body-rect corners don't
+> yield it; the decompile is truncated through `0x6582`/`0xfc5c`), AND every
+> corpus scheme draws the classic-Mac default anyway, so `renderWindow.ts` uses
+> black (grey when inactive) rather than sampling. The marker path is the
+> OVERRIDE for a colour-customising scheme; reopen with one as a test case. Full
+> write-up: `docs/tracking/title-text-color.md`.
 
 ### 1.5 Blit primitives + 9-slice
 
