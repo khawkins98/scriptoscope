@@ -10,12 +10,15 @@
 //   coverage   — each edge's output rects tile it with no internal gaps and
 //                reach the full extent (top/bottom = full width; left/right =
 //                full height between the top and bottom frames).
-//   code→mode  — every cell's render mode matches its part-code class:
-//                  fixed codes (1,5,6,7,9,10,default + gated-off widgets) ⇒
-//                    fixed/collapse (drawn 1:1, never stretched/tiled)
-//                  stretch codes (0,8,11,13,14 + gated-on widget cells) ⇒
-//                    stretch (or tile, only when cinf.tileSides=1)
+//   code→mode  — every cell's render mode matches its part-code class
+//                (kdef231-reference.md §4.2, the 0x5178 width pass):
+//                  GROWERS 8,11,13,14 ⇒ tile (kDEF blit) or fixed (corner-split end)
 //                  code 12 ⇒ tile;  code 18 ⇒ scale
+//                  title bezel 5,6 ⇒ collapse/fixed
+//                  the 0x49d6 "stretch" verdict means COLLAPSE-to-0, not tile:
+//                    code 0, gap codes 2/3/4 when ABSENT, cell codes 15/16/17
+//                    when PRESENT ⇒ collapse (or fixed at a corner-split end)
+//                  fixed codes 1,7,9,10,default ⇒ fixed/collapse
 //   widgets    — every rect-list widget is STAMPED (carved out of its fill
 //                cell) or sits in a fixed cell — never tiled (which would
 //                duplicate the baked widget art).
@@ -37,18 +40,22 @@ const slugs = (only ? [only] : readdirSync(themesRoot)).filter((s) => existsSync
 // set of modes that are VALID for this code; an actual mode outside it warns.
 function expectedModes(code, present = true) {
   switch (code) {
-    case 0: case 8: case 11: case 13: case 14:
-      return new Set(['stretch', 'tile', 'fixed']); // stretch (tile if cinf); corner-split end ⇒ fixed
+    case 8: case 11: case 13: case 14:
+      return new Set(['tile', 'fixed']); // growers blit via the tile path; corner-split end ⇒ fixed
     case 12:
       return new Set(['tile', 'fixed']);
     case 18:
       return new Set(['scale', 'fixed']);
     case 5: case 6:
       return new Set(['collapse', 'fixed']);
+    case 0:
+      return new Set(['collapse', 'fixed']); // 0x49d6 stretch-always ⇒ collapses; leading corner ⇒ fixed
     case 2: case 3: case 4:
-      return present ? new Set(['fixed']) : new Set(['stretch', 'tile', 'fixed']);
+      // gap: holds the widget when present (fixed); collapses when absent
+      return present ? new Set(['fixed']) : new Set(['collapse', 'fixed']);
     case 15: case 16: case 17:
-      return present ? new Set(['stretch', 'tile', 'fixed']) : new Set(['fixed']);
+      // widget cell: collapses when present (widget owns the span); else fixed
+      return present ? new Set(['collapse', 'fixed']) : new Set(['fixed']);
     default:
       return new Set(['fixed', 'collapse']); // 1, 7, 9, 10, unknown
   }

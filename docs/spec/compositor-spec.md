@@ -140,16 +140,26 @@ The model above is implemented in `composeChrome.ts` and the corpus renders
 faithfully (see `glitch-punchlist.md`). Resolved since the first draft: tile-not-
 stretch blit, end-based cell association, grounded corners, the retirement of
 the widget-carving + cornerSize-split heuristics (widgets ride fixed cells now),
-and the **1984 title-bar arch** — a baked tab-curve in `part-15` that the
-`0x49d6` STRETCH-when-present rule tiled into a row of arches; widget cells
-(15/16/17) now draw 1:1 when their src band is non-uniform (a baked ornament
-rather than a flat fill behind a widget), so the slack flows to the real fill.
+and the **`0x5178` width-pass semantics** — the part-code classifier was reading
+the `0x49d6` table as a fixed/tile binary, so the "stretch" verdict for code 0,
+the gap codes 2/3/4 (widget absent) and the widget-cell codes 15/16/17 (widget
+present) TILED those cells. In the kDEF that verdict means **collapse to width
+0**: the cell yields its span to the genuine growers (8/11/13/14, tile 12,
+scale 18) / to the separately-drawn widget. Fixing this removed 1984's row of
+title-tab arches (code 15 tiled) without a content heuristic — it now collapses,
+and the flat fill grows, matching the period reference's structure.
 Open:
 1. **`cinf` is not surfaced/used** (cornerSize / sideThickness / tileSides /
    textPixel). The corpus ships no window `cinf`, so the compositor derives the
    corner from the recipe and tiles unconditionally — faithful for this corpus,
    but a scheme that DID ship a window cinf wouldn't be honoured.
-2. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
+2. **1984 close-tab junction**: the cicn bakes a two-part tab (a rounded close-
+   tab + the main bar). The kDEF collapses the close cell (code 15) to merge
+   them; our extracted cicn's close-tab has a *rounded* right edge where the
+   reference reads as a flush vertical one, so the merge leaves a ~2px top-corner
+   wedge. A cicn-geometry / widget-redraw-pass (`0x5ddc`) nuance, not a width-
+   pass error.
+3. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
    texture; a couple of corner joints read marginally off at extreme widths (M5).
 
 ## References
