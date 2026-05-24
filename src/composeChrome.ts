@@ -31,65 +31,84 @@ function partCode(slug: string): number {
   return m ? Number(m[1]) : -1;
 }
 
-/** How a cell's part code is classified per the spec table. */
-type CellClass = 'fixed' | 'stretch' | 'tile' | 'scale' | 'collapse';
+/**
+ * How a cell's part code is classified, mirroring the kDEF's `0x5178` width
+ * pass (see kdef231-reference.md §4.2 — verified against `kdef231_decomp.c`):
+ *   - 'grow'     budget participant; gets an even share of the slack (8/11/13/14)
+ *   - 'tile'     budget participant rounded to a whole src multiple (12)
+ *   - 'scale'    budget participant drawn as ONE scaled CopyBits (18)
+ *   - 'fixed'    holds its src width, drawn 1:1
+ *   - 'collapse' title bezel (5/6): src width when the title fits, else 0
+ *   - 'zero'     COLLAPSES to width 0, draws nothing
+ */
+type CellClass = 'fixed' | 'grow' | 'tile' | 'scale' | 'collapse' | 'zero';
 
 /**
- * Part-code classification — the decoded 2.3.1 jump table (`0x49d6`) plus the
- * `0x5178` fill chains, per compositor-spec.md "Part-code classification":
+ * Part-code classification — the decoded 2.3.1 width pass (`0x5178`), which
+ * splits into THREE groups (NOT a simple fixed/stretch binary):
  *
- *   1, 5, 6, 7, 9, default → FIXED (drawn 1:1).
- *     5/6 are the title bezel: fixed when the title fits, collapse to 0 when
- *     it doesn't; they never grow. We mark them 'collapse' so they hold their
- *     src width but never participate in the slack budget.
- *   0, 8, 11, 13, 14 → STRETCH (even share of slack).
- *   15, 16, 17 → stretch iff the matching widget is PRESENT; else fixed.
- *   2, 3, 4 → close/zoom/shade GAP cells — fixed when widget present;
- *     stretch (the gap fills) when absent.
- *   12 → TILE (dst rounded to a whole multiple of src width).
- *   18 → SCALE (a single scaled CopyBits, drawn once).
+ *   GROWERS — get a share of the slack budget:
+ *     8, 11, 13, 14 → 'grow'  (even share; 13/14 a smaller remainder-only share)
+ *     12            → 'tile'  (share rounded down to a whole src multiple)
+ *     18            → 'scale' (share, drawn as one scaled CopyBits)
  *
- * CODE 10 is FLAG-GATED in the kDEF (jump table 0x4a0c returns the caller's flag
- * byte): it stretches when the title-fits flag is set — which is #1 on the
- * non-title side calls and the title-fits byte on the title side. We classify it
- * FIXED, and that is render-correct for this corpus: the corpus's code-10 cells
- * are either (a) on a title-LESS window's title edge (the utility windows draw
- * no label → title-fits is false → fixed — and crucially their code-10 band has
- * the close/zoom widget BAKED in, which a growing cell would tile-smear), or
- * (b) on a non-title edge over a UNIFORM bar (1984 doc-window bottom/right),
- * where fixed and stretch render identically. Faithfully gating code 10 would
- * need the per-edge title-fits flag plumbed in + the kDEF's separate rect-list
- * widget-draw pass (0x5ffc/0x5ddc, which we don't replicate) to keep a
- * widget-bearing grown cell crisp — with no visible change to this corpus.
+ *   TITLE BEZEL: 5, 6 → 'collapse' (src width when the title fits, else 0).
+ *
+ *   EVERYTHING ELSE is routed through the `0x49d6` table and its result is
+ *   read NOT as "tile" but as a WIDTH: a "stretch" verdict leaves the cell at
+ *   width 0 (it yields its space to the growers / the separately-drawn widget),
+ *   a "fixed" verdict gives it its src width. So:
+ *     0                      → 'zero'  (0x49d6: stretch-always)
+ *     2, 3, 4 (close/zoom/shade GAP)  → widget present ? 'fixed' : 'zero'
+ *     15, 16, 17 (close/zoom/shade CELL) → widget present ? 'zero' : 'fixed'
+ *     1, 7, 9, default       → 'fixed'
+ *
+ *   This is why 1984's title-tab shoulder must NOT be drawn: it lives in the
+ *   close CELL (code 15), which — the close widget being present — COLLAPSES
+ *   to 0 (the widget occupies that span). Tiling it (the old reading of
+ *   "stretch") produced a row of arches; growing the genuine flat fill (code 8)
+ *   is what fills the widened bar. (Was compositor-spec open issue #3.)
+ *
+ * CODE 10 is FLAG-GATED in the kDEF (`0x4a0c` returns the caller's flag byte):
+ * it stretches when the title-fits flag is set. We classify it FIXED, which is
+ * render-correct for this corpus: code-10 cells are either on a title-LESS
+ * window's title edge (no label → title-fits false → fixed, and their code-10
+ * band has the widget BAKED in, which a collapsing/growing cell would drop), or
+ * on a non-title edge over a uniform bar (1984 doc-window bottom/right) where
+ * fixed and grow render identically.
  *
  * `widgetPresent` is the cinf widget-state gate (we treat all named widgets as
  * present — the bundled corpus always ships the close/zoom/shade boxes).
  */
 function classifyPart(code: number, widgetPresent: boolean): CellClass {
   switch (code) {
-    case 0:
     case 8:
     case 11:
     case 13:
     case 14:
-      return 'stretch';
+      return 'grow';
     case 12:
       return 'tile';
     case 18:
       return 'scale';
     case 5:
     case 6:
-      return 'collapse'; // title bezel: fixed-or-collapse, never grows
+      return 'collapse'; // title bezel: src-width-or-collapse, never grows
+    case 0:
+      return 'zero'; // 0x49d6 stretch-always → collapses (growers fill the edge)
     case 2:
     case 3:
     case 4:
-      // gap beside a widget: stretches only when the widget is ABSENT
-      return widgetPresent ? 'fixed' : 'stretch';
+      // close/zoom/shade GAP: holds the widget when present (fixed), else
+      // collapses (the 0x49d6 "stretch when absent" verdict = width 0)
+      return widgetPresent ? 'fixed' : 'zero';
     case 15:
     case 16:
     case 17:
-      // the widget cell: stretches only when the widget is PRESENT
-      return widgetPresent ? 'stretch' : 'fixed';
+      // close/zoom/shade CELL: collapses when the widget is present (0x49d6
+      // stretch-verdict → width 0 — the widget owns that span), else holds its
+      // src width as plain background.
+      return widgetPresent ? 'zero' : 'fixed';
     default:
       return 'fixed'; // 1, 7, 9, 10 (flag-gated → fixed here), and unknown codes
   }
@@ -281,7 +300,8 @@ function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: num
   for (let i = lo; i < hi; i++) {
     const c = cells[i]!;
     const w = c.x1 - c.x0;
-    if (c.cls === 'stretch' || c.cls === 'tile' || c.cls === 'scale') numStretch++;
+    if (c.cls === 'grow' || c.cls === 'tile' || c.cls === 'scale') numStretch++;
+    else if (c.cls === 'zero') { /* collapses to 0 — neither fixed nor a grower */ }
     else fixedSum += w; // fixed + collapse hold their src width
   }
   // collapse cells (title bezel) hold src width here; the title-fits gate is
@@ -293,7 +313,7 @@ function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: num
   for (let i = lo; i < hi; i++) {
     const c = cells[i]!;
     const w = c.x1 - c.x0;
-    if (c.cls === 'stretch' || c.cls === 'scale') {
+    if (c.cls === 'grow' || c.cls === 'scale') {
       let cw = share + (rem > 0 ? 1 : 0);
       if (rem > 0) rem--;
       out.push(cw);
@@ -303,6 +323,8 @@ function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: num
       if (rem > 0) rem--;
       if (w > 0) cw = Math.max(w, Math.round(cw / w) * w);
       out.push(cw);
+    } else if (c.cls === 'zero') {
+      out.push(0); // collapses — yields its span to the growers / the widget
     } else {
       out.push(w); // fixed / collapse keep their src width
     }
@@ -363,8 +385,11 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, t
     let src = 0, nStretch = 0;
     for (let i = lo; i < hi; i++) {
       const c = cells[i]!;
-      src += c.x1 - c.x0;
-      if (c.cls === 'stretch' || c.cls === 'tile' || c.cls === 'scale') nStretch++;
+      // `src` is the half's natural (un-grown) width — what it occupies when it
+      // has no grower. A 'zero' (collapsed) cell yields its span, so it adds 0;
+      // otherwise the cell holds its src width.
+      if (c.cls !== 'zero') src += c.x1 - c.x0;
+      if (c.cls === 'grow' || c.cls === 'tile' || c.cls === 'scale') nStretch++;
     }
     return { src, nStretch };
   };
@@ -398,31 +423,6 @@ interface PlacedCell {
 }
 
 /**
- * Is a cell's source band UNIFORM along the growth axis — i.e. every line
- * (column on a horizontal edge, row on a vertical edge) identical across the
- * cross band? The kDEF's tile blit (`0xfeae`) repeats the whole src cell, so a
- * uniform cell tiles invisibly while a structured one repeats its art. We use
- * this only to guard the widget-CELL codes (15/16/17): the `0x49d6` table marks
- * them STRETCH when the matching widget is present, but that rule assumes the
- * cell is the flat fill BEHIND a separately-drawn widget. When a scheme bakes a
- * one-off ORNAMENT into that cell instead (1984's rounded title-tab shoulder,
- * compositor-spec open issue #3), tiling it scallops — so a non-uniform widget
- * cell is drawn 1:1 (fixed) and the slack flows to the real flat fill.
- */
-function axisUniform(cicn: PixelBuffer, geo: EdgeGeometry, x0: number, x1: number): boolean {
-  const cs = geo.crossSrc, ce = geo.crossSrc + geo.crossLen;
-  const px = (axis: number, cross: number): readonly number[] =>
-    geo.horizontal ? cicn.getPixel(axis, cross) : cicn.getPixel(cross, axis);
-  for (let a = x0 + 1; a < x1; a++) {
-    for (let c = cs; c < ce; c++) {
-      const p = px(a, c), q = px(x0, c);
-      if (p[0] !== q[0] || p[1] !== q[1] || p[2] !== q[2] || p[3] !== q[3]) return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Compose ONE window edge by walking its `wnd#` recipe per the spec model.
  * Returns the placed cells (for widget mapping + the diagnostic) plus the
  * title region's output span (for centring the title).
@@ -441,19 +441,6 @@ function composeEdge(
   const lastAt = recipe.reduce((m, s) => Math.max(m, s.at), 0);
   const cells = recipeCells(recipe, lastAt, widgetPresent);
   if (cells.length === 0) return null;
-
-  // Widget-CELL codes (15/16/17) classify STRETCH when their widget is present
-  // (0x49d6), but only the flat fill BEHIND a widget is meant to tile. A scheme
-  // that bakes a one-off ornament into that cell (1984's title-tab shoulder)
-  // would otherwise tile it into a row of arches; draw such non-uniform cells
-  // 1:1 instead, so the slack flows to the genuine flat fill. (Flat widget
-  // cells stay STRETCH; non-widget fill codes are untouched.)
-  for (const c of cells) {
-    if ((c.code === 15 || c.code === 16 || c.code === 17) && c.cls === 'stretch'
-      && !axisUniform(cicn, geo, c.x0, c.x1)) {
-      c.cls = 'fixed';
-    }
-  }
 
   // Corners are intrinsic to the walk: the LEADING corner is `recipeCells`'
   // first cell `[0, border[0])` (fixed, 1:1); the TRAILING corner is the
@@ -518,7 +505,10 @@ function composeEdge(
       titleEnd = outPos + dstLen;
     }
 
-    if (c.cls === 'scale') {
+    if (c.cls === 'zero') {
+      // collapsed (0x49d6 stretch-verdict): width 0, draws nothing. The span is
+      // owned by the separately-drawn widget / absorbed by the growers.
+    } else if (c.cls === 'scale') {
       // code 18: a single scaled CopyBits — drawn ONCE, src band → dst band.
       drawStretch(c.x0, srcLen, outPos, dstLen);
     } else if (c.cls === 'fixed') {
@@ -526,7 +516,7 @@ function composeEdge(
       // ride the FIXED title-bar regions, so they're drawn here at native size).
       drawStretch(c.x0, srcLen, outPos, srcLen); // dstLen == srcLen here
     } else {
-      // growing fill cell (0/8/11/12/13/14) AND the title plate (collapse code 5,
+      // growing fill cell (8/11/12/13/14) AND the title plate (collapse code 5,
       // grown to the measured title width): tile the src band across the dst.
       // For an unexpanded collapse cell dstLen == srcLen, so this is a 1:1 copy.
       drawFill(c.x0, c.x1, outPos, dstLen);
@@ -678,12 +668,13 @@ export function composeWindowChrome(
 
   // ── aggregate the slice placement map (for the diagnostic) ────────────────
   const placement: PlacementSlice[] = [];
-  // Fill cells (stretch + tile classes) all blit via the kDEF tile path now,
-  // so they report 'tile'; code 18 scales; bezels collapse; the rest are fixed.
+  // Grow + tile cells both blit via the kDEF tile path, so they report 'tile';
+  // code 18 scales; bezels and collapsed (zero-width) cells report 'collapse';
+  // the rest are fixed.
   const modeOf = (cls: CellClass): SliceMode =>
-    cls === 'tile' || cls === 'stretch' ? 'tile'
+    cls === 'tile' || cls === 'grow' ? 'tile'
       : cls === 'scale' ? 'scale'
-      : cls === 'collapse' ? 'collapse'
+      : cls === 'collapse' || cls === 'zero' ? 'collapse'
       : 'fixed';
   const collect = (edge: PlacementSlice['edge'], res: typeof topRes): void => {
     if (!res) return;
