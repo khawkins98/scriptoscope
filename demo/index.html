@@ -130,13 +130,25 @@
     // document/trash glyph in some schemes, so it's a last resort. Falls back to
     // coverage-ranked icons to fill, then to the SVG folders when a scheme ships
     // no icl4 at all (e.g. 1990).
-    // Kaleidoscope themed the standard System icon suite by resource id; pick
-    // the ones a Finder window would show, in that order: the Finder icon first,
-    // then the System Folder, then generic/open folders. (-3984 is Full Trash and
-    // -16455 a generic item — last resorts.) Not every theme ships every icon
-    // (only beos ships the Finder -16482), so this falls through to whatever
-    // folders the theme HAS, then coverage-ranked icons, then the SVG folders.
-    const FINDER_ICON_IDS = [-16482, -3983, -3999, -3997, -3994, -3976, -3970, -3984, -4000, -16455];
+    // SYSTEMATIC icon selection — works for ANY loaded theme, not just our corpus.
+    // Kaleidoscope themes the standard Mac System-icon suite by FIXED resource ids
+    // (Generic Folder is always -3999, System Folder -3983, Open Folder -3997,
+    // Finder -16482, …), so the id tells us each icon's ROLE regardless of theme.
+    // The scene mocks a FINDER WINDOW, whose contents are FOLDERS (the Finder app
+    // icon -16482 lives on the desktop, not inside a window — which is why every
+    // reference shows folders). So request the standard FOLDER icons in role order
+    // and take whichever the theme ships; fall through to coverage-ranked icons,
+    // then the neutral SVG folders only when a theme themes no folders at all
+    // (1990, apple-platinum-2). Non-folder roles (trash -3984/-3993, app -3970,
+    // item -16455, Finder -16482) are last-resort fallbacks, never preferred.
+    const FINDER_CONTENT_ICON_IDS = [
+      -3983, // System Folder (the iconic Mac-badged folder — lead icon)
+      -3999, // Generic Folder (closed)
+      -3997, // Open Folder
+      -3994, // Generic/Private Folder
+      -3976, // Control Panels Folder
+      -3970, -3984, -4000, -16455, -16482, // last resorts (app/trash/item/Finder)
+    ];
     const _iconCache = new Map();
     async function schemeIcons(theme, n) {
       if (!_iconCache.has(theme.baseUrl)) {
@@ -148,7 +160,7 @@
             const icl4 = idx.filter((i) => i.type === 'icl4');
             const byId = new Map(icl4.map((i) => [i.id, i]));
             const picked = [];
-            for (const id of FINDER_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
+            for (const id of FINDER_CONTENT_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
             const seen = new Set(picked.map((i) => i.id));
             const cov = icl4.filter((i) => i.coverage > 0.18 && i.coverage < 0.95 && !seen.has(i.id));
             return picked.concat(cov).slice(0, 8);
