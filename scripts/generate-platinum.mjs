@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { drawDocumentWindow } from './generate-platinum/draw-document-window.mjs';
+import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
 import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
@@ -33,6 +34,20 @@ for (const f of existsSync(cicnDir) ? readdirSync(cicnDir) : [])
 const drawnBySlug = {};
 for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE);
 const stipple = drawDocumentWindow(PALETTE).stipple;
+
+// Override the document-window cicn with the screenshot-sliced raster — the real
+// Platinum pixels (pillow buttons, diagonal sheen, fine pinstripe) that the
+// procedural drawer only approximates. Same 98x23 geometry, so the recipe is
+// unchanged; we swap only the active/inactive buffers and keep .geo.
+const docSrc = resolve(dest, 'sources/doc-window-infinite-hd.png');
+if (existsSync(docSrc)) {
+  const sliced = sliceDocWindow(docSrc);
+  drawnBySlug['document-window'].active = sliced.active;
+  drawnBySlug['document-window'].inactive = sliced.inactive;
+  console.log('[apple-platinum-replica] document-window: screenshot-sliced raster');
+} else {
+  console.warn('[apple-platinum-replica] WARN: doc-window source missing, using procedural draw');
+}
 
 const assets = buildAllWindowAssets(drawnBySlug, { stipple });
 
