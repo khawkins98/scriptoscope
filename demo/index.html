@@ -121,10 +121,16 @@
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
     };
 
-    // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/). Pick the
-    // first few "object" icons (32px, not full-bleed scheme logos) as Finder
-    // content. Cached per theme; returns [] when a scheme ships no icons
-    // (→ the SVG folders are used instead).
+    // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/), shown as the
+    // Finder-window content. Match what the REFERENCE screenshots show — they all
+    // feature the scheme's themed FOLDER icons — by selecting the well-known
+    // standard FOLDER icon IDs in priority order, rather than whatever sorts first
+    // by coverage (which gave arbitrary system folders like "Internet Search
+    // Sites"). Folders first (the references rarely show documents); -3984 is a
+    // document/trash glyph in some schemes, so it's a last resort. Falls back to
+    // coverage-ranked icons to fill, then to the SVG folders when a scheme ships
+    // no icl4 at all (e.g. 1990).
+    const FINDER_ICON_IDS = [-3999, -3994, -3976, -3983, -3970, -3984, -4000, -16455];
     const _iconCache = new Map();
     async function schemeIcons(theme, n) {
       if (!_iconCache.has(theme.baseUrl)) {
@@ -133,9 +139,13 @@
             const r = await fetch(`${theme.baseUrl}/icons/index.json`);
             if (!r.ok) return [];
             const idx = await r.json();
-            return idx
-              .filter((i) => i.type === 'icl4' && i.coverage > 0.18 && i.coverage < 0.95)
-              .slice(0, 8);
+            const icl4 = idx.filter((i) => i.type === 'icl4');
+            const byId = new Map(icl4.map((i) => [i.id, i]));
+            const picked = [];
+            for (const id of FINDER_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
+            const seen = new Set(picked.map((i) => i.id));
+            const cov = icl4.filter((i) => i.coverage > 0.18 && i.coverage < 0.95 && !seen.has(i.id));
+            return picked.concat(cov).slice(0, 8);
           } catch { return []; }
         })());
       }
