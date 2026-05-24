@@ -616,10 +616,14 @@ the same aux fields as the title bevel: `+66/+74/+98/+106/+18`.)
 
 ### State variants
 
-**Active vs inactive.** The whole-frame drawer's active test (`jsr 0x310` + `bge`
-at `0x544`/`0x55a`, decoded in T3/T4) gates the *title-bar fill and bevel*, but
-the widget pass `0x694`–`0x786` runs on **both** paths — the boxes are drawn
-regardless of active state. The active/inactive *look difference* is carried
+**Active vs inactive.** The whole-frame drawer has **no** active/inactive branch
+(see the authoritative "Active vs inactive title bar" section): the active-state
+look difference is supplied by the Window Manager swapping the `wctb` color values
+and redrawing. The drawer's only gate here is the **screen-depth** test (`jsr
+0x310` = `GetMaxDevice` + `bge` at `0x544`/`0x55a`, decoded in T3/T4), which
+selects the deep-color vs flat-fallback *title fill and bevel*; the widget pass
+`0x694`–`0x786` runs on **both** depth paths — the boxes are drawn regardless of
+depth. The active/inactive *look difference* is carried
 entirely in the **color slots**: the colored sub-drawer path (`a4 != 0`) draws the
 beveled, highlighted box; the **`a4 == 0` path draws the flat fallback** (face +
 frame only, no highlight bevel). The `a4`/aux pointer is non-null only when the
