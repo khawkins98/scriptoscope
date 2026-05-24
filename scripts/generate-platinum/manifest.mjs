@@ -12,7 +12,7 @@
 // Side/bottom edges: a single fixed band over the full extent (tiles 1:1).
 // Collapsed types ship ONLY a top recipe (empty bottom/left/right) → the
 // compositor draws just the title bar, exactly like a real collapsed window.
-import { geometryFor, WINDOW_TYPES, FIXED, STRETCH } from './window-types.mjs';
+import { geometryFor, WINDOW_TYPES, FIXED, STRETCH, PLATE } from './window-types.mjs';
 
 const PPAT_STIPPLE = 128;
 
@@ -32,14 +32,33 @@ function buildWndData(geo, cfg) {
     { part: 0, rect: { top: bodyTop, left: inset, bottom: bodyBottom, right: W - inset } },
   ];
 
-  // TOP edge. With a title bar: fixed-corner / grow-fill / fixed-corner. Without
-  // a title (dialog/alert/no-title utility): the top is a plain frame band, same
-  // shape — a thin grow fill flanked by fixed corners keeps it stretchable.
-  const topSide = [
-    { part: FIXED, border: leftFixed },
-    { part: STRETCH, border: stretchEnd },
-    { part: FIXED, border: W },
-  ];
+  // TOP edge.
+  //   Title-PLATE doc windows: 5-cell — fixed corner · grow fill · PLATE(part-5)
+  //   · grow fill · fixed corner. The compositor grows the part-5 plate to the
+  //   measured title width and centres it (the two grow-fill cells split the
+  //   remaining slack symmetrically); the plate never collapses.
+  //   Everyone else: fixed-corner / grow-fill / fixed-corner. (Title-less
+  //   windows reuse the 3-cell shape — a thin grow fill keeps the top stretchable.)
+  let topSide;
+  if (geo.hasPlate) {
+    const a = leftFixed;                       // 21  end of left fixed corner
+    const b = leftFixed + geo.leftFill;        // 27  end of left pinstripe fill
+    const c = b + geo.plate;                   // 57  end of the title plate
+    const d = c + geo.rightFill;               // 63  end of right pinstripe fill
+    topSide = [
+      { part: FIXED, border: a },
+      { part: STRETCH, border: b },
+      { part: PLATE, border: c },
+      { part: STRETCH, border: d },
+      { part: FIXED, border: W },
+    ];
+  } else {
+    topSide = [
+      { part: FIXED, border: leftFixed },
+      { part: STRETCH, border: stretchEnd },
+      { part: FIXED, border: W },
+    ];
+  }
 
   if (cfg.collapsed) {
     // Title-only window: no body frame. Only the top recipe is shipped.

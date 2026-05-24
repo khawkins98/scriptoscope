@@ -19,8 +19,8 @@ function fill(img, x0, y0, w, h, c) { for (let y = y0; y < y0 + h; y++) for (let
 function hline(img, x0, x1, y, c) { for (let x = x0; x <= x1; x++) set(img, x, y, c); }
 function vline(img, x, y0, y1, c) { for (let y = y0; y <= y1; y++) set(img, x, y, c); }
 
-function drawWidget(img, x, y, p, glyph) {
-  const s = METRICS.widget.size;
+function drawWidget(img, x, y, p, glyph, size) {
+  const s = size ?? METRICS.widget.size;
   fill(img, x, y, s, s, p.widgetFace);
   hline(img, x, x + s - 1, y, p.bevelHighlight);
   vline(img, x, y, y + s - 1, p.bevelHighlight);
@@ -52,8 +52,17 @@ function drawFrame(cfg, geo, titleFore, titleBack, p) {
       const c = rowByte ? titleFore : titleBack;
       for (let x = inset; x < width - inset; x++) set(img, x, y, c);
     }
+    // Title PLATE: overwrite the plate cell with a SOLID (un-pinstriped) fill —
+    // the gap the centred title sits on, with pinstripes flanking it. The plate
+    // spans x ∈ [leftFixed+leftFill, leftFixed+leftFill+plate).
+    if (geo.hasPlate) {
+      const px0 = geo.leftFixed + geo.leftFill;
+      const px1 = px0 + geo.plate;
+      for (let y = titleTop; y <= titleBot; y++)
+        for (let x = px0; x < px1; x++) set(img, x, y, p.titleFillBack);
+    }
     hline(img, inset, width - 1 - inset, topFrame, p.frameOutline);
-    for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph);
+    for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph, w.size);
   } else {
     // Title-less frame: a flat mid-gray top frame band (dialog/alert/no-title),
     // plus the 1px body band below it.

@@ -42,15 +42,33 @@ test('every wnd# body rect is non-degenerate (lint requires right>left, bottom>t
   }
 });
 
-test('top recipe is fixed-corner / GROW-fill / fixed-corner (no collapse codes)', () => {
+test('top recipe is fixed-corner / GROW-fill / fixed-corner (plate types add a centred part-5 plate)', () => {
   const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const plateSlugs = new Set(WINDOW_TYPES.filter(c => c.titlePlate).map(c => c.name));
   for (const a of assets.filter(x => x.type === 'wnd#')) {
     const parts = a.data.topSide.map(s => s.part);
-    assert.deepEqual(parts, [1, 8, 1], `${a.name} top recipe parts`);
-    // Borders strictly increase (no zero-width / collapsing cells).
+    if (plateSlugs.has(a.name)) {
+      // 5-cell: fixed corner · GROW fill · PLATE(5) · GROW fill · fixed corner.
+      assert.deepEqual(parts, [1, 8, 5, 8, 1], `${a.name} top recipe parts`);
+    } else {
+      assert.deepEqual(parts, [1, 8, 1], `${a.name} top recipe parts`);
+    }
+    // Borders strictly increase (no zero-width cells; the plate sizes up, never collapses).
     let prev = 0;
     for (const s of a.data.topSide) { assert.ok(s.border > prev, `${a.name} border ${s.border} !> ${prev}`); prev = s.border; }
   }
+});
+
+test('document-window ships the reference 5-cell plate recipe (borders 21,27,57,63,98)', () => {
+  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const doc = assets.find(a => a.type === 'wnd#' && a.id === -14336);
+  assert.deepEqual(doc.data.topSide, [
+    { part: 1, border: 21 },
+    { part: 8, border: 27 },
+    { part: 5, border: 57 },
+    { part: 8, border: 63 },
+    { part: 1, border: 98 },
+  ]);
 });
 
 test('collapsed types ship ONLY a top recipe (empty bottom/left/right)', () => {
