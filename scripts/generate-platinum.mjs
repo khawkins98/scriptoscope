@@ -40,11 +40,13 @@ for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE)
 // procedural drawer only approximates. Same 98x23 geometry, so the recipe is
 // unchanged; we swap only the active/inactive buffers and keep .geo.
 const docSrc = resolve(dest, 'sources/doc-window-infinite-hd.png');
+const docInactiveSrc = resolve(dest, 'sources/doc-window-macintosh-hd-inactive.png');
 if (existsSync(docSrc)) {
-  const sliced = sliceDocWindow(docSrc);
+  const sliced = sliceDocWindow(docSrc, docInactiveSrc);
   drawnBySlug['document-window'].active = sliced.active;
   drawnBySlug['document-window'].inactive = sliced.inactive;
-  console.log('[apple-platinum-replica] document-window: screenshot-sliced raster');
+  console.log('[apple-platinum-replica] document-window: screenshot-sliced raster' +
+    (existsSync(docInactiveSrc) ? ' (active + inactive)' : ' (active; inactive derived)'));
 } else {
   console.warn('[apple-platinum-replica] WARN: doc-window source missing, using procedural draw');
 }
