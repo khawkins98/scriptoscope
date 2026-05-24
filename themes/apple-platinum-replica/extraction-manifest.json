@@ -1,6 +1,6 @@
 {
   "source": "generated",
-  "extractedAt": "2026-05-24T17:00:50.310Z",
+  "extractedAt": "2026-05-24T17:12:12.724Z",
   "counts": {
     "total": 53,
     "ok": 53,
@@ -404,7 +404,7 @@
       "name": "Movable Modal (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14324-movable-modal-inactive.png",
-      "width": 31,
+      "width": 58,
       "height": 19
     },
     {
@@ -413,7 +413,7 @@
       "name": "Active Movable Modal",
       "status": "ok",
       "file": "cicns/cicn-n14323-movable-modal-active.png",
-      "width": 31,
+      "width": 58,
       "height": 19
     },
     {
@@ -429,28 +429,36 @@
               "top": 17,
               "left": 1,
               "bottom": 18,
-              "right": 30
+              "right": 57
             }
           }
         ],
         "topSide": [
           {
             "part": 1,
-            "border": 18
+            "border": 17
           },
           {
             "part": 8,
-            "border": 26
+            "border": 23
+          },
+          {
+            "part": 5,
+            "border": 47
+          },
+          {
+            "part": 8,
+            "border": 53
           },
           {
             "part": 1,
-            "border": 31
+            "border": 58
           }
         ],
         "bottomSide": [
           {
             "part": 1,
-            "border": 31
+            "border": 58
           }
         ],
         "leftSide": [
@@ -499,7 +507,7 @@
       "name": "Movable Alert (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14322-movable-alert-inactive.png",
-      "width": 31,
+      "width": 58,
       "height": 19
     },
     {
@@ -508,7 +516,7 @@
       "name": "Active Movable Alert",
       "status": "ok",
       "file": "cicns/cicn-n14321-movable-alert-active.png",
-      "width": 31,
+      "width": 58,
       "height": 19
     },
     {
@@ -524,28 +532,36 @@
               "top": 17,
               "left": 1,
               "bottom": 18,
-              "right": 30
+              "right": 57
             }
           }
         ],
         "topSide": [
           {
             "part": 1,
-            "border": 18
+            "border": 17
           },
           {
             "part": 8,
-            "border": 26
+            "border": 23
+          },
+          {
+            "part": 5,
+            "border": 47
+          },
+          {
+            "part": 8,
+            "border": 53
           },
           {
             "part": 1,
-            "border": 31
+            "border": 58
           }
         ],
         "bottomSide": [
           {
             "part": 1,
-            "border": 31
+            "border": 58
           }
         ],
         "leftSide": [
@@ -594,7 +610,7 @@
       "name": "Titled Utility Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14304-titled-utility-window-inactive.png",
-      "width": 27,
+      "width": 47,
       "height": 14
     },
     {
@@ -603,7 +619,7 @@
       "name": "Active Titled Utility Window",
       "status": "ok",
       "file": "cicns/cicn-n14303-titled-utility-window-active.png",
-      "width": 27,
+      "width": 47,
       "height": 14
     },
     {
@@ -619,28 +635,36 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 26
+              "right": 46
             }
           }
         ],
         "topSide": [
           {
             "part": 1,
-            "border": 14
+            "border": 13
           },
           {
             "part": 8,
-            "border": 22
+            "border": 19
+          },
+          {
+            "part": 5,
+            "border": 36
+          },
+          {
+            "part": 8,
+            "border": 42
           },
           {
             "part": 1,
-            "border": 27
+            "border": 47
           }
         ],
         "bottomSide": [
           {
             "part": 1,
-            "border": 27
+            "border": 47
           }
         ],
         "leftSide": [
@@ -689,7 +713,7 @@
       "name": "Collapsed Titled Utility (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14300-collapsed-titled-utility-inactive.png",
-      "width": 27,
+      "width": 47,
       "height": 14
     },
     {
@@ -698,7 +722,7 @@
       "name": "Active Collapsed Titled Utility",
       "status": "ok",
       "file": "cicns/cicn-n14299-collapsed-titled-utility-active.png",
-      "width": 27,
+      "width": 47,
       "height": 14
     },
     {
@@ -714,22 +738,30 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 26
+              "right": 46
             }
           }
         ],
         "topSide": [
           {
             "part": 1,
-            "border": 14
+            "border": 13
           },
           {
             "part": 8,
-            "border": 22
+            "border": 19
+          },
+          {
+            "part": 5,
+            "border": 36
+          },
+          {
+            "part": 8,
+            "border": 42
           },
           {
             "part": 1,
-            "border": 27
+            "border": 47
           }
         ],
         "bottomSide": [],
@@ -769,7 +801,7 @@
       "name": "Side Floating Utility Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14296-side-floating-utility-window-inactive.png",
-      "width": 18,
+      "width": 39,
       "height": 14
     },
     {
@@ -778,7 +810,7 @@
       "name": "Active Side Floating Utility Window",
       "status": "ok",
       "file": "cicns/cicn-n14295-side-floating-utility-window-active.png",
-      "width": 18,
+      "width": 39,
       "height": 14
     },
     {
@@ -794,7 +826,7 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 17
+              "right": 38
             }
           }
         ],
@@ -805,17 +837,25 @@
           },
           {
             "part": 8,
-            "border": 13
+            "border": 11
+          },
+          {
+            "part": 5,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 34
           },
           {
             "part": 1,
-            "border": 18
+            "border": 39
           }
         ],
         "bottomSide": [
           {
             "part": 1,
-            "border": 18
+            "border": 39
           }
         ],
         "leftSide": [
@@ -864,7 +904,7 @@
       "name": "Collapsed Side Utility (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14292-collapsed-side-utility-inactive.png",
-      "width": 18,
+      "width": 39,
       "height": 14
     },
     {
@@ -873,7 +913,7 @@
       "name": "Active Collapsed Side Utility",
       "status": "ok",
       "file": "cicns/cicn-n14291-collapsed-side-utility-active.png",
-      "width": 18,
+      "width": 39,
       "height": 14
     },
     {
@@ -889,7 +929,7 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 17
+              "right": 38
             }
           }
         ],
@@ -900,11 +940,19 @@
           },
           {
             "part": 8,
-            "border": 13
+            "border": 11
+          },
+          {
+            "part": 5,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 34
           },
           {
             "part": 1,
-            "border": 18
+            "border": 39
           }
         ],
         "bottomSide": [],
@@ -1119,7 +1167,7 @@
       "name": "Popup Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n12320-popup-window-inactive.png",
-      "width": 18,
+      "width": 43,
       "height": 17
     },
     {
@@ -1128,7 +1176,7 @@
       "name": "Active Popup Window",
       "status": "ok",
       "file": "cicns/cicn-n12319-popup-window-active.png",
-      "width": 18,
+      "width": 43,
       "height": 17
     },
     {
@@ -1144,7 +1192,7 @@
               "top": 15,
               "left": 1,
               "bottom": 16,
-              "right": 17
+              "right": 42
             }
           }
         ],
@@ -1155,17 +1203,25 @@
           },
           {
             "part": 8,
-            "border": 13
+            "border": 11
+          },
+          {
+            "part": 5,
+            "border": 32
+          },
+          {
+            "part": 8,
+            "border": 38
           },
           {
             "part": 1,
-            "border": 18
+            "border": 43
           }
         ],
         "bottomSide": [
           {
             "part": 1,
-            "border": 18
+            "border": 43
           }
         ],
         "leftSide": [

@@ -115,7 +115,17 @@ function drawFrame(cfg, geo, titleFore, titleBack, p) {
     hline(img, inset, width - 1 - inset, topFrame, p.frameOutline);
     for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph, w.size);
   } else {
-    fill(img, inset, inset, width - 2 * inset, height - 2 * inset, p.plateBase);
+    // Title-less frame (dialog / alert / no-title utility): a raised #ccc body
+    // framed by the real Platinum bevel — white top/left inner highlight, #999
+    // bottom/right inner shadow, inside the 1px black outline (same bevel grays
+    // as the title bar, so the title-less types read consistently). The bottom
+    // outline is drawn first so the shadow band sits just inside it.
+    const x0 = inset, y0 = inset, x1 = width - 1 - inset, y1 = height - 1 - inset;
+    fill(img, x0, y0, x1 - x0 + 1, y1 - y0 + 1, p.plateBase);
+    hline(img, x0, x1, y0, p.windowHighlight); // top inner highlight
+    vline(img, x0, y0, y1, p.windowHighlight); // left inner highlight
+    hline(img, x0, x1, y1, p.windowShadow);    // bottom inner shadow
+    vline(img, x1, y0, y1, p.windowShadow);    // right inner shadow
   }
 
   // 1px black outer window outline.

@@ -50,15 +50,15 @@ export const WINDOW_TYPES = [
   { slug: 'collapsed-document-window',  name: 'Collapsed Document Window',  wndId: -14332, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '92×25' },
   { slug: 'dialog',                     name: 'Dialog',                     wndId: -14328, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
   { slug: 'alert',                      name: 'Alert',                      wndId: -14326, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
-  { slug: 'movable-modal',              name: 'Movable Modal',              wndId: -14324, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', ref: '39×30' },
-  { slug: 'movable-alert',              name: 'Movable Alert',              wndId: -14322, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', ref: '39×30' },
-  { slug: 'titled-utility-window',      name: 'Titled Utility Window',      wndId: -14304, titleBarHeight: 11, widgets: ['close'],                     collapsed: false, titleEdge: 'top', ref: '44×27' },
-  { slug: 'collapsed-titled-utility',   name: 'Collapsed Titled Utility',   wndId: -14300, titleBarHeight: 11, widgets: ['close'],                     collapsed: true,  titleEdge: 'top', ref: '44×27' },
-  { slug: 'side-floating-utility-window', name: 'Side Floating Utility Window', wndId: -14296, titleBarHeight: 11, widgets: [],                       collapsed: false, titleEdge: 'top', ref: '27×38' },
-  { slug: 'collapsed-side-utility',     name: 'Collapsed Side Utility',     wndId: -14292, titleBarHeight: 11, widgets: [],                            collapsed: true,  titleEdge: 'top', ref: '27×38' },
+  { slug: 'movable-modal',              name: 'Movable Modal',              wndId: -14324, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, ref: '39×30' },
+  { slug: 'movable-alert',              name: 'Movable Alert',              wndId: -14322, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, ref: '39×30' },
+  { slug: 'titled-utility-window',      name: 'Titled Utility Window',      wndId: -14304, titleBarHeight: 11, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, ref: '44×27' },
+  { slug: 'collapsed-titled-utility',   name: 'Collapsed Titled Utility',   wndId: -14300, titleBarHeight: 11, widgets: ['close'],                     collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '44×27' },
+  { slug: 'side-floating-utility-window', name: 'Side Floating Utility Window', wndId: -14296, titleBarHeight: 11, widgets: [],                       collapsed: false, titleEdge: 'top', titlePlate: true, ref: '27×38' },
+  { slug: 'collapsed-side-utility',     name: 'Collapsed Side Utility',     wndId: -14292, titleBarHeight: 11, widgets: [],                            collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '27×38' },
   { slug: 'no-title-utility-window',    name: 'No Title Utility Window',    wndId: -14288, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '38×27' },
   { slug: 'collapsed-no-title-utility', name: 'Collapsed No Title Utility', wndId: -14284, titleBarHeight: 0,  widgets: [],                            collapsed: true,  titleEdge: 'top', ref: '38×27' },
-  { slug: 'popup-window',               name: 'Popup Window',               wndId: -12320, titleBarHeight: 14, widgets: [],                            collapsed: false, titleEdge: 'top', ref: '75×75' },
+  { slug: 'popup-window',               name: 'Popup Window',               wndId: -12320, titleBarHeight: 14, widgets: [],                            collapsed: false, titleEdge: 'top', titlePlate: true, ref: '75×75' },
 ];
 
 /**
@@ -85,28 +85,56 @@ export function geometryFor(cfg) {
   // (fixes the old fixed-7 that overran the 11px bar). Title-less ⇒ no widgets.
   const size = hasTitle ? Math.max(5, Math.min(13, barH - 7)) : WIDGET.size;
 
-  // ── Title-plate document geometry: a 5-cell top (fixed corner · grow fill ·
-  // PLATE · grow fill · fixed corner). The plate is a solid un-pinstriped gap
-  // the centred title sits on; pinstripes only FLANK it. (Reference-matched.) ──
+  // ── Title-plate geometry: a 5-cell top (fixed corner · grow fill · PLATE ·
+  // grow fill · fixed corner). The plate is a solid un-pinstriped gap the centred
+  // title sits on; pinstripes only FLANK it. This is the faithful Platinum bar
+  // for EVERY titled type — the document-window's reference dims (barH 20, three
+  // 13px widgets → 21,27,57,63,98) fall out of the general formula below, and
+  // utility / modal bars scale down to their own barH + widget set.
+  //
+  // Layout knobs (px), tuned so barH 20 + [close,collapse,zoom] reproduces the
+  // reference: a widget sits `lead` from the inset; the left corner ends `trail`
+  // past it; the plate is flanked by a `fill` pinstripe strip each side; the
+  // right group is packed `lead` from the corner start with `trail` to the edge.
   if (cfg.titlePlate) {
-    const pBarH = 20;
-    const widgetSize = 13;
-    const leftFixed = 21;  // close corner: [0,21)
-    const leftFill = 6;    // pinstripe fill left of the plate
-    const plate = 30;      // solid title plate (part-5; grows to the title)
-    const rightFill = 6;   // pinstripe fill right of the plate
-    const rightFixed = 35; // collapse+zoom corner: [63,98)
-    const width = leftFixed + leftFill + plate + rightFill + rightFixed; // 98
-    const topFrame = pBarH + inset;
-    const height = topFrame + bodyH + inset; // 20 + 1 + 1 + 1 = 23
-    const wy = 4;
-    const widgetSlots = [
-      { glyph: 'close',    x: 5,  y: wy, size: widgetSize }, // in [0,21)
-      { glyph: 'collapse', x: 66, y: wy, size: widgetSize }, // right group in [63,98)
-      { glyph: 'zoom',     x: 81, y: wy, size: widgetSize },
-    ];
+    const widgetSize = Math.max(5, Math.min(13, barH - 7));
+    const leftWidgets = cfg.widgets.filter((w) => w === 'close');
+    const rightWidgets = cfg.widgets.filter((w) => w !== 'close');
+    const lead = 4, trail = 3, gap = 2; // close x=5 needs lead=4 (inset+4); 5+13+3=21
+    const fill = 6;                     // pinstripe flank each side of the plate
+
+    // Left fixed corner: inset + lead + (widget) + trail, or a bare margin when
+    // there's no left widget.
+    const leftBoxes = leftWidgets.length * widgetSize + Math.max(0, leftWidgets.length - 1) * gap;
+    const leftFixed = leftWidgets.length
+      ? inset + lead + leftBoxes + trail
+      : inset + lead;
+    // Right fixed corner: lead + (widgets) + trail past the inset, or a bare
+    // margin when there's no right widget.
+    const rightBoxes = rightWidgets.length * widgetSize + Math.max(0, rightWidgets.length - 1) * gap;
+    const rightTrail = 4; // zoom ends at 94, +4 = 98 (reference)
+    const rightFixed = rightWidgets.length
+      ? lead - 1 + rightBoxes + rightTrail
+      : inset + lead;
+
+    // Plate width scales with the bar: the larger the bar, the chunkier the
+    // resting plate. barH 20 → 30 (reference); clamp so tiny bars still read.
+    const plate = Math.max(12, Math.round(barH * 1.5));
+    const leftFill = fill, rightFill = fill;
+    const width = leftFixed + leftFill + plate + rightFill + rightFixed;
+    const topFrame = barH + inset;
+    const height = topFrame + bodyH + inset;
+
+    const wy = inset + Math.max(0, Math.floor((barH - widgetSize) / 2));
+    const widgetSlots = [];
+    let lx = inset + lead;
+    for (const glyph of leftWidgets) { widgetSlots.push({ glyph, x: lx, y: wy, size: widgetSize }); lx += widgetSize + gap; }
+    // Right group starts `lead-1` into the right corner (collapse x=66 = 63+3).
+    let rx = leftFixed + leftFill + plate + rightFill + (lead - 1);
+    for (const glyph of rightWidgets) { widgetSlots.push({ glyph, x: rx, y: wy, size: widgetSize }); rx += widgetSize + gap; }
+
     return {
-      width, height, barH: pBarH, hasTitle: true, leftFixed,
+      width, height, barH, hasTitle: true, leftFixed,
       fill: leftFill, rightFixed, bodyH, topFrame, widgetSlots, inset,
       hasPlate: true, leftFill, plate, rightFill,
     };

@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T17:00:50.310Z",
+  "generatedAt": "2026-05-24T17:12:12.724Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -266,7 +266,7 @@
           "rect": [
             1,
             17,
-            30,
+            57,
             18
           ]
         }
@@ -274,21 +274,29 @@
       "edges": {
         "top": [
           {
-            "at": 18,
+            "at": 17,
             "part": "part-1"
           },
           {
-            "at": 26,
+            "at": 23,
             "part": "part-8"
           },
           {
-            "at": 31,
+            "at": 47,
+            "part": "part-5"
+          },
+          {
+            "at": 53,
+            "part": "part-8"
+          },
+          {
+            "at": 58,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 31,
+            "at": 58,
             "part": "part-1"
           }
         ],
@@ -326,7 +334,7 @@
           "rect": [
             1,
             17,
-            30,
+            57,
             18
           ]
         }
@@ -334,21 +342,29 @@
       "edges": {
         "top": [
           {
-            "at": 18,
+            "at": 17,
             "part": "part-1"
           },
           {
-            "at": 26,
+            "at": 23,
             "part": "part-8"
           },
           {
-            "at": 31,
+            "at": 47,
+            "part": "part-5"
+          },
+          {
+            "at": 53,
+            "part": "part-8"
+          },
+          {
+            "at": 58,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 31,
+            "at": 58,
             "part": "part-1"
           }
         ],
@@ -386,7 +402,7 @@
           "rect": [
             1,
             12,
-            26,
+            46,
             13
           ]
         }
@@ -394,21 +410,29 @@
       "edges": {
         "top": [
           {
-            "at": 14,
+            "at": 13,
             "part": "part-1"
           },
           {
-            "at": 22,
+            "at": 19,
             "part": "part-8"
           },
           {
-            "at": 27,
+            "at": 36,
+            "part": "part-5"
+          },
+          {
+            "at": 42,
+            "part": "part-8"
+          },
+          {
+            "at": 47,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 27,
+            "at": 47,
             "part": "part-1"
           }
         ],
@@ -446,7 +470,7 @@
           "rect": [
             1,
             12,
-            26,
+            46,
             13
           ]
         }
@@ -454,15 +478,23 @@
       "edges": {
         "top": [
           {
-            "at": 14,
+            "at": 13,
             "part": "part-1"
           },
           {
-            "at": 22,
+            "at": 19,
             "part": "part-8"
           },
           {
-            "at": 27,
+            "at": 36,
+            "part": "part-5"
+          },
+          {
+            "at": 42,
+            "part": "part-8"
+          },
+          {
+            "at": 47,
             "part": "part-1"
           }
         ],
@@ -491,7 +523,7 @@
           "rect": [
             1,
             12,
-            17,
+            38,
             13
           ]
         }
@@ -503,17 +535,25 @@
             "part": "part-1"
           },
           {
-            "at": 13,
+            "at": 11,
             "part": "part-8"
           },
           {
-            "at": 18,
+            "at": 28,
+            "part": "part-5"
+          },
+          {
+            "at": 34,
+            "part": "part-8"
+          },
+          {
+            "at": 39,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 18,
+            "at": 39,
             "part": "part-1"
           }
         ],
@@ -551,7 +591,7 @@
           "rect": [
             1,
             12,
-            17,
+            38,
             13
           ]
         }
@@ -563,11 +603,19 @@
             "part": "part-1"
           },
           {
-            "at": 13,
+            "at": 11,
             "part": "part-8"
           },
           {
-            "at": 18,
+            "at": 28,
+            "part": "part-5"
+          },
+          {
+            "at": 34,
+            "part": "part-8"
+          },
+          {
+            "at": 39,
             "part": "part-1"
           }
         ],
@@ -701,7 +749,7 @@
           "rect": [
             1,
             15,
-            17,
+            42,
             16
           ]
         }
@@ -713,17 +761,25 @@
             "part": "part-1"
           },
           {
-            "at": 13,
+            "at": 11,
             "part": "part-8"
           },
           {
-            "at": 18,
+            "at": 32,
+            "part": "part-5"
+          },
+          {
+            "at": 38,
+            "part": "part-8"
+          },
+          {
+            "at": 43,
             "part": "part-1"
           }
         ],
         "bottom": [
           {
-            "at": 18,
+            "at": 43,
             "part": "part-1"
           }
         ],
@@ -907,7 +963,7 @@
     },
     "movable-modal-inactive": {
       "asset": "cicns/cicn-n14324-movable-modal-inactive.png",
-      "width": 31,
+      "width": 58,
       "height": 19,
       "slice": {
         "corner": 1,
@@ -933,7 +989,7 @@
     },
     "active-movable-modal": {
       "asset": "cicns/cicn-n14323-movable-modal-active.png",
-      "width": 31,
+      "width": 58,
       "height": 19,
       "slice": null,
       "bgPattern": null,
@@ -945,7 +1001,7 @@
     },
     "movable-alert-inactive": {
       "asset": "cicns/cicn-n14322-movable-alert-inactive.png",
-      "width": 31,
+      "width": 58,
       "height": 19,
       "slice": {
         "corner": 1,
@@ -971,7 +1027,7 @@
     },
     "active-movable-alert": {
       "asset": "cicns/cicn-n14321-movable-alert-active.png",
-      "width": 31,
+      "width": 58,
       "height": 19,
       "slice": null,
       "bgPattern": null,
@@ -983,7 +1039,7 @@
     },
     "titled-utility-window-inactive": {
       "asset": "cicns/cicn-n14304-titled-utility-window-inactive.png",
-      "width": 27,
+      "width": 47,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -1009,7 +1065,7 @@
     },
     "active-titled-utility-window": {
       "asset": "cicns/cicn-n14303-titled-utility-window-active.png",
-      "width": 27,
+      "width": 47,
       "height": 14,
       "slice": null,
       "bgPattern": null,
@@ -1021,7 +1077,7 @@
     },
     "collapsed-titled-utility-inactive": {
       "asset": "cicns/cicn-n14300-collapsed-titled-utility-inactive.png",
-      "width": 27,
+      "width": 47,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -1047,7 +1103,7 @@
     },
     "active-collapsed-titled-utility": {
       "asset": "cicns/cicn-n14299-collapsed-titled-utility-active.png",
-      "width": 27,
+      "width": 47,
       "height": 14,
       "slice": null,
       "bgPattern": null,
@@ -1059,7 +1115,7 @@
     },
     "side-floating-utility-window-inactive": {
       "asset": "cicns/cicn-n14296-side-floating-utility-window-inactive.png",
-      "width": 18,
+      "width": 39,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -1085,7 +1141,7 @@
     },
     "active-side-floating-utility-window": {
       "asset": "cicns/cicn-n14295-side-floating-utility-window-active.png",
-      "width": 18,
+      "width": 39,
       "height": 14,
       "slice": null,
       "bgPattern": null,
@@ -1097,7 +1153,7 @@
     },
     "collapsed-side-utility-inactive": {
       "asset": "cicns/cicn-n14292-collapsed-side-utility-inactive.png",
-      "width": 18,
+      "width": 39,
       "height": 14,
       "slice": {
         "corner": 1,
@@ -1123,7 +1179,7 @@
     },
     "active-collapsed-side-utility": {
       "asset": "cicns/cicn-n14291-collapsed-side-utility-active.png",
-      "width": 18,
+      "width": 39,
       "height": 14,
       "slice": null,
       "bgPattern": null,
@@ -1211,7 +1267,7 @@
     },
     "popup-window-inactive": {
       "asset": "cicns/cicn-n12320-popup-window-inactive.png",
-      "width": 18,
+      "width": 43,
       "height": 17,
       "slice": {
         "corner": 1,
@@ -1237,7 +1293,7 @@
     },
     "active-popup-window": {
       "asset": "cicns/cicn-n12319-popup-window-active.png",
-      "width": 18,
+      "width": 43,
       "height": 17,
       "slice": null,
       "bgPattern": null,
