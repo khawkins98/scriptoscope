@@ -50,7 +50,8 @@ function drawWidget(img, x, y, p, glyph, size) {
 }
 
 // The decoded document-window (plate) drawing sequence.
-function drawPlateFrame(geo, isActive, p) {
+// `content` is the body-fill color (white for documents, #ccc for dialog-family).
+function drawPlateFrame(geo, isActive, p, content) {
   const { width, height, inset, barH, topFrame, widgetSlots } = geo;
   const img = buf(width, height);
 
@@ -82,8 +83,11 @@ function drawPlateFrame(geo, isActive, p) {
     hline(img, inset, width - 1 - inset, titleBot, p.windowShadow);
   }
 
-  // Title/body divider: the body band (row topFrame) is the dark separator.
-  hline(img, inset, width - 1 - inset, topFrame, p.frameOutline);
+  // Content body band: fill the body region with the `content` color (white for
+  // documents, #ccc for dialog-family). The title bar's #999 bottom-shadow row
+  // (titleBot) is the title/content separator, and the 1px black perimeter
+  // outline supplies the frame edges — so no separate black divider is drawn.
+  fill(img, inset, topFrame, width - 2 * inset, height - inset - topFrame, content);
 
   // 4. Widgets.
   for (const w of widgetSlots) drawWidget(img, w.x, w.y, p, w.glyph, w.size);
@@ -145,10 +149,14 @@ function drawFrame(cfg, geo, titleFore, titleBack, p) {
 export function drawWindow(cfg, palette) {
   const geo = geometryFor(cfg);
   if (geo.hasPlate) {
+    // Dialog-family plates (movable-modal / movable-alert) have gray (#ccc)
+    // bodies; every other plated type (document, utility, popup, …) is white.
+    const isDialogFamily = cfg.slug.includes('modal') || cfg.slug.includes('alert');
+    const content = isDialogFamily ? palette.plateBase : palette.contentBg;
     return {
       geo,
-      active:   drawPlateFrame(geo, true, palette),
-      inactive: drawPlateFrame(geo, false, palette),
+      active:   drawPlateFrame(geo, true, palette, content),
+      inactive: drawPlateFrame(geo, false, palette, content),
     };
   }
   return {

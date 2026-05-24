@@ -17,6 +17,7 @@ export const SLOTS = [
   'pinstripeLight',   // #ffffff  pinstripe light line (even rows)
   'pinstripeDark',    // #777777  pinstripe dark line + widget bottom/right shadow
   'titleText',        // #000000  baked title-text marker color
+  'contentBg',        // #ffffff  document/window content body fill (white)
 ];
 
 export const PALETTE = {
@@ -27,4 +28,5 @@ export const PALETTE = {
   pinstripeLight:  [255, 255, 255], // #ffffff
   pinstripeDark:   [119, 119, 119], // #777777
   titleText:       [0, 0, 0],       // #000000
+  contentBg:       [255, 255, 255], // #ffffff
 };
