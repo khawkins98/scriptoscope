@@ -148,18 +148,20 @@ present) TILED those cells. In the kDEF that verdict means **collapse to width
 scale 18) / to the separately-drawn widget. Fixing this removed 1984's row of
 title-tab arches (code 15 tiled) without a content heuristic — it now collapses,
 and the flat fill grows, matching the period reference's structure.
+
+Also resolved: **corner composition order**. At the corners two edges' bands
+overlap; the horizontal bars (top/bottom) span the full width incl. the corners,
+so they must be drawn AFTER the side edges or a side overdraws the corner with
+its own 1:1 cicn-corner block. The bottom edge already drew last; the TOP edge
+did not, so a side re-introduced the very art the top edge had collapsed (1984's
+close-tab/bar junction left a ~2px wedge). Drawing top last (the title bar owns
+its corners) made the collapse hold — 1984 now matches the reference pixel-wise.
 Open:
 1. **`cinf` is not surfaced/used** (cornerSize / sideThickness / tileSides /
    textPixel). The corpus ships no window `cinf`, so the compositor derives the
    corner from the recipe and tiles unconditionally — faithful for this corpus,
    but a scheme that DID ship a window cinf wouldn't be honoured.
-2. **1984 close-tab junction**: the cicn bakes a two-part tab (a rounded close-
-   tab + the main bar). The kDEF collapses the close cell (code 15) to merge
-   them; our extracted cicn's close-tab has a *rounded* right edge where the
-   reference reads as a flush vertical one, so the merge leaves a ~2px top-corner
-   wedge. A cicn-geometry / widget-redraw-pass (`0x5ddc`) nuance, not a width-
-   pass error.
-3. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
+2. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
    texture; a couple of corner joints read marginally off at extreme widths (M5).
 
 ## References

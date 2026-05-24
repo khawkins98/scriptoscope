@@ -626,17 +626,18 @@ export function composeWindowChrome(
   // its title bar. Every full window type ships all four recipes, so this only
   // affects the collapsed / topless utility types. (No bespoke "fill it anyway"
   // fallback — that was a non-kDEF override, now removed.)
-  // ── top edge ────────────────────────────────────────────────────────────
+  // Composition order matters at the CORNERS, where two edges' bands overlap.
+  // The SIDE edges run the full height (including the title-bar and bottom-bar
+  // rows); the TOP and BOTTOM bars span the full width (including the corners).
+  // The horizontal bars own the corners, so they are drawn AFTER the sides —
+  // otherwise a side edge overdraws the corner with its own 1:1 cicn-corner
+  // block, which (e.g. 1984) re-introduces art the top edge had collapsed away.
   let topRes: ReturnType<typeof composeEdge> = null;
-  if (edges?.top?.length) {
-    topRes = composeEdge(out, cicn, edges.top, {
-      edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
-      outExtent: fullW, srcExtent: drawW,
-    }, widgetPresent, opts.titleWidthPx ?? 0);
-  }
+  let leftRes: ReturnType<typeof composeEdge> = null;
+  let rightRes: ReturnType<typeof composeEdge> = null;
+  let botRes: ReturnType<typeof composeEdge> = null;
 
   // ── left edge ───────────────────────────────────────────────────────────
-  let leftRes: ReturnType<typeof composeEdge> = null;
   if (frame.left > 0 && edges?.left?.length) {
     leftRes = composeEdge(out, cicn, edges.left, {
       edge: 'left', horizontal: false, crossSrc: 0, crossLen: frame.left, crossDst: 0,
@@ -645,7 +646,6 @@ export function composeWindowChrome(
   }
 
   // ── right edge ──────────────────────────────────────────────────────────
-  let rightRes: ReturnType<typeof composeEdge> = null;
   if (frame.right > 0 && edges?.right?.length) {
     rightRes = composeEdge(out, cicn, edges.right, {
       edge: 'right', horizontal: false, crossSrc: drawW - frame.right, crossLen: frame.right,
@@ -653,9 +653,15 @@ export function composeWindowChrome(
     }, widgetPresent);
   }
 
-  // ── bottom edge (drawn AFTER sides so its corners overdraw any side
-  // overshoot into the bottom-corner band). ─────────────────────────────────
-  let botRes: ReturnType<typeof composeEdge> = null;
+  // ── top edge (drawn AFTER the sides so the title bar owns the top corners) ─
+  if (edges?.top?.length) {
+    topRes = composeEdge(out, cicn, edges.top, {
+      edge: 'top', horizontal: true, crossSrc: 0, crossLen: frame.top, crossDst: 0,
+      outExtent: fullW, srcExtent: drawW,
+    }, widgetPresent, opts.titleWidthPx ?? 0);
+  }
+
+  // ── bottom edge (drawn AFTER the sides so it owns the bottom corners) ──────
   if (frame.bottom > 0 && edges?.bottom?.length) {
     botRes = composeEdge(out, cicn, edges.bottom, {
       edge: 'bottom', horizontal: true, crossSrc: drawH - frame.bottom, crossLen: frame.bottom,
