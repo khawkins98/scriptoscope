@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T20:19:32.120Z",
+  "generatedAt": "2026-05-24T20:22:54.772Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -1693,6 +1693,30 @@
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10078,
+      "sourceCinfId": null
+    },
+    "slider-track": {
+      "asset": "cicns/cicn-n10131-slider-track.png",
+      "width": 14,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10131,
+      "sourceCinfId": null
+    },
+    "slider-thumb": {
+      "asset": "cicns/cicn-n10129-slider-thumb.png",
+      "width": 15,
+      "height": 64,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10129,
       "sourceCinfId": null
     }
   }
