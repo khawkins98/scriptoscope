@@ -138,8 +138,12 @@ Render at a few sizes and compare to `demo/assets/references/<slug>.png`:
 
 The model above is implemented in `composeChrome.ts` and the corpus renders
 faithfully (see `glitch-punchlist.md`). Resolved since the first draft: tile-not-
-stretch blit, end-based cell association, grounded corners, and the retirement of
-the widget-carving + cornerSize-split heuristics (widgets ride fixed cells now).
+stretch blit, end-based cell association, grounded corners, the retirement of
+the widget-carving + cornerSize-split heuristics (widgets ride fixed cells now),
+and the **1984 title-bar arch** — a baked tab-curve in `part-15` that the
+`0x49d6` STRETCH-when-present rule tiled into a row of arches; widget cells
+(15/16/17) now draw 1:1 when their src band is non-uniform (a baked ornament
+rather than a flat fill behind a widget), so the slack flows to the real fill.
 Open:
 1. **`cinf` is not surfaced/used** (cornerSize / sideThickness / tileSides /
    textPixel). The corpus ships no window `cinf`, so the compositor derives the
@@ -147,8 +151,6 @@ Open:
    but a scheme that DID ship a window cinf wouldn't be honoured.
 2. **Structured wide fills** at very large sizes (camo/pipes): tiling keeps the
    texture; a couple of corner joints read marginally off at extreme widths (M5).
-3. **1984 title-bar arch** (V1b): a baked tab-curve in a `part-15` stretch cell
-   that exceeds the corner — the one remaining ornament-in-stretch-cell case.
 
 ## References
 - `kdef231-recipe-walk.md` — the full part-code / draw decode, from the
