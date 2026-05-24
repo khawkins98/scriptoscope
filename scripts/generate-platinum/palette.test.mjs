@@ -5,7 +5,7 @@ import { PALETTE, SLOTS } from './palette.mjs';
 
 const REQUIRED = [
   'frameOutline', 'windowHighlight', 'windowShadow',
-  'plateBase', 'pinstripeLight', 'pinstripeDark', 'titleText',
+  'plateBase', 'pinstripeLight', 'pinstripeDark', 'titleText', 'contentBg',
 ];
 
 test('palette defines every required slot as an [r,g,b] triple', () => {
