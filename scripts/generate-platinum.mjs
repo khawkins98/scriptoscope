@@ -15,6 +15,7 @@ import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
 import { graftControls } from './generate-platinum/graft-controls.mjs';
+import { sliceControls } from './generate-platinum/slice-controls.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
 import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
@@ -86,6 +87,13 @@ if (existsSync(aplat2)) {
   console.log(`[apple-platinum-replica] grafted ${copied} control cicns from apple-platinum-2` +
     (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
 }
+
+// Slice real control glyphs (checkbox, radio) from screenshots into cicns at the
+// renderer's resource IDs — apple-platinum-2 keeps these at non-standard IDs, so
+// the renderer never found them and fell back to the procedural baseline.
+const { sliced, count } = sliceControls(dest, dest);
+theme.chromeElements = { ...(theme.chromeElements || {}), ...sliced };
+console.log(`[apple-platinum-replica] sliced ${count} control glyphs from screenshots (checkbox/radio)`);
 
 try { validateTheme(theme); }
 catch (err) { console.error('schema validation FAILED:', err.message); process.exit(1); }

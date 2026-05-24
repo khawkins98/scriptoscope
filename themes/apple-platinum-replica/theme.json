@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T20:01:49.424Z",
+  "generatedAt": "2026-05-24T20:10:09.939Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -1574,6 +1574,102 @@
       ],
       "sourceCicnId": -9972,
       "sourceCinfId": -9972
+    },
+    "checkbox-checked": {
+      "asset": "cicns/cicn-n9500-checkbox-checked.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9500,
+      "sourceCinfId": null
+    },
+    "checkbox-checked-inactive": {
+      "asset": "cicns/cicn-n9500-checkbox-checked.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9501,
+      "sourceCinfId": null
+    },
+    "checkbox-empty": {
+      "asset": "cicns/cicn-n9503-checkbox-empty.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9503,
+      "sourceCinfId": null
+    },
+    "checkbox-empty-inactive": {
+      "asset": "cicns/cicn-n9503-checkbox-empty.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9504,
+      "sourceCinfId": null
+    },
+    "radio-on": {
+      "asset": "cicns/cicn-n9488-radio-on.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9488,
+      "sourceCinfId": null
+    },
+    "radio-on-inactive": {
+      "asset": "cicns/cicn-n9488-radio-on.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9489,
+      "sourceCinfId": null
+    },
+    "radio-off": {
+      "asset": "cicns/cicn-n9491-radio-off.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9491,
+      "sourceCinfId": null
+    },
+    "radio-off-inactive": {
+      "asset": "cicns/cicn-n9491-radio-off.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9492,
+      "sourceCinfId": null
     }
   }
 }
