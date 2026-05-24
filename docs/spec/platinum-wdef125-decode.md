@@ -227,12 +227,16 @@ shifts of a content rect. It is three strokes layered onto two source rects: a
 1-px black `FrameRect` of the **structure box outset by 1**, plus two
 `MoveTo`+2×`LineTo` polylines that lay down the bevel highlight/shadow — one
 around the **structure box** (bottom+right shadow only) and one around the
-**title rect** (a full 4-edge raised bevel). All deltas are **inline `addqw`/
-`subqw` on the rect corner words**; there is **no `InsetRect`/`OffsetRect` in the
-frame drawer `0x392`–`0x8ec`** (`grep a8d5|a8d4` in-range → 0 — and note the two
-`InsetRect`s that *do* appear, `0xa8a9` @ `0x424` and `0x60c`/`0x686`, are the
-standard `_InsetRect` trap `0xA8A9`, **not** `0xA8D5`; the task brief's
-`0xa8d5/0xa8d4` are misnumbered).
+**title rect** (a full 4-edge raised bevel). All bevel deltas are **inline
+`addqw`/`subqw` on the rect corner words** — the frame/bevel is **not** built by
+`InsetRect`/`OffsetRect`-shifting a content rect. The only `InsetRect`s in the
+frame+bevel work are the ±1 brackets around the structure outline (`0x424`) and
+the title bevel (`0x618` set / `0x692` restore); every one is the standard
+`_InsetRect` trap `0xA8A9`, **not** `0xA8D5` (`grep a8d5|a8d4` → 0 anywhere; the
+task brief's `0xa8d5/0xa8d4` are misnumbered). The remaining `0xA8A9` sites in
+`0x392`–`0x8ec` (`0x714`–`0x87a`) belong to the **Task-5 widget boxes**, not the
+frame — and confirm those widgets are rect-based (there are **no ovals** in this
+resource).
 
 ### The two source rects
 
