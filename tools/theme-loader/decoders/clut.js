@@ -13,10 +13,17 @@
 //
 // Kaleidoscope's window-header cluts (-14335 active, -14336 inactive)
 // index colors by PART CODE, per the "Creating Color Schemes" doc:
-//   part 0 = Frame color   part 1 = Fill (background)   part 2 = Text color
+//   part 0 = Frame color   part 1 = Fill (background)   part 2 = "Text" color
 //   part 3 = Light tinge   part 4 = Dark tinge
 //   part 5 = Light bevel   part 6 = Dark bevel
 // `value` is the part code; entries may be sparse, so index BY value.
+//
+// CAVEAT: part 2 ("Text") is NOT the rendered TITLE-TEXT colour. The kDEF
+// samples the title colour from a marker pixel baked into the window cicn
+// (see kdef231-reference.md §1.4, `0x5530`), not from this clut. part 2 here
+// is a frame/bevel tint; for several schemes it's wildly off the real title
+// colour (1984 → sky-blue here vs. black on screen). Treat these as the
+// frame APPEARANCE palette only; sample the cicn for the title colour.
 
 import { Reader } from './shared.js';
 

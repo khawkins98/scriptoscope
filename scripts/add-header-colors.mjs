@@ -2,9 +2,15 @@
 // scheme's window-header cluts (-14335 active / -14336 inactive).
 //
 // Why a separate step: the window cicns carry no cinf, and the
-// extraction manifests don't capture cluts — so the title bar's text +
-// fill colors (clut part codes 2 + 1, per Kaleidoscope's "Creating
-// Color Schemes" doc) live only in scheme.rsrc. This patches them in.
+// extraction manifests don't capture cluts — so the frame APPEARANCE
+// colors (clut part codes per "Creating Color Schemes") live only in
+// scheme.rsrc. This patches them in.
+//
+// NB: the clut part-2 "Text" entry is NOT the rendered title-text colour
+// (the kDEF samples that from a marker pixel in the cicn at render time —
+// see kdef231-reference.md §1.4 / docs/tracking/title-text-color.md). The
+// `headerColors.text` written here is a frame tint; renderWindow should
+// sample the cicn for the title colour rather than trust it.
 // Idempotent; safe to re-run. build-theme-bundles.mjs does the same for
 // the themes that still have extraction manifests.
 //

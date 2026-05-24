@@ -134,8 +134,24 @@ table bytes). Standard CDEF message numbers in parens:
 | `0x572e` | **main draw loop** | per side, per segment: `0x5356` then blit (code 18 → `0x10320`, else `0x0feae`). Never touches the rect-list `a4@(1938)` | side lists | `0x5356`, `0x10320` (`0x59ba`), `0x0feae` (`0x59e8`) | — |
 | `0x5ddc` | rect-list **widget draw** | draws one named-widget rect (close/zoom/shade/marker) | rect-list entry | `0x10320` | — |
 | `0x5ffc` | rect-list **iterator** | walk the rect-list `a4@(1938)`; used for BOTH hit-test (returns hit index) and the widget-draw pass | `fp@(12)`=ControlHandle/window; flag arg | `0x5ddc` (`0x6040`) | hit index / drawn |
+| `0x5530` | **title draw** (+ text-colour sample) | `GetWTitle` (`$A919`) → title string; `0x6582(idx)` → marker rects; sample TWO ADJACENT chrome-pixmap (`a4@1934`) pixels via `0xfc5c` into `fp@(-28)`=text colour + `fp@(-22)`=shadow colour; at `0x56b2` if the two are EQUAL → one `RGBForeColor`+`DrawString`, else text in colour1 + a ~1px-offset shadow in colour2 (emboss) | `a4@(454)`=title, `a4@(1934)`=chrome pixmap, `a4@(509)` state flag | `$A919`, `0x6582`, `0xfc5c`, `$AA14` RGBForeColor, `$A884` DrawString | — |
+| `0x6582` | rect-list lookup by part | scan rect-list (`a4@1938`, 10-byte entries) for the one whose part field == index arg; else the first | `sp@(4)`=part index | — | rect ptr `a0` |
+| `0xfc5c` | **GetPixel** (index→RGB) | sample the chrome pixmap at `(x,y)`: compute bit/byte offset (handles 1/2/4/8-bit depth), extract the colour index, resolve via `0x10702`, write `*outColor` | pixmap, `x`, `y`, `&RGBColor` | `0x10702` (index→clut RGB) | RGBColor |
 | `0x4138`/`0x4176`/`0x41d0` | draw/hit dispatch | window-def message handlers calling `0x5ffc` (e.g. grow-box `a4@(508)`, body `a4@(501)`) | `a4@(508)`,`a4@(501)`,`a4@(500)` widget flags | `0x5ffc` | part code in `d0` |
 | `0x4778` | structure/content rect | compute the window structure rect (FrameRect source) | window record | — | rect |
+
+> **Title text colour is SAMPLED from the cicn, not from a clut.** `0x5530`
+> sets the `DrawString` foreground via two `0xfc5c` (GetPixel) reads of the
+> chrome pixmap at a marker rect (from `0x6582`): one pixel = the text colour,
+> the neighbour = the shadow colour (drawn as a ~1px emboss when they differ).
+> So a scheme encodes its title colour as a small marker SWATCH baked into the
+> window cicn — there is NO per-scheme title-colour clut/`wctb` (verified: the
+> `-14335`/`-14336` cluts are frame/bevel appearance only, and the `Colr`
+> resource is scheme metadata). **Runtime implication for Aaron UI:** the title
+> colour must be computed by sampling the loaded cicn at the marker pixel at
+> render time — not pre-baked into `theme.json`. (The exact marker coordinate
+> per scheme is still to be pinned empirically; see
+> `docs/tracking/title-text-color.md`.)
 
 ### 1.5 Blit primitives + 9-slice
 
@@ -144,7 +160,7 @@ table bytes). Standard CDEF message numbers in parens:
 | `0x0feae` | **TILE blit** (default) | step dst by src cell w/h, CopyBits/CopyMask one src-sized tile at a time, clamp last partial tile. 1px-tall/1px-wide fast paths. | `fp@(8)`=dir byte (→`d4`; `(pc==11\|\|pc==14)?0:1` from caller `0x59c8`), `fp@(12)`=src rect (`a3`), `fp@(16)`=dst rect (`a2`) | `$A8EC` CopyBits / `$A817` CopyMask, `0x1027a` (skip if degenerate) |
 | `0x10320` | **single scaled blit** (code 18) | ONE CopyBits (`0x103ea` `$A8EC`) or CopyMask (`0x10402` `$A817`), mapped src→dst (scales if dst grew) | `fp@(8)`=cicn (`a2`), `fp@(12)`=src rect (`d6`), `fp@(16)`=dst rect (`a3`) | `$A8EC`/`$A817`, RGBForeColor `0xf30a` |
 | `0x102d0` | **corner 1:1 copy** | translate src rect by (dst−src) offset, then `0x10320` → places a corner at 1:1 size | `fp@(8)`=cicn, `fp@(12)`=src (`a2`), `fp@(16/18)`=dst origin | `0x10320` |
-| `0x107fe` | **cinf 9-slice engine** | load cicn + cinf for an id, read corner insets, blit 4 corners 1:1 + 4 edges + center per cinf style byte | `fp@(8)`=id (`d4`), `fp@(10)`=dst rect (`a2`), `fp@(18)`=optional rect, `fp@(22)`=scale flag (?), pushed scale-flag at `fp@(?)` | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (rect math), `0xf930`, `0xfdf8` |
+| `0x107fe` | **cinf 9-slice engine** | load cicn + cinf for an id, read corner insets, blit 4 corners 1:1 + 4 edges + center per cinf style byte | `fp@(8)`=id (`d4`), `fp@(10)`=dst rect (`a2`), `fp@(18)`=optional rect, `fp@(22)`=scale flag (?), pushed scale-flag at `fp@(?)` | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (GetPixel — sample px → RGB; see §1.4), `0xf930`, `0xfdf8` |
 | `0x108a0` | (inside `0x107fe`) | reads cinf corner insets: `d3`=byte[0] (`a3@`), `d4`=byte[1] (`a3@(1)`); style switch on cinf byte[3] (`a0@(3)`, `cmpib #5` + `subq #1` chain) | cinf `a3@`: `[0]`=cornerX, `[1]`=cornerY, `[3]`=style/mode | — |
 | `0x10fc0` | 9-slice wrapper (controls) | pushes `#1` scale-flag, forwards `fp@(8..18)` to `0x107fe` | `fp@(8)`=id, `fp@(10/14/18)`=rects/flags | `0x107fe` |
 | `0x10fe0` | 9-slice wrapper (window regions) | sibling: loads cicn (`0x10472`) + cinf (`0x116f8`) itself, then slices | `fp@(8)`=id (`a3`), `fp@(10)`=rect (`a2`), `fp@(14)`=`d4`, `fp@(18)`=alt flag | `0x10472`, `0x116f8` |
