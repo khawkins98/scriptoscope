@@ -4,9 +4,10 @@
 // manifest + meta → buildThemeJson → validateTheme → write the bundle.
 //
 // Each window type is ONE base sprite per state (active/inactive) + a wnd# slice
-// recipe; the runtime compositor tiles it to any size. The placeholder art is a
-// rough scaffold — hand-paint it via the atlas (see scripts/generate-platinum/
-// atlas.mjs + SPRITE-GUIDE.md). Re-running this OVERWRITES hand-painted cicns.
+// recipe; the runtime compositor tiles it to any size. The document window is
+// sliced from a real Platinum screenshot (slice-doc-window.mjs); the remaining
+// types are drawn procedurally (draw-window.mjs) as a fallback; controls are
+// grafted from apple-platinum-2 (graft-controls.mjs).
 import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -64,7 +64,7 @@ export const WINDOW_TYPES = [
 /**
  * Derive the minimum-cicn geometry + recipe cell boundaries for a type.
  * Pure function of the config; the SINGLE source of truth shared by
- * draw-window.mjs, manifest.mjs, atlas-layout.mjs and the slicer.
+ * draw-window.mjs, manifest.mjs and the slicer.
  *
  * Returns:
  *   width, height        — the base-sprite cicn dimensions
