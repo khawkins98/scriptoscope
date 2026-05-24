@@ -50,7 +50,8 @@
     "build:themes": "node scripts/extract-scheme.mjs --all",
     "diag:render": "node scripts/render-window.mjs",
     "diag:audit": "node scripts/audit-placement.mjs",
-    "lint:themes": "node scripts/lint-themes.mjs"
+    "lint:themes": "node scripts/lint-themes.mjs",
+    "test": "node --test scripts/generate-platinum/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
