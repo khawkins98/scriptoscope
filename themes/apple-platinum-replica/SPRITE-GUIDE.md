@@ -1,50 +1,129 @@
-# Painting the Platinum document-window sprite
+# Painting the Platinum window sprites
 
-This bundle's document window is **one base sprite** (the minimum-size window cicn)
-that the runtime **slices and tiles** to any window size via the `wnd#` recipe in
-`theme.json`. The generator (`scripts/generate-platinum.mjs`) drew a procedural
-starting scaffold; **you can repaint the sprite by hand** (Photoshop, etc.) and the
-recipe will slice your art unchanged. This is the intended path to authentic raster
-fidelity — the decode fixes the *geometry*, you paint the *pixels*.
+This bundle defines **all 13 canonical Mac OS window types** (each active + inactive
+= 26 base sprites). Each sprite is **one minimum-size cicn** that the runtime
+**slices and tiles** to any window size via that type's `wnd#` recipe in
+`theme.json`. The generator draws a procedural starting scaffold; **you repaint
+the sprites by hand** (one master atlas in Photoshop, etc.) and the recipes slice
+your art unchanged. This is the path to authentic raster fidelity — the decode
+fixes the *geometry*, you paint the *pixels*.
 
-## The two sprites
+## The model in one paragraph
 
-Each is **47 × 22 px**, RGBA, native resolution (zoom in your editor; this is pixel art):
+Every window type is a tiny base sprite split into cells by its `wnd#` recipe.
+On the **top edge** there are three cells: a **fixed LEFT corner**, a **GROW
+title-fill** strip (8px, tiled/stretched across the title width), and a **fixed
+RIGHT corner**. Widgets (close/collapse/zoom) are baked into the fixed corners,
+so they're drawn 1:1 at the window's corners. The sides + bottom are 1px fixed
+bands that tile. Collapsed types ship **only** a top recipe (title bar only, no
+body frame). The compositor (`src/composeChrome.ts`) does all the slicing.
 
-- `cicns/cicn-n14335-active-document-window.png` — **active** window
-- `cicns/cicn-n14336-document-window-inactive.png` — **inactive** window
+## Workflow: paint the whole set in one document
 
-(`ppats/ppat-128-title-pinstripe.png` is an 8×8 pinstripe tile — secondary; the
-title fill is baked into the cicn.)
+### 1. Generate the atlas
 
-## Slice map (see `platinum-slicemap.png`)
+```
+node scripts/generate-platinum-atlas.mjs
+```
 
-Vertical slice lines at **x=15** and **x=23** split the top edge into three cells:
+Writes **`sprite-atlas.png`** (478×1026) — all 26 sprites in a 2-column grid
+(active | inactive), one row per type, drawn at **4× scale**, each labeled with
+its type + state. **Magenta lines** mark the slice boundaries:
 
-| region | x-range | behavior | paint… |
-|---|---|---|---|
-| **LEFT corner** | `[0, 15)` | **FIXED** (drawn 1:1) | the close box + the bar around it, full 2D detail |
-| **TITLE fill** | `[15, 23)` (8px) | **TILED** across the title width | a **horizontally-seamless** texture (Platinum's pinstripe is horizontally uniform, so this is natural) |
-| **RIGHT corner** | `[23, 47)` | **FIXED** (drawn 1:1) | the collapse + zoom boxes + the bar around them, full 2D detail |
+- **vertical magenta** = the top-edge cell boundaries (LEFT-corner edge and
+  GROW-fill edge). Paint the corners (incl. widgets) **between the outer edge and
+  the first/last line**; paint a **horizontally-seamless** texture in the GROW
+  band (it stretches/tiles across the title).
+- **horizontal magenta** = the title/body divider (only on titled types).
 
-Rows: **y=0** top outline · **y=1–19** title bar · **y=20** title/body divider · **y=21** bottom outline. Left/right columns (`x=0`, `x=46`) are the 1px side frame.
+### 2. Paint
 
-Current widget boxes (7×7, at **y=7–13**): **close** `x5–11`, **collapse** `x26–32`, **zoom** `x35–41`. You can move/restyle them freely *within the fixed cells*.
+Repaint the sprites **in place** on the atlas. Stay inside each sprite's cell.
+Rules:
 
-### The one rule
-- **FIXED cells** → paint anything; it's drawn 1:1 at the window's corners.
-- **TILE cell** → it repeats across the whole title width, so keep it horizontally seamless and **don't** put position-specific detail there (it'll tile). The pinstripe pattern lives here.
-- Keep the pinstripe in the fixed cells' backgrounds matching the tile so the bar reads continuously.
+- **FIXED corner cells** → paint anything; drawn 1:1 at the window corners.
+- **GROW title-fill cell** → repeats/stretches across the title width, so keep it
+  horizontally seamless and **don't** put position-specific detail there.
+- **Do not move sprites or resize the canvas** — the slicer reads fixed
+  coordinates. The magenta lines + labels live so you can see the cuts; the
+  slicer ignores magenta pixels when reading art back.
 
-## Re-import workflow
+### 3. Slice back into the bundle
 
-1. Edit the two `cicns/*.png` at **47×22** (don't change the dimensions, or the recipe coordinates won't line up).
-2. Re-render to check: `node scripts/render-window.mjs apple-platinum-replica --w 360 --h 240 --title "Untitled"` → writes `diag/document-window.png`.
-3. Validate: `npm run lint:themes`.
+```
+node scripts/slice-platinum-atlas.mjs              # writes the 26 cicn PNGs
+node scripts/slice-platinum-atlas.mjs --dry        # preview, write nothing
+npm run lint:themes                                # validate the bundle
+```
 
-**Important:** once you hand-paint, the bundle PNGs are the source of truth — **do not** re-run `node scripts/generate-platinum.mjs`, which would overwrite your art with the procedural scaffold. The recipe (`theme.json` / `wnd#`) is independent of the pixels and won't need regenerating.
+The slicer writes **only** the per-type cicn PNGs at their native dimensions.
+The `theme.json` / `wnd#` recipes are independent of the pixels and don't need
+regenerating.
 
-## Want a different canvas?
-If 47×22 is awkward, the cell sizes are in `scripts/generate-platinum/metrics.mjs`
-(`cells.leftFixed` / `cells.titleStretch` / `cells.rightFixed`) and `titleBarHeight`.
-Bump them, re-run the generator once for a fresh scaffold at the new size, then paint.
+**Layout is shared.** Both the atlas generator and the slicer import
+`scripts/generate-platinum/atlas-layout.mjs` (`computeAtlasLayout`), so they
+always agree on every sprite's `(x, y, w, h)` slot, cut lines, and scale. Round-
+tripping the *generated* atlas back through the slicer reproduces the source
+sprites pixel-for-pixel.
+
+## The 13 window types — region map
+
+| slug | wnd# | cicn dims | title bar | top cells (L / fill / R) | widgets |
+|---|---|---|---|---|---|
+| document-window | −14336 | 47×22 | 19px | 15 / 8 / 24 | close · collapse · zoom |
+| collapsed-document-window | −14332 | 47×22 | 19px | 15 / 8 / 24 | close · collapse · zoom |
+| dialog | −14328 | 18×3 | none | 5 / 8 / 5 | — |
+| alert | −14326 | 18×3 | none | 5 / 8 / 5 | — |
+| movable-modal | −14324 | 29×19 | 16px | 16 / 8 / 5 | close |
+| movable-alert | −14322 | 29×19 | 16px | 16 / 8 / 5 | close |
+| titled-utility-window | −14304 | 29×14 | 11px | 16 / 8 / 5 | close |
+| collapsed-titled-utility | −14300 | 29×14 | 11px | 16 / 8 / 5 | close |
+| side-floating-utility-window | −14296 | 18×14 | 11px | 5 / 8 / 5 | — |
+| collapsed-side-utility | −14292 | 18×14 | 11px | 5 / 8 / 5 | — |
+| no-title-utility-window | −14288 | 18×3 | none | 5 / 8 / 5 | — |
+| collapsed-no-title-utility | −14284 | 18×3 | none | 5 / 8 / 5 | — |
+| popup-window | −12320 | 18×17 | 14px | 5 / 8 / 5 | — |
+
+cicn pairing follows the Mac OS WDEF convention: **inactive = wnd# id**,
+**active = wnd# id + 1** (e.g. document-window: inactive −14336, active −14335).
+The "collapsed" types share the open type's geometry but ship an empty
+bottom/left/right recipe, so only the title bar renders. The
+side-floating-utility scaffold approximates its side bar as a thin top bar (a
+clean-room simplification — repaint as desired within the same cells).
+
+## Recipe correctness (why the cells are what they are)
+
+Per `classifyPart` in `src/composeChrome.ts`:
+
+- **part 1** = FIXED (drawn 1:1) — corners, widget cells, frame bands.
+- **part 8** = GROW (absorbs the window's slack) — the title-fill strip.
+- **part 0** = COLLAPSES to width 0 — never used for a kept cell.
+
+Cells are END-based: a `{part, border}` entry closes the cell at `border`,
+spanning from the previous border. The leading `[0, border[0])` region is always
+the fixed corner. So each top edge is
+`[{part:1, border:leftFixed}, {part:8, border:leftFixed+8}, {part:1, border:W}]`
+= fixed-left / grow-middle / fixed-right. The body `part-0` rect is always
+non-degenerate (`lint:themes` rejects `bottom ≤ top` or `right ≤ left`).
+
+## Regenerating the scaffold
+
+```
+node scripts/generate-platinum.mjs        # redraws ALL 26 cicns + theme.json
+```
+
+**This overwrites hand-painted cicns** with the procedural scaffold. Once you've
+painted, treat the bundle PNGs (or the atlas) as the source of truth and use the
+slicer, not the generator. To change a type's geometry (cell sizes, bar height,
+widgets), edit `scripts/generate-platinum/window-types.mjs` and re-run the
+generator + atlas once for a fresh scaffold at the new size.
+
+## Source layout
+
+- `scripts/generate-platinum/window-types.mjs` — the 13 type configs +
+  `geometryFor()` (the single geometry source of truth).
+- `scripts/generate-platinum/draw-window.mjs` — generic per-type placeholder drawer.
+- `scripts/generate-platinum/manifest.mjs` — builds the cicn/wnd#/cinf assets.
+- `scripts/generate-platinum/atlas-layout.mjs` — shared atlas grid coordinates.
+- `scripts/generate-platinum/atlas.mjs` + `scripts/generate-platinum-atlas.mjs` — atlas generator.
+- `scripts/generate-platinum/slice-atlas.mjs` + `scripts/slice-platinum-atlas.mjs` — the slicer.
