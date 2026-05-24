@@ -80,15 +80,22 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour. NOTE: `headerColors.text` (the -14335/-14336 clut part-2
-    // entry) is NOT the real title-text colour — it's a frame/bevel tint and is
-    // wrong for most schemes (1984 → sky-blue here vs. BLACK on screen). The
-    // faithful source is a MARKER pixel baked into the window cicn that the kDEF
-    // samples at draw time (text + an adjacent shadow pixel; see
-    // kdef231-reference.md §1.4, `0x5530`). TODO (docs/tracking/title-text-color.md):
-    // replace this with a runtime cicn marker-pixel sample. Current priority:
-    // (1) clut text [unreliable — to be removed]; (2) cicn marker IF saturated;
-    // (3) luminance-picked b/w contrast against the bar.
+    // Title colour. KNOWN-WRONG, pending the fix in docs/tracking/title-text-color.md.
+    // `headerColors.text` (the -14335/-14336 clut part-2 entry) is NOT the real
+    // title-text colour — it's a frame/bevel tint, wrong for most schemes (1984
+    // → sky-blue here vs. BLACK on screen). The faithful source is a MARKER pixel
+    // the scheme bakes into its window cicn, which the kDEF samples at draw time
+    // (text pixel + adjacent shadow pixel; see kdef231-reference.md §1.4 `0x5530`).
+    //
+    // Target fix (option A): sample that marker at runtime so it works for ANY
+    // loaded scheme, not just our corpus — the only approach that reproduces an
+    // author-chosen colour we've never seen. BLOCKED on pinning the marker
+    // coordinate (the obvious rect lands out-of-bounds for 1984; decompile is
+    // truncated through 0x6582/0xfc5c — pin it empirically). Fallback (option B):
+    // luminance-contrast b/w (retune threshold ~60) for markerless/odd schemes.
+    //
+    // Until then this keeps the current (wrong) priority: (1) clut text
+    // [to be removed]; (2) cicn marker IF saturated; (3) b/w contrast vs. the bar.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
     const tr = composed.titleRegion;
     let fgHex: string | null = hc.text ?? null;
