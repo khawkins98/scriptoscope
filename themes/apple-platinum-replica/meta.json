@@ -1,0 +1,10 @@
+{
+  "name": "Apple Platinum (replica)",
+  "author": { "name": "Aaron UI (generated)", "year": 2026 },
+  "origin": {
+    "kind": "first-party-generated",
+    "originalFormat": "generated",
+    "originalLicense": "First-party clean-room reproduction. Drawn from the decoded Mac OS 8.5 WDEF 125 algorithm (docs/spec/platinum-wdef125-decode.md); no Apple bitmaps shipped.",
+    "sourceUrl": "docs/superpowers/specs/2026-05-24-platinum-theme-generator-design.md"
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "source": "generated",
+  "extractedAt": "2026-05-24T10:09:06.246Z",
+  "counts": {
+    "total": 5,
+    "ok": 5,
+    "skipped": 0,
+    "errored": 0
+  },
+  "assets": [
+    {
+      "type": "cicn",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14336-document-window-inactive.png",
+      "width": 40,
+      "height": 22
+    },
+    {
+      "type": "cicn",
+      "id": -14335,
+      "name": "Active Document Window",
+      "status": "ok",
+      "file": "cicns/cicn-n14335-active-document-window.png",
+      "width": 40,
+      "height": 22
+    },
+    {
+      "type": "ppat",
+      "id": 128,
+      "name": "Title Pinstripe",
+      "status": "ok",
+      "file": "ppats/ppat-128-title-pinstripe.png",
+      "width": 8,
+      "height": 8
+    },
+    {
+      "type": "wnd#",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 20,
+              "left": 1,
+              "bottom": 21,
+              "right": 39
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 15
+          },
+          {
+            "part": 8,
+            "border": 16
+          },
+          {
+            "part": 0,
+            "border": 40
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 40
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 22
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 22
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  ]
+}

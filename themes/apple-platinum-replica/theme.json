@@ -1,0 +1,124 @@
+{
+  "version": "0.1",
+  "source": "apple-platinum-replica (generated)",
+  "generatedAt": "2026-05-24T10:09:06.246Z",
+  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
+  "name": "Apple Platinum (replica)",
+  "author": {
+    "name": "Aaron UI (generated)",
+    "year": 2026
+  },
+  "origin": {
+    "kind": "first-party-generated",
+    "originalFormat": "generated",
+    "originalLicense": "First-party clean-room reproduction. Drawn from the decoded Mac OS 8.5 WDEF 125 algorithm (docs/spec/platinum-wdef125-decode.md); no Apple bitmaps shipped.",
+    "sourceUrl": "docs/superpowers/specs/2026-05-24-platinum-theme-generator-design.md"
+  },
+  "windowTypes": {
+    "document-window": {
+      "chrome": {
+        "active": "cicns/cicn-n14335-active-document-window.png",
+        "inactive": "cicns/cicn-n14336-document-window-inactive.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            20,
+            39,
+            21
+          ]
+        }
+      },
+      "edges": {
+        "top": [
+          {
+            "at": 15,
+            "part": "part-0"
+          },
+          {
+            "at": 16,
+            "part": "part-8"
+          },
+          {
+            "at": 40,
+            "part": "part-0"
+          }
+        ],
+        "bottom": [
+          {
+            "at": 40,
+            "part": "part-0"
+          }
+        ],
+        "left": [
+          {
+            "at": 22,
+            "part": "part-0"
+          }
+        ],
+        "right": [
+          {
+            "at": 22,
+            "part": "part-0"
+          }
+        ]
+      },
+      "cinf": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 0,
+        "textPixel": [
+          1,
+          1
+        ]
+      },
+      "bodyPattern": null
+    }
+  },
+  "chromeElements": {
+    "document-window": {
+      "asset": "cicns/cicn-n14336-document-window-inactive.png",
+      "width": 40,
+      "height": 22,
+      "slice": {
+        "corner": 1,
+        "side": 1,
+        "tile": false,
+        "resizeBehavior": "stretch-whole"
+      },
+      "bgPattern": null,
+      "bgAnchor": [
+        0,
+        0
+      ],
+      "textAnchor": [
+        1,
+        1
+      ],
+      "embossAnchor": [
+        0,
+        0
+      ],
+      "sourceCicnId": -14336,
+      "sourceCinfId": -14336
+    },
+    "active-document-window": {
+      "asset": "cicns/cicn-n14335-active-document-window.png",
+      "width": 40,
+      "height": 22,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14335,
+      "sourceCinfId": null
+    }
+  },
+  "patterns": {
+    "title-pinstripe": {
+      "asset": "ppats/ppat-128-title-pinstripe.png"
+    }
+  }
+}

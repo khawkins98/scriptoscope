@@ -23,8 +23,11 @@ export function buildDocumentWindowAssets(drawn) {
   // wnd# data shape per decoders/wnd.js: { rectangles, topSide, bottomSide, leftSide, rightSide }
   const wndData = {
     rectangles: [
-      // part 0 = content/body rect inside the frame (Mac order top,left,bottom,right)
-      { part: 0, rect: { top: METRICS.titleBarHeight + inset + 1, left: inset, bottom: H - inset, right: W - inset } },
+      // part 0 = content/body rect inside the frame (Mac order top,left,bottom,right).
+      // The min-cicn body is the 1px stretchable band between the title divider
+      // (at titleBarHeight + inset) and the bottom frame inset — height ≥ 1 so the
+      // rect is non-degenerate (lint:themes rejects b <= t).
+      { part: 0, rect: { top: METRICS.titleBarHeight + inset, left: inset, bottom: H - inset, right: W - inset } },
     ],
     // END-based: each {part, border} closes a cell at pixel `border`.
     topSide: [
