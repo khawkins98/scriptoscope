@@ -20,18 +20,22 @@ apple-platinum-2 sources were used: the **Normal Vertical Scrollbar** cicn (id
 | slot | value | source | status |
 |---|---|---|---|
 | `frameOutline` | `[0,0,0]` | cicn -8278 px(0,0) **and** clut -14336 entry 0 (`#000000`) | sampled-faithful (2 sources agree) |
-| `titleFillBack` | `[170,170,170]` | clut -14336 entry 4 (`#aaaaaa`) = control face | sampled-faithful |
 | `widgetFace` | `[170,170,170]` | clut -14336 entry 4 / cicn -8278 face | sampled-faithful |
 | `bevelHighlight` | `[221,221,221]` | clut -14336 entry 1 (`#dddddd`) — raised top/left | sampled-faithful |
 | `bevelShadow` | `[119,119,119]` | cicn -8278 px(1,1) dark bevel line (`#777777`) | sampled-faithful (clut carries no distinct dark-gray shadow entry — only black — so the shadow gray comes from the same scheme's control bevel ramp) |
 | `titleText` | `[0,0,0]` | clut -14336 entry 0 (`#000000`) | sampled-faithful |
-| `titleFillFore` | `[255,255,255]` | **PROVISIONAL** | the title-bar pinstripe FOREGROUND stripe is window-`wctb` runtime data; apple-platinum-2 is controls-only (no title art) so it cannot be sampled directly. The header clut -14336 brackets it (entry 1 `#dddddd` .. entry 3 `#ffffff`). Set to white pending a System-file `wctb` cross-check. **Needs confirmation.** |
+| `titleFillBack` | `[204,204,204]` | **ASSUMED (calibrated)** | title-bar base gray. The sampled `#aaaaaa` (control face) rendered too dark/harsh for the title bar; per the decode the title fill is two CLOSE light grays. `#cccccc` calibrated against the render. Refine via a System-file `wctb` decode. |
+| `titleFillFore` | `[238,238,238]` | **ASSUMED (calibrated)** | title-bar pinstripe stripe. Window-`wctb` runtime data, not sampleable from controls-only apple-platinum-2. `#eeeeee` (one ramp step above the base) calibrated to read as the subtle Platinum texture. Refine via a System-file `wctb` decode. |
 
-### Flagged gap
+### Flagged gaps (assumptions — confirm before claiming pixel-fidelity)
 
-`titleFillFore` is the only PROVISIONAL slot. Everything else is corroborated by
-two in-repo apple-platinum-2 sources. To confirm the pinstripe stripe color,
-decode the System-file window `wctb` / Appearance theme color set (the decode
-doc's "Color sourcing" section: fields `+50`/`+58`/`+66`/`+74` feed the title fill
-blends). The current white is a plausible Platinum pinstripe value but is not
-sampled from an authentic source.
+- **Title-fill grays** (`titleFillBack` `#cccccc`, `titleFillFore` `#eeeeee`): a
+  calibrated *assumption*, not sampled. The authentic values are the window
+  `wctb`/Appearance color set (decode "Color sourcing": fields `+50`/`+58`/`+66`/
+  `+74` feed the title-fill blends). A System-file `wctb` decode would replace them.
+- **Collapse-box glyph** (a windowshade mid-line): a marked assumption — the decode
+  flagged the collapse glyph as "could-not-pin". The close (plain) and zoom
+  (inner-square) glyphs follow the decode.
+- **Frame**: a single 1px black outer outline (no separate raised bevel ring). The
+  decode's full frame is a black outline + a 1px bevel (2px total); the 2px frame is
+  a later fidelity step.

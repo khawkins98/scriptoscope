@@ -45,19 +45,23 @@ function drawFrame(titleFore, titleBack, p) {
   // Frame outline under the title bar (separates title from body).
   hline(img, inset, width - 1 - inset, titleBot + 1, p.frameOutline);
 
-  // Widget boxes (close at left, zoom + collapse at right), beveled faces.
+  // Widget boxes: close (left, plain), zoom (rightmost, inner-square glyph),
+  // collapse (inboard of zoom, windowshade mid-line). Per the decode: zoom is the
+  // outermost-right box; collapse sits inboard. The collapse glyph was a decode
+  // "could-not-pin" — the mid-line is a marked assumption (classic windowshade).
   const wy = titleTop + Math.max(0, Math.floor((METRICS.titleBarHeight - METRICS.widget.size) / 2));
-  drawWidget(img, inset + METRICS.widget.closeLeftOffset, wy, p); // close: title.left + 4
+  drawWidget(img, inset + METRICS.widget.closeLeftOffset, wy, p, 'close'); // close: title.left + 4
   const rightZoomX = width - inset - METRICS.widget.zoomRightOffset - METRICS.widget.size;
-  drawWidget(img, rightZoomX, wy, p);
-  drawWidget(img, rightZoomX - METRICS.widget.collapseGap - METRICS.widget.size, wy, p);
+  drawWidget(img, rightZoomX, wy, p, 'zoom');
+  drawWidget(img, rightZoomX - METRICS.widget.collapseGap - METRICS.widget.size, wy, p, 'collapse');
 
-  // 1px raised bevel: top + left = highlight, bottom + right = shadow.
-  // Drawn LAST so the window's outer raised edge frames everything.
-  hline(img, 0, width - 1, 0, p.bevelHighlight);
-  vline(img, 0, 0, height - 1, p.bevelHighlight);
-  hline(img, 0, width - 1, height - 1, p.bevelShadow);
-  vline(img, width - 1, 0, height - 1, p.bevelShadow);
+  // 1px black outer window outline (frameOutline). Real Platinum defines the window
+  // edge with a crisp dark outline; the raised bevel is carried by the widgets + the
+  // title divider. (A 2px outline+bevel frame is a later fidelity step.)
+  hline(img, 0, width - 1, 0, p.frameOutline);
+  vline(img, 0, 0, height - 1, p.frameOutline);
+  hline(img, 0, width - 1, height - 1, p.frameOutline);
+  vline(img, width - 1, 0, height - 1, p.frameOutline);
 
   // Title-text colour MARKER pixel at the cinf textPixel anchor (the kDEF samples
   // title text colour from this cicn pixel). Kept in the title band, in bounds.
@@ -66,7 +70,7 @@ function drawFrame(titleFore, titleBack, p) {
   return img;
 }
 
-function drawWidget(img, x, y, p) {
+function drawWidget(img, x, y, p, glyph) {
   const s = METRICS.widget.size;
   fill(img, x, y, s, s, p.widgetFace);
   // raised bevel: top/left highlight, bottom/right shadow
@@ -74,6 +78,15 @@ function drawWidget(img, x, y, p) {
   vline(img, x, y, y + s - 1, p.bevelHighlight);
   hline(img, x, x + s - 1, y + s - 1, p.bevelShadow);
   vline(img, x + s - 1, y, y + s - 1, p.bevelShadow);
+  // glyph ink (frameOutline). close = none; zoom = inner-square outline; collapse = mid line.
+  if (glyph === 'zoom') {
+    hline(img, x + 1, x + s - 2, y + 1, p.frameOutline);
+    hline(img, x + 1, x + s - 2, y + s - 2, p.frameOutline);
+    vline(img, x + 1, y + 1, y + s - 2, p.frameOutline);
+    vline(img, x + s - 2, y + 1, y + s - 2, p.frameOutline);
+  } else if (glyph === 'collapse') {
+    hline(img, x + 1, x + s - 2, y + (s >> 1), p.frameOutline);
+  }
 }
 
 function drawStipple(titleFore, titleBack) {
