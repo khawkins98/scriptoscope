@@ -16,24 +16,23 @@ function fakeDrawn() {
   }
   return out;
 }
-const STIPPLE = { width: 8, height: 8 };
 
 test('document-window keeps its canonical IDs (inactive -14336, active -14335)', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   const docCicns = assets.filter(a => a.type === 'cicn' && (a.id === -14336 || a.id === -14335));
   assert.equal(docCicns.length, 2);
   assert.ok(assets.some(a => a.type === 'wnd#' && a.id === -14336));
 });
 
 test('all 13 types emit a cicn pair + wnd# + cinf', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   assert.equal(assets.filter(a => a.type === 'wnd#').length, 13);
   assert.equal(assets.filter(a => a.type === 'cinf').length, 13);
   assert.equal(assets.filter(a => a.type === 'cicn').length, 26); // 13 × active/inactive
 });
 
 test('every wnd# body rect is non-degenerate (lint requires right>left, bottom>top)', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   for (const a of assets.filter(x => x.type === 'wnd#')) {
     const body = a.data.rectangles.find(r => r.part === 0);
     assert.ok(body, `${a.name} has a part-0 body rect`);
@@ -43,7 +42,7 @@ test('every wnd# body rect is non-degenerate (lint requires right>left, bottom>t
 });
 
 test('top recipe is fixed-corner / GROW-fill / fixed-corner (plate types add a centred part-5 plate)', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   const plateSlugs = new Set(WINDOW_TYPES.filter(c => c.titlePlate).map(c => c.name));
   for (const a of assets.filter(x => x.type === 'wnd#')) {
     const parts = a.data.topSide.map(s => s.part);
@@ -60,7 +59,7 @@ test('top recipe is fixed-corner / GROW-fill / fixed-corner (plate types add a c
 });
 
 test('document-window ships the reference 5-cell plate recipe (borders 21,27,57,63,98)', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   const doc = assets.find(a => a.type === 'wnd#' && a.id === -14336);
   assert.deepEqual(doc.data.topSide, [
     { part: 1, border: 21 },
@@ -72,7 +71,7 @@ test('document-window ships the reference 5-cell plate recipe (borders 21,27,57,
 });
 
 test('collapsed types ship ONLY a top recipe (empty bottom/left/right)', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   const collapsedNames = WINDOW_TYPES.filter(c => c.collapsed).map(c => c.name);
   for (const a of assets.filter(x => x.type === 'wnd#' && collapsedNames.includes(x.name))) {
     assert.ok(a.data.topSide.length > 0, `${a.name} has a top recipe`);
@@ -83,7 +82,7 @@ test('collapsed types ship ONLY a top recipe (empty bottom/left/right)', () => {
 });
 
 test('buildThemeJson yields all 13 named windowTypes with active+inactive chrome, and validates', () => {
-  const assets = buildAllWindowAssets(fakeDrawn(), { stipple: STIPPLE });
+  const assets = buildAllWindowAssets(fakeDrawn());
   const theme = buildThemeJson({ source: 'generated', extractedAt: 'x', counts: {}, assets });
   for (const cfg of WINDOW_TYPES) {
     const wt = theme.windowTypes[cfg.slug];

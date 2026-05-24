@@ -40,7 +40,7 @@ for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE)
 // Platinum pixels (pillow buttons, diagonal sheen, fine pinstripe) that the
 // procedural drawer only approximates. Same 98x23 geometry, so the recipe is
 // unchanged; we swap only the active/inactive buffers and keep .geo.
-const docSrc = resolve(dest, 'sources/doc-window-infinite-hd.png');
+const docSrc = resolve(dest, 'sources/doc-window-macintosh-hd-active.png');
 const docInactiveSrc = resolve(dest, 'sources/doc-window-macintosh-hd-inactive.png');
 if (existsSync(docSrc)) {
   const sliced = sliceDocWindow(docSrc, docInactiveSrc);
@@ -68,7 +68,12 @@ for (const a of assets) {
   writeFileSync(resolve(dest, a.file), encodePng(img.width, img.height, img.rgba));
 }
 
-const extractedAt = new Date().toISOString();
+// Deterministic build timestamp so re-runs are byte-identical when inputs are
+// unchanged (the bundle is committed). Override with SOURCE_DATE_EPOCH; else a
+// fixed stamp (the artifact's freshness is tracked by git, not this field).
+const extractedAt = process.env.SOURCE_DATE_EPOCH
+  ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString()
+  : '2026-05-24T00:00:00.000Z';
 const counts = { total: assets.length, ok: assets.length, skipped: 0, errored: 0 };
 writeFileSync(resolve(dest, 'extraction-manifest.json'),
   JSON.stringify({ source: 'generated', extractedAt, counts, assets }, null, 2));
@@ -88,12 +93,18 @@ if (existsSync(aplat2)) {
     (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
 }
 
-// Slice real control glyphs (checkbox, radio) from screenshots into cicns at the
-// renderer's resource IDs — apple-platinum-2 keeps these at non-standard IDs, so
-// the renderer never found them and fell back to the procedural baseline.
-const { sliced, count } = sliceControls(dest, dest);
-theme.chromeElements = { ...(theme.chromeElements || {}), ...sliced };
-console.log(`[apple-platinum-replica] sliced ${count} control glyphs from screenshots (checkbox/radio)`);
+// Slice real control glyphs (checkbox, radio, progress, slider, disclosure) from
+// screenshots into cicns at the renderer's resource IDs — apple-platinum-2 keeps
+// these at non-standard IDs, so the renderer never found them and fell back to the
+// procedural baseline. Degrade gracefully: if a source screenshot is missing, warn
+// and skip (the renderer keeps its baseline) rather than aborting the whole build.
+try {
+  const { sliced, count } = sliceControls(dest, dest);
+  theme.chromeElements = { ...(theme.chromeElements || {}), ...sliced };
+  console.log(`[apple-platinum-replica] sliced ${count} control glyphs from screenshots`);
+} catch (err) {
+  console.warn(`[apple-platinum-replica] WARN: control slice skipped (${err.message}); controls fall back to baseline`);
+}
 
 try { validateTheme(theme); }
 catch (err) { console.error('schema validation FAILED:', err.message); process.exit(1); }
