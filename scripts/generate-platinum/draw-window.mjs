@@ -30,22 +30,32 @@ function fill(img, x0, y0, w, h, c) { for (let y = y0; y < y0 + h; y++) for (let
 function hline(img, x0, x1, y, c) { for (let x = x0; x <= x1; x++) set(img, x, y, c); }
 function vline(img, x, y0, y1, c) { for (let y = y0; y <= y1; y++) set(img, x, y, c); }
 
-// Raised widget box: #ccc face, top+left = white highlight, bottom+right = #777
-// shadow, 1px black outline drawn on top of the bevel edges, glyph in black.
+// Widget box per the decode (WDEF 125 @0x904) + reference: a crisp 1px BLACK
+// outer frame, then (inset 1) a #ccc face with an inner raised bevel
+// (top/left white highlight, bottom/right #777 shadow). Glyph (inset 2) in black.
 function drawWidget(img, x, y, p, glyph, size) {
   const s = size ?? METRICS.widget.size;
   fill(img, x, y, s, s, p.plateBase);
-  hline(img, x, x + s - 1, y, p.windowHighlight);
-  vline(img, x, y, y + s - 1, p.windowHighlight);
-  hline(img, x, x + s - 1, y + s - 1, p.pinstripeDark);
-  vline(img, x + s - 1, y, y + s - 1, p.pinstripeDark);
+  // 1px black outer frame (the crisp box outline the reference shows).
+  hline(img, x, x + s - 1, y, p.frameOutline);
+  hline(img, x, x + s - 1, y + s - 1, p.frameOutline);
+  vline(img, x, y, y + s - 1, p.frameOutline);
+  vline(img, x + s - 1, y, y + s - 1, p.frameOutline);
+  // Inner raised bevel, inset 1: top/left white, bottom/right #777.
+  if (s >= 5) {
+    hline(img, x + 1, x + s - 2, y + 1, p.windowHighlight);
+    vline(img, x + 1, y + 1, y + s - 2, p.windowHighlight);
+    hline(img, x + 1, x + s - 2, y + s - 2, p.pinstripeDark);
+    vline(img, x + s - 2, y + 1, y + s - 2, p.pinstripeDark);
+  }
+  // Glyphs, inset 2 so they sit inside the bevel.
   if (glyph === 'zoom') {
-    hline(img, x + 1, x + s - 2, y + 1, p.frameOutline);
-    hline(img, x + 1, x + s - 2, y + s - 2, p.frameOutline);
-    vline(img, x + 1, y + 1, y + s - 2, p.frameOutline);
-    vline(img, x + s - 2, y + 1, y + s - 2, p.frameOutline);
+    hline(img, x + 2, x + s - 3, y + 2, p.frameOutline);
+    hline(img, x + 2, x + s - 3, y + s - 3, p.frameOutline);
+    vline(img, x + 2, y + 2, y + s - 3, p.frameOutline);
+    vline(img, x + s - 3, y + 2, y + s - 3, p.frameOutline);
   } else if (glyph === 'collapse') {
-    hline(img, x + 1, x + s - 2, y + (s >> 1), p.frameOutline);
+    hline(img, x + 2, x + s - 3, y + (s >> 1), p.frameOutline);
   }
 }
 
