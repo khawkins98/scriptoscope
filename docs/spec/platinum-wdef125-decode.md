@@ -393,7 +393,299 @@ deltas (1 px sides, title-height top) and the 4-edge bevel order directly. This
 is the key structural difference from the cicn-derived kDEF schemes.
 
 ## Window widgets (close / zoom / collapse)
-_(Task 5)_
+
+**Headline.** There are **three title-bar widgets** — close box (left end), zoom
+box and collapse/window-shade box (right end) — plus a **fourth, separate**
+bottom-right size/grow corner that the frame drawer does *not* paint (it falls to
+`wGrow 0x1244`). All three title-bar widgets are **rect-based** (no ovals, no
+round-rects): each is a 7×7-pixel square, beveled with a `FrameRect` outline + an
+`EraseRect`-filled face + a 2-segment top/left highlight polyline. The close and
+zoom boxes share a common box-bevel sub-drawer; the collapse box is drawn inline.
+Geometry is **computed arithmetically** off the title rect ends (no art lookup).
+
+### Widget dispatch in the frame-draw tail (`0x694`–`0x6ec`)
+
+The tail of the whole-frame drawer dispatches each widget on a separate gate. The
+master gate is `fp@(-20)` (the byte set at `0x3ea` from `RectInRgn 0xa8e9` @
+`0x3e6`: "title rect intersects the draw region"); if clear, all widgets skip.
+Then per-widget capability bits of the varCode `d4` select which boxes exist:
+
+- **close box** (`0x694`–`0x6be`): guard `fp@(-20) != 0` **and** `a4@(112) != 0`
+  (the goAway-present byte in the aux record). Computes its rect via
+  `jsr 0x1018(d4, &titleRect fp@(-356), &boxRect fp@(-348))` (`0x6ac`) then draws
+  it with `jsr 0x904(aux a3, &boxRect fp@(-348))` (`0x6ba`).
+- **zoom box** (`0x6c0`–`0x6ea`): guard `d4 & 4` (`0x6c8`). Rect via
+  `jsr 0x110e(d4, &titleRect, window a4, &boxRect fp@(-340))` (`0x6d8`); drawn
+  with `jsr 0x9dc(aux a3, &boxRect fp@(-340))` (`0x6e6`).
+- **collapse box** (`0x6ec`–`0x786`): guard `d4 & 2` (`0x6f2`). Rect via
+  `jsr 0x11fc(window a4, &boxRect fp@(-332))` (`0x6fe`); drawn **inline** (no
+  sub-drawer) at `0x708`–`0x786`.
+
+(The block after the collapse box, `0x788`–`0x8e0`, is the **centered title
+text** — `TextFont/Face/Size/Mode` via `jsr 0x1478` @ `0x8dc`, `StringWidth` via
+`jsr 0x156e` @ `0x7fe` for truncation, gated by `d4 & 8` for top-vs-side
+titlebar. It is **not** a widget; cross-referenced here so the seven `InsetRect`
+sites are not mis-attributed.)
+
+### Box geometry (the 7×7 squares)
+
+All three boxes are **7 px square** (the `SetRect` corners span 7 in both axes),
+vertically centered in the title bar, anchored to the title-rect ends. The
+helpers (top-titlebar branch, `d4 & 8 == 0`) compute, with `title = fp@(-356)`
+(`top@0,left@2,bottom@4,right@6`) and `vCenter = (title.top+title.bottom)/2`:
+
+| box | helper | `SetRect` site | left | right | top | bottom | anchor |
+|---|---|---|---|---|---|---|---|
+| close | `0x1018` | `0xa8a7` @ `0x1074` | `title.left+4` | `title.left+11` | `(top+bottom−7)/2` | `(top+bottom+7)/2` | **4 px from LEFT end** |
+| zoom | `0x110e` | `0xa8a7` @ `0x116e` | `title.right−11` | `title.right−4` | `(top+bottom−7)/2` | `(top+bottom+7)/2` | **4 px from RIGHT end** |
+| collapse | `0x11fc` | (no `SetRect`; corner math) | `title.right−7` | `title.right` − (offset) | `title.bottom−7` | — | RIGHT end, **7 px in** of the right edge then `OffsetRect(1,1)` |
+
+- **Close** (`0x1018`, top path `0x1036`–`0x1074`): `left = title.left+4`,
+  `right = title.left+11`, `top = (title.top+title.bottom−7)/2`,
+  `bottom = (title.top+title.bottom+7)/2`. So a 7×7 box, left edge 4 px inside the
+  title bar's left end, vertically centered. Side-titlebar mirror at
+  `0x1098`–`0x10e0` swaps to `a2@(6)/a2@(2)` (right/left of a vertical title
+  channel). After `SetRect`, two `jsr 0x168e` clamp tests (`0x1084`, …) may
+  `OffsetRect` (`0xa8a8` @ `0x1094`) the box back inside if the title bar is too
+  short — a safety nudge, not a normal-case shift.
+- **Zoom** (`0x110e`, top path `0x112e`–`0x116e`): `left = title.right−11`,
+  `right = title.right−4`, same vertical center math. The exact mirror of close at
+  the **right** end. Two `0x168e`/`OffsetRect` (`0x1094`-style `0xa8a8` @ `0x1192`,
+  `0x11ba`) clamps keep it (and keep it from overlapping the collapse box).
+- **Collapse** (`0x11fc`, `0x120c`–`0x123a`): copies the **window structRgn**
+  bbox (`window@(118)` handle → `+2` rgnBBox) into the out rect, then sets
+  `top = bottom−7` and `left = right−7`, then `OffsetRect(rect, 1, 1)`
+  (`0xa8a8` @ `0x123a`). i.e. a 7×7 box pinned to the right portion of that bbox
+  span, nudged 1 px. **Open question:** `0x11fc` derives the collapse box from the
+  *structure* bbox rather than the title rect `fp@(-356)`; in a normal top-titlebar
+  Platinum window the structRgn top row coincides with the title bar, so this
+  lands the collapse box at the title-bar right edge just inboard of the zoom box —
+  but the disassembly alone does not prove the two rects coincide for every
+  varCode. Flagged for the Phase-B render cross-check.
+
+### Primitive sequence + color slots
+
+**Close box — sub-drawer `0x904`** (args: `a3` = box rect, `a4` = aux/blend
+record pointer):
+
+- If `a4 == 0` (`0x914`): plain/disabled — `EraseRect(rect)` (`0xa8a3` @ `0x91a`)
+  then `FrameRect(rect)` (`0xa8a1` @ `0x91e`); return. No bevel, no color set
+  (uses the inherited port colors).
+- Else (the colored path, `0x924`–`0x9d2`):
+  1. `RGBForeColor( blend(aux[+66], aux[+106], weight 15) )` — fore set via
+     `0x1356` @ `0x93c`, `RGBForeColor 0xaa14` @ `0x948`. **Outline color.**
+  2. `FrameRect(rect)` (`0xa8a1` @ `0x94c`) — 1-px box outline.
+  3. `InsetRect(rect, 1, 1)` (`0xa8a9` @ `0x958`) — shrink to the face.
+  4. `RGBBackColor( blend(aux[+74], aux[+66], weight 4) )` — `0x1356` @ `0x972`,
+     `RGBBackColor 0xaa15` @ `0x97e`. **Face color.**
+  5. `EraseRect(rect)` (`0xa8a3` @ `0x982`) — fill the face to the back color.
+  6. `RGBForeColor( blend(aux[+98], aux[+74], weight 0) )` — `0x1356` @ `0x99a`,
+     `RGBForeColor 0xaa14` @ `0x9a6`. **Highlight color.**
+  7. Top + left highlight polyline: `MoveTo(rect.left, rect.bottom)`
+     (`0xa893` @ `0x9b2`, reading `a3@(2),a3@(4)`) →
+     `LineTo(rect.top, rect.left)` (`0xa891` @ `0x9bc`) →
+     `LineTo(rect.right, rect.top)` (`0xa891` @ `0x9c6`). (Two segments tracing the
+     inner top/left edge = the raised highlight.)
+  8. `InsetRect(rect, −1, −1)` (`0xa8a9` @ `0x9d2`) — restore.
+  **No internal glyph** in the normal state (Platinum close box is an empty
+  beveled square until pressed/hovered — matches the brief).
+
+**Zoom box — sub-drawer `0x9dc`** (same args): structurally the close-box drawer
+**plus an inner glyph**.
+
+- If `a4 == 0` (`0x9ec`): `EraseRect` (`0xa8a3` @ `0x9f2`) + `FrameRect`
+  (`0xa8a1` @ `0x9f6`), **then an inner-square glyph**: `MoveTo(left, top+3)`
+  (`0xa893` @ `0xa04`) → `LineTo(left+3, top+3)` (`0xa891` @ `0xa16`) →
+  `LineTo(left+3, top+3)`-style second leg (`0xa891` @ `0xa24`) — a small square
+  notch in the upper-left (`+3` corner offsets at `0x9fe`/`0xa0e`/`0xa12`/`0xa20`).
+- Else (`0xa2a`–`0xb06`): same 8-step bevel as the close box —
+  `RGBForeColor(blend +66/+106 w15)` @ `0xa4e`, `FrameRect` @ `0xa52`,
+  `InsetRect(1,1)` @ `0xa5e`, then **the inner-square glyph** drawn in the
+  *outline* color before the face fill: `MoveTo(left, top+3)`
+  (`0xa893` @ `0xa96`) → `LineTo` (`0xa891` @ `0xaa8`) → `LineTo` (`0xa891` @
+  `0xab6`); then `RGBBackColor(blend +74/+66 w4)` @ `0xa84`, `EraseRect` @ `0xa88`;
+  highlight `RGBForeColor(blend +98/+74 w0)` @ `0xada` + top/left polyline
+  (`0xa893` @ `0xae6`, `0xa891` @ `0xaf0`/`0xafa`); `InsetRect(−1,−1)` @ `0xb06`.
+  The **inner square** is the zoom box's classic "two nested boxes" glyph.
+
+**Collapse box — inline (`0x708`–`0x786`)**: same bevel idiom, drawn directly:
+
+- If aux `a3 == 0` (`0x706`): `InsetRect(rect, 1, 1)` (`0xa8a9` @ `0x714`),
+  `EraseRect(rect)` (`0xa8a3` @ `0x71a`), `InsetRect(rect, −1, −1)`
+  (`0xa8a9` @ `0x728`), `FrameRect(rect)` (`0xa8a1` @ `0x72e`) — plain face + frame.
+- Else (`0x732`–`0x786`): `RGBForeColor(aux[+18])` (`0xaa14` @ `0x73a`) then
+  `FrameRect(rect)` (`0xa8a1` @ `0x740`) — outline in field `+18`;
+  `RGBBackColor( blend(aux[+98], aux[+74], weight 0) )` (`0x1356` @ `0x758`,
+  `0xaa15` @ `0x764`) = face color; `InsetRect(rect, 1, 1)` (`0xa8a9` @ `0x772`),
+  `EraseRect(rect)` (`0xa8a3` @ `0x778`) fills the face; `InsetRect(rect, −1, −1)`
+  (`0xa8a9` @ `0x786`) restore. The collapse box's **horizontal line glyph** is
+  **not** drawn in the normal pass here — see the open question below.
+
+| widget | outline color | face color | highlight color | glyph |
+|---|---|---|---|---|
+| close (`0x904`) | blend(`+66`,`+106`, w15) @ `0x948` | blend(`+74`,`+66`, w4) @ `0x97e` | blend(`+98`,`+74`, w0) @ `0x9a6` | none (empty square) |
+| zoom (`0x9dc`) | blend(`+66`,`+106`, w15) @ `0xa4e` | blend(`+74`,`+66`, w4) @ `0xa84` | blend(`+98`,`+74`, w0) @ `0xada` | inner square (`MoveTo`/`LineTo` @ `0xa96`/`0xaa8`/`0xab6`) |
+| collapse (inline) | `+18` @ `0x73a` | blend(`+98`,`+74`, w0) @ `0x764` | (none in normal pass) | (see open question) |
+
+(All `+NN` are byte offsets into the aux/blend record `a3`/`a4`; the literal RGBs
+and the `0x1356` blend-weight semantics are **Task 6**. The blend triples reuse
+the same aux fields as the title bevel: `+66/+74/+98/+106/+18`.)
+
+### State variants
+
+**Active vs inactive.** The whole-frame drawer's active test (`jsr 0x310` + `bge`
+at `0x544`/`0x55a`, decoded in T3/T4) gates the *title-bar fill and bevel*, but
+the widget pass `0x694`–`0x786` runs on **both** paths — the boxes are drawn
+regardless of active state. The active/inactive *look difference* is carried
+entirely in the **color slots**: the colored sub-drawer path (`a4 != 0`) draws the
+beveled, highlighted box; the **`a4 == 0` path draws the flat fallback** (face +
+frame only, no highlight bevel). The `a4`/aux pointer is non-null only when the
+aux color record exists (set in `wNew 0x294`); on a window without it (or color QD
+absent) every box collapses to the plain `EraseRect`+`FrameRect` look. So
+"disabled/inactive" reads as the **un-beveled flat box** via the same code, not a
+separate branch. (Whether the slot colors themselves dim on inactive is Task 6.)
+
+**Pressed / highlighted.** The two procedural highlight drawers from the `param`
+sub-dispatch (T2):
+
+- **`0xb10` (zoom pressed, `param == 4`)**: recomputes the title rect
+  (`jsr 0xf38` @ `0xb2c` → `fp@(-24)`) and the zoom box rect
+  (`jsr 0x1018` @ `0xb3e` → `fp@(-16)`), then:
+  - if aux `a3 == 0` (`0xb46`): **`InvertRect(fp@(-16))`** (`0xa8a4` @ `0xb4e`) —
+    a straight QuickDraw invert of the box (the cheap pressed look).
+  - else, reads the global pressed-state byte at low-mem `0x0B20` bit 0 (`0xb52`):
+    if set, recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xb92`) +
+    `EraseRect(fp@(-16))` (`0xa8a3` @ `0xb98`) + `FrameRect` (`0xa8a1` @ `0xb9e`)
+    — fill the box with the *outline* color (inverted face); if clear, fall to
+    `jsr 0x904(aux, &fp@(-16))` (`0xba8`) to **redraw the box in its normal beveled
+    look** (i.e. release back to unpressed). So pressed = solid-filled (face
+    swapped to the dark outline color); release = normal bevel.
+- **`0xbb6` (collapse pressed, `param == 5/6`)**: same shape — `jsr 0xf38` @
+  `0xbd2`, then `jsr 0x110e` @ `0xbe6` to compute the *collapse-style* box into
+  `fp@(-16)`. `param & 8` (`0xbf6`) nudges the rect by ±1 (`addqw/subqw` @
+  `0xbfa`/`0xbfe` and `0xc68`/`0xc6c`) for the side-titlebar variant. Then the same
+  three-way: `a3 == 0` → `InvertRect` (`0xa8a4` @ `0xc0a`); `0x0B20` bit 0 set →
+  recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xc4e`) + `EraseRect`
+  (`0xa8a3` @ `0xc54`) + `FrameRect` (`0xa8a1` @ `0xc5a`) (filled-pressed); else
+  `jsr 0x9dc(aux, &fp@(-16))` (`0xc76`) to redraw normal.
+
+The `0x0B20` byte is a **WDEF-private global "box is currently pressed" toggle**:
+the `param==4/5/6` stubs `eorib #1` it (`0x1f2`, `0x20c`) before calling the
+highlight drawer; `param==0` (whole frame) `andib #-2` clears it (`0x1e6`). So a
+track-and-release of a box flips the toggle so the highlight drawer alternates
+pressed-fill vs normal-bevel on each call — the standard Toolbox `TrackBox`/
+`TrackGoAway` "follow the mouse in/out" flicker, done procedurally.
+
+**There is no pressed sub-drawer for the close box** — `param==4/5/6` only cover
+zoom/collapse. The close box's pressed feedback is handled by the caller
+(`TrackGoAway`) inverting it, not by this WDEF (consistent with classic Toolbox:
+`DrawGoAway`/`TrackGoAway` invert the goAway box outside the WDEF). Flagged below.
+
+### Pseudocode (my words)
+
+```
+# frame-draw tail, 0x694..0x786 (after the title fill/bevel):
+if not titleVisible(fp@(-20)):           # RectInRgn @ 0x3e6
+    skip all widgets
+
+if titleVisible and aux.goAwayPresent (a4@112):     # 0x694..0x6be
+    closeRect = computeCloseRect(varCode, title)    # jsr 0x1018 -> fp@(-348)
+    drawBox(aux, closeRect, glyph=none)             # jsr 0x904
+
+if varCode & 4:                                      # 0x6c0..0x6ea
+    zoomRect = computeZoomRect(varCode, title, win)  # jsr 0x110e -> fp@(-340)
+    drawBox(aux, zoomRect, glyph=innerSquare)        # jsr 0x9dc
+
+if varCode & 2:                                      # 0x6ec..0x786
+    collapseRect = computeCollapseRect(win)          # jsr 0x11fc -> fp@(-332)
+    drawCollapseBoxInline(aux, collapseRect)         # 0x708..0x786
+
+# computeCloseRect (0x1018, top-titlebar):
+left  = title.left + 4;  right = title.left + 11     # 7px wide
+top   = (title.top + title.bottom - 7) / 2           # vCenter - 3.5
+bottom= (title.top + title.bottom + 7) / 2           # 7px tall
+clampInsideTitle(rect)                               # 0x168e + OffsetRect
+
+# computeZoomRect (0x110e, top): mirror at the right end
+left  = title.right - 11; right = title.right - 4
+top/bottom = same vertical center math
+clampInsideTitle(rect)
+
+# computeCollapseRect (0x11fc):
+rect = window.structRgn.rgnBBox                      # win@118 -> +2
+rect.top  = rect.bottom - 7;  rect.left = rect.right - 7
+OffsetRect(rect, 1, 1)                               # 0x123a
+
+# drawBox (0x904 close / 0x9dc zoom):
+if aux == 0:                                         # plain/disabled
+    EraseRect(rect); FrameRect(rect)
+    if zoom: drawInnerSquareGlyph(rect)              # 0x9dc only
+    return
+RGBForeColor(blend(aux[+66], aux[+106], 15))         # outline
+FrameRect(rect)
+InsetRect(rect, 1, 1)
+if zoom: drawInnerSquareGlyph(rect)                  # 0x9dc, in outline color
+RGBBackColor(blend(aux[+74], aux[+66], 4))           # face
+EraseRect(rect)                                      # fill face
+RGBForeColor(blend(aux[+98], aux[+74], 0))           # highlight
+MoveTo(left, bottom); LineTo(top,left); LineTo(right,top)   # top+left raised edge
+InsetRect(rect, -1, -1)
+
+# pressed highlight (0xb10 zoom / 0xbb6 collapse), per param sub-dispatch:
+recompute box rect (jsr 0xf38 + 0x1018/0x110e)
+if aux == 0:           InvertRect(boxRect)           # cheap invert
+elif lowmem[0x0B20]&1: RGBBackColor(blend +66/+106 15); EraseRect; FrameRect   # pressed fill
+else:                  drawBox(aux, boxRect)         # release -> normal bevel
+```
+
+### Cross-check: placement & the kDEF divergence
+
+- **Inside the title rect:** close `[title.left+4 .. title.left+11]` and zoom
+  `[title.right-11 .. title.right-4]` both sit 4 px inboard of the title-bar ends,
+  vertically centered on `(title.top+title.bottom)/2` with 7 px height — well
+  inside the title rect `fp@(-356)` (whose height is `d5 = titleHeight+1 ≥ 11` from
+  T4). **Close is at the left, zoom+collapse at the right.** ✔
+- **No overlap with the centered title text:** the title text region
+  (`0x788`–`0x8e0`) is centered and truncated with `StringWidth` (`jsr 0x156e`)
+  against the *available width between the boxes*; the close box ends at
+  `title.left+11` and the right boxes start at `title.right-11`, leaving the
+  middle for text. ✔ (The truncation math `0x804`–`0x834` measures the gap.)
+- **Phase-B divergence vs the kDEF.** The kDEF
+  (`docs/spec/kdef-architecture.md`) **bakes the close/zoom/collapse widgets into
+  the chrome `cicn` art** — there is no procedural box; the widget pixels are part
+  of the active/inactive chrome bitmaps, and hit regions come from the cinf
+  layout. Platinum WDEF 125 does the **opposite**: it draws each box
+  **procedurally** as a 7×7 beveled rect (`FrameRect`+`EraseRect`+highlight
+  polyline) with colors pulled from the aux record's blend slots, and computes the
+  hit rects arithmetically (`0x1018`/`0x110e`/`0x11fc`, reused by `wHit 0xc84`).
+  **Phase-B note:** the Platinum reimpl must synthesize these three boxes in code
+  (square geometry + the bevel + the zoom inner-square / collapse line glyphs),
+  **not** expect them in any cicn — mirroring the T4 "fixed code-driven insets"
+  finding. The kDEF schemes get their widgets from art; Platinum draws them.
+
+### Could-not-pin / open questions
+
+- **Collapse box source rect** (`0x11fc`): it is built from the **structure-region
+  bbox**, not the title rect, then 7×7-cornered at the right + `OffsetRect(1,1)`.
+  For a standard top-titlebar window the structRgn top coincides with the title
+  bar so this lands at the title-bar right edge inboard of the zoom box, but the
+  asm does not prove the two rects coincide for all varCodes. Verify against a
+  reference render in Phase-B.
+- **Collapse-box glyph (horizontal line).** The inline normal-pass draw
+  (`0x708`–`0x786`) lays down only the outline + face fill; I did **not** find a
+  `MoveTo`/`LineTo` horizontal-line glyph inside it (unlike the zoom box's inner
+  square). The classic Platinum collapse box shows a horizontal bar — it may be (a)
+  part of the face pattern/color rather than a stroke, (b) drawn by a shared icon
+  the asm reaches elsewhere, or (c) simply absent in this proc's normal state.
+  Recorded as unresolved; confirm in Phase-B against the reference image.
+- **Close-box pressed feedback.** No `param` case targets the close box; its
+  pressed look is the caller's `TrackGoAway` invert, not this WDEF. Stated, not
+  pinned to a `0xADDR` in this resource (it is out of scope by design).
+- **`0x168e` clamp predicate.** The close/zoom helpers call `jsr 0x168e` (a
+  small compare returning a flag) to decide whether to `OffsetRect` the box back
+  inside a too-short title bar. The exact threshold inside `0x168e` was not fully
+  decoded (it is a guard, not normal-case geometry); the normal-case rects above
+  are firmly pinned.
 
 ## Color sourcing
 _(Task 6)_
