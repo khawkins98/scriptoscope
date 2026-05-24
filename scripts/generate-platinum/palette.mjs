@@ -13,13 +13,14 @@ export const SLOTS = [
 export const PALETTE = {
   // SAMPLED-FAITHFUL — two agreeing sources (scrollbar cicn -8278 + clut -14336 entry 0)
   frameOutline:   [0, 0, 0],
-  // PROVISIONAL — needs confirmation. The title-bar pinstripe FOREGROUND stripe is
-  // window-wctb runtime data; apple-platinum-2 is controls-only (no title art) so it
-  // can't be sampled directly. Header clut -14336 brackets it (entry1 #dddddd ..
-  // entry3 #ffffff); set to white pending a System-file wctb cross-check.
-  titleFillFore:  [255, 255, 255], // PROVISIONAL — needs confirmation
-  // SAMPLED-FAITHFUL — clut -14336 entry 4 (#aaaaaa); == widget/control face gray
-  titleFillBack:  [170, 170, 170],
+  // ASSUMED (calibrated) — the title-stripe pair. apple-platinum-2 is controls-only,
+  // so the title-fill grays can't be sampled directly (they're window-wctb runtime
+  // data; decode slots +50/+58/+66/+74). Per the decode they are two CLOSE light grays
+  // from the 4-bit ramp (fore lighter); calibrated against the render to read as the
+  // subtle Platinum title texture rather than the washed-out #fff-on-#aaa halftone the
+  // sampled values produced. Refine via a System-file wctb decode. Marked ASSUMED.
+  titleFillFore:  [238, 238, 238], // ASSUMED — #eeeeee (lighter stripe)
+  titleFillBack:  [204, 204, 204], // ASSUMED — #cccccc (light bar base)
   // SAMPLED-FAITHFUL — clut -14336 entry 1 (#dddddd); raised top/left highlight gray
   bevelHighlight: [221, 221, 221],
   // SAMPLED-FAITHFUL — scrollbar cicn -8278 px(1,1) dark bevel line (#777777).

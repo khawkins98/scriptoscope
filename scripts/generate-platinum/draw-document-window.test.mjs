@@ -10,18 +10,18 @@ const px = (img, x, y) => {
   return [img.rgba[i], img.rgba[i + 1], img.rgba[i + 2]];
 };
 
-test('active min-cicn: top-left is the bevel highlight, stipple alternates per row', () => {
+test('active min-cicn: perimeter is the black outer outline, stipple alternates per row', () => {
   const { active } = drawDocumentWindow(PALETTE);
-  assert.deepEqual(px(active, 0, 0), PALETTE.bevelHighlight);     // raised: top/left light
-  // title fill stipple: row 0 has fore at an even column, row 1 is back
+  assert.deepEqual(px(active, 0, 0), PALETTE.frameOutline);       // black outer window outline
+  // title fill stipple: row 0 has fore at the lit column, row 1 is back
   const titleY0 = METRICS.frameInset;          // first title row
   assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0), PALETTE.titleFillFore);
   assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0 + 1), PALETTE.titleFillBack);
 });
 
-test('active min-cicn: bottom-right edge is the bevel shadow', () => {
+test('active min-cicn: bottom-right corner is the black outer outline', () => {
   const { active } = drawDocumentWindow(PALETTE);
-  assert.deepEqual(px(active, active.width - 1, active.height - 1), PALETTE.bevelShadow);
+  assert.deepEqual(px(active, active.width - 1, active.height - 1), PALETTE.frameOutline);
 });
 
 test('returns active + inactive + stipple buffers with sane dimensions', () => {
