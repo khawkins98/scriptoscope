@@ -20,33 +20,46 @@ body frame). The compositor (`src/composeChrome.ts`) does all the slicing.
 
 ## Workflow: paint the whole set in one document
 
-### 1. Generate the atlas
+### 1. Generate the atlases
 
 ```
 node scripts/generate-platinum-atlas.mjs
 ```
 
-Writes **`sprite-atlas.png`** (478×1026) — all 26 sprites in a 2-column grid
-(active | inactive), one row per type, drawn at **4× scale**, each labeled with
-its type + state. **Magenta lines** mark the slice boundaries:
+Writes **two** PNGs:
 
-- **vertical magenta** = the top-edge cell boundaries (LEFT-corner edge and
-  GROW-fill edge). Paint the corners (incl. widgets) **between the outer edge and
-  the first/last line**; paint a **horizontally-seamless** texture in the GROW
-  band (it stretches/tiles across the title).
-- **horizontal magenta** = the title/body divider (only on titled types).
+- **`sprite-atlas.png`** (≈114×231) — the **PAINTABLE** surface. All 26 sprites
+  in a 2-column grid (active | inactive), one row per type, drawn at **1× native
+  resolution**. Sprites are separated by a **magenta (`#ff00ff`) gutter void**;
+  the sprite rects themselves hold **only paintable art** — no labels, no slice
+  lines over the pixels. This is what you paint. Because it's 1×, **zoom in your
+  editor** to do pixel work (Platinum is pixel art — paint at native scale, not on
+  a downsampled grid).
+
+- **`sprite-atlas-guide.png`** (478×1026) — the **REFERENCE MAP**. The same set
+  upscaled to **4×**, each labeled with its type + state, with **magenta slice
+  lines** drawn over the art so you can see where every cut falls:
+  - **vertical magenta** = the top-edge cell boundaries (LEFT-corner edge and
+    GROW-fill edge). Paint the corners (incl. widgets) between the outer edge and
+    the first/last line; paint a **horizontally-seamless** texture in the GROW
+    band (it stretches/tiles across the title).
+  - **horizontal magenta** = the title/body divider (only on titled types).
+
+  This map is **read-only** — never paint it and never slice it. Consult it
+  alongside the paintable atlas to know which columns are the cut boundaries.
 
 ### 2. Paint
 
-Repaint the sprites **in place** on the atlas. Stay inside each sprite's cell.
-Rules:
+Repaint the sprites **in place** on **`sprite-atlas.png`** (the 1× paintable
+one). Stay inside each sprite's magenta-bounded rect. Rules:
 
+- **Paint at 1× native** — zoom your editor; one atlas pixel = one cicn pixel.
 - **FIXED corner cells** → paint anything; drawn 1:1 at the window corners.
 - **GROW title-fill cell** → repeats/stretches across the title width, so keep it
   horizontally seamless and **don't** put position-specific detail there.
-- **Do not move sprites or resize the canvas** — the slicer reads fixed
-  coordinates. The magenta lines + labels live so you can see the cuts; the
-  slicer ignores magenta pixels when reading art back.
+- **Do not move sprites, resize the canvas, or paint into the magenta gutters** —
+  the slicer reads fixed coordinates and copies each sprite rect verbatim. The
+  magenta is *outside* the art; use the **guide map** to see the internal cuts.
 
 ### 3. Slice back into the bundle
 
@@ -56,15 +69,16 @@ node scripts/slice-platinum-atlas.mjs --dry        # preview, write nothing
 npm run lint:themes                                # validate the bundle
 ```
 
-The slicer writes **only** the per-type cicn PNGs at their native dimensions.
-The `theme.json` / `wnd#` recipes are independent of the pixels and don't need
-regenerating.
+The slicer reads **`sprite-atlas.png`** and copies each sprite's pixels **1:1**
+from its layout rect into the per-type cicn PNG at native dimensions — no
+downsampling, no magenta handling (the magenta lives only in the gutters, outside
+every sprite rect). It writes **only** the per-type cicn PNGs; the `theme.json` /
+`wnd#` recipes are independent of the pixels and don't need regenerating.
 
 **Layout is shared.** Both the atlas generator and the slicer import
-`scripts/generate-platinum/atlas-layout.mjs` (`computeAtlasLayout`), so they
-always agree on every sprite's `(x, y, w, h)` slot, cut lines, and scale. Round-
-tripping the *generated* atlas back through the slicer reproduces the source
-sprites pixel-for-pixel.
+`scripts/generate-platinum/atlas-layout.mjs` (`computePaintableLayout`), so they
+always agree on every sprite's `(x, y, w, h)` slot. Round-tripping the *generated*
+1× atlas back through the slicer reproduces the source sprites **byte-for-byte**.
 
 ## The 13 window types — region map
 
@@ -124,6 +138,9 @@ generator + atlas once for a fresh scaffold at the new size.
   `geometryFor()` (the single geometry source of truth).
 - `scripts/generate-platinum/draw-window.mjs` — generic per-type placeholder drawer.
 - `scripts/generate-platinum/manifest.mjs` — builds the cicn/wnd#/cinf assets.
-- `scripts/generate-platinum/atlas-layout.mjs` — shared atlas grid coordinates.
-- `scripts/generate-platinum/atlas.mjs` + `scripts/generate-platinum-atlas.mjs` — atlas generator.
-- `scripts/generate-platinum/slice-atlas.mjs` + `scripts/slice-platinum-atlas.mjs` — the slicer.
+- `scripts/generate-platinum/atlas-layout.mjs` — shared grid coords:
+  `computePaintableLayout()` (1× slicer-facing) + `computeGuideLayout()` (4× map).
+- `scripts/generate-platinum/atlas.mjs` + `scripts/generate-platinum-atlas.mjs` —
+  emits both `sprite-atlas.png` (paintable) and `sprite-atlas-guide.png` (map).
+- `scripts/generate-platinum/slice-atlas.mjs` + `scripts/slice-platinum-atlas.mjs` —
+  the 1:1 slicer (reads the 1× paintable atlas).
