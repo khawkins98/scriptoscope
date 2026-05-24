@@ -1,6 +1,6 @@
 {
   "source": "generated",
-  "extractedAt": "2026-05-24T10:27:45.872Z",
+  "extractedAt": "2026-05-24T13:12:18.985Z",
   "counts": {
     "total": 5,
     "ok": 5,
@@ -54,7 +54,7 @@
         ],
         "topSide": [
           {
-            "part": 0,
+            "part": 1,
             "border": 15
           },
           {
@@ -62,25 +62,25 @@
             "border": 16
           },
           {
-            "part": 0,
+            "part": 1,
             "border": 40
           }
         ],
         "bottomSide": [
           {
-            "part": 0,
+            "part": 1,
             "border": 40
           }
         ],
         "leftSide": [
           {
-            "part": 0,
+            "part": 1,
             "border": 22
           }
         ],
         "rightSide": [
           {
-            "part": 0,
+            "part": 1,
             "border": 22
           }
         ]

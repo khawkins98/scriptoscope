@@ -10,9 +10,11 @@ const CICN_INACTIVE = -14336;     // pairChromeStates: inactive = wndId
 const CICN_ACTIVE = -14335;       // active = wndId + 1
 const PPAT_STIPPLE = 128;
 
-// Title-stretch grower part code (kDEF growers: 8/11/12/13/14/18). Corners/widget
-// cells are FIXED (any non-grower code). See docs/spec/kdef231-recipe-walk.md.
-const STRETCH = 8, FIXED = 0;
+// Title-stretch grower part code (kDEF growers: 8/11/12/13/14/18). NB: per
+// composeChrome.ts classifyPart, code 0 => 'zero' (COLLAPSES to width 0) — only
+// the leading [0,border[0]) corner is force-fixed. A non-leading fixed cell must
+// use a 'fixed' code (1/7/9; corpus doc-windows use part 1 for corner/fill cells).
+const STRETCH = 8, FIXED = 1;
 
 export function buildDocumentWindowAssets(drawn) {
   const inset = METRICS.frameInset;

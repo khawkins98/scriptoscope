@@ -28,15 +28,17 @@ function drawFrame(titleFore, titleBack, p) {
   const height = METRICS.titleBarHeight + 2 * inset + 1; // title + top/bottom frame + 1px body band
   const img = buf(width, height);
 
-  // Title bar fill: AA00 stipple in fore/back. Row parity from the 8-byte tile,
-  // column bit MSB-first so the lit stripe lands on even columns.
+  // Title bar fill: render the AA00 stipple as horizontal pinstripe LINES
+  // (row-uniform). The cicn+recipe compositor TILES fixed cells but column-
+  // STRETCHES the title cell; a 2D dot pattern renders as a checkerboard in one
+  // and lines in the other (a visible seam). A row-uniform pattern renders
+  // identically under both — and matches how AA00 reads at title-bar scale (the
+  // dots blur to lines). A row is a fore line where its stipple byte has set bits.
   const titleTop = inset, titleBot = inset + METRICS.titleBarHeight - 1;
   for (let y = titleTop; y <= titleBot; y++) {
     const rowByte = METRICS.stipple[(y - titleTop) % METRICS.stipple.length];
-    for (let x = inset; x < width - inset; x++) {
-      const bit = (rowByte >> (x % 8)) & 1;
-      set(img, x, y, bit ? titleFore : titleBack);
-    }
+    const c = rowByte ? titleFore : titleBack;
+    for (let x = inset; x < width - inset; x++) set(img, x, y, c);
   }
 
   // Body band (the 1px stretch row below the title divider): mid-gray face.
@@ -93,7 +95,8 @@ function drawStipple(titleFore, titleBack) {
   const img = buf(8, METRICS.stipple.length);
   for (let y = 0; y < img.height; y++) {
     const rowByte = METRICS.stipple[y % METRICS.stipple.length];
-    for (let x = 0; x < 8; x++) set(img, x, y, ((rowByte >> x) & 1) ? titleFore : titleBack);
+    const c = rowByte ? titleFore : titleBack; // row-uniform pinstripe (tile-invariant)
+    for (let x = 0; x < 8; x++) set(img, x, y, c);
   }
   return img;
 }

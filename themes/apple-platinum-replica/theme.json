@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T10:27:45.872Z",
+  "generatedAt": "2026-05-24T13:12:18.985Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -34,7 +34,7 @@
         "top": [
           {
             "at": 15,
-            "part": "part-0"
+            "part": "part-1"
           },
           {
             "at": 16,
@@ -42,25 +42,25 @@
           },
           {
             "at": 40,
-            "part": "part-0"
+            "part": "part-1"
           }
         ],
         "bottom": [
           {
             "at": 40,
-            "part": "part-0"
+            "part": "part-1"
           }
         ],
         "left": [
           {
             "at": 22,
-            "part": "part-0"
+            "part": "part-1"
           }
         ],
         "right": [
           {
             "at": 22,
-            "part": "part-0"
+            "part": "part-1"
           }
         ]
       },
