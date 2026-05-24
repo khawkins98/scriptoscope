@@ -22,8 +22,33 @@
 //   checkbox/radio  apple-platinum-2 keeps these at -10153.. not the renderer's
 //             -9500../-9488.. — needs an ID remap.
 // These are left to texture-hydration from real control screenshots.
-import { readFileSync, copyFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, copyFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { decodePng, encodePng } from '../diag-lib.mjs';
+
+// The Mac OS 8.5/8.6 default "Blue" Appearance accent, sampled from real
+// screenshots (#22 progress fill + #14 scrollbar thumb agree): dark→light ramp.
+// apple-platinum-2's accent elements (the thumb) use Orion's PURPLE accent, so
+// we remap them to this blue ramp by lightness — same bevel/ridge structure,
+// the real default accent colour.
+const ACCENT_DARK = [47, 27, 142];
+const ACCENT_LIGHT = [196, 203, 252];
+const ACCENT_RECOLOR_IDS = new Set([-10205, -10206, -10207, -10208]); // scroll thumbs
+
+function recolorToAccent(img) {
+  const lum = (i) => 0.3 * img.rgba[i] + 0.59 * img.rgba[i + 1] + 0.11 * img.rgba[i + 2];
+  let lo = 255, hi = 0;
+  for (let i = 0; i < img.rgba.length; i += 4) { if (img.rgba[i + 3] < 128) continue; const l = lum(i); if (l < lo) lo = l; if (l > hi) hi = l; }
+  const span = Math.max(1, hi - lo);
+  for (let i = 0; i < img.rgba.length; i += 4) {
+    if (img.rgba[i + 3] < 128) continue;
+    const t = (lum(i) - lo) / span;
+    img.rgba[i]     = Math.round(ACCENT_DARK[0] + (ACCENT_LIGHT[0] - ACCENT_DARK[0]) * t);
+    img.rgba[i + 1] = Math.round(ACCENT_DARK[1] + (ACCENT_LIGHT[1] - ACCENT_DARK[1]) * t);
+    img.rgba[i + 2] = Math.round(ACCENT_DARK[2] + (ACCENT_LIGHT[2] - ACCENT_DARK[2]) * t);
+  }
+  return img;
+}
 
 export const GRAFT_CONTROL_IDS = new Set([
   -8277, -8278, -8279, -8280,        // vertical scrollbar track
@@ -47,7 +72,13 @@ export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS) {
     if (!ids.has(el.sourceCicnId)) continue;
     const from = resolve(srcDir, el.asset);
     if (!existsSync(from)) continue;
-    copyFileSync(from, resolve(destDir, el.asset));
+    const to = resolve(destDir, el.asset);
+    if (ACCENT_RECOLOR_IDS.has(el.sourceCicnId)) {
+      const img = recolorToAccent(decodePng(readFileSync(from)));
+      writeFileSync(to, encodePng(img.width, img.height, img.rgba));
+    } else {
+      copyFileSync(from, to);
+    }
     grafted[key] = el;
     seen.add(el.sourceCicnId);
     copied++;
