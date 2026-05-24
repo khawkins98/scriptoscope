@@ -1,30 +1,50 @@
 // scripts/generate-platinum.mjs
-// Generate the Apple Platinum (replica) theme bundle: draw → write PNGs →
-// assemble manifest + meta → buildThemeJson → validateTheme → write bundle.
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+// Generate the Apple Platinum (replica) theme bundle for ALL 13 canonical window
+// types: draw each type's two min-size cicn sprites → write PNGs → assemble the
+// manifest + meta → buildThemeJson → validateTheme → write the bundle.
+//
+// Each window type is ONE base sprite per state (active/inactive) + a wnd# slice
+// recipe; the runtime compositor tiles it to any size. The placeholder art is a
+// rough scaffold — hand-paint it via the atlas (see scripts/generate-platinum/
+// atlas.mjs + SPRITE-GUIDE.md). Re-running this OVERWRITES hand-painted cicns.
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, rmSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
+import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { drawDocumentWindow } from './generate-platinum/draw-document-window.mjs';
-import { buildDocumentWindowAssets } from './generate-platinum/manifest.mjs';
+import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
+import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
 import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
 import { validateTheme } from '../tools/theme-loader/validateTheme.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dest = resolve(root, 'themes/apple-platinum-replica');
-mkdirSync(resolve(dest, 'cicns'), { recursive: true });
+const cicnDir = resolve(dest, 'cicns');
+mkdirSync(cicnDir, { recursive: true });
 mkdirSync(resolve(dest, 'ppats'), { recursive: true });
 
-const drawn = drawDocumentWindow(PALETTE);
-const assets = buildDocumentWindowAssets(drawn);
+// Clear stale generated cicns so renamed/removed types don't linger.
+for (const f of existsSync(cicnDir) ? readdirSync(cicnDir) : [])
+  if (f.startsWith('cicn-')) rmSync(resolve(cicnDir, f));
 
-// Write each raster asset's PNG to the path recorded in its manifest entry.
-const imgByFile = {
-  'cicns/cicn-n14336-document-window-inactive.png': drawn.inactive,
-  'cicns/cicn-n14335-active-document-window.png': drawn.active,
-  'ppats/ppat-128-title-pinstripe.png': drawn.stipple,
-};
+// Draw every type's sprites. The stipple ppat is shared (from the doc-window).
+const drawnBySlug = {};
+for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE);
+const stipple = drawDocumentWindow(PALETTE).stipple;
+
+const assets = buildAllWindowAssets(drawnBySlug, { stipple });
+
+// Write each raster asset's PNG. cicn files come from cicnFiles(); the ppat
+// path is the manifest entry's `file`.
+const imgByFile = {};
+for (const cfg of WINDOW_TYPES) {
+  const files = cicnFiles(cfg, cfg.wndId, cfg.wndId + 1);
+  imgByFile[files.inactive] = drawnBySlug[cfg.slug].inactive;
+  imgByFile[files.active] = drawnBySlug[cfg.slug].active;
+}
+imgByFile['ppats/ppat-128-title-pinstripe.png'] = stipple;
 for (const a of assets) {
   if (!a.file) continue;
   const img = imgByFile[a.file];
@@ -44,5 +64,6 @@ try { validateTheme(theme); }
 catch (err) { console.error('schema validation FAILED:', err.message); process.exit(1); }
 
 writeFileSync(resolve(dest, 'theme.json'), JSON.stringify(theme, null, 2));
-console.log(`[apple-platinum-replica] window types: ${Object.keys(theme.windowTypes || {}).join(', ')}; ` +
+const wt = Object.keys(theme.windowTypes || {});
+console.log(`[apple-platinum-replica] window types: ${wt.length} (${wt.join(', ')}); ` +
   `chrome elements: ${Object.keys(theme.chromeElements || {}).length}`);

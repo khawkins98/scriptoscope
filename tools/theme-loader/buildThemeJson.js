@@ -338,7 +338,10 @@ const CANONICAL_WNDTYPE_SLUGS = {
   '-14324': 'movable-modal',
   '-14322': 'movable-alert',
   '-14304': 'titled-utility-window',
+  '-14300': 'collapsed-titled-utility',
   '-14296': 'side-floating-utility-window',
+  '-14292': 'collapsed-side-utility',
   '-14288': 'no-title-utility-window',
+  '-14284': 'collapsed-no-title-utility',
   '-12320': 'popup-window',
 };
