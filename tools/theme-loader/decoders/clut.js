@@ -63,10 +63,11 @@ export function decodeClut(bytes) {
  */
 export function headerColorsFromClut(clut) {
   const byPart = new Map(clut.entries.map((e) => [e.value, e.hex]));
+  // part 2 ("Text") is intentionally NOT surfaced — it's a frame tint, not the
+  // rendered title-text colour (see the CAVEAT above + title-text-color.md).
   return {
     frame: byPart.get(0),
     fill: byPart.get(1),
-    text: byPart.get(2),
     lightTinge: byPart.get(3),
     darkTinge: byPart.get(4),
     lightBevel: byPart.get(5),

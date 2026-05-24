@@ -108,14 +108,15 @@ export interface Palette {
 }
 
 /**
- * Window title-bar colors, decoded from the scheme's header cluts
- * (-14335 active / -14336 inactive) by part code: `text` (part 2) and
- * `fill` (part 1) drive the title; the rest are frame/tinge/bevel.
+ * Window title-bar FRAME/bevel colors, decoded from the scheme's header cluts
+ * (-14335 active / -14336 inactive) by part code: `fill` (part 1) is the bar
+ * background, the rest are frame/tinge/bevel. (Clut part 2 is NOT surfaced — it
+ * is a frame tint, not the title-text colour; the title text is the classic-Mac
+ * default, see docs/tracking/title-text-color.md.)
  */
 export interface HeaderColors {
   frame?: string;
   fill?: string;
-  text?: string;
   lightTinge?: string;
   darkTinge?: string;
   lightBevel?: string;

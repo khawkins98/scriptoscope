@@ -6,11 +6,9 @@
 // colors (clut part codes per "Creating Color Schemes") live only in
 // scheme.rsrc. This patches them in.
 //
-// NB: the clut part-2 "Text" entry is NOT the rendered title-text colour
-// (the kDEF samples that from a marker pixel in the cicn at render time —
-// see kdef231-reference.md §1.4 / docs/tracking/title-text-color.md). The
-// `headerColors.text` written here is a frame tint; renderWindow should
-// sample the cicn for the title colour rather than trust it.
+// NB: the clut part-2 "Text" entry is NOT surfaced — it's a frame tint, not
+// the rendered title-text colour (the title text is the classic-Mac default;
+// see kdef231-reference.md §1.4 / docs/tracking/title-text-color.md).
 // Idempotent; safe to re-run. build-theme-bundles.mjs does the same for
 // the themes that still have extraction manifests.
 //
@@ -55,5 +53,5 @@ for (const slug of targets) {
   if (active) theme.headerColors.active = active;
   if (inactive) theme.headerColors.inactive = inactive;
   writeFileSync(themePath, JSON.stringify(theme, null, 2));
-  console.log(`[${slug}] headerColors: active.text=${active?.text} fill=${active?.fill}`);
+  console.log(`[${slug}] headerColors: active.fill=${active?.fill} frame=${active?.frame}`);
 }

@@ -5129,7 +5129,6 @@
     "active": {
       "frame": "#111111",
       "fill": "#222222",
-      "text": "#878700",
       "lightTinge": "#222222",
       "darkTinge": "#222222",
       "lightBevel": "#222222",
@@ -5138,7 +5137,6 @@
     "inactive": {
       "frame": "#000000",
       "fill": "#222222",
-      "text": "#ffff00",
       "lightTinge": "#444444",
       "darkTinge": "#111111",
       "lightBevel": "#444444",
