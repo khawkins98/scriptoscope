@@ -790,31 +790,36 @@
       })();
     }
 
-    // Procedural Platinum baseline showcase — the gray fallback chrome a
-    // cicn-less scheme inherits. Exercises platinumScrollbar/Button/etc.
+    // Apple Platinum baseline ✦ screenshot-sourced — the base Platinum look every
+    // cicn-less scheme now inherits, rendered from the apple-platinum-replica
+    // bundle's REAL cicns. This SUPERSEDES the old procedural platinumXxx baseline,
+    // which survives only as the last-resort `?? ` fallback below.
     {
       const section = document.createElement('div'); section.className = 'theme-row';
-      const title = document.createElement('h2'); title.textContent = 'Procedural Platinum baseline';
+      const title = document.createElement('h2'); title.textContent = 'Apple Platinum baseline ✦ screenshot-sourced';
       const row = document.createElement('div'); row.className = 'row';
       section.append(title, row);
-      const { c, frame } = colEl('fallback controls');
+      const { c, frame } = colEl('baseline controls (real cicns)');
       const stack = document.createElement('div'); stack.className = 'ctl-stack';
       const r1 = document.createElement('div'); r1.className = 'ctl-row';
-      add(r1, platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35 }));
-      add(r1, platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5 }));
       const r2 = document.createElement('div'); r2.className = 'ctl-row';
-      add(r2, platinumSlider({ orientation: 'horizontal', length: 120, value: 0.4 }));
-      r2.appendChild(bufferToCanvas(platinumCheckable('checkbox', { checked: true }), 1));
-      r2.appendChild(bufferToCanvas(platinumCheckable('radio', { checked: true }), 1));
-      r2.appendChild(bufferToCanvas(platinumDisclosure({ direction: 'right' }), 1));
-      r2.appendChild(bufferToCanvas(platinumDisclosure({ direction: 'down' }), 1));
       const r3 = document.createElement('div'); r3.className = 'ctl-row';
-      add(r3, platinumButton({ label: 'Cancel' }));
-      add(r3, platinumButton({ label: 'OK', default: true }));
-      add(r3, platinumButton({ label: 'Help', disabled: true }));
-      stack.append(r1, r2, r3);
-      frame.appendChild(stack); row.appendChild(c);
-      rows.appendChild(section);
+      stack.append(r1, r2, r3); frame.appendChild(stack); row.appendChild(c);
+      rows.appendChild(section); // append synchronously to keep section order
+      (async () => {
+        const base = await loadTheme(themeUrl('apple-platinum-replica'));
+        add(r1, (await composeScrollbar(base, { orientation: 'horizontal', length: 140, value: 0.35 })) ?? platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35 }));
+        add(r1, (await composeScrollbar(base, { orientation: 'vertical', length: 90, value: 0.5 })) ?? platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5 }));
+        add(r1, await composeProgress(base, { length: 120, value: 0.6 }));
+        add(r2, (await composeSlider(base, { orientation: 'horizontal', length: 120, value: 0.4 })) ?? platinumSlider({ orientation: 'horizontal', length: 120, value: 0.4 }));
+        r2.appendChild(bufferToCanvas((await composeCheckable(base, 'checkbox', { checked: true })) ?? platinumCheckable('checkbox', { checked: true }), 1));
+        r2.appendChild(bufferToCanvas((await composeCheckable(base, 'radio', { checked: true })) ?? platinumCheckable('radio', { checked: true }), 1));
+        r2.appendChild(bufferToCanvas((await composeDisclosure(base, { direction: 'right' })) ?? platinumDisclosure({ direction: 'right' }), 1));
+        r2.appendChild(bufferToCanvas((await composeDisclosure(base, { direction: 'down' })) ?? platinumDisclosure({ direction: 'down' }), 1));
+        add(r3, (await composeButton(base, { label: 'Cancel' })) ?? platinumButton({ label: 'Cancel' }));
+        add(r3, (await composeButton(base, { label: 'OK', default: true })) ?? platinumButton({ label: 'OK', default: true }));
+        add(r3, (await composeButton(base, { label: 'Help', disabled: true })) ?? platinumButton({ label: 'Help', disabled: true }));
+      })();
     }
 
     for (const t of THEMES) {
