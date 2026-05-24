@@ -62,6 +62,45 @@ function buildProgress(srcDir, destDir, cache) {
   return out;
 }
 
+// Slider (composeSlider: h track -10131 + thumb sheet -10129). The renderer sizes
+// the output to the TRACK height and stamps the thumb at y:0, so the track must be
+// as tall as the thumb with the groove centred + transparent padding; the thumb is
+// a 4-state sheet stacked vertically (cell 1 = normal). Sliced from #24 Speech
+// "Rate": groove at y103.., downward-pointing pentagon thumb at x178,y101 (15x16).
+const SLIDER = { src: 'speech-panel-slider-popups.png', grooveX: 148, grooveY: 103, grooveH: 8,
+  thumbX: 178, thumbY: 101, thumbW: 15, thumbH: 16 };
+
+function buildSlider(srcDir, destDir, cache) {
+  const out = {};
+  const im = (cache[SLIDER.src] ??= decodePng(readFileSync(resolve(srcDir, 'sources', SLIDER.src))));
+  const TW = 14, TH = SLIDER.thumbH;          // track height = thumb height so the thumb fits
+  const pad = Math.floor((TH - SLIDER.grooveH) / 2);
+  // track: groove strip centred vertically, transparent above/below.
+  const track = new Uint8Array(TW * TH * 4);
+  for (let y = 0; y < SLIDER.grooveH; y++) for (let x = 0; x < TW; x++) {
+    const si = ((SLIDER.grooveY + y) * im.width + (SLIDER.grooveX + x)) * 4, di = ((pad + y) * TW + x) * 4;
+    track[di] = im.rgba[si]; track[di + 1] = im.rgba[si + 1]; track[di + 2] = im.rgba[si + 2]; track[di + 3] = 255;
+  }
+  writeFileSync(resolve(destDir, 'cicns/cicn-n10131-slider-track.png'), encodePng(TW, TH, track));
+  out['slider-track'] = chromeEl('cicns/cicn-n10131-slider-track.png', TW, TH, -10131);
+
+  // thumb sheet: 4 cells stacked; cells 1..3 = the pentagon thumb, cell 0 blank.
+  const PW = SLIDER.thumbW, PH = SLIDER.thumbH, cx = (PW - 1) / 2;
+  const sheet = new Uint8Array(PW * (PH * 4) * 4);
+  const stamp = (cellTop) => {
+    for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
+      const half = y < 9 ? PW : (PW >> 1) - (y - 8); // rows 0-8 full rect, then triangle to a point
+      if (Math.abs(x - cx) > half) continue;          // outside pentagon -> transparent
+      const si = ((SLIDER.thumbY + y) * im.width + (SLIDER.thumbX + x)) * 4, di = ((cellTop + y) * PW + x) * 4;
+      sheet[di] = im.rgba[si]; sheet[di + 1] = im.rgba[si + 1]; sheet[di + 2] = im.rgba[si + 2]; sheet[di + 3] = 255;
+    }
+  };
+  for (let c = 1; c < 4; c++) stamp(c * PH);
+  writeFileSync(resolve(destDir, 'cicns/cicn-n10129-slider-thumb.png'), encodePng(PW, PH * 4, sheet));
+  out['slider-thumb'] = chromeEl('cicns/cicn-n10129-slider-thumb.png', PW, PH * 4, -10129);
+  return out;
+}
+
 /**
  * Slice the control glyphs into destDir/cicns and return chromeElements to merge.
  * @returns {{ sliced: Record<string, object>, count: number }}
@@ -86,5 +125,6 @@ export function sliceControls(srcDir, destDir) {
     if (s.inactive) sliced[`${s.name}-inactive`] = chromeEl(file, w, h, s.inactive); // reuse active glyph
   }
   Object.assign(sliced, buildProgress(srcDir, destDir, cache));
+  Object.assign(sliced, buildSlider(srcDir, destDir, cache));
   return { sliced, count: Object.keys(sliced).length };
 }
