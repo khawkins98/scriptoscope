@@ -112,9 +112,27 @@ So both reported bugs (beos invisible, evolution white) had ONE root cause — t
 heuristics — and the constant-black rule is simpler, correct for the whole
 corpus, and matches the classic-Mac default.
 
-**Still open (lower priority):** the exact kDEF marker coordinate (full faithful
-"A"), needed ONLY to support a scheme that draws a genuinely non-black title —
-none in the corpus does. The kDEF samples a marker pixel (`0x5530`; the
-`0x6582(0)` body-rect corners don't yield a consistent text pixel; decompile
-truncated through `0x6582`/`0xfc5c`). If a future scheme needs it, pin the
-coordinate empirically; ground truth in `kdef231-reference.md` §1.4 + the asm.
+### The "true fix" (per-scheme marker sample) — attempted, not pinnable
+A follow-up pass tried to make the colour fully derive-from-scheme (sample the
+kDEF marker so a colour-customised scheme would Just Work). It did not pan out,
+and the negative result is itself informative:
+
+- **Contrast at the actual glyph position** — *worse* than constant-black. 1990's
+  title sits on a narrow LIGHT plate inside dark camo; averaging the text box
+  reads dark (lum 29) → would pick white, but the reference is black-on-plate.
+- **The kDEF marker (`0x5530`)** — its decoded coordinate (`(L+1,B-1)` of the
+  `0x6582(0)` body rect) gives WHITE for 1984, contradicting the black reference,
+  so the reading is incomplete; the decompile is truncated through
+  `0x6582`/`0xfc5c`/`0x4a64`.
+- **Exhaustive empirical search** for a single marker offset (body-rect corners,
+  cicn corners, ±1) that is black in all six ACTIVE cicns and dimmed in the
+  inactive ones: **none exists.** `body-TL` is dark→dimmed (marker-like) for 1984
+  & beos, but 1990's `body-TL` is *light* and its dark pixel is one over — the
+  opposite. There is no consistent per-scheme title-colour marker to read.
+
+**Conclusion:** for this corpus the title colour is the **classic-Mac system
+default** — black active / grey inactive, drawn by the Window Manager; schemes
+theme the *frame* (cicn), not the title text. So constant-black is the faithful
+answer, not a shortcut. A colour-CUSTOMISING scheme (if any exist) would use the
+`0x5530` marker path; reopen only with such a scheme as a test case + a
+non-truncated decode. Ground truth: `kdef231-reference.md` §1.4 + the asm.
