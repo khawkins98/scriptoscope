@@ -88,20 +88,33 @@ marker-less cicns where the sample (A) comes back degenerate.
 What ships today: `headerColors.text` = `-14335`/`-14336` clut part-2. That's a
 frame/bevel tint, wrong for 5/6 schemes. To be removed once A (or B) lands.
 
-## Decision & current status
-Target: **A as primary, B as fallback**, drop C. **Status: PAUSED** at pinning
-A's marker coordinate (the blocker above). Until that's pinned the renderer keeps
-the current path (C → marker-if-saturated → B contrast at threshold 128), i.e.
-no behaviour change yet — see the comment in `src/renderWindow.ts`.
+## Decision & current status — SHIPPED (B + partial A), C dropped
+`renderWindow.ts` no longer uses `headerColors.text` (C, the bogus clut tint).
+The title colour is now derived at runtime: **(1)** a SATURATED cicn marker
+pixel near the title plate if present (best-effort A — catches a genuinely
+coloured title), else **(2)** luminance-contrast b/w against the bar (B). The
+baseline-window path (`buildBaselineWindow`, used by markerless schemes like
+apple-platinum-2) likewise derives the title colour by contrast from the fill,
+not `hc.text`.
 
-## How to revisit / pivot
-- **Resume A:** instrument `renderWindow.ts` to sample candidate marker coords
-  (the `0x6582` rect's edges/corners + the `(±1, −1)` offsets) for all six
-  schemes, print vs. the reference title colours, and lock the rule that matches
-  every one. Then: drop C, sample at that coordinate, draw the emboss shadow,
-  keep B as the degenerate-sample fallback. (Also retune B's threshold to ≈60 so
-  the fallback itself matches the corpus.)
-- **If A proves intractable:** ship B as a documented *heuristic* (clearly NOT
-  the kDEF's mechanism) and accept it won't reproduce exotic title colours.
-- Ground truth: `docs/spec/kdef231-reference.md` §1.4 (`0x5530`/`0x6582`/`0xfc5c`)
-  and the asm at `/tmp/kaleido-trace/kDEF231_0.asm`.
+Verified against the corpus (measured title-bar dominant luminance → picked
+colour, vs. reference):
+- 1990 (lum 17) → white ✓, evolution (0) → white ✓
+- 1984 (plate ~138) → black ✓, beos (gold ~196) → black ✓, platinum (light) → black ✓
+
+So B reproduces the whole corpus at the standard 128 threshold; the fix was
+mainly *removing C* so the contrast fallback could win. Empirically the
+discriminator is clean (dark schemes ≤17, light ≥138), no threshold tuning
+needed.
+
+**Still open (lower priority):**
+- **Exact marker coordinate (full A)** — B can't reproduce a scheme that uses a
+  non-b/w title colour; only sampling the real marker can. The kDEF marker
+  coordinate isn't pinned (the `0x6582(0)` body rect's corners don't yield a
+  consistent text pixel across schemes; decompile truncated through
+  `0x6582`/`0xfc5c`). Resume by sampling candidate marker locations and matching
+  the references; ground truth in `kdef231-reference.md` §1.4 + the asm.
+- **beos title-text visibility** — beos pins the title into a narrow gold tab;
+  "Hello!" wasn't visibly rendered in the playground. This is a title-PLACEMENT
+  matter (titleRegion width for the tab), independent of this colour fix (which
+  only changed `fgHex`). Worth a separate look.

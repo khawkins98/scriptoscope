@@ -80,25 +80,23 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour. KNOWN-WRONG, pending the fix in docs/tracking/title-text-color.md.
-    // `headerColors.text` (the -14335/-14336 clut part-2 entry) is NOT the real
-    // title-text colour — it's a frame/bevel tint, wrong for most schemes (1984
-    // → sky-blue here vs. BLACK on screen). The faithful source is a MARKER pixel
-    // the scheme bakes into its window cicn, which the kDEF samples at draw time
-    // (text pixel + adjacent shadow pixel; see kdef231-reference.md §1.4 `0x5530`).
-    //
-    // Target fix (option A): sample that marker at runtime so it works for ANY
-    // loaded scheme, not just our corpus — the only approach that reproduces an
-    // author-chosen colour we've never seen. BLOCKED on pinning the marker
-    // coordinate (the obvious rect lands out-of-bounds for 1984; decompile is
-    // truncated through 0x6582/0xfc5c — pin it empirically). Fallback (option B):
-    // luminance-contrast b/w (retune threshold ~60) for markerless/odd schemes.
-    //
-    // Until then this keeps the current (wrong) priority: (1) clut text
-    // [to be removed]; (2) cicn marker IF saturated; (3) b/w contrast vs. the bar.
-    const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
+    // Title colour — derived at RUNTIME from the loaded scheme (see
+    // docs/tracking/title-text-color.md). We deliberately do NOT use
+    // `headerColors.text` (the -14335/-14336 clut part-2 entry): that's a
+    // frame/bevel tint, not the rendered title colour, and it's wrong for most
+    // schemes (1984 → sky-blue vs. BLACK on screen). The kDEF samples the title
+    // colour from a marker pixel in the cicn (kdef231-reference.md §1.4 `0x5530`),
+    // so we approximate that signal:
+    //   (1) a SATURATED cicn marker pixel near the title plate — catches a
+    //       scheme that bakes a genuinely coloured title (best-effort "option A";
+    //       the exact kDEF marker coordinate isn't pinned yet — the obvious rect
+    //       lands OOB for 1984, decompile truncated through 0x6582/0xfc5c);
+    //   (2) else a luminance-contrast b/w against the bar — readable for any
+    //       scheme ("option B"). This reproduces the whole corpus: dark bars
+    //       (1990/evolution, lum ≤17) → white; light bars (1984 plate ~138,
+    //       beos gold ~196, …) → black.
     const tr = composed.titleRegion;
-    let fgHex: string | null = hc.text ?? null;
+    let fgHex: string | null = null;
     if (!fgHex && composed.titleFillSrcX >= 0) {
       const mx = composed.titleFillSrcX;
       let best: [number, number, number] | null = null;
@@ -205,7 +203,12 @@ function buildBaselineWindow(
   const { title, state, contentW, contentH, scale, utility } = opts;
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
-  const text = hc.text ?? '#000000';
+  // Title text contrasts with the bar (white on a dark fill, else black). NOT
+  // `hc.text` — the clut part-2 entry is a frame tint, not the title colour
+  // (platinum → #555 grey vs. BLACK on screen); see docs/tracking/title-text-color.md.
+  const fm = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(fill);
+  const fillLum = fm ? 0.299 * parseInt(fm[1]!, 16) + 0.587 * parseInt(fm[2]!, 16) + 0.114 * parseInt(fm[3]!, 16) : 255;
+  const text = fillLum < 128 ? '#ffffff' : '#000000';
   const frameC = hc.frame ?? '#555555';
   // Active titlebar shows the Platinum racing-stripe pinstripe; inactive is
   // flat (the OS active/inactive cue). The stripe is the scheme's darkTinge
