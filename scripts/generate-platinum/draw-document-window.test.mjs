@@ -15,8 +15,8 @@ test('active min-cicn: perimeter is the black outer outline, stipple alternates 
   assert.deepEqual(px(active, 0, 0), PALETTE.frameOutline);       // black outer window outline
   // title fill stipple: row 0 has fore at the lit column, row 1 is back
   const titleY0 = METRICS.frameInset;          // first title row
-  assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0), PALETTE.titleFillFore);
-  assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0 + 1), PALETTE.titleFillBack);
+  assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0), PALETTE.pinstripeLight);
+  assert.deepEqual(px(active, METRICS.cells.leftFixed, titleY0 + 1), PALETTE.plateBase);
 });
 
 test('active min-cicn: bottom-right corner is the black outer outline', () => {
