@@ -174,6 +174,7 @@ export async function renderWindow(
     zIndex: '1',
     ...bodyBackgroundStyle(theme),
   } satisfies Partial<CSSStyleDeclaration>);
+  scaleBodyPattern(content, theme, scale);
 
   win.append(canvas, content);
   // Expose the composed result (incl. the slice placement map) for diagnostics.
@@ -270,6 +271,7 @@ function buildBaselineWindow(
     overflow: 'hidden', boxSizing: 'border-box',
     ...bodyBackgroundStyle(theme),
   } satisfies Partial<CSSStyleDeclaration>);
+  scaleBodyPattern(content, theme, scale);
   win.appendChild(content);
   return win;
 }
@@ -288,6 +290,26 @@ function bodyBackgroundStyle(theme: LoadedTheme): Partial<CSSStyleDeclaration> {
     backgroundRepeat: 'repeat',
     imageRendering: 'pixelated',
   };
+}
+
+/**
+ * Match the tiled body ppat to the display scale. The chrome canvas is a
+ * native-resolution raster CSS-upscaled by `scale` (pixelated), but a CSS
+ * `background-repeat` tile otherwise repeats at *native* px — so at 2× the
+ * pattern reads half-size against the chrome. The ppat's native dimensions
+ * aren't in theme.json, so read them off the decoded image and pin
+ * `background-size` to native × scale (still pixelated, so it stays crisp).
+ * No-op at 1× (native tiling already matches) and outside the browser.
+ */
+function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number): void {
+  const pat = theme.manifest.bodyBackground?.pattern;
+  if (!pat || scale <= 1 || typeof Image === 'undefined') return;
+  const img = new Image();
+  img.onload = () => {
+    if (!img.naturalWidth) return;
+    el.style.backgroundSize = `${img.naturalWidth * scale}px ${img.naturalHeight * scale}px`;
+  };
+  img.src = assetUrl(theme, pat);
 }
 
 /**
