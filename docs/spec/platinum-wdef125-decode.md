@@ -22,8 +22,8 @@ algorithm, **never** dump Apple's listing. Feeds the Phase-B reimplementation in
 | `0x0264` | common exit | re-apply fore/back color, `SetPort` back, store `d6` result → `fp@(20)` | `RGBForeColor`/`RGBBackColor`/`SetPort` | `jmp %a0@` (rtd-style) |
 | `0x0294` | `wNew` (msg 3) | per-window init / aux-struct alloc (`NewHandleClear` `0xa122`) | `0xa122` | `rts` |
 | `0x0392` | `wDraw` whole frame (msg 0, `param==0`) | **draw the entire Platinum window frame**: title bar, bevels, widgets — the `LineTo`/`RGBForeColor` cluster (Task 3 entry) | many; sub-drawers `0x904`/`0x9dc` | `rts` |
-| `0x0b10` | `wDraw` zoom highlight (`param==4`) | procedural highlight of the zoom box | `LineTo`/`RGBForeColor` | `rts` |
-| `0x0bb6` | `wDraw` collapse highlight (`param==5/6`) | procedural highlight of the collapse box | `LineTo`/`RGBForeColor` | `rts` |
+| `0x0b10` | `wDraw` close-box highlight (`param==4`) | procedural pressed highlight of the **close** box (geom `0x1018`, release-redraw `0x904`) | `LineTo`/`RGBForeColor` | `rts` |
+| `0x0bb6` | `wDraw` zoom-box highlight (`param==5/6`) | procedural pressed highlight of the **zoom** box (geom `0x110e`, release-redraw `0x9dc`) | `LineTo`/`RGBForeColor` | `rts` |
 | `0x0c84` | `wHit` (msg 1) | hit-test: which window part the point is in | — | `rts` |
 | `0x0d92` | `wCalcRgns` (msg 2) | build structure/content regions — `SetRectRgn` cluster | `SetRectRgn`/region traps | `rts` |
 | `0x1244` | `wGrow` (msg 5) | draw the grow outline; `param` Rect copied to `fp@(-60)` by the stub | — | `rts` |
@@ -65,9 +65,12 @@ back, stashes the `d6` result into `fp@(20)`, and returns via `rtd #12`-style
 
 **wDraw `param` sub-dispatch (`0x1ac`).** After `tstb a2@(110)` (a guard byte;
 skip to exit if clear), the `param` selector in `d3` is matched: `0` (whole
-frame) → `jsr 0x392`; `4` (wInZoomIn/Out) → `jsr 0xb10`; `5` and `6`
-(wInCollapseBox / variant) → `jsr 0xbb6`. So the **whole-frame drawer is
-`0x392`** and the two procedural widget-highlight drawers are `0xb10` / `0xbb6`.
+frame) → `jsr 0x392`; `4` (the **close box**) → `jsr 0xb10`; `5` and `6` (the
+**zoom box**, top/side-titlebar variants) → `jsr 0xbb6`. So the **whole-frame
+drawer is `0x392`** and the two procedural widget-highlight drawers are
+`0xb10` (close pressed) / `0xbb6` (zoom pressed). The widget↔part mapping is
+confirmed by `wHit 0xc84` (see Window widgets): part **3 = collapse**, part
+**4 = close**, part **5 = zoom**.
 
 ### Trap-fingerprint cross-check (labels confirmed)
 
@@ -546,11 +549,16 @@ absent) every box collapses to the plain `EraseRect`+`FrameRect` look. So
 separate branch. (Whether the slot colors themselves dim on inactive is Task 6.)
 
 **Pressed / highlighted.** The two procedural highlight drawers from the `param`
-sub-dispatch (T2):
+sub-dispatch (T2). The widget↔part map (from `wHit 0xc84`) is the authoritative
+box↔part reference: part **3 = collapse** (`0x11fc` PtInRect → `moveq #3` @
+`0xcfc`), part **4 = close** (`0x1018` PtInRect, gated on the goAway byte
+`a0@(112)` → `moveq #4` @ `0xd80`), part **5 = zoom** (`0x110e` PtInRect, gated
+on `d3 & 4` → `moveq #5` @ `0xd42`). The pressed drawers route by those same
+part codes:
 
-- **`0xb10` (zoom pressed, `param == 4`)**: recomputes the title rect
-  (`jsr 0xf38` @ `0xb2c` → `fp@(-24)`) and the zoom box rect
-  (`jsr 0x1018` @ `0xb3e` → `fp@(-16)`), then:
+- **`0xb10` (close pressed, `param == 4`)**: recomputes the title rect
+  (`jsr 0xf38` @ `0xb2c` → `fp@(-24)`) and the **close** box rect via the close
+  geometry helper (`jsr 0x1018` @ `0xb3e` → `fp@(-16)`), then:
   - if aux `a3 == 0` (`0xb46`): **`InvertRect(fp@(-16))`** (`0xa8a4` @ `0xb4e`) —
     a straight QuickDraw invert of the box (the cheap pressed look).
   - else, reads the global pressed-state byte at low-mem `0x0B20` bit 0 (`0xb52`):
@@ -558,16 +566,18 @@ sub-dispatch (T2):
     `EraseRect(fp@(-16))` (`0xa8a3` @ `0xb98`) + `FrameRect` (`0xa8a1` @ `0xb9e`)
     — fill the box with the *outline* color (inverted face); if clear, fall to
     `jsr 0x904(aux, &fp@(-16))` (`0xba8`) to **redraw the box in its normal beveled
-    look** (i.e. release back to unpressed). So pressed = solid-filled (face
-    swapped to the dark outline color); release = normal bevel.
-- **`0xbb6` (collapse pressed, `param == 5/6`)**: same shape — `jsr 0xf38` @
-  `0xbd2`, then `jsr 0x110e` @ `0xbe6` to compute the *collapse-style* box into
-  `fp@(-16)`. `param & 8` (`0xbf6`) nudges the rect by ±1 (`addqw/subqw` @
-  `0xbfa`/`0xbfe` and `0xc68`/`0xc6c`) for the side-titlebar variant. Then the same
-  three-way: `a3 == 0` → `InvertRect` (`0xa8a4` @ `0xc0a`); `0x0B20` bit 0 set →
-  recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xc4e`) + `EraseRect`
-  (`0xa8a3` @ `0xc54`) + `FrameRect` (`0xa8a1` @ `0xc5a`) (filled-pressed); else
-  `jsr 0x9dc(aux, &fp@(-16))` (`0xc76`) to redraw normal.
+    look** (i.e. release back to unpressed) — `0x904` is the **close** normal
+    drawer. So pressed = solid-filled (face swapped to the dark outline color);
+    release = normal bevel.
+- **`0xbb6` (zoom pressed, `param == 5/6`)**: same shape — `jsr 0xf38` @
+  `0xbd2`, then `jsr 0x110e` @ `0xbe6` (the **zoom** geometry helper) to compute
+  the zoom box into `fp@(-16)`. `param & 8` (`0xbf6`) nudges the rect by ±1
+  (`addqw/subqw` @ `0xbfa`/`0xbfe` and `0xc68`/`0xc6c`) for the side-titlebar
+  variant. Then the same three-way: `a3 == 0` → `InvertRect` (`0xa8a4` @ `0xc0a`);
+  `0x0B20` bit 0 set → recolor (`RGBBackColor(blend +66/+106 w15)` @ `0xc4e`) +
+  `EraseRect` (`0xa8a3` @ `0xc54`) + `FrameRect` (`0xa8a1` @ `0xc5a`)
+  (filled-pressed); else `jsr 0x9dc(aux, &fp@(-16))` (`0xc76`) to redraw normal —
+  `0x9dc` is the **zoom** normal drawer.
 
 The `0x0B20` byte is a **WDEF-private global "box is currently pressed" toggle**:
 the `param==4/5/6` stubs `eorib #1` it (`0x1f2`, `0x20c`) before calling the
@@ -576,10 +586,11 @@ track-and-release of a box flips the toggle so the highlight drawer alternates
 pressed-fill vs normal-bevel on each call — the standard Toolbox `TrackBox`/
 `TrackGoAway` "follow the mouse in/out" flicker, done procedurally.
 
-**There is no pressed sub-drawer for the close box** — `param==4/5/6` only cover
-zoom/collapse. The close box's pressed feedback is handled by the caller
-(`TrackGoAway`) inverting it, not by this WDEF (consistent with classic Toolbox:
-`DrawGoAway`/`TrackGoAway` invert the goAway box outside the WDEF). Flagged below.
+**The collapse box (part 3) has no pressed sub-drawer** — the `param` sub-dispatch
+`d3` switch at `0x1bc`–`0x1cc` only matches `4` (→ `0xb10`, close) and `5`/`6`
+(→ `0xbb6`, zoom); the collapse box never appears in it. The close and zoom boxes
+both have a procedural pressed drawer (`0xb10` / `0xbb6` above); the collapse box's
+in/out feedback is not drawn by this WDEF.
 
 ### Pseudocode (my words)
 
@@ -631,8 +642,8 @@ RGBForeColor(blend(aux[+98], aux[+74], 0))           # highlight
 MoveTo(left, bottom); LineTo(top,left); LineTo(right,top)   # top+left raised edge
 InsetRect(rect, -1, -1)
 
-# pressed highlight (0xb10 zoom / 0xbb6 collapse), per param sub-dispatch:
-recompute box rect (jsr 0xf38 + 0x1018/0x110e)
+# pressed highlight (0xb10 close / 0xbb6 zoom), per param sub-dispatch:
+recompute box rect (jsr 0xf38 + 0x1018 [close] / 0x110e [zoom])
 if aux == 0:           InvertRect(boxRect)           # cheap invert
 elif lowmem[0x0B20]&1: RGBBackColor(blend +66/+106 15); EraseRect; FrameRect   # pressed fill
 else:                  drawBox(aux, boxRect)         # release -> normal bevel
@@ -678,9 +689,11 @@ else:                  drawBox(aux, boxRect)         # release -> normal bevel
   part of the face pattern/color rather than a stroke, (b) drawn by a shared icon
   the asm reaches elsewhere, or (c) simply absent in this proc's normal state.
   Recorded as unresolved; confirm in Phase-B against the reference image.
-- **Close-box pressed feedback.** No `param` case targets the close box; its
-  pressed look is the caller's `TrackGoAway` invert, not this WDEF. Stated, not
-  pinned to a `0xADDR` in this resource (it is out of scope by design).
+- **Collapse-box pressed feedback.** No `param` case targets the collapse box
+  (the `d3` switch at `0x1bc`–`0x1cc` only handles `4`→close `0xb10` and
+  `5`/`6`→zoom `0xbb6`); the collapse box has no procedural pressed drawer in this
+  WDEF. Stated, not pinned to a `0xADDR` (it is out of scope by design). (The close
+  and zoom boxes *do* have pressed drawers — `0xb10` / `0xbb6` respectively.)
 - **`0x168e` clamp predicate.** The close/zoom helpers call `jsr 0x168e` (a
   small compare returning a flag) to decide whether to `OffsetRect` the box back
   inside a too-short title bar. The exact threshold inside `0x168e` was not fully
