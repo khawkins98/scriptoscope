@@ -29,6 +29,39 @@ function chromeEl(file, w, h, id) {
     textAnchor: null, embossAnchor: null, sourceCicnId: id, sourceCinfId: null };
 }
 
+// Progress bar (composeProgress wants fill -10079, track -10078, frame -10080).
+// The #22 bar is ~99% full, so there's no empty track to slice — we SLICE the
+// real blue 3-D fill (sources/progress-dialog-copy-desktop.png, the bar at
+// y98..108, a dark border → blue ramp → sheen → ramp → dark border) and pair it
+// with a constructed recessed gray track (no empty-track reference exists).
+const PROGRESS = { src: 'progress-dialog-copy-desktop.png', fillRect: [119, 98, 8, 11] };
+
+function buildProgress(srcDir, destDir, cache) {
+  const out = {};
+  const W = 8;
+  // fill: sliced real blue
+  const im = (cache[PROGRESS.src] ??= decodePng(readFileSync(resolve(srcDir, 'sources', PROGRESS.src))));
+  const [fx, fy, fw, fh] = PROGRESS.fillRect;
+  const fill = new Uint8Array(fw * fh * 4);
+  for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) {
+    const si = ((fy + y) * im.width + (fx + x)) * 4, di = (y * fw + x) * 4;
+    fill[di] = im.rgba[si]; fill[di + 1] = im.rgba[si + 1]; fill[di + 2] = im.rgba[si + 2]; fill[di + 3] = 255;
+  }
+  writeFileSync(resolve(destDir, 'cicns/cicn-n10079-progress-fill.png'), encodePng(fw, fh, fill));
+  out['progress-fill'] = chromeEl('cicns/cicn-n10079-progress-fill.png', fw, fh, -10079);
+
+  // track: constructed recessed light channel, same height, dark top/bottom borders.
+  const chan = [50, 210, 226, 236, 240, 240, 236, 228, 218, 208, 50]; // per-row gray (fh=11)
+  const track = new Uint8Array(W * fh * 4);
+  for (let y = 0; y < fh; y++) for (let x = 0; x < W; x++) {
+    const v = chan[Math.min(chan.length - 1, y)]; const di = (y * W + x) * 4;
+    track[di] = v; track[di + 1] = v; track[di + 2] = v; track[di + 3] = 255;
+  }
+  writeFileSync(resolve(destDir, 'cicns/cicn-n10078-progress-track.png'), encodePng(W, fh, track));
+  out['progress-track'] = chromeEl('cicns/cicn-n10078-progress-track.png', W, fh, -10078);
+  return out;
+}
+
 /**
  * Slice the control glyphs into destDir/cicns and return chromeElements to merge.
  * @returns {{ sliced: Record<string, object>, count: number }}
@@ -52,5 +85,6 @@ export function sliceControls(srcDir, destDir) {
     sliced[s.name] = chromeEl(file, w, h, s.id);
     if (s.inactive) sliced[`${s.name}-inactive`] = chromeEl(file, w, h, s.inactive); // reuse active glyph
   }
-  return { sliced, count: SLICES.length };
+  Object.assign(sliced, buildProgress(srcDir, destDir, cache));
+  return { sliced, count: Object.keys(sliced).length };
 }
