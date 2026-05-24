@@ -80,13 +80,15 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour, in spec priority order: (1) the scheme's DECLARED header
-    // text colour (the -14335/-14336 active/inactive clut, decoded by part
-    // code) — the authoritative title-text colour signal (white for evolution,
-    // blue-ish for 1984, black for 1138); (2) the cicn text-colour MARKER pixel
-    // (the cinf textPixel / ≤2px rect-list marker) IF it carries a saturated
-    // colour (in this corpus the marker column is just frame-grey, so it rarely
-    // wins); (3) a luminance-picked b/w contrast against the bar.
+    // Title colour. NOTE: `headerColors.text` (the -14335/-14336 clut part-2
+    // entry) is NOT the real title-text colour — it's a frame/bevel tint and is
+    // wrong for most schemes (1984 → sky-blue here vs. BLACK on screen). The
+    // faithful source is a MARKER pixel baked into the window cicn that the kDEF
+    // samples at draw time (text + an adjacent shadow pixel; see
+    // kdef231-reference.md §1.4, `0x5530`). TODO (docs/tracking/title-text-color.md):
+    // replace this with a runtime cicn marker-pixel sample. Current priority:
+    // (1) clut text [unreliable — to be removed]; (2) cicn marker IF saturated;
+    // (3) luminance-picked b/w contrast against the bar.
     const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
     const tr = composed.titleRegion;
     let fgHex: string | null = hc.text ?? null;
