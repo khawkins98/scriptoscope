@@ -221,7 +221,172 @@ else:
   i.e. Task 4's bevel/edge work, not the fill.
 
 ## Frame & bevel insets
-_(Task 4)_
+
+**Headline:** the Platinum frame is **not** built with `InsetRect`/`OffsetRect`
+shifts of a content rect. It is three strokes layered onto two source rects: a
+1-px black `FrameRect` of the **structure box outset by 1**, plus two
+`MoveTo`+2×`LineTo` polylines that lay down the bevel highlight/shadow — one
+around the **structure box** (bottom+right shadow only) and one around the
+**title rect** (a full 4-edge raised bevel). All deltas are **inline `addqw`/
+`subqw` on the rect corner words**; there is **no `InsetRect`/`OffsetRect` in the
+frame drawer `0x392`–`0x8ec`** (`grep a8d5|a8d4` in-range → 0 — and note the two
+`InsetRect`s that *do* appear, `0xa8a9` @ `0x424` and `0x60c`/`0x686`, are the
+standard `_InsetRect` trap `0xA8A9`, **not** `0xA8D5`; the task brief's
+`0xa8d5/0xa8d4` are misnumbered).
+
+### The two source rects
+
+- **`fp@(-364..-358)` = structure box** (`top=-364, left=-362, bottom=-360,
+  right=-358`). Copied fresh from the live **structure region** handle at window
+  `a4@(118)` → `a0@` (region record) `+2` (skip the `rgnSize` word) → the
+  `rgnBBox` (`0x406`–`0x416`: two `movel %a0@+,%a1@+`). Then **outset by 1 px on
+  all sides** via `InsetRect(rect, −1, −1)` (`0x418`–`0x424`).
+- **`fp@(-356..-350)` = title rect** (`top=-356, left=-354, bottom=-352,
+  right=-350`). Computed by `jsr 0xf38(varCode, window, &rect)` (`0x3b6`); see T3.
+  `d5 = title height (=titleH+1)` (`0x3be`: `bottom−top`), `d6 = title width`
+  (`0x3c8`: `right−left`).
+
+### Stroke 1 — outer structure outline (`FrameRect`, `0x434`)
+
+`PenSize(1,1)` (`0x42e`) then **`FrameRect(fp@(-364))`** (`0xa8a1` @ `0x434`):
+a 1-px outline of the structure box *outset by 1*. Color in force is set just
+above at `0x3ee`–`0x404`: if the aux record `a3 != 0`, `RGBForeColor(a3@(+18))`
+(`0xaa14` @ `0x3fa`) and `RGBBackColor(a3@(+10))` (`0xaa15` @ `0x404`). So the
+hard outer frame line uses **fore = aux field `+18`**, back = field `+10`.
+
+### Stroke 2 — structure bottom+right shadow (LineTo cluster, `0x44a`–`0x49a`)
+
+Same pen color as stroke 1 (no recolor between `0x404` and here). Branches on
+`varCode & 8` (`0x440`–`0x448`) — bit 3 picks **top-titlebar** vs
+**side-titlebar** geometry:
+
+- **top-titlebar** (`d4&8==0`, `0x44a`–`0x470`):
+  `MoveTo(structLeft+1, structBottom)` (`0x456`) →
+  `LineTo(structRight, structBottom)` (`0x460`, **bottom edge**) →
+  `LineTo(structRight, structTop − d5 + 1)` (`0x470`, **right edge**, run all the
+  way up to the top of the title bar, `structTop − titleHeight`).
+- **side-titlebar** (`d4&8!=0`, `0x474`–`0x49a`): mirror — subtracts `d6`
+  (titleWidth) from `structLeft` instead, sweeping the bevel along the vertical
+  title channel.
+
+This is the classic Platinum **bottom-right outer shadow** — only two edges (the
+top/left stay the bright `FrameRect` line), which is what makes the whole window
+read raised against the desktop.
+
+### Stroke 3 — title-rect raised bevel (LineTo cluster, `0x60c`–`0x684`)
+
+Runs on the **active** path only (it sits after the `bge 0x570` active branch).
+`InsetRect(titleRect, 1, 1)` (`0x60c`) shrinks the title rect 1 px on every side,
+then two 2-segment polylines trace it in **two different colors** — the actual
+bevel:
+
+- **highlight = top + left edges**, color set at `RGBForeColor(fp@(-16))`
+  (`0xaa14` @ **`0x60a`**), where `fp@(-16)` ← `jsr 0x1356` blend of aux fields
+  **`+74`** and **`+98`** (weight 0, `0x5ee`–`0x5fe`):
+  `MoveTo(left, bottom−1)` (`0x626`) → `LineTo(left, top)` (`0x630`, **left
+  edge**, up) → `LineTo(right−1, top)` (`0x63e`, **top edge**, right).
+- **shadow = right + bottom edges**, color set at `RGBForeColor(fp@(-16))`
+  (`0xaa14` @ **`0x664`**), where `fp@(-16)` ← `jsr 0x1356` blend of aux fields
+  **`+106`** and **`+98`** (weight 4, `0x640`–`0x658`):
+  `LineTo(right−1, bottom−1)` (`0x676`, **right edge**, down) →
+  `LineTo(left, bottom−1)` (`0x684`, **bottom edge**, left).
+
+`InsetRect(titleRect, −1, −1)` (`0x686`) then restores the rect for the widget
+pass. The 1-px title `FrameRect` border (`0x5e6`, fore = field `+18`) from T3 sits
+just *outside* this bevel.
+
+### Bevel light/dark ordering (what reads raised)
+
+| stroke | rect / edges | inset δ from source | color (aux field via `0x1356`) | `RGBForeColor`/`Back` site |
+|---|---|---|---|---|
+| 1 `FrameRect` | structure box, all 4 | **+1 outset** (`InsetRect −1,−1` @ `0x424`) | fore = field `+18` / back = field `+10` | `0xaa14` @ `0x3fa`, `0xaa15` @ `0x404` |
+| 2 polyline | structure box, **bottom + right** | 0 (corners as-is; `+1` start nudge) | same as stroke 1 (fore `+18`) | (inherits) |
+| 3a polyline | title rect, **top + left** (highlight, lighter) | **−1 inset** (`InsetRect 1,1` @ `0x60c`) | blend(field `+74`, field `+98`) | `0xaa14` @ `0x60a` |
+| 3b polyline | title rect, **bottom + right** (shadow, darker) | −1 inset (same) | blend(field `+106`, field `+98`) | `0xaa14` @ `0x664` |
+
+So the title bar is a **raised bevel**: top/left = highlight (fields `+74`/`+98`),
+bottom/right = shadow (fields `+106`/`+98`). The whole window also reads raised:
+top/left = the bright `FrameRect` line (field `+18`), bottom/right = the stroke-2
+shadow over it. (Whether field `+74`/`+98`/`+106` resolve to literally
+lighter/darker RGB — and the `0x1356` blend weight semantics — is **Task 6**;
+this section pins only the slot indices + the geometric light/dark roles.)
+
+### Pseudocode (my words)
+
+```
+# structure box, 0x406..0x49a
+struct = window.structRgn.rgnBBox          # a4@(118) -> a0@ +2
+InsetRect(struct, -1, -1)                  # 0x424  outset 1px (outer frame ring)
+PenSize(1, 1)                              # 0x42e
+if aux:                                    # 0x3f0
+    RGBForeColor(aux[+18]); RGBBackColor(aux[+10])   # 0x3fa / 0x404
+FrameRect(struct)                          # 0x434  1px outer outline (top/left bright)
+if varCode & 8 == 0:                       # top-titlebar
+    MoveTo(struct.left+1, struct.bottom)             # 0x456
+    LineTo(struct.right,  struct.bottom)             # 0x460  bottom shadow
+    LineTo(struct.right,  struct.top - titleH + 1)   # 0x470  right shadow (up over titlebar)
+else:                                      # side-titlebar: subtract titleW from left
+    ...mirror...                                     # 0x474..0x49a
+
+# title-rect bevel (active path only), 0x60c..0x686
+InsetRect(title, 1, 1)                     # 0x60c  shrink 1px
+RGBForeColor(blend(aux[+74],  aux[+98], 0))          # 0x60a  highlight color
+MoveTo(title.left,    title.bottom-1)                # 0x626
+LineTo(title.left,    title.top)                     # 0x630  LEFT  edge (highlight)
+LineTo(title.right-1, title.top)                     # 0x63e  TOP   edge (highlight)
+RGBForeColor(blend(aux[+106], aux[+98], 4))          # 0x664  shadow color
+LineTo(title.right-1, title.bottom-1)                # 0x676  RIGHT edge (shadow)
+LineTo(title.left,    title.bottom-1)                # 0x684  BOTTOM edge (shadow)
+InsetRect(title, -1, -1)                   # 0x686  restore
+```
+
+### Structure → content inset reconciliation
+
+The frame thickness is **code-fixed, 1 px per side** for the document body:
+the outer `FrameRect` is the structure box outset by 1 and stroked at
+`PenSize(1,1)`, i.e. the visible frame ring is a single pixel; the content rect
+is the structure box itself (the region builder `wCalcRgns 0xd92` partitions
+struct vs content — the body sits directly inside the 1-px outline). The **top
+inset is dominated by the title-bar height** carried in `d5` (= `titleHeight+1`,
+from `jsr 0xf38`), since the title rect is laid out as `[structTop − titleHeight
+.. structTop+1]` (`0xf38` @ `0xfee`–`0xffa`: `bottom = top+1; top -= titleHeight`).
+
+So, as coded:
+
+```
+content_top    = structure_top    + (titleHeight + 1)   # title bar + 1px under-line
+content_left   = structure_left   + 1                   # 1px frame
+content_right  = structure_right  - 1                   # 1px frame
+content_bottom = structure_bottom - 1                   # 1px frame
+```
+
+This **reconciles**: left/right/bottom are the 1-px outline; top = title-bar
+height plus the same 1 px. The grow box / lower-right size widget (a Platinum
+document window has it) is drawn elsewhere (`wGrow 0x1244`), not folded into the
+frame inset here.
+
+**Could-not-pin / open question.** The exact `structTop` semantics depend on a
+**runtime region** (`a4@(118)` `rgnBBox`), so the disassembly cannot prove the
+absolute title-bar height in pixels — `d5` is `titleHeight+1` where `titleHeight`
+itself comes from `0xf38`'s font-metric math (`0xf7a`–`0xfb6`: `GetFontInfo`-style
+ascent+descent+2, clamped to ≥10). The frame *deltas* (1 px sides; top = title +
+1) are firmly pinned; the literal title-bar pixel height is a runtime/font value
+(flagged for Task 6/7, consistent with the T3 "period is a runtime pattern" note).
+
+### Compared to the kDEF cicn model (Phase-B divergence)
+
+The kDEF (`docs/spec/kdef-faithfulness-ledger.md`) derives its insets from the
+**cicn art**: `frameFromBody` + `drawableExtent` size the structure rect off the
+chrome cicn's *drawable* (last-opaque) extent, trimming any transparent tail
+(e.g. beos right 22 px → 5 px). Platinum WDEF 125 does the opposite: it uses
+**fixed, code-driven insets** — a flat 1-px ring + a font-derived title height,
+with the bevel highlight/shadow strokes hardcoded as the structure box's
+bottom-right and the title rect's top-left-vs-bottom-right edges. No art measures
+the inset; the geometry is arithmetic. **Phase-B note:** the Platinum reimpl must
+*not* try to recover insets from a cicn (there is none for Platinum — see the ISO
+recon note that Platinum is built into the System file); it ports these literal
+deltas (1 px sides, title-height top) and the 4-edge bevel order directly. This
+is the key structural difference from the cicn-derived kDEF schemes.
 
 ## Window widgets (close / zoom / collapse)
 _(Task 5)_
