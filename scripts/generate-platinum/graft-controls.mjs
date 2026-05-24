@@ -31,11 +31,16 @@ import { decodePng, encodePng } from '../diag-lib.mjs';
 // apple-platinum-2's accent elements (the thumb) use Orion's PURPLE accent, so
 // we remap them to this blue ramp by lightness — same bevel/ridge structure,
 // the real default accent colour.
-const ACCENT_DARK = [47, 27, 142];
-const ACCENT_LIGHT = [196, 203, 252];
-const ACCENT_RECOLOR_IDS = new Set([-10205, -10206, -10207, -10208]); // scroll thumbs
+const ACCENT = { dark: [47, 27, 142], light: [196, 203, 252] };  // blue Appearance accent (thumb)
+const DEFAULT_RING = { dark: [12, 12, 12], light: [110, 110, 110] }; // dark default-button ring
+// Per-id recolor ramps: remap a cicn's lightness onto a target ramp. apple-platinum-2's
+// thumb uses Orion's purple accent → blue; its default-button ring is purple → dark.
+const RECOLOR = new Map([
+  [-10205, ACCENT], [-10206, ACCENT], [-10207, ACCENT], [-10208, ACCENT], // scroll thumbs
+  [-10231, DEFAULT_RING],                                                  // default-button ring
+]);
 
-function recolorToAccent(img) {
+function recolorToRamp(img, ramp) {
   const lum = (i) => 0.3 * img.rgba[i] + 0.59 * img.rgba[i + 1] + 0.11 * img.rgba[i + 2];
   let lo = 255, hi = 0;
   for (let i = 0; i < img.rgba.length; i += 4) { if (img.rgba[i + 3] < 128) continue; const l = lum(i); if (l < lo) lo = l; if (l > hi) hi = l; }
@@ -43,9 +48,7 @@ function recolorToAccent(img) {
   for (let i = 0; i < img.rgba.length; i += 4) {
     if (img.rgba[i + 3] < 128) continue;
     const t = (lum(i) - lo) / span;
-    img.rgba[i]     = Math.round(ACCENT_DARK[0] + (ACCENT_LIGHT[0] - ACCENT_DARK[0]) * t);
-    img.rgba[i + 1] = Math.round(ACCENT_DARK[1] + (ACCENT_LIGHT[1] - ACCENT_DARK[1]) * t);
-    img.rgba[i + 2] = Math.round(ACCENT_DARK[2] + (ACCENT_LIGHT[2] - ACCENT_DARK[2]) * t);
+    for (let c = 0; c < 3; c++) img.rgba[i + c] = Math.round(ramp.dark[c] + (ramp.light[c] - ramp.dark[c]) * t);
   }
   return img;
 }
@@ -56,6 +59,8 @@ export const GRAFT_CONTROL_IDS = new Set([
   -10206, -10205, -10208, -10207,    // scroll thumbs
   -14330, -14334,                    // grow box active/inactive
   -9972, -9975, -9980, -9983,        // tabs
+  -10239, -10238, -10240,            // push-button face active/pressed/inactive (gray, as-is)
+  -10231, -10232,                    // default-button ring (active recolored dark / inactive gray)
 ]);
 
 /**
@@ -73,8 +78,9 @@ export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS) {
     const from = resolve(srcDir, el.asset);
     if (!existsSync(from)) continue;
     const to = resolve(destDir, el.asset);
-    if (ACCENT_RECOLOR_IDS.has(el.sourceCicnId)) {
-      const img = recolorToAccent(decodePng(readFileSync(from)));
+    const ramp = RECOLOR.get(el.sourceCicnId);
+    if (ramp) {
+      const img = recolorToRamp(decodePng(readFileSync(from)), ramp);
       writeFileSync(to, encodePng(img.width, img.height, img.rgba));
     } else {
       copyFileSync(from, to);

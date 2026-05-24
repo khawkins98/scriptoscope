@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T20:22:54.772Z",
+  "generatedAt": "2026-05-24T20:29:29.678Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -1351,6 +1351,42 @@
       "sourceCicnId": -10205,
       "sourceCinfId": null
     },
+    "cicn--10240": {
+      "asset": "cicns/cicn-n10240-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10240,
+      "sourceCinfId": null
+    },
+    "cicn--10239": {
+      "asset": "cicns/cicn-n10239-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10239,
+      "sourceCinfId": null
+    },
+    "cicn--10238": {
+      "asset": "cicns/cicn-n10238-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10238,
+      "sourceCinfId": null
+    },
     "disabled-horizontal-scrollbar": {
       "asset": "cicns/cicn-n8288-disabled-horizontal-scrollbar.png",
       "width": 16,
@@ -1469,6 +1505,30 @@
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -14330,
+      "sourceCinfId": null
+    },
+    "cicn--10232": {
+      "asset": "cicns/cicn-n10232-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10232,
+      "sourceCinfId": null
+    },
+    "cicn--10231": {
+      "asset": "cicns/cicn-n10231-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10231,
       "sourceCinfId": null
     },
     "normal-back": {
