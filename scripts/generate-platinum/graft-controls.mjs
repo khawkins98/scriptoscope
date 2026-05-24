@@ -40,6 +40,23 @@ const RECOLOR = new Map([
   [-10231, DEFAULT_RING],                                                  // default-button ring
 ]);
 
+const THUMB_IDS = new Set([-10205, -10206, -10207, -10208]); // scroll thumbs get a grip
+
+// Overlay 3 grip ridges perpendicular to the scroll axis (a vertical thumb gets
+// horizontal ridges, a horizontal thumb gets vertical) — the classic Platinum
+// thumb grip, replacing apple-platinum-2's single diagonal slash.
+function addThumbGrip(img) {
+  const vert = img.height > img.width;
+  const cx = img.width >> 1, cy = img.height >> 1;
+  const hi = [216, 222, 255], lo = [70, 60, 150]; // light highlight + dark shadow per ridge
+  const setPx = (x, y, c) => { if (x < 0 || y < 0 || x >= img.width || y >= img.height) return; const i = (y * img.width + x) * 4; if (img.rgba[i + 3] < 128) return; img.rgba[i] = c[0]; img.rgba[i + 1] = c[1]; img.rgba[i + 2] = c[2]; };
+  for (let k = -1; k <= 1; k++) {
+    if (vert) { const y = cy + k * 3; for (let x = cx - 3; x <= cx + 3; x++) { setPx(x, y, hi); setPx(x, y + 1, lo); } }
+    else { const x = cx + k * 3; for (let y = cy - 3; y <= cy + 3; y++) { setPx(x, y, hi); setPx(x + 1, y, lo); } }
+  }
+  return img;
+}
+
 function recolorToRamp(img, ramp) {
   const lum = (i) => 0.3 * img.rgba[i] + 0.59 * img.rgba[i + 1] + 0.11 * img.rgba[i + 2];
   let lo = 255, hi = 0;
@@ -80,7 +97,8 @@ export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS) {
     const to = resolve(destDir, el.asset);
     const ramp = RECOLOR.get(el.sourceCicnId);
     if (ramp) {
-      const img = recolorToRamp(decodePng(readFileSync(from)), ramp);
+      let img = recolorToRamp(decodePng(readFileSync(from)), ramp);
+      if (THUMB_IDS.has(el.sourceCicnId)) img = addThumbGrip(img);
       writeFileSync(to, encodePng(img.width, img.height, img.rgba));
     } else {
       copyFileSync(from, to);

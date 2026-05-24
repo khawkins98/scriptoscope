@@ -20,7 +20,9 @@ import { resolve } from 'node:path';
 const SLICES = [
   { id: -9500, inactive: -9501, name: 'checkbox-checked', src: 'general-controls-checks-radios.png', rect: [32, 58, 12, 12] },
   { id: -9503, inactive: -9504, name: 'checkbox-empty',   src: 'general-controls-checks-radios.png', rect: [32, 106, 12, 12] },
-  { id: -9488, inactive: -9489, name: 'radio-on',  src: 'general-controls-checks-radios.png', rect: [468, 141, 12, 12], circle: true },
+  // radio-on = the recessed empty ring + a SMALL centered dark dot (slicing the
+  // reference's selected radio gave a dot that read too large/black at this size).
+  { id: -9488, inactive: -9489, name: 'radio-on',  src: 'general-controls-checks-radios.png', rect: [390, 141, 12, 12], circle: true, dot: true },
   { id: -9491, inactive: -9492, name: 'radio-off', src: 'general-controls-checks-radios.png', rect: [390, 141, 12, 12], circle: true },
 ];
 
@@ -68,7 +70,7 @@ function buildProgress(srcDir, destDir, cache) {
 // a 4-state sheet stacked vertically (cell 1 = normal). Sliced from #24 Speech
 // "Rate": groove at y103.., downward-pointing pentagon thumb at x178,y101 (15x16).
 const SLIDER = { src: 'speech-panel-slider-popups.png', grooveX: 148, grooveY: 103, grooveH: 8,
-  thumbX: 178, thumbY: 101, thumbW: 15, thumbH: 16 };
+  thumbX: 174, thumbY: 101, thumbW: 15, thumbH: 16 };
 
 function buildSlider(srcDir, destDir, cache) {
   const out = {};
@@ -89,7 +91,7 @@ function buildSlider(srcDir, destDir, cache) {
   const sheet = new Uint8Array(PW * (PH * 4) * 4);
   const stamp = (cellTop) => {
     for (let y = 0; y < PH; y++) for (let x = 0; x < PW; x++) {
-      const half = y < 9 ? PW : (PW >> 1) - (y - 8); // rows 0-8 full rect, then triangle to a point
+      const half = y < 10 ? PW : (PW >> 1) - (y - 9); // rows 0-9 full rect, then triangle to a point
       if (Math.abs(x - cx) > half) continue;          // outside pentagon -> transparent
       const si = ((SLIDER.thumbY + y) * im.width + (SLIDER.thumbX + x)) * 4, di = ((cellTop + y) * PW + x) * 4;
       sheet[di] = im.rgba[si]; sheet[di + 1] = im.rgba[si + 1]; sheet[di + 2] = im.rgba[si + 2]; sheet[di + 3] = 255;
@@ -148,6 +150,13 @@ export function sliceControls(srcDir, destDir) {
       const outside = s.circle && Math.hypot(xx - cx, yy - cy) > r;
       out[di] = im.rgba[si]; out[di + 1] = im.rgba[si + 1]; out[di + 2] = im.rgba[si + 2];
       out[di + 3] = outside ? 0 : 255;
+    }
+    if (s.dot) { // selected radio: stamp a small dark centre dot on the empty ring
+      for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+        if (Math.hypot(xx - cx, yy - cy) > 2.4) continue;
+        const di = (yy * w + xx) * 4;
+        out[di] = 56; out[di + 1] = 56; out[di + 2] = 56; out[di + 3] = 255;
+      }
     }
     const file = `cicns/cicn-n${-s.id}-${s.name}.png`;
     writeFileSync(resolve(destDir, file), encodePng(w, h, out));
