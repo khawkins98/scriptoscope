@@ -7,11 +7,14 @@ Rendered window-title text colour doesn't match the period references:
 |---|---|---|
 | 1984 (active) | **black** | `#99ccff` sky-blue |
 | 1984 (inactive) | dark grey `#303030` | `#ffffff` |
-| 1990 | white | `#878700` olive |
-| evolution | white | `#878700` olive |
-| platinum | black | `#555555` grey |
-| beos | black (on gold bar) | `#888888` grey |
-| 1138 | black | `#000000` (coincidentally right) |
+| 1990 | **black** (on a light plate) | `#878700` olive |
+| evolution | **black** (on light metal) | `#878700` olive |
+| platinum | **black** | `#555555` grey |
+| beos | **black** (on gold bar) | `#888888` grey |
+| 1138 | **black** | `#000000` (coincidentally right) |
+
+**Every scheme uses BLACK.** (An earlier pass wrongly read 1990/evolution as
+white — they're black, drawn on a light area of the bar.)
 
 ## Where the colour comes from now (and why it's wrong)
 `scripts/add-header-colors.mjs` pre-bakes `headerColors.{active,inactive}.text`
@@ -88,33 +91,30 @@ marker-less cicns where the sample (A) comes back degenerate.
 What ships today: `headerColors.text` = `-14335`/`-14336` clut part-2. That's a
 frame/bevel tint, wrong for 5/6 schemes. To be removed once A (or B) lands.
 
-## Decision & current status — SHIPPED (B + partial A), C dropped
-`renderWindow.ts` no longer uses `headerColors.text` (C, the bogus clut tint).
-The title colour is now derived at runtime: **(1)** a SATURATED cicn marker
-pixel near the title plate if present (best-effort A — catches a genuinely
-coloured title), else **(2)** luminance-contrast b/w against the bar (B). The
-baseline-window path (`buildBaselineWindow`, used by markerless schemes like
-apple-platinum-2) likewise derives the title colour by contrast from the fill,
-not `hc.text`.
+## Decision & current status — SHIPPED: title = black (dimmed when inactive)
+The corpus check above settles it: **all six schemes draw a BLACK title**
+(dimmed grey when inactive). `renderWindow.ts` now just uses
+`state === 'inactive' ? '#808080' : '#000000'`, and `buildBaselineWindow`
+derives black/white by contrast from its (light) fill. We dropped THREE things
+that were each wrong:
+- **C — `headerColors.text`** (clut part-2): a frame tint (1984 → sky-blue).
+- **the "saturated cicn marker"** heuristic: it picked the saturated BAR colour,
+  not a title marker — **this is what made beos invisible** (gold `#ffcc00`
+  sampled → gold-on-gold) and would have mis-coloured 1990/evolution.
+- **the luminance-contrast** rule: it measured the dark frame, not the light
+  title plate the text actually sits on, so it wrongly WHITENED 1990/evolution.
 
-Verified against the corpus (measured title-bar dominant luminance → picked
-colour, vs. reference):
-- 1990 (lum 17) → white ✓, evolution (0) → white ✓
-- 1984 (plate ~138) → black ✓, beos (gold ~196) → black ✓, platinum (light) → black ✓
+Verified in the demo: 1984 / 1138 / platinum / beos / 1990 / evolution all show
+a black, readable title (beos black-on-gold now visible; 1990 black on its light
+plate; evolution black on the metal).
 
-So B reproduces the whole corpus at the standard 128 threshold; the fix was
-mainly *removing C* so the contrast fallback could win. Empirically the
-discriminator is clean (dark schemes ≤17, light ≥138), no threshold tuning
-needed.
+So both reported bugs (beos invisible, evolution white) had ONE root cause — the
+heuristics — and the constant-black rule is simpler, correct for the whole
+corpus, and matches the classic-Mac default.
 
-**Still open (lower priority):**
-- **Exact marker coordinate (full A)** — B can't reproduce a scheme that uses a
-  non-b/w title colour; only sampling the real marker can. The kDEF marker
-  coordinate isn't pinned (the `0x6582(0)` body rect's corners don't yield a
-  consistent text pixel across schemes; decompile truncated through
-  `0x6582`/`0xfc5c`). Resume by sampling candidate marker locations and matching
-  the references; ground truth in `kdef231-reference.md` §1.4 + the asm.
-- **beos title-text visibility** — beos pins the title into a narrow gold tab;
-  "Hello!" wasn't visibly rendered in the playground. This is a title-PLACEMENT
-  matter (titleRegion width for the tab), independent of this colour fix (which
-  only changed `fgHex`). Worth a separate look.
+**Still open (lower priority):** the exact kDEF marker coordinate (full faithful
+"A"), needed ONLY to support a scheme that draws a genuinely non-black title —
+none in the corpus does. The kDEF samples a marker pixel (`0x5530`; the
+`0x6582(0)` body-rect corners don't yield a consistent text pixel; decompile
+truncated through `0x6582`/`0xfc5c`). If a future scheme needs it, pin the
+coordinate empirically; ground truth in `kdef231-reference.md` §1.4 + the asm.

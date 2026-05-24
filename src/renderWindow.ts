@@ -80,42 +80,20 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour — derived at RUNTIME from the loaded scheme (see
-    // docs/tracking/title-text-color.md). We deliberately do NOT use
-    // `headerColors.text` (the -14335/-14336 clut part-2 entry): that's a
-    // frame/bevel tint, not the rendered title colour, and it's wrong for most
-    // schemes (1984 → sky-blue vs. BLACK on screen). The kDEF samples the title
-    // colour from a marker pixel in the cicn (kdef231-reference.md §1.4 `0x5530`),
-    // so we approximate that signal:
-    //   (1) a SATURATED cicn marker pixel near the title plate — catches a
-    //       scheme that bakes a genuinely coloured title (best-effort "option A";
-    //       the exact kDEF marker coordinate isn't pinned yet — the obvious rect
-    //       lands OOB for 1984, decompile truncated through 0x6582/0xfc5c);
-    //   (2) else a luminance-contrast b/w against the bar — readable for any
-    //       scheme ("option B"). This reproduces the whole corpus: dark bars
-    //       (1990/evolution, lum ≤17) → white; light bars (1984 plate ~138,
-    //       beos gold ~196, …) → black.
+    // Title colour. Every scheme in the corpus draws a BLACK title (active),
+    // dimmed when inactive — verified against the references for 1984, 1138,
+    // platinum, beos, 1990 AND evolution (all black; the scheme places the title
+    // on a light area of its bar). It is NOT `headerColors.text` (the clut part-2
+    // entry — a frame tint, wrong for most schemes). Two earlier heuristics were
+    // worse than this constant: a "saturated cicn marker" picked the saturated
+    // BAR colour (beos's gold → gold-on-gold, invisible), and a luminance-contrast
+    // wrongly whitened the dark schemes (it measured the dark frame, not the light
+    // title plate the text actually sits on). The faithful kDEF mechanism samples
+    // a marker pixel (kdef231-reference.md §1.4 `0x5530`) — needed only to support
+    // a genuinely COLOURED title; pinning that coordinate is still open
+    // (docs/tracking/title-text-color.md). Until then, black is correct here.
     const tr = composed.titleRegion;
-    let fgHex: string | null = null;
-    if (!fgHex && composed.titleFillSrcX >= 0) {
-      const mx = composed.titleFillSrcX;
-      let best: [number, number, number] | null = null;
-      let bestSat = 24; // require a real colour, not frame grey
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let y = 1; y < frame.top - 1; y++) {
-          const [r, g2, b, a] = cicn.getPixel(mx + dx, y);
-          if (a < 200) continue;
-          const sat = Math.max(r, g2, b) - Math.min(r, g2, b);
-          if (sat > bestSat) { bestSat = sat; best = [r, g2, b]; }
-        }
-      }
-      if (best) fgHex = `#${best.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
-    }
-    if (!fgHex) {
-      const [er, eg, eb] = dominantColor(composed.buffer, { x: tr.x, y: 1, w: Math.max(1, tr.w), h: frame.top - 2 });
-      const lum = 0.299 * er + 0.587 * eg + 0.114 * eb;
-      fgHex = lum < 128 ? '#ffffff' : '#000000';
-    }
+    const fgHex = state === 'inactive' ? '#808080' : '#000000';
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
     // The title text centres on the TITLE REGION — the reserved title-plate the
     // compositor places per the kDEF (0x4a64): centred in the bar when the recipe
@@ -401,27 +379,3 @@ function hexToRgb(hex: string): [number, number, number] {
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
-/**
- * The dominant (most frequent) fully-opaque color in a region of a
- * buffer. Used to recover a titlebar's fill BASE color from the
- * composited chrome — the fill dominates by area, stripes/ornament are
- * the minority, so the mode is the base. Colors are quantized to 4-bit
- * channels to fold near-identical shades together. Falls back to gray.
- */
-function dominantColor(buf: PixelBuffer, rect: { x: number; y: number; w: number; h: number }): [number, number, number] {
-  const counts = new Map<number, { n: number; r: number; g: number; b: number }>();
-  for (let y = rect.y; y < rect.y + rect.h; y++) {
-    for (let x = rect.x; x < rect.x + rect.w; x++) {
-      const [r, g, b, a] = buf.getPixel(x, y);
-      if (a < 255) continue;
-      const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
-      const e = counts.get(key);
-      if (e) { e.n++; e.r += r; e.g += g; e.b += b; }
-      else counts.set(key, { n: 1, r, g, b });
-    }
-  }
-  let best: { n: number; r: number; g: number; b: number } | null = null;
-  for (const e of counts.values()) if (!best || e.n > best.n) best = e;
-  if (!best) return [204, 204, 204];
-  return [Math.round(best.r / best.n), Math.round(best.g / best.n), Math.round(best.b / best.n)];
-}
