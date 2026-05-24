@@ -102,26 +102,41 @@ and unconditional branch in that range targets a *higher* address (verified:
 resource (`dbf %d4` at `0x1702`, top `0x16f4`) lives in the **`wGrow`** handler,
 not the frame drawer. So the fine horizontal pinstripe is produced by a **single
 pattern-tiled `FillRect`** (`0xa8a5` @ `0x5d0`), with the stripe texture carried
-as the explicit 8-byte `Pattern` argument (`fp@(-316)`, a copy of the runtime
-window-struct field `+58`) — not drawn line by line. (There is **no `PaintRect`
+as the explicit 8-byte `Pattern` argument (`fp@(-316)`) — a **code-baked** pattern
+built into that local by `StuffHex` (`0xa866` @ `0x4ac`) from the Pascal hex string
+`"AA00AA00AA00AA00"` at file-offset `0x8f2`, **not** a copy of window-struct field
+`+58` — not drawn line by line. (There is **no `PaintRect`
 `0xa8a2` anywhere in the resource**; `grep -c a8a2` → 0.)
 
-### Where the pinstripe pattern comes from (preamble, `0xc6`–`0xe2`)
+### Where the pinstripe pattern comes from (the title tile is code-baked)
 
-The shared message preamble installs the patterns once, before any handler runs:
+The title-fill tile passed to `FillRect` @ `0x5d0` is **not** any window-struct
+field. It is **baked into the code** and built into the local `fp@(-316)` just
+before the fill:
+
+- `0x4a4`–`0x4ac`: `pea fp@(-316)` / `pea pc@(0x8f2)` / `StuffHex` (`0xa866` @
+  `0x4ac`) writes the 8 bytes `AA 00 AA 00 AA 00 AA 00` into `fp@(-316)` from the
+  Pascal hex string `"AA00AA00AA00AA00"` at file-offset `0x8f2`.
+- `0x4ae`–`0x536`: title-rect parity (`andl #1` / `andl #8`) drives a conditional
+  `notb` (`0x4e6`) and `lsrl #8` (`0x532`) that **phase-align** `fp@(-316)` so the
+  stipple stays seamless across the rect's screen position.
+
+The shared message preamble *also* installs two `Pattern`s once, but these are
+the **pen** and **back** patterns for strokes/erases — **not** the title fill
+tile:
 
 - `0xc6`–`0xd0`: `moveal fp@(-44),a0` / `addal #58,a0` / `movel a0,sp@-` then
-  `PenPat` (`0xa89d` @ `0xd0`) — sets the **pen pattern** from field **`+58`** of
-  the local record copy `fp@(-44)` (an 8-byte `Pattern`, the Platinum title
-  texture / 1-px pinstripe).
+  `PenPat` (`0xa89d` @ `0xd0`) — sets the **pen pattern** (used by stroking ops
+  like `LineTo`/`FrameRect`) from field **`+58`** of the **port-snapshot** copy
+  `fp@(-44)`. This is the *pen* texture, not the `FillRect` tile.
 - `0xd2`–`0xdc`: `moveal fp@(-44),a0` / `addal #32,a0` / `movel a0,sp@-` then
   `BackPat` (`0xa87c` @ `0xdc`) — sets the **back pattern** from field **`+32`**.
 
-(`fp@(-44)` is the working window/aux record copy built earlier in the message
-preamble; fields `+58`/`+32` are copied in from the source record.) The same
-`Pattern` at field `+58` is the one passed explicitly to the title-fill
-`FillRect` at `0x5d0` (via the `fp@(-316)` copy) — that `Pattern` *is* the
-pinstripe.
+(Do not conflate the two roles of "field +58": the port-snapshot `fp@(-44)+58`
+above is an 8-byte *pen* `Pattern`, while the color-table `a3@+58` used later
+(`blend(a3@+50, a3@+58, 8)` @ `0x5b4` → `RGBForeColor` @ `0x5c0`) is an
+*RGBColor* fed as a fore-blend input. Neither is the title fill tile — that tile
+is the code-baked `AA00AA00AA00AA00` stipple in `fp@(-316)`.)
 
 ### The title-rect fill itself (`0x392`–`0x5e8`)
 
@@ -131,23 +146,29 @@ pinstripe.
    (`0x3be`: `(-352)-(-356)`) and width `d6` (`0x3c8`: `(-350)-(-354)`).
 2. **Pen size 1×1** at `0x53a`–`0x542` (`PenSize(1,1)`, `0xa89b` @ `0x542`) — a
    one-pixel pen, consistent with a 1-px pinstripe period.
-3. **Active vs inactive split** at `0x544`–`0x55a`: `jsr 0x310` measures the
-   window's active state; `bge 0x570` takes the **active** path. The **inactive**
-   path (`0x55c`–`0x56c`) does a pattern-tiled `FillRect` (`0xa8a5` @ `0x564`) of
-   the title rect `fp@(-356)` with the `Pattern fp@(-316)`, then a 1-px
-   `FrameRect` (`0xa8a1` @ `0x56a`) of `fp@(-356)`, then `bra 0x694` (no pinstripe
-   colors toggled — it tiles the same pattern in the default port colors).
-4. **Active fill** at `0x570`–`0x5e6`:
-   - `0x588` `jsr 0x1356` blends two RGBColors (struct `+66` and `+74`) weighted
-     by the active level → into the temp at `fp@(-16)`, then `RGBBackColor`
+3. **Screen-depth split** at `0x544`–`0x55a`: if the color table `a3` is null →
+   flat fallback `0x55c`; else `jsr 0x310` (= `GetMaxDevice` depth probe, see T6),
+   `cmpl #8`, `bge 0x570` takes the **deep-color path (≥8-bit screen + color
+   table)**. This is **not** an active/inactive test — there is no active/inactive
+   branch anywhere in the draw routine `0x392`–`0x8ec`; the Window Manager swaps
+   the color-table values per hilite state and re-issues `wDraw`. The **shallow /
+   no-color-table flat fallback** (`0x55c`–`0x56c`) does a pattern-tiled `FillRect`
+   (`0xa8a5` @ `0x564`) of the title rect `fp@(-356)` with the `Pattern fp@(-316)`,
+   then a 1-px `FrameRect` (`0xa8a1` @ `0x56a`) of `fp@(-356)`, then `bra 0x694`
+   (no blended colors, no bevel — it tiles the same baked pattern in the default
+   port colors).
+4. **Deep-color fill** at `0x570`–`0x5e6`:
+   - `0x588` `jsr 0x1356` blends two RGBColors (color-table `+66` and `+74`,
+     weight 1) → into the temp at `fp@(-16)`, then `RGBBackColor`
      (`0xaa15` @ `0x594`) sets it as the **back color**; `EraseRect` (`0xa8a3` @
      `0x59a`) clears the title rect `fp@(-356)` to that back color.
    - `0x5b4` `jsr 0x1356` blends struct `+50` with `+58` (weight 8) → fed to
      **`RGBForeColor`** (`0xaa14` @ **`0x5c0`**) = **fore-color slot A**, then
      `PenMode(9)` (`patOr`, `0xa89c` @ `0x5c6`).
    - `0x5d0` **`FillRect(fp@(-356), pattern fp@(-316))`** (`0xa8a5`) — **THE
-     patterned pinstripe fill**: tiles the 8-byte `Pattern fp@(-316)` (the field
-     `+58` texture) across the whole title rect in the current fore/back colors.
+     patterned pinstripe fill**: tiles the 8-byte `Pattern fp@(-316)` (the
+     code-baked `AA00AA00AA00AA00` stipple from `StuffHex` @ `0x4ac`) across the
+     whole title rect in the current fore/back colors.
    - `0x5da` **`RGBForeColor`** (`0xaa14` @ **`0x5da`**) loads the color at struct
      **`+18`** = **fore-color slot B**, then `PenMode(8)` (`patCopy`, `0xa89c` @
      `0x5e0`).
@@ -157,11 +178,11 @@ pinstripe.
 ### How the two stripe colors alternate
 
 There is **no parity test on a loop counter** (no `btst #0` / `andiw #1` gating a
-stripe index — the `andl #8`/`andl #1` tests at `0x440`/`0x4ba`/`0x4fe` select the
-*active/highlighted* variant, not stripe parity). Instead the alternation is
-**baked into the `Pattern`**: the two stripe colors are the port's **fore vs
-back color**, and the `Pattern`'s set/clear bits map fore↔back as `FillRect`
-tiles it. The frame sets:
+stripe index — the `andl #8`/`andl #1` tests at `0x4ba`/`0x4fe` instead **phase-
+align** the code-baked tile to the title rect's position, not select a stripe
+parity). Instead the alternation is **baked into the `Pattern`**: the two stripe
+colors are the port's **fore vs back color**, and the `Pattern`'s set/clear bits
+map fore↔back as `FillRect` tiles it. The frame sets:
 
 - **back color** ← blend(struct `+66`, struct `+74`) via `RGBBackColor` @ `0x594`
 - **fore color slot A** ← blend(struct `+50`, struct `+58`) via `RGBForeColor` @
@@ -170,8 +191,9 @@ tiles it. The frame sets:
   the fill, in force only for the `FrameRect` border @ `0x5e6`)
 
 So the visible pinstripe alternates between the **fore-color slot A at `0x5c0`**
-and the **back-color set at `0x594`**, modulated through the **`Pattern` from
-struct `+58`** that `FillRect` @ `0x5d0` tiles. The later `0x5da` fore-color +
+and the **back-color set at `0x594`**, modulated through the **code-baked
+`AA00AA00AA00AA00` `Pattern`** that `FillRect` @ `0x5d0` tiles. The later `0x5da`
+fore-color +
 `PenMode(8)` step re-colors the pen only for the 1-px `FrameRect` outline at
 `0x5e6`, not for the fill. (Resolving the literal RGB values at struct
 `+18`/`+50`/`+58`/`+66`/`+74` is Task 6.)
@@ -180,37 +202,38 @@ struct `+58`** that `FillRect` @ `0x5d0` tiles. The later `0x5da` fore-color +
 
 ```
 # preamble (once per message), 0xc6..0xe2:
-pat58 = rec[+58]                # 8-byte Pattern = the pinstripe texture (via fp@(-44))
-PenPat (pat58)                  # 0xd0
-BackPat(rec[+32])               # 0xdc
+PenPat (port[+58])              # 0xd0  pen pattern (strokes), from port-snapshot fp@(-44)+58
+BackPat(port[+32])              # 0xdc  back pattern
 
 # whole-frame draw, 0x392..0x5e8:
 titleRect = computeTitleRect(varCode, window)   # jsr 0xf38 -> fp@(-356)
+StuffHex(fp@(-316), "AA00AA00AA00AA00")          # 0x4ac  bake the title tile into fp@(-316)
+phaseAlign(fp@(-316), titleRect parity)          # 0x4ae..0x536  notb/lsr keep stipple seamless
 PenSize(1, 1)                                    # 0x542
-if not active:                                   # bge 0x570 fails
-    FillRect(titleRect, fp@(-316))               # 0x564  <-- patterned fill
-    FrameRect(titleRect)                         # 0x56a  1-px border
-else:
-    backCol  = blend(field[+66], field[+74], level)   # 0x588
+if colorTable == NULL or GetMaxDevice(title) < 8:    # bge 0x570 fails  (shallow / no-CT fallback)
+    FillRect(titleRect, fp@(-316))               # 0x564  <-- patterned fill (baked AA00 tile)
+    FrameRect(titleRect)                         # 0x56a  1-px border  (no bevel)
+else:                                                # deep-color path: >=8-bit screen + color table
+    backCol  = blend(ct[+66], ct[+74], 1)             # 0x588
     RGBBackColor(backCol)                              # 0x594  -> stripe color B
     EraseRect(titleRect)                               # 0x59a  clear to backCol
-    foreA    = blend(field[+50], field[+58], 8)        # 0x5b4
+    foreA    = blend(ct[+50], ct[+58], 8)              # 0x5b4  (ct[+58] is a COLOR, not the tile)
     RGBForeColor(foreA); PenMode(patOr)                # 0x5c0 / 0x5c6  -> stripe color A
-    FillRect(titleRect, fp@(-316))                     # 0x5d0  <-- THE patterned pinstripe fill (pattern = field[+58])
-    RGBForeColor(field[+18]); PenMode(patCopy)         # 0x5da / 0x5e0  (recolors pen for border only)
+    FillRect(titleRect, fp@(-316))                     # 0x5d0  <-- THE patterned pinstripe fill (baked AA00 tile)
+    RGBForeColor(ct[+18]); PenMode(patCopy)            # 0x5da / 0x5e0  (recolors pen for border only)
     FrameRect(titleRect)                               # 0x5e6  1-px title-bar border outline
 ```
 
 ### Period / span / cross-check
 
-- **Period:** the period is **carried by the 8-byte `Pattern` at struct `+58`**
-  (passed to `FillRect` @ `0x5d0` as `fp@(-316)`), not by an `addqw #N` in a loop
-  (there is no loop). With `PenSize(1,1)`, a classic Platinum-style alternating-row
-  pattern yields the expected **1-px** pinstripe period. **Could-not-pin from code
-  alone:** the exact period is a property of the pattern *bits* (a runtime resource
-  value), so the disassembly cannot prove "1 px" — it only proves the texture is a
-  `Pattern` tiled by `FillRect`. This is recorded as an open question for Task 6
-  (decode the actual `+58` pattern bytes / `ppat`).
+- **Period: now pinned from the baked bytes.** The tile is the **code-baked**
+  8-byte `Pattern` `AA 00 AA 00 AA 00 AA 00` (built into `fp@(-316)` by `StuffHex`
+  @ `0x4ac`, passed to `FillRect` @ `0x5d0`), not a runtime resource value and not
+  an `addqw #N` loop (there is no loop). The 8 rows are: odd rows = `0xAA`
+  (`10101010` — fore at even columns), even rows = `0x00` (all back). That is a
+  **2-row vertical period** stipple (fore-row / back-row), tiled in the fore/back
+  colors and phase-aligned per title-rect parity (`0x4ae`–`0x536`). With
+  `PenSize(1,1)` this reads as the classic fine Platinum title pinstripe.
 - **Y span:** the full title-bar height — `titleRect` top→bottom = `fp@(-356)`→
   `fp@(-352)` (height in `d5`), as produced by `jsr 0xf38`.
 - **X span:** the full title-bar width — `fp@(-354)`→`fp@(-350)` (width in `d6`);
@@ -282,7 +305,9 @@ read raised against the desktop.
 
 ### Stroke 3 — title-rect raised bevel (LineTo cluster, `0x60c`–`0x684`)
 
-Runs on the **active** path only (it sits after the `bge 0x570` active branch).
+Runs on the **deep-color path only** (it sits after the `bge 0x570` deep-color
+branch — ≥8-bit screen + color table; the bevel is **skipped** on the shallow /
+no-color-table flat fallback, see T3).
 `InsetRect(titleRect, 1, 1)` (`0x60c`) shrinks the title rect 1 px on every side,
 then two 2-segment polylines trace it in **two different colors** — the actual
 bevel:
@@ -335,7 +360,7 @@ if varCode & 8 == 0:                       # top-titlebar
 else:                                      # side-titlebar: subtract titleW from left
     ...mirror...                                     # 0x474..0x49a
 
-# title-rect bevel (active path only), 0x60c..0x686
+# title-rect bevel (deep-color path only; skipped on shallow fallback), 0x60c..0x686
 InsetRect(title, 1, 1)                     # 0x60c  shrink 1px
 RGBForeColor(blend(aux[+74],  aux[+98], 0))          # 0x60a  highlight color
 MoveTo(title.left,    title.bottom-1)                # 0x626
@@ -891,7 +916,7 @@ test — it is a screen bit-depth probe**, and the `bge 0x570` branch it gates i
 `0x352`) to find the deepest `GDevice` intersecting the title bar. It reads that
 device's `PixMap.pixelSize` (`+32`) and returns a **bit-depth bucket**:
 
-- no device → **1**
+- no device → **0** (`moveq #0` @ `0x35c`; behaviorally still the shallow path)
 - `pixelSize < 4` (1/2-bit) → **1**
 - `pixelSize < 8` (4-bit) → **4**
 - else (≥ 8-bit) → **8**
