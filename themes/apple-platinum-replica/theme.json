@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
-  "generatedAt": "2026-05-24T20:29:29.678Z",
+  "generatedAt": "2026-05-24T20:34:26.642Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum (replica)",
   "author": {
@@ -1777,6 +1777,30 @@
       "textAnchor": null,
       "embossAnchor": null,
       "sourceCicnId": -10129,
+      "sourceCinfId": null
+    },
+    "right-pointing-disclosure-triangle": {
+      "asset": "cicns/cicn-disclosure-right.png",
+      "width": 7,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9990,
+      "sourceCinfId": null
+    },
+    "down-pointing-disclosure-triangle": {
+      "asset": "cicns/cicn-disclosure-down.png",
+      "width": 12,
+      "height": 7,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -9991,
       "sourceCinfId": null
     }
   }

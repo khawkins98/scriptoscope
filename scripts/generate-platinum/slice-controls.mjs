@@ -101,6 +101,36 @@ function buildSlider(srcDir, destDir, cache) {
   return out;
 }
 
+// Disclosure triangles (composeDisclosure looks them up by KEY name, not id).
+// Slice the real beveled right-triangle from #22 ("> Time remaining"), alpha =
+// non-background; derive the down triangle by a 90deg CW rotation.
+const DISCLOSURE = { src: 'progress-dialog-copy-desktop.png', rect: [52, 120, 7, 12] };
+
+function buildDisclosure(srcDir, destDir, cache) {
+  const im = (cache[DISCLOSURE.src] ??= decodePng(readFileSync(resolve(srcDir, 'sources', DISCLOSURE.src))));
+  const [x, y, w, h] = DISCLOSURE.rect;
+  const right = new Uint8Array(w * h * 4);
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+    const si = ((y + yy) * im.width + (x + xx)) * 4, di = (yy * w + xx) * 4;
+    const lum = 0.3 * im.rgba[si] + 0.59 * im.rgba[si + 1] + 0.11 * im.rgba[si + 2];
+    const g = Math.round(lum); // desaturate: Platinum disclosure is neutral gray, not the slice's blue tint
+    right[di] = g; right[di + 1] = g; right[di + 2] = g;
+    right[di + 3] = lum < 214 ? 255 : 0; // drop the light dialog background
+  }
+  writeFileSync(resolve(destDir, 'cicns/cicn-disclosure-right.png'), encodePng(w, h, right));
+  // down = rotate right 90deg CW: (x,y) -> (h-1-y, x), new size (h x w)
+  const dw = h, dh = w, down = new Uint8Array(dw * dh * 4);
+  for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+    const si = (yy * w + xx) * 4, di = (xx * dw + (h - 1 - yy)) * 4;
+    down[di] = right[si]; down[di + 1] = right[si + 1]; down[di + 2] = right[si + 2]; down[di + 3] = right[si + 3];
+  }
+  writeFileSync(resolve(destDir, 'cicns/cicn-disclosure-down.png'), encodePng(dw, dh, down));
+  return {
+    'right-pointing-disclosure-triangle': chromeEl('cicns/cicn-disclosure-right.png', w, h, -9990),
+    'down-pointing-disclosure-triangle': chromeEl('cicns/cicn-disclosure-down.png', dw, dh, -9991),
+  };
+}
+
 /**
  * Slice the control glyphs into destDir/cicns and return chromeElements to merge.
  * @returns {{ sliced: Record<string, object>, count: number }}
@@ -126,5 +156,6 @@ export function sliceControls(srcDir, destDir) {
   }
   Object.assign(sliced, buildProgress(srcDir, destDir, cache));
   Object.assign(sliced, buildSlider(srcDir, destDir, cache));
+  Object.assign(sliced, buildDisclosure(srcDir, destDir, cache));
   return { sliced, count: Object.keys(sliced).length };
 }
