@@ -88,11 +88,21 @@ export interface WindowType {
   model?: 'sliced' | 'corner-sprite';
   /**
    * Sprite cicns the corner-sprite model tiles/stamps (bundle-relative PNG
-   * paths). `pinstripe` is the title-bar fill cicn (-14331, the
-   * `document-racing-stripes`); `growBox` is the bottom-right size box
-   * (-14330, `active-grow-box`). Only read when `model === 'corner-sprite'`.
+   * paths). `pinstripe` is the title-bar fill cicn (e.g. -14331
+   * `document-racing-stripes`, -14321 alert, -14325 dialog, -14314 utility) —
+   * ABSENT for title-LESS frames (alert/dialog/no-title utility), which draw
+   * only the frame ring. `growBox` is the bottom-right size box (-14330
+   * `active-grow-box`, or -14313 for utility). Only read when
+   * `model === 'corner-sprite'`.
    */
-  sprites?: { pinstripe: string; growBox?: string };
+  sprites?: { pinstripe?: string; growBox?: string };
+  /**
+   * Title-bar widget glyphs for the corner-sprite model, left→right (`close`
+   * anchors left, `collapse`/`zoom` anchor right). Absent ⇒ the document set
+   * [close, collapse, zoom]. Empty ⇒ no widgets (side/no-title utility).
+   * Only read when `model === 'corner-sprite'`.
+   */
+  widgets?: ('close' | 'collapse' | 'zoom')[];
 }
 
 export interface ChromeElement {

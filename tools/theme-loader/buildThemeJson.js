@@ -163,41 +163,68 @@ export function buildThemeJson(manifest, options = {}) {
   }
 
   // ─── Corner-sprite windows (look-only Platinum schemes) ───────────────
-  // Some schemes ship the document-window CORNER cicns + the pinstripe / grow-
-  // box sprites but NO wnd# side-recipe (apple-platinum-2, platinum-8,
+  // Some schemes ship the window CORNER cicns + the per-type racing-stripe /
+  // grow-box sprites but NO wnd# side-recipe (apple-platinum-2, platinum-8,
   // system7-nostalgia-silver) — so the loop above emitted zero windowTypes and
   // the runtime falls back to the apple-platinum-replica base. These windows are
   // the classic Platinum WDEF corner-sprite + procedural model (the frame is
   // code-driven, not sliced — see docs/spec/platinum-wdef125-decode.md), so we
-  // synthesize a `document-window` type that the corner-sprite compositor draws
-  // from the scheme's OWN sprites:
-  //   chrome.active   = active-document cicn (-14332)
-  //   chrome.inactive = inactive-document cicn (-14336)
-  //   sprites.pinstripe = document-racing-stripes cicn (-14331)
-  //   sprites.growBox   = active-grow-box cicn (-14330)
-  // part-0 stores the frame THICKNESSES directly (left, top, right, bottom) —
-  // Platinum's fixed 1px-sides / 19px-top frame. Only when no wnd# produced a
-  // windowType (a scheme WITH a wnd# recipe uses the faithful sliced path).
+  // synthesize them from the scheme's OWN sprites instead.
+  //
+  // CORNER_SPRITE_WINDOWS is the per-type recipe table (the generalization of
+  // the original single hardcoded document-window). Each row maps a canonical
+  // window slug to the Kaleidoscope cicn ids that dress it:
+  //   active/inactive  the corner cicns (role markers — wndId+0 inactive,
+  //                    wndId+1 active by the WDEF id convention)
+  //   pinstripe        the racing-stripe title-bar fill cicn, or null for a
+  //                    title-LESS frame (alert/dialog/no-title utility)
+  //   growBox          the size-box cicn, or null (only resizable windows)
+  //   titleH           title-bar height px (0 ⇒ title-less, just the 1px ring)
+  //   widgets          title-bar widget glyphs (close left, collapse/zoom right)
+  //   collapsed        title-bar-only window (no body) — reuses the parent's
+  //                    chrome + title bar with a 0-height body
+  // Only runs when no wnd# produced a windowType (a scheme WITH a real recipe
+  // uses the faithful sliced path).
   if (Object.keys(windowTypes).length === 0) {
-    const active = byTypeAndId['cicn:-14332'];     // "active document"
-    const inactive = byTypeAndId['cicn:-14336'];   // "inactive document"
-    const pinstripe = byTypeAndId['cicn:-14331'];  // "document racing stripes"
-    const growBox = byTypeAndId['cicn:-14330'];    // "active grow box"
-    if (active && inactive && pinstripe) {
-      const chrome = {};
-      chrome.active = active.file;
-      chrome.inactive = inactive.file;
-      const sprites = { pinstripe: pinstripe.file };
-      if (growBox) sprites.growBox = growBox.file;
-      windowTypes['document-window'] = {
+    // Resolve a row to PNG files; skip the row if its corner cicns are absent.
+    const cicnFile = (id) => byTypeAndId[`cicn:${id}`]?.file ?? null;
+    // Side-utility ships no own pinstripe (-14318 is absent in the corpus); it
+    // reuses the utility racing-stripes (-14314). The table notes the fallback.
+    for (const row of CORNER_SPRITE_WINDOWS) {
+      const activeFile = cicnFile(row.active);
+      const inactiveFile = cicnFile(row.inactive) ?? activeFile;
+      if (!activeFile) continue; // no corner cicn for this type → can't draw it
+
+      // Title-less frames carry NO pinstripe. Titled types need their stripe
+      // sprite present; if the stripe is missing we still draw a plain bar
+      // (the header fill) rather than dropping the type, but record null.
+      const pinstripeFile = row.pinstripe != null ? cicnFile(row.pinstripe) : null;
+      const growFile = row.growBox != null ? cicnFile(row.growBox) : null;
+
+      const sprites = {};
+      if (pinstripeFile) sprites.pinstripe = pinstripeFile;
+      if (growFile) sprites.growBox = growFile;
+
+      // part-0 = frame thicknesses [left, top, right, bottom]. The top inset is
+      // the title-bar height + the 1px bottom-of-bar rule for titled types, or
+      // 1px (just the frame band) for title-less / collapsed-title-less. The
+      // compositor treats part-0.rect as the four thicknesses directly.
+      const top = row.titleH > 0 ? row.titleH : 1;
+      // Collapsed windows are the title bar only — a 0-height body. We still give
+      // them a part-0 so the compositor frames them; the renderer passes a small
+      // content height. Nothing special needed here beyond the title height.
+      const wt = {
         model: 'corner-sprite',
-        chrome,
-        // part-0 = frame thicknesses [left, top, right, bottom]: the fixed
-        // Platinum 1px ring with a 19px title bar (WDEF 125 §"Frame & bevel").
-        parts: { 'part-0': { rect: [1, 19, 1, 1] } },
-        sprites,
+        chrome: { active: activeFile, inactive: inactiveFile },
+        parts: { 'part-0': { rect: [1, top, 1, 1] } },
         cinf: null,
       };
+      if (Object.keys(sprites).length) wt.sprites = sprites;
+      // Only emit `widgets` when it differs from the compositor default
+      // ([close,collapse,zoom]) so the document-window row stays byte-identical
+      // to the prior single-type output (which omitted the field).
+      if (row.widgets) wt.widgets = row.widgets;
+      windowTypes[row.slug] = wt;
     }
   }
 
@@ -369,6 +396,53 @@ function uniquePatternSlug(existing, slug) {
  * (mass:werk 7 Le, ErgoBox, 1138, Big Blue) — every observed
  * name → ID pairing follows these conventions.
  */
+/**
+ * Corner-sprite window recipe table (the Platinum WDEF model, for look-only
+ * schemes with no wnd# recipe — apple-platinum-2 et al). One row per canonical
+ * window slug; the compositor (src/composeCornerSprite.ts) draws each from the
+ * scheme's OWN cicns. ids are the Kaleidoscope window-chrome convention:
+ *   active/inactive = the corner cicns; pinstripe = the racing-stripe title fill
+ *   (null ⇒ title-less frame); growBox = the size-box cicn (null ⇒ fixed size).
+ *   titleH = title-bar height px (0 ⇒ title-less); widgets = title-bar glyphs
+ *   (null ⇒ the compositor default [close,collapse,zoom]; [] ⇒ none).
+ *   collapsed = title-bar-only (no body).
+ *
+ * Title heights track the apple-platinum-replica geometry per slug
+ * (scripts/generate-platinum/window-types.mjs titleBarHeight): document 19/20,
+ * movable-modal/alert 16, utility 11.
+ *
+ * MAPPING NOTES (apple-platinum-2's inventory; see the task brief):
+ *   • alert/dialog are title-LESS (titleBarHeight 0) framed boxes → pinstripe
+ *     null; their racing-stripe sprites (-14321/-14325) instead dress the TITLED
+ *     movable variants (movable-alert / movable-modal), which share the alert/
+ *     dialog corner cicns + a real title bar.
+ *   • side-utility ships NO own pinstripe (-14318 is absent in the corpus) — it
+ *     reuses the utility racing-stripes (-14314).
+ *   • no-title-utility has no dedicated corner cicn (-14288 absent) → reuse the
+ *     utility corner cicn (-14316) as a title-less frame.
+ *   • popup-window (-12320) and collapsed-no-title-utility are NOT in this table
+ *     — see the comment after it.
+ */
+const CORNER_SPRITE_WINDOWS = [
+  // slug, corner cicns, pinstripe, growBox, titleH, widgets, collapsed
+  { slug: 'document-window',            active: -14332, inactive: -14336, pinstripe: -14331, growBox: -14330, titleH: 19, widgets: null,       collapsed: false },
+  { slug: 'collapsed-document-window',  active: -14332, inactive: -14336, pinstripe: -14331, growBox: null,   titleH: 19, widgets: null,       collapsed: true  },
+  { slug: 'dialog',                     active: -14326, inactive: -14328, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
+  { slug: 'alert',                      active: -14322, inactive: -14324, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
+  { slug: 'movable-modal',              active: -14326, inactive: -14328, pinstripe: -14325, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
+  { slug: 'movable-alert',              active: -14322, inactive: -14324, pinstripe: -14321, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
+  { slug: 'titled-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: -14313, titleH: 11, widgets: ['close'],  collapsed: false },
+  { slug: 'collapsed-titled-utility',   active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close'],  collapsed: true  },
+  { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null, titleH: 11, widgets: [],         collapsed: false },
+  { slug: 'collapsed-side-utility',     active: -14315, inactive: -14319, pinstripe: -14314, growBox: null,   titleH: 11, widgets: [],         collapsed: true  },
+  { slug: 'no-title-utility-window',    active: -14316, inactive: -14320, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
+  // NOT mapped (fall back to the apple-platinum-replica base):
+  //   • collapsed-no-title-utility — a title-LESS collapsed window is neither a
+  //     title bar nor a body, just an empty 1px frame; nothing meaningful to draw.
+  //   • popup-window (-12320/-12319) — those cicns are popup-MENU art (46×38 /
+  //     34×28), not a window corner marker, so the corner-sprite model doesn't fit.
+];
+
 const CANONICAL_WNDTYPE_SLUGS = {
   '-14336': 'document-window',
   '-14335': 'document-window', // active variant (some schemes use as the wnd# ID)

@@ -91,14 +91,16 @@ export async function renderWindow(
   // their own sprites. Isolated, self-contained branch; the sliced path below
   // is unchanged.
   let composed;
-  if (wt.model === 'corner-sprite' && wt.sprites) {
-    const pinstripe = await loadCicnBuffer(assetUrl(owner, wt.sprites.pinstripe));
-    const growBox = wt.sprites.growBox
+  if (wt.model === 'corner-sprite') {
+    const pinstripe = wt.sprites?.pinstripe
+      ? await loadCicnBuffer(assetUrl(owner, wt.sprites.pinstripe))
+      : null;
+    const growBox = wt.sprites?.growBox
       ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
       : null;
     const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
-      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx,
+      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets,
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });

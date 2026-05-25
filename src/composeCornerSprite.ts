@@ -19,16 +19,27 @@ import {
 // /tmp/kaleido-trace/kdef231_decomp.c. The Platinum frame is PROCEDURAL, not
 // sliced from a corner bitmap:
 //
-//   • Title bar  = the `document-racing-stripes` cicn (-14331, 16×13 pinstripe)
-//                  TILED across the title rect (anchored top, clipped to the
-//                  title height).                          [WDEF 125 §0x5d0]
+//   • Title bar  = a per-type racing-stripe cicn (e.g. -14331 document, -14321
+//                  alert, -14325 dialog, -14314 utility — each 16×13 / 9×9) TILED
+//                  across the title rect (anchored top, clipped to the title
+//                  height). OMITTED for title-LESS frames (alert/dialog/no-title
+//                  utility): those draw only the ring.       [WDEF 125 §0x5d0]
 //   • Frame      = a 1px arithmetic ring in the header `frame` colour: top edge
-//                  is the title-bar height (≈19px), sides/bottom 1px. [§0x434]
-//   • Widgets    = ~7×7 beveled squares: close at title.left+4, zoom + collapse
-//                  right-aligned (~7px apart).  [§0x1018 / §0x110e / §0x11fc]
-//   • Grow box   = the `active-grow-box` cicn (-14330, 17×17) stamped at the
-//                  bottom-right, over the frame.            [wGrow §0x1244]
+//                  is the title-bar height (≈19/16/11px) or 1px when title-less;
+//                  sides/bottom 1px.                          [§0x434]
+//   • Widgets    = ~7×7 beveled squares, a PER-TYPE set (opts.widgets): document
+//                  = close + collapse + zoom; movable-modal/movable-alert/titled-
+//                  utility = close only; side/no-title = none. close at
+//                  title.left+4, collapse/zoom right-aligned (~7px apart).
+//                                            [§0x1018 / §0x110e / §0x11fc]
+//   • Grow box   = the `active-grow-box` cicn (-14330 / utility -14313, 16-17px)
+//                  stamped at the bottom-right, over the frame.   [wGrow §0x1244]
 //   • Body       = a transparent hole inside the frame (real DOM shows through).
+//
+// Drives every apple-platinum-2 window TYPE (document, alert, dialog, movable-
+// modal/alert, titled/side/no-title utility + their collapsed variants) from the
+// scheme's OWN sprites; the per-type recipe (slug, sprite ids, title height,
+// title-less flag, widget set) is the table in buildThemeJson.js.
 //
 // Returns the SAME `ComposedChrome` shape composeWindowChrome returns, so
 // renderWindow.ts's downstream (canvas blit, title text, content inset) is
@@ -36,8 +47,10 @@ import {
 // ───────────────────────────────────────────────────────────────────────────
 
 export interface CornerSpriteOptions {
-  /** The pinstripe title-bar fill cicn (-14331), tiled across the title rect. */
-  pinstripe: PixelBuffer;
+  /** The pinstripe title-bar fill cicn (-14331), tiled across the title rect.
+   *  Omit (null/undefined) for a title-LESS frame (alert/dialog/no-title
+   *  utility): no pinstripe bar is drawn, just the 1px frame ring. */
+  pinstripe?: PixelBuffer | null;
   /** The grow-box cicn (-14330), stamped bottom-right. Omit to skip it. */
   growBox?: PixelBuffer | null;
   /** Header frame colour (theme.headerColors.<state>.frame). The 1px ring +
@@ -49,6 +62,11 @@ export interface CornerSpriteOptions {
   /** Measured title-text width (px) — reported as the title region for the
    *  centred title, mirroring composeWindowChrome's contract. */
   titleWidthPx?: number | undefined;
+  /** Which widget glyphs sit in the title bar, left→right. `close` anchors at
+   *  the left; `collapse`/`zoom` anchor right (zoom outermost). Defaults to the
+   *  document set [close, collapse, zoom] so the existing render is unchanged.
+   *  Empty ⇒ no widgets (utility/side palettes). */
+  widgets?: ('close' | 'collapse' | 'zoom')[] | undefined;
 }
 
 /** `#rgb` / `#rrggbb` → [r,g,b,255]; falls back to mid grey. */
@@ -110,7 +128,14 @@ export function composeCornerSpriteChrome(
 
   const ringRgba = hexToRgba(opts.frameColor, [85, 85, 85]); // #555
   const faceRgba = hexToRgba(opts.fillColor, [221, 221, 221]); // #ddd
-  const titleH = frame.top; // top inset == title-bar height (≈19)
+  const titleH = frame.top; // top inset == title-bar height (≈19, or 1 if title-less)
+
+  // A real, paintable title BAR needs both a pinstripe sprite AND a top inset
+  // tall enough to be a bar (not the 1px frame band of a title-less alert/dialog
+  // /no-title-utility). Title-less frames draw only the 1px ring (no pinstripe,
+  // no under-line, no widgets) — the WDEF model for those window classes.
+  const hasTitleBar = !!opts.pinstripe && titleH >= 6;
+  const widgets = opts.widgets ?? ['close', 'collapse', 'zoom'];
 
   const placement: PlacementSlice[] = [];
 
@@ -121,9 +146,9 @@ export function composeCornerSpriteChrome(
   // sprite carries and leaving the residual band to the (later) frame/face.
   // First lay the header fill behind it so the gap below the 13px sprite reads
   // as the bar background rather than transparent.
-  if (titleH > 0 && fullW > 0) {
+  if (hasTitleBar && fullW > 0) {
     out.fillRect({ x: 0, y: 0, w: fullW, h: titleH }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
-    const pin = opts.pinstripe;
+    const pin = opts.pinstripe!;
     if (pin.width > 0 && pin.height > 0) {
       for (let dy = 0; dy < titleH; dy += pin.height) {
         const hh = Math.min(pin.height, titleH - dy);
@@ -154,8 +179,9 @@ export function composeCornerSpriteChrome(
     out.fillRect({ x: rect.x + rect.w - 1, y: rect.y, w: 1, h: rect.h }, ringRgba[0], ringRgba[1], ringRgba[2], 255); // right
   };
   ring({ x: 0, y: 0, w: fullW, h: fullH });
-  if (titleH > 0) {
+  if (hasTitleBar) {
     // under-line: the 1px frame line dividing the title bar from the body.
+    // Title-less frames (no bar) have nothing to divide — just the outer ring.
     out.fillRect({ x: 0, y: titleH - 1, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
   }
   placement.push({
@@ -163,12 +189,14 @@ export function composeCornerSpriteChrome(
     src: { x: 0, y: 0, w: 1, h: 1 }, rects: [{ x: 0, y: 0, w: fullW, h: fullH }],
   });
 
-  // ── 3. widgets: ~7×7 beveled squares (close left, zoom + collapse right) ───
+  // ── 3. widgets: ~7×7 beveled squares (close left, collapse + zoom right) ───
   // Geometry from WDEF 125 §"Box geometry": close left = title.left+4; zoom
   // right = title.right−11..−4 (4px from the right end); collapse just inboard
-  // of the zoom box (~7px apart). Vertically centred in the title bar.
+  // of the zoom box (~7px apart). Vertically centred in the title bar. The
+  // widget SET is per-type (opts.widgets): document = [close,collapse,zoom];
+  // movable-modal/movable-alert/titled-utility = [close]; side/no-title = [].
   const WBOX = 7;
-  if (titleH >= WBOX + 2) {
+  if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
     const wy = Math.max(1, Math.round((titleH - WBOX) / 2));
     const drawWidget = (wx: number): void => {
       // face
@@ -186,18 +214,23 @@ export function composeCornerSpriteChrome(
       out.fillRect({ x: wx + 1, y: wy + WBOX - 2, w: WBOX - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom
       out.fillRect({ x: wx + WBOX - 2, y: wy + 1, w: 1, h: WBOX - 2 }, sh[0], sh[1], sh[2], 255); // right
     };
-    drawWidget(frame.left + 4 - 1 < 0 ? 2 : frame.left + 3); // close: ~4px from the left frame
+    // close anchors at the left; collapse/zoom anchor right (zoom outermost,
+    // collapse just inboard). Build the x of each glyph then stamp + record.
     const rightZoom = fullW - frame.right - 4 - WBOX; // 4px from the right end
-    drawWidget(Math.max(0, rightZoom));
-    drawWidget(Math.max(0, rightZoom - WBOX - 2)); // collapse, ~7px inboard of zoom
+    const xs: { glyph: string; x: number }[] = [];
+    if (widgets.includes('close')) xs.push({ glyph: 'close', x: frame.left + 4 - 1 < 0 ? 2 : frame.left + 3 });
+    // Right group, outermost-first so each lands one box+gap inboard of the last.
+    let rx = Math.max(0, rightZoom);
+    for (const glyph of ['zoom', 'collapse'] as const) {
+      if (!widgets.includes(glyph)) continue;
+      xs.push({ glyph, x: rx });
+      rx = Math.max(0, rx - WBOX - 2);
+    }
+    for (const w of xs) drawWidget(w.x);
     placement.push({
-      edge: 'widget', code: 4, role: 'close/zoom/collapse', mode: 'stamp',
+      edge: 'widget', code: 4, role: xs.map((w) => w.glyph).join('/'), mode: 'stamp',
       src: { x: 0, y: 0, w: WBOX, h: WBOX },
-      rects: [
-        { x: frame.left + 3, y: wy, w: WBOX, h: WBOX },
-        { x: Math.max(0, rightZoom), y: wy, w: WBOX, h: WBOX },
-        { x: Math.max(0, rightZoom - WBOX - 2), y: wy, w: WBOX, h: WBOX },
-      ],
+      rects: xs.map((w) => ({ x: w.x, y: wy, w: WBOX, h: WBOX })),
     });
   }
 

@@ -51,12 +51,12 @@ const titleWidthPx = opts.plate > 0
 // their own sprite cicns, not the kDEF cicn 9-walk — route them to the
 // corner-sprite compositor, loading the pinstripe + grow-box sprites.
 let composed;
-if (wt.model === 'corner-sprite' && wt.sprites) {
-  const pinstripe = loadCicn(themeDir, wt.sprites.pinstripe);
-  const growBox = wt.sprites.growBox ? loadCicn(themeDir, wt.sprites.growBox) : null;
+if (wt.model === 'corner-sprite') {
+  const pinstripe = wt.sprites?.pinstripe ? loadCicn(themeDir, wt.sprites.pinstripe) : null;
+  const growBox = wt.sprites?.growBox ? loadCicn(themeDir, wt.sprites.growBox) : null;
   const hc = manifest.headerColors?.active ?? {};
   composed = composeCornerSpriteChrome(wt, opts.w, opts.h, {
-    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx,
+    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets,
   });
 } else {
   composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });

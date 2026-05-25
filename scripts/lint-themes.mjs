@@ -83,12 +83,20 @@ for (const slug of slugs) {
       wins++;
       const out = [];
       const ERR = (m) => { out.push(['E', m]); errors++; };
+      const NOTE2 = (m) => { out.push(['n', m]); notes++; };
       const checkSprite = (label, rel) => {
         if (!rel) return;
         try { loadCicn(themeDir, rel); }
         catch (e) { ERR(`sprite ${label}: cannot load ${rel} (${e.message})`); }
       };
-      if (!wt.sprites?.pinstripe) ERR('corner-sprite: missing sprites.pinstripe');
+      // A TITLED corner-sprite type (part-0 top inset > 1 ⇒ a real title bar)
+      // must ship a pinstripe to fill that bar. A title-LESS frame (top inset 1:
+      // alert/dialog/no-title utility) legitimately omits it — it draws only the
+      // 1px ring. Flag a missing stripe only when the bar is real.
+      const topInset = Array.isArray(wt.parts?.['part-0']?.rect) ? wt.parts['part-0'].rect[1] : 0;
+      const titled = topInset > 1;
+      if (titled && !wt.sprites?.pinstripe) ERR('corner-sprite: titled type missing sprites.pinstripe');
+      else if (!titled && !wt.sprites?.pinstripe) NOTE2('corner-sprite: title-less frame (no pinstripe — frame-only, expected)');
       checkSprite('pinstripe', wt.sprites?.pinstripe);
       checkSprite('growBox', wt.sprites?.growBox);
       checkSprite('chrome.active', wt.chrome?.active);
