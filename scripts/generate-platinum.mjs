@@ -116,6 +116,19 @@ try {
   console.warn(`[apple-platinum-replica] WARN: icon slice skipped (${err.message})`);
 }
 
+// Sliced document-window: the cicn carries a 2px raster frame (black outline +
+// bevel — white highlight on the left, shadow on the right) that the 1px body
+// edge dropped, leaving a step against the title-bar corners. Inset its part-0
+// body rect 2px L/R so the body edges render the full raster frame. (Procedural
+// types keep their 1px perimeter; the bottom stays 1px — the cicn has no 2px
+// bottom band.)
+{
+  const wtd = theme.windowTypes?.['document-window'];
+  const rect = wtd?.parts?.['part-0']?.rect;
+  const dw = drawnBySlug['document-window']?.active?.width;
+  if (rect && dw && existsSync(resolve(dest, 'sources/doc-window-macintosh-hd-active.png'))) { rect[0] = 2; rect[2] = dw - 2; }
+}
+
 try { validateTheme(theme); }
 catch (err) { console.error('schema validation FAILED:', err.message); process.exit(1); }
 

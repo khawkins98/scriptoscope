@@ -18,7 +18,7 @@ import { resolve } from 'node:path';
 const TYPES = {
   'document-window': {
     W: 98, H: 23, a: 21, b: 27, c: 57, d: 63, stripe: [4, 15],
-    active:   { src: 'doc-window-macintosh-hd-active.png',   leftX: 5, flankX: 70, rightX: 313, srcY0: 2 },
+    active:   { src: 'doc-window-macintosh-hd-active.png',   leftX: 5, flankX: 70, rightX: 312, srcY0: 2 },
     inactive: { src: 'doc-window-macintosh-hd-inactive.png', leftX: 4, flankX: 40, rightX: 312, srcY0: 3 },
   },
   'movable-modal': {
