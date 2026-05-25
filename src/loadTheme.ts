@@ -15,7 +15,47 @@ export async function loadTheme(
     throw new Error(`loadTheme: ${baseUrl}/theme.json → HTTP ${res.status}`);
   }
   const manifest = (await res.json()) as ThemeManifest;
-  return { manifest, baseUrl, ...(opts.base ? { base: opts.base } : {}) };
+  const glyphs = await loadGlyphMap(baseUrl);
+  return {
+    manifest,
+    baseUrl,
+    ...(glyphs ? { glyphs } : {}),
+    ...(opts.base ? { base: opts.base } : {}),
+  };
+}
+
+/**
+ * One entry of a bundle's `icons/index.json` (written by extract-icons.mjs):
+ * the decoded icon-family resources (`icl4` 32×32 / `ics4` 16×16).
+ */
+interface IconIndexEntry {
+  id: number;
+  type: 'icl4' | 'ics4';
+  file: string;
+}
+
+/**
+ * Fetch a bundle's `icons/index.json` and build the `ics4` GLYPH map
+ * (id-string → `icons/<file>`). These are the scheme's OWN pictograms —
+ * scroll-arrow buttons, window-corner proxies — that the renderer can stamp
+ * instead of fabricating. icl4 entries are the larger scene icons (the demo
+ * inventory already reads those straight from the index), so only ics4 is
+ * mapped here. Returns null when the bundle ships no icons (most baseline
+ * schemes), so `glyphs` stays absent rather than an empty object.
+ */
+async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | null> {
+  try {
+    const res = await fetch(`${baseUrl}/icons/index.json`);
+    if (!res.ok) return null;
+    const index = (await res.json()) as IconIndexEntry[];
+    const glyphs: Record<string, string> = {};
+    for (const e of index) {
+      if (e.type === 'ics4') glyphs[String(e.id)] = `icons/${e.file}`;
+    }
+    return Object.keys(glyphs).length ? glyphs : null;
+  } catch {
+    return null; // no icons index (offline / not extracted) → no glyphs
+  }
 }
 
 /** Resolve a manifest-relative asset path to a fetchable URL. */

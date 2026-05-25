@@ -74,6 +74,24 @@ async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | n
   return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
 }
 
+/**
+ * Load an `ics4` GLYPH (a scheme's own pictogram) by its Kaleidoscope
+ * RESOURCE ID and return it as a PixelBuffer. Mirrors {@link loadById}, but
+ * resolves through the `glyphs` map {@link loadTheme} built from the bundle's
+ * `icons/index.json` (id-string → `icons/ics4-<id>.png`) rather than the
+ * chrome-cicn catalogue. Walks the base chain so a lightly-skinned scheme can
+ * inherit a base scheme's glyphs. Returns null when no scheme in the chain
+ * ships that glyph (→ the caller's procedural fallback). The id is passed as a
+ * NEGATIVE resource id (e.g. -10198), matching how icons/index.json keys them.
+ */
+async function loadGlyphById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+  const hit = resolveInChain(theme, (t) => {
+    const asset = t.glyphs?.[String(id)];
+    return asset ? { theme: t, asset } : null; // first theme in the chain that ships it
+  });
+  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
+}
+
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc). */
 function elementById(theme: LoadedTheme, id: number) {
   const abs = Math.abs(id);
@@ -164,6 +182,24 @@ export async function composeScrollbar(
   // Thumb by resource id: -10206 h / -10208 v (pressed -10205 / -10207).
   const thumb = await loadById(theme, horiz ? (state === 'pressed' ? 10205 : 10206) : state === 'pressed' ? 10207 : 10208);
 
+  // Arrow-BUTTON glyphs — the scheme's OWN ics4 pictograms for the end buttons.
+  // The faithful arrow art is the directional button family -10197..-10204 (a
+  // 16×16 button with face + arrow + bevel baked in), NOT -10205..-10208 (those
+  // ids carry a blank bevelled face with no glyph). Directional mapping (verified
+  // against the apple-platinum-2 / platinum-8 / system7-nostalgia-silver art):
+  //   normal:  right -10197 · left -10198 · down -10199 · up -10200
+  //   pressed: right -10201 · left -10202 · down -10203 · up -10204
+  // For a horizontal bar the LOW end is the left button, the HIGH end the right;
+  // for vertical, low = up (top), high = down (bottom). These glyphs are the WHOLE
+  // button (they carry their own face), so we stamp them in place of the
+  // procedural face+triangle when the scheme ships them; otherwise fall back to
+  // drawArrowGlyph so the sliced schemes + cicn-less schemes render unchanged.
+  const pressed = state === 'pressed';
+  const lowArrowId = horiz ? (pressed ? 10202 : 10198) : (pressed ? 10204 : 10200); // left / up
+  const highArrowId = horiz ? (pressed ? 10201 : 10197) : (pressed ? 10203 : 10199); // right / down
+  const lowArrow = await loadGlyphById(theme, -lowArrowId);
+  const highArrow = await loadGlyphById(theme, -highArrowId);
+
   const thickness = horiz ? track.height : track.width;
   const longSrc = horiz ? track.width : track.height;
   const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
@@ -201,20 +237,32 @@ export async function composeScrollbar(
     // between, then draw the arrow glyph procedurally (the CDEF's job).
     const btn = thickness;
     const arrowDark: [number, number, number] = state === 'disabled' ? [165, 165, 165] : [72, 72, 72];
+    // Stamp an end button: prefer the scheme's OWN ics4 arrow-button glyph
+    // (a complete face+arrow, centered in the button box); otherwise lay the
+    // track-square face + the procedural triangle, exactly as before.
+    const stampButton = (
+      bx: number,
+      by: number,
+      glyph: PixelBuffer | null,
+      dir: 'l' | 'r' | 'u' | 'd',
+    ): void => {
+      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: bx, y: by, w: btn, h: thickness });
+      if (glyph) {
+        out.drawOver(glyph, bx + Math.round((btn - glyph.width) / 2), by + Math.round((thickness - glyph.height) / 2));
+      } else {
+        drawArrowGlyph(out, bx, by, btn, dir, arrowDark);
+      }
+    };
     if (horiz) {
-      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: btn, h: thickness });
-      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: length - btn, y: 0, w: btn, h: thickness });
       const sx = Math.max(1, Math.min(track.width - 2, track.width >> 1));
       out.copyBits(track, { x: sx, y: 0, w: 1, h: track.height }, { x: btn, y: 0, w: length - btn * 2, h: thickness });
-      drawArrowGlyph(out, 0, 0, btn, 'l', arrowDark);
-      drawArrowGlyph(out, length - btn, 0, btn, 'r', arrowDark);
+      stampButton(0, 0, lowArrow, 'l');
+      stampButton(length - btn, 0, highArrow, 'r');
     } else {
-      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: 0, w: thickness, h: btn });
-      out.copyBits(track, { x: 0, y: 0, w: track.width, h: track.height }, { x: 0, y: length - btn, w: thickness, h: btn });
       const sy = Math.max(1, Math.min(track.height - 2, track.height >> 1));
       out.copyBits(track, { x: 0, y: sy, w: track.width, h: 1 }, { x: 0, y: btn, w: thickness, h: length - btn * 2 });
-      drawArrowGlyph(out, 0, 0, btn, 'u', arrowDark);
-      drawArrowGlyph(out, 0, length - btn, btn, 'd', arrowDark);
+      stampButton(0, 0, lowArrow, 'u');
+      stampButton(0, length - btn, highArrow, 'd');
     }
     trackStart = btn;
     trackLen = Math.max(0, length - btn * 2);

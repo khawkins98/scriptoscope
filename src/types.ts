@@ -170,6 +170,16 @@ export interface LoadedTheme {
   manifest: ThemeManifest;
   baseUrl: string;
   /**
+   * Map of Kaleidoscope resource id (as a string, e.g. `'-10198'`) → the
+   * bundle-relative path of that resource's decoded `ics4` GLYPH
+   * (`icons/ics4-<id>.png`). Built by {@link loadTheme} from the scheme's
+   * `icons/index.json` so the renderer can stamp a scheme's OWN pictograms
+   * (e.g. the scroll-arrow buttons -10197..-10204) instead of synthesising
+   * them. Absent/empty when the scheme ships no decoded icons. Resolved
+   * through the base chain like the cicn loaders (`loadGlyphById`).
+   */
+  glyphs?: Record<string, string>;
+  /**
    * Optional BASE theme this one defers to for any control/chrome it doesn't
    * ship itself (the "base Platinum look" lightly-skinned schemes inherit).
    * Control lookups (loadById/loadByKey) fall back to `base` on a miss, loading

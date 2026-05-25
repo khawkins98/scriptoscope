@@ -67,6 +67,20 @@ export interface CornerSpriteOptions {
    *  document set [close, collapse, zoom] so the existing render is unchanged.
    *  Empty ⇒ no widgets (utility/side palettes). */
   widgets?: ('close' | 'collapse' | 'zoom')[] | undefined;
+  /**
+   * The scheme's OWN ics4 widget pictograms, keyed by role. When a glyph is
+   * supplied it is stamped (centered) in that widget's box INSTEAD of the
+   * fabricated beveled square; the box GEOMETRY is unchanged so the
+   * interactive.ts hit-zones still line up. Roles with no glyph fall back to
+   * the procedural square.
+   *
+   * NOTE: no scheme in the current corpus ships a per-widget close/zoom/collapse
+   * glyph — Kaleidoscope's ics4 at -14336..-14315 are full WINDOW-proxy
+   * thumbnails (the same role markers as the corner cicns), not 7×7 box glyphs,
+   * and the close/zoom/collapse boxes are procedural in the real Platinum WDEF.
+   * So this is plumbing for a scheme that DOES author widget glyphs; today every
+   * window falls back to the square. (See lint-themes.mjs glyph-orphan notes.) */
+  widgetGlyphs?: Partial<Record<'close' | 'collapse' | 'zoom', PixelBuffer | null>> | undefined;
 }
 
 /** `#rgb` / `#rrggbb` → [r,g,b,255]; falls back to mid grey. */
@@ -198,7 +212,16 @@ export function composeCornerSpriteChrome(
   const WBOX = 7;
   if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
     const wy = Math.max(1, Math.round((titleH - WBOX) / 2));
-    const drawWidget = (wx: number): void => {
+    const drawWidget = (wx: number, role: 'close' | 'collapse' | 'zoom'): void => {
+      // Prefer the scheme's OWN widget pictogram (stamped centered in the box,
+      // keeping the box geometry so hit-testing lines up). No corpus scheme
+      // ships one today (the ics4 at these ids are full-window thumbnails), so
+      // this falls through to the fabricated bevel square below.
+      const glyph = opts.widgetGlyphs?.[role];
+      if (glyph && glyph.width > 0 && glyph.height > 0) {
+        out.drawOver(glyph, wx + Math.round((WBOX - glyph.width) / 2), wy + Math.round((WBOX - glyph.height) / 2));
+        return;
+      }
       // face
       out.fillRect({ x: wx, y: wy, w: WBOX, h: WBOX }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
       // 1px outline in the frame colour
@@ -226,7 +249,7 @@ export function composeCornerSpriteChrome(
       xs.push({ glyph, x: rx });
       rx = Math.max(0, rx - WBOX - 2);
     }
-    for (const w of xs) drawWidget(w.x);
+    for (const w of xs) drawWidget(w.x, w.glyph as 'close' | 'collapse' | 'zoom');
     placement.push({
       edge: 'widget', code: 4, role: xs.map((w) => w.glyph).join('/'), mode: 'stamp',
       src: { x: 0, y: 0, w: WBOX, h: WBOX },

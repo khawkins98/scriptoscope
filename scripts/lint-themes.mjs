@@ -215,6 +215,54 @@ for (const slug of slugs) {
     console.log(`  ${'(control coverage)'.padEnd(32)} warn`);
     for (const m of cwarn) console.log(`      ! ${m}`);
   }
+
+  // ── glyph orphans: a decoded ics4 PICTOGRAM (icons/ics4-*.png) that the
+  // renderer can stamp by id but DOESN'T — the guardrail against the gap that
+  // motivated this whole change (the scroll-arrow ics4 were shipped but never
+  // used). It is scoped to ics4 ids the renderer ACTUALLY resolves as a glyph
+  // (vs a cicn): the scroll-arrow button family (-10197..-10204) and the
+  // window-corner-widget proxy family (-14336..-14315). Other ics4 (button /
+  // progress / checkbox duplicates of cicn art, scene folder/app icons) are
+  // rendered as cicns or aren't chrome at all, so they are NOT glyph roles and
+  // would be noise here — the control-coverage rule above already guards the
+  // cicn side.
+  //
+  // GLYPH_ROLES is the id→role source of truth for ics4 the renderer wires today.
+  const GLYPH_ROLES = {
+    // scroll-arrow buttons (controls.ts composeScrollbar → loadGlyphById)
+    '-10197': 'scrollbar arrow right', '-10198': 'scrollbar arrow left',
+    '-10199': 'scrollbar arrow down', '-10200': 'scrollbar arrow up',
+    '-10201': 'scrollbar arrow right (pressed)', '-10202': 'scrollbar arrow left (pressed)',
+    '-10203': 'scrollbar arrow down (pressed)', '-10204': 'scrollbar arrow up (pressed)',
+  };
+  // Families whose ics4 the renderer treats as STAMPABLE GLYPHS (the only ids a
+  // glyph-orphan note is meaningful for). [lo, hi, label, expected?] — `expected`
+  // marks a family whose orphans are by-design (the window-proxy ics4 are
+  // full-window thumbnails, NOT per-widget glyphs; the close/zoom/collapse boxes
+  // are procedural in the Platinum WDEF), so they are reported but flagged as
+  // expected rather than as a gap to fix.
+  const GLYPH_FAMILIES = [
+    [-10204, -10197, 'scroll-arrow', false],
+    [-14336, -14315, 'window-proxy', true],
+  ];
+  const iconsIdx = resolve(themeDir, 'icons', 'index.json');
+  if (existsSync(iconsIdx)) {
+    const idx = JSON.parse(readFileSync(iconsIdx, 'utf8'));
+    const orphans = [];
+    for (const i of idx) {
+      if (i.type !== 'ics4') continue;
+      const fam = GLYPH_FAMILIES.find(([lo, hi]) => i.id >= lo && i.id <= hi);
+      if (!fam) continue; // not a stampable-glyph family → ignore
+      if (GLYPH_ROLES[String(i.id)]) continue; // wired to a role → ok
+      const [, , label, expected] = fam;
+      orphans.push(`ics4 ${i.id} (${i.file}): ${label} pictogram not wired to a renderer role${expected ? ' (expected — procedural in the WDEF)' : ' — SHIPPED BUT UNUSED'}`);
+    }
+    if (orphans.length) {
+      notes += orphans.length;
+      console.log(`  ${'(glyph orphans)'.padEnd(32)} note`);
+      for (const m of orphans) console.log(`      · ${m}`);
+    }
+  }
 }
 
 console.log(`\n-- linted ${wins} window(s): ${errors} error(s), ${warns} warning(s), ${notes} note(s) --`);
