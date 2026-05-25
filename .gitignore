@@ -20,6 +20,10 @@ build/
 *.swp
 *.swo
 
+# Claude Code local state (per-user settings + run lock — never shared)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
