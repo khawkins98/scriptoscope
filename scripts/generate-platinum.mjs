@@ -16,6 +16,7 @@ import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
 import { graftControls } from './generate-platinum/graft-controls.mjs';
 import { sliceControls } from './generate-platinum/slice-controls.mjs';
+import { sliceIcons } from './generate-platinum/slice-icons.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
 import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
@@ -104,6 +105,14 @@ try {
   console.log(`[apple-platinum-replica] sliced ${count} control glyphs from screenshots`);
 } catch (err) {
   console.warn(`[apple-platinum-replica] WARN: control slice skipped (${err.message}); controls fall back to baseline`);
+}
+
+// Slice the Finder folder icons for the demo scene (icons/index.json).
+try {
+  const { count } = sliceIcons(dest);
+  if (count) console.log(`[apple-platinum-replica] sliced ${count} folder icons → icons/`);
+} catch (err) {
+  console.warn(`[apple-platinum-replica] WARN: icon slice skipped (${err.message})`);
 }
 
 try { validateTheme(theme); }
