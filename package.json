@@ -47,7 +47,7 @@
     "build:demo": "vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "build:themes": "node scripts/extract-scheme.mjs --all",
+    "build:themes": "node scripts/extract-scheme.mjs --all && node scripts/extract-icons.mjs --all",
     "diag:render": "node scripts/render-window.mjs",
     "diag:audit": "node scripts/audit-placement.mjs",
     "lint:themes": "node scripts/lint-themes.mjs",
