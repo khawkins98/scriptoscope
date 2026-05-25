@@ -70,6 +70,7 @@
       composeButton, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
+      platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
       interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
     } from '../src/index.ts';
@@ -1047,7 +1048,10 @@
       const r1 = document.createElement('div'); r1.className = 'ctl-row';
       const r2 = document.createElement('div'); r2.className = 'ctl-row';
       const r3 = document.createElement('div'); r3.className = 'ctl-row';
-      stack.append(r1, r2, r3); frame.appendChild(stack); row.appendChild(c);
+      const r4 = document.createElement('div'); r4.className = 'ctl-row';
+      const r5 = document.createElement('div'); r5.className = 'ctl-row';
+      const r6 = document.createElement('div'); r6.className = 'ctl-row';
+      stack.append(r1, r2, r3, r4, r5, r6); frame.appendChild(stack); row.appendChild(c);
       rows.appendChild(section); // append synchronously to keep section order
       (async () => {
         const base = await loadWithBase(BASE_SLUG);
@@ -1062,6 +1066,19 @@
         add(r3, (await composeButton(base, { label: 'Cancel' })) ?? platinumButton({ label: 'Cancel' }));
         add(r3, (await composeButton(base, { label: 'OK', default: true })) ?? platinumButton({ label: 'OK', default: true }));
         add(r3, (await composeButton(base, { label: 'Help', disabled: true })) ?? platinumButton({ label: 'Help', disabled: true }));
+        // PROCEDURAL BASELINES for the control classes the schemes ship but we hadn't
+        // rendered (bevel button / menu bar / dropdown menu / popup / list header).
+        // These are the platinum.ts floor for uniform coverage across every theme;
+        // per-scheme cicns (-10162.., -12319/-12247.., -8200.., -9567..) graft over
+        // them later via the base chain. No composer fallback yet — procedural only.
+        add(r4, platinumBevelButton({ label: 'On', on: true }));
+        add(r4, platinumBevelButton({ label: 'Off' }));
+        add(r4, platinumBevelButton({ label: 'Aa', small: true }));
+        add(r4, platinumBevelButton({ label: 'Off', disabled: true }));
+        add(r5, platinumMenuBar({ titles: ['File', 'Edit', 'View'], activeIdx: 1 }));
+        add(r5, platinumPopupMenu({ label: 'Pick one' }));
+        add(r6, platinumMenu({ items: ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste'], highlightIdx: 4 }));
+        add(r6, platinumListHeader({}));
       })();
     }
 

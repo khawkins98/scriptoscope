@@ -37,8 +37,11 @@ export { loadCicnBuffer } from './cicnImage.js';
 export { rasterizeText } from './textRaster.js';
 export {
   platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
+  platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
   type PlatinumCheckOptions, type PlatinumSliderOptions,
   type PlatinumButtonOptions, type PlatinumScrollbarOptions,
+  type PlatinumBevelButtonOptions, type PlatinumMenuBarOptions, type PlatinumMenuOptions,
+  type PlatinumPopupMenuOptions, type PlatinumListHeaderOptions, type PlatinumListHeaderColumn,
 } from './platinum.js';
 export {
   composeScrollbar,

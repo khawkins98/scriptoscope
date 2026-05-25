@@ -280,3 +280,163 @@ export function platinumScrollbar(opts: PlatinumScrollbarOptions = {}): PixelBuf
   }
   return out;
 }
+
+/** Sunken/recessed gray face (pressed or toggled-ON): dark top/left edge, light
+ *  bottom/right, flat slightly-darker fill. The inverse bevel of raisedFace. */
+function sunkenFace(b: PixelBuffer, x: number, y: number, w: number, h: number, disabled = false): void {
+  const base = disabled ? 224 : 210;
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(b, x + i, y + j, [base, base, base, 255]);
+  strokeRect(b, x, y, w, h, disabled ? MARK_OFF : FRAME);
+  for (let i = 1; i < w - 1; i++) { px(b, x + i, y + 1, SHADOW); px(b, x + i, y + h - 2, HILITE); }
+  for (let i = 1; i < h - 1; i++) { px(b, x + 1, y + i, SHADOW); px(b, x + w - 2, y + i, HILITE); }
+}
+
+export interface PlatinumBevelButtonOptions {
+  label?: string;
+  on?: boolean;       // toggled / selected (sunken)
+  pressed?: boolean;  // momentary press (sunken)
+  disabled?: boolean;
+  small?: boolean;
+  minWidth?: number;
+}
+
+/**
+ * Procedural Platinum BEVEL button (toolbar / palette button) — a squarer, more
+ * pronounced raised face than the push button. Toggled-ON or pressed → sunken
+ * bevel with the label nudged 1px down-right. Baseline for the -10162..-10176
+ * bevel-button art every scheme ships (grafted later).
+ */
+export function platinumBevelButton(opts: PlatinumBevelButtonOptions = {}): PixelBuffer {
+  const h = opts.small ? 18 : 22;
+  const fg = opts.disabled ? '#9a9a9a' : '#000000';
+  const glyphs = opts.label ? rasterizeText(opts.label, opts.small ? 10 : 11, fg) : null;
+  const w = Math.max(opts.minWidth ?? h, (glyphs ? glyphs.width : 0) + 16);
+  const out = PixelBuffer.alloc(w, h);
+  const sunk = !!(opts.on || opts.pressed);
+  if (sunk) sunkenFace(out, 0, 0, w, h, opts.disabled);
+  else raisedFace(out, 0, 0, w, h, opts.disabled);
+  if (glyphs) out.drawOver(glyphs, Math.round((w - glyphs.width) / 2) + (sunk ? 1 : 0), Math.round((h - glyphs.height) / 2) + (sunk ? 1 : 0));
+  return out;
+}
+
+export interface PlatinumMenuBarOptions {
+  titles?: string[];
+  activeIdx?: number; // the pulled-down title (inverts)
+  width?: number;
+}
+
+/**
+ * Procedural Platinum menu bar: a 20px light raised strip with a 1px white top
+ * highlight + 1px black base line; titles in black, the pulled-down title
+ * inverted (black bar, white text). Baseline for the menu-bar cicn (-12319).
+ */
+export function platinumMenuBar(opts: PlatinumMenuBarOptions = {}): PixelBuffer {
+  const titles = opts.titles ?? ['File', 'Edit', 'View', 'Special'];
+  const H = 20, padX = 10;
+  const labs = titles.map((t) => rasterizeText(t, 12, '#000000'));
+  let x = 8;
+  const xs = labs.map((g) => { const s = x; x += g.width + padX * 2; return s; });
+  const W = Math.max(opts.width ?? 0, x + 8);
+  const out = PixelBuffer.alloc(W, H);
+  out.fillRect({ x: 0, y: 0, w: W, h: H }, 238, 238, 238, 255);
+  for (let i = 0; i < W; i++) { px(out, i, 0, WHITE); px(out, i, H - 1, MARK); }
+  labs.forEach((g, i) => {
+    const cellX = xs[i]!, cellW = g.width + padX * 2;
+    if (i === opts.activeIdx) {
+      out.fillRect({ x: cellX, y: 1, w: cellW, h: H - 2 }, 0, 0, 0, 255);
+      const wg = rasterizeText(titles[i]!, 12, '#ffffff');
+      out.drawOver(wg, cellX + padX, Math.round((H - wg.height) / 2));
+    } else {
+      out.drawOver(g, cellX + padX, Math.round((H - g.height) / 2));
+    }
+  });
+  return out;
+}
+
+export interface PlatinumMenuOptions {
+  items?: string[]; // '-' renders a separator
+  highlightIdx?: number;
+  width?: number;
+}
+
+/**
+ * Procedural Platinum dropdown menu panel: white body, 1px black frame + a 1px
+ * black drop shadow (bottom+right), ~16px items; the highlighted item inverts;
+ * '-' is a separator rule. Baseline for the menu-highlight cicns (-12247..-12287).
+ */
+export function platinumMenu(opts: PlatinumMenuOptions = {}): PixelBuffer {
+  const items = opts.items ?? ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste'];
+  const ih = 16, padX = 16;
+  const labs = items.map((t) => (t === '-' ? null : rasterizeText(t, 12, '#000000')));
+  const contentW = Math.max(opts.width ?? 0, Math.max(1, ...labs.map((g) => (g ? g.width : 0))) + padX * 2);
+  const W = contentW, panelH = items.length * ih + 2;
+  const out = PixelBuffer.alloc(W + 1, panelH + 1);
+  for (let i = 1; i <= W; i++) px(out, i, panelH, MARK);   // bottom shadow
+  for (let j = 1; j <= panelH; j++) px(out, W, j, MARK);   // right shadow
+  out.fillRect({ x: 0, y: 0, w: W, h: panelH }, 255, 255, 255, 255);
+  strokeRect(out, 0, 0, W, panelH, MARK);
+  items.forEach((it, i) => {
+    const y = 1 + i * ih;
+    if (it === '-') { for (let xx = 2; xx < W - 2; xx++) px(out, xx, y + (ih >> 1), SHADOW); return; }
+    if (i === opts.highlightIdx) {
+      out.fillRect({ x: 1, y, w: W - 2, h: ih }, 0, 0, 0, 255);
+      const wg = rasterizeText(it, 12, '#ffffff');
+      out.drawOver(wg, padX, y + Math.round((ih - wg.height) / 2));
+    } else {
+      out.drawOver(labs[i]!, padX, y + Math.round((ih - labs[i]!.height) / 2));
+    }
+  });
+  return out;
+}
+
+export interface PlatinumPopupMenuOptions {
+  label?: string;
+  disabled?: boolean;
+  minWidth?: number;
+}
+
+/**
+ * Procedural Platinum popup menu (the closed pop-up button): a raised face with
+ * the label left-aligned, a 1px divider + a down-arrow box at the right, and a
+ * 1px drop shadow (bottom+right). Baseline for the pop-menu-button cicns
+ * (-8200..-8208) + their arrow glyph (-8194..-8199).
+ */
+export function platinumPopupMenu(opts: PlatinumPopupMenuOptions = {}): PixelBuffer {
+  const h = 20, arrowBox = 16;
+  const fg = opts.disabled ? '#9a9a9a' : '#000000';
+  const glyphs = opts.label ? rasterizeText(opts.label, 11, fg) : null;
+  const innerW = Math.max(opts.minWidth ?? 80, (glyphs ? glyphs.width : 0) + 16 + arrowBox);
+  const out = PixelBuffer.alloc(innerW + 1, h + 1);
+  for (let i = 1; i <= innerW; i++) px(out, i, h, MARK);   // bottom shadow
+  for (let j = 1; j <= h; j++) px(out, innerW, j, MARK);   // right shadow
+  raisedFace(out, 0, 0, innerW, h, opts.disabled);
+  if (glyphs) out.drawOver(glyphs, 8, Math.round((h - glyphs.height) / 2));
+  const abx = innerW - arrowBox;
+  for (let j = 1; j < h - 1; j++) px(out, abx, j, opts.disabled ? MARK_OFF : FRAME); // divider
+  arrow(out, abx + Math.round((arrowBox - 11) / 2), Math.round((h - 11) / 2), 11, 'd', opts.disabled ? MARK_OFF : MARK);
+  return out;
+}
+
+export interface PlatinumListHeaderColumn { label: string; width: number; }
+export interface PlatinumListHeaderOptions { columns?: PlatinumListHeaderColumn[]; height?: number; }
+
+/**
+ * Procedural Platinum list / Finder column header: a row of raised gray cells
+ * (each 1px-framed → reads as divided columns) with left-aligned labels.
+ * Baseline for the finder-header cicns (-9567/-9568).
+ */
+export function platinumListHeader(opts: PlatinumListHeaderOptions = {}): PixelBuffer {
+  const cols = opts.columns ?? [{ label: 'Name', width: 140 }, { label: 'Size', width: 56 }, { label: 'Kind', width: 90 }];
+  const H = opts.height ?? 16;
+  const W = cols.reduce((a, c) => a + c.width, 0);
+  const out = PixelBuffer.alloc(W, H);
+  let x = 0;
+  for (const c of cols) {
+    raisedFace(out, x, 0, c.width, H);
+    const g = rasterizeText(c.label, 11, '#000000');
+    out.drawOver(g, x + 6, Math.round((H - g.height) / 2));
+    x += c.width;
+  }
+  return out;
+}
+
