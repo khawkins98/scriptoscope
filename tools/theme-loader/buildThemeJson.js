@@ -229,10 +229,12 @@ export function buildThemeJson(manifest, options = {}) {
   }
 
   // ─── Assemble ─────────────────────────────────────────────────────────
+  // NB: no `generatedAt` timestamp — theme.json is DETERMINISTIC so re-importing a
+  // scheme reproduces it byte-for-byte (the import is repeatable; only the source
+  // bytes drive the output). The extraction wall-clock lives in extraction-manifest.json.
   const theme = {
     version: '0.1',
     source: manifest.source,
-    generatedAt: manifest.extractedAt,
     note:
       'Draft theme.json produced by scripts/extract-scheme.mjs. ' +
       'Schema: src/types.ts.',
@@ -431,8 +433,8 @@ const CORNER_SPRITE_WINDOWS = [
   { slug: 'alert',                      active: -14322, inactive: -14324, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
   { slug: 'movable-modal',              active: -14326, inactive: -14328, pinstripe: -14325, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
   { slug: 'movable-alert',              active: -14322, inactive: -14324, pinstripe: -14321, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
-  { slug: 'titled-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: -14313, titleH: 11, widgets: ['close'],  collapsed: false },
-  { slug: 'collapsed-titled-utility',   active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close'],  collapsed: true  },
+  { slug: 'titled-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: -14313, titleH: 11, widgets: ['close', 'collapse'], collapsed: false },
+  { slug: 'collapsed-titled-utility',   active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close', 'collapse'], collapsed: true  },
   { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null, titleH: 11, widgets: [],         collapsed: false },
   { slug: 'collapsed-side-utility',     active: -14315, inactive: -14319, pinstripe: -14314, growBox: null,   titleH: 11, widgets: [],         collapsed: true  },
   { slug: 'no-title-utility-window',    active: -14316, inactive: -14320, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },

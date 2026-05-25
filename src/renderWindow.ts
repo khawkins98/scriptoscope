@@ -111,16 +111,19 @@ export async function renderWindow(
       ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
       : null;
     const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
-    // Title-bar widget glyphs — the scheme's OWN close/zoom/shade art, the ics4/
-    // ics8 WIDGET channel at -14336..-14331 (distinct from the same-id cicn, which
-    // is a window-type proxy). active: close -14336 / zoom -14335 / collapse -14334;
-    // inactive: the dimmer trio -14333/-14332/-14331. The compositor stamps them
-    // (and falls back to a procedural box for any role a scheme doesn't ship).
-    const wInactive = state === 'inactive';
+    // Title-bar widget glyphs — the scheme's OWN close/zoom/shade art (the ics4/
+    // ics8 WIDGET channel; the same-id cicn is a window-type proxy). The base
+    // differs by window FAMILY: document / dialog / movable use the -14336.. set;
+    // UTILITY / mini / floating windows use their OWN -14320.. set. Within a set:
+    // close = base, zoom = base+1, collapse = base+2 (active); the inactive trio is
+    // +3 (less negative). The compositor stamps the ones in opts.widgets (and falls
+    // back to a procedural box for any role a scheme doesn't ship).
+    const wBase = isUtility ? -14320 : -14336;
+    const wOff = state === 'inactive' ? 3 : 0;
     const widgetGlyphs = {
-      close: await loadWidgetGlyph(owner, wInactive ? -14333 : -14336),
-      zoom: await loadWidgetGlyph(owner, wInactive ? -14332 : -14335),
-      collapse: await loadWidgetGlyph(owner, wInactive ? -14331 : -14334),
+      close: await loadWidgetGlyph(owner, wBase + wOff),
+      zoom: await loadWidgetGlyph(owner, wBase + 1 + wOff),
+      collapse: await loadWidgetGlyph(owner, wBase + 2 + wOff),
     };
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
       pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,

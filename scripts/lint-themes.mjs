@@ -227,40 +227,44 @@ for (const slug of slugs) {
   // would be noise here — the control-coverage rule above already guards the
   // cicn side.
   //
-  // GLYPH_ROLES is the id→role source of truth for ics4 the renderer wires today.
-  const GLYPH_ROLES = {
-    // scroll-arrow buttons (controls.ts composeScrollbar → loadGlyphById)
-    '-10197': 'scrollbar arrow right', '-10198': 'scrollbar arrow left',
-    '-10199': 'scrollbar arrow down', '-10200': 'scrollbar arrow up',
-    '-10201': 'scrollbar arrow right (pressed)', '-10202': 'scrollbar arrow left (pressed)',
-    '-10203': 'scrollbar arrow down (pressed)', '-10204': 'scrollbar arrow up (pressed)',
-  };
-  // Families whose ics4 the renderer treats as STAMPABLE GLYPHS (the only ids a
-  // glyph-orphan note is meaningful for). [lo, hi, label, expected?] — `expected`
-  // marks a family whose orphans are by-design (the window-proxy ics4 are
-  // full-window thumbnails, NOT per-widget glyphs; the close/zoom/collapse boxes
-  // are procedural in the Platinum WDEF), so they are reported but flagged as
-  // expected rather than as a gap to fix.
+  // GLYPH_FAMILIES — the SINGLE SOURCE OF TRUTH for which 16px pictogram id ranges
+  // the renderer wires to a role, kept in sync with the consumers:
+  //   • scroll/slider arrows  -10197..-10208  → controls.ts composeScrollbar
+  //   • radio                 -10214..-10224  → controls.ts composeCheckable
+  //   • checkbox              -10229..-10240  → controls.ts composeCheckable
+  //   • document-window widget -14331..-14336 → renderWindow (close/zoom/collapse)
+  //   • utility-window widget  -14315..-14320 → renderWindow (utility close/collapse)
+  // Holistic + repeatable: this runs every `lint:themes` (so every import/CI) and
+  // covers BOTH bit-depths (ics4 AND ics8, size 16) — so an 8-bit-only scheme
+  // (black-platinum, 1990) is verified the same as a 4-bit one.
   const GLYPH_FAMILIES = [
-    [-10204, -10197, 'scroll-arrow', false],
-    [-14336, -14315, 'window-proxy', true],
+    [-10208, -10197, 'scroll/slider-arrow'],
+    [-10224, -10214, 'radio'],
+    [-10240, -10229, 'checkbox'],
+    [-14336, -14331, 'doc-widget'],
+    [-14320, -14315, 'util-widget'],
   ];
   const iconsIdx = resolve(themeDir, 'icons', 'index.json');
   if (existsSync(iconsIdx)) {
     const idx = JSON.parse(readFileSync(iconsIdx, 'utf8'));
-    const orphans = [];
+    const counts = {};
+    const unmapped = [];
     for (const i of idx) {
-      if (i.type !== 'ics4') continue;
+      if (i.size !== 16) continue; // 16px pictograms only (ics4 ∪ ics8)
       const fam = GLYPH_FAMILIES.find(([lo, hi]) => i.id >= lo && i.id <= hi);
-      if (!fam) continue; // not a stampable-glyph family → ignore
-      if (GLYPH_ROLES[String(i.id)]) continue; // wired to a role → ok
-      const [, , label, expected] = fam;
-      orphans.push(`ics4 ${i.id} (${i.file}): ${label} pictogram not wired to a renderer role${expected ? ' (expected — procedural in the WDEF)' : ' — SHIPPED BUT UNUSED'}`);
+      if (fam) { counts[fam[2]] = (counts[fam[2]] || 0) + 1; continue; }
+      // a 16px glyph inside the CONTROL/WIDGET id span but in no wired family =
+      // drift (a role we don't map) — surface it so the mapping stays holistic.
+      if (i.id <= -10197 && i.id >= -14336) unmapped.push(`${i.type} ${i.id} (${i.file})`);
     }
-    if (orphans.length) {
-      notes += orphans.length;
-      console.log(`  ${'(glyph orphans)'.padEnd(32)} note`);
-      for (const m of orphans) console.log(`      · ${m}`);
+    const covered = GLYPH_FAMILIES.map(([, , l]) => l).filter((l) => counts[l]);
+    if (covered.length) {
+      console.log(`  ${'(glyph families wired)'.padEnd(32)} ${covered.map((l) => `${l}:${counts[l]}`).join(' · ')}`);
+    }
+    if (unmapped.length) {
+      notes += unmapped.length;
+      console.log(`  ${'(unmapped control glyphs)'.padEnd(32)} note`);
+      for (const m of unmapped) console.log(`      · ${m} — in the control id-span but no wired family`);
     }
   }
 }

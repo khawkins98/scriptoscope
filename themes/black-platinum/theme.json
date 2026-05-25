@@ -1,7 +1,6 @@
 {
   "version": "0.1",
   "source": "black-platinum/scheme.rsrc",
-  "generatedAt": "2026-05-25T16:18:04.624Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Black Platinum",
   "author": {
@@ -166,7 +165,8 @@
         "growBox": "cicns/cicn-n14313-active-utility-window-grow-box.png"
       },
       "widgets": [
-        "close"
+        "close",
+        "collapse"
       ]
     },
     "collapsed-titled-utility": {
@@ -190,7 +190,8 @@
         "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
       },
       "widgets": [
-        "close"
+        "close",
+        "collapse"
       ]
     },
     "side-floating-utility-window": {

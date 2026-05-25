@@ -1,7 +1,6 @@
 {
   "version": "0.1",
   "source": "evolution/scheme.rsrc",
-  "generatedAt": "2026-05-25T16:18:04.669Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "1991 evolution",
   "author": {
