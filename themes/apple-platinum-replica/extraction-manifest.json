@@ -432,7 +432,7 @@
       "status": "ok",
       "file": "cicns/cicn-n14324-movable-modal-inactive.png",
       "width": 58,
-      "height": 19
+      "height": 20
     },
     {
       "type": "cicn",
@@ -441,7 +441,7 @@
       "status": "ok",
       "file": "cicns/cicn-n14323-movable-modal-active.png",
       "width": 58,
-      "height": 19
+      "height": 20
     },
     {
       "type": "wnd#",
@@ -499,7 +499,7 @@
           },
           {
             "part": 8,
-            "border": 19
+            "border": 20
           }
         ],
         "rightSide": [
@@ -509,7 +509,7 @@
           },
           {
             "part": 8,
-            "border": 19
+            "border": 20
           }
         ]
       }

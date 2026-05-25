@@ -25,9 +25,10 @@ const TYPES = {
   },
   'movable-modal': {
     // Movable modal (Serialize, #20): pinstripe bar, NO widgets. No inactive shot
-    // → inactive is derived. Cicn 58x19, top cells 17/23/47/53/58.
-    W: 58, H: 19, a: 17, b: 23, c: 47, d: 53, stripe: [4, 15],
-    active:   { src: 'dialog-serialize-serial.png', leftX: 14, flankX: 40, rightX: 346, srcY0: 8 },
+    // → inactive is derived. H=20: title (17) + body stub (1) + a REAL 2px bottom
+    // band sliced from #20's window bottom (y155 dark bevel → y156 black outline).
+    W: 58, H: 20, a: 17, b: 23, c: 47, d: 53, stripe: [4, 15], bottomFrame: 2,
+    active:   { src: 'dialog-serialize-serial.png', leftX: 14, flankX: 40, rightX: 346, srcY0: 8, bottomY: 155 },
     inactive: null,
   },
 };
