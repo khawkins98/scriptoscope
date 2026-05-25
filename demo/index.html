@@ -67,7 +67,7 @@
     import {
       VERSION, loadTheme, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
-      composeButton, composeBevelButton, composeCheckable, composeGrowBox,
+      composeButton, composeBevelButton, composeListHeader, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
@@ -1079,7 +1079,7 @@
         add(r5, platinumMenuBar({ titles: ['File', 'Edit', 'View'], activeIdx: 1 }));
         add(r5, platinumPopupMenu({ label: 'Pick one' }));
         add(r6, platinumMenu({ items: ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste'], highlightIdx: 4 }));
-        add(r6, platinumListHeader({}));
+        add(r6, (await composeListHeader(base)) ?? platinumListHeader({}));
       })();
     }
 
@@ -1129,7 +1129,11 @@
         const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
         const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
         bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
-        stack.append(brow, bevelRow, await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
+        // List/Finder column header: the scheme's own -9567/-9568 cell when shipped,
+        // else the procedural platinum.ts baseline.
+        const cols = [{ label: 'Name', width: 96 }, { label: 'Size', width: 44 }, { label: 'Kind', width: 56 }];
+        const listHdr = (await composeListHeader(theme, { columns: cols })) ?? platinumListHeader({ columns: cols });
+        stack.append(brow, bevelRow, bufferToCanvas(listHdr, 1), await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
         frame.appendChild(stack);
         row.appendChild(c);
       }

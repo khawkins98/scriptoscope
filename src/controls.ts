@@ -627,7 +627,7 @@ export interface BevelButtonOptions {
   fg?: string;
 }
 
-interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; }
+interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
 
 /**
  * Render a 9-sliced control FACE into a label-sized buffer: slice the face into the
@@ -656,17 +656,21 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const fg = opts.fg ?? (opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
     : lum < 128 ? '#ffffff' : '#000000');
-  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
+  const lineH = opts.height ?? face.height;
+  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
   const padX = opts.padX ?? 12;
-  const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
-  const innerH = face.height;
+  const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
+  const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH });
   if (ca > 0) {
     const cw = innerW - fIns * 2, ch = innerH - fIns * 2;
     if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fIns, w: cw, h: ch }, cr, cg, cb, 255);
   }
-  if (glyphs) out.drawOver(glyphs, Math.round((innerW - glyphs.width) / 2), Math.round((innerH - glyphs.height) / 2));
+  if (glyphs) {
+    const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
+    out.drawOver(glyphs, gx, Math.round((innerH - glyphs.height) / 2));
+  }
   return out;
 }
 
@@ -719,6 +723,32 @@ export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOp
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;
   return composeFaceButton(theme, face, usedId, faceOpts);
+}
+
+export interface ListHeaderColumn { label: string; width: number; }
+export interface ListHeaderOptions { columns?: ListHeaderColumn[]; height?: number; inactive?: boolean; }
+
+/**
+ * Compose a THEMED list / Finder column header: 9-slice the scheme's finder-header
+ * cell cicn (-9567 active / -9568 inactive) into each column with a left-aligned
+ * label (the cell is the same 9-slice shape as a button face, so it reuses
+ * composeFaceButton). Returns null (→ platinumListHeader) when the scheme ships none.
+ */
+export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
+  const cellId = opts.inactive ? 9568 : 9567;
+  const cell = await loadById(theme, cellId);
+  if (!cell) return null; // → platinumListHeader
+  const cols = opts.columns ?? [{ label: 'Name', width: 140 }, { label: 'Size', width: 56 }, { label: 'Kind', width: 90 }];
+  const H = opts.height ?? Math.max(16, cell.height);
+  const W = cols.reduce((a, c) => a + c.width, 0);
+  const out = PixelBuffer.alloc(W, H);
+  let x = 0;
+  for (const c of cols) {
+    const cellBuf = await composeFaceButton(theme, cell, cellId, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 });
+    out.drawOver(cellBuf, x, 0);
+    x += c.width;
+  }
+  return out;
 }
 
 /**
