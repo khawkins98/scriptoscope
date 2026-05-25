@@ -674,12 +674,18 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   let fy = 0;
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
-    const pad = Math.max(2, Math.round((ring.width - face.width) / 2));
-    out = PixelBuffer.alloc(innerW + pad * 2, innerH + pad * 2);
+    // The ring cicn is a 9-slice default-button OUTLINE template (a rounded gray/
+    // black ring, or apple-platinum-2's indigo frame — both shipped art, each
+    // verified against its scheme reference). The button fills its centre; the ring
+    // wraps it by an OUTSET. NOT `(ring.width - face.width)/2` — that's 0 when ring
+    // and face are the same 16px template, which collapsed the ring into a 2px band.
+    // Outset ≈ ¼ the template, so the shipped outline + its gap render at true scale.
+    const outset = Math.max(3, Math.round(ring.width / 4));
+    out = PixelBuffer.alloc(innerW + outset * 2, innerH + outset * 2);
     const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
     out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
-    fx = pad;
-    fy = pad;
+    fx = outset;
+    fy = outset;
   } else {
     out = PixelBuffer.alloc(innerW, innerH);
   }
