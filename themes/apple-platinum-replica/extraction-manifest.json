@@ -68,18 +68,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 98
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 23
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 23
           }
         ]
@@ -251,18 +263,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 18
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ]
@@ -346,18 +370,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 18
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ]
@@ -449,18 +485,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 58
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 19
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 19
           }
         ]
@@ -552,18 +600,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 58
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 19
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 19
           }
         ]
@@ -655,18 +715,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 47
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 14
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 14
           }
         ]
@@ -846,18 +918,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 39
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 14
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 14
           }
         ]
@@ -1029,18 +1113,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 18
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 3
           }
         ]
@@ -1212,18 +1308,30 @@
         "bottomSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 43
           }
         ],
         "leftSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 17
           }
         ],
         "rightSide": [
           {
             "part": 1,
+            "border": 1
+          },
+          {
+            "part": 8,
             "border": 17
           }
         ]

@@ -52,6 +52,12 @@ function sliceChrome(im, p) {
   const solid = px(p.flankX, STRIPE_BAND[1] + 2);                                             // the solid-band gray (state-aware)
   for (let dx = 27; dx < 57; dx++) setCol(dx, (y) => (y >= STRIPE_BAND[0] && y <= STRIPE_BAND[1]) ? solid : px(p.flankX, y)); // plate: solid
   for (let i = 0; i < 35; i++) { const sx = p.rightX - 34 + i; setCol(63 + i, (y) => px(sx, y)); } // rightFixed
+  // Bottom frame: the title-bar screenshot has no window-bottom, so the sliced
+  // last row is body-white. Synthesize the bottom outline = the top-outline colour
+  // (black active / dark-gray inactive), sampled from cicn row 0 at a flank column,
+  // so frame.bottom is an opaque frame line that the recipe can stretch across.
+  const oi = (0 * W + 40) * 4;
+  for (let dx = 0; dx < W; dx++) { const d = ((H - 1) * W + dx) * 4; out[d] = out[oi]; out[d + 1] = out[oi + 1]; out[d + 2] = out[oi + 2]; out[d + 3] = 255; }
   return { width: W, height: H, rgba: out };
 }
 

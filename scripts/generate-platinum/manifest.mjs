@@ -63,11 +63,14 @@ function buildWndData(geo, cfg) {
     return { rectangles, topSide, bottomSide: [], leftSide: [], rightSide: [] };
   }
 
-  // Bottom / side bands: a single fixed band over the full extent. (1px-thick
-  // uniform frame — tiles cleanly; nothing to collapse.)
-  const bottomSide = [{ part: FIXED, border: W }];
-  const leftSide = [{ part: FIXED, border: H }];
-  const rightSide = [{ part: FIXED, border: H }];
+  // Bottom / side bands: a 1px fixed corner + a STRETCH cell that fills the rest
+  // of the window edge. The frame is a uniform 1px outline, so the stretch cell
+  // just repeats it down/across the full window dimension. (A single FIXED cell
+  // would be drawn 1:1 at the cicn's extent and leave the body's edges open — the
+  // compositor force-fixes the FIRST cell, so a grower must be the SECOND cell.)
+  const bottomSide = [{ part: FIXED, border: 1 }, { part: STRETCH, border: W }];
+  const leftSide = [{ part: FIXED, border: 1 }, { part: STRETCH, border: H }];
+  const rightSide = [{ part: FIXED, border: 1 }, { part: STRETCH, border: H }];
   return { rectangles, topSide, bottomSide, leftSide, rightSide };
 }
 

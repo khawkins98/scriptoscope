@@ -151,9 +151,15 @@ export function sliceControls(srcDir, destDir) {
       out[di] = im.rgba[si]; out[di + 1] = im.rgba[si + 1]; out[di + 2] = im.rgba[si + 2];
       out[di + 3] = outside ? 0 : 255;
     }
-    if (s.dot) { // selected radio: stamp a small dark centre dot on the empty ring
+    if (s.dot) { // selected radio: a small dark dot centered on the ring's OPAQUE bbox
+      let minx = w, maxx = -1, miny = h, maxy = -1;
       for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
-        if (Math.hypot(xx - cx, yy - cy) > 2.4) continue;
+        if (out[(yy * w + xx) * 4 + 3] < 128) continue;
+        if (xx < minx) minx = xx; if (xx > maxx) maxx = xx; if (yy < miny) miny = yy; if (yy > maxy) maxy = yy;
+      }
+      const dcx = (minx + maxx) / 2, dcy = (miny + maxy) / 2;
+      for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+        if (Math.hypot(xx - dcx, yy - dcy) > 1.9) continue;
         const di = (yy * w + xx) * 4;
         out[di] = 56; out[di + 1] = 56; out[di + 2] = 56; out[di + 3] = 255;
       }
