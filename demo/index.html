@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Aaron UI v2 — runtime</title>
   <style>
+    /* The window/control text stacks ask for "Charcoal" (the Mac OS 8.5/8.6 system
+       font) for period-accurate comparison against the references. Apple's Charcoal
+       is proprietary, so this @font-face uses it when LOCALLY installed, otherwise
+       falls back to a bundled OFL stand-in (Atkinson Hyperlegible — a legible
+       humanist sans; assets/fonts/OFL.txt). Swap charcoal-stand-in.woff for a real
+       Charcoal WOFF (gitignored) for an exact match. */
+    @font-face {
+      font-family: 'Charcoal';
+      src: local('Charcoal'), url('assets/fonts/charcoal-stand-in.woff') format('woff');
+      font-display: swap;
+    }
     :root { color-scheme: light; }
     body {
       margin: 0;

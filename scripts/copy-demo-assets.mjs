@@ -33,6 +33,11 @@ await copy(
   resolve(outAssets, 'references'),
 );
 
+// Bundled font referenced by the @font-face (the OFL Charcoal stand-in).
+if (await exists(resolve(root, 'demo/assets/fonts'))) {
+  await copy(resolve(root, 'demo/assets/fonts'), resolve(outAssets, 'fonts'));
+}
+
 // Canonical theme bundles (themes/<slug>/) — served at /themes/ in dev via
 // the serveThemesPlugin in vite.config.js and copied verbatim here for the
 // gh-pages deploy so loadTheme('/themes/<slug>/') works at production URLs.
