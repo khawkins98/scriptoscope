@@ -13,12 +13,17 @@
 // see docs/tracking/interactivity-plan.md.)
 
 import {
-  composeButton, composeCheckable, composeDisclosure,
+  composeButton, composeCheckable, composeDisclosure, composeSlider, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
-  type ButtonOptions,
+  type ButtonOptions, type ControlState,
 } from './controls.js';
+import { platinumSlider, platinumScrollbar } from './platinum.js';
 import { renderWindow, type RenderWindowOptions } from './renderWindow.js';
+import type { PixelBuffer } from './pixelBuffer.js';
 import type { LoadedTheme } from './types.js';
+
+type Orientation = 'horizontal' | 'vertical';
+const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
 
@@ -234,6 +239,114 @@ export async function interactiveDisclosure(
   const toggle = (): void => { open = !open; paint(); if (onToggle) onToggle(open); };
   el.addEventListener('click', toggle);
   el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
+  return el;
+}
+
+// ── Slider / scrollbar (drag) ─────────────────────────────────────────────────
+export interface InteractiveSliderOptions {
+  orientation?: Orientation;
+  length?: number;
+  /** Initial thumb position, 0..1. */
+  value?: number;
+  scale?: number;
+  onChange?: (value: number) => void;
+}
+export interface InteractiveScrollbarOptions extends InteractiveSliderOptions {
+  /** Thumb size as a fraction of the track, 0..1. */
+  thumbExtent?: number;
+}
+
+/**
+ * Shared 1-D drag wiring: pointer position along the axis → value 0..1 (the
+ * compositor maps value linearly along the track), re-rendering the control in
+ * the pressed state while dragging. The re-compose is async (cicn loading) so
+ * it's coalesced to one per animation frame; `onChange` fires immediately. The
+ * element is a `role=slider` with arrow-key support.
+ */
+async function buildDraggable(
+  el: HTMLElement,
+  orientation: Orientation,
+  initial: number,
+  scale: number,
+  compose: (value: number, state: ControlState) => Promise<PixelBuffer | null> | PixelBuffer,
+  onChange?: (value: number) => void,
+): Promise<void> {
+  let value = clamp01(initial);
+  let dragging = false;
+  let raf = 0;
+  el.setAttribute('role', 'slider');
+  el.setAttribute('aria-orientation', orientation);
+  el.setAttribute('aria-valuemin', '0');
+  el.setAttribute('aria-valuemax', '100');
+  el.tabIndex = 0;
+  Object.assign(el.style, {
+    display: 'inline-block', lineHeight: '0', userSelect: 'none',
+    touchAction: 'none', cursor: 'pointer', outlineOffset: '2px',
+  } satisfies Partial<CSSStyleDeclaration>);
+
+  const repaint = async (): Promise<void> => {
+    const buf = await compose(value, dragging ? 'pressed' : 'normal');
+    if (buf) el.replaceChildren(bufferToCanvas(buf, scale));
+    el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+  };
+  await repaint();
+
+  const valueAt = (e: PointerEvent): number => {
+    const r = el.getBoundingClientRect();
+    const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
+    return clamp01(t);
+  };
+  const schedule = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+  const onMove = (e: PointerEvent): void => { value = valueAt(e); onChange?.(value); schedule(); };
+  const onUp = (): void => {
+    dragging = false;
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    void repaint();
+  };
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    dragging = true;
+    value = valueAt(e);
+    onChange?.(value);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    void repaint();
+  });
+  el.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 0.1 : 0.05;
+    let next = value;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clamp01(value + step);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') next = clamp01(value - step);
+    else return;
+    e.preventDefault();
+    value = next;
+    onChange?.(value);
+    void repaint();
+  });
+}
+
+/** A draggable slider (themed where the scheme ships slider cicns, else procedural). */
+export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
+  const { orientation = 'horizontal', length = 120, value = 0.5, scale = 1, onChange } = opts;
+  const el = document.createElement('span');
+  el.className = 'aw-slider';
+  await buildDraggable(el, orientation, value, scale,
+    async (v, state) => (await composeSlider(theme, { orientation, length, value: v, state }))
+      ?? platinumSlider({ orientation, length, value: v }),
+    onChange);
+  return el;
+}
+
+/** A draggable scrollbar thumb (drag along the track sets the position). */
+export async function interactiveScrollbar(theme: LoadedTheme, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
+  const { orientation = 'vertical', length = 120, value = 0.3, thumbExtent = 0.3, scale = 1, onChange } = opts;
+  const el = document.createElement('span');
+  el.className = 'aw-scrollbar';
+  await buildDraggable(el, orientation, value, scale,
+    async (v, state) => (await composeScrollbar(theme, { orientation, length, value: v, thumbExtent, state }))
+      ?? platinumScrollbar({ orientation, length, value: v, thumbExtent }),
+    onChange);
   return el;
 }
 
