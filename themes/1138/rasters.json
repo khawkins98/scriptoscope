@@ -1,0 +1,1165 @@
+{
+ "cicns": [
+  {
+   "file": "cicn-0-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-1-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-128-pressed-window-widgets.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-2-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-n10045-pressed-down-little-arrow.png",
+   "id": -10045,
+   "name": "pressed-down-little-arrow"
+  },
+  {
+   "file": "cicn-n10046-pressed-up-little-arrow.png",
+   "id": -10046,
+   "name": "pressed-up-little-arrow"
+  },
+  {
+   "file": "cicn-n10047-little-arrows.png",
+   "id": -10047,
+   "name": "little-arrows"
+  },
+  {
+   "file": "cicn-n10048-inactive-little-arrows.png",
+   "id": -10048,
+   "name": "inactive-little-arrows"
+  },
+  {
+   "file": "cicn-n10075-inactive-progress-indicator-track.png",
+   "id": -10075,
+   "name": "inactive-progress-indicator-track"
+  },
+  {
+   "file": "cicn-n10076-inactive-full-progress-indicator-section.png",
+   "id": -10076,
+   "name": "inactive-full-progress-indicator-section"
+  },
+  {
+   "file": "cicn-n10077-inactive-progress-indicator-frame.png",
+   "id": -10077,
+   "name": "inactive-progress-indicator-frame"
+  },
+  {
+   "file": "cicn-n10078-progress-indicator-track.png",
+   "id": -10078,
+   "name": "progress-indicator-track"
+  },
+  {
+   "file": "cicn-n10079-full-progress-indicator-section.png",
+   "id": -10079,
+   "name": "full-progress-indicator-section"
+  },
+  {
+   "file": "cicn-n10080-progress-indicator-frame.png",
+   "id": -10080,
+   "name": "progress-indicator-frame"
+  },
+  {
+   "file": "cicn-n10102-pressed-down-pointing-disclosure-triangle.png",
+   "id": -10102,
+   "name": "pressed-down-pointing-disclosure-triangle"
+  },
+  {
+   "file": "cicn-n10103-down-pointing-disclosure-triangle.png",
+   "id": -10103,
+   "name": "down-pointing-disclosure-triangle"
+  },
+  {
+   "file": "cicn-n10104-inactive-down-pointing-disclosure-triangle.png",
+   "id": -10104,
+   "name": "inactive-down-pointing-disclosure-triangle"
+  },
+  {
+   "file": "cicn-n10110-pressed-right-pointing-disclosure-triangle.png",
+   "id": -10110,
+   "name": "pressed-right-pointing-disclosure-triangle"
+  },
+  {
+   "file": "cicn-n10111-right-pointing-disclosure-triangle.png",
+   "id": -10111,
+   "name": "right-pointing-disclosure-triangle"
+  },
+  {
+   "file": "cicn-n10112-inactive-right-pointing-disclosure-tringle.png",
+   "id": -10112,
+   "name": "inactive-right-pointing-disclosure-tringle"
+  },
+  {
+   "file": "cicn-n10113-vertical-non-directional-slider-thumbs.png",
+   "id": -10113,
+   "name": "vertical-non-directional-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10114-pressed-non-directional-vertical-slider-track.png",
+   "id": -10114,
+   "name": "pressed-non-directional-vertical-slider-track"
+  },
+  {
+   "file": "cicn-n10115-non-directional-vertical-slider-track.png",
+   "id": -10115,
+   "name": "non-directional-vertical-slider-track"
+  },
+  {
+   "file": "cicn-n10116-inactive-non-directional-vertical-slider-track.png",
+   "id": -10116,
+   "name": "inactive-non-directional-vertical-slider-track"
+  },
+  {
+   "file": "cicn-n10117-left-pointing-slider-tick.png",
+   "id": -10117,
+   "name": "left-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10118-inactive-left-pointing-slider-tick.png",
+   "id": -10118,
+   "name": "inactive-left-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10119-left-pointing-slider-thumbs.png",
+   "id": -10119,
+   "name": "left-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10120-pressed-left-pointing-slider-track.png",
+   "id": -10120,
+   "name": "pressed-left-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10121-left-pointing-slider-track.png",
+   "id": -10121,
+   "name": "left-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10122-inactive-left-pointing-slider-track.png",
+   "id": -10122,
+   "name": "inactive-left-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10123-right-pointing-slider-tick.png",
+   "id": -10123,
+   "name": "right-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10124-inactive-right-pointing-slider-tick.png",
+   "id": -10124,
+   "name": "inactive-right-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10125-right-pointing-slider-thumbs.png",
+   "id": -10125,
+   "name": "right-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10126-pressed-right-pointing-slider-track.png",
+   "id": -10126,
+   "name": "pressed-right-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10127-right-pointing-slider-track.png",
+   "id": -10127,
+   "name": "right-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10128-inactive-right-pointing-slider-track.png",
+   "id": -10128,
+   "name": "inactive-right-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10129-non-directional-horizontal-slider-thumbs.png",
+   "id": -10129,
+   "name": "non-directional-horizontal-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10130-pressed-non-directional-horizontal-slider-track.png",
+   "id": -10130,
+   "name": "pressed-non-directional-horizontal-slider-track"
+  },
+  {
+   "file": "cicn-n10131-non-directional-horizontal-slider-track.png",
+   "id": -10131,
+   "name": "non-directional-horizontal-slider-track"
+  },
+  {
+   "file": "cicn-n10132-inactive-non-directional-horizontal-slider-track.png",
+   "id": -10132,
+   "name": "inactive-non-directional-horizontal-slider-track"
+  },
+  {
+   "file": "cicn-n10133-up-pointing-slider-tick.png",
+   "id": -10133,
+   "name": "up-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10134-inactive-up-pointing-slider-tick.png",
+   "id": -10134,
+   "name": "inactive-up-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10135-up-pointing-slider-thumbs.png",
+   "id": -10135,
+   "name": "up-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10136-pressed-up-pointing-slider-track.png",
+   "id": -10136,
+   "name": "pressed-up-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10137-up-pointing-slider-track.png",
+   "id": -10137,
+   "name": "up-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10138-up-down-pointing-slider-track.png",
+   "id": -10138,
+   "name": "up-down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10139-down-pointing-slider-tick.png",
+   "id": -10139,
+   "name": "down-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10140-inactive-down-pointing-slider-tick.png",
+   "id": -10140,
+   "name": "inactive-down-pointing-slider-tick"
+  },
+  {
+   "file": "cicn-n10141-down-pointing-slider-thumbs.png",
+   "id": -10141,
+   "name": "down-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10142-pressed-down-pointing-slider-track.png",
+   "id": -10142,
+   "name": "pressed-down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10143-down-pointing-slider-track.png",
+   "id": -10143,
+   "name": "down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10144-inactive-down-pointing-slider-track.png",
+   "id": -10144,
+   "name": "inactive-down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10158-large-off-disabled.png",
+   "id": -10158,
+   "name": "large-off-disabled"
+  },
+  {
+   "file": "cicn-n10162-normal-on-pressed.png",
+   "id": -10162,
+   "name": "normal-on-pressed"
+  },
+  {
+   "file": "cicn-n10163-normal-on-normal.png",
+   "id": -10163,
+   "name": "normal-on-normal"
+  },
+  {
+   "file": "cicn-n10164-normal-on-disabled.png",
+   "id": -10164,
+   "name": "normal-on-disabled"
+  },
+  {
+   "file": "cicn-n10165-normal-off-pressed.png",
+   "id": -10165,
+   "name": "normal-off-pressed"
+  },
+  {
+   "file": "cicn-n10166-normal-off-normal.png",
+   "id": -10166,
+   "name": "normal-off-normal"
+  },
+  {
+   "file": "cicn-n10167-normal-off-disabled.png",
+   "id": -10167,
+   "name": "normal-off-disabled"
+  },
+  {
+   "file": "cicn-n10171-small-on-pressed.png",
+   "id": -10171,
+   "name": "small-on-pressed"
+  },
+  {
+   "file": "cicn-n10172-small-on-normal.png",
+   "id": -10172,
+   "name": "small-on-normal"
+  },
+  {
+   "file": "cicn-n10173-small-on-disabled.png",
+   "id": -10173,
+   "name": "small-on-disabled"
+  },
+  {
+   "file": "cicn-n10174-small-off-pressed.png",
+   "id": -10174,
+   "name": "small-off-pressed"
+  },
+  {
+   "file": "cicn-n10175-small-off-normal.png",
+   "id": -10175,
+   "name": "small-off-normal"
+  },
+  {
+   "file": "cicn-n10176-small-off-disabled.png",
+   "id": -10176,
+   "name": "small-off-disabled"
+  },
+  {
+   "file": "cicn-n10205-unnamed.png",
+   "id": -10205,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10206-unnamed.png",
+   "id": -10206,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10207-unnamed.png",
+   "id": -10207,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10208-unnamed.png",
+   "id": -10208,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10231-unnamed.png",
+   "id": -10231,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10232-unnamed.png",
+   "id": -10232,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10238-unnamed.png",
+   "id": -10238,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10239-unnamed.png",
+   "id": -10239,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10240-unnamed.png",
+   "id": -10240,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n12230-pressed-application-menu-grip.png",
+   "id": -12230,
+   "name": "pressed-application-menu-grip"
+  },
+  {
+   "file": "cicn-n12231-application-menu-grip.png",
+   "id": -12231,
+   "name": "application-menu-grip"
+  },
+  {
+   "file": "cicn-n12233-selected-solo-menu-background.png",
+   "id": -12233,
+   "name": "selected-solo-menu-background"
+  },
+  {
+   "file": "cicn-n12234-solo-menu-background.png",
+   "id": -12234,
+   "name": "solo-menu-background"
+  },
+  {
+   "file": "cicn-n12235-divider-line.png",
+   "id": -12235,
+   "name": "divider-line"
+  },
+  {
+   "file": "cicn-n12236-selected-menu-item.png",
+   "id": -12236,
+   "name": "selected-menu-item"
+  },
+  {
+   "file": "cicn-n12237-pull-down-menu-background.png",
+   "id": -12237,
+   "name": "pull-down-menu-background"
+  },
+  {
+   "file": "cicn-n12238-selected-menu-item.png",
+   "id": -12238,
+   "name": "selected-menu-item"
+  },
+  {
+   "file": "cicn-n12239-menu-item.png",
+   "id": -12239,
+   "name": "menu-item"
+  },
+  {
+   "file": "cicn-n12240-menu-bar.png",
+   "id": -12240,
+   "name": "menu-bar"
+  },
+  {
+   "file": "cicn-n12320-popup-window.png",
+   "id": -12320,
+   "name": "popup-window"
+  },
+  {
+   "file": "cicn-n14277-small-side-floating-utility-window-grow-box.png",
+   "id": -14277,
+   "name": "small-side-floating-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14278-inactive-small-side-floating-utility-window-grow-box.png",
+   "id": -14278,
+   "name": "inactive-small-side-floating-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14283-collapsed-no-title-utility-window.png",
+   "id": -14283,
+   "name": "collapsed-no-title-utility-window"
+  },
+  {
+   "file": "cicn-n14284-inactive-collapsed-no-title-utility-window.png",
+   "id": -14284,
+   "name": "inactive-collapsed-no-title-utility-window"
+  },
+  {
+   "file": "cicn-n14285-small-utility-window-grow-box.png",
+   "id": -14285,
+   "name": "small-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14286-inactive-small-utility-window-grow-box.png",
+   "id": -14286,
+   "name": "inactive-small-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14287-active-no-title-utility-window.png",
+   "id": -14287,
+   "name": "active-no-title-utility-window"
+  },
+  {
+   "file": "cicn-n14288-inactive-no-title-utility-window.png",
+   "id": -14288,
+   "name": "inactive-no-title-utility-window"
+  },
+  {
+   "file": "cicn-n14289-side-floating-utility-window-alternate-zoom-box-widgets.png",
+   "id": -14289,
+   "name": "side-floating-utility-window-alternate-zoom-box-widgets"
+  },
+  {
+   "file": "cicn-n14290-side-floating-utility-window-down-state-widgets.png",
+   "id": -14290,
+   "name": "side-floating-utility-window-down-state-widgets"
+  },
+  {
+   "file": "cicn-n14291-side-floating-utility-window.png",
+   "id": -14291,
+   "name": "side-floating-utility-window"
+  },
+  {
+   "file": "cicn-n14292-inactive-collapsed-side-floating-utility-window.png",
+   "id": -14292,
+   "name": "inactive-collapsed-side-floating-utility-window"
+  },
+  {
+   "file": "cicn-n14293-side-floating-utility-window-grow-box.png",
+   "id": -14293,
+   "name": "side-floating-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14294-inactive-side-floating-utility-window-grow-box.png",
+   "id": -14294,
+   "name": "inactive-side-floating-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14295-side-floating-utility-window.png",
+   "id": -14295,
+   "name": "side-floating-utility-window"
+  },
+  {
+   "file": "cicn-n14296-disabled-side-floating-utility-window.png",
+   "id": -14296,
+   "name": "disabled-side-floating-utility-window"
+  },
+  {
+   "file": "cicn-n14297-utility-window-alternate-zoom-box-widgets.png",
+   "id": -14297,
+   "name": "utility-window-alternate-zoom-box-widgets"
+  },
+  {
+   "file": "cicn-n14298-pressed-utility-window-widgets.png",
+   "id": -14298,
+   "name": "pressed-utility-window-widgets"
+  },
+  {
+   "file": "cicn-n14299-collapsed-titled-utility-window.png",
+   "id": -14299,
+   "name": "collapsed-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14300-inactive-collapsed-titled-utility-window.png",
+   "id": -14300,
+   "name": "inactive-collapsed-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14301-large-utility-window-grow-box.png",
+   "id": -14301,
+   "name": "large-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14302-inactive-large-utility-window-grow-box.png",
+   "id": -14302,
+   "name": "inactive-large-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14303-active-titled-utility-window.png",
+   "id": -14303,
+   "name": "active-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14304-inactive-titled-utility-window.png",
+   "id": -14304,
+   "name": "inactive-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14305-unnamed.png",
+   "id": -14305,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14309-active-movable-modal-grow-box.png",
+   "id": -14309,
+   "name": "active-movable-modal-grow-box"
+  },
+  {
+   "file": "cicn-n14310-inactive-movable-modal-grow-box.png",
+   "id": -14310,
+   "name": "inactive-movable-modal-grow-box"
+  },
+  {
+   "file": "cicn-n14321-active-movable-dialog.png",
+   "id": -14321,
+   "name": "active-movable-dialog"
+  },
+  {
+   "file": "cicn-n14322-inactive-movable-alert.png",
+   "id": -14322,
+   "name": "inactive-movable-alert"
+  },
+  {
+   "file": "cicn-n14323-active-movable-modal.png",
+   "id": -14323,
+   "name": "active-movable-modal"
+  },
+  {
+   "file": "cicn-n14324-inactive-movable-modal.png",
+   "id": -14324,
+   "name": "inactive-movable-modal"
+  },
+  {
+   "file": "cicn-n14325-active-alert.png",
+   "id": -14325,
+   "name": "active-alert"
+  },
+  {
+   "file": "cicn-n14326-inactive-alert.png",
+   "id": -14326,
+   "name": "inactive-alert"
+  },
+  {
+   "file": "cicn-n14327-active-dialog.png",
+   "id": -14327,
+   "name": "active-dialog"
+  },
+  {
+   "file": "cicn-n14328-inactive-dialog.png",
+   "id": -14328,
+   "name": "inactive-dialog"
+  },
+  {
+   "file": "cicn-n14329-alternate-zoom-box-widgets.png",
+   "id": -14329,
+   "name": "alternate-zoom-box-widgets"
+  },
+  {
+   "file": "cicn-n14330-pressed-window-widgets.png",
+   "id": -14330,
+   "name": "pressed-window-widgets"
+  },
+  {
+   "file": "cicn-n14331-collapsed-active-document-window.png",
+   "id": -14331,
+   "name": "collapsed-active-document-window"
+  },
+  {
+   "file": "cicn-n14332-collapsed-inactive-document-window.png",
+   "id": -14332,
+   "name": "collapsed-inactive-document-window"
+  },
+  {
+   "file": "cicn-n14333-active-grow-box.png",
+   "id": -14333,
+   "name": "active-grow-box"
+  },
+  {
+   "file": "cicn-n14334-inactive-grow-box.png",
+   "id": -14334,
+   "name": "inactive-grow-box"
+  },
+  {
+   "file": "cicn-n14335-unnamed.png",
+   "id": -14335,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14336-unnamed.png",
+   "id": -14336,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8194-pressed-small-popup-arrow-glyph.png",
+   "id": -8194,
+   "name": "pressed-small-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8195-active-small-popup-arrow-glyph.png",
+   "id": -8195,
+   "name": "active-small-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8196-inactive-small-popup-arrow-glyph.png",
+   "id": -8196,
+   "name": "inactive-small-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8197-pressed-large-popup-arrow-glyph.png",
+   "id": -8197,
+   "name": "pressed-large-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8198-active-large-popup-arrow-glyph.png",
+   "id": -8198,
+   "name": "active-large-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8199-inactive-large-popup-arrow-glyph.png",
+   "id": -8199,
+   "name": "inactive-large-popup-arrow-glyph"
+  },
+  {
+   "file": "cicn-n8200-unnamed.png",
+   "id": -8200,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8201-unnamed.png",
+   "id": -8201,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8202-unnamed.png",
+   "id": -8202,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8203-unnamed.png",
+   "id": -8203,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8204-unnamed.png",
+   "id": -8204,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8205-unnamed.png",
+   "id": -8205,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8206-unnamed.png",
+   "id": -8206,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8207-unnamed.png",
+   "id": -8207,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8208-unnamed.png",
+   "id": -8208,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8249-pressed-small-horizontal-thumb.png",
+   "id": -8249,
+   "name": "pressed-small-horizontal-thumb"
+  },
+  {
+   "file": "cicn-n8250-small-horizontal-thumb.png",
+   "id": -8250,
+   "name": "small-horizontal-thumb"
+  },
+  {
+   "file": "cicn-n8251-pressed-small-vertical-thumb.png",
+   "id": -8251,
+   "name": "pressed-small-vertical-thumb"
+  },
+  {
+   "file": "cicn-n8252-small-vertical-thumb.png",
+   "id": -8252,
+   "name": "small-vertical-thumb"
+  },
+  {
+   "file": "cicn-n8253-small-horizontal-thumb-ghost.png",
+   "id": -8253,
+   "name": "small-horizontal-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8254-small-vertical-thumb-ghost.png",
+   "id": -8254,
+   "name": "small-vertical-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8255-pressed-small-vertical-double-headed-scroll-bar.png",
+   "id": -8255,
+   "name": "pressed-small-vertical-double-headed-scroll-bar"
+  },
+  {
+   "file": "cicn-n8256-small-double-vertical-headed-scroll-bar.png",
+   "id": -8256,
+   "name": "small-double-vertical-headed-scroll-bar"
+  },
+  {
+   "file": "cicn-n8257-small-nothing-to-scroll-double-headed.png",
+   "id": -8257,
+   "name": "small-nothing-to-scroll-double-headed"
+  },
+  {
+   "file": "cicn-n8259-pressed-small-vertical-scroll-bar-track.png",
+   "id": -8259,
+   "name": "pressed-small-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8260-small-vertical-scroll-bar-track.png",
+   "id": -8260,
+   "name": "small-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8261-small-vertical-nothing-to-scroll.png",
+   "id": -8261,
+   "name": "small-vertical-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8262-inactive-small-vertical-nothing-to-scroll.png",
+   "id": -8262,
+   "name": "inactive-small-vertical-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8263-pressed-small-doubled-headed-horizontal-scroll-bar.png",
+   "id": -8263,
+   "name": "pressed-small-doubled-headed-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8264-small-doubled-headed-horizontal-scroll-bar.png",
+   "id": -8264,
+   "name": "small-doubled-headed-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8265-small-doubled-headed-nothing-to-scroll.png",
+   "id": -8265,
+   "name": "small-doubled-headed-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8267-pressed-small-horizontal-scroll-bar.png",
+   "id": -8267,
+   "name": "pressed-small-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8268-small-horizontal-scroll-bar.png",
+   "id": -8268,
+   "name": "small-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8269-small-horizontal-nothing-to-scroll.png",
+   "id": -8269,
+   "name": "small-horizontal-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8270-inactive-small-horizontal-nothing-to-scroll.png",
+   "id": -8270,
+   "name": "inactive-small-horizontal-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8271-horizontal-ghost-thumb.png",
+   "id": -8271,
+   "name": "horizontal-ghost-thumb"
+  },
+  {
+   "file": "cicn-n8272-vertical-thumb-ghost.png",
+   "id": -8272,
+   "name": "vertical-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8273-pressed-vertical-double-headed-scroll-bar.png",
+   "id": -8273,
+   "name": "pressed-vertical-double-headed-scroll-bar"
+  },
+  {
+   "file": "cicn-n8274-vertical-double-headed-scroll-bar.png",
+   "id": -8274,
+   "name": "vertical-double-headed-scroll-bar"
+  },
+  {
+   "file": "cicn-n8275-vertical-double-headed-nothing-to-scroll.png",
+   "id": -8275,
+   "name": "vertical-double-headed-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8277-pressed-vertical-scroll-bar-track-arrows.png",
+   "id": -8277,
+   "name": "pressed-vertical-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8278-vertical-scroll-bar-track-arrows.png",
+   "id": -8278,
+   "name": "vertical-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8279-vertical-nothing-to-scroll-track.png",
+   "id": -8279,
+   "name": "vertical-nothing-to-scroll-track"
+  },
+  {
+   "file": "cicn-n8280-inactive-vertical-scroll-bar-track.png",
+   "id": -8280,
+   "name": "inactive-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8281-pressed-horizontal-doubled-headed-scroll-bar.png",
+   "id": -8281,
+   "name": "pressed-horizontal-doubled-headed-scroll-bar"
+  },
+  {
+   "file": "cicn-n8282-doubled-headed-horizontal-scroll-bar.png",
+   "id": -8282,
+   "name": "doubled-headed-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8283-double-headed-nothing-to-scroll.png",
+   "id": -8283,
+   "name": "double-headed-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8285-pressed-horizontal-scroll-bar-track-arrows.png",
+   "id": -8285,
+   "name": "pressed-horizontal-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8286-horizontal-scroll-bar-track-arrows.png",
+   "id": -8286,
+   "name": "horizontal-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8287-horzontal-nothing-to-scroll-track.png",
+   "id": -8287,
+   "name": "horzontal-nothing-to-scroll-track"
+  },
+  {
+   "file": "cicn-n8288-inactive-horizontal-scroll-bar-track.png",
+   "id": -8288,
+   "name": "inactive-horizontal-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n9484-pressed-mixed-radio-button.png",
+   "id": -9484,
+   "name": "pressed-mixed-radio-button"
+  },
+  {
+   "file": "cicn-n9485-mixed-radio-button.png",
+   "id": -9485,
+   "name": "mixed-radio-button"
+  },
+  {
+   "file": "cicn-n9486-inactive-mixed-radio-button.png",
+   "id": -9486,
+   "name": "inactive-mixed-radio-button"
+  },
+  {
+   "file": "cicn-n9487-pressed-on-radio-button.png",
+   "id": -9487,
+   "name": "pressed-on-radio-button"
+  },
+  {
+   "file": "cicn-n9488-on-radio-button.png",
+   "id": -9488,
+   "name": "on-radio-button"
+  },
+  {
+   "file": "cicn-n9489-inactive-on-radio-button.png",
+   "id": -9489,
+   "name": "inactive-on-radio-button"
+  },
+  {
+   "file": "cicn-n9490-pressed-off-radio-button.png",
+   "id": -9490,
+   "name": "pressed-off-radio-button"
+  },
+  {
+   "file": "cicn-n9491-off-radio-button.png",
+   "id": -9491,
+   "name": "off-radio-button"
+  },
+  {
+   "file": "cicn-n9492-inactive-off-radio-button.png",
+   "id": -9492,
+   "name": "inactive-off-radio-button"
+  },
+  {
+   "file": "cicn-n9493-pressed-alternate-checked-check-box.png",
+   "id": -9493,
+   "name": "pressed-alternate-checked-check-box"
+  },
+  {
+   "file": "cicn-n9494-alternate-checked-check-box.png",
+   "id": -9494,
+   "name": "alternate-checked-check-box"
+  },
+  {
+   "file": "cicn-n9495-checked-alternate-checked-check-box.png",
+   "id": -9495,
+   "name": "checked-alternate-checked-check-box"
+  },
+  {
+   "file": "cicn-n9496-pressed-mixed-check-box.png",
+   "id": -9496,
+   "name": "pressed-mixed-check-box"
+  },
+  {
+   "file": "cicn-n9497-mixed-check-box.png",
+   "id": -9497,
+   "name": "mixed-check-box"
+  },
+  {
+   "file": "cicn-n9498-inactive-mixed-check-box.png",
+   "id": -9498,
+   "name": "inactive-mixed-check-box"
+  },
+  {
+   "file": "cicn-n9499-pressed-checked-check-box.png",
+   "id": -9499,
+   "name": "pressed-checked-check-box"
+  },
+  {
+   "file": "cicn-n9500-checked-check-box.png",
+   "id": -9500,
+   "name": "checked-check-box"
+  },
+  {
+   "file": "cicn-n9501-inactive-checked-check-box.png",
+   "id": -9501,
+   "name": "inactive-checked-check-box"
+  },
+  {
+   "file": "cicn-n9502-pressed-un-checked-check-box.png",
+   "id": -9502,
+   "name": "pressed-un-checked-check-box"
+  },
+  {
+   "file": "cicn-n9503-un-checked-check-box.png",
+   "id": -9503,
+   "name": "un-checked-check-box"
+  },
+  {
+   "file": "cicn-n9504-inactive-un-checked-check-box.png",
+   "id": -9504,
+   "name": "inactive-un-checked-check-box"
+  },
+  {
+   "file": "cicn-n9548-list-view-seperator-line.png",
+   "id": -9548,
+   "name": "list-view-seperator-line"
+  },
+  {
+   "file": "cicn-n9549-sort-column-background.png",
+   "id": -9549,
+   "name": "sort-column-background"
+  },
+  {
+   "file": "cicn-n9550-list-view-background-and-text.png",
+   "id": -9550,
+   "name": "list-view-background-and-text"
+  },
+  {
+   "file": "cicn-n9551-icon-view-background-color.png",
+   "id": -9551,
+   "name": "icon-view-background-color"
+  },
+  {
+   "file": "cicn-n9552-desktop-text-color-and-background.png",
+   "id": -9552,
+   "name": "desktop-text-color-and-background"
+  },
+  {
+   "file": "cicn-n9567-finder-header.png",
+   "id": -9567,
+   "name": "finder-header"
+  },
+  {
+   "file": "cicn-n9568-inactive-finder-header.png",
+   "id": -9568,
+   "name": "inactive-finder-header"
+  },
+  {
+   "file": "cicn-n9775-inactive-dialog-alert-box-colors.png",
+   "id": -9775,
+   "name": "inactive-dialog-alert-box-colors"
+  },
+  {
+   "file": "cicn-n9776-active-dialog-alert-box-colors.png",
+   "id": -9776,
+   "name": "active-dialog-alert-box-colors"
+  },
+  {
+   "file": "cicn-n9969-ssf-tab-pane.png",
+   "id": -9969,
+   "name": "ssf-tab-pane"
+  },
+  {
+   "file": "cicn-n9970-ssf-disabled-tab-pane.png",
+   "id": -9970,
+   "name": "ssf-disabled-tab-pane"
+  },
+  {
+   "file": "cicn-n9972-ssf-front-tab.png",
+   "id": -9972,
+   "name": "ssf-front-tab"
+  },
+  {
+   "file": "cicn-n9973-ssf-front-disabled-tab.png",
+   "id": -9973,
+   "name": "ssf-front-disabled-tab"
+  },
+  {
+   "file": "cicn-n9974-pressed-ssf-rear-tab.png",
+   "id": -9974,
+   "name": "pressed-ssf-rear-tab"
+  },
+  {
+   "file": "cicn-n9975-ssf-rear-tab.png",
+   "id": -9975,
+   "name": "ssf-rear-tab"
+  },
+  {
+   "file": "cicn-n9976-ssf-disabled-rear-tab.png",
+   "id": -9976,
+   "name": "ssf-disabled-rear-tab"
+  },
+  {
+   "file": "cicn-n9977-lsf-tab-pane.png",
+   "id": -9977,
+   "name": "lsf-tab-pane"
+  },
+  {
+   "file": "cicn-n9978-lsf-disabled-tab-pane.png",
+   "id": -9978,
+   "name": "lsf-disabled-tab-pane"
+  },
+  {
+   "file": "cicn-n9980-lsf-front-tab.png",
+   "id": -9980,
+   "name": "lsf-front-tab"
+  },
+  {
+   "file": "cicn-n9981-lsf-front-disabled-tab.png",
+   "id": -9981,
+   "name": "lsf-front-disabled-tab"
+  },
+  {
+   "file": "cicn-n9982-lsf-pressed-rear-tab.png",
+   "id": -9982,
+   "name": "lsf-pressed-rear-tab"
+  },
+  {
+   "file": "cicn-n9983-lsf-rear-tab.png",
+   "id": -9983,
+   "name": "lsf-rear-tab"
+  },
+  {
+   "file": "cicn-n9984-lsf-disabled-rear-tab.png",
+   "id": -9984,
+   "name": "lsf-disabled-rear-tab"
+  }
+ ],
+ "ppats": [
+  {
+   "file": "ppat-17-desktop-pattern.png",
+   "label": "17-desktop-pattern"
+  },
+  {
+   "file": "ppat-42-utility-pattern.png",
+   "label": "42-utility-pattern"
+  },
+  {
+   "file": "ppat-n10069-inactive-indeterminate-progress-step-4.png",
+   "label": "n10069-inactive-indeterminate-progress-step-4"
+  },
+  {
+   "file": "ppat-n10070-inactive-indeterminate-progress-step-3.png",
+   "label": "n10070-inactive-indeterminate-progress-step-3"
+  },
+  {
+   "file": "ppat-n10071-inactive-indeterminate-progress-step-2.png",
+   "label": "n10071-inactive-indeterminate-progress-step-2"
+  },
+  {
+   "file": "ppat-n10072-inactive-indeterminate-progress-step-1.png",
+   "label": "n10072-inactive-indeterminate-progress-step-1"
+  },
+  {
+   "file": "ppat-n10077-indeterminate-progress-step-4.png",
+   "label": "n10077-indeterminate-progress-step-4"
+  },
+  {
+   "file": "ppat-n10078-indeterminate-progress-step-3.png",
+   "label": "n10078-indeterminate-progress-step-3"
+  },
+  {
+   "file": "ppat-n10079-indeterminate-progress-step-2.png",
+   "label": "n10079-indeterminate-progress-step-2"
+  },
+  {
+   "file": "ppat-n10080-indeterminate-progress-step-1.png",
+   "label": "n10080-indeterminate-progress-step-1"
+  },
+  {
+   "file": "ppat-n14311-unnamed.png",
+   "label": "n14311-unnamed"
+  }
+ ]
+}

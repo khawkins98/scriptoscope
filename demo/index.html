@@ -349,6 +349,74 @@
       return det;
     }
 
+    // DIAGNOSTIC: a collapsible dump of EVERY raster a theme ships — the chrome &
+    // control cicns (themes/<slug>/cicns/, enumerated via rasters.json), the decoded
+    // icons (icons/index.json), and the patterns (ppats/). The icon inventory above
+    // adds the pictogram-id rubric; this is the raw asset view, so we can eyeball
+    // exactly what a scheme carries (e.g. the default-button ring cicn -10231/-10232,
+    // or whether a new import is missing art). Native-size pixelated thumbnails,
+    // id/name labels, click-to-copy of "<code> @ <slug> — <path>". Grids build LAZILY
+    // on first open so 10 themes' worth of rasters don't bloat the initial DOM.
+    async function rasterInventory(theme) {
+      const det = document.createElement('details');
+      det.style.cssText = 'margin:4px 24px 16px; font:11px system-ui; color:#444';
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer; color:#555; font-weight:600; padding:4px 0';
+      det.appendChild(sum);
+      const slug = (theme.baseUrl || '').split('/').pop();
+      let rasters = { cicns: [], ppats: [] };
+      let icons = [];
+      try { const r = await fetch(`${theme.baseUrl}/rasters.json`); if (r.ok) rasters = await r.json(); } catch {}
+      try { const r = await fetch(`${theme.baseUrl}/icons/index.json`); if (r.ok) icons = await r.json(); } catch {}
+      sum.textContent = `All rasters — ${rasters.cicns.length} cicns · ${icons.length} icons · ${rasters.ppats.length} patterns — click to expand`;
+      const cell = (code, dir, file, label) => {
+        const path = `themes/${slug}/${dir}/${file}`;
+        const copyText = `${code} @ ${slug} — ${path}`;
+        const c = document.createElement('div');
+        c.style.cssText = 'width:96px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
+        c.title = `Click to copy:\n${copyText}`;
+        const img = document.createElement('img');
+        img.src = `${theme.baseUrl}/${dir}/${file}`; img.loading = 'lazy';
+        Object.assign(img.style, { maxWidth: '88px', maxHeight: '72px', imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
+        const lab = document.createElement('div');
+        lab.textContent = label;
+        lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word';
+        c.append(img, lab);
+        c.onclick = async () => {
+          try { await navigator.clipboard.writeText(copyText); }
+          catch { const ta = document.createElement('textarea'); ta.value = copyText; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove(); }
+          const o = lab.textContent; lab.textContent = '✓ copied'; lab.style.color = '#0a7d00';
+          setTimeout(() => { lab.textContent = o; lab.style.color = ''; }, 900);
+        };
+        return c;
+      };
+      const group = (label, items) => {
+        if (!items.length) return;
+        const head = document.createElement('div');
+        head.textContent = `${label} — ${items.length}`;
+        head.style.cssText = 'margin:8px 0 2px; font-weight:600; color:#555';
+        det.appendChild(head);
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:4px 0; align-items:flex-end';
+        for (const it of items) grid.appendChild(it);
+        det.appendChild(grid);
+      };
+      let built = false;
+      det.addEventListener('toggle', () => {
+        if (!det.open || built) return;
+        built = true;
+        group('Chrome & control cicns', rasters.cicns.slice()
+          .sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || (a.id ?? 0) - (b.id ?? 0))
+          .map((c) => cell(`cicn ${c.id ?? '?'}`, 'cicns', c.file, `${c.id ?? '?'}${c.name ? '\n' + c.name : ''}`)));
+        group('Icons (ics4/8 · icl4/8)', icons.slice()
+          .sort((a, b) => a.size - b.size || a.id - b.id)
+          .map((i) => cell(`${i.type} ${i.id}`, 'icons', i.file, `${i.id}${i.name ? '\n' + i.name.trim() : ''}`)));
+        group('Patterns (ppat)', rasters.ppats
+          .map((p) => cell(`ppat ${p.label}`, 'ppats', p.file, p.label)));
+      });
+      return det;
+    }
+
     // A segmented TAB control (e.g. On | Off), tinted with the scheme's
     // header colors. Selected cell uses the header fill/text; others a light
     // Platinum face. Reads as tabs rather than two separate push buttons.
@@ -1046,6 +1114,7 @@
       section.appendChild(diagnosticStrip(theme));
       section.appendChild(await sliceInspector(theme));
       section.appendChild(await iconInventory(theme));
+      section.appendChild(await rasterInventory(theme));
       rows.appendChild(section);
     }
 
