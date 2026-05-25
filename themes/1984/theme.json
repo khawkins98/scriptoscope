@@ -1,8 +1,8 @@
 {
   "version": "0.1",
   "source": "1984/scheme.rsrc",
-  "generatedAt": "2026-05-22T20:14:59.181Z",
-  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/aaron-ui-composer-spec.md (spec C) §3.",
+  "generatedAt": "2026-05-25T16:18:04.533Z",
+  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "1984",
   "author": {
     "name": "Geoffrey Hamilton",
@@ -4605,20 +4605,20 @@
   },
   "headerColors": {
     "active": {
-      "frame": "#003366",
-      "fill": "#3366cc",
-      "lightTinge": "#6699ff",
-      "darkTinge": "#003366",
-      "lightBevel": "#6699ff",
-      "darkBevel": "#003366"
-    },
-    "inactive": {
       "frame": "#001f52",
       "fill": "#295ab5",
       "lightTinge": "#5a8ce7",
       "darkTinge": "#001f52",
       "lightBevel": "#5a8ce7",
       "darkBevel": "#001f52"
+    },
+    "inactive": {
+      "frame": "#003366",
+      "fill": "#3366cc",
+      "lightTinge": "#6699ff",
+      "darkTinge": "#003366",
+      "lightBevel": "#6699ff",
+      "darkBevel": "#003366"
     }
   },
   "bodyBackground": {

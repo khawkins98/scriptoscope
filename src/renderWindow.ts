@@ -147,7 +147,26 @@ export async function renderWindow(
     // a genuinely COLOURED title; pinning that coordinate is still open
     // (docs/tracking/title-text-color.md). Until then, black is correct here.
     const tr = composed.titleRegion;
-    const fgHex = state === 'inactive' ? '#808080' : '#000000';
+    // Title colour CONTRASTS with the bar the text actually sits on. We sample the
+    // composed buffer over the text's OWN footprint (the title plate / pinstripe),
+    // not the dark frame — the flaw in the earlier luminance heuristic. So a dark
+    // title bar (e.g. Black Platinum's black pinstripe, whose headerColors.fill is
+    // a misleadingly light #ddd) gets WHITE text; light bars keep BLACK (the corpus
+    // default). NOT headerColors.text (a frame tint; see title-text-color.md).
+    const cx = tr.x + tr.w / 2;
+    const sgx = Math.max(1, Math.min(fullWidth - glyphs.width - 1, Math.round(cx - glyphs.width / 2)));
+    const sgy = Math.max(1, Math.round((frame.top - glyphs.height) / 2));
+    let lumSum = 0, lumN = 0;
+    const sx1 = Math.min(fullWidth, sgx + glyphs.width), sy1 = Math.min(frame.top - 1, sgy + glyphs.height);
+    for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
+      const [pr, pg, pb, pa] = composed.buffer.getPixel(sx, sy);
+      if (pa < 8) continue;
+      lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
+    }
+    const darkBar = lumN > 0 && lumSum / lumN < 112;
+    const fgHex = darkBar
+      ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
+      : (state === 'inactive' ? '#808080' : '#000000');
     const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
     // The title text centres on the TITLE REGION — the reserved title-plate the
     // compositor places per the kDEF (0x4a64): centred in the bar when the recipe
@@ -156,7 +175,6 @@ export async function renderWindow(
     // pins left into the yellow tab. (Earlier this used the content centre as a
     // workaround for a pre-title-plate regression; the plate is now positioned
     // faithfully, so we follow it.)
-    const cx = tr.x + tr.w / 2;
     const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
     const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
     composed.buffer.drawOver(g, gx, gy);

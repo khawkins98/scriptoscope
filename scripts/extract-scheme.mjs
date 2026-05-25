@@ -147,12 +147,15 @@ const metaPath = resolve(destDir, 'meta.json');
 const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
 const theme = buildThemeJson({ source: `${slug}/scheme.rsrc`, extractedAt, counts, assets: subAssets }, { meta });
 
-// header colors from the window cluts (-14335 active / -14336 inactive)
+// header colors from the window cluts. The scheme NAMES these -14336 "Active
+// Header" / -14335 "Inactive Header" (verified across the corpus), and the colors
+// confirm it: -14336 is the focused look (Black Platinum's black frame, System 7's
+// black-outline/white-fill). An earlier draft had active/inactive swapped.
 const cl = (id) => {
   const r = entries.find((x) => x.type === 'clut' && x.id === id);
   return r ? headerColorsFromClut(decodeClut(r.data)) : null;
 };
-const active = cl(-14335), inactive = cl(-14336);
+const active = cl(-14336), inactive = cl(-14335);
 if (active || inactive) {
   theme.headerColors = {};
   if (active) theme.headerColors.active = active;

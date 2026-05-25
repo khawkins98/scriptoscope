@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "black-platinum/scheme.rsrc",
-  "generatedAt": "2026-05-25T16:00:20.341Z",
+  "generatedAt": "2026-05-25T16:18:04.624Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Black Platinum",
   "author": {
@@ -2465,20 +2465,20 @@
   },
   "headerColors": {
     "active": {
-      "frame": "#555555",
-      "fill": "#dddddd",
-      "lightTinge": "#dddddd",
-      "darkTinge": "#dddddd",
-      "lightBevel": "#dddddd",
-      "darkBevel": "#777777"
-    },
-    "inactive": {
       "frame": "#000000",
       "fill": "#dddddd",
       "lightTinge": "#ffffff",
       "darkTinge": "#aaaaaa",
       "lightBevel": "#ffffff",
       "darkBevel": "#aaaaaa"
+    },
+    "inactive": {
+      "frame": "#555555",
+      "fill": "#dddddd",
+      "lightTinge": "#dddddd",
+      "darkTinge": "#dddddd",
+      "lightBevel": "#dddddd",
+      "darkBevel": "#777777"
     }
   }
 }

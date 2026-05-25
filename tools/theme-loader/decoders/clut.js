@@ -11,7 +11,8 @@
 //
 // Channels are 16-bit; we take the high byte (>>8) for 8-bit RGB.
 //
-// Kaleidoscope's window-header cluts (-14335 active, -14336 inactive)
+// Kaleidoscope's window-header cluts (-14336 = "Active Header", -14335 =
+// "Inactive Header", per the scheme's own resource names)
 // index colors by PART CODE, per the "Creating Color Schemes" doc:
 //   part 0 = Frame color   part 1 = Fill (background)   part 2 = "Text" color
 //   part 3 = Light tinge   part 4 = Dark tinge

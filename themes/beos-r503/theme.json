@@ -1,8 +1,8 @@
 {
   "version": "0.1",
   "source": "beos-r503/scheme.rsrc",
-  "generatedAt": "2026-05-22T20:14:59.259Z",
-  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/aaron-ui-composer-spec.md (spec C) §3.",
+  "generatedAt": "2026-05-25T16:18:04.608Z",
+  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "BeOS R5.0.3",
   "author": {
     "name": "Jon Alexander",
@@ -866,7 +866,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "wnd--14300": {
+    "collapsed-titled-utility": {
       "chrome": {
         "active": "cicns/cicn-n14299-active-collapsed-utility.png",
         "inactive": "cicns/cicn-n14300-inactive-collapsed-utility-window.png"
@@ -1103,7 +1103,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "wnd--14292": {
+    "collapsed-side-utility": {
       "chrome": {
         "active": "cicns/cicn-n14291-active-side-utility-window.png",
         "inactive": "cicns/cicn-n14292-inactive-side-utility-window.png"
@@ -1332,7 +1332,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "wnd--14284": {
+    "collapsed-no-title-utility": {
       "chrome": {
         "active": "cicns/cicn-n14283-active-notitle-utility-window.png",
         "inactive": "cicns/cicn-n14284-inactive-notitle-utility-window.png"
@@ -5749,19 +5749,19 @@
   },
   "headerColors": {
     "active": {
-      "frame": "#555555",
-      "fill": "#c9c9c9",
-      "lightTinge": "#c9c9c9",
-      "darkTinge": "#c9c9c9",
-      "lightBevel": "#c9c9c9",
-      "darkBevel": "#888888"
-    },
-    "inactive": {
       "frame": "#000000",
       "fill": "#c9c9c9",
       "lightTinge": "#ffffff",
       "darkTinge": "#888888",
       "lightBevel": "#ffffff",
+      "darkBevel": "#888888"
+    },
+    "inactive": {
+      "frame": "#555555",
+      "fill": "#c9c9c9",
+      "lightTinge": "#c9c9c9",
+      "darkTinge": "#c9c9c9",
+      "lightBevel": "#c9c9c9",
       "darkBevel": "#888888"
     }
   }
