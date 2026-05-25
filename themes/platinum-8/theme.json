@@ -1,7 +1,7 @@
 {
   "version": "0.1",
   "source": "platinum-8/scheme.rsrc",
-  "generatedAt": "2026-05-24T15:36:47.845Z",
+  "generatedAt": "2026-05-25T10:18:12.235Z",
   "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Platinum 8",
   "author": {
@@ -14,6 +14,249 @@
     "originalFormat": "ksc",
     "originalLicense": "Platinum 8 1.0 by Russell Silver Jr. / Newgallus Software, April 1998. Freeware Kaleidoscope scheme (per its bundled scheme.txt readme).",
     "sourceUrl": "local: Downloads/platinum8.sit"
+  },
+  "windowTypes": {
+    "document-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14332-active-document.png",
+        "inactive": "cicns/cicn-n14336-inactive-document.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            19,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14331-document-racing-stripes.png",
+        "growBox": "cicns/cicn-n14330-active-grow-box.png"
+      }
+    },
+    "collapsed-document-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14332-active-document.png",
+        "inactive": "cicns/cicn-n14336-inactive-document.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            19,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14331-document-racing-stripes.png"
+      }
+    },
+    "dialog": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14326-active-dialog.png",
+        "inactive": "cicns/cicn-n14328-inactive-dialog.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "widgets": []
+    },
+    "alert": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14322-active-alert.png",
+        "inactive": "cicns/cicn-n14324-inactive-alert.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "widgets": []
+    },
+    "movable-modal": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14326-active-dialog.png",
+        "inactive": "cicns/cicn-n14328-inactive-dialog.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            16,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14325-dialog-racing-stripes.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "movable-alert": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14322-active-alert.png",
+        "inactive": "cicns/cicn-n14324-inactive-alert.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            16,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14321-alert-racing-stripes.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "titled-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png",
+        "growBox": "cicns/cicn-n14313-active-utility-window-grow-box.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "collapsed-titled-utility": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "side-floating-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14315-active-side-utility-window.png",
+        "inactive": "cicns/cicn-n14319-inactive-side-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": []
+    },
+    "collapsed-side-utility": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14315-active-side-utility-window.png",
+        "inactive": "cicns/cicn-n14319-inactive-side-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": []
+    },
+    "no-title-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "widgets": []
+    }
   },
   "chromeElements": {
     "alert-racing-stripes": {
