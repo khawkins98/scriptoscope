@@ -99,14 +99,17 @@ const theme = buildThemeJson({ source: 'apple-platinum-replica (generated)', ext
 // cicns we lack; controls resolve by resource ID so they're found by slug-agnostic
 // lookup). Copies the cicns into our cicns/ and merges their chromeElements.
 // DEFER TO platinum-8 (owner decision, 2026-05-25): the real freeware Platinum
-// scheme is the authority for the recognizable control look. Its scrollbar tracks
-// + thumbs are real, already-correct art at the canonical resource ids — graft
-// them RAW (no purple→blue recolor / synthetic grip). apple-platinum-2 still
-// supplies the controls platinum-8 lacks (grow box, tabs) + ones not yet vetted
-// from platinum-8 (button faces, default ring).
+// scheme is the authority for the recognizable control look. Its controls are real,
+// already-correct art at the canonical resource ids — graft them RAW (no purple→blue
+// recolor / synthetic grip). All verified in the live playground (clean push-button
+// faces, proper rounded-rect default ring, light-blue thumbs). apple-platinum-2 only
+// still supplies the controls platinum-8 lacks (grow box, tabs) and checkbox/radio
+// (platinum-8 has no art at the renderer's -9500/-9488 — those stay Apple-sliced).
 const P8_GRAFT_IDS = new Set([
   -8277, -8278, -8279, -8280, -8285, -8286, -8287, -8288, // scrollbar tracks V+H
   -10205, -10206, -10207, -10208,                          // scroll thumbs
+  -10238, -10239, -10240,                                  // push-button face (pressed/normal/inactive)
+  -10231, -10232,                                          // default-button ring
 ]);
 const aplat2 = resolve(root, 'themes/apple-platinum-2');
 if (existsSync(aplat2)) {
