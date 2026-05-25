@@ -5,7 +5,36 @@ import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
 import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
-import type { PixelBuffer } from './pixelBuffer.js';
+import { PixelBuffer } from './pixelBuffer.js';
+
+/**
+ * Rasterize the window title in a real FONT (the CSS "Charcoal" stack — a local
+ * Charcoal if installed, else the bundled stand-in) via an offscreen canvas, so
+ * the title reads as period anti-aliased type rather than the bitmap rasterizer.
+ * Browser-only: returns null in a non-DOM context so the caller falls back to
+ * rasterizeText (the crisp pixel path, used by node tooling).
+ */
+function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer | null {
+  if (typeof document === 'undefined' || !text) return null;
+  const font = `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
+  const probe = document.createElement('canvas').getContext('2d');
+  if (!probe) return null;
+  probe.font = font;
+  const w = Math.max(1, Math.ceil(probe.measureText(text).width) + 1);
+  const h = Math.max(1, Math.ceil(px * 1.4));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  if (!ctx) return null;
+  ctx.font = font;
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = hex;
+  ctx.fillText(text, 0, Math.round(h / 2));
+  const img = ctx.getImageData(0, 0, w, h);
+  const buf = PixelBuffer.alloc(w, h);
+  buf.data.set(img.data);
+  return buf;
+}
 
 /**
  * Load a scheme's OWN title-bar widget GLYPH by its negative Kaleidoscope id from
@@ -90,7 +119,9 @@ export async function renderWindow(
   let textH = 0;
   if (showTitle && frameTop > 6) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
-    glyphs = rasterizeText(title, textH, '#000000'); // width pass; recoloured below
+    // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
+    // is the fallback (non-DOM contexts). Width pass; recoloured below.
+    glyphs = rasterizeTitleFont(title, textH, '#000000') ?? rasterizeText(title, textH, '#000000');
   }
   // Plate width = measured title width + a little padding each side (the kDEF
   // measures with trailing space, 0x4f18); 0 when there's no visible title.
@@ -169,7 +200,7 @@ export async function renderWindow(
     const fgHex = darkBar
       ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
       : (state === 'inactive' ? '#808080' : '#000000');
-    const g = fgHex === '#000000' ? glyphs : rasterizeText(title, textH, fgHex);
+    const g = fgHex === '#000000' ? glyphs : (rasterizeTitleFont(title, textH, fgHex) ?? rasterizeText(title, textH, fgHex));
     // The title text centres on the TITLE REGION — the reserved title-plate the
     // compositor places per the kDEF (0x4a64): centred in the bar when the recipe
     // is symmetric (e.g. 1138, where this equals the content centre), but pinned
