@@ -217,8 +217,13 @@ export async function renderWindow(
     // a misleadingly light #ddd) gets WHITE text; light bars keep BLACK (the corpus
     // default). NOT headerColors.text (a frame tint; see title-text-color.md).
     const cx = tr.x + tr.w / 2;
+    // Vertical anchor for the title text: the centre of the scheme's title-text
+    // marker band (tr.midY — the cicn colour-sample line, drawn at the text
+    // location), faithful for tall ornate bars (evolution) where the bar's
+    // geometric centre sits too high; else the geometric centre of the title bar.
+    const titleMidY = tr.midY ?? frame.top / 2;
     const sgx = Math.max(1, Math.min(fullWidth - glyphs.width - 1, Math.round(cx - glyphs.width / 2)));
-    const sgy = Math.max(1, Math.round((frame.top - glyphs.height) / 2));
+    const sgy = Math.max(1, Math.round(titleMidY - glyphs.height / 2));
     let lumSum = 0, lumN = 0;
     const sx1 = Math.min(fullWidth, sgx + glyphs.width), sy1 = Math.min(frame.top - 1, sgy + glyphs.height);
     for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
@@ -239,7 +244,7 @@ export async function renderWindow(
     // workaround for a pre-title-plate regression; the plate is now positioned
     // faithfully, so we follow it.)
     const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
-    const gy = Math.max(1, Math.round((frame.top - g.height) / 2));
+    const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));
     composed.buffer.drawOver(g, gx, gy);
   }
 

@@ -557,7 +557,7 @@ export interface ComposedChrome {
    * this span; it is reported for diagnostics + as a fallback. Full-width when
    * the top edge has no title region.
    */
-  titleRegion: { x: number; w: number };
+  titleRegion: { x: number; w: number; midY?: number };
   /**
    * cicn SOURCE column whose colour is the title-text colour (the cinf
    * textPixel x), or −1 when the window ships no cinf (every corpus scheme).
@@ -610,12 +610,20 @@ export function composeWindowChrome(
   //     (a window that ships widget rects has its named widgets present; the
   //     bundled corpus always does).
   let titleMarkerX = -1;
+  let titleMarkerY0 = -1, titleMarkerY1 = -1;
   let hasWidgetRect = false;
   for (const [slug, part] of Object.entries(windowType.parts)) {
     if (slug === 'part-0' || !part.rect) continue;
     const [l, t, r, b] = part.rect;
     if (r <= l || b <= t) continue; // empty rect (e.g. beos part-3 [0,0,0,0])
-    if (t < frame.top && r - l <= 2) { if (titleMarkerX < 0) titleMarkerX = l; continue; } // marker
+    if (t < frame.top && r - l <= 2) {
+      // The title MARKER: a ≤2px-wide vertical line in the title bar where the kDEF
+      // samples the title-text colour (0x5530). The scheme draws it AT the title
+      // text, so its column is the colour-sample x AND its y-span is the title
+      // text's vertical band — the faithful vertical anchor (see titleRegion.midY).
+      if (titleMarkerX < 0) { titleMarkerX = l; titleMarkerY0 = t; titleMarkerY1 = b; }
+      continue;
+    }
     hasWidgetRect = true;
   }
   const widgetPresent = hasWidgetRect || windowType.parts['part-1'] != null;
@@ -701,9 +709,18 @@ export function composeWindowChrome(
   collect('left', leftRes);
   collect('right', rightRes);
 
-  const titleRegion = topRes && topRes.titleEnd > topRes.titleStart
-    ? { x: topRes.titleStart, w: topRes.titleEnd - topRes.titleStart }
-    : { x: 0, w: fullW };
+  const titleRegion = {
+    ...(topRes && topRes.titleEnd > topRes.titleStart
+      ? { x: topRes.titleStart, w: topRes.titleEnd - topRes.titleStart }
+      : { x: 0, w: fullW }),
+    // midY: the vertical centre of the title-text marker band, clamped into the
+    // title bar. The faithful per-scheme vertical anchor for the title text — for
+    // tall ornate bars (e.g. evolution) the text well sits well below the bar's
+    // geometric centre, and this follows it. Absent → caller centres in frame.top.
+    ...(titleMarkerY1 > titleMarkerY0
+      ? { midY: Math.min(frame.top - 1, (titleMarkerY0 + titleMarkerY1) / 2) }
+      : {}),
+  };
   const titleFillSrcX = cinf?.textPixel ? cinf.textPixel[0] : titleMarkerX;
   return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, placement };
 }
