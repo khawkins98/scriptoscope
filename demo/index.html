@@ -48,6 +48,7 @@
       composeButton, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
+      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure, WindowManager,
     } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
@@ -884,6 +885,78 @@
       section.appendChild(await sliceInspector(theme));
       section.appendChild(await iconInventory(theme));
       rows.appendChild(section);
+    }
+
+    // ── Interactive playground (Phase 1) ─────────────────────────────────────
+    // Live interaction on the themed chrome: buttons depress on press,
+    // checkbox/radio toggle, disclosure expands, and clicking a window focuses
+    // it (active↔inactive chrome). All from src/interactive.ts.
+    {
+      const section = document.createElement('div'); section.className = 'theme-row';
+      const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live (Phase 1)';
+      const intro = document.createElement('p');
+      intro.style.cssText = 'margin:2px 0 10px;opacity:.6;font-size:12px';
+      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, and click a window to focus it. Pick a scheme:';
+      const sel = document.createElement('select');
+      sel.style.cssText = 'font:12px system-ui;padding:2px;margin-bottom:10px';
+      for (const t of THEMES) { const o = document.createElement('option'); o.value = t.slug; o.textContent = t.label; sel.appendChild(o); }
+      sel.value = '1138';
+      const host = document.createElement('div');
+      section.append(h2, intro, sel, host);
+      rows.appendChild(section);
+
+      async function buildInteractive(slug) {
+        host.replaceChildren();
+        const status = document.createElement('div');
+        status.style.cssText = 'font:12px Charcoal,Geneva,sans-serif;min-height:16px;margin:0 0 10px;color:#333';
+        status.textContent = 'ready — interact with the controls';
+        host.appendChild(status);
+        const theme = await loadTheme(themeUrl(slug), { base: slug === 'apple-platinum-replica' ? undefined : galleryBase });
+        const say = (m) => { status.textContent = m; };
+
+        const ctrls = document.createElement('div');
+        ctrls.style.cssText = 'display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px';
+
+        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:8px;align-items:center';
+        btns.append(
+          await interactiveButton(theme, { label: 'Cancel', onClick: () => say('Cancel clicked') }),
+          await interactiveButton(theme, { label: 'OK', default: true, onClick: () => say('OK clicked') }),
+          await interactiveButton(theme, { label: 'Help', disabled: true, onClick: () => say('(disabled)') }),
+        );
+
+        const toggles = document.createElement('div'); toggles.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+        toggles.append(
+          await interactiveCheckbox(theme, { label: 'Show invisibles', checked: true, onChange: (c) => say('Show invisibles: ' + c) }),
+          await radioGroup(theme, { items: [{ label: 'On', value: 'on' }, { label: 'Off', value: 'off' }], value: 'on', onChange: (v) => say('radio → ' + v) }),
+        );
+
+        const discWrap = document.createElement('div');
+        const discRow = document.createElement('div'); discRow.style.cssText = 'display:flex;gap:6px;align-items:center;font:12px Charcoal,Geneva,sans-serif';
+        const content = document.createElement('div');
+        content.textContent = 'Disclosed details — toggled by the triangle.';
+        content.style.cssText = 'font:11px Charcoal,Geneva,sans-serif;margin:5px 0 0 18px;display:none;color:#555';
+        const disc = await interactiveDisclosure(theme, { open: false, onToggle: (open) => { content.style.display = open ? 'block' : 'none'; say('disclosure ' + (open ? 'open' : 'closed')); } });
+        const lbl = document.createElement('span'); lbl.textContent = 'Details';
+        discRow.append(disc, lbl); discWrap.append(discRow, content);
+
+        ctrls.append(btns, toggles, discWrap);
+        host.appendChild(ctrls);
+
+        const deskLabel = document.createElement('div');
+        deskLabel.textContent = 'Click a window to focus it (active vs. inactive chrome) — drag-to-move is Phase 2:';
+        deskLabel.style.cssText = 'font:11px system-ui;opacity:.6;margin-bottom:4px';
+        const desk = document.createElement('div');
+        desk.style.cssText = 'position:relative;height:200px;max-width:540px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
+        const wm = new WindowManager();
+        const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 });
+        const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 });
+        w1.style.left = '14px'; w1.style.top = '14px';
+        w2.style.left = '250px'; w2.style.top = '46px';
+        desk.append(w1, w2);
+        host.append(deskLabel, desk);
+      }
+      sel.onchange = () => { buildInteractive(sel.value); };
+      await buildInteractive(sel.value);
     }
   </script>
 </body>
