@@ -2,7 +2,7 @@
   "version": "0.1",
   "source": "apple-platinum-replica (generated)",
   "generatedAt": "2026-05-24T00:00:00.000Z",
-  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
+  "note": "Apple Platinum (replica): clean-room, fully GENERATED reproduction of the Mac OS 8.5 Platinum look (scripts/generate-platinum.mjs). Dual role — a showcase scheme AND the universal BASE theme other schemes inherit for any chrome/control they don't ship. Control-completeness is guarded by scripts/generate-platinum/bundle.smoke.test.mjs. Distinct from \"apple-platinum-2\" (a sparse proxy-icon bundle that itself defers here).",
   "name": "Apple Platinum (replica)",
   "author": {
     "name": "Aaron UI (generated)",
