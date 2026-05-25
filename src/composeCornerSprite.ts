@@ -69,17 +69,20 @@ export interface CornerSpriteOptions {
   widgets?: ('close' | 'collapse' | 'zoom')[] | undefined;
   /**
    * The scheme's OWN ics4 widget pictograms, keyed by role. When a glyph is
-   * supplied it is stamped (centered) in that widget's box INSTEAD of the
-   * fabricated beveled square; the box GEOMETRY is unchanged so the
-   * interactive.ts hit-zones still line up. Roles with no glyph fall back to
-   * the procedural square.
+   * supplied it is stamped 1:1 (the glyph carries its own face + bevel) at the
+   * widget's anchor INSTEAD of the fabricated beveled square, and the widget's
+   * box takes the glyph's size so it renders at native scale. The anchor points
+   * (close left, zoom 4px from right, collapse inboard) are unchanged and the
+   * recorded placement rect tracks the real drawn box, so interactive.ts's
+   * hit-zones line up with the glyph. Roles with no glyph fall back to the
+   * procedural square.
    *
-   * NOTE: no scheme in the current corpus ships a per-widget close/zoom/collapse
-   * glyph — Kaleidoscope's ics4 at -14336..-14315 are full WINDOW-proxy
-   * thumbnails (the same role markers as the corner cicns), not 7×7 box glyphs,
-   * and the close/zoom/collapse boxes are procedural in the real Platinum WDEF.
-   * So this is plumbing for a scheme that DOES author widget glyphs; today every
-   * window falls back to the square. (See lint-themes.mjs glyph-orphan notes.) */
+   * The corner-sprite Platinum-family schemes (apple-platinum-2, platinum-8,
+   * system7-nostalgia-silver) author these as ics4 in the -14336..-14331 family
+   * — NORMAL state: close -14336 / zoom -14335 / collapse -14334; PRESSED state:
+   * close -14333 / zoom -14332 / collapse -14331 (pressed rendering is wired in
+   * interactive.ts, a separate follow-up). renderWindow loads the normal trio
+   * and passes them here. */
   widgetGlyphs?: Partial<Record<'close' | 'collapse' | 'zoom', PixelBuffer | null>> | undefined;
 }
 
@@ -203,57 +206,73 @@ export function composeCornerSpriteChrome(
     src: { x: 0, y: 0, w: 1, h: 1 }, rects: [{ x: 0, y: 0, w: fullW, h: fullH }],
   });
 
-  // ── 3. widgets: ~7×7 beveled squares (close left, collapse + zoom right) ───
+  // ── 3. widgets: the scheme's OWN close/zoom/collapse glyph (else a fabricated
+  //       beveled square). close left, collapse + zoom right ─────────────────
   // Geometry from WDEF 125 §"Box geometry": close left = title.left+4; zoom
   // right = title.right−11..−4 (4px from the right end); collapse just inboard
   // of the zoom box (~7px apart). Vertically centred in the title bar. The
   // widget SET is per-type (opts.widgets): document = [close,collapse,zoom];
   // movable-modal/movable-alert/titled-utility = [close]; side/no-title = [].
+  //
+  // BOX SIZE: a fabricated bevel square is WBOX (7px). When the scheme supplies
+  // its OWN widget glyph (opts.widgetGlyphs, the corner-sprite schemes' ics4
+  // close -14336 / zoom -14335 / collapse -14334), the box takes that glyph's
+  // size (≈11–13px) so the art renders 1:1, NOT shrunk into a 7px cell. Anchor
+  // points are unchanged (close at the left, zoom 4px from the right, collapse
+  // inboard) and the placement RECT records the real drawn box, so the
+  // interactive.ts hit-zones derive from — and line up with — the actual glyph.
   const WBOX = 7;
   if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
-    const wy = Math.max(1, Math.round((titleH - WBOX) / 2));
-    const drawWidget = (wx: number, role: 'close' | 'collapse' | 'zoom'): void => {
-      // Prefer the scheme's OWN widget pictogram (stamped centered in the box,
-      // keeping the box geometry so hit-testing lines up). No corpus scheme
-      // ships one today (the ics4 at these ids are full-window thumbnails), so
-      // this falls through to the fabricated bevel square below.
-      const glyph = opts.widgetGlyphs?.[role];
-      if (glyph && glyph.width > 0 && glyph.height > 0) {
-        out.drawOver(glyph, wx + Math.round((WBOX - glyph.width) / 2), wy + Math.round((WBOX - glyph.height) / 2));
-        return;
+    // Per-widget box size: the supplied glyph's bounds, clamped to fit the bar;
+    // else the fabricated WBOX. Vertically centred per widget.
+    const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null } => {
+      const g = opts.widgetGlyphs?.[role];
+      if (g && g.width > 0 && g.height > 0 && g.height <= titleH - 1) {
+        return { w: g.width, h: g.height, glyph: g };
       }
-      // face
-      out.fillRect({ x: wx, y: wy, w: WBOX, h: WBOX }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
-      // 1px outline in the frame colour
-      out.fillRect({ x: wx, y: wy, w: WBOX, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
-      out.fillRect({ x: wx, y: wy + WBOX - 1, w: WBOX, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
-      out.fillRect({ x: wx, y: wy, w: 1, h: WBOX }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
-      out.fillRect({ x: wx + WBOX - 1, y: wy, w: 1, h: WBOX }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
-      // top/left highlight, bottom/right shadow — the raised bevel
+      return { w: WBOX, h: WBOX, glyph: null };
+    };
+    const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null }): void => {
+      // Prefer the scheme's OWN widget pictogram, stamped 1:1 at the box origin
+      // (the glyph carries its own face + bevel).
+      if (box.glyph) { out.copyBits(box.glyph, { x: 0, y: 0, w: box.w, h: box.h }, { x: wx, y: wy, w: box.w, h: box.h }); return; }
+      // Fabricated bevel square (schemes with no widget glyph).
+      const W = box.w;
+      out.fillRect({ x: wx, y: wy, w: W, h: W }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
+      out.fillRect({ x: wx, y: wy, w: W, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+      out.fillRect({ x: wx, y: wy + W - 1, w: W, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+      out.fillRect({ x: wx, y: wy, w: 1, h: W }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+      out.fillRect({ x: wx + W - 1, y: wy, w: 1, h: W }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
       const hi = lighten(faceRgba, 0.5);
       const sh = darken(faceRgba, 0.18);
-      out.fillRect({ x: wx + 1, y: wy + 1, w: WBOX - 2, h: 1 }, hi[0], hi[1], hi[2], 255); // top
-      out.fillRect({ x: wx + 1, y: wy + 1, w: 1, h: WBOX - 2 }, hi[0], hi[1], hi[2], 255); // left
-      out.fillRect({ x: wx + 1, y: wy + WBOX - 2, w: WBOX - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom
-      out.fillRect({ x: wx + WBOX - 2, y: wy + 1, w: 1, h: WBOX - 2 }, sh[0], sh[1], sh[2], 255); // right
+      out.fillRect({ x: wx + 1, y: wy + 1, w: W - 2, h: 1 }, hi[0], hi[1], hi[2], 255); // top
+      out.fillRect({ x: wx + 1, y: wy + 1, w: 1, h: W - 2 }, hi[0], hi[1], hi[2], 255); // left
+      out.fillRect({ x: wx + 1, y: wy + W - 2, w: W - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom
+      out.fillRect({ x: wx + W - 2, y: wy + 1, w: 1, h: W - 2 }, sh[0], sh[1], sh[2], 255); // right
     };
     // close anchors at the left; collapse/zoom anchor right (zoom outermost,
-    // collapse just inboard). Build the x of each glyph then stamp + record.
-    const rightZoom = fullW - frame.right - 4 - WBOX; // 4px from the right end
-    const xs: { glyph: string; x: number }[] = [];
-    if (widgets.includes('close')) xs.push({ glyph: 'close', x: frame.left + 4 - 1 < 0 ? 2 : frame.left + 3 });
+    // collapse just inboard). Build each widget's box + x, then stamp + record.
+    const xs: { glyph: string; x: number; y: number; w: number; h: number }[] = [];
+    if (widgets.includes('close')) {
+      const b = boxOf('close');
+      const x = frame.left + 4 - 1 < 0 ? 2 : frame.left + 3;
+      xs.push({ glyph: 'close', x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+    }
     // Right group, outermost-first so each lands one box+gap inboard of the last.
-    let rx = Math.max(0, rightZoom);
+    let rx = -1; // sentinel: compute from fullW on the first right widget
     for (const glyph of ['zoom', 'collapse'] as const) {
       if (!widgets.includes(glyph)) continue;
-      xs.push({ glyph, x: rx });
-      rx = Math.max(0, rx - WBOX - 2);
+      const b = boxOf(glyph);
+      if (rx < 0) rx = fullW - frame.right - 4 - b.w; // zoom: 4px from the right end
+      const x = Math.max(0, rx);
+      xs.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+      rx = Math.max(0, x - b.w - 2);
     }
-    for (const w of xs) drawWidget(w.x, w.glyph as 'close' | 'collapse' | 'zoom');
+    for (const w of xs) drawWidget(w.x, w.y, boxOf(w.glyph as 'close' | 'collapse' | 'zoom'));
     placement.push({
       edge: 'widget', code: 4, role: xs.map((w) => w.glyph).join('/'), mode: 'stamp',
       src: { x: 0, y: 0, w: WBOX, h: WBOX },
-      rects: xs.map((w) => ({ x: w.x, y: wy, w: WBOX, h: WBOX })),
+      rects: xs.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h })),
     });
   }
 

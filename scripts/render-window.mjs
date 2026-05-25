@@ -55,8 +55,22 @@ if (wt.model === 'corner-sprite') {
   const pinstripe = wt.sprites?.pinstripe ? loadCicn(themeDir, wt.sprites.pinstripe) : null;
   const growBox = wt.sprites?.growBox ? loadCicn(themeDir, wt.sprites.growBox) : null;
   const hc = manifest.headerColors?.active ?? {};
+  // The scheme's OWN title-bar widget glyphs (ics4 NORMAL state): close -14336,
+  // zoom -14335, collapse -14334. Resolved from icons/index.json (keyed by the
+  // negative resource id) → icons/ics4-<file>; absent → procedural square.
+  const iconsIndexPath = resolve(themeDir, 'icons', 'index.json');
+  const glyphFile = (id) => {
+    if (!existsSync(iconsIndexPath)) return null;
+    const idx = JSON.parse(readFileSync(iconsIndexPath, 'utf8'));
+    const e = idx.find((x) => x.type === 'ics4' && x.id === id);
+    return e ? `icons/${e.file}` : null;
+  };
+  const loadGlyph = (id) => { const f = glyphFile(id); return f ? loadCicn(themeDir, f) : null; };
+  const widgetGlyphs = {
+    close: loadGlyph(-14336), zoom: loadGlyph(-14335), collapse: loadGlyph(-14334),
+  };
   composed = composeCornerSpriteChrome(wt, opts.w, opts.h, {
-    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets,
+    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets, widgetGlyphs,
   });
 } else {
   composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
