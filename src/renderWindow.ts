@@ -1,4 +1,5 @@
 import type { LoadedTheme, WindowState, WindowType } from './types.js';
+import { resolveInChain } from './baseChain.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
@@ -38,22 +39,27 @@ export async function renderWindow(
   const contentH = opts.height ?? 120;
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
-  const wt = resolveWindowType(theme, slug);
+  // Find the first theme in the base chain with renderable chrome for this slug.
   // Some schemes ship NO window-frame chrome (e.g. "Apple Platinum 2": its window
   // resources are 16px proxy icons, no wnd# side recipe). They DEFER to their base
-  // theme's window chrome (the real Platinum baseline) if one is set; otherwise a
-  // procedural default window from the scheme's header colors (North Star: render
-  // any scheme).
-  if (!wt || !(wt.chrome[state] ?? wt.chrome.active)) {
-    if (theme.base) return renderWindow(theme.base, opts); // inherit the base window
+  // theme's window chrome (the real Platinum baseline); the resolved `owner` is the
+  // bundle the chrome + body assets are loaded from. With nothing in the chain, a
+  // procedural default window from the (original) scheme's header colors renders
+  // (North Star: render any scheme).
+  const resolved = resolveInChain(theme, (t) => {
+    const wt = resolveWindowType(t, slug);
+    const cicnPath = wt ? (wt.chrome[state] ?? wt.chrome.active) : undefined;
+    return wt && cicnPath ? { owner: t, wt, cicnPath } : null;
+  });
+  if (!resolved) {
     const utility = /utility|mini|floating|palette/.test(slug);
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility });
   }
-  const cicnPath = wt.chrome[state] ?? wt.chrome.active!;
+  const { owner, wt, cicnPath } = resolved;
   // (chromeElement lookup kept for validation / future metadata use)
-  findChromeElement(theme, cicnPath);
+  findChromeElement(owner, cicnPath);
 
-  const cicn = await loadCicnBuffer(assetUrl(theme, cicnPath));
+  const cicn = await loadCicnBuffer(assetUrl(owner, cicnPath));
 
   // Utility / mini / floating windows carry NO visible title in a modern
   // context — the label is screen-reader-only (set as aria-label below).
@@ -158,9 +164,9 @@ export async function renderWindow(
     boxSizing: 'border-box',
     overflow: 'auto',
     zIndex: '1',
-    ...bodyBackgroundStyle(theme),
+    ...bodyBackgroundStyle(owner),
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, theme, scale);
+  scaleBodyPattern(content, owner, scale);
 
   win.append(canvas, content);
   // Expose the composed result (incl. the slice placement map) for diagnostics.

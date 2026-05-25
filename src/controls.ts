@@ -1,4 +1,5 @@
 import type { LoadedTheme } from './types.js';
+import { resolveInChain } from './baseChain.js';
 import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
@@ -48,9 +49,11 @@ function frameBorder(buf: PixelBuffer): number {
  * Returns null if the scheme doesn't ship that element (→ baseline path).
  */
 async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer | null> {
-  const el = theme.manifest.chromeElements?.[key];
-  if (el?.asset) return loadCicnBuffer(assetUrl(theme, el.asset));
-  return theme.base ? loadByKey(theme.base, key) : null; // defer to the base theme
+  const hit = resolveInChain(theme, (t) => {
+    const asset = t.manifest.chromeElements?.[key]?.asset;
+    return asset ? { theme: t, asset } : null; // first theme in the chain that ships it
+  });
+  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
 }
 
 /**
@@ -64,9 +67,11 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * control resources are all negative, so we match on the absolute value.
  */
 async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
-  const el = elementById(theme, id);
-  if (el) return loadCicnBuffer(assetUrl(theme, el.asset));
-  return theme.base ? loadById(theme.base, id) : null; // defer to the base theme
+  const hit = resolveInChain(theme, (t) => {
+    const el = elementById(t, id);
+    return el ? { theme: t, asset: el.asset } : null; // first theme in the chain that ships it
+  });
+  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc). */
