@@ -73,6 +73,14 @@
         "topSide": [
           {
             "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 18
+          },
+          {
+            "part": 1,
             "border": 21
           },
           {
@@ -86,6 +94,22 @@
           {
             "part": 8,
             "border": 63
+          },
+          {
+            "part": 1,
+            "border": 66
+          },
+          {
+            "part": 4,
+            "border": 79
+          },
+          {
+            "part": 1,
+            "border": 81
+          },
+          {
+            "part": 3,
+            "border": 94
           },
           {
             "part": 1,
@@ -215,6 +239,14 @@
         "topSide": [
           {
             "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 18
+          },
+          {
+            "part": 1,
             "border": 21
           },
           {
@@ -228,6 +260,22 @@
           {
             "part": 8,
             "border": 63
+          },
+          {
+            "part": 1,
+            "border": 66
+          },
+          {
+            "part": 4,
+            "border": 79
+          },
+          {
+            "part": 1,
+            "border": 81
+          },
+          {
+            "part": 3,
+            "border": 94
           },
           {
             "part": 1,
@@ -526,6 +574,14 @@
         "topSide": [
           {
             "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 14
+          },
+          {
+            "part": 1,
             "border": 17
           },
           {
@@ -648,6 +704,14 @@
           }
         ],
         "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 14
+          },
           {
             "part": 1,
             "border": 17
@@ -774,6 +838,14 @@
         "topSide": [
           {
             "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 10
+          },
+          {
+            "part": 1,
             "border": 13
           },
           {
@@ -896,6 +968,14 @@
           }
         ],
         "topSide": [
+          {
+            "part": 1,
+            "border": 5
+          },
+          {
+            "part": 2,
+            "border": 10
+          },
           {
             "part": 1,
             "border": 13

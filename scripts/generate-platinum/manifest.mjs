@@ -37,19 +37,40 @@ function buildWndData(geo, cfg) {
   // these geometrically rather than from a wnd# (which is why a vanilla bundle
   // ships none), but exposing them as parts lets the runtime hit-test them the
   // same way a scheme that DOES carry custom widget rects (e.g. 1138) is handled.
-  // Codes 1..N are unused by the Platinum recipe (FIXED/STRETCH/PLATE only), so
-  // this is additive — it changes hit-testing, not the rendered chrome.
+  // These hit rects are SEPARATE from the per-widget render cells the TOP edge below
+  // emits (those slice each widget with the kDEF GAP codes 2/3/4): one drives
+  // hit-testing, the other slicing. Both additive; the rendered chrome is unchanged.
   (geo.widgetSlots ?? []).forEach((w, i) => {
     rectangles.push({ part: i + 1, rect: { top: w.y, left: w.x, bottom: w.y + w.size, right: w.x + w.size } });
   });
 
   // TOP edge.
-  //   Title-PLATE doc windows: 5-cell — fixed corner · grow fill · PLATE(part-5)
-  //   · grow fill · fixed corner. The compositor grows the part-5 plate to the
-  //   measured title width and centres it (the two grow-fill cells split the
-  //   remaining slack symmetrically); the plate never collapses.
-  //   Everyone else: fixed-corner / grow-fill / fixed-corner. (Title-less
-  //   windows reuse the 3-cell shape — a thin grow fill keeps the top stretchable.)
+  //   Title-PLATE doc windows: fixed corner · grow fill · PLATE(part-5) · grow fill
+  //   · fixed corner. The compositor grows the part-5 plate to the measured title
+  //   width and centres it (the two grow-fill cells split the slack symmetrically).
+  //   Each fixed corner is DECOMPOSED into a distinct slice cell per title-bar
+  //   widget (close/collapse/zoom) using the kDEF GAP codes (close=2, zoom=3,
+  //   shade/collapse=4) rather than one lumped fixed corner — so every control
+  //   reads as its own button in the recipe + slice inspector. classifyPart maps a
+  //   present widget's GAP code to 'fixed' (drawn 1:1 from the baked cicn), so the
+  //   cells are all fixed and the RENDERED pixels are byte-identical to the lumped
+  //   form; only the slice structure changes. (These per-widget render cells are
+  //   separate from the part-1.. widget HIT rects above — that's hit-testing.)
+  //   Title-less windows have no widgets, so corner() yields a plain fixed corner.
+  const WIDGET_CODE = { close: 2, zoom: 3, collapse: 4 };
+  const corner = (start, end) => {
+    const cells = [];
+    let cur = start;
+    for (const w of (geo.widgetSlots ?? []).filter((w) => w.x >= start && w.x < end).sort((a, b) => a.x - b.x)) {
+      const ws = w.x, we = w.x + w.size;
+      if (ws > cur) cells.push({ part: FIXED, border: ws });           // frame before the widget
+      cells.push({ part: WIDGET_CODE[w.glyph] ?? FIXED, border: we }); // the widget's own cell
+      cur = we;
+    }
+    if (cur < end) cells.push({ part: FIXED, border: end });           // frame after the last widget
+    return cells;
+  };
+
   let topSide;
   if (geo.hasPlate) {
     const a = leftFixed;                       // 21  end of left fixed corner
@@ -57,17 +78,17 @@ function buildWndData(geo, cfg) {
     const c = b + geo.plate;                   // 57  end of the title plate
     const d = c + geo.rightFill;               // 63  end of right pinstripe fill
     topSide = [
-      { part: FIXED, border: a },
+      ...corner(0, a),
       { part: STRETCH, border: b },
       { part: PLATE, border: c },
       { part: STRETCH, border: d },
-      { part: FIXED, border: W },
+      ...corner(d, W),
     ];
   } else {
     topSide = [
-      { part: FIXED, border: leftFixed },
+      ...corner(0, leftFixed),
       { part: STRETCH, border: stretchEnd },
-      { part: FIXED, border: W },
+      ...corner(stretchEnd, W),
     ];
   }
 

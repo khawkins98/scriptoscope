@@ -41,16 +41,21 @@ test('every wnd# body rect is non-degenerate (lint requires right>left, bottom>t
   }
 });
 
-test('top recipe is fixed-corner / GROW-fill / fixed-corner (plate types add a centred part-5 plate)', () => {
+test('top recipe: corners decompose into a distinct cell per widget + GROW fill + centred PLATE', () => {
   const assets = buildAllWindowAssets(fakeDrawn());
-  const plateSlugs = new Set(WINDOW_TYPES.filter(c => c.titlePlate).map(c => c.name));
+  const byName = new Map(WINDOW_TYPES.map(c => [c.name, c]));
   for (const a of assets.filter(x => x.type === 'wnd#')) {
+    const cfg = byName.get(a.name);
     const parts = a.data.topSide.map(s => s.part);
-    if (plateSlugs.has(a.name)) {
-      // 5-cell: fixed corner · GROW fill · PLATE(5) · GROW fill · fixed corner.
-      assert.deepEqual(parts, [1, 8, 5, 8, 1], `${a.name} top recipe parts`);
-    } else {
-      assert.deepEqual(parts, [1, 8, 1], `${a.name} top recipe parts`);
+    // Every cell is a frame(1), a title-bar widget GAP (close=2/zoom=3/shade=4),
+    // a grow fill(8), or — plate types — the centred title plate(5).
+    for (const p of parts) assert.ok([1, 2, 3, 4, 5, 8].includes(p), `${a.name} unexpected part ${p}`);
+    // ONE distinct render cell per title-bar widget (the decomposition this asserts).
+    const widgetCells = parts.filter(p => p === 2 || p === 3 || p === 4).length;
+    assert.equal(widgetCells, cfg.widgets.length, `${a.name}: one cell per widget`);
+    if (cfg.titlePlate) {
+      assert.equal(parts.filter(p => p === 5).length, 1, `${a.name}: exactly one plate`);
+      assert.ok(parts.filter(p => p === 8).length >= 2, `${a.name}: two grow fills`);
     }
     // Borders strictly increase (no zero-width cells; the plate sizes up, never collapses).
     let prev = 0;
@@ -58,15 +63,21 @@ test('top recipe is fixed-corner / GROW-fill / fixed-corner (plate types add a c
   }
 });
 
-test('document-window ships the reference 5-cell plate recipe (borders 21,27,57,63,98)', () => {
+test('document-window ships the decomposed plate recipe (a cell per widget: close/collapse/zoom)', () => {
   const assets = buildAllWindowAssets(fakeDrawn());
   const doc = assets.find(a => a.type === 'wnd#' && a.id === -14336);
   assert.deepEqual(doc.data.topSide, [
-    { part: 1, border: 21 },
-    { part: 8, border: 27 },
-    { part: 5, border: 57 },
-    { part: 8, border: 63 },
-    { part: 1, border: 98 },
+    { part: 1, border: 5 },   // left frame
+    { part: 2, border: 18 },  // close box (GAP code 2)
+    { part: 1, border: 21 },  // frame after close
+    { part: 8, border: 27 },  // left grow fill
+    { part: 5, border: 57 },  // centred title plate
+    { part: 8, border: 63 },  // right grow fill
+    { part: 1, border: 66 },  // frame before collapse
+    { part: 4, border: 79 },  // collapse/shade box (GAP code 4)
+    { part: 1, border: 81 },  // frame between collapse + zoom
+    { part: 3, border: 94 },  // zoom box (GAP code 3)
+    { part: 1, border: 98 },  // right frame
   ]);
 });
 
