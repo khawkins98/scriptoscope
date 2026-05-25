@@ -21,7 +21,7 @@ import { platinumSlider, platinumScrollbar } from './platinum.js';
 import { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { ComposedChrome } from './composeChrome.js';
-import type { LoadedTheme } from './types.js';
+import type { LoadedTheme, WindowType } from './types.js';
 
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
@@ -383,7 +383,15 @@ export function titleWidgetHits(
   composed: ComposedChrome,
   scale: number,
 ): TitleWidgetHit[] {
-  const wt = theme.manifest.windowTypes[windowType];
+  // Resolve the window type through the BASE chain, mirroring renderWindow: a
+  // scheme that ships no window chrome of its own (e.g. apple-platinum-2 — no
+  // `windowTypes` map at all) renders its base's chrome, so its widget rects
+  // come from the base too. (`windowTypes` may be absent entirely → optional
+  // chaining, not an index into undefined.)
+  let wt: WindowType | undefined;
+  for (let t: LoadedTheme | undefined = theme; t && !wt; t = t.base) {
+    wt = t.manifest.windowTypes?.[windowType];
+  }
   if (!wt) return [];
   const top = composed.placement.filter((s) => s.edge === 'top');
   if (!top.length) return [];

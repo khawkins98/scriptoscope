@@ -31,6 +31,18 @@ function buildWndData(geo, cfg) {
     { part: 0, rect: { top: bodyTop, left: inset, bottom: bodyBottom, right: W - inset } },
   ];
 
+  // Widget hit rects (part-1…): the title-bar close/collapse/zoom boxes the
+  // generator already models as data (cfg.widgets → geo.widgetSlots, in cicn
+  // coords, matching the drawn/sliced glyphs). The base-Platinum WDEF computes
+  // these geometrically rather than from a wnd# (which is why a vanilla bundle
+  // ships none), but exposing them as parts lets the runtime hit-test them the
+  // same way a scheme that DOES carry custom widget rects (e.g. 1138) is handled.
+  // Codes 1..N are unused by the Platinum recipe (FIXED/STRETCH/PLATE only), so
+  // this is additive — it changes hit-testing, not the rendered chrome.
+  (geo.widgetSlots ?? []).forEach((w, i) => {
+    rectangles.push({ part: i + 1, rect: { top: w.y, left: w.x, bottom: w.y + w.size, right: w.x + w.size } });
+  });
+
   // TOP edge.
   //   Title-PLATE doc windows: 5-cell — fixed corner · grow fill · PLATE(part-5)
   //   · grow fill · fixed corner. The compositor grows the part-5 plate to the
