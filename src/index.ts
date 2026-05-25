@@ -25,9 +25,11 @@ export type {
 export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export {
-  interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure, WindowManager,
+  interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+  interactiveSlider, interactiveScrollbar, WindowManager,
   type InteractiveButtonOptions, type InteractiveCheckableOptions,
   type RadioGroupOptions, type InteractiveDisclosureOptions,
+  type InteractiveSliderOptions, type InteractiveScrollbarOptions,
 } from './interactive.js';
 export { PixelBuffer, type PixRect } from './pixelBuffer.js';
 export { loadCicnBuffer } from './cicnImage.js';

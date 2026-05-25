@@ -48,7 +48,8 @@
       composeButton, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
-      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure, WindowManager,
+      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+      interactiveSlider, interactiveScrollbar, WindowManager,
     } from '../src/index.ts';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
@@ -939,7 +940,13 @@
         const lbl = document.createElement('span'); lbl.textContent = 'Details';
         discRow.append(disc, lbl); discWrap.append(discRow, content);
 
-        ctrls.append(btns, toggles, discWrap);
+        const drag = document.createElement('div'); drag.style.cssText = 'display:flex;gap:16px;align-items:flex-start';
+        drag.append(
+          await interactiveSlider(theme, { length: 120, value: 0.4, onChange: (v) => say('slider → ' + Math.round(v * 100) + '%') }),
+          await interactiveScrollbar(theme, { orientation: 'vertical', length: 96, value: 0.3, onChange: (v) => say('scroll → ' + Math.round(v * 100) + '%') }),
+        );
+
+        ctrls.append(btns, toggles, discWrap, drag);
         host.appendChild(ctrls);
 
         const deskLabel = document.createElement('div');
