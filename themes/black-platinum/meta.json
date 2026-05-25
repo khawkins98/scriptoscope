@@ -1,0 +1,10 @@
+{
+  "name": "Black Platinum",
+  "author": { "name": "Daisuke Yamashita", "year": 1999 },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "Black Platinum v1.01 by Daisuke Yamashita, 1999. Freeware Kaleidoscope scheme.",
+    "sourceUrl": "https://web.archive.org/web/20051102110705/http://www.kaleidoscope.net/schemes/schemes/blackplatinum.sit"
+  }
+}
