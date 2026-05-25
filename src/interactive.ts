@@ -9,8 +9,8 @@
 // ARIA role + keyboard handlers.
 //
 // Phase 1: button press · checkbox · radio group · disclosure · window focus.
-// (Phase 2 — scrollbar/slider drag + title-bar widget hit-testing — is deferred;
-// see docs/tracking/interactivity-plan.md.)
+// Phase 2: slider/scrollbar drag · title-bar widget hit-testing (close/zoom/
+// collapse). See docs/tracking/interactivity-plan.md.
 
 import {
   composeButton, composeCheckable, composeDisclosure, composeSlider, composeScrollbar,
@@ -20,6 +20,7 @@ import {
 import { platinumSlider, platinumScrollbar } from './platinum.js';
 import { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
+import type { ComposedChrome } from './composeChrome.js';
 import type { LoadedTheme } from './types.js';
 
 type Orientation = 'horizontal' | 'vertical';
@@ -350,10 +351,76 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
   return el;
 }
 
+// ── Title-bar widget hit-testing ──────────────────────────────────────────────
+export type TitleWidget = 'close' | 'zoom' | 'collapse';
+export interface TitleWidgetHandlers {
+  onClose?: () => void;
+  onZoom?: () => void;
+  onCollapse?: () => void;
+}
+/** A widget hit zone in the window element's own (scaled) pixel space. */
+export interface TitleWidgetHit {
+  role: TitleWidget;
+  rect: { x: number; y: number; w: number; h: number };
+}
+
+/**
+ * Resolve the title-bar widget hit zones for a cicn-rendered window. The widget
+ * art is BAKED into the chrome cicn; the scheme exposes each widget's cicn-pixel
+ * rect as a `wnd#` part (`part-1`…, with `part-0` the body and any ≤2px-wide
+ * top-band part being the title-text MARKER, not a widget). We map each cicn rect
+ * onto the STRETCHED window: the title bar grows in its middle, so left-anchored
+ * widgets keep their x while right-anchored widgets shift right by the same
+ * amount the compositor shifted the right fixed band (the max src→out delta among
+ * the top cells, == fullWidth − drawableWidth). Roles follow the classic Mac
+ * title-bar layout — close at the left; on the right the far box is the zoom, an
+ * inner one the collapse/windowshade — a HIG-layout heuristic (the only signal
+ * the scheme carries is the widgets' positions, not labels).
+ */
+export function titleWidgetHits(
+  theme: LoadedTheme,
+  windowType: string,
+  composed: ComposedChrome,
+  scale: number,
+): TitleWidgetHit[] {
+  const wt = theme.manifest.windowTypes[windowType];
+  if (!wt) return [];
+  const top = composed.placement.filter((s) => s.edge === 'top');
+  if (!top.length) return [];
+  const shiftOf = (s: typeof top[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
+  const rightShift = top.reduce((m, s) => Math.max(m, shiftOf(s)), 0);
+  // The src.x at which the right (max-shift) fixed band begins — anything whose
+  // centre is at/after it is right-anchored.
+  const rightBandSrcX = rightShift > 0
+    ? top.reduce((m, s) => (shiftOf(s) === rightShift ? Math.min(m, s.src.x) : m), Infinity)
+    : Infinity;
+  const frameTop = composed.frame.top;
+
+  const placed: { right: boolean; x: number; y: number; w: number; h: number }[] = [];
+  for (const [slug, part] of Object.entries(wt.parts)) {
+    if (slug === 'part-0' || !part.rect) continue;
+    const [l, t, r, b] = part.rect;
+    if (r <= l || b <= t) continue;                       // empty rect
+    if (t < frameTop && r - l <= 2) continue;             // thin title-text marker
+    const right = (l + r) / 2 >= rightBandSrcX;
+    placed.push({ right, x: right ? l + rightShift : l, y: t, w: r - l, h: b - t });
+  }
+
+  const sc = (p: { x: number; y: number; w: number; h: number }): TitleWidgetHit['rect'] =>
+    ({ x: p.x * scale, y: p.y * scale, w: p.w * scale, h: p.h * scale });
+  const hits: TitleWidgetHit[] = [];
+  const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
+  const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
+  if (lefties[0]) hits.push({ role: 'close', rect: sc(lefties[0]) });
+  righties.forEach((p, i) => hits.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: sc(p) }));
+  return hits;
+}
+
 // ── Window focus manager ────────────────────────────────────────────────────
 interface ManagedWindow {
   theme: LoadedTheme;
   opts: RenderWindowOptions;
+  handlers: TitleWidgetHandlers;
   host: HTMLElement;
   active: boolean;
 }
@@ -362,18 +429,26 @@ interface ManagedWindow {
  * Tracks the focused window among several: clicking any window makes it active
  * (its chrome re-renders in the active state) and the rest inactive — the same
  * focus cue classic Mac draws. The active window is also raised in z-order.
+ * Title-bar widgets (close/zoom/collapse) are hit-tested from the chrome and
+ * fire the matching handler when clicked.
  */
 export class WindowManager {
   private windows: ManagedWindow[] = [];
 
   /**
    * Add a window. Returns a positioned host element (caller places it). The
-   * FIRST window added is active by default.
+   * FIRST window added is active by default. `handlers` wire the title-bar
+   * widgets; a transparent focusable button is overlaid on each widget that has
+   * a handler (the widget art itself lives in the chrome cicn).
    */
-  async add(theme: LoadedTheme, opts: RenderWindowOptions = {}): Promise<HTMLElement> {
+  async add(
+    theme: LoadedTheme,
+    opts: RenderWindowOptions = {},
+    handlers: TitleWidgetHandlers = {},
+  ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
-    const entry: ManagedWindow = { theme, opts, host, active: this.windows.length === 0 };
+    const entry: ManagedWindow = { theme, opts, handlers, host, active: this.windows.length === 0 };
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('mousedown', () => { void this.focus(entry); });
@@ -396,6 +471,34 @@ export class WindowManager {
       state: entry.active ? 'active' : 'inactive',
     });
     entry.host.style.zIndex = entry.active ? '2' : '1';
+    this.overlayWidgets(entry, win);
     entry.host.replaceChildren(win);
+  }
+
+  /** Overlay transparent hit buttons for any title-bar widget with a handler. */
+  private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
+    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    if (!composed) return; // baseline (procedural) window — no cicn widget rects
+    const slug = entry.opts.windowType ?? 'document-window';
+    const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    const cb: Record<TitleWidget, (() => void) | undefined> = {
+      close: entry.handlers.onClose, zoom: entry.handlers.onZoom, collapse: entry.handlers.onCollapse,
+    };
+    for (const hit of titleWidgetHits(entry.theme, slug, composed, scale)) {
+      const handler = cb[hit.role];
+      if (!handler) continue;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `aw-titlewidget aw-titlewidget-${hit.role}`;
+      btn.setAttribute('aria-label', hit.role);
+      Object.assign(btn.style, {
+        position: 'absolute', left: `${hit.rect.x}px`, top: `${hit.rect.y}px`,
+        width: `${hit.rect.w}px`, height: `${hit.rect.h}px`,
+        padding: '0', margin: '0', border: '0', background: 'transparent',
+        cursor: 'default', zIndex: '2',
+      } satisfies Partial<CSSStyleDeclaration>);
+      btn.addEventListener('click', (e) => { e.stopPropagation(); handler(); });
+      win.appendChild(btn);
+    }
   }
 }

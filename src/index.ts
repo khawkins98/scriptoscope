@@ -26,10 +26,11 @@ export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
-  interactiveSlider, interactiveScrollbar, WindowManager,
+  interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits,
   type InteractiveButtonOptions, type InteractiveCheckableOptions,
   type RadioGroupOptions, type InteractiveDisclosureOptions,
   type InteractiveSliderOptions, type InteractiveScrollbarOptions,
+  type TitleWidget, type TitleWidgetHandlers, type TitleWidgetHit,
 } from './interactive.js';
 export { PixelBuffer, type PixRect } from './pixelBuffer.js';
 export { loadCicnBuffer } from './cicnImage.js';
