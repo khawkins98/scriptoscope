@@ -1607,3 +1607,51 @@ transparent cicn padding overstating `frame.right`). Lesson: once the renderer
 exposes WHY each output pixel looks the way it does (provenance), regressions
 become greppable instead of visual — and the compositor's own invariants become
 testable without a browser.
+
+---
+
+### 2026-05-25 — Titles, the default-button ring, and the all-rasters inspector: the corpus ships more than we render
+
+A run of fidelity work on the Platinum/default controls, tied together by one
+recurring lesson: **before drawing anything procedurally, check what the scheme
+actually ships.** It paid off three times in a row.
+
+**Window titles now render in a real Charcoal.** The `mac-fonts-todo` gap (titles in
+bold-sans fallback) is closed for window titles: two license-clean Charcoal faces are
+bundled — Jeremy Sachs' CC BY-SA **Charcoal 12** bitmap (primary; crisp only at its
+grid-native 16px, so pinned there with zero tracking + an integer baseline, then
+upscaled pixelated) and Marty Pfeiffer's free **Virtue** (the `@font-face` fallback +
+UI-label font; itself descended from Greg Landweber's Aaron/Kaleidoscope Charcoal).
+`local('Charcoal')` is still preferred when installed. Control labels + the
+`textRaster` pixel path still use the platform fallback — the remaining gap.
+
+**Title VERTICAL placement is in the scheme, not a constant.** Titles sat too high on
+tall ornate bars (evolution) while flat bars (1138) were fine. The fix wasn't a magic
+offset: the scheme's title-text MARKER — the ≤2px-wide line the kDEF samples for the
+title colour (`0x5530`) — is drawn AT the title, so its y-span IS the text's vertical
+band. `composeChrome` exposes its centre as `titleRegion.midY`; `renderWindow` anchors
+there (else `frame.top/2`). The same marker whose *colour* we couldn't pin turned out
+to be the faithful signal for *placement*. Guarded by a `title` rule in `lint:themes`.
+
+**The default-button ring is SHIPPED ART, not procedural.** The OK button's ring
+looked flat/missing; instinct said "draw it procedurally with some depth." Wrong:
+every Platinum scheme ships it as cicn **-10231/-10232** with the bevel baked in
+(system7-nostalgia-silver even names them). The bug was in `composeButton` — the ring
+outset was `(ring.width - face.width)/2`, which is 0 when ring and face are both the
+16px control template, collapsing the ring into a 2px band. apple-platinum-2's ring is
+a solid indigo frame, not a gray ring — and that's CORRECT (its own reference shows a
+purple ring), so we render whatever -10231 ships.
+
+**The "All rasters" inspector makes the question greppable.** cicns (the bulk) + ppats
+had no manifest, so the browser couldn't enumerate them — only icons did.
+`scripts/index-rasters.mjs` writes a per-theme `rasters.json` (wired into
+`build:themes`), and a demo foldout dumps every cicn/icon/ppat with click-to-copy. It
+immediately surfaced shipped-but-unused art (menu-highlight cicns, colored progress
+bars, thumbs, finder-header) — the next coverage pass.
+
+**Application:** when a control/chrome element "needs depth/texture we'd have to
+draw," open the All-rasters foldout (or grep the bundle) for a shipped cicn FIRST — the
+corpus almost always carries it; procedural is the fallback, not the default. When
+placement looks off, look for a scheme-provided marker/anchor before reaching for a
+constant. See `docs/spec/compositor-spec.md` (Title TEXT + plate), the `title` /
+control-coverage rules in `scripts/lint-themes.mjs`, and `docs/tracking/mac-fonts-todo.md`.
