@@ -5,6 +5,21 @@ A real, third-party **Kaleidoscope** scheme: *Platinum 8 1.0* by **Russell Silve
 appearance. Extracted straight from its binary resource fork (`scheme.rsrc`) by
 `scripts/extract-scheme.mjs`.
 
+**Verified faithful (2026-05-25):** re-unpacked the original `Downloads/platinum8.sit`
+with `unar` and confirmed the scheme file's resource fork is **byte-identical**
+(md5 `8ae60c67…`) to our committed `scheme.rsrc`, and that a clean re-extraction
+produces **pixel-identical** cicns + matching `theme.json`. So this bundle is the true
+extraction — not cross-contaminated. The author's own rendering is preserved as a
+reference at `demo/assets/references/platinum-8.png` (from the Kaleidoscope archive,
+kaleidoscope.hryjksn.com) — note it is a deliberately **light/flat** scheme (the readme
+asks for feedback if "too light"), which is why its chrome reads flatter than Apple's.
+
+NOTE on rendering: this scheme ships **no `wnd#` window recipes** (`windowTypes: 0`), so
+in the demo its windows are drawn by the base layer (`apple-platinum-replica`, Apple
+pinstripe) while its own controls render — which can read as a "mixed" look. Its own
+flat window chrome (the `*-racing-stripes` + frame cicns) is present but unassembled;
+giving it standalone windows is a separate windowType-authoring task.
+
 ## Why it's here
 
 It's a widely-used, real-world Platinum scheme — the kind of artifact Aaron UI exists
