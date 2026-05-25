@@ -110,6 +110,16 @@ The title text is a **centred part**: positioned at the window content centre
 (`cx = frame.left + contentW/2`), independent of frame growth, in the header
 text colour. Drawn in `renderWindow.ts`.
 
+**Vertical** placement follows the scheme's title-text MARKER, not the bar's
+geometric centre. The marker is the ≤2px-wide vertical line in the title bar that
+the kDEF samples for the title colour (`0x5530`); a scheme draws it AT the title,
+so its y-span is the text's vertical band. `composeChrome` exposes the band centre
+as `titleRegion.midY` (clamped into the bar) and `renderWindow` anchors the title
+(and the colour-sample region) there, else falls back to `frame.top/2`. This fixes
+tall ornate bars (evolution) where the text well sits well below centre; flat bars
+(1138, marker ≈ centre) are unchanged. Data-driven on import, no per-scheme code;
+guarded by the `title` rule in `lint:themes`.
+
 The **title PLATE** (the "pill" behind the text) is the chrome side of the same
 mechanism, decoded at kDEF `0x4a64`: the kDEF measures the title via `StringWidth`
 ($A888 → `fp@(-2)`), gates it (title-fits at `0x4f58`), then sizes the title-

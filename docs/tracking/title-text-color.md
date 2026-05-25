@@ -136,3 +136,19 @@ theme the *frame* (cicn), not the title text. So constant-black is the faithful
 answer, not a shortcut. A colour-CUSTOMISING scheme (if any exist) would use the
 `0x5530` marker path; reopen only with such a scheme as a test case + a
 non-truncated decode. Ground truth: `kdef231-reference.md` §1.4 + the asm.
+
+### The marker's GEOMETRY is reliable — it anchors the title vertically (2026-05-25)
+
+The marker's *colour* isn't pinnable (above), but its *position* is. The same
+≤2px-wide vertical line — `composeChrome` already detects it (`titleMarkerX`, the
+first ≤2px part with top inside the bar) — is drawn by the scheme AT the title, so
+its **y-span is the title text's vertical band**. `composeChrome` now exposes the
+band centre as `titleRegion.midY` (clamped into the bar) and `renderWindow` centres
+the title there, else falls back to `frame.top/2`. This fixed titles sitting too
+high on tall ornate bars (evolution, marker midY 28 of a 53px bar) while leaving
+flat bars unchanged (1138, midY ≈ centre). Corner-sprite schemes ship no marker →
+geometric fallback. Data-driven on import, no per-scheme code; the `title` rule in
+`lint:themes` flags a marker band that overshoots the bar (clamp = likely a
+misdetected stray part) or a document-window with no marker. So the marker the
+colour analysis couldn't trust for *colour* turned out to be the faithful signal
+for *placement*.

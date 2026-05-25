@@ -1,10 +1,30 @@
 # TODO — authentic classic-Mac typography (Chicago / Charcoal / Geneva)
 
-**Status:** deferred — tracking. Not blocking; a fidelity refinement.
+**Status:** WINDOW TITLES done (2026-05-25); control labels + the `textRaster`
+pixel path still on the platform-font fallback.
 **Goal:** titles and control labels should render in the classic Mac system
 typeface (Chicago for System 6–7.5, Charcoal for OS 8.5+, Geneva for small
 labels) instead of today's bold-sans fallback — the single biggest "this doesn't
 quite read as Mac OS" tell once the chrome is right.
+
+## Done (2026-05-25) — window titles
+
+Two license-clean **Charcoal** faces are bundled (`demo/assets/fonts/`) and wired
+into the browser title path (`renderWindow.ts` `rasterizeTitleFont`), satisfying
+clean paths 1 + 2 + 3 below for titles:
+- **Charcoal 12** — Jeremy Sachs' CC BY-SA bitmap clone of Mac OS 8/9 Charcoal
+  (FontStruct). PRIMARY title font; crisp only at its grid-native 16px (pinned,
+  zero tracking, integer baseline), so it upscales pixelated and blocky-crisp.
+  License + readme bundled per CC BY-SA (`charcoal-12-license.txt` / `-readme.txt`).
+- **Virtue** — Marty P. Pfeiffer / Scooter Graphics' free Charcoal recreation,
+  itself from Greg Landweber's Aaron/Kaleidoscope Charcoal. The `@font-face`
+  fallback + the UI-label font; `local('Charcoal')` is preferred when installed
+  (clean path 3). Credit + terms in `VIRTUE-LICENSE.txt`.
+
+**Still pending:** the compositor's `rasterizeText` (`src/textRaster.ts`, the
+non-DOM pixel path + the title fallback) and CONTROL LABELS (`controls.ts`
+button/tab labels) still use the platform-font stack — wire them to the bundled
+faces too (Charcoal 12 for ≥1× pixel sizes, Virtue/Geneva-lookalike for labels).
 
 ## Where we are now
 
