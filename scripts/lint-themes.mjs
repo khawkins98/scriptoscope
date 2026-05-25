@@ -28,6 +28,13 @@
 //   norecipe — a side with a non-zero inset but no recipe draws nothing (we no
 //            longer fake-fill it). Expected for collapsed/topless types; flagged
 //            so an unexpected one stands out.  [recipe-less edge back-off]
+//   title  — the title text centres on the scheme's title-text MARKER band (the
+//            ≤2px-wide line in the title bar → composeChrome titleRegion.midY →
+//            renderWindow draws there; data-driven on import). Surfaced so a silent
+//            misplace can't hide: a marker band running PAST the bar (b > barH, midY
+//            clamped) is the tell-tale of a stray thin part picked instead of the
+//            title line; a document-window with NO marker falls back to geometric
+//            centring (fine flat, too-high on a tall ornate bar).  [evolution/1984]
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -168,6 +175,35 @@ for (const slug of slugs) {
       for (const side of ['top', 'left', 'right', 'bottom']) {
         if (insets[side] > 1 && !(ed[side]?.length))
           NOTE(`norecipe: ${side} inset ${insets[side]}px but no ${side} recipe (edge not drawn — ok for collapsed/topless)`);
+      }
+    }
+
+    // ── title: the title text centres on the scheme's title-text MARKER band (the
+    // ≤2px-wide vertical line in the title bar — composeChrome derives
+    // titleRegion.midY from it, renderWindow draws there). Scoped to title-DRAWING
+    // types (renderWindow.ts: showTitle = !isUtility, so exclude utility/mini/
+    // floating/palette). Two anomalies, since the placement is otherwise silent:
+    //   • a marker band running PAST the bar (b > barH) → midY is clamped: the
+    //     tell-tale of a stray thin part picked instead of the title line;
+    //   • document-window with NO marker → geometric centring (too high on a tall
+    //     ornate bar — the evolution bug this guards).
+    if (body && body[1] > 6 && !/utility|mini|floating|palette/.test(key)) {
+      const barH = body[1]; // top inset = title-bar height (= composeChrome frame.top)
+      let marker = null;
+      for (const [pk, p] of Object.entries(wt.parts || {})) {
+        if (pk === 'part-0' || !Array.isArray(p.rect)) continue;
+        const [pl, pt, pr, pb] = p.rect;
+        if (pr <= pl || pb <= pt) continue;
+        if (pt < barH && pr - pl <= 2) { marker = [pt, pb]; break; } // first ≤2px line in the bar
+      }
+      if (marker) {
+        const midY = Math.min(barH - 1, (marker[0] + marker[1]) / 2);
+        if (marker[1] > barH)
+          NOTE(`title: marker band y[${marker[0]},${marker[1]}] runs past the ${barH}px bar → midY clamped to ${midY.toFixed(0)} (check it's the title line, not a stray thin part)`);
+        else if (midY < barH * 0.2 || midY > barH * 0.8)
+          NOTE(`title: marker midY ${midY.toFixed(1)} sits in the outer fifth of the ${barH}px bar (verify placement)`);
+      } else if (key === 'document-window') {
+        NOTE(`title: document-window ships no title marker → title centres geometrically (verify on a tall/ornate bar)`);
       }
     }
 
