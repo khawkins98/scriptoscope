@@ -206,6 +206,22 @@ export function composeCornerSpriteChrome(
     src: { x: 0, y: 0, w: 1, h: 1 }, rects: [{ x: 0, y: 0, w: fullW, h: fullH }],
   });
 
+  // ── 2b. title-bar raised bevel (WDEF 125 §"title-rect raised bevel") ────────
+  // Inside the 1px border, a top/left HIGHLIGHT + bottom/right SHADOW makes the
+  // bar read as a RAISED ridge instead of a flat striped strip — the single
+  // change that stops the window looking like "one giant box". Drawn over the
+  // pinstripe (the WDEF fills the rect then strokes the bevel); the widgets sit
+  // on top at the ends. Mirrors the widget bevel's lighten/darken amounts.
+  if (hasTitleBar && titleH >= 5 && fullW >= 5) {
+    const hi = lighten(faceRgba, 0.55);
+    const sh = darken(faceRgba, 0.22);
+    const innerH = titleH - 3; // y=1 down to the row just above the under-line
+    out.fillRect({ x: 1, y: 1, w: fullW - 2, h: 1 }, hi[0], hi[1], hi[2], 255); // top highlight
+    out.fillRect({ x: 1, y: 1, w: 1, h: innerH }, hi[0], hi[1], hi[2], 255); // left highlight
+    out.fillRect({ x: 1, y: titleH - 2, w: fullW - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom shadow
+    out.fillRect({ x: fullW - 2, y: 1, w: 1, h: innerH }, sh[0], sh[1], sh[2], 255); // right shadow
+  }
+
   // ── 3. widgets: the scheme's OWN close/zoom/collapse glyph (else a fabricated
   //       beveled square). close left, collapse + zoom right ─────────────────
   // Geometry from WDEF 125 §"Box geometry": close left = title.left+4; zoom
@@ -288,6 +304,23 @@ export function composeCornerSpriteChrome(
       rects: [{ x: gx, y: gy, w: gb.width, h: gb.height }],
     });
   }
+
+  // ── 5. articulated geometry regions ───────────────────────────────────────
+  // The named-region model the texture schemes get from their wnd#/cinf recipe,
+  // synthesized here for the procedural Platinum frame: the title bar (code 8,
+  // above), the close/zoom/collapse widget rects (code 4, above), the grow box
+  // (code 10, above), plus the three thin frame SIDES below. Platinum sides are
+  // 1px by design (the frame is code-driven, not corner-sprite art — WDEF 125),
+  // so these are slim; they exist so hit-testing, the diagnostic strip, and any
+  // future per-side texture mapping can address each edge, not just "the box".
+  const sideReg = (edge: 'left' | 'right' | 'bottom', x: number, y: number, w: number, h: number): void => {
+    if (w > 0 && h > 0) {
+      placement.push({ edge, code: 1, role: `${edge} side`, mode: 'fixed', src: { x: 0, y: 0, w: 1, h: 1 }, rects: [{ x, y, w, h }] });
+    }
+  };
+  sideReg('left', 0, titleH, frame.left, contentH);
+  sideReg('right', fullW - frame.right, titleH, frame.right, contentH);
+  sideReg('bottom', 0, fullH - frame.bottom, fullW, frame.bottom);
 
   // The title region is the whole bar (the corner-sprite model has no measured
   // title-plate cell); renderWindow centres the title on it. Report the measured
