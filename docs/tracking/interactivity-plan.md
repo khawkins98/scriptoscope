@@ -4,6 +4,11 @@ Goal: wire real interaction onto the rendered chrome/controls — button press,
 checkbox/radio toggle, disclosure expand, window active/inactive (focus), and
 (phase 2) scrollbar/slider drag + title-bar widget clicks (close/zoom/collapse).
 
+**Status: DONE.** Phase 1 (button/checkbox/radio/disclosure/window-focus) and
+Phase 2 (slider+scrollbar drag, title-bar widget hit-testing) both shipped in
+`src/interactive.ts` (exported) + the demo's "interactive playground" section.
+The notes below are the original research; they describe the as-built design.
+
 ## Key finding: state is ALREADY first-class — interactivity = event → state → re-render
 The compositor renders per-STATE cicns today; nothing new needs drawing:
 - `ControlState = 'normal' | 'pressed' | 'disabled' | 'inactive'` (controls.ts).
