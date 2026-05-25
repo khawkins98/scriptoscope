@@ -894,10 +894,10 @@
     // it (active↔inactive chrome). All from src/interactive.ts.
     {
       const section = document.createElement('div'); section.className = 'theme-row';
-      const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live (Phase 1)';
+      const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live';
       const intro = document.createElement('p');
       intro.style.cssText = 'margin:2px 0 10px;opacity:.6;font-size:12px';
-      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, and click a window to focus it. Pick a scheme:';
+      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, drag the slider/scrollbars, click a window to focus it, and click its title-bar widgets. Pick a scheme:';
       const sel = document.createElement('select');
       sel.style.cssText = 'font:12px system-ui;padding:2px;margin-bottom:10px';
       for (const t of THEMES) { const o = document.createElement('option'); o.value = t.slug; o.textContent = t.label; sel.appendChild(o); }
@@ -941,9 +941,14 @@
         discRow.append(disc, lbl); discWrap.append(discRow, content);
 
         const drag = document.createElement('div'); drag.style.cssText = 'display:flex;gap:16px;align-items:flex-start';
-        drag.append(
+        const dragCol = document.createElement('div'); dragCol.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+        dragCol.append(
           await interactiveSlider(theme, { length: 120, value: 0.4, onChange: (v) => say('slider → ' + Math.round(v * 100) + '%') }),
-          await interactiveScrollbar(theme, { orientation: 'vertical', length: 96, value: 0.3, onChange: (v) => say('scroll → ' + Math.round(v * 100) + '%') }),
+          await interactiveScrollbar(theme, { orientation: 'horizontal', length: 120, value: 0.3, onChange: (v) => say('h-scroll → ' + Math.round(v * 100) + '%') }),
+        );
+        drag.append(
+          dragCol,
+          await interactiveScrollbar(theme, { orientation: 'vertical', length: 96, value: 0.3, onChange: (v) => say('v-scroll → ' + Math.round(v * 100) + '%') }),
         );
 
         ctrls.append(btns, toggles, discWrap, drag);
@@ -954,19 +959,21 @@
         deskLabel.style.cssText = 'font:11px system-ui;opacity:.6;margin-bottom:4px';
         const desk = document.createElement('div');
         desk.style.cssText = 'position:relative;height:200px;max-width:540px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
-        const wm = new WindowManager();
-        const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 }, {
-          onClose: () => { w1.style.display = 'none'; say('Document closed'); },
-          onZoom: () => say('Document zoom'),
-          onCollapse: () => say('Document collapse'),
-        });
-        const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 }, {
-          onClose: () => { w2.style.display = 'none'; say('Options closed'); },
-        });
-        w1.style.left = '14px'; w1.style.top = '14px';
-        w2.style.left = '250px'; w2.style.top = '46px';
-        desk.append(w1, w2);
         host.append(deskLabel, desk);
+        try {
+          const wm = new WindowManager();
+          const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 }, {
+            onClose: () => { w1.style.display = 'none'; say('Document closed'); },
+            onZoom: () => say('Document zoom'),
+            onCollapse: () => say('Document collapse'),
+          });
+          const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 }, {
+            onClose: () => { w2.style.display = 'none'; say('Options closed'); },
+          });
+          w1.style.left = '14px'; w1.style.top = '14px';
+          w2.style.left = '250px'; w2.style.top = '46px';
+          desk.append(w1, w2);
+        } catch (e) { say('window render failed: ' + (e && e.message || e)); }
       }
       sel.onchange = () => { buildInteractive(sel.value); };
       await buildInteractive(sel.value);
