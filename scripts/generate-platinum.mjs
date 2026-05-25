@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
 import { sliceWindow, SLICED_WINDOW_TYPES } from './generate-platinum/slice-doc-window.mjs';
-import { graftControls } from './generate-platinum/graft-controls.mjs';
+import { graftControls, GRAFT_CONTROL_IDS } from './generate-platinum/graft-controls.mjs';
 import { sliceControls } from './generate-platinum/slice-controls.mjs';
 import { sliceIcons } from './generate-platinum/slice-icons.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
@@ -98,11 +98,29 @@ const theme = buildThemeJson({ source: 'apple-platinum-replica (generated)', ext
 // Graft real Platinum control geometry from apple-platinum-2 (it has the control
 // cicns we lack; controls resolve by resource ID so they're found by slug-agnostic
 // lookup). Copies the cicns into our cicns/ and merges their chromeElements.
+// DEFER TO platinum-8 (owner decision, 2026-05-25): the real freeware Platinum
+// scheme is the authority for the recognizable control look. Its scrollbar tracks
+// + thumbs are real, already-correct art at the canonical resource ids — graft
+// them RAW (no purple→blue recolor / synthetic grip). apple-platinum-2 still
+// supplies the controls platinum-8 lacks (grow box, tabs) + ones not yet vetted
+// from platinum-8 (button faces, default ring).
+const P8_GRAFT_IDS = new Set([
+  -8277, -8278, -8279, -8280, -8285, -8286, -8287, -8288, // scrollbar tracks V+H
+  -10205, -10206, -10207, -10208,                          // scroll thumbs
+]);
 const aplat2 = resolve(root, 'themes/apple-platinum-2');
 if (existsSync(aplat2)) {
-  const { grafted, copied, missing } = graftControls(aplat2, dest);
+  const aplat2Ids = new Set([...GRAFT_CONTROL_IDS].filter((id) => !P8_GRAFT_IDS.has(id)));
+  const { grafted, copied, missing } = graftControls(aplat2, dest, aplat2Ids);
   theme.chromeElements = { ...(theme.chromeElements || {}), ...grafted };
   console.log(`[apple-platinum-replica] grafted ${copied} control cicns from apple-platinum-2` +
+    (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
+}
+const platinum8 = resolve(root, 'themes/platinum-8');
+if (existsSync(platinum8)) {
+  const { grafted, copied, missing } = graftControls(platinum8, dest, P8_GRAFT_IDS, { recolor: false });
+  theme.chromeElements = { ...(theme.chromeElements || {}), ...grafted };
+  console.log(`[apple-platinum-replica] deferred ${copied} controls to platinum-8 (scrollbars+thumbs)` +
     (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
 }
 

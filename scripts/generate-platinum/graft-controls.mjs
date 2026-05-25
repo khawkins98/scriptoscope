@@ -85,7 +85,12 @@ export const GRAFT_CONTROL_IDS = new Set([
  * chromeElements entries to merge into the destination theme.
  * @returns {{ grafted: Record<string, object>, copied: number, missing: number[] }}
  */
-export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS) {
+export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS, opts = {}) {
+  // recolor=true (default): remap accent/ring cicns onto the blue ramp + add the
+  // thumb grip — used for apple-platinum-2 (Orion's purple-accent placeholders).
+  // recolor=false: raw copy — used for platinum-8, whose art is already the real
+  // (correctly-coloured) control and must NOT be re-ramped.
+  const recolor = opts.recolor ?? true;
   const src = JSON.parse(readFileSync(resolve(srcDir, 'theme.json'), 'utf8'));
   const grafted = {};
   const seen = new Set();
@@ -95,7 +100,7 @@ export function graftControls(srcDir, destDir, ids = GRAFT_CONTROL_IDS) {
     const from = resolve(srcDir, el.asset);
     if (!existsSync(from)) continue;
     const to = resolve(destDir, el.asset);
-    const ramp = RECOLOR.get(el.sourceCicnId);
+    const ramp = recolor ? RECOLOR.get(el.sourceCicnId) : null;
     if (ramp) {
       let img = recolorToRamp(decodePng(readFileSync(from)), ramp);
       if (THUMB_IDS.has(el.sourceCicnId)) img = addThumbGrip(img);
