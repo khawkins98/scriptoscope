@@ -10,10 +10,17 @@
        @font-face uses it when LOCALLY installed, else falls back to VIRTUE — Marty
        P. Pfeiffer's free Charcoal recreation (Scooter Graphics, 1999), itself built
        on Greg Landweber's reverse-engineered Charcoal from Aaron + Kaleidoscope.
-       Credit + terms: assets/fonts/VIRTUE-LICENSE.txt · scootergraphics.com/virtue */
+       Credit + terms: assets/fonts/VIRTUE-LICENSE.txt · scootergraphics.com/virtue
+       Stand-ins to try down the line:
+         • Inter — fonts.google.com/specimen/Inter (modern neutral UI sans)
+         • Charcoal 12 (bitmap) — fontstruct.com/fontstructions/show/2813611/charcoal-12 */
     @font-face {
       font-family: 'Charcoal';
       src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff');
+      /* Virtue is single-weight (like the real Charcoal — the classic system font
+         had no bold). Declare the full range so the browser uses it as-is for any
+         font-weight instead of FAUX-bolding it (which read as "much too bold"). */
+      font-weight: 100 900;
       font-display: swap;
     }
     :root { color-scheme: light; }
