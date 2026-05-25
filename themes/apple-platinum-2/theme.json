@@ -1,8 +1,8 @@
 {
   "version": "0.1",
   "source": "apple-platinum-2/scheme.rsrc",
-  "generatedAt": "2026-05-20T12:05:41.617Z",
-  "note": "Draft theme.json produced by @aaron-ui/scheme-extractor. Schema per docs/aaron-ui-composer-spec.md (spec C) §3.",
+  "generatedAt": "2026-05-25T09:34:08.874Z",
+  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
   "name": "Apple Platinum 2",
   "author": {
     "name": "Orion Dimitrakopoulos",
@@ -15,6 +15,30 @@
     "originalLicense": "©1999 Orion Dimitrakopoulos - All Rights Reserved. Distributed via the Kaleidoscope community circa 1999-2003.",
     "sourceUrl": "https://kaleidoscope.hryjksn.com/",
     "sourceArchive": "https://kaleidoscope.hryjksn.com/images/apple-platinum-2-appleplatinum2sit-fl5d.png"
+  },
+  "windowTypes": {
+    "document-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14332-active-document.png",
+        "inactive": "cicns/cicn-n14336-inactive-document.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            19,
+            1,
+            1
+          ]
+        }
+      },
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14331-document-racing-stripes.png",
+        "growBox": "cicns/cicn-n14330-active-grow-box.png"
+      },
+      "cinf": null
+    }
   },
   "chromeElements": {
     "33": {

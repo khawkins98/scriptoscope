@@ -71,6 +71,34 @@ for (const slug of slugs) {
 
   for (const key of keys) {
     const wt = wts[key];
+
+    // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
+    // platinum-8, system7-nostalgia-silver) are NOT the sliced kDEF cicn-walk —
+    // they render procedurally from sprite cicns (composeCornerSprite.ts). The
+    // sliced rules below (body rect inside the chrome cicn's drawable extent,
+    // per-edge recipe span) don't apply: chrome.active is a 16px proxy ICON, not
+    // a frame template, and part-0 carries the four frame THICKNESSES, not a body
+    // rect (so r<=l, etc. is by design). Verify the sprite set exists instead.
+    if (wt.model === 'corner-sprite') {
+      wins++;
+      const out = [];
+      const ERR = (m) => { out.push(['E', m]); errors++; };
+      const checkSprite = (label, rel) => {
+        if (!rel) return;
+        try { loadCicn(themeDir, rel); }
+        catch (e) { ERR(`sprite ${label}: cannot load ${rel} (${e.message})`); }
+      };
+      if (!wt.sprites?.pinstripe) ERR('corner-sprite: missing sprites.pinstripe');
+      checkSprite('pinstripe', wt.sprites?.pinstripe);
+      checkSprite('growBox', wt.sprites?.growBox);
+      checkSprite('chrome.active', wt.chrome?.active);
+      if (!Array.isArray(wt.parts?.['part-0']?.rect)) ERR('corner-sprite: missing part-0 frame thicknesses');
+      const tag = out.some(([s]) => s === 'E') ? 'ERROR' : out.length ? 'note' : 'ok';
+      console.log(`  ${key.padEnd(32)} ${tag}`);
+      for (const [s, m] of out) console.log(`      ${s === 'E' ? '✗' : '·'} ${m}`);
+      continue;
+    }
+
     let cicn;
     try { cicn = loadCicn(themeDir, wt.chrome.active); }
     catch (e) { console.log(`  ${key.padEnd(32)} LOAD FAIL ${e.message}`); errors++; continue; }

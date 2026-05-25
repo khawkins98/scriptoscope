@@ -162,6 +162,45 @@ export function buildThemeJson(manifest, options = {}) {
     };
   }
 
+  // ─── Corner-sprite windows (look-only Platinum schemes) ───────────────
+  // Some schemes ship the document-window CORNER cicns + the pinstripe / grow-
+  // box sprites but NO wnd# side-recipe (apple-platinum-2, platinum-8,
+  // system7-nostalgia-silver) — so the loop above emitted zero windowTypes and
+  // the runtime falls back to the apple-platinum-replica base. These windows are
+  // the classic Platinum WDEF corner-sprite + procedural model (the frame is
+  // code-driven, not sliced — see docs/spec/platinum-wdef125-decode.md), so we
+  // synthesize a `document-window` type that the corner-sprite compositor draws
+  // from the scheme's OWN sprites:
+  //   chrome.active   = active-document cicn (-14332)
+  //   chrome.inactive = inactive-document cicn (-14336)
+  //   sprites.pinstripe = document-racing-stripes cicn (-14331)
+  //   sprites.growBox   = active-grow-box cicn (-14330)
+  // part-0 stores the frame THICKNESSES directly (left, top, right, bottom) —
+  // Platinum's fixed 1px-sides / 19px-top frame. Only when no wnd# produced a
+  // windowType (a scheme WITH a wnd# recipe uses the faithful sliced path).
+  if (Object.keys(windowTypes).length === 0) {
+    const active = byTypeAndId['cicn:-14332'];     // "active document"
+    const inactive = byTypeAndId['cicn:-14336'];   // "inactive document"
+    const pinstripe = byTypeAndId['cicn:-14331'];  // "document racing stripes"
+    const growBox = byTypeAndId['cicn:-14330'];    // "active grow box"
+    if (active && inactive && pinstripe) {
+      const chrome = {};
+      chrome.active = active.file;
+      chrome.inactive = inactive.file;
+      const sprites = { pinstripe: pinstripe.file };
+      if (growBox) sprites.growBox = growBox.file;
+      windowTypes['document-window'] = {
+        model: 'corner-sprite',
+        chrome,
+        // part-0 = frame thicknesses [left, top, right, bottom]: the fixed
+        // Platinum 1px ring with a 19px title bar (WDEF 125 §"Frame & bevel").
+        parts: { 'part-0': { rect: [1, 19, 1, 1] } },
+        sprites,
+        cinf: null,
+      };
+    }
+  }
+
   // ─── Assemble ─────────────────────────────────────────────────────────
   const theme = {
     version: '0.1',

@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { composeWindowChrome } from '../dist/aaron-ui.js';
+import { composeWindowChrome, composeCornerSpriteChrome } from '../dist/aaron-ui.js';
 import { encodePng, loadCicn, resolveWindow } from './diag-lib.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,7 +47,20 @@ const cicn = loadCicn(themeDir, wt.chrome.active);
 const titleWidthPx = opts.plate > 0
   ? opts.plate
   : (opts.title ? opts.title.length * 6 + 12 : 0);
-const composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
+// Corner-sprite windows (look-only Platinum schemes) render procedurally from
+// their own sprite cicns, not the kDEF cicn 9-walk — route them to the
+// corner-sprite compositor, loading the pinstripe + grow-box sprites.
+let composed;
+if (wt.model === 'corner-sprite' && wt.sprites) {
+  const pinstripe = loadCicn(themeDir, wt.sprites.pinstripe);
+  const growBox = wt.sprites.growBox ? loadCicn(themeDir, wt.sprites.growBox) : null;
+  const hc = manifest.headerColors?.active ?? {};
+  composed = composeCornerSpriteChrome(wt, opts.w, opts.h, {
+    pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx,
+  });
+} else {
+  composed = composeWindowChrome(cicn, wt, opts.w, opts.h, { cinf: wt.cinf ?? null, titleWidthPx });
+}
 
 const diagDir = resolve(themeDir, 'diag');
 if (!existsSync(diagDir)) mkdirSync(diagDir, { recursive: true });

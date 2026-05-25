@@ -70,3 +70,7 @@ export {
   type SliceMode,
   type PixRectXY,
 } from './composeChrome.js';
+export {
+  composeCornerSpriteChrome,
+  type CornerSpriteOptions,
+} from './composeCornerSprite.js';

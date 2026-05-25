@@ -75,6 +75,24 @@ export interface WindowType {
    * to stretch (tileSides=0). See WindowCinf.
    */
   cinf?: WindowCinf | null;
+  /**
+   * Which compositor renders this window type. ABSENT (the default) selects
+   * the SLICED path — the kDEF cicn 9-walk in composeChrome.ts, driven by the
+   * `edges` recipe. `'corner-sprite'` selects the procedural Platinum
+   * corner-sprite model (composeCornerSprite.ts): a code-baked 1px frame ring,
+   * a pinstripe-cicn-tiled title bar, beveled-square widgets, and a grow-box
+   * sprite — used for look-only schemes that ship the document corner cicns but
+   * no wnd#/cinf (apple-platinum-2, platinum-8, system7-nostalgia-silver). See
+   * docs/spec/platinum-wdef125-decode.md.
+   */
+  model?: 'sliced' | 'corner-sprite';
+  /**
+   * Sprite cicns the corner-sprite model tiles/stamps (bundle-relative PNG
+   * paths). `pinstripe` is the title-bar fill cicn (-14331, the
+   * `document-racing-stripes`); `growBox` is the bottom-right size box
+   * (-14330, `active-grow-box`). Only read when `model === 'corner-sprite'`.
+   */
+  sprites?: { pinstripe: string; growBox?: string };
 }
 
 export interface ChromeElement {

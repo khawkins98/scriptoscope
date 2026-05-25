@@ -3,6 +3,7 @@ import { resolveInChain } from './baseChain.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome } from './composeChrome.js';
+import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 
@@ -83,7 +84,25 @@ export async function renderWindow(
   // measures with trailing space, 0x4f18); 0 when there's no visible title.
   const titleWidthPx = glyphs ? glyphs.width + 8 : 0;
 
-  const composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });
+  // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
+  // platinum-8, system7-nostalgia-silver) ship the document corner cicns + the
+  // pinstripe / grow-box sprites but no wnd# recipe — composeWindowChrome can't
+  // walk them. They render procedurally (the classic Platinum WDEF model) from
+  // their own sprites. Isolated, self-contained branch; the sliced path below
+  // is unchanged.
+  let composed;
+  if (wt.model === 'corner-sprite' && wt.sprites) {
+    const pinstripe = await loadCicnBuffer(assetUrl(owner, wt.sprites.pinstripe));
+    const growBox = wt.sprites.growBox
+      ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
+      : null;
+    const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
+    composed = composeCornerSpriteChrome(wt, contentW, contentH, {
+      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx,
+    });
+  } else {
+    composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });
+  }
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
