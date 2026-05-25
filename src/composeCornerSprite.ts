@@ -147,15 +147,18 @@ export function composeCornerSpriteChrome(
   };
 
   // Beveled-frame mode: when the scheme ships a bevel palette (headerColors
-  // lightBevel/darkBevel, sampled per state at extract time), the side/bottom
-  // frame is drawn as a RAISED GRAY PANEL instead of a flat 1px line. The thin
-  // synthesized sides (1px) are widened so the bevel reads — the footprint grows
-  // ~2px per side, faithful to the System 7 / Platinum chunkier frame.
-  const beveled = !!(opts.lightBevel && opts.darkBevel && opts.fillColor) && frame.top >= 6;
+  // lightBevel/darkBevel, sampled per state at extract time), the frame is drawn
+  // as a RAISED GRAY PANEL instead of a flat 1px line. The thin synthesized sides
+  // (1px) are widened so the bevel reads — footprint grows ~2px/side, faithful to
+  // the System 7 / Platinum chunkier frame. Applies to TITLED windows (left/right/
+  // bottom; top is the title bar) AND to TITLE-LESS framed boxes (dialog/alert —
+  // no pinstripe — which bevel all 4 sides, top included).
+  const beveled = !!(opts.lightBevel && opts.darkBevel && opts.fillColor);
   if (beveled) {
     frame.left = Math.max(frame.left, 3);
     frame.right = Math.max(frame.right, 3);
     frame.bottom = Math.max(frame.bottom, 3);
+    if (!opts.pinstripe) frame.top = Math.max(frame.top, 3); // title-less ⇒ beveled top band too
   }
 
   const fullW = frame.left + contentW + frame.right;
@@ -232,20 +235,38 @@ export function composeCornerSpriteChrome(
     const fill = (x: number, y: number, w: number, h: number, c: [number, number, number, number]): void => {
       if (w > 0 && h > 0) out.fillRect({ x, y, w, h }, c[0], c[1], c[2], 255);
     };
-    const bandTop = titleH, bandH = fullH - titleH - 1; // below the under-line, above the bottom outline
-    // face fill (inset 1px so the outer outline survives): left / right / bottom bands
-    fill(1, bandTop, frame.left - 1, bandH, faceRgba);
-    fill(fullW - frame.right, bandTop, frame.right - 1, bandH, faceRgba);
-    fill(1, fullH - frame.bottom, fullW - 2, frame.bottom - 1, faceRgba);
-    // raised bevel: highlight on the inner left, shadow on the inner right + bottom
-    fill(1, bandTop, 1, bandH, hiBevelRgba);
-    fill(fullW - 2, bandTop, 1, bandH, shBevelRgba);
-    fill(1, fullH - 2, fullW - 2, 1, shBevelRgba);
-    // content-well recess (sunken content): dark on its left, light on its right/bottom
-    const cl = frame.left, cr = fullW - frame.right, cb = fullH - frame.bottom;
-    fill(cl - 1, titleH, 1, cb - titleH, shBevelRgba);
-    fill(cr, titleH, 1, cb - titleH, hiBevelRgba);
-    fill(cl - 1, cb - 1, cr - cl + 2, 1, hiBevelRgba);
+    const cl = frame.left, cr = fullW - frame.right, ct = frame.top, cb = fullH - frame.bottom;
+    if (!hasTitleBar) {
+      // TITLE-LESS framed box (dialog/alert): a full raised PANEL on all 4 sides.
+      fill(1, 1, fullW - 2, frame.top - 1, faceRgba); // top band
+      fill(1, 1, frame.left - 1, fullH - 2, faceRgba); // left band
+      fill(fullW - frame.right, 1, frame.right - 1, fullH - 2, faceRgba); // right band
+      fill(1, fullH - frame.bottom, fullW - 2, frame.bottom - 1, faceRgba); // bottom band
+      // raised bevel: highlight inner top+left, shadow inner bottom+right
+      fill(1, 1, fullW - 2, 1, hiBevelRgba);
+      fill(1, 1, 1, fullH - 2, hiBevelRgba);
+      fill(1, fullH - 2, fullW - 2, 1, shBevelRgba);
+      fill(fullW - 2, 1, 1, fullH - 2, shBevelRgba);
+      // content-well recess (sunken): dark top+left, light right+bottom
+      fill(cl - 1, ct - 1, cr - cl + 1, 1, shBevelRgba);
+      fill(cl - 1, ct - 1, 1, cb - ct + 1, shBevelRgba);
+      fill(cr, ct - 1, 1, cb - ct + 1, hiBevelRgba);
+      fill(cl - 1, cb, cr - cl + 1, 1, hiBevelRgba);
+    } else {
+      // TITLED window: the title bar owns the top; bevel left / right / bottom.
+      const bandTop = titleH, bandH = fullH - titleH - 1; // below the under-line, above the bottom outline
+      fill(1, bandTop, frame.left - 1, bandH, faceRgba);
+      fill(fullW - frame.right, bandTop, frame.right - 1, bandH, faceRgba);
+      fill(1, fullH - frame.bottom, fullW - 2, frame.bottom - 1, faceRgba);
+      // raised bevel: highlight on the inner left, shadow on the inner right + bottom
+      fill(1, bandTop, 1, bandH, hiBevelRgba);
+      fill(fullW - 2, bandTop, 1, bandH, shBevelRgba);
+      fill(1, fullH - 2, fullW - 2, 1, shBevelRgba);
+      // content-well recess (sunken content): dark on its left, light on its right/bottom
+      fill(cl - 1, titleH, 1, cb - titleH, shBevelRgba);
+      fill(cr, titleH, 1, cb - titleH, hiBevelRgba);
+      fill(cl - 1, cb - 1, cr - cl + 2, 1, hiBevelRgba);
+    }
   }
 
   placement.push({
