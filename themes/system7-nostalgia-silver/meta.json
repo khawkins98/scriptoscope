@@ -1,0 +1,10 @@
+{
+  "name": "System 7 Nostalgia Silver",
+  "author": { "name": "mollusc", "email": "mollusc@oz.net", "year": 1997 },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "System 7 Nostalgia Silver by mollusc (Kaleidoscope Shack, oz.net/~mollusc), 15 December 1997. Freeware Kaleidoscope scheme.",
+    "sourceUrl": "https://web.archive.org/web/20140226134043/http://www.kaleidoscope.net/schemes/schemes/system7nostalgiasilver.sit"
+  }
+}

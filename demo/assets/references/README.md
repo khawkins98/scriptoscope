@@ -13,6 +13,7 @@ keyed by slug.
 | `beos-r503.png` | BeOS R5.0.3 |
 | `evolution.png` | Evolution |
 | `platinum-8.png` | Platinum 8 (Russell Silver Jr., 1998) — **provenance KNOWN**: the scheme author's own rendering, from the Kaleidoscope archive (kaleidoscope.hryjksn.com). Unlike the others below, this is a trustworthy reference for the theme's true appearance. |
+| `system7-nostalgia-silver.png` | System 7 Nostalgia Silver (mollusc, 1997) — **provenance KNOWN**: author's own rendering from the Kaleidoscope archive. Platinum-adjacent silver scheme. |
 
 ## Provenance is undocumented — not a trustworthy pixel-diff oracle
 

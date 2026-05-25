@@ -154,7 +154,7 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 Aaron UI is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
-The porting flow as currently implemented (the corpus today is `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8` — use any of those, e.g. `beos-r503`, as a worked example; note `platinum-8` is controls-only, with no window recipes, so it's an atypical example):
+The porting flow as currently implemented (the corpus today is `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver` — use one of the full schemes, e.g. `beos-r503`, as a worked example; note `platinum-8` and `system7-nostalgia-silver` are controls-only, with no window recipes, so they're atypical examples):
 
 1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
 2. **Create `themes/<scheme-slug>/` and drop in the scheme's resource fork plus its metadata:**

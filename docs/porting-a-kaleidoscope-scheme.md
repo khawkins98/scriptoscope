@@ -2,7 +2,7 @@
 
 Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By the end you have a bundle under `themes/<your-slug>/` that loads via `loadTheme()` and renders chrome end-to-end.
 
-**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`).
+**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver`).
 
 **Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoders). The condensed version of this same flow lives in [`CONTRIBUTING.md` § Adding a theme](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme); this doc is the *long-form, troubleshooting* version.
 
