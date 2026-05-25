@@ -7,17 +7,6 @@ import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 
-/**
- * Load an ics4 GLYPH (a scheme's own pictogram) by its NEGATIVE Kaleidoscope
- * resource id from the theme's own `glyphs` map (built from icons/index.json).
- * Self-only (no base-chain walk): a corner-sprite scheme renders its OWN widget
- * glyphs or none. Returns null when the scheme ships no such glyph.
- */
-async function loadGlyphFromOwner(owner: LoadedTheme, id: number): Promise<PixelBuffer | null> {
-  const asset = owner.glyphs?.[String(id)];
-  return asset ? loadCicnBuffer(assetUrl(owner, asset)) : null;
-}
-
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
   windowType?: string;
@@ -110,23 +99,15 @@ export async function renderWindow(
       ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
       : null;
     const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
-    // The scheme's OWN title-bar widget glyphs, loaded from the owner's `glyphs`
-    // map (icons/index.json, keyed by negative resource id) and passed to the
-    // compositor, which stamps them 1:1 in place of the fabricated bevel squares.
-    // The -14331..-14336 family ships TWO variants of each widget (only two
-    // exist), which read as the ACTIVE vs INACTIVE pair — so an inactive window
-    // gets the dimmer trio. close/zoom/collapse: active -14336/-14335/-14334,
-    // inactive -14333/-14332/-14331. A scheme that ships none keeps the square.
-    const wInactive = state === 'inactive';
-    const widgetGlyphs = {
-      close: await loadGlyphFromOwner(owner, wInactive ? -14333 : -14336),
-      zoom: await loadGlyphFromOwner(owner, wInactive ? -14332 : -14335),
-      collapse: await loadGlyphFromOwner(owner, wInactive ? -14331 : -14334),
-    };
+    // Title-bar widgets are drawn PROCEDURALLY by the compositor (close/zoom/
+    // collapse). The corner-sprite schemes' -14336..-14331 ics4/ics8 are 16×16
+    // window-PROXY icons (doc / grow-box / collapsed proxies), NOT 7×7 widget
+    // faces — stamping them produced oversized window-thumbnails — so we don't
+    // pass them. The active/inactive cue is carried by the header colours (hc).
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
       pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
       lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
-      titleWidthPx, widgets: wt.widgets, widgetGlyphs,
+      titleWidthPx, widgets: wt.widgets,
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });

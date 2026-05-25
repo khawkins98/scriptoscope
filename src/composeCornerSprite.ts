@@ -269,22 +269,22 @@ export function composeCornerSpriteChrome(
     out.fillRect({ x: fullW - 2, y: 1, w: 1, h: innerH }, sh[0], sh[1], sh[2], 255); // right shadow
   }
 
-  // ── 3. widgets: the scheme's OWN close/zoom/collapse glyph (else a fabricated
-  //       beveled square). close left, collapse + zoom right ─────────────────
-  // Geometry from WDEF 125 §"Box geometry": close left = title.left+4; zoom
-  // right = title.right−11..−4 (4px from the right end); collapse just inboard
-  // of the zoom box (~7px apart). Vertically centred in the title bar. The
-  // widget SET is per-type (opts.widgets): document = [close,collapse,zoom];
-  // movable-modal/movable-alert/titled-utility = [close]; side/no-title = [].
+  // ── 3. widgets: PROCEDURAL close/zoom/collapse boxes (WDEF 125 §"Box geometry")
+  //       close left, collapse + zoom right ─────────────────────────────────
+  // The corner-sprite schemes do NOT ship widget-FACE art — their -14336..-14331
+  // ics4/ics8 are 16×16 window-PROXY icons (doc-window / grow-box / collapsed
+  // proxies, per the cicn names), not 7×7 title-bar glyphs. So Platinum's WDEF
+  // draws the widgets procedurally and we mirror that: a small beveled box per
+  // role with the classic mark (close = empty, zoom = nested inner square,
+  // collapse = window-shade line). Geometry: close = title.left+4; zoom 4px from
+  // the right end; collapse just inboard of the zoom box. Vertically centred.
+  // Widget SET per type (opts.widgets): document = [close,collapse,zoom];
+  // movable-modal/alert/titled-utility = [close]; side/no-title = [].
   //
-  // BOX SIZE: a fabricated bevel square is WBOX (7px). When the scheme supplies
-  // its OWN widget glyph (opts.widgetGlyphs, the corner-sprite schemes' ics4
-  // close -14336 / zoom -14335 / collapse -14334), the box takes that glyph's
-  // size (≈11–13px) so the art renders 1:1, NOT shrunk into a 7px cell. Anchor
-  // points are unchanged (close at the left, zoom 4px from the right, collapse
-  // inboard) and the placement RECT records the real drawn box, so the
-  // interactive.ts hit-zones derive from — and line up with — the actual glyph.
-  const WBOX = 7;
+  // SIZE: ~bar-height − margin (≈12px in a 19px bar), clamped — classic scale,
+  // NOT the oversized 16px the proxy glyphs produced. (opts.widgetGlyphs is still
+  // honoured if a future scheme ships real per-widget face art — none does today.)
+  const WBOX = Math.max(7, Math.min(13, titleH - 7));
   if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
     // Per-widget box size: the supplied glyph's bounds, clamped to fit the bar;
     // else the fabricated WBOX. Vertically centred per widget.
@@ -295,11 +295,10 @@ export function composeCornerSpriteChrome(
       }
       return { w: WBOX, h: WBOX, glyph: null };
     };
-    const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null }): void => {
-      // Prefer the scheme's OWN widget pictogram, stamped 1:1 at the box origin
-      // (the glyph carries its own face + bevel).
+    const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null }, role: 'close' | 'collapse' | 'zoom'): void => {
+      // A future scheme shipping real per-widget FACE art would stamp it 1:1.
       if (box.glyph) { out.copyBits(box.glyph, { x: 0, y: 0, w: box.w, h: box.h }, { x: wx, y: wy, w: box.w, h: box.h }); return; }
-      // Fabricated bevel square (schemes with no widget glyph).
+      // Procedural beveled square (face + 1px ring + raised bevel).
       const W = box.w;
       out.fillRect({ x: wx, y: wy, w: W, h: W }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
       out.fillRect({ x: wx, y: wy, w: W, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
@@ -312,6 +311,20 @@ export function composeCornerSpriteChrome(
       out.fillRect({ x: wx + 1, y: wy + 1, w: 1, h: W - 2 }, hi[0], hi[1], hi[2], 255); // left
       out.fillRect({ x: wx + 1, y: wy + W - 2, w: W - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom
       out.fillRect({ x: wx + W - 2, y: wy + 1, w: 1, h: W - 2 }, sh[0], sh[1], sh[2], 255); // right
+      // Classic role mark, drawn in the frame colour, inset 2px:
+      if (role === 'zoom') {
+        // nested inner square in the upper-left (~half the box) — the zoom glyph
+        const m = Math.max(3, Math.floor((W - 4) / 2) + 1);
+        out.fillRect({ x: wx + 2, y: wy + 2, w: m, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+        out.fillRect({ x: wx + 2, y: wy + 2, w: 1, h: m }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+        out.fillRect({ x: wx + 2, y: wy + 1 + m, w: m, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+        out.fillRect({ x: wx + 1 + m, y: wy + 2, w: 1, h: m + 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+      } else if (role === 'collapse') {
+        // window-shade horizontal line across the middle — the collapse glyph
+        const my = wy + Math.floor((W - 1) / 2);
+        out.fillRect({ x: wx + 2, y: my, w: W - 4, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+      }
+      // close: empty box (the classic Platinum close box has no mark until pressed)
     };
     // close anchors at the left; collapse/zoom anchor right (zoom outermost,
     // collapse just inboard). Build each widget's box + x, then stamp + record.
@@ -331,7 +344,7 @@ export function composeCornerSpriteChrome(
       xs.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
       rx = Math.max(0, x - b.w - 2);
     }
-    for (const w of xs) drawWidget(w.x, w.y, boxOf(w.glyph as 'close' | 'collapse' | 'zoom'));
+    for (const w of xs) drawWidget(w.x, w.y, boxOf(w.glyph as 'close' | 'collapse' | 'zoom'), w.glyph as 'close' | 'collapse' | 'zoom');
     placement.push({
       edge: 'widget', code: 4, role: xs.map((w) => w.glyph).join('/'), mode: 'stamp',
       src: { x: 0, y: 0, w: WBOX, h: WBOX },
