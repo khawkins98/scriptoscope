@@ -180,7 +180,7 @@
             const r = await fetch(`${theme.baseUrl}/icons/index.json`);
             if (!r.ok) return [];
             const idx = await r.json();
-            const icl4 = idx.filter((i) => i.type === 'icl4');
+            const icl4 = idx.filter((i) => i.size === 32); // 32px scene icons (icl4 + icl8)
             const byId = new Map(icl4.map((i) => [i.id, i]));
             const picked = [];
             for (const id of FINDER_CONTENT_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
@@ -214,11 +214,14 @@
       det.appendChild(sum);
       let all = [];
       try { const r = await fetch(`${theme.baseUrl}/icons/index.json`); if (r.ok) all = await r.json(); } catch {}
-      const byFamily = (type) => all.filter((i) => i.type === type)
+      // Group by SIZE, not type, so 8-bit families show too: 16px = ics4 ∪ ics8,
+      // 32px = icl4 ∪ icl8 (a scheme like Black Platinum / 1990 ships only 8-bit).
+      const bySize = (px) => all.filter((i) => i.size === px)
         .sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || a.id - b.id);
-      const icl4 = byFamily('icl4');
-      const ics4 = byFamily('ics4');
-      sum.textContent = `Icon inventory — ${all.length} icons (${icl4.length} icl4 · ${ics4.length} ics4) — click to expand`;
+      const icl4 = bySize(32); // 32px scene icons (icl4 + icl8)
+      const ics4 = bySize(16); // 16px pictograms (ics4 + ics8)
+      const fam = (list) => [...new Set(list.map((i) => i.type))].join('+');
+      sum.textContent = `Icon inventory — ${all.length} icons (${icl4.length} ${fam(icl4) || '32px'} · ${ics4.length} ${fam(ics4) || '16px'}) — click to expand`;
       const slug = (theme.baseUrl || '').split('/').pop();
       // Pictogram ID rubric — the canonical Kaleidoscope control/widget id map,
       // verified against the actual cicn/ics4 pixels + docs/spec/kdef231-reference.md.
@@ -319,8 +322,8 @@
         }
         det.appendChild(grid);
       };
-      section('icl4 (32px scene icons)', icl4, 32);
-      section('ics4 (16px pictograms)', ics4, 16); // native size — don't upscale pixel art
+      section('32px scene icons (icl4 / icl8)', icl4, 32);
+      section('16px pictograms (ics4 / ics8)', ics4, 16); // native size — don't upscale pixel art
       return det;
     }
 

@@ -26,22 +26,25 @@ export async function loadTheme(
 
 /**
  * One entry of a bundle's `icons/index.json` (written by extract-icons.mjs):
- * the decoded icon-family resources (`icl4` 32×32 / `ics4` 16×16).
+ * the decoded icon-family resources (`icl4`/`icl8` 32×32, `ics4`/`ics8` 16×16;
+ * `size` distinguishes them, `depth` is 4 or 8).
  */
 interface IconIndexEntry {
   id: number;
-  type: 'icl4' | 'ics4';
+  type: 'icl4' | 'ics4' | 'icl8' | 'ics8';
+  size?: number;
   file: string;
 }
 
 /**
- * Fetch a bundle's `icons/index.json` and build the `ics4` GLYPH map
- * (id-string → `icons/<file>`). These are the scheme's OWN pictograms —
- * scroll-arrow buttons, window-corner proxies — that the renderer can stamp
- * instead of fabricating. icl4 entries are the larger scene icons (the demo
- * inventory already reads those straight from the index), so only ics4 is
- * mapped here. Returns null when the bundle ships no icons (most baseline
- * schemes), so `glyphs` stays absent rather than an empty object.
+ * Fetch a bundle's `icons/index.json` and build the GLYPH map (id-string →
+ * `icons/<file>`) from the 16px pictograms — the scheme's OWN scroll-arrow /
+ * checkbox / radio / window-widget glyphs that the renderer stamps instead of
+ * fabricating. Keyed by the 16px family REGARDLESS of bit-depth: a scheme that
+ * ships only 8-bit `ics8` (e.g. Black Platinum, 1990) maps its glyphs the same
+ * as a 4-bit `ics4` scheme (the extractor already dedups so there's one 16px
+ * entry per id). The 32px icl4/icl8 scene icons are read by the demo inventory.
+ * Returns null when the bundle ships no glyphs, so `glyphs` stays absent.
  */
 async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | null> {
   try {
@@ -50,7 +53,7 @@ async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | n
     const index = (await res.json()) as IconIndexEntry[];
     const glyphs: Record<string, string> = {};
     for (const e of index) {
-      if (e.type === 'ics4') glyphs[String(e.id)] = `icons/${e.file}`;
+      if (e.size === 16 || e.type === 'ics4' || e.type === 'ics8') glyphs[String(e.id)] = `icons/${e.file}`;
     }
     return Object.keys(glyphs).length ? glyphs : null;
   } catch {

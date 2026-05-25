@@ -86,6 +86,46 @@ Spot-check a few PNGs in your image viewer to confirm they look like the chrome 
 
 ---
 
+## 3.5 Extract the icon glyphs (REQUIRED — easy to forget)
+
+`extract-scheme.mjs` decodes the window **chrome** (cicn/ppat/wnd#/cinf/clut). The
+scheme's **icon glyphs** — the scroll-arrow / checkbox / radio / window-widget
+pictograms and the Finder scene icons — are a **separate** extractor that you must
+also run:
+
+```sh
+node scripts/extract-icons.mjs <your-slug>
+```
+
+It writes `themes/<your-slug>/icons/*.png` + `icons/index.json`. The runtime's glyph
+map (`loadTheme` → `theme.glyphs`) and the renderer's checkbox/radio/widget stamping
+read from here — so **skipping this step makes the scheme fall back to procedural
+controls instead of its own glyphs.** (The corner-sprite Platinum-family schemes lean
+on this heavily; see [`docs/spec/...`] and the `reference_corner_sprite_frame` note.)
+
+It decodes **both** 4-bit (`ics4`/`icl4`, the exact 16-colour palette) **and** 8-bit
+(`ics8`/`icl8`, the Apple 256-colour system palette), preferring 4-bit where a scheme
+ships both. Some schemes ship **only 8-bit** (e.g. Black Platinum, 1990) — the
+extractor handles them; a 4-bit-only decoder silently produced **zero** glyphs for
+those, which is the gap this step closes.
+
+**Completeness guard.** A clean run prints per-type counts and the "shipped" tally:
+
+```
+[black-platinum] 140 icons → icons/  (icl4=0, ics4=0, icl8=46, ics8=94; shipped ics4=0/ics8=94/icl4=0/icl8=46)
+```
+
+If a scheme ships icon resources but the extractor yields **0** glyphs, it exits
+non-zero with `⚠ MISSED` — treat that as a hard failure (corrupt data, or a depth/
+format we don't decode). "Shipped" counts higher than extracted is normal: the extra
+are 4-bit/8-bit duplicates the dedup dropped.
+
+Both extractors run together in `npm run build:themes` (`extract-scheme --all` +
+`extract-icons --all`), so a full rebuild always captures glyphs — but for a
+single-scheme port, run `extract-icons` explicitly as shown.
+
+---
+
 ## 4. Author the provenance sidecars
 
 Two hand-authored files live alongside the bundle. They carry everything the binary scheme doesn't (name, author, license, source). Author them **before** step 3 so the extractor folds `meta.json` into `theme.json` on the first pass — but you can also add them after and re-run the extractor.

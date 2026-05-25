@@ -4,11 +4,17 @@
 // from extract-scheme.mjs so re-running it never rewrites the cicns/ppats
 // PNGs (which would churn the bundle).
 //
-// Decodes the 4-bit color icons (icl4 32x32, ics4 16x16) against the fixed
-// Apple 16-colour palette, with alpha from the matching 1-bit mask resource
-// (ICN# / ics#, same id — the second bitmap half is the mask). 4-bit is the
-// sweet spot: real colour, but an EXACT known palette (8-bit would need the
-// system clut, which schemes don't embed).
+// Decodes the colour icons — 4-bit (icl4 32x32, ics4 16x16) against the fixed
+// Apple 16-colour palette, AND 8-bit (icl8 / ics8) against the canonical Apple
+// 256-colour SYSTEM palette — with alpha from the matching 1-bit mask resource
+// (ICN# / ics#, same id — the second bitmap half is the mask). 4-bit is
+// preferred where present (exact known palette); 8-bit fills any id a 4-bit
+// icon didn't cover, so a scheme that ships ONLY 8-bit icons (e.g. Black
+// Platinum) still yields its full glyph set instead of silently producing none.
+//
+// COMPLETENESS GUARD: if a scheme ships icon resources but extracts 0 glyphs,
+// this exits non-zero with a loud warning (that gap is how Black Platinum's
+// glyphs were silently missed). See docs/porting-a-kaleidoscope-scheme.md §3.5.
 //
 // Usage: node scripts/extract-icons.mjs <slug> [<slug>...] | --all
 
@@ -28,6 +34,24 @@ const PALETTE16 = [
   [0x1f, 0xb7, 0x14], [0x00, 0x64, 0x12], [0x56, 0x2c, 0x05], [0x90, 0x71, 0x3a],
   [0xc0, 0xc0, 0xc0], [0x80, 0x80, 0x80], [0x40, 0x40, 0x40], [0x00, 0x00, 0x00],
 ];
+
+// Apple's canonical 256-colour SYSTEM palette ('clut' 8) — schemes index ics8/
+// icl8 into this fixed table (they don't embed their own). It is the 6×6×6 RGB
+// cube (channels {255,204,153,102,51,0}, index 0 = white … 215 = black) followed
+// by 4×10 single-channel ramps (red, green, blue, GREY) over the off-cube steps
+// {238,221,187,170,136,119,85,68,34,17}. The grey ramp + cube greys give a full
+// 17-step grayscale, which is what the (greyscale) control/widget glyphs use.
+const PALETTE256 = (() => {
+  const pal = [];
+  const cube = [0xff, 0xcc, 0x99, 0x66, 0x33, 0x00];
+  for (const r of cube) for (const g of cube) for (const b of cube) pal.push([r, g, b]); // 0..215
+  const ramp = [0xee, 0xdd, 0xbb, 0xaa, 0x88, 0x77, 0x55, 0x44, 0x22, 0x11];
+  for (const v of ramp) pal.push([v, 0, 0]); // 216..225 red
+  for (const v of ramp) pal.push([0, v, 0]); // 226..235 green
+  for (const v of ramp) pal.push([0, 0, v]); // 236..245 blue
+  for (const v of ramp) pal.push([v, v, v]); // 246..255 grey
+  return pal;
+})();
 
 // ── minimal RGBA PNG encoder (same approach as extract-scheme.mjs) ──
 const CRC = (() => {
@@ -81,6 +105,18 @@ function decodeIcon4(data, size, mask) {
   return rgba;
 }
 
+// Decode an 8-bit icon (size x size, 1 byte/pixel) against the 256-colour system
+// palette, masked by `mask`. Returns RGBA Uint8Array.
+function decodeIcon8(data, size, mask) {
+  const rgba = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const [r, g, b] = PALETTE256[data[i] ?? 0];
+    const a = mask ? (mask[i] ? 255 : 0) : 255;
+    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b; rgba[i * 4 + 3] = a;
+  }
+  return rgba;
+}
+
 function extract(slug) {
   const destDir = resolve(repoRoot, 'themes', slug);
   const rsrcPath = resolve(destDir, 'scheme.rsrc');
@@ -95,31 +131,62 @@ function extract(slug) {
 
   mkdirSync(resolve(destDir, 'icons'), { recursive: true });
   const index = [];
+  const done = new Set(); // `${size}:${id}` already emitted (4-bit wins over 8-bit)
 
-  for (const e of entries) {
-    let size, maskType, maskByteOff;
-    if (e.type === 'icl4') { size = 32; maskType = 'ICN#'; maskByteOff = 128; }
-    else if (e.type === 'ics4') { size = 16; maskType = 'ics#'; maskByteOff = 32; }
-    else continue;
-    // 4-bit data must be at least size*size/2 bytes
-    if (e.data.length < (size * size) / 2) continue;
-    const maskData = maskOf(maskType, e.id);
-    const mask = maskData && maskData.length >= maskByteOff * 2 ? decodeMaskBits(maskData, maskByteOff, size) : null;
-    const rgba = decodeIcon4(e.data, size, mask);
-    // opaque coverage: full-bleed art (≈1.0) is usually a scheme logo/splash;
-    // document/folder icons leave transparent margins. Lets the scene prefer
-    // real "object" icons over the scheme's hero glyph.
-    let opaque = 0;
-    for (let i = 0; i < size * size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
-    const coverage = +(opaque / (size * size)).toFixed(3);
-    const fname = `${e.type}-${idStr(e.id)}.png`;
-    writeFileSync(resolve(destDir, 'icons', fname), encodePng(size, size, rgba));
-    index.push({ id: e.id, type: e.type, size, file: fname, name: e.name || null, masked: !!mask, coverage });
+  // Glyph-resource census (for the completeness guard) — count what the scheme
+  // SHIPS, so we can tell "nothing to extract" from "we missed it".
+  const census = { ics4: 0, ics8: 0, icl4: 0, icl8: 0 };
+  for (const e of entries) if (e.type in census) census[e.type]++;
+
+  // Decode 4-bit FIRST (exact 16-colour palette), then 8-bit fills any id a
+  // 4-bit icon didn't already cover (dedup by size+id) — so ics8-only schemes
+  // still yield glyphs without duplicating the schemes that ship both depths.
+  const TYPES = {
+    icl4: { size: 32, maskType: 'ICN#', maskOff: 128, depth: 4 },
+    ics4: { size: 16, maskType: 'ics#', maskOff: 32, depth: 4 },
+    icl8: { size: 32, maskType: 'ICN#', maskOff: 128, depth: 8 },
+    ics8: { size: 16, maskType: 'ics#', maskOff: 32, depth: 8 },
+  };
+  for (const type of ['icl4', 'ics4', 'icl8', 'ics8']) {
+    const cfg = TYPES[type];
+    const need = cfg.depth === 4 ? (cfg.size * cfg.size) / 2 : cfg.size * cfg.size;
+    for (const e of entries) {
+      if (e.type !== type) continue;
+      const key = `${cfg.size}:${e.id}`;
+      if (done.has(key)) continue; // a 4-bit icon already covered this id+size
+      if (e.data.length < need) continue;
+      const maskData = maskOf(cfg.maskType, e.id);
+      const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;
+      const rgba = cfg.depth === 4 ? decodeIcon4(e.data, cfg.size, mask) : decodeIcon8(e.data, cfg.size, mask);
+      // opaque coverage: full-bleed art (≈1.0) is usually a scheme logo/splash;
+      // document/folder icons leave transparent margins. Lets the scene prefer
+      // real "object" icons over the scheme's hero glyph.
+      let opaque = 0;
+      for (let i = 0; i < cfg.size * cfg.size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
+      const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
+      const fname = `${type}-${idStr(e.id)}.png`;
+      writeFileSync(resolve(destDir, 'icons', fname), encodePng(cfg.size, cfg.size, rgba));
+      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage });
+      done.add(key);
+    }
   }
 
   index.sort((a, b) => (b.size - a.size) || (a.id - b.id));
   writeFileSync(resolve(destDir, 'icons', 'index.json'), JSON.stringify(index, null, 2));
-  console.log(`[${slug}] ${index.length} icons → icons/  (icl4=${index.filter((i) => i.type === 'icl4').length}, ics4=${index.filter((i) => i.type === 'ics4').length})`);
+
+  // Completeness guard: a scheme that ships glyph resources MUST yield glyphs.
+  // 0 extracted while resources exist = a real miss (corrupt data, or a depth/
+  // format we don't decode) — fail loudly so it can't slip through silently.
+  const totalRes = census.ics4 + census.ics8 + census.icl4 + census.icl8;
+  const n = (t) => index.filter((i) => i.type === t).length;
+  const miss = totalRes > 0 && index.length === 0;
+  console.log(
+    `[${slug}] ${index.length} icons → icons/  ` +
+    `(icl4=${n('icl4')}, ics4=${n('ics4')}, icl8=${n('icl8')}, ics8=${n('ics8')}; ` +
+    `shipped ics4=${census.ics4}/ics8=${census.ics8}/icl4=${census.icl4}/icl8=${census.icl8})` +
+    (miss ? `  ⚠ MISSED: ${totalRes} icon resources shipped but 0 extracted` : ''),
+  );
+  if (miss) process.exitCode = 1;
 }
 
 const argv = process.argv.slice(2);
