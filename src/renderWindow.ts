@@ -36,8 +36,14 @@ function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer 
   if (!probe) return null;
   probe.font = font;
   setLS(probe);
-  const w = Math.max(1, Math.ceil(probe.measureText(text).width) + 1);
-  const h = Math.max(1, Math.ceil(size * 1.4));
+  const tm = probe.measureText(text);
+  const w = Math.max(1, Math.ceil(tm.width) + 1);
+  // Buffer sized tight to the text's ink box; the compositor centres this buffer in
+  // the title bar (sgy, ~L220 below), so an ink-tight buffer lands the title without
+  // any line-height fudge. Baseline at the ink ascent.
+  const asc = Math.max(1, Math.ceil(tm.actualBoundingBoxAscent || size * 0.72));
+  const desc = Math.max(0, Math.ceil(tm.actualBoundingBoxDescent || 0));
+  const h = Math.max(1, asc + desc);
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
@@ -45,14 +51,8 @@ function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer 
   ctx.font = font;
   setLS(ctx);
   ctx.fillStyle = hex;
-  // Centre the INK box vertically, not the em box: the em-middle sits high for a
-  // caps+x-height title like "Hello!" (no descenders), which reads as "too high"
-  // in the bar. measureText's actual bounding box gives the real glyph extent.
   ctx.textBaseline = 'alphabetic';
-  const m = ctx.measureText(text);
-  const asc = m.actualBoundingBoxAscent || size * 0.72;
-  const desc = m.actualBoundingBoxDescent || size * 0.06;
-  ctx.fillText(text, 0, Math.round((h - asc - desc) / 2 + asc));
+  ctx.fillText(text, 0, asc);
   const img = ctx.getImageData(0, 0, w, h);
   const buf = PixelBuffer.alloc(w, h);
   buf.data.set(img.data);
