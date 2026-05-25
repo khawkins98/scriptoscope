@@ -124,7 +124,9 @@ export async function renderWindow(
       collapse: await loadGlyphFromOwner(owner, wInactive ? -14331 : -14334),
     };
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
-      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill, titleWidthPx, widgets: wt.widgets, widgetGlyphs,
+      pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
+      lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
+      titleWidthPx, widgets: wt.widgets, widgetGlyphs,
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });

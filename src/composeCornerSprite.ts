@@ -59,6 +59,13 @@ export interface CornerSpriteOptions {
   /** Header fill colour (theme.headerColors.<state>.fill) — the widget face.
    *  Defaults to a light Platinum grey. */
   fillColor?: string | undefined;
+  /** The scheme's bevel highlight / shadow tones (manifest headerColors
+   *  `lightBevel` / `darkBevel`, sampled per state at extract time). When both
+   *  are present the side/bottom frame is drawn as a RAISED GRAY PANEL (~3px:
+   *  dark outline + face + top/left highlight + bottom/right shadow) instead of a
+   *  flat 1px ring — the classic Mac window frame. Omit ⇒ the flat 1px ring. */
+  lightBevel?: string | undefined;
+  darkBevel?: string | undefined;
   /** Measured title-text width (px) — reported as the title region for the
    *  centred title, mirroring composeWindowChrome's contract. */
   titleWidthPx?: number | undefined;
@@ -139,12 +146,26 @@ export function composeCornerSpriteChrome(
     bottom: Math.max(0, body.rect[3] || 1),
   };
 
+  // Beveled-frame mode: when the scheme ships a bevel palette (headerColors
+  // lightBevel/darkBevel, sampled per state at extract time), the side/bottom
+  // frame is drawn as a RAISED GRAY PANEL instead of a flat 1px line. The thin
+  // synthesized sides (1px) are widened so the bevel reads — the footprint grows
+  // ~2px per side, faithful to the System 7 / Platinum chunkier frame.
+  const beveled = !!(opts.lightBevel && opts.darkBevel && opts.fillColor) && frame.top >= 6;
+  if (beveled) {
+    frame.left = Math.max(frame.left, 3);
+    frame.right = Math.max(frame.right, 3);
+    frame.bottom = Math.max(frame.bottom, 3);
+  }
+
   const fullW = frame.left + contentW + frame.right;
   const fullH = frame.top + contentH + frame.bottom;
   const out = PixelBuffer.alloc(fullW, fullH);
 
   const ringRgba = hexToRgba(opts.frameColor, [85, 85, 85]); // #555
   const faceRgba = hexToRgba(opts.fillColor, [221, 221, 221]); // #ddd
+  const hiBevelRgba = hexToRgba(opts.lightBevel, [221, 221, 221]); // headerColors.lightBevel
+  const shBevelRgba = hexToRgba(opts.darkBevel, [136, 136, 136]); // headerColors.darkBevel
   const titleH = frame.top; // top inset == title-bar height (≈19, or 1 if title-less)
 
   // A real, paintable title BAR needs both a pinstripe sprite AND a top inset
@@ -201,6 +222,32 @@ export function composeCornerSpriteChrome(
     // Title-less frames (no bar) have nothing to divide — just the outer ring.
     out.fillRect({ x: 0, y: titleH - 1, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
   }
+
+  // ── 2c. beveled side/bottom frame (raised gray PANEL, not a flat line) ──────
+  // Inside the 1px outer outline (drawn above): a face fill + a top/left highlight
+  // and bottom/right shadow, plus a content-well recess so the content reads sunken.
+  // This is the ~3px beveled gray border the references show (System 7 / Platinum
+  // window frame), using the scheme's own lightBevel/darkBevel tones.
+  if (beveled) {
+    const fill = (x: number, y: number, w: number, h: number, c: [number, number, number, number]): void => {
+      if (w > 0 && h > 0) out.fillRect({ x, y, w, h }, c[0], c[1], c[2], 255);
+    };
+    const bandTop = titleH, bandH = fullH - titleH - 1; // below the under-line, above the bottom outline
+    // face fill (inset 1px so the outer outline survives): left / right / bottom bands
+    fill(1, bandTop, frame.left - 1, bandH, faceRgba);
+    fill(fullW - frame.right, bandTop, frame.right - 1, bandH, faceRgba);
+    fill(1, fullH - frame.bottom, fullW - 2, frame.bottom - 1, faceRgba);
+    // raised bevel: highlight on the inner left, shadow on the inner right + bottom
+    fill(1, bandTop, 1, bandH, hiBevelRgba);
+    fill(fullW - 2, bandTop, 1, bandH, shBevelRgba);
+    fill(1, fullH - 2, fullW - 2, 1, shBevelRgba);
+    // content-well recess (sunken content): dark on its left, light on its right/bottom
+    const cl = frame.left, cr = fullW - frame.right, cb = fullH - frame.bottom;
+    fill(cl - 1, titleH, 1, cb - titleH, shBevelRgba);
+    fill(cr, titleH, 1, cb - titleH, hiBevelRgba);
+    fill(cl - 1, cb - 1, cr - cl + 2, 1, hiBevelRgba);
+  }
+
   placement.push({
     edge: 'top', code: 0, role: 'frame ring', mode: 'fixed',
     src: { x: 0, y: 0, w: 1, h: 1 }, rects: [{ x: 0, y: 0, w: fullW, h: fullH }],
