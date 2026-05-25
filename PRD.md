@@ -4,6 +4,8 @@ A Mac OS Appearance-style window manager + theme engine for the web.
 
 *This is the original product charter (~2026-05-16). The **vision** below — a framework-agnostic, declarative, clean-room Kaleidoscope-compatibility runtime — still holds. The **implementation** has since gone through a v2 clean-break and a v3 part-code-compositor reset, so the phased-delivery sketch, architecture sketches, and some file paths below are historical. For where the code actually is today, read [`docs/history.md`](./docs/history.md) and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md).*
 
+> **Reconciliation note (2026-05-25).** The v3 reset built a faithful **canvas chrome compositor** (`src/composeChrome.ts` → `src/renderWindow.ts`), not the CSS-custom-property theme model this charter originally sketched. Two consequences the sections below predate: (1) the theme bundle format is `theme.json` + `cicns/` PNGs (see [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md)), **not** `chrome.css`/`controls.css`/sounds/fonts; (2) the **consumption layer** the North Star describes — the declarative `data-aaron-*` scanner, a window manager with drag/resize/persistence, and any emitted CSS — **is not built yet** (`WindowManager` today does focus/z-index only). How that layer should be built (CSS-first hybrid rendering, Shadow-DOM encapsulation, the data-attribute front door, scope guards) is decided in **[`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md)** — read it before acting on the Theme System, Phased Delivery, or Architecture Sketches sections below.*
+
 This document is the project charter, ported from the upstream extraction ticket [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246). When this document and the upstream ticket disagree, **this document wins** — the ticket records the decision moment, but it lives in another repo and won't be updated as Aaron UI evolves.
 
 ---
@@ -155,7 +157,9 @@ The North Star (above) is principles 1-3. The remaining four:
 
 ## Theme system (the key architectural primitive)
 
-Themes are loadable bundles. The exact format is for v0.x design to settle, but the shape is roughly:
+> **Superseded by the v3 reset.** The `chrome.css`/`controls.css`/sounds/fonts sketch below was the v0.x guess. The **actual** bundle format is a decoded-Kaleidoscope manifest + raster assets: `theme.json` (window types, part rects, edge recipes, chrome-element + cinf geometry, palette) plus `cicns/` PNGs and optional `patterns/`. Canonical layout: [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md); compositor model: [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md). Sounds/fonts/desktop are out (Kaleidoscope schemes don't carry them — see "What it is"). The sketch is retained for historical intent.
+
+Themes are loadable bundles. ~~The exact format is for v0.x design to settle, but the shape is roughly:~~ *(historical sketch — see the note above for the real format)*
 
 ```
 my-theme/
@@ -206,6 +210,8 @@ const win = new AaronWindow({ title: 'Window', html: '...' });
 Themes are **switchable at runtime**. The headline marketing artifact is a demo page showing the same windows under one curated community scheme → another, one click each — by switching the loaded scheme. (See [`demo/index.html`](./demo/index.html) for the current walking skeleton of this.)
 
 ## Phased delivery
+
+> **Current cut lives in the ADR.** The phases below (and the tracker issues #22–#31) predate the v3 canvas reset and the consumption-layer analysis. The up-to-date phase map — P0 reconcile/spike → PA front door → PB window-manager behaviors → PC CSS emitter → PD ingestion → PE control decoration, plus cross-cutting — is in **[`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Phase map**. New epic issues are cut from there *after* the gating spike resolves. The list below is retained for history.
 
 Sketch, not commitment. Maintainer may re-split. Each phase has a GitHub milestone + a tracker epic issue with full acceptance criteria.
 
@@ -273,7 +279,8 @@ The right answer depends on how much we want Aaron UI used by closed-source proj
 1. **Scope for v1.0** — Phase 1 (WM core) only, or Phases 1+3+4 (WM + controls + theme runtime with a curated set of extracted schemes) as the v1.0 target? *(Phase 1 has now shipped; Phase 2 has been dropped 2026-05-17 with its scope absorbed into Phase 4; npm-publish tracker [#28](https://github.com/khawkins98/aaron-ui/issues/28) will revisit.)*
 2. **License** — see §License above. Tracker: [#26](https://github.com/khawkins98/aaron-ui/issues/26).
 3. ~~**Legal pass on theme reproductions.**~~ **Resolved 2026-05-16:** Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are out of scope entirely — license friction isn't worth it. Aaron UI focuses on Kaleidoscope-corpus schemes, prioritizing those with explicit freeware-with-redistribution readmes. See LEARNINGS entry "Apple themes dropped; Kaleidoscope is the corpus."
-4. **Web Components alongside the class API** — yes from v1.0, or defer? Tracker: [#29](https://github.com/khawkins98/aaron-ui/issues/29) (non-binding recommendation: defer).
+4. **Web Components alongside the class API** — yes from v1.0, or defer? Tracker: [#29](https://github.com/khawkins98/aaron-ui/issues/29) (non-binding recommendation: defer). *(Informed by [ADR-0001](./docs/adr/0001-consumption-architecture.md) §Decision 3: a custom element + Shadow DOM is the likely internal realization of the data-attribute front door — the public contract stays the data-attribute, not a hand-authored element.)*
+5. **Consumption rendering: canvas vs CSS** — **decided in [ADR-0001](./docs/adr/0001-consumption-architecture.md)**: CSS-first hybrid (border-image body frame from the slice recipe + canvas title-bar/fallback), gated by a spike. Native host form-control reskinning is out of scope for v1.
 
 ## Naming (decision recorded)
 
