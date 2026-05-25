@@ -8,10 +8,11 @@ import { geometryFor, WINDOW_TYPES } from './window-types.mjs';
 
 const bySlug = (s) => WINDOW_TYPES.find((c) => c.slug === s);
 
-test('document-window reproduces the reference plate dims (98×23, borders 21,27,57,63,98)', () => {
+test('document-window reproduces the reference plate dims (98×24, borders 21,27,57,63,98)', () => {
   const g = geometryFor(bySlug('document-window'));
   assert.equal(g.width, 98);
-  assert.equal(g.height, 23);
+  assert.equal(g.height, 24); // title(21) + body stub(1) + 2px real bottom band
+  assert.equal(g.bottomFrame, 2);
   assert.equal(g.barH, 20);
   const borders = [g.leftFixed, g.leftFixed + g.leftFill, g.leftFixed + g.leftFill + g.plate,
     g.leftFixed + g.leftFill + g.plate + g.rightFill, g.width];

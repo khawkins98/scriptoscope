@@ -46,7 +46,7 @@ export const WIDGET = { size: 7, gap: 2, edgeMargin: 4 };
 export const WINDOW_TYPES = [
   // Document windows: a centred title PLATE (part-5) flanked by pinstripe-fill,
   // chunky ~⅔-bar widgets. 20px bar (reference-matched). titlePlate ⇒ 5-cell top.
-  { slug: 'document-window',            name: 'Document Window',            wndId: -14336, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: false, titleEdge: 'top', titlePlate: true, ref: '92×30' },
+  { slug: 'document-window',            name: 'Document Window',            wndId: -14336, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: false, titleEdge: 'top', titlePlate: true, bottomFrame: 2, ref: '92×30' },
   { slug: 'collapsed-document-window',  name: 'Collapsed Document Window',  wndId: -14332, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '92×25' },
   { slug: 'dialog',                     name: 'Dialog',                     wndId: -14328, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
   { slug: 'alert',                      name: 'Alert',                      wndId: -14326, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
@@ -123,7 +123,11 @@ export function geometryFor(cfg) {
     const leftFill = fill, rightFill = fill;
     const width = leftFixed + leftFill + plate + rightFill + rightFixed;
     const topFrame = barH + inset;
-    const height = topFrame + bodyH + inset;
+    // Bottom frame: usually `inset` (1px), but a window with a real sliced bottom
+    // band (cfg.bottomFrame, e.g. the document window's 2px #999-shadow + outline
+    // bevel) reserves that many rows so the slicer can paste the real bottom.
+    const bottomFrame = cfg.bottomFrame ?? inset;
+    const height = topFrame + bodyH + bottomFrame;
 
     const wy = inset + Math.max(0, Math.floor((barH - widgetSize) / 2));
     const widgetSlots = [];
@@ -135,7 +139,7 @@ export function geometryFor(cfg) {
 
     return {
       width, height, barH, hasTitle: true, leftFixed,
-      fill: leftFill, rightFixed, bodyH, topFrame, widgetSlots, inset,
+      fill: leftFill, rightFixed, bodyH, topFrame, widgetSlots, inset, bottomFrame,
       hasPlate: true, leftFill, plate, rightFill,
     };
   }

@@ -17,8 +17,10 @@ import { resolve } from 'node:path';
 // [b,c) · rightFill [c,d) · rightFixed [d,W). stripe = the pinstripe band rows.
 const TYPES = {
   'document-window': {
-    W: 98, H: 23, a: 21, b: 27, c: 57, d: 63, stripe: [4, 15],
-    active:   { src: 'doc-window-macintosh-hd-active.png',   leftX: 5, flankX: 70, rightX: 312, srcY0: 2 },
+    // H=24: title (21) + body stub (1) + a REAL 2px bottom band (#999 shadow +
+    // black outline, sliced from the screenshot's actual window bottom).
+    W: 98, H: 24, a: 21, b: 27, c: 57, d: 63, stripe: [4, 15], bottomFrame: 2,
+    active:   { src: 'doc-window-macintosh-hd-active.png',   leftX: 5, flankX: 70, rightX: 312, srcY0: 2, bottomY: 181 },
     inactive: { src: 'doc-window-macintosh-hd-inactive.png', leftX: 4, flankX: 40, rightX: 312, srcY0: 3 },
   },
   'movable-modal': {
@@ -45,11 +47,25 @@ function sliceChrome(im, g, p) {
   for (let dx = b; dx < c; dx++) setCol(dx, (y) => (y >= stripe[0] && y <= stripe[1]) ? solid : px(p.flankX, y)); // plate: solid
   const rfw = W - d;
   for (let i = 0; i < rfw; i++) { const sx = p.rightX - (rfw - 1) + i; setCol(d + i, (y) => px(sx, y)); } // rightFixed
-  // Bottom frame: the title-bar shot has no window-bottom, so synthesize the bottom
-  // outline = the top-outline colour, sampled from row 0 at a flank column.
-  const ocol = Math.min(W - 1, 40), ob = (0 * W + ocol) * 4;
-  const topOut = [out[ob], out[ob + 1], out[ob + 2]];
-  for (let dx = 0; dx < W; dx++) { const i = ((H - 1) * W + dx) * 4; out[i] = topOut[0]; out[i + 1] = topOut[1]; out[i + 2] = topOut[2]; out[i + 3] = 255; }
+  // ── Bottom frame band (the last `bf` rows) ──
+  const bf = g.bottomFrame ?? 1;
+  if (p.bottomY != null && p.bottomY + bf <= im.height) {
+    // REAL bottom, sliced from the screenshot's actual window bottom: the bottom-
+    // left corner (leftFixed cols) + a tiled bottom edge + the bottom-right corner,
+    // for each of the `bf` rows (e.g. #999 shadow then black outline).
+    for (let r = 0; r < bf; r++) {
+      const row = H - bf + r, sy = p.bottomY + r;
+      const setBot = (dx, sx) => { const s = (sy * im.width + sx) * 4, i = (row * W + dx) * 4; out[i] = im.rgba[s]; out[i + 1] = im.rgba[s + 1]; out[i + 2] = im.rgba[s + 2]; out[i + 3] = 255; };
+      for (let i = 0; i < a; i++) setBot(i, p.leftX + i);                      // bottom-left corner
+      for (let dx = a; dx < d; dx++) setBot(dx, p.flankX);                     // tiled bottom edge
+      for (let i = 0; i < rfw; i++) setBot(d + i, p.rightX - (rfw - 1) + i);   // bottom-right corner
+    }
+  } else {
+    // No bottom-source (e.g. the inactive shot): synthesize a flat frame band =
+    // the top-outline colour (sampled from row 0 at a flank column).
+    const ob = (0 * W + Math.min(W - 1, 40)) * 4, topOut = [out[ob], out[ob + 1], out[ob + 2]];
+    for (let r = 0; r < bf; r++) for (let dx = 0; dx < W; dx++) { const i = ((H - bf + r) * W + dx) * 4; out[i] = topOut[0]; out[i + 1] = topOut[1]; out[i + 2] = topOut[2]; out[i + 3] = 255; }
+  }
   return { width: W, height: H, rgba: out };
 }
 

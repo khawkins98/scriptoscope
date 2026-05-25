@@ -15,7 +15,7 @@
       "status": "ok",
       "file": "cicns/cicn-n14336-document-window-inactive.png",
       "width": 98,
-      "height": 23
+      "height": 24
     },
     {
       "type": "cicn",
@@ -24,7 +24,7 @@
       "status": "ok",
       "file": "cicns/cicn-n14335-document-window-active.png",
       "width": 98,
-      "height": 23
+      "height": 24
     },
     {
       "type": "wnd#",
@@ -82,7 +82,7 @@
           },
           {
             "part": 8,
-            "border": 23
+            "border": 24
           }
         ],
         "rightSide": [
@@ -92,7 +92,7 @@
           },
           {
             "part": 8,
-            "border": 23
+            "border": 24
           }
         ]
       }

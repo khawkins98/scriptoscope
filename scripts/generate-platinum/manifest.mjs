@@ -20,12 +20,13 @@ import { geometryFor, WINDOW_TYPES, FIXED, STRETCH, PLATE } from './window-types
  */
 function buildWndData(geo, cfg) {
   const { width: W, height: H, inset, leftFixed, fill, topFrame, hasTitle } = geo;
+  const bottomFrame = geo.bottomFrame ?? inset;
   const stretchEnd = leftFixed + fill;
 
   // Body rect (part 0): the stretchable band between the divider (topFrame) and
-  // the bottom inset. NON-DEGENERATE (bottom>top, right>left) — lint requires it.
+  // the bottom frame. NON-DEGENERATE (bottom>top, right>left) — lint requires it.
   const bodyTop = topFrame;
-  const bodyBottom = Math.max(bodyTop + 1, H - inset);
+  const bodyBottom = Math.max(bodyTop + 1, H - bottomFrame);
   const rectangles = [
     { part: 0, rect: { top: bodyTop, left: inset, bottom: bodyBottom, right: W - inset } },
   ];
