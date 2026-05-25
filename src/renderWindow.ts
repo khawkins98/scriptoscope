@@ -39,12 +39,13 @@ export async function renderWindow(
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
 
   const wt = resolveWindowType(theme, slug);
-  // Some schemes ship NO window-frame chrome — they inherit the OS default
-  // Platinum window (e.g. "Apple Platinum 2": its window resources are 16px
-  // proxy icons, and there's no wnd# side recipe). Render a procedural
-  // default window from the scheme's declared header colors so every theme
-  // still produces a window (North Star: render any scheme).
+  // Some schemes ship NO window-frame chrome (e.g. "Apple Platinum 2": its window
+  // resources are 16px proxy icons, no wnd# side recipe). They DEFER to their base
+  // theme's window chrome (the real Platinum baseline) if one is set; otherwise a
+  // procedural default window from the scheme's header colors (North Star: render
+  // any scheme).
   if (!wt || !(wt.chrome[state] ?? wt.chrome.active)) {
+    if (theme.base) return renderWindow(theme.base, opts); // inherit the base window
     const utility = /utility|mini|floating|palette/.test(slug);
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility });
   }
