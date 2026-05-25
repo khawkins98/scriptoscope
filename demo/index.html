@@ -689,7 +689,16 @@
       ctrls.append(field('theme', withSteppers(themeSel, themeStep(-1), themeStep(1))), field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
 
       const themeCache = new Map();
-      const getTheme = async (slug) => { if (!themeCache.has(slug)) themeCache.set(slug, await loadTheme(themeUrl(slug))); return themeCache.get(slug); };
+      // Every theme defers to apple-platinum-replica as its BASE — controls/chrome
+      // a scheme doesn't ship fall back to the real Platinum baseline.
+      const BASE_SLUG = 'apple-platinum-replica';
+      const getTheme = async (slug) => {
+        if (!themeCache.has(slug)) {
+          const base = slug === BASE_SLUG ? undefined : await getTheme(BASE_SLUG);
+          themeCache.set(slug, await loadTheme(themeUrl(slug), { base }));
+        }
+        return themeCache.get(slug);
+      };
       // Some bundles key window types by the raw wnd# resource id
       // (`wnd--14288`) rather than a friendly slug — map those ids to the
       // canonical kind (matches the extractor's CANONICAL_WNDTYPE_SLUGS) for a
@@ -822,6 +831,9 @@
       })();
     }
 
+    // Base theme every gallery row defers to (loaded once). getTheme is scoped to
+    // the playground IIFE, so the gallery loads its own copy.
+    const galleryBase = await loadTheme(themeUrl('apple-platinum-replica'));
     for (const t of THEMES) {
       const section = document.createElement('div'); section.className = 'theme-row';
       const title = document.createElement('h2'); title.textContent = t.label;
@@ -829,7 +841,7 @@
       section.append(title, row);
 
       let theme;
-      try { theme = await loadTheme(themeUrl(t.slug)); }
+      try { theme = await loadTheme(themeUrl(t.slug), { base: t.slug === 'apple-platinum-replica' ? undefined : galleryBase }); }
       catch (e) { row.textContent = `failed to load: ${e}`; rows.appendChild(section); continue; }
 
       // scene

@@ -49,8 +49,8 @@ function frameBorder(buf: PixelBuffer): number {
  */
 async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer | null> {
   const el = theme.manifest.chromeElements?.[key];
-  if (!el?.asset) return null;
-  return loadCicnBuffer(assetUrl(theme, el.asset));
+  if (el?.asset) return loadCicnBuffer(assetUrl(theme, el.asset));
+  return theme.base ? loadByKey(theme.base, key) : null; // defer to the base theme
 }
 
 /**
@@ -65,7 +65,8 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  */
 async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
-  return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
+  if (el) return loadCicnBuffer(assetUrl(theme, el.asset));
+  return theme.base ? loadById(theme.base, id) : null; // defer to the base theme
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc). */

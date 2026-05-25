@@ -5,14 +5,17 @@ import type { LoadedTheme, ThemeManifest, ChromeElement } from './types.js';
  * like `/themes/masswerk-7-le`). Asset paths inside the manifest are
  * relative to that directory; resolve them with {@link assetUrl}.
  */
-export async function loadTheme(bundleUrl: string): Promise<LoadedTheme> {
+export async function loadTheme(
+  bundleUrl: string,
+  opts: { base?: LoadedTheme } = {},
+): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
   const res = await fetch(`${baseUrl}/theme.json`);
   if (!res.ok) {
     throw new Error(`loadTheme: ${baseUrl}/theme.json → HTTP ${res.status}`);
   }
   const manifest = (await res.json()) as ThemeManifest;
-  return { manifest, baseUrl };
+  return { manifest, baseUrl, ...(opts.base ? { base: opts.base } : {}) };
 }
 
 /** Resolve a manifest-relative asset path to a fetchable URL. */
