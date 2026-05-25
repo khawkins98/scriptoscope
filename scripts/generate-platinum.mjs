@@ -13,7 +13,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { drawWindow } from './generate-platinum/draw-window.mjs';
-import { sliceDocWindow } from './generate-platinum/slice-doc-window.mjs';
+import { sliceWindow, SLICED_WINDOW_TYPES } from './generate-platinum/slice-doc-window.mjs';
 import { graftControls } from './generate-platinum/graft-controls.mjs';
 import { sliceControls } from './generate-platinum/slice-controls.mjs';
 import { sliceIcons } from './generate-platinum/slice-icons.mjs';
@@ -41,16 +41,17 @@ for (const cfg of WINDOW_TYPES) drawnBySlug[cfg.slug] = drawWindow(cfg, PALETTE)
 // Platinum pixels (pillow buttons, diagonal sheen, fine pinstripe) that the
 // procedural drawer only approximates. Same 98x23 geometry, so the recipe is
 // unchanged; we swap only the active/inactive buffers and keep .geo.
-const docSrc = resolve(dest, 'sources/doc-window-macintosh-hd-active.png');
-const docInactiveSrc = resolve(dest, 'sources/doc-window-macintosh-hd-inactive.png');
-if (existsSync(docSrc)) {
-  const sliced = sliceDocWindow(docSrc, docInactiveSrc);
-  drawnBySlug['document-window'].active = sliced.active;
-  drawnBySlug['document-window'].inactive = sliced.inactive;
-  console.log('[apple-platinum-replica] document-window: screenshot-sliced raster' +
-    (existsSync(docInactiveSrc) ? ' (active + inactive)' : ' (active; inactive derived)'));
-} else {
-  console.warn('[apple-platinum-replica] WARN: doc-window source missing, using procedural draw');
+// Override titled window types with screenshot-sliced rasters where a source
+// exists (document-window, movable-modal, …). Same cicn geometry as the drawer,
+// so the recipe is unchanged; only the active/inactive buffers swap. Types with
+// no source keep the procedural draw.
+for (const type of SLICED_WINDOW_TYPES) {
+  if (!drawnBySlug[type]) continue;
+  const sliced = sliceWindow(type, dest);
+  if (!sliced) continue;
+  drawnBySlug[type].active = sliced.active;
+  drawnBySlug[type].inactive = sliced.inactive;
+  console.log(`[apple-platinum-replica] ${type}: screenshot-sliced raster`);
 }
 
 const assets = buildAllWindowAssets(drawnBySlug);
