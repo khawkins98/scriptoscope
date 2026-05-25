@@ -950,13 +950,19 @@
         host.appendChild(ctrls);
 
         const deskLabel = document.createElement('div');
-        deskLabel.textContent = 'Click a window to focus it (active vs. inactive chrome) — drag-to-move is Phase 2:';
+        deskLabel.textContent = 'Click a window to focus it (active vs. inactive chrome); click a title-bar widget (close/zoom/collapse) to fire its handler:';
         deskLabel.style.cssText = 'font:11px system-ui;opacity:.6;margin-bottom:4px';
         const desk = document.createElement('div');
         desk.style.cssText = 'position:relative;height:200px;max-width:540px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
         const wm = new WindowManager();
-        const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 });
-        const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 });
+        const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 }, {
+          onClose: () => { w1.style.display = 'none'; say('Document closed'); },
+          onZoom: () => say('Document zoom'),
+          onCollapse: () => say('Document collapse'),
+        });
+        const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 }, {
+          onClose: () => { w2.style.display = 'none'; say('Options closed'); },
+        });
         w1.style.left = '14px'; w1.style.top = '14px';
         w2.style.left = '250px'; w2.style.top = '46px';
         desk.append(w1, w2);
