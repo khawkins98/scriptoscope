@@ -1,0 +1,27 @@
+Virtue — the bundled "Charcoal" stand-in font
+=============================================
+
+Virtue v3.0 (March 26, 1999) by Marty P. Pfeiffer, Scooter Graphics.
+Copyright (c) 1997-1999 Marty P. Pfeiffer at Scooter Graphics.
+Source: http://www.scootergraphics.com/virtue/index.html
+Price: Free.  (The author: "I will refuse to take any money for it at all.")
+
+WHY IT FITS THIS PROJECT
+Virtue is Marty Pfeiffer's improvement of Apple's "Charcoal" (the Mac OS 8 system
+font). Per the author's readme, it is built on Greg Landweber's reverse-engineered
+Charcoal from the **Aaron extension + Kaleidoscope** control panel — the exact
+lineage this project (Aaron UI) descends from. Used here as the `@font-face`
+"Charcoal" stand-in so window titles + UI text read in period-accurate type.
+
+TERMS (from the package readme + EULA)
+  - Free. The author retains all rights and asks that it NOT be sold.
+  - Distribution: the author is "more than happy to allow Virtue to be distributed
+    through different channels, I just want to be in the loop" — i.e. please send a
+    courtesy note before mirroring/bundling. EULA: the package's pictures/eul.htm.
+
+MAINTAINER ACTION (courtesy, per the distribution note): email
+marty@scootergraphics.com to note that Virtue is bundled in this repository
+(github.com/khawkins98/aaron-ui) as the Charcoal stand-in, with attribution.
+
+Converted to WOFF (virtue.woff) from the distributed TrueType (virtue.zip) with
+fonttools. Original readme preserved in the project history / the source URL above.
