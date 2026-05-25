@@ -17,9 +17,17 @@ import { PixelBuffer } from './pixelBuffer.js';
 function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer | null {
   if (typeof document === 'undefined' || !text) return null;
   const font = `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
+  // A touch of tracking — Roboto Condensed packs tight; the classic Mac bitmap
+  // titles had a hair more air between glyphs. Sub-pixel, applied (and measured)
+  // via the Canvas letterSpacing API where supported.
+  const LS = '0.5px';
+  const setLS = (c2d: CanvasRenderingContext2D): void => {
+    try { (c2d as unknown as { letterSpacing: string }).letterSpacing = LS; } catch { /* unsupported */ }
+  };
   const probe = document.createElement('canvas').getContext('2d');
   if (!probe) return null;
   probe.font = font;
+  setLS(probe);
   const w = Math.max(1, Math.ceil(probe.measureText(text).width) + 1);
   const h = Math.max(1, Math.ceil(px * 1.4));
   const c = document.createElement('canvas');
@@ -27,9 +35,16 @@ function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer 
   const ctx = c.getContext('2d');
   if (!ctx) return null;
   ctx.font = font;
-  ctx.textBaseline = 'middle';
+  setLS(ctx);
   ctx.fillStyle = hex;
-  ctx.fillText(text, 0, Math.round(h / 2));
+  // Centre the INK box vertically, not the em box: the em-middle sits high for a
+  // caps+x-height title like "Hello!" (no descenders), which reads as "too high"
+  // in the bar. measureText's actual bounding box gives the real glyph extent.
+  ctx.textBaseline = 'alphabetic';
+  const m = ctx.measureText(text);
+  const asc = m.actualBoundingBoxAscent || px * 0.72;
+  const desc = m.actualBoundingBoxDescent || px * 0.06;
+  ctx.fillText(text, 0, Math.round((h - asc - desc) / 2 + asc));
   const img = ctx.getImageData(0, 0, w, h);
   const buf = PixelBuffer.alloc(w, h);
   buf.data.set(img.data);
@@ -119,6 +134,12 @@ export async function renderWindow(
   let textH = 0;
   if (showTitle && frameTop > 6) {
     textH = Math.max(8, Math.min(13, frameTop - 6)); // ~Chicago 12px, never frame-scaled
+    // Canvas text only uses a font that's ALREADY loaded — so ensure the
+    // "Charcoal" @font-face is ready before we rasterize, else ctx.font silently
+    // falls back to sans-serif. The face caches after the first load.
+    if (typeof document !== 'undefined' && document.fonts?.load) {
+      try { await document.fonts.load(`${textH}px Charcoal`); } catch { /* ignore */ }
+    }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer
     // is the fallback (non-DOM contexts). Width pass; recoloured below.
     glyphs = rasterizeTitleFont(title, textH, '#000000') ?? rasterizeText(title, textH, '#000000');
