@@ -41,6 +41,33 @@
               "bottom": 22,
               "right": 97
             }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 17,
+              "right": 18
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 66,
+              "bottom": 17,
+              "right": 79
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 4,
+              "left": 81,
+              "bottom": 17,
+              "right": 94
+            }
           }
         ],
         "topSide": [
@@ -155,6 +182,33 @@
               "left": 1,
               "bottom": 22,
               "right": 97
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 17,
+              "right": 18
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 66,
+              "bottom": 17,
+              "right": 79
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 4,
+              "left": 81,
+              "bottom": 17,
+              "right": 94
             }
           }
         ],
@@ -458,6 +512,15 @@
               "bottom": 18,
               "right": 57
             }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 13,
+              "right": 14
+            }
           }
         ],
         "topSide": [
@@ -572,6 +635,15 @@
               "left": 1,
               "bottom": 18,
               "right": 57
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 13,
+              "right": 14
             }
           }
         ],
@@ -688,6 +760,15 @@
               "bottom": 13,
               "right": 46
             }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 9,
+              "right": 10
+            }
           }
         ],
         "topSide": [
@@ -802,6 +883,15 @@
               "left": 1,
               "bottom": 13,
               "right": 46
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 9,
+              "right": 10
             }
           }
         ],

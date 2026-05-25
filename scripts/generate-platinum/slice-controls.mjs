@@ -7,8 +7,8 @@
 // Glyph rects measured from sources/general-controls-checks-radios.png (#25):
 //   checkbox checked  x32,y58   12x12   (box + check mark)
 //   checkbox empty    x32,y106  12x12   (empty recessed box)
-//   radio selected    x468,y141 12x12   (filled centre)
-//   radio unselected  x390,y141 12x12   (hollow recessed circle)
+//   radio selected    x466,y141 12x12   (ring + filled centre — sliced as-is)
+//   radio unselected  x388,y141 12x12   (hollow recessed circle)
 // Radios get transparent corners (outside the circle) so they composite cleanly
 // on white document bodies as well as gray dialogs.
 import { decodePng, encodePng } from '../diag-lib.mjs';
@@ -20,10 +20,13 @@ import { resolve } from 'node:path';
 const SLICES = [
   { id: -9500, inactive: -9501, name: 'checkbox-checked', src: 'general-controls-checks-radios.png', rect: [32, 58, 12, 12] },
   { id: -9503, inactive: -9504, name: 'checkbox-empty',   src: 'general-controls-checks-radios.png', rect: [32, 106, 12, 12] },
-  // radio-on = the recessed empty ring + a SMALL centered dark dot (slicing the
-  // reference's selected radio gave a dot that read too large/black at this size).
-  { id: -9488, inactive: -9489, name: 'radio-on',  src: 'general-controls-checks-radios.png', rect: [390, 141, 12, 12], circle: true, dot: true },
-  { id: -9491, inactive: -9492, name: 'radio-off', src: 'general-controls-checks-radios.png', rect: [390, 141, 12, 12], circle: true },
+  // Radios: slice the REAL glyphs from #25, not a synthesized dot. Measured ring
+  // bboxes (dark<110): selected x466..477, unselected x388..399 (both 12x12, row
+  // y141..152) — each ring fills its 12px rect, so the dot lands dead-centre.
+  // (The old code sliced the EMPTY ring at x390 for BOTH and drew a dot at the
+  // geometric centre 5.5 — but the ring centres on 5.5/4.5 → the dot read off.)
+  { id: -9488, inactive: -9489, name: 'radio-on',  src: 'general-controls-checks-radios.png', rect: [466, 141, 12, 12], circle: true },
+  { id: -9491, inactive: -9492, name: 'radio-off', src: 'general-controls-checks-radios.png', rect: [388, 141, 12, 12], circle: true },
 ];
 
 function chromeEl(file, w, h, id) {
@@ -150,19 +153,6 @@ export function sliceControls(srcDir, destDir) {
       const outside = s.circle && Math.hypot(xx - cx, yy - cy) > r;
       out[di] = im.rgba[si]; out[di + 1] = im.rgba[si + 1]; out[di + 2] = im.rgba[si + 2];
       out[di + 3] = outside ? 0 : 255;
-    }
-    if (s.dot) { // selected radio: a small dark dot centered on the ring's OPAQUE bbox
-      let minx = w, maxx = -1, miny = h, maxy = -1;
-      for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
-        if (out[(yy * w + xx) * 4 + 3] < 128) continue;
-        if (xx < minx) minx = xx; if (xx > maxx) maxx = xx; if (yy < miny) miny = yy; if (yy > maxy) maxy = yy;
-      }
-      const dcx = (minx + maxx) / 2, dcy = (miny + maxy) / 2;
-      for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
-        if (Math.hypot(xx - dcx, yy - dcy) > 1.9) continue;
-        const di = (yy * w + xx) * 4;
-        out[di] = 56; out[di + 1] = 56; out[di + 2] = 56; out[di + 3] = 255;
-      }
     }
     const file = `cicns/cicn-n${-s.id}-${s.name}.png`;
     writeFileSync(resolve(destDir, file), encodePng(w, h, out));
