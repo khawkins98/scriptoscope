@@ -7,6 +7,18 @@ import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 
+/**
+ * Load a scheme's OWN title-bar widget GLYPH by its negative Kaleidoscope id from
+ * the theme's `glyphs` map (icons/index.json — all 16px families, ics4 OR ics8).
+ * These are the WIDGET channel (-14336..-14331 = close/zoom/collapse, active +
+ * inactive), distinct from the same-id cicn (a window-type proxy). Returns null
+ * when the scheme ships no such glyph (→ the compositor's procedural box).
+ */
+async function loadWidgetGlyph(owner: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+  const asset = owner.glyphs?.[String(id)];
+  return asset ? loadCicnBuffer(assetUrl(owner, asset)) : null;
+}
+
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
   windowType?: string;
@@ -99,15 +111,21 @@ export async function renderWindow(
       ? await loadCicnBuffer(assetUrl(owner, wt.sprites.growBox))
       : null;
     const hc = (state === 'inactive' ? owner.manifest.headerColors?.inactive : owner.manifest.headerColors?.active) ?? {};
-    // Title-bar widgets are drawn PROCEDURALLY by the compositor (close/zoom/
-    // collapse). The corner-sprite schemes' -14336..-14331 ics4/ics8 are 16×16
-    // window-PROXY icons (doc / grow-box / collapsed proxies), NOT 7×7 widget
-    // faces — stamping them produced oversized window-thumbnails — so we don't
-    // pass them. The active/inactive cue is carried by the header colours (hc).
+    // Title-bar widget glyphs — the scheme's OWN close/zoom/shade art, the ics4/
+    // ics8 WIDGET channel at -14336..-14331 (distinct from the same-id cicn, which
+    // is a window-type proxy). active: close -14336 / zoom -14335 / collapse -14334;
+    // inactive: the dimmer trio -14333/-14332/-14331. The compositor stamps them
+    // (and falls back to a procedural box for any role a scheme doesn't ship).
+    const wInactive = state === 'inactive';
+    const widgetGlyphs = {
+      close: await loadWidgetGlyph(owner, wInactive ? -14333 : -14336),
+      zoom: await loadWidgetGlyph(owner, wInactive ? -14332 : -14335),
+      collapse: await loadWidgetGlyph(owner, wInactive ? -14331 : -14334),
+    };
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
       pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
       lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
-      titleWidthPx, widgets: wt.widgets,
+      titleWidthPx, widgets: wt.widgets, widgetGlyphs,
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });

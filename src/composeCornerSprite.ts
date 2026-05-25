@@ -290,21 +290,19 @@ export function composeCornerSpriteChrome(
     out.fillRect({ x: fullW - 2, y: 1, w: 1, h: innerH }, sh[0], sh[1], sh[2], 255); // right shadow
   }
 
-  // ── 3. widgets: PROCEDURAL close/zoom/collapse boxes (WDEF 125 §"Box geometry")
-  //       close left, collapse + zoom right ─────────────────────────────────
-  // The corner-sprite schemes do NOT ship widget-FACE art — their -14336..-14331
-  // ics4/ics8 are 16×16 window-PROXY icons (doc-window / grow-box / collapsed
-  // proxies, per the cicn names), not 7×7 title-bar glyphs. So Platinum's WDEF
-  // draws the widgets procedurally and we mirror that: a small beveled box per
-  // role with the classic mark (close = empty, zoom = nested inner square,
-  // collapse = window-shade line). Geometry: close = title.left+4; zoom 4px from
-  // the right end; collapse just inboard of the zoom box. Vertically centred.
-  // Widget SET per type (opts.widgets): document = [close,collapse,zoom];
+  // ── 3. widgets: the scheme's OWN close/zoom/collapse glyph, else a procedural
+  //       box. close left, collapse + zoom right ─────────────────────────────
+  // The corner-sprite schemes DO ship widget art: ics4/ics8 at -14336..-14331 are
+  // the WIDGET channel (close/zoom/collapse, active + inactive), distinct from the
+  // SAME-id cicn (a window-type proxy) — the dual-channel pattern (cf. cicn -10239
+  // push-button face vs ics4 -10239 checkbox). renderWindow loads them into
+  // opts.widgetGlyphs and we stamp them 1:1 at the glyph's native size. A role a
+  // scheme doesn't ship falls back to a PROCEDURAL beveled box with the classic
+  // mark (close = empty, zoom = nested inner square, collapse = window-shade line)
+  // sized to ~bar-height − margin. Geometry (WDEF 125 §"Box geometry"): close =
+  // title.left+4; zoom 4px from the right end; collapse inboard of zoom; vertically
+  // centred. Widget SET per type (opts.widgets): document = [close,collapse,zoom];
   // movable-modal/alert/titled-utility = [close]; side/no-title = [].
-  //
-  // SIZE: ~bar-height − margin (≈12px in a 19px bar), clamped — classic scale,
-  // NOT the oversized 16px the proxy glyphs produced. (opts.widgetGlyphs is still
-  // honoured if a future scheme ships real per-widget face art — none does today.)
   const WBOX = Math.max(7, Math.min(13, titleH - 7));
   if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
     // Per-widget box size: the supplied glyph's bounds, clamped to fit the bar;
