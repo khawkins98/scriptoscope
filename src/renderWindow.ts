@@ -16,11 +16,19 @@ import { PixelBuffer } from './pixelBuffer.js';
  */
 function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer | null {
   if (typeof document === 'undefined' || !text) return null;
-  const font = `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
-  // A touch of tracking — Roboto Condensed packs tight; the classic Mac bitmap
-  // titles had a hair more air between glyphs. Sub-pixel, applied (and measured)
-  // via the Canvas letterSpacing API where supported.
-  const LS = '0.5px';
+  // Charcoal 12 (Jeremy Sachs, CC BY-SA — a bitmap clone of Mac OS 8/9 Charcoal) is
+  // crisp ONLY at its grid-native 16px: the finest design step (125 of 2000 em
+  // units) maps to exactly 1px there, so every brick edge lands on a pixel. When
+  // it's loaded we pin to 16px with ZERO tracking (off-grid advances would
+  // re-introduce anti-aliasing) and an integer baseline — the native buffer then
+  // upscales pixelated, keeping it blocky-crisp. Otherwise fall back to the
+  // Charcoal stack (Virtue) at the requested px with a hair of tracking for air.
+  const c12 = !!document.fonts?.check?.('16px "Charcoal 12"');
+  const size = c12 ? 16 : px;
+  const font = c12
+    ? `16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`
+    : `${px}px Charcoal, "Helvetica Neue", Arial, sans-serif`;
+  const LS = c12 ? '0px' : '0.5px';
   const setLS = (c2d: CanvasRenderingContext2D): void => {
     try { (c2d as unknown as { letterSpacing: string }).letterSpacing = LS; } catch { /* unsupported */ }
   };
@@ -29,7 +37,7 @@ function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer 
   probe.font = font;
   setLS(probe);
   const w = Math.max(1, Math.ceil(probe.measureText(text).width) + 1);
-  const h = Math.max(1, Math.ceil(px * 1.4));
+  const h = Math.max(1, Math.ceil(size * 1.4));
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
@@ -42,8 +50,8 @@ function rasterizeTitleFont(text: string, px: number, hex: string): PixelBuffer 
   // in the bar. measureText's actual bounding box gives the real glyph extent.
   ctx.textBaseline = 'alphabetic';
   const m = ctx.measureText(text);
-  const asc = m.actualBoundingBoxAscent || px * 0.72;
-  const desc = m.actualBoundingBoxDescent || px * 0.06;
+  const asc = m.actualBoundingBoxAscent || size * 0.72;
+  const desc = m.actualBoundingBoxDescent || size * 0.06;
   ctx.fillText(text, 0, Math.round((h - asc - desc) / 2 + asc));
   const img = ctx.getImageData(0, 0, w, h);
   const buf = PixelBuffer.alloc(w, h);
@@ -138,6 +146,7 @@ export async function renderWindow(
     // "Charcoal" @font-face is ready before we rasterize, else ctx.font silently
     // falls back to sans-serif. The face caches after the first load.
     if (typeof document !== 'undefined' && document.fonts?.load) {
+      try { await document.fonts.load(`16px "Charcoal 12"`); } catch { /* ignore */ }
       try { await document.fonts.load(`${textH}px Charcoal`); } catch { /* ignore */ }
     }
     // Title in the "Charcoal" font (period anti-aliased type); pixel rasterizer

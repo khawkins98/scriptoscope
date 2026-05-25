@@ -23,6 +23,14 @@
       font-weight: 100 900;
       font-display: swap;
     }
+    /* Charcoal 12 — Jeremy Sachs' CC BY-SA bitmap clone of Mac OS 8/9 Charcoal at
+       12px (fontstruct.com/fontstructions/show/2813611). A pixel font: only crisp
+       at its native grid size. Credit/terms: assets/fonts/charcoal-12-license.txt */
+    @font-face {
+      font-family: 'Charcoal 12';
+      src: url('assets/fonts/charcoal-12.woff') format('woff');
+      font-display: swap;
+    }
     :root { color-scheme: light; }
     body {
       margin: 0;
@@ -1137,10 +1145,12 @@
     }
   </script>
   <footer style="font:11px system-ui;color:#555;padding:14px 24px;border-top:1px solid #aaa;margin-top:24px">
-    Window/UI text uses <a href="http://www.scootergraphics.com/virtue/" style="color:#357">Virtue</a>,
-    Marty&nbsp;P.&nbsp;Pfeiffer's free recreation of Apple's Charcoal (Scooter&nbsp;Graphics, 1999) —
+    Window <strong>titles</strong> render in <a href="https://fontstruct.com/fontstructions/show/2813611" style="color:#357">Charcoal&nbsp;12</a>,
+    Jeremy&nbsp;Sachs' bitmap clone of Mac&nbsp;OS&nbsp;8/9 Charcoal (CC&nbsp;BY-SA&nbsp;3.0).
+    Other UI text uses <a href="http://www.scootergraphics.com/virtue/" style="color:#357">Virtue</a>,
+    Marty&nbsp;P.&nbsp;Pfeiffer's free Charcoal recreation (Scooter&nbsp;Graphics, 1999) —
     itself built on Greg&nbsp;Landweber's reverse-engineered Charcoal from Aaron + Kaleidoscope.
-    Used with credit; see <code>demo/assets/fonts/VIRTUE-LICENSE.txt</code>.
+    Used with credit; see <code>demo/assets/fonts/charcoal-12-license.txt</code> + <code>VIRTUE-LICENSE.txt</code>.
   </footer>
 </body>
 </html>
