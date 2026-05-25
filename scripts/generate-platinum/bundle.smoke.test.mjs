@@ -54,3 +54,15 @@ test('no dangling assets: every chromeElement + window-chrome asset exists on di
 test('all 13 canonical window types are present', () => {
   assert.equal(Object.keys(theme.windowTypes || {}).length, 13);
 });
+
+// As the universal BASE theme, the replica must ship BOTH chrome states for every
+// window type: a scheme with no window chrome of its own defers here, and its
+// UNFOCUSED windows render the base's `inactive` chrome (WindowManager flips the
+// state on focus change). A missing inactive would silently fall back to the
+// active raster — wrong focus cue for every deferring scheme.
+test('base-completeness: every window type ships active AND inactive chrome', () => {
+  for (const [slug, wt] of Object.entries(theme.windowTypes || {})) {
+    assert.ok(wt.chrome?.active, `${slug}: missing active chrome`);
+    assert.ok(wt.chrome?.inactive, `${slug}: missing inactive chrome`);
+  }
+});

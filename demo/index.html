@@ -60,6 +60,23 @@
     // fetches resolve in either — a bare `/themes/…` 404s on Pages.
     const themeUrl = (slug) => `${import.meta.env.BASE_URL}themes/${slug}`;
 
+    // The universal BASE theme: every scheme defers to it for any chrome/control
+    // it doesn't ship itself (lightly-skinned schemes inherit the real Platinum
+    // baseline). One slug, one place. loadWithBase wires it as the base for any
+    // OTHER theme (and never as its own base), cached so the shared base bundle
+    // is fetched exactly once across the whole page.
+    const BASE_SLUG = 'apple-platinum-replica';
+    const themeCache = new Map();
+    const loadWithBase = (slug) => {
+      if (!themeCache.has(slug)) {
+        themeCache.set(slug, (async () => {
+          const base = slug === BASE_SLUG ? undefined : await loadWithBase(BASE_SLUG);
+          return loadTheme(themeUrl(slug), { base });
+        })());
+      }
+      return themeCache.get(slug);
+    };
+
     // Active/inactive toggle — our scene renderer can show BOTH window states
     // live (the reference screenshots are frozen in one state). Re-renders the
     // scene column for every theme on change.
@@ -680,7 +697,7 @@
       const miniBtn = (txt, tip) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.title = tip; b.setAttribute('aria-label', tip); b.style.cssText = 'font:12px system-ui;padding:2px 7px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff;line-height:1.2'; return b; };
       const withSteppers = (el, onPrev, onNext, ...extra) => { const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:4px;align-items:center'; const p = miniBtn('‹', 'previous'), n = miniBtn('›', 'next'); p.onclick = onPrev; n.onclick = onNext; row.append(p, el, n, ...extra); return row; };
       const cycleSel = (s, dir) => { const len = s.options.length; if (len) s.selectedIndex = (s.selectedIndex + dir + len) % len; };
-      const themeStep = (dir) => async () => { cycleSel(themeSel, dir); populateWindowTypes(await getTheme(themeSel.value)); writeHash(); rerender(); };
+      const themeStep = (dir) => async () => { cycleSel(themeSel, dir); populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
       const wtypeStep = (dir) => () => { cycleSel(wtypeSel, dir); writeHash(); rerender(); };
       const SAMPLE_TITLES = ['Hello!', 'Untitled', 'README', 'Macintosh HD', 'System Folder', 'untitled folder', 'A', 'My Long Window Title Goes On And On', '404 Not Found', 'Résumé', 'kaleidoscope', 'New Document', 'iMovie', 'Get Info'];
       const setTitle = (v) => { titleIn.value = v; writeHash(); rerender(); };
@@ -690,17 +707,6 @@
       randomBtn.onclick = () => { let i; do { i = Math.floor(Math.random() * SAMPLE_TITLES.length); } while (SAMPLE_TITLES.length > 1 && SAMPLE_TITLES[i] === titleIn.value); setTitle(SAMPLE_TITLES[i]); };
       ctrls.append(field('theme', withSteppers(themeSel, themeStep(-1), themeStep(1))), field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
 
-      const themeCache = new Map();
-      // Every theme defers to apple-platinum-replica as its BASE — controls/chrome
-      // a scheme doesn't ship fall back to the real Platinum baseline.
-      const BASE_SLUG = 'apple-platinum-replica';
-      const getTheme = async (slug) => {
-        if (!themeCache.has(slug)) {
-          const base = slug === BASE_SLUG ? undefined : await getTheme(BASE_SLUG);
-          themeCache.set(slug, await loadTheme(themeUrl(slug), { base }));
-        }
-        return themeCache.get(slug);
-      };
       // Some bundles key window types by the raw wnd# resource id
       // (`wnd--14288`) rather than a friendly slug — map those ids to the
       // canonical kind (matches the extractor's CANONICAL_WNDTYPE_SLUGS) for a
@@ -736,7 +742,7 @@
       const rerender = async () => {
         const my = ++token;
         out.textContent = 'rendering…';
-        let theme; try { theme = await getTheme(themeSel.value); } catch (e) { out.textContent = `failed to load ${themeSel.value}: ${e}`; return; }
+        let theme; try { theme = await loadWithBase(themeSel.value); } catch (e) { out.textContent = `failed to load ${themeSel.value}: ${e}`; return; }
         if (my !== token) return;
         const SC = +scaleSel.value;
         let win;
@@ -776,7 +782,7 @@
       const applyControls = (st) => {
         if (st.theme) themeSel.value = st.theme;
         // window types depend on the theme — populate, then apply wt if valid
-        return getTheme(themeSel.value).then((theme) => {
+        return loadWithBase(themeSel.value).then((theme) => {
           populateWindowTypes(theme);
           if (st.wt && [...wtypeSel.options].some((o) => o.value === st.wt)) wtypeSel.value = st.wt;
           if (st.title !== undefined) titleIn.value = st.title;
@@ -787,7 +793,7 @@
         });
       };
 
-      themeSel.onchange = async () => { populateWindowTypes(await getTheme(themeSel.value)); writeHash(); rerender(); };
+      themeSel.onchange = async () => { populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
       for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = () => { writeHash(); rerender(); };
       for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(() => { writeHash(); rerender(); }, 250); };
       resetBtn.onclick = async () => { await applyControls(DEFAULTS); history.replaceState(null, '', location.pathname + location.search); rerender(); };
@@ -818,7 +824,7 @@
       stack.append(r1, r2, r3); frame.appendChild(stack); row.appendChild(c);
       rows.appendChild(section); // append synchronously to keep section order
       (async () => {
-        const base = await loadTheme(themeUrl('apple-platinum-replica'));
+        const base = await loadWithBase(BASE_SLUG);
         add(r1, (await composeScrollbar(base, { orientation: 'horizontal', length: 140, value: 0.35 })) ?? platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35 }));
         add(r1, (await composeScrollbar(base, { orientation: 'vertical', length: 90, value: 0.5 })) ?? platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5 }));
         add(r1, await composeProgress(base, { length: 120, value: 0.6 }));
@@ -833,9 +839,6 @@
       })();
     }
 
-    // Base theme every gallery row defers to (loaded once). getTheme is scoped to
-    // the playground IIFE, so the gallery loads its own copy.
-    const galleryBase = await loadTheme(themeUrl('apple-platinum-replica'));
     for (const t of THEMES) {
       const section = document.createElement('div'); section.className = 'theme-row';
       const title = document.createElement('h2'); title.textContent = t.label;
@@ -843,7 +846,7 @@
       section.append(title, row);
 
       let theme;
-      try { theme = await loadTheme(themeUrl(t.slug), { base: t.slug === 'apple-platinum-replica' ? undefined : galleryBase }); }
+      try { theme = await loadWithBase(t.slug); }
       catch (e) { row.textContent = `failed to load: ${e}`; rows.appendChild(section); continue; }
 
       // scene
@@ -912,7 +915,7 @@
         status.style.cssText = 'font:12px Charcoal,Geneva,sans-serif;min-height:16px;margin:0 0 10px;color:#333';
         status.textContent = 'ready — interact with the controls';
         host.appendChild(status);
-        const theme = await loadTheme(themeUrl(slug), { base: slug === 'apple-platinum-replica' ? undefined : galleryBase });
+        const theme = await loadWithBase(slug);
         const say = (m) => { status.textContent = m; };
 
         const ctrls = document.createElement('div');
