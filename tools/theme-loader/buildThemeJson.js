@@ -174,6 +174,7 @@ export function buildThemeJson(manifest, options = {}) {
 
   // Merge sidecar meta (name, author, origin, options, palette) on top.
   // palette is sidecar-supplied pending full Colr parsing.
+  if (meta.note != null)    theme.note = meta.note;
   if (meta.name != null)    theme.name = meta.name;
   if (meta.author != null)  theme.author = meta.author;
   if (meta.origin != null)  theme.origin = meta.origin;

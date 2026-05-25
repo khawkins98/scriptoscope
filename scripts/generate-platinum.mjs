@@ -82,6 +82,17 @@ writeFileSync(resolve(dest, 'extraction-manifest.json'),
 
 const metaPath = resolve(dest, 'meta.json');
 const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
+// State the bundle's DUAL role explicitly: it is both a showcase scheme and the
+// UNIVERSAL BASE theme every other scheme inherits from (loadTheme(url,{base}))
+// for any chrome/control it doesn't ship. Not to be confused with the sparse
+// 'apple-platinum-2' proxy-icon bundle, which itself defers here.
+meta.note =
+  'Apple Platinum (replica): clean-room, fully GENERATED reproduction of the ' +
+  'Mac OS 8.5 Platinum look (scripts/generate-platinum.mjs). Dual role — a ' +
+  'showcase scheme AND the universal BASE theme other schemes inherit for any ' +
+  'chrome/control they don\'t ship. Control-completeness is guarded by ' +
+  'scripts/generate-platinum/bundle.smoke.test.mjs. Distinct from ' +
+  '"apple-platinum-2" (a sparse proxy-icon bundle that itself defers here).';
 const theme = buildThemeJson({ source: 'apple-platinum-replica (generated)', extractedAt, counts, assets }, { meta });
 
 // Graft real Platinum control geometry from apple-platinum-2 (it has the control
