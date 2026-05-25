@@ -670,22 +670,61 @@
       list.style.cssText = `flex:1 1 300px;min-width:260px;max-height:${Math.max(160, winH + 24)}px;overflow:auto;border:1px solid #ddd;background:#fafafa`;
       let activeEdge = 'all';
       const rowsWrap = document.createElement('div');
+
+      // A canvas of the ACTUAL RENDERED chrome, so each row's thumbnail shows the
+      // real PLACED pixels (the positioned glyph / title), not the raw cicn
+      // source — that's what lets the owner eyeball "this icon is 2px too high".
+      let chromeCanvas = null;
+      try { if (win._awComposed.buffer) chromeCanvas = bufferToCanvas(win._awComposed.buffer, 1); } catch { /* fall back to cicn src */ }
+      const frame = win._awComposed.frame || { top: 0 };
+
+      // Expand the placement into INSPECTABLE items: each widget rect is its OWN
+      // item (close / zoom / collapse individually), every other slice stays one,
+      // and a synthetic "title string" item is prepended so the title position is
+      // clickable too. Each item carries its own output rect for highlight + crop.
+      const items = [];
+      const titleReg = win._awComposed.titleRegion;
+      if (titleReg && frame.top > 6) {
+        items.push({ edge: 'title', code: -1, role: 'title string', mode: 'text',
+          src: { x: 0, y: 0, w: titleReg.w, h: frame.top },
+          rects: [{ x: titleReg.x, y: 0, w: titleReg.w, h: frame.top }] });
+      }
+      for (const s of placement) {
+        const names = (s.edge === 'widget' && s.role.includes('/')) ? s.role.split('/').map((n) => n.trim()) : null;
+        if (names && s.rects.length === names.length && names.length > 1) {
+          s.rects.forEach((r, i) => items.push({ edge: 'widget', code: s.code, role: names[i], mode: s.mode, src: s.src, rects: [r] }));
+        } else {
+          items.push(s);
+        }
+      }
+
+      // Thumbnail: crop the rendered chrome at the item's OUTPUT rect (the placed
+      // art). Falls back to the raw cicn source crop when no rendered buffer.
+      const makeThumb = (item) => {
+        const r = item.rects[0] || item.src;
+        const cw = Math.max(1, Math.round(r.w)), ch = Math.max(1, Math.round(r.h));
+        const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+        const cx = c.getContext('2d');
+        if (chromeCanvas) { try { cx.drawImage(chromeCanvas, r.x, r.y, cw, ch, 0, 0, cw, ch); } catch { /* oob */ } }
+        else if (cicnImg) { try { cx.drawImage(cicnImg, item.src.x, item.src.y, Math.max(1, item.src.w), Math.max(1, item.src.h), 0, 0, cw, ch); } catch { /* oob */ } }
+        const m = Math.max(cw, ch);
+        const z = m > 44 ? 44 / m : Math.max(1, Math.min(6, Math.floor(44 / m)));
+        c.style.cssText = `width:${Math.round(cw * z)}px;height:${Math.round(ch * z)}px;image-rendering:pixelated;border:1px solid #ccc;flex:0 0 auto;background:#fff`;
+        return c;
+      };
       const renderRows = () => {
         rowsWrap.innerHTML = '';
-        placement.forEach((s) => {
+        items.forEach((s) => {
           if (activeEdge !== 'all' && s.edge !== activeEdge) return;
           const row = document.createElement('div');
           row.style.cssText = 'display:flex;gap:6px;align-items:center;padding:3px 5px;cursor:pointer;border-bottom:1px solid #eee';
-          const sw = Math.max(1, s.src.w), sh = Math.max(1, s.src.h);
-          const th = document.createElement('canvas'); th.width = sw; th.height = sh;
-          const z = Math.max(1, Math.min(5, Math.floor(44 / Math.max(sw, sh))));
-          th.style.cssText = `width:${sw * z}px;height:${sh * z}px;image-rendering:pixelated;border:1px solid #ccc;flex:0 0 auto;background:#fff`;
-          if (cicnImg) { const ctx = th.getContext('2d'); try { ctx.drawImage(cicnImg, s.src.x, s.src.y, sw, sh, 0, 0, sw, sh); } catch { /* oob */ } }
+          const th = makeThumb(s);
+          const r0 = s.rects[0] || { x: 0, y: 0, w: 0, h: 0 };
           const usage = s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode === 'stamp' ? 'stamped' : s.mode;
           const lbl = document.createElement('div'); lbl.style.cssText = 'flex:1;line-height:1.3';
-          lbl.innerHTML = `<b>${s.edge}</b> p${s.code} · ${s.role}<br><span style="opacity:.6">src ${s.src.x},${s.src.y} ${sw}×${sh} — ${usage}</span>`;
+          lbl.innerHTML = `<b>${s.edge}</b>${s.code >= 0 ? ' p' + s.code : ''} · ${s.role}<br><span style="opacity:.6">at ${Math.round(r0.x)},${Math.round(r0.y)} ${Math.round(r0.w)}×${Math.round(r0.h)} — ${usage}</span>`;
           row.append(th, lbl);
-          row.title = 'click to highlight + copy this slice’s info';
+          row.title = 'click to highlight + copy this element’s info';
           row.onmouseenter = () => show(s);
           row.onmouseleave = () => show(sticky);
           row.onclick = () => {
@@ -699,7 +738,7 @@
       };
       const filterRow = document.createElement('div');
       filterRow.style.cssText = 'display:flex;gap:3px;flex-wrap:wrap;padding:4px;position:sticky;top:0;background:#f0f0f0;border-bottom:1px solid #ddd';
-      ['all', 'top', 'bottom', 'left', 'right', 'widget'].forEach((e) => {
+      ['all', 'title', 'top', 'bottom', 'left', 'right', 'widget'].forEach((e) => {
         const btn = document.createElement('button'); btn.textContent = e;
         btn.style.cssText = 'font:9px ui-monospace,monospace;padding:2px 6px;cursor:pointer;border:1px solid #bbb;background:#fff;border-radius:3px';
         btn.onclick = () => { activeEdge = e; renderRows(); };
