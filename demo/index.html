@@ -67,7 +67,7 @@
     import {
       VERSION, loadTheme, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
-      composeButton, composeCheckable, composeGrowBox,
+      composeButton, composeBevelButton, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
       platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
@@ -1071,10 +1071,11 @@
         // These are the platinum.ts floor for uniform coverage across every theme;
         // per-scheme cicns (-10162.., -12319/-12247.., -8200.., -9567..) graft over
         // them later via the base chain. No composer fallback yet — procedural only.
-        add(r4, platinumBevelButton({ label: 'On', on: true }));
-        add(r4, platinumBevelButton({ label: 'Off' }));
-        add(r4, platinumBevelButton({ label: 'Aa', small: true }));
-        add(r4, platinumBevelButton({ label: 'Off', disabled: true }));
+        const bevel = async (o) => (await composeBevelButton(base, o)) ?? platinumBevelButton(o);
+        add(r4, await bevel({ label: 'On', on: true }));
+        add(r4, await bevel({ label: 'Off' }));
+        add(r4, await bevel({ label: 'Aa', small: true }));
+        add(r4, await bevel({ label: 'Off', disabled: true }));
         add(r5, platinumMenuBar({ titles: ['File', 'Edit', 'View'], activeIdx: 1 }));
         add(r5, platinumPopupMenu({ label: 'Pick one' }));
         add(r6, platinumMenu({ items: ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste'], highlightIdx: 4 }));
@@ -1123,7 +1124,12 @@
           return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o);
         };
         brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
-        stack.append(brow, await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
+        // Bevel buttons (toolbar toggles): the scheme's own -10162..-10176 art when it
+        // ships it, else the procedural platinum.ts baseline.
+        const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
+        const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
+        bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
+        stack.append(brow, bevelRow, await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
         frame.appendChild(stack);
         row.appendChild(c);
       }

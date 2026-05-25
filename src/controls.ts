@@ -617,90 +617,108 @@ export interface ButtonOptions {
   fg?: string;
 }
 
-/**
- * Compose a THEMED push button (kdef-layout-recipes §2, FUN_30a8):
- * 9-slice the `push-button-{active|pressed|inactive}` face into the
- * button rect; for the default button wrap the `push-button-ring`
- * around it; rasterize the label centered. Returns null if the scheme
- * ships no push-button cicns (→ baselineButton).
- */
-export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
-  // Resolve by RESOURCE ID (slugs vary / are absent, e.g. apple-platinum-2's
-  // cicns are unnamed): face -10239 active / -10238 pressed / -10240 inactive;
-  // default-button ring -10231 active / -10232 inactive.
-  const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
-  const face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239));
-  if (!face) return null; // baseline path
-  const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
+export interface BevelButtonOptions {
+  label?: string;
+  on?: boolean;       // set / selected (latched)
+  pressed?: boolean;  // momentary press
+  disabled?: boolean;
+  small?: boolean;
+  minWidth?: number;
+  fg?: string;
+}
 
+interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; }
+
+/**
+ * Render a 9-sliced control FACE into a label-sized buffer: slice the face into the
+ * button rect, flatten the interior to its fill colour (erasing the centre cinf
+ * text-colour MARKER so the stretch doesn't smear it across the label), and draw the
+ * centred label in a contrasting b/w. The kDEF's face drawer (0x7424) reads NO text
+ * colour — the Control Manager draws titles in the system colour — and the cinf
+ * marker (1990 mid-gray, evolution black) is illegible, so we pick by face luminance
+ * (matches the scheme previews); disabled grays but stays contrasting. The 9-slice
+ * corner = the cinf `cornerSize` (0x107fe), else a derived inset. Shared by
+ * composeButton (which wraps a default ring around it) and composeBevelButton.
+ */
+async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: number, opts: FaceOptions): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const faceEl = elementById(theme, faceId) ?? elementById(theme, 10239);
-  // 9-slice corner inset = the cinf `cornerSize` the kDEF's slice engine
-  // (0x107fe) reads, NOT a value derived from the bitmap. Fall back to a
-  // derived inset only when the scheme ships no cinf for this face.
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
-  // The face center carries a 1px text-color MARKER sentinel (the cinf
-  // textPixel) — its colour is the label colour, NOT a fill colour. Sample the
-  // interior FILL colour deliberately OFFSET from that marker: with the cinf
-  // corner inset the marker frequently sits exactly at [fIns,fIns] (1990's is
-  // [7,7] with corner 7), and sampling it would flood the flattened interior
-  // with the light label colour — a stripe struck across the button.
+  // Sample the interior FILL colour OFFSET from the marker (which often sits at
+  // [fIns,fIns]); sampling the marker would flood the flattened interior with the
+  // light label colour — a stripe across the button.
   const ta = faceEl?.textAnchor;
   const sx = ta ? Math.max(0, Math.min(face.width - 1, ta[0] - 3)) : fIns;
   const sy = ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
   const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  // Label color: the kDEF's button-face drawer (0x7424) reads NO text colour —
-  // the Control Manager draws the title in the system colour. The cinf
-  // textPixel/marker is NOT a reliable button-label colour: 1990's marker is
-  // mid-gray (119,119,119) and evolution's is black — both illegible, and
-  // neither matches the schemes' own previews, which draw a high-contrast
-  // light-on-dark label (~#bbb on near-black). So pick a contrasting b/w from
-  // the face luminance (matches the references); disabled always grays.
-  // Disabled dims the title (classic Mac grays a disabled control's label), but
-  // keep it CONTRASTING with the face so it stays legible-but-dim on a dark
-  // inactive face (a fixed mid-gray vanishes on 1138/1984's gray faces).
   const fg = opts.fg ?? (opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
     : lum < 128 ? '#ffffff' : '#000000');
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(face.height * 0.6)), fg) : null;
-  const padX = 12;
+  const padX = opts.padX ?? 12;
   const innerW = Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = face.height;
-
-  let out: PixelBuffer;
-  let fx = 0;
-  let fy = 0;
-  if (ring) {
-    const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
-    // The ring cicn is a 9-slice default-button OUTLINE template (a rounded gray/
-    // black ring, or apple-platinum-2's indigo frame — both shipped art, each
-    // verified against its scheme reference). The button fills its centre; the ring
-    // wraps it by an OUTSET. NOT `(ring.width - face.width)/2` — that's 0 when ring
-    // and face are the same 16px template, which collapsed the ring into a 2px band.
-    // Outset ≈ ¼ the template, so the shipped outline + its gap render at true scale.
-    const outset = Math.max(3, Math.round(ring.width / 4));
-    out = PixelBuffer.alloc(innerW + outset * 2, innerH + outset * 2);
-    const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
-    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
-    fx = outset;
-    fy = outset;
-  } else {
-    out = PixelBuffer.alloc(innerW, innerH);
-  }
-  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: fx, y: fy, w: innerW, h: innerH });
-  // Flatten the interior to a solid fill: the button face is flat (bevels
-  // live in the border, handled by the 9-slice edges/corners), and this
-  // erases the smeared center marker that the stretch would otherwise turn
-  // into a cross through the label.
+  const out = PixelBuffer.alloc(innerW, innerH);
+  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH });
   if (ca > 0) {
-    const cw = innerW - fIns * 2;
-    const ch = innerH - fIns * 2;
-    if (cw > 0 && ch > 0) out.fillRect({ x: fx + fIns, y: fy + fIns, w: cw, h: ch }, cr, cg, cb, 255);
+    const cw = innerW - fIns * 2, ch = innerH - fIns * 2;
+    if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fIns, w: cw, h: ch }, cr, cg, cb, 255);
   }
-  if (glyphs) out.drawOver(glyphs, fx + Math.round((innerW - glyphs.width) / 2), fy + Math.round((innerH - glyphs.height) / 2));
+  if (glyphs) out.drawOver(glyphs, Math.round((innerW - glyphs.width) / 2), Math.round((innerH - glyphs.height) / 2));
   return out;
+}
+
+/**
+ * Compose a THEMED push button (kdef-layout-recipes §2, FUN_30a8): 9-slice the
+ * push-button face (-10239 active / -10238 pressed / -10240 inactive) into the
+ * button rect; for the default button wrap the shipped ring (-10231/-10232) around
+ * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
+ */
+export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
+  const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
+  const face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239));
+  if (!face) return null; // baseline path
+  const faceBuf = await composeFaceButton(theme, face, faceId, opts);
+  const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
+  if (!ring) return faceBuf;
+  // The ring cicn is a 9-slice default-button OUTLINE template (a rounded gray/black
+  // ring, or apple-platinum-2's indigo frame — both shipped art). The face fills its
+  // centre; the ring wraps it by an OUTSET ≈ ¼ the template (NOT ring.width -
+  // face.width, which is 0 for the shared 16px template → a squashed 2px band).
+  const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
+  const outset = Math.max(3, Math.round(ring.width / 4));
+  const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
+  const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
+  out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
+  out.drawOver(faceBuf, outset, outset);
+  return out;
+}
+
+/**
+ * Compose a THEMED bevel button (toolbar / palette toggle). The scheme ships a
+ * 12-cicn set — NORMAL size -10162..-10167 and SMALL size -10171..-10176, each laid
+ * out [set/on: pressed, unpressed, inactive] then [clear/off: pressed, unpressed,
+ * inactive]. 9-slice the state's face like the push button. Falls back within the
+ * bundle (exact → same-value unpressed → -10163) and returns null (→
+ * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
+ */
+export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
+  const sizeBase = opts.small ? 10171 : 10162;
+  const valueOff = opts.on ? 0 : 3;                          // set/on group, then clear/off (+3)
+  const stateOff = opts.pressed ? 0 : opts.disabled ? 2 : 1; // pressed · unpressed · inactive
+  const reqId = sizeBase + valueOff + stateOff;
+  const ids = [reqId, sizeBase + valueOff + 1, 10163];
+  let face: PixelBuffer | null = null;
+  let usedId = reqId;
+  for (const id of ids) { const f = await loadById(theme, id); if (f) { face = f; usedId = id; break; } }
+  if (!face) return null; // → platinumBevelButton
+  const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
+  if (opts.label != null) faceOpts.label = opts.label;
+  if (opts.disabled != null) faceOpts.disabled = opts.disabled;
+  if (opts.fg != null) faceOpts.fg = opts.fg;
+  return composeFaceButton(theme, face, usedId, faceOpts);
 }
 
 /**
