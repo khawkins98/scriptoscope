@@ -218,6 +218,67 @@
       const icl4 = byFamily('icl4');
       const ics4 = byFamily('ics4');
       sum.textContent = `Icon inventory — ${all.length} icons (${icl4.length} icl4 · ${ics4.length} ics4) — click to expand`;
+      const slug = (theme.baseUrl || '').split('/').pop();
+      // Pictogram ID rubric — the canonical Kaleidoscope control/widget id map,
+      // verified against the actual cicn/ics4 pixels + docs/spec/kdef231-reference.md.
+      // The "glyphs" column shows THIS scheme's real ics4 per range. KEY GOTCHA: a
+      // negative id usually carries BOTH a cicn (body raster) and an ics4 (overlay)
+      // with different roles — e.g. -10239 cicn = push-button face, ics4 = checkbox.
+      const RUBRIC = [
+        { lo: -10208, hi: -10197, family: 'Scroll / slider arrows', ics4: 'directional arrow ▶ ◀ ▼ ▲', cicn: 'slider thumb / track (v+h)', states: 'R,L,D,U × normal · pressed · inactive' },
+        { lo: -10224, hi: -10214, family: 'Radio button', ics4: 'radio off / on / mixed ○ ● ⊟', cicn: 'progress / control body', states: 'off·on·mixed × active·pressed·disabled' },
+        { lo: -10240, hi: -10229, family: 'Checkbox  ⚠ shares IDs with push-button', ics4: 'checkbox empty / ✓ / – / ✕', cicn: 'push-button face (-238/-239/-240) + ring (-230/-231/-232)', states: 'mark × active · pressed · disabled' },
+        { lo: -14320, hi: -14315, family: 'Utility-window widgets', ics4: 'float/tool title-bar widget box', cicn: 'utility / floating window chrome', states: 'active · inactive' },
+        { lo: -14336, hi: -14331, family: 'Document-window widgets', ics4: 'close / zoom / collapse / grow box', cicn: 'doc frame (-335/-336) · grow (-333/-334) · collapsed (-331/-332)', states: 'active · inactive' },
+        { ids: [-16455, -16386], family: 'App / scheme icon', ics4: 'scheme badge · Apple logo', cicn: '—', states: '—' },
+        { ids: [3060, 3061], family: 'Disclosure', ics4: 'disclosure triangle ▶ ▼', cicn: '—', states: '—' },
+      ];
+      const matchRow = (r, id) => (r.lo != null ? id >= r.lo && id <= r.hi : r.ids.includes(id));
+      const rdet = document.createElement('details');
+      rdet.style.cssText = 'margin:2px 0 8px';
+      const rsum = document.createElement('summary');
+      rsum.style.cssText = 'cursor:pointer; color:#777; font-weight:600; padding:2px 0';
+      rsum.textContent = 'Pictogram ID rubric (Kaleidoscope resource-id map) — click to expand';
+      rdet.appendChild(rsum);
+      const thS = 'text-align:left;padding:3px 6px;border:1px solid #ddd;background:#ececec;font-weight:600';
+      const tdS = 'padding:3px 6px;border:1px solid #eee;vertical-align:top';
+      const tbl = document.createElement('table');
+      tbl.style.cssText = 'border-collapse:collapse; margin:4px 0 6px; font:10px/1.3 system-ui; color:#444';
+      const cap = document.createElement('caption');
+      cap.style.cssText = 'text-align:left;color:#777;padding:2px 0 4px;font-style:italic';
+      cap.innerHTML = 'A negative id can be a <b>cicn</b> (body) AND an <b>ics4</b> (overlay) with different roles — see -10229..-10240. Other negative ids (-3800..-20800) are the Finder/system icon suite (Apple Icon Services ids), shown in the grids below.';
+      tbl.appendChild(cap);
+      const hr = document.createElement('tr');
+      ['ID range', 'Family', 'glyphs (this scheme)', 'ics4 pictogram', 'cicn at same id', 'states'].forEach((h) => { const th = document.createElement('th'); th.style.cssText = thS; th.textContent = h; hr.appendChild(th); });
+      tbl.appendChild(hr);
+      for (const r of RUBRIC) {
+        const tr = document.createElement('tr');
+        const rangeLbl = r.lo != null ? `${r.lo} .. ${r.hi}` : r.ids.join(', ');
+        const matches = ics4.filter((i) => matchRow(r, i.id)).sort((a, b) => a.id - b.id);
+        const glyphCell = document.createElement('td');
+        glyphCell.style.cssText = tdS;
+        const strip = document.createElement('div');
+        strip.style.cssText = 'display:flex; flex-wrap:wrap; gap:2px; max-width:220px';
+        for (const m of matches.slice(0, 16)) {
+          const im = document.createElement('img');
+          im.src = `${theme.baseUrl}/icons/${m.file}`; im.loading = 'lazy';
+          im.title = `${m.type} ${m.id} @ ${slug}`;
+          Object.assign(im.style, { width: '16px', height: '16px', imageRendering: 'pixelated', background: '#fff', border: '1px solid #ddd' });
+          strip.appendChild(im);
+        }
+        if (matches.length > 16) { const more = document.createElement('span'); more.textContent = `+${matches.length - 16}`; more.style.cssText = 'color:#999;align-self:center'; strip.appendChild(more); }
+        if (!matches.length) strip.textContent = '—';
+        glyphCell.appendChild(strip);
+        [rangeLbl, r.family, null, r.ics4, r.cicn, r.states].forEach((c, idx) => {
+          if (idx === 2) { tr.appendChild(glyphCell); return; }
+          const td = document.createElement('td'); td.style.cssText = tdS;
+          if (idx === 0) td.innerHTML = `<code>${c}</code>`; else td.textContent = c;
+          tr.appendChild(td);
+        });
+        tbl.appendChild(tr);
+      }
+      rdet.appendChild(tbl);
+      det.appendChild(rdet);
       const section = (label, list, px) => {
         if (!list.length) return;
         const head = document.createElement('div');
@@ -227,22 +288,38 @@
         const grid = document.createElement('div');
         grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:4px 0';
         for (const i of list) {
+          const code = `${i.type} ${i.id}`;
+          const path = `themes/${slug}/icons/${i.file}`;
+          const copyText = `${code} @ ${slug} — ${path}`;
           const cell = document.createElement('div');
-          cell.style.cssText = 'width:86px; text-align:center; font:9px/1.15 system-ui; color:#555';
+          cell.style.cssText = 'width:86px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
+          cell.title = `Click to copy:\n${copyText}`;
           const img = document.createElement('img');
           img.src = `${theme.baseUrl}/icons/${i.file}`; img.loading = 'lazy';
-          img.title = `${i.type} ${i.id}${i.name ? ' — ' + i.name.trim() : ''}`;
           Object.assign(img.style, { width: `${px}px`, height: `${px}px`, imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
           const lab = document.createElement('div');
-          lab.textContent = `${i.id}${i.name ? '\n' + i.name.trim() : ''}`;
+          const labText = `${i.id}${i.name ? '\n' + i.name.trim() : ''}`;
+          lab.textContent = labText;
           lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word';
           cell.append(img, lab);
+          cell.onclick = async () => {
+            try { await navigator.clipboard.writeText(copyText); }
+            catch {
+              const ta = document.createElement('textarea');
+              ta.value = copyText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+              document.body.appendChild(ta); ta.select();
+              try { document.execCommand('copy'); } catch {}
+              ta.remove();
+            }
+            lab.textContent = '✓ copied'; lab.style.color = '#0a7d00';
+            setTimeout(() => { lab.textContent = labText; lab.style.color = ''; }, 900);
+          };
           grid.appendChild(cell);
         }
         det.appendChild(grid);
       };
       section('icl4 (32px scene icons)', icl4, 32);
-      section('ics4 (16px pictograms)', ics4, 24);
+      section('ics4 (16px pictograms)', ics4, 16); // native size — don't upscale pixel art
       return det;
     }
 

@@ -246,12 +246,23 @@ hi=-8271). They reveal the control families the kDEF expects:
 | `-10080`/`-10078`/`-10079` · `-10223`/`-10224` | **progress bar**: 3-part frame/track/fill (most schemes) · 2-part track/fill, no frame (beos lavender) | `controls.ts composeProgress` |
 | `-12304`/`-12303` | popup variant **(?)** | immediates |
 
-> **Correction (carried over from the now-retired `kdef-layout-recipes.md`):**
-> that doc listed checkbox/radio as `-10238`/`-10232/-10231` "ics". The 2.3.1
-> kDEF does NOT emit -9488..-9504 as
-> immediates — those are derived (base+offset / manifest) and only appear on the
-> consumer side (`controls.ts`). -10232/-10231 are the **default-button ring**
-> mixed/active, not checkbox glyphs. Treat the old §5 ics IDs as **(?)**.
+> **Resolution (2026-05-25 — verified against the actual `cicn` *and* `ics4`
+> pixels in all three pictogram schemes: apple-platinum-2, platinum-8,
+> system7-nostalgia-silver).** The old `kdef-layout-recipes.md` was not wrong to
+> tie checkbox/radio to `-10238`/`-10231/-10232`; it conflated two resources that
+> share one numeric id. **A negative id carries BOTH a `cicn` (body raster) AND an
+> `ics4` (pictogram overlay), and they are different controls:**
+> - `cicn` `-10239`/`-10238`/`-10240` = **push-button face** (normal/pressed/disabled);
+>   `cicn` `-10231`/`-10232`/`-10230` = **default-button ring** (active/inactive/mixed).
+>   This is the channel the 2.3.1 kDEF draws (verified §2.2) — correct.
+> - `ics4` `-10229..-10240` = **checkbox** glyphs (empty / ✓ / – / ✕ × active·pressed·
+>   disabled); `ics4` `-10214..-10224` = **radio** glyphs (off/on/mixed × states);
+>   `ics4` `-10197..-10208` = scroll/slider **arrows** (R,L,D,U × normal·pressed·inactive);
+>   `ics4` `-14315..-14320` / `-14331..-14336` = utility / document window **widget**
+>   glyphs. These are the scheme-supplied control *pictograms*.
+> `-9488..-9504` are still derived consumer-side (not kDEF immediates). The full
+> two-channel id→role map is the **pictogram ID rubric** rendered in
+> `demo/index.html` `iconInventory` (and reproduced for authoring in the asset catalog).
 
 ### 2.5 cinf id range + clut/Colr
 

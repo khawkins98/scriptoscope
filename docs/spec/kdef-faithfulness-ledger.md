@@ -13,6 +13,15 @@ ledger is how we keep our own code a faithful mimic and make every divergence
 > look up what a routine *does* in the binary; use this ledger to see how — and
 > how faithfully — `composeChrome.ts` mirrors it.
 
+> **Two-channel resource model (controls) — 2026-05-25.** This ledger covers window
+> *chrome* (`composeChrome.ts`). The in-window *controls* live in `controls.ts` and
+> follow a rule worth stating once: a negative resource id can carry BOTH a `cicn`
+> (body raster) AND an `ics4` (pictogram overlay) with **different roles** — e.g.
+> cicn `-10239` is a push-button face, while ics4 `-10239` is a checkbox (on). This
+> was the source of repeated checkbox/radio misreads. The full two-channel control
+> id→role map is resolved in [`kdef231-reference.md` §2.4](./kdef231-reference.md)
+> and rendered live as the pictogram rubric in `demo/index.html` `iconInventory`.
+
 How to use it:
 - **Adding/changing compose logic?** Find the routine here first; the asm address
   is the ground truth (verify against it when a render disagrees).
