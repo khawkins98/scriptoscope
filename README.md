@@ -4,7 +4,7 @@ A web-native runtime that renders classic [Kaleidoscope](https://en.wikipedia.or
 
 Load any freeware-licensed Kaleidoscope scheme and Aaron UI draws its windows — chrome, controls, and colors — pixel-faithfully in the browser. Aaron UI doesn't hand-author a "Platinum theme" (or any theme). It reads each scheme's `cicn` artwork, `wnd#` layout recipe, and `cinf`/`Colr` metadata and replays the rendering itself: the window-chrome compositor (`src/composeChrome.ts`) is a clean-room reimplementation of the decompiled Kaleidoscope **2.3.1** kDEF (a 68k `WDEF`), driven by a part-code jump table. Get the engine right once and every scheme renders for free.
 
-The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`.
+The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`.
 
 > **Status (v3, 2026-05-23):** the project went through a v2 clean-break and is now on the **v3 part-code-compositor reset** — the chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the 2.3.1 binary. ("v1/v2/v3" are *architecture* generations — internal resets — not release versions; the package itself is pre-1.0.) The codebase is in prototype mode: the public surface is the `loadTheme()` / `renderWindow()` runtime in [`src/index.ts`](./src/index.ts), exercised by the demo. See [`docs/history.md`](./docs/history.md) for the full arc (and the "Dead ends — don't relitigate these" list — read it first). Live demo: <https://khawkins98.github.io/aaron-ui/>.
 
