@@ -84,6 +84,7 @@ below — not a one-time pass. The loop, every time:
 | platinum-8 | document | (NOT A BUG) bar looked "washed out" | platinum-8's `cicn -14331` is a flat gray block BY DESIGN | platinum-8 itself | **CLOSED — FAITHFUL.** Owner confirmed: platinum-8's document bar IS flat (no pinstripe). ⚠️ GUARDRAIL: do NOT add stripes — a PRIOR agent wrongly "fixed" this and it had to be reverted. The flat `-14331` is correct; the render path is correct. This is the punch-list trap (special-casing a non-bug); the reconcile loop correctly closed it. |
 | all platinum/system7 | document | title-bar widgets too big (~16px) + ~1px too high | composer sized the box by the full 16×16 ics resource, not the glyph's INK (mark is 13×13/11×11, corner-anchored) | kDEF drawable-extent rule (trim transparent tails) | **CLOSED** — `composeCornerSprite` now sizes+centers widgets by glyph ink bbox; 16×16@y2 → 13×13@y3. Also widens the gripper region. |
 | apple-platinum-2, platinum-8, system7 | document | widgets flat / poor color (tan tint on aplat2) | `extract-icons.mjs` preferred **ics4 (4-bit/16-col) over ics8 (8-bit/256-col)** at the same id — discarded the richer shipped ics8; the tan was a 4-bit palette artifact | the scheme's own shipped ics8 (8-bit) | **CLOSED** — extractor now emits ALL depths (full gallery inventory — every shipped asset); the renderer's glyph map picks the HIGHEST depth per id. Re-extracted ALL schemes. Widgets gain depth/sheen + correct gray (no tan); ics4-n14336=4 colors → ics8=9. Stretch goal: let users pick a lower depth in the viewer. |
+| all platinum/system7 | document | title bar ~1px too high / **top frame highlight cropped** (the gradient at the top of the border box) | **NOT the chrome buffer** — verified composeCornerSprite draws row 0 = black outline + row 1 = highlight (240,240,240) correctly. The crop is DOWNSTREAM: renderWindow's chrome-canvas placement, or a clipping container in the live diagnostic DOM/CSS. | buffer is correct → fix the layout layer | **traced, OPEN** — needs a LIVE DOM/browser inspect (renderWindow + demo CSS); fresh session. ⚠️ Don't hunt in composeCornerSprite — the geometry is fine. |
 | _(owner is seeing more — add each: scheme · type · symptom · suspected value)_ | | | | | |
 
 > When the owner reports a glitch, capture it here FIRST (scheme + window type + what's
@@ -130,20 +131,28 @@ wanted for cicn-less schemes beyond the existing baseline.
 
 ---
 
-## Future directions (owner-flagged, not yet started)
+## Future directions
 
+### Near-term / practical (do next, bounded)
+- **Fix the title-bar-top crop** (catalog row above) — a layout-layer fix in renderWindow /
+  the demo CSS, found via a live DOM inspect. The geometry buffer is already correct.
 - **Analyze the `Mac OS 8.5b6 Beta Themes`** (`~/Downloads/Mac OS 8.5b6 Beta Themes/` +
-  `.sit`). Strong lead: the AppearanceLib decode established that Platinum's look is
-  DATA-driven — the engine is a generic drawer; the gradients/colors/bevel params live
-  in the theme file / `wctb`, NOT in the code (which is why our `tuning:` values in
-  `cornerSpriteGeometry.ts` are calibrated guesses). Those beta theme files ARE that data
-  layer. Enumerating one (via `tools/theme-loader/resource-fork.js`) for `thme`/`clut`/
-  `ppat`/gradient resources could give us the real parameter values to replace the guesses
-  — turning more `tuning:` fields into sourced ones. High-value, bounded research task.
-- **Support Appearance Manager (`.thme`) themes** as a first-class theme kind. This is the
-  natural endpoint of the data/drawer architecture we validated: a `.thme` file IS the
-  DATA, our compositor can be the generic DRAWER. Higher fidelity than the Kaleidoscope
-  recreations. Big bridge (parse the theme format, map params → renderer); later.
+  `.sit`). Strong, bounded lead: the AppearanceLib decode established that Platinum's look
+  is DATA-driven — the gradients/colors/bevel params live in the theme file / `wctb`, NOT
+  in the code (which is why our `tuning:` values in `cornerSpriteGeometry.ts` are calibrated
+  guesses). Those beta theme files ARE that data layer. Enumerating one (via
+  `tools/theme-loader/resource-fork.js`) for `thme`/`clut`/`ppat`/gradient resources could
+  turn `tuning:` guesses into SOURCED values. Research task, not a refactor.
+
+### STRETCH goals (later — bigger bridges, not now)
+- **Native Appearance Manager (`.thme`) theme support** as a first-class theme kind. The
+  natural endpoint of the data/drawer architecture we validated: a `.thme` file IS the DATA,
+  our compositor IS the generic DRAWER. Higher fidelity than the Kaleidoscope recreations
+  (Apple's actual theme data vs a third-party's interpretation). Big bridge: parse the theme
+  format, map its params → the renderer. Aligned, but a real project of its own.
+- **Bit-depth picker in the diagnostic viewer.** We now extract + inventory every depth and
+  render the highest per id; a later UI affordance could let the user select a lower depth
+  to preview how a scheme looked on a 4-bit display. Nice-to-have, not load-bearing.
 
 ## How to work here
 
