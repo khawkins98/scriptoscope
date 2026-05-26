@@ -134,7 +134,24 @@ wanted for cicn-less schemes beyond the existing baseline.
 
 ## Future directions
 
+### KEY INSIGHT — why the Platinum-family CONTROLS look off (the unifying cause)
+apple-platinum-2 and the System-7 corner-sprite schemes are **lightly skinned**: they
+defer standard controls to **Mac OS 8's native Appearance Manager drawing**, shipping only
+a *partial* art set. Evidence: apple-platinum-2 ships **no `cicn` radio control face**
+(-9488/-9491) — only small ics glyphs. In Kaleidoscope, a scheme with no control `cicn`
+**falls through to the OS** to draw that control. So the period-correct radio/checkbox/
+buttons were **OS-drawn**, not the scheme's art — and the odd ics8 glyphs we render
+(e.g. the black-slash disabled radio `-10224`) are *fallback/partial* art Kaleidoscope
+likely never showed. This is NOT a decode bug (the decode is verified correct); it's that
+we substitute the scheme's partial art where the period used native OS drawing we don't
+reproduce. Two fixes, below.
+
 ### Near-term / practical (do next, bounded)
+- **Mine `kdef231` (decompiled Kaleidoscope) for the control DEFER LOGIC** — which
+  controls/states a scheme draws from its own `cicn`/ics vs hands to the OS default. That
+  tells us when a scheme glyph is REAL vs a fallback we shouldn't trust; for fallbacks,
+  draw our procedural Platinum baseline (closer to OS-native) instead of the odd glyph.
+  (Decompile via the `.scratch/iso-recon` toolchain; house style in `docs/spec/kdef231-reference.md`.)
 - **Fix the title-bar-top crop** (catalog row above) — a layout-layer fix in renderWindow /
   the demo CSS, found via a live DOM inspect. The geometry buffer is already correct.
 - **Analyze the `Mac OS 8.5b6 Beta Themes`** (`~/Downloads/Mac OS 8.5b6 Beta Themes/` +
