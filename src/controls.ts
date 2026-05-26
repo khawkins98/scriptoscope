@@ -659,25 +659,13 @@ export async function composeProgress(
       dst.copyBits(src, { x: src.width - cap, y: 0, w: cap, h: src.height }, { x: w - cap, y: 0, w: cap, h: ph });
       dst.copyBits(src, { x: cap, y: 0, w: src.width - cap * 2, h: src.height }, { x: cap, y: 0, w: w - cap * 2, h: ph });
     };
-    if (trk) {
-      // The TRACK is the trough (its frame is the bar's ONE frame). Fill the trough's
-      // INTERIOR with the fill tile's interior colour (no fill frame) from 0..value —
-      // -10223 and -10224 are separate complete-framed tiles whose frame greys differ,
-      // so abutting them read as two bars; sharing the trough's frame fixes that.
-      slice3(out, trk);
-      const ins = 2; // Platinum progress trough frame ≈ 2px
-      const fw = Math.min(length - ins, Math.round(value * length));
-      const ih = ph - ins * 2;
-      if (value > 0 && fw > ins && ih > 0) {
-        out.copyBits(
-          lavender,
-          { x: ins, y: ins, w: Math.max(1, lavender.width - ins * 2), h: Math.max(1, lavender.height - ins * 2) },
-          { x: ins, y: ins, w: fw - ins, h: ih },
-        );
-      }
-    } else if (value > 0) {
-      // No dedicated track: 3-slice the fill tile itself (drawOver keeps its rounded
-      // corners from erasing anything beneath).
+    // Empty track across the full bar, then the FILL tile 3-sliced to value over it.
+    // The fill keeps its OWN tile (bevel + highlight + leading edge) — 3-slicing (caps
+    // 1:1, middle stretched) preserves that, where stretching only the interior colour
+    // came out flat/awkward. drawOver (alpha-respecting) composites the fill so its
+    // rounded corners don't erase the track at the leading edge (a 1px seam otherwise).
+    if (trk) slice3(out, trk);
+    if (value > 0) {
       const fb = PixelBuffer.alloc(Math.max(1, Math.round(value * length)), ph);
       slice3(fb, lavender);
       out.drawOver(fb, 0, 0);
