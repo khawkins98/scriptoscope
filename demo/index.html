@@ -180,19 +180,18 @@
     const ICON_SVG = {
       folder: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#dccfa3" stroke="#7a6a3a" stroke-width="1"/><path d="M2 9 h32 v13 h-32 z" fill="#e8dcb6" stroke="#7a6a3a" stroke-width="1"/></svg>',
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
-      // baseline Finder grid/proxy glyph (a 3×3 of squares) for the volume header of
-      // schemes that don't bundle the -3790 grid icon (system7/platinum expect a
-      // built-in Finder icon they don't ship).
-      grid: '<svg width="14" height="14" viewBox="0 0 14 14" style="display:block"><g fill="#cfcfcf" stroke="#5a5a5a" stroke-width="1">'
-        + '<rect x="0.5" y="0.5" width="3.5" height="3.5"/><rect x="5" y="0.5" width="3.5" height="3.5"/><rect x="9.5" y="0.5" width="3.5" height="3.5"/>'
-        + '<rect x="0.5" y="5" width="3.5" height="3.5"/><rect x="5" y="5" width="3.5" height="3.5"/><rect x="9.5" y="5" width="3.5" height="3.5"/>'
-        + '<rect x="0.5" y="9.5" width="3.5" height="3.5"/><rect x="5" y="9.5" width="3.5" height="3.5"/><rect x="9.5" y="9.5" width="3.5" height="3.5"/>'
-        + '</g></svg>',
     };
 
+    // The Finder volume-header grid/proxy glyph for schemes that don't bundle -3790
+    // (system7-nostalgia-silver / apple-platinum-2 / platinum-8 expect a built-in
+    // Finder icon they don't ship). SLICED from the system7-nostalgia-silver REFERENCE
+    // screenshot (the real Platinum-era grid: 13×13 gray frame, cells made transparent
+    // so it composites onto any info-bar colour) rather than hand-drawn — owner-directed.
+    const FINDER_GRID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANAgAAAAAdMKMBAAAAAnRSTlMAA++anIIAAAABb3JOVAHPoneaAAAAFUlEQVQI12NYtWpVA8P+/fuRCVLEAGm6Ip4agi9NAAAAAElFTkSuQmCC';
+
     // The volume-header grid/proxy icon: the scheme's OWN -3790 (16px ics4/ics8)
-    // where it ships one, else the baseline 3×3 grid SVG. Returns an element ready
-    // to drop into the Finder info bar.
+    // where it ships one, else the grid sliced from the reference screenshot
+    // (FINDER_GRID_PNG). Returns an element ready to drop into the Finder info bar.
     const _gridCache = new Map();
     async function gridProxyIcon(theme) {
       if (!_gridCache.has(theme.baseUrl)) {
@@ -209,14 +208,14 @@
         const img = document.createElement('img');
         img.src = `${theme.baseUrl}/icons/${file}`;
         img.title = '-3790 grid (scheme icon)';
-        Object.assign(img.style, { width: '14px', height: '14px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' });
+        Object.assign(img.style, { width: '16px', height: '16px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (ics4/ics8 16px)
         return img;
       }
-      const span = document.createElement('span');
-      span.innerHTML = ICON_SVG.grid;
-      span.title = '-3790 grid (baseline)';
-      Object.assign(span.style, { display: 'block', flex: '0 0 auto', lineHeight: '0' });
-      return span;
+      const img = document.createElement('img');
+      img.src = FINDER_GRID_PNG;
+      img.title = '-3790 grid (sliced from the reference screenshot)';
+      Object.assign(img.style, { width: '13px', height: '13px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (13px reference slice)
+      return img;
     }
 
     // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/), shown as the
@@ -270,7 +269,7 @@
         const img = document.createElement('img');
         img.src = `${theme.baseUrl}/icons/${i.file}`;
         img.title = `${i.type} ${i.id} — scheme icon`;
-        Object.assign(img.style, { width: '28px', height: '28px', imageRendering: 'pixelated', display: 'block' });
+        Object.assign(img.style, { width: '32px', height: '32px', imageRendering: 'pixelated', display: 'block' }); // 1x native (icl4/icl8 32px)
         return img;
       });
     }
@@ -601,7 +600,7 @@
         // radio / checkbox control row
         const chk = (kind, o) => checkableEl(theme, kind, '', o);
         const ctlRow = document.createElement('div');
-        Object.assign(ctlRow.style, { position: 'absolute', left: '8px', top: '52px', display: 'flex', gap: '7px', alignItems: 'center' });
+        Object.assign(ctlRow.style, { position: 'absolute', left: '8px', top: '58px', display: 'flex', gap: '7px', alignItems: 'center' });
         ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
         content.appendChild(ctlRow);
         // edge scrollbars + grow box (Finder window furniture)
