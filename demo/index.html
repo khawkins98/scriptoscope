@@ -690,7 +690,7 @@
     // Per-theme diagnostic: the top-edge recipe as a color-coded strip, so we
     // can SEE each segment's part-code role (corner / border / widget / the
     // p5/p6 "title region" / p8 fill) and where the title region sits.
-    function diagnosticStrip(theme) {
+    async function diagnosticStrip(theme) {
       const ROLE = { 0: ['#cfcfcf', 'corner'], 1: ['#9a9a9a', 'border'], 2: ['#dd3366', 'close'], 3: ['#dd8800', 'zoom'], 4: ['#33aa88', 'shade'], 5: ['#3cb043', 'TITLE'], 6: ['#3cb043', 'TITLE'], 8: ['#3f7fd0', 'fill'], 10: ['#aa00aa', 'piece'] };
       const pc = (s) => { const m = /^part-(\d+)$/.exec(s || ''); return m ? +m[1] : -1; };
       const wrap = document.createElement('div');
@@ -701,7 +701,56 @@
       hd.textContent = 'window geometry — top-edge recipe (part roles)';
       wrap.appendChild(hd);
       if (!wt || !wt.edges || !wt.edges.top || !wt.edges.top.length) {
-        const e = document.createElement('div'); e.textContent = '(no wnd# recipe — default/baseline window)'; e.style.opacity = '.6'; wrap.appendChild(e); return wrap;
+        // No wnd# recipe → a corner-sprite PROCEDURAL scheme (apple-platinum-2,
+        // system7-nostalgia-silver, platinum-8, black-platinum). These have no
+        // x-segmented recipe in the manifest, but composeCornerSprite returns a
+        // `placement` (racing-stripe title fill, widgets, frame) at render time —
+        // so render the window and build the strip by projecting those top-edge
+        // regions onto X. Now these schemes show their region geometry like 1138.
+        let cwin = null;
+        try { cwin = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 1, state: 'active' }); } catch { /* render may fail offline */ }
+        const comp = cwin && cwin._awComposed;
+        if (!comp || !comp.placement || !comp.placement.length) {
+          const e = document.createElement('div'); e.textContent = '(no wnd# recipe — default/baseline window)'; e.style.opacity = '.6'; wrap.appendChild(e); return wrap;
+        }
+        const fullW = comp.fullWidth, titleH = comp.frame.top, SC = 3;
+        // Title-bar art (the live chrome), clipped to the bar height, at ×SC + the
+        // same x-origin as the strip — so each segment lines up under the art it maps.
+        const artWrap = document.createElement('div');
+        Object.assign(artWrap.style, { width: `${fullW * SC}px`, height: `${titleH * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
+        try { const cv = bufferToCanvas(comp.buffer, SC); cv.style.cssText = 'display:block;image-rendering:pixelated'; artWrap.appendChild(cv); } catch { /* */ }
+        wrap.appendChild(artWrap);
+        // Project regions onto X: widget (drawn on top) > racing-stripe fill > frame.
+        const col = new Array(fullW).fill(1); // border (gray)
+        for (let x = 0; x < fullW; x++) if (x < comp.frame.left || x >= fullW - comp.frame.right) col[x] = 0; // corner
+        for (const s of comp.placement) if (s.role === 'title pinstripe')
+          for (const r of s.rects) for (let x = r.x; x < r.x + r.w; x++) if (x >= 0 && x < fullW) col[x] = 8; // racing-stripe fill
+        for (const s of comp.placement) if (s.edge === 'widget' && s.role !== 'grow box') {
+          const roles = (s.role || '').split('/'); // matches rects order (close/zoom/collapse)
+          s.rects.forEach((r, i) => { const rc = roles[i] === 'close' ? 2 : roles[i] === 'zoom' ? 3 : 4;
+            for (let x = r.x; x < r.x + r.w; x++) if (x >= 0 && x < fullW) col[x] = rc; });
+        }
+        const bar = document.createElement('div');
+        Object.assign(bar.style, { display: 'flex', width: `${fullW * SC}px`, height: '20px', border: '1px solid #888', boxSizing: 'border-box', marginTop: '3px' });
+        let bi = 0;
+        while (bi < fullW) {
+          let bj = bi; while (bj < fullW && col[bj] === col[bi]) bj++;
+          const code = col[bi], role = ROLE[code] || ['#ffaa00', 'p' + code];
+          const seg = document.createElement('div');
+          Object.assign(seg.style, { width: `${(bj - bi) * SC}px`, background: role[0], borderRight: '1px solid rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '8px', overflow: 'hidden' });
+          seg.textContent = code === 8 ? '≡' : String(code);
+          seg.title = `${code === 8 ? 'racing-stripe title fill' : role[1]} — x${bi}–${bj} (${bj - bi}px)`;
+          bar.appendChild(seg); bi = bj;
+        }
+        wrap.appendChild(bar);
+        const leg = document.createElement('div'); leg.style.cssText = 'margin-top:3px;font-size:9px';
+        leg.innerHTML = [['racing stripes (fill)', '#3f7fd0'], ['close', '#dd3366'], ['zoom', '#dd8800'], ['shade', '#33aa88'], ['corner', '#cfcfcf'], ['border', '#9a9a9a']]
+          .map(([k, c]) => `<span style="display:inline-block;width:9px;height:9px;background:${c};vertical-align:middle;margin:0 3px 0 8px;border:1px solid #aaa"></span>${k}`).join('');
+        wrap.appendChild(leg);
+        const note = document.createElement('div'); note.style.cssText = 'opacity:.55;font-size:9px;margin-top:2px';
+        note.textContent = 'procedural (WDEF 125) — regions read from the live render, not a wnd# recipe';
+        wrap.appendChild(note);
+        return wrap;
       }
       const ce = Object.values(theme.manifest.chromeElements || {}).find((v) => v.asset === wt.chrome.active);
       const cicnW = ce ? ce.width : 100;
@@ -1244,7 +1293,7 @@
         row.appendChild(c);
       }
 
-      section.appendChild(diagnosticStrip(theme));
+      section.appendChild(await diagnosticStrip(theme));
       section.appendChild(await sliceInspector(theme));
       section.appendChild(await iconInventory(theme));
       section.appendChild(await rasterInventory(theme));
