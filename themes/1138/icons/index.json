@@ -1,6 +1,16 @@
 [
   {
     "id": -20801,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20801.png",
+    "name": "Internet Search Sites",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -20801,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -8,6 +18,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -20800,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20800.png",
+    "name": "Disk Image Icon",
+    "masked": true,
+    "coverage": 0.997
   },
   {
     "id": -20800,
@@ -21,11 +41,31 @@
   },
   {
     "id": -20797,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20797.png",
+    "name": "Scripts Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -20797,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n20797.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -20792,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20792.png",
+    "name": "ColorSync Profiles",
     "masked": true,
     "coverage": 0.671
   },
@@ -41,6 +81,16 @@
   },
   {
     "id": -20789,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20789.png",
+    "name": "Alias Badge Icon",
+    "masked": true,
+    "coverage": 0.079
+  },
+  {
+    "id": -20789,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -48,6 +98,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.079
+  },
+  {
+    "id": -20788,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20788.png",
+    "name": "Shared Badge Icon",
+    "masked": true,
+    "coverage": 0.119
   },
   {
     "id": -20788,
@@ -61,6 +121,16 @@
   },
   {
     "id": -20787,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20787.png",
+    "name": "Mounted Badge Icon",
+    "masked": true,
+    "coverage": 0.26
+  },
+  {
+    "id": -20787,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -68,6 +138,16 @@
     "name": "Mounted Badge Icon",
     "masked": true,
     "coverage": 0.26
+  },
+  {
+    "id": -20786,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20786.png",
+    "name": "Locked Badge Icon",
+    "masked": true,
+    "coverage": 0.079
   },
   {
     "id": -20786,
@@ -81,6 +161,16 @@
   },
   {
     "id": -20744,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20744.png",
+    "name": "Internet Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -20744,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -91,11 +181,31 @@
   },
   {
     "id": -20739,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20739.png",
+    "name": "Generic Location",
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20739,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n20739.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20738,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20738.png",
+    "name": "News Location",
     "masked": true,
     "coverage": 0.799
   },
@@ -111,11 +221,31 @@
   },
   {
     "id": -20737,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20737.png",
+    "name": "Mail Location",
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20737,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n20737.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20736,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20736.png",
+    "name": "File Location",
     "masked": true,
     "coverage": 0.799
   },
@@ -131,11 +261,31 @@
   },
   {
     "id": -20735,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20735.png",
+    "name": "AppleShare Location",
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20735,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n20735.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20734,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20734.png",
+    "name": "FTP Location",
     "masked": true,
     "coverage": 0.799
   },
@@ -151,6 +301,16 @@
   },
   {
     "id": -20733,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20733.png",
+    "name": "HTTP Location",
+    "masked": true,
+    "coverage": 0.799
+  },
+  {
+    "id": -20733,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -158,6 +318,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.799
+  },
+  {
+    "id": -20726,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20726.png",
+    "name": "AppleTalk Icon",
+    "masked": true,
+    "coverage": 0.506
   },
   {
     "id": -20726,
@@ -171,6 +341,16 @@
   },
   {
     "id": -20723,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n20723.png",
+    "name": "Appearance Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -20723,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -178,6 +358,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -16494,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n16494.png",
+    "name": "System Suitcase Icon",
+    "masked": true,
+    "coverage": 0.658
   },
   {
     "id": -16494,
@@ -191,6 +381,16 @@
   },
   {
     "id": -16455,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n16455.png",
+    "name": "Kaleidoscope Scheme Icon",
+    "masked": true,
+    "coverage": 0.848
+  },
+  {
+    "id": -16455,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -198,6 +398,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.848
+  },
+  {
+    "id": -4000,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n4000.png",
+    "name": "File Icon",
+    "masked": true,
+    "coverage": 0.785
   },
   {
     "id": -4000,
@@ -211,6 +421,16 @@
   },
   {
     "id": -3999,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3999.png",
+    "name": "Generic Folder",
+    "masked": true,
+    "coverage": 0.659
+  },
+  {
+    "id": -3999,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -218,6 +438,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.659
+  },
+  {
+    "id": -3998,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3998.png",
+    "name": "Floppy Disk Icon",
+    "masked": true,
+    "coverage": 0.997
   },
   {
     "id": -3998,
@@ -231,6 +461,16 @@
   },
   {
     "id": -3995,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3995.png",
+    "name": "Hard Disk",
+    "masked": true,
+    "coverage": 0.277
+  },
+  {
+    "id": -3995,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -238,6 +478,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.277
+  },
+  {
+    "id": -3994,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3994.png",
+    "name": "Locked Folder",
+    "masked": true,
+    "coverage": 0.671
   },
   {
     "id": -3994,
@@ -251,6 +501,16 @@
   },
   {
     "id": -3993,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3993.png",
+    "name": "Trash Icon",
+    "masked": true,
+    "coverage": 0.625
+  },
+  {
+    "id": -3993,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -258,6 +518,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.625
+  },
+  {
+    "id": -3992,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3992.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.704
   },
   {
     "id": -3992,
@@ -271,6 +541,16 @@
   },
   {
     "id": -3984,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3984.png",
+    "name": "Full Trash Icon",
+    "masked": true,
+    "coverage": 0.615
+  },
+  {
+    "id": -3984,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -281,11 +561,31 @@
   },
   {
     "id": -3983,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3983.png",
+    "name": "System Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3983,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3983.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3982,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3982.png",
+    "name": "Apple Menu Folder",
     "masked": true,
     "coverage": 0.671
   },
@@ -301,6 +601,16 @@
   },
   {
     "id": -3981,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3981.png",
+    "name": "Startup Items Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3981,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -308,6 +618,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3980,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3980.png",
+    "name": "Owned Folder",
+    "masked": true,
+    "coverage": 0.659
   },
   {
     "id": -3980,
@@ -321,6 +641,16 @@
   },
   {
     "id": -3979,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3979.png",
+    "name": "Drop Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3979,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -328,6 +658,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3978,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3978.png",
+    "name": "Shared Folder",
+    "masked": true,
+    "coverage": 0.773
   },
   {
     "id": -3978,
@@ -341,6 +681,16 @@
   },
   {
     "id": -3977,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3977.png",
+    "name": "Shared Folder With a User Logged In",
+    "masked": true,
+    "coverage": 0.785
+  },
+  {
+    "id": -3977,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -351,11 +701,31 @@
   },
   {
     "id": -3976,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3976.png",
+    "name": "Control Panels Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3976,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3976.png",
     "name": "Control Panels Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3975,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3975.png",
+    "name": "Print Spool Folder",
     "masked": true,
     "coverage": 0.671
   },
@@ -371,11 +741,31 @@
   },
   {
     "id": -3974,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3974.png",
+    "name": "Prefs Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3974,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3974.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3973,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3973.png",
+    "name": "Extensions Folder",
     "masked": true,
     "coverage": 0.671
   },
@@ -391,6 +781,16 @@
   },
   {
     "id": -3970,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3970.png",
+    "name": "Generic Suitcase",
+    "masked": true,
+    "coverage": 0.61
+  },
+  {
+    "id": -3970,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -401,11 +801,31 @@
   },
   {
     "id": -3968,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3968.png",
+    "name": "Fonts Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3968,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3968.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3966,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3966.png",
+    "name": "Documents Folder",
     "masked": true,
     "coverage": 0.671
   },
@@ -421,6 +841,16 @@
   },
   {
     "id": -3963,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3963.png",
+    "name": "MacOS ReadMe files",
+    "masked": true,
+    "coverage": 0.67
+  },
+  {
+    "id": -3963,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -431,11 +861,31 @@
   },
   {
     "id": -3962,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3962.png",
+    "name": "Control Strip Modules",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3962,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3962.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3961,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3961.png",
+    "name": "Sounds",
     "masked": true,
     "coverage": 0.671
   },
@@ -451,6 +901,16 @@
   },
   {
     "id": -3960,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3960.png",
+    "name": "Help",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3960,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -458,6 +918,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3959,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3959.png",
+    "name": "Scripting Additions",
+    "masked": true,
+    "coverage": 0.712
   },
   {
     "id": -3959,
@@ -471,6 +941,16 @@
   },
   {
     "id": -3958,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3958.png",
+    "name": "Internet Plug-ins",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3958,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -478,6 +958,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3957,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3957.png",
+    "name": "Language Support",
+    "masked": true,
+    "coverage": 0.675
   },
   {
     "id": -3957,
@@ -491,11 +981,31 @@
   },
   {
     "id": -3956,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3956.png",
+    "name": "Shared Libraries",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3956,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3956.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3955,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3955.png",
+    "name": "Text Encodings",
     "masked": true,
     "coverage": 0.671
   },
@@ -511,6 +1021,16 @@
   },
   {
     "id": -3954,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3954.png",
+    "name": "Printer Drivers Folder",
+    "masked": true,
+    "coverage": 0.712
+  },
+  {
+    "id": -3954,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -521,11 +1041,31 @@
   },
   {
     "id": -3953,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3953.png",
+    "name": "Printer Descriptions",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3953,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3953.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3952,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3952.png",
+    "name": "Voices",
     "masked": true,
     "coverage": 0.671
   },
@@ -541,11 +1081,31 @@
   },
   {
     "id": -3951,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3951.png",
+    "name": "Control Panel (disabled)",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3951,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3951.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3950,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3950.png",
+    "name": "Extension (disabled)",
     "masked": true,
     "coverage": 0.671
   },
@@ -561,11 +1121,31 @@
   },
   {
     "id": -3949,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3949.png",
+    "name": "Startup Items (disabled)",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3949,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3949.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3948,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3948.png",
+    "name": "Shutdown Items (disabled)",
     "masked": true,
     "coverage": 0.671
   },
@@ -581,11 +1161,31 @@
   },
   {
     "id": -3947,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3947.png",
+    "name": "System Extensions (disabled)",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3947,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3947.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3946,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3946.png",
+    "name": "Assistants",
     "masked": true,
     "coverage": 0.671
   },
@@ -601,6 +1201,16 @@
   },
   {
     "id": -3945,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3945.png",
+    "name": "Utilities",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3945,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -608,6 +1218,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3943,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3943.png",
+    "name": "Apple Extras",
+    "masked": true,
+    "coverage": 0.712
   },
   {
     "id": -3943,
@@ -621,6 +1241,16 @@
   },
   {
     "id": -3942,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3942.png",
+    "name": "Contextual Menu Items",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3942,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -628,6 +1258,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.671
+  },
+  {
+    "id": -3828,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3828.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.818
   },
   {
     "id": -3828,
@@ -641,6 +1281,16 @@
   },
   {
     "id": -3822,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3822.png",
+    "name": "Stop Alert",
+    "masked": true,
+    "coverage": 0.859
+  },
+  {
+    "id": -3822,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -648,6 +1298,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.859
+  },
+  {
+    "id": -3821,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3821.png",
+    "name": "Caution Alert Icon",
+    "masked": true,
+    "coverage": 0.559
   },
   {
     "id": -3821,
@@ -661,6 +1321,16 @@
   },
   {
     "id": -3820,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3820.png",
+    "name": "Note Alert Icon",
+    "masked": true,
+    "coverage": 1
+  },
+  {
+    "id": -3820,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -668,6 +1338,16 @@
     "name": null,
     "masked": true,
     "coverage": 1
+  },
+  {
+    "id": -3817,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3817.png",
+    "name": "Removable Disk",
+    "masked": true,
+    "coverage": 0.391
   },
   {
     "id": -3817,
@@ -681,11 +1361,31 @@
   },
   {
     "id": -3812,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3812.png",
+    "name": "Workspaces Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3812,
     "type": "icl4",
     "size": 32,
     "depth": 4,
     "file": "icl4-n3812.png",
     "name": "Workspaces Folder",
+    "masked": true,
+    "coverage": 0.671
+  },
+  {
+    "id": -3811,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3811.png",
+    "name": "User Folder",
     "masked": true,
     "coverage": 0.671
   },
@@ -701,6 +1401,16 @@
   },
   {
     "id": -3804,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3804.png",
+    "name": "Font Suitcase",
+    "masked": true,
+    "coverage": 0.646
+  },
+  {
+    "id": -3804,
     "type": "icl4",
     "size": 32,
     "depth": 4,
@@ -708,6 +1418,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.646
+  },
+  {
+    "id": -3774,
+    "type": "icl8",
+    "size": 32,
+    "depth": 8,
+    "file": "icl8-n3774.png",
+    "name": "System Folder protected",
+    "masked": true,
+    "coverage": 0.706
   },
   {
     "id": -3774,
@@ -721,6 +1441,16 @@
   },
   {
     "id": -20801,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20801.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -20801,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -728,6 +1458,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.949
+  },
+  {
+    "id": -20800,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20800.png",
+    "name": null,
+    "masked": true,
+    "coverage": 1
   },
   {
     "id": -20800,
@@ -741,10 +1481,30 @@
   },
   {
     "id": -20797,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20797.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -20797,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n20797.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -20792,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20792.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -761,6 +1521,16 @@
   },
   {
     "id": -20789,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20789.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.316
+  },
+  {
+    "id": -20789,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -768,6 +1538,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.316
+  },
+  {
+    "id": -20788,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20788.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.156
   },
   {
     "id": -20788,
@@ -781,6 +1561,16 @@
   },
   {
     "id": -20787,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20787.png",
+    "name": "Mounted Badge Icon",
+    "masked": true,
+    "coverage": 0.707
+  },
+  {
+    "id": -20787,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -788,6 +1578,16 @@
     "name": "Mounted Badge Icon",
     "masked": true,
     "coverage": 0.707
+  },
+  {
+    "id": -20786,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20786.png",
+    "name": "Locked Badge Icon",
+    "masked": true,
+    "coverage": 0.316
   },
   {
     "id": -20786,
@@ -801,6 +1601,16 @@
   },
   {
     "id": -20746,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20746.png",
+    "name": "Snap-To-Grid",
+    "masked": true,
+    "coverage": 0.344
+  },
+  {
+    "id": -20746,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -808,6 +1618,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.344
+  },
+  {
+    "id": -20745,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20745.png",
+    "name": "Keep-Arranged",
+    "masked": true,
+    "coverage": 0.266
   },
   {
     "id": -20745,
@@ -821,6 +1641,16 @@
   },
   {
     "id": -20744,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20744.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -20744,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -831,10 +1661,30 @@
   },
   {
     "id": -20739,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20739.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20739,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n20739.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20738,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20738.png",
     "name": null,
     "masked": true,
     "coverage": 0.824
@@ -851,10 +1701,30 @@
   },
   {
     "id": -20737,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20737.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20737,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n20737.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20736,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20736.png",
     "name": null,
     "masked": true,
     "coverage": 0.824
@@ -871,10 +1741,30 @@
   },
   {
     "id": -20735,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20735.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20735,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n20735.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20734,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20734.png",
     "name": null,
     "masked": true,
     "coverage": 0.824
@@ -891,6 +1781,16 @@
   },
   {
     "id": -20733,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20733.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.824
+  },
+  {
+    "id": -20733,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -898,6 +1798,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.824
+  },
+  {
+    "id": -20723,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n20723.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
   },
   {
     "id": -20723,
@@ -911,6 +1821,16 @@
   },
   {
     "id": -16494,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n16494.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.703
+  },
+  {
+    "id": -16494,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -918,6 +1838,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.703
+  },
+  {
+    "id": -16455,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n16455.png",
+    "name": "Kaleidoscope Scheme Icon",
+    "masked": true,
+    "coverage": 0.895
   },
   {
     "id": -16455,
@@ -931,6 +1861,16 @@
   },
   {
     "id": -16386,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n16386.png",
+    "name": "Apple Menu Icon",
+    "masked": true,
+    "coverage": 0.48
+  },
+  {
+    "id": -16386,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -938,6 +1878,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.48
+  },
+  {
+    "id": -4000,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n4000.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.789
   },
   {
     "id": -4000,
@@ -951,6 +1901,16 @@
   },
   {
     "id": -3999,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3999.png",
+    "name": "Generic Folder",
+    "masked": true,
+    "coverage": 0.723
+  },
+  {
+    "id": -3999,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -958,6 +1918,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.723
+  },
+  {
+    "id": -3998,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3998.png",
+    "name": "Floppy Disk Icon",
+    "masked": true,
+    "coverage": 1
   },
   {
     "id": -3998,
@@ -971,6 +1941,16 @@
   },
   {
     "id": -3995,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3995.png",
+    "name": "Harddrive",
+    "masked": true,
+    "coverage": 0.301
+  },
+  {
+    "id": -3995,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -978,6 +1958,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.301
+  },
+  {
+    "id": -3994,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3994.png",
+    "name": "Locked Folder",
+    "masked": true,
+    "coverage": 0.949
   },
   {
     "id": -3994,
@@ -991,6 +1981,16 @@
   },
   {
     "id": -3993,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3993.png",
+    "name": "Empty Trashcan",
+    "masked": true,
+    "coverage": 0.688
+  },
+  {
+    "id": -3993,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -998,6 +1998,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.688
+  },
+  {
+    "id": -3992,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3992.png",
+    "name": "Desktop",
+    "masked": true,
+    "coverage": 0.707
   },
   {
     "id": -3992,
@@ -1011,6 +2021,16 @@
   },
   {
     "id": -3984,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3984.png",
+    "name": "Full Trashcan",
+    "masked": true,
+    "coverage": 0.672
+  },
+  {
+    "id": -3984,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1021,11 +2041,31 @@
   },
   {
     "id": -3983,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3983.png",
+    "name": "System Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3983,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3983.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3982,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3982.png",
+    "name": "Apple Menu Folder",
     "masked": true,
     "coverage": 0.949
   },
@@ -1041,6 +2081,16 @@
   },
   {
     "id": -3981,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3981.png",
+    "name": "Startup/Shutdown Items  Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3981,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1048,6 +2098,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.949
+  },
+  {
+    "id": -3980,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3980.png",
+    "name": "Owned Folder",
+    "masked": true,
+    "coverage": 0.723
   },
   {
     "id": -3980,
@@ -1061,6 +2121,16 @@
   },
   {
     "id": -3979,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3979.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3979,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1068,6 +2138,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.949
+  },
+  {
+    "id": -3978,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3978.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.879
   },
   {
     "id": -3978,
@@ -1081,6 +2161,16 @@
   },
   {
     "id": -3977,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3977.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.91
+  },
+  {
+    "id": -3977,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1091,11 +2181,31 @@
   },
   {
     "id": -3976,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3976.png",
+    "name": "Control Panels Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3976,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3976.png",
     "name": "Control Panels Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3975,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3975.png",
+    "name": null,
     "masked": true,
     "coverage": 0.949
   },
@@ -1111,11 +2221,31 @@
   },
   {
     "id": -3974,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3974.png",
+    "name": "Preferences Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3974,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3974.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3973,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3973.png",
+    "name": "Extensions Folder",
     "masked": true,
     "coverage": 0.949
   },
@@ -1131,6 +2261,16 @@
   },
   {
     "id": -3970,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3970.png",
+    "name": "Suitcase",
+    "masked": true,
+    "coverage": 0.664
+  },
+  {
+    "id": -3970,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1138,6 +2278,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.664
+  },
+  {
+    "id": -3968,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3968.png",
+    "name": "Fonts Folder",
+    "masked": true,
+    "coverage": 0.949
   },
   {
     "id": -3968,
@@ -1151,10 +2301,30 @@
   },
   {
     "id": -3966,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3966.png",
+    "name": "Documents Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3966,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3966.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3963,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3963.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1171,6 +2341,16 @@
   },
   {
     "id": -3962,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3962.png",
+    "name": "Control Strip Modules Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3962,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1181,10 +2361,30 @@
   },
   {
     "id": -3961,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3961.png",
+    "name": "Sounds Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3961,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3961.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3960,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3960.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1201,10 +2401,30 @@
   },
   {
     "id": -3959,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3959.png",
+    "name": "Scripting Additions Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3959,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3959.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3958,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3958.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1221,6 +2441,16 @@
   },
   {
     "id": -3957,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3957.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.719
+  },
+  {
+    "id": -3957,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1228,6 +2458,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.719
+  },
+  {
+    "id": -3956,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3956.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
   },
   {
     "id": -3956,
@@ -1241,10 +2481,30 @@
   },
   {
     "id": -3955,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3955.png",
+    "name": "Text Encodings Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3955,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3955.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3954,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3954.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1261,11 +2521,31 @@
   },
   {
     "id": -3953,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3953.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3953,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3953.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3952,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3952.png",
+    "name": "Speech Recognition Folder",
     "masked": true,
     "coverage": 0.949
   },
@@ -1281,11 +2561,31 @@
   },
   {
     "id": -3951,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3951.png",
+    "name": "Contol Panels Folder (Disabled)",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3951,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3951.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3950,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3950.png",
+    "name": "Extensions Folder (Disabled)",
     "masked": true,
     "coverage": 0.949
   },
@@ -1301,6 +2601,16 @@
   },
   {
     "id": -3949,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3949.png",
+    "name": "Startup Items Folder (Disabled)",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3949,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1311,10 +2621,30 @@
   },
   {
     "id": -3948,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3948.png",
+    "name": "Shutdown Items Folder (Disabled)",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3948,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3948.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3947,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3947.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1331,10 +2661,30 @@
   },
   {
     "id": -3946,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3946.png",
+    "name": "Assistants Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3946,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3946.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3945,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3945.png",
     "name": null,
     "masked": true,
     "coverage": 0.949
@@ -1351,11 +2701,31 @@
   },
   {
     "id": -3943,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3943.png",
+    "name": "Apple Extras",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3943,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3943.png",
     "name": null,
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3942,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3942.png",
+    "name": "Contextual Menu Moduls Folder",
     "masked": true,
     "coverage": 0.949
   },
@@ -1371,6 +2741,16 @@
   },
   {
     "id": -3828,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3828.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.766
+  },
+  {
+    "id": -3828,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1378,6 +2758,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.766
+  },
+  {
+    "id": -3823,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3823.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.324
   },
   {
     "id": -3823,
@@ -1391,6 +2781,16 @@
   },
   {
     "id": -3817,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3817.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.434
+  },
+  {
+    "id": -3817,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1401,11 +2801,31 @@
   },
   {
     "id": -3812,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3812.png",
+    "name": "Workspaces Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3812,
     "type": "ics4",
     "size": 16,
     "depth": 4,
     "file": "ics4-n3812.png",
     "name": "Workspaces Folder",
+    "masked": true,
+    "coverage": 0.949
+  },
+  {
+    "id": -3811,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3811.png",
+    "name": null,
     "masked": true,
     "coverage": 0.949
   },
@@ -1421,6 +2841,16 @@
   },
   {
     "id": -3804,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3804.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.703
+  },
+  {
+    "id": -3804,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1428,6 +2858,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.703
+  },
+  {
+    "id": -3790,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3790.png",
+    "name": "Snap-To-Grid",
+    "masked": true,
+    "coverage": 0.344
   },
   {
     "id": -3790,
@@ -1441,6 +2881,16 @@
   },
   {
     "id": -3789,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3789.png",
+    "name": "Keep-Arranged",
+    "masked": true,
+    "coverage": 0.266
+  },
+  {
+    "id": -3789,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1448,6 +2898,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.266
+  },
+  {
+    "id": -3788,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3788.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.383
   },
   {
     "id": -3788,
@@ -1461,6 +2921,16 @@
   },
   {
     "id": -3787,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3787.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.094
+  },
+  {
+    "id": -3787,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1468,6 +2938,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.094
+  },
+  {
+    "id": -3786,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3786.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.219
   },
   {
     "id": -3786,
@@ -1481,6 +2961,16 @@
   },
   {
     "id": -3785,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3785.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.363
+  },
+  {
+    "id": -3785,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1488,6 +2978,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.363
+  },
+  {
+    "id": -3784,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3784.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.461
   },
   {
     "id": -3784,
@@ -1501,6 +3001,16 @@
   },
   {
     "id": -3783,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3783.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.332
+  },
+  {
+    "id": -3783,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1508,6 +3018,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.332
+  },
+  {
+    "id": -3782,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3782.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.461
   },
   {
     "id": -3782,
@@ -1521,6 +3041,16 @@
   },
   {
     "id": -3781,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3781.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.18
+  },
+  {
+    "id": -3781,
     "type": "ics4",
     "size": 16,
     "depth": 4,
@@ -1528,6 +3058,16 @@
     "name": null,
     "masked": true,
     "coverage": 0.18
+  },
+  {
+    "id": -3774,
+    "type": "ics8",
+    "size": 16,
+    "depth": 8,
+    "file": "ics8-n3774.png",
+    "name": null,
+    "masked": true,
+    "coverage": 0.949
   },
   {
     "id": -3774,

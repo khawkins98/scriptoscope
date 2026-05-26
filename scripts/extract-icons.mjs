@@ -147,17 +147,18 @@ function extract(slug) {
     icl8: { size: 32, maskType: 'ICN#', maskOff: 128, depth: 8 },
     ics8: { size: 16, maskType: 'ics#', maskOff: 32, depth: 8 },
   };
-  // 8-bit BEFORE 4-bit: when a scheme ships an icon at the same id in both depths,
-  // keep the richer 8-bit (256-colour) version; the dedupe below then skips the
-  // lower-depth duplicate. (Was 4-bit-first, which DISCARDED shipped ics8/icl8 and
-  // left widgets/icons looking flat — e.g. apple-platinum-2's close widgets.)
+  // Emit EVERY depth a scheme ships (icl4/ics4 + icl8/ics8). The diagnostic
+  // inventory's job is to show ALL available assets, so we do NOT drop the
+  // lower-depth duplicates — dedupe is per (type,id) only. The RENDERER picks the
+  // highest depth per id when it builds the glyph map (loadTheme.loadGlyphMap), so
+  // rendering uses 8-bit while the gallery still shows the 4-bit variant too.
   for (const type of ['icl8', 'ics8', 'icl4', 'ics4']) {
     const cfg = TYPES[type];
     const need = cfg.depth === 4 ? (cfg.size * cfg.size) / 2 : cfg.size * cfg.size;
     for (const e of entries) {
       if (e.type !== type) continue;
-      const key = `${cfg.size}:${e.id}`;
-      if (done.has(key)) continue; // a higher-depth icon already covered this id+size
+      const key = `${type}:${e.id}`;
+      if (done.has(key)) continue; // same (type,id) already emitted
       if (e.data.length < need) continue;
       const maskData = maskOf(cfg.maskType, e.id);
       const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;

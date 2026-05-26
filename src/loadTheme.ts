@@ -33,6 +33,7 @@ interface IconIndexEntry {
   id: number;
   type: 'icl4' | 'ics4' | 'icl8' | 'ics8';
   size?: number;
+  depth?: number;
   file: string;
 }
 
@@ -42,8 +43,9 @@ interface IconIndexEntry {
  * checkbox / radio / window-widget glyphs that the renderer stamps instead of
  * fabricating. Keyed by the 16px family REGARDLESS of bit-depth: a scheme that
  * ships only 8-bit `ics8` (e.g. Black Platinum, 1990) maps its glyphs the same
- * as a 4-bit `ics4` scheme (the extractor already dedups so there's one 16px
- * entry per id). The 32px icl4/icl8 scene icons are read by the demo inventory.
+ * as a 4-bit `ics4` scheme. The extractor now emits EVERY depth a scheme ships
+ * (so the gallery shows all assets); here we keep the HIGHEST depth per id for
+ * rendering. The 32px icl4/icl8 scene icons are read by the demo inventory.
  * Returns null when the bundle ships no glyphs, so `glyphs` stays absent.
  */
 async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | null> {
@@ -52,8 +54,12 @@ async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | n
     if (!res.ok) return null;
     const index = (await res.json()) as IconIndexEntry[];
     const glyphs: Record<string, string> = {};
+    const depthAt: Record<string, number> = {};
     for (const e of index) {
-      if (e.size === 16 || e.type === 'ics4' || e.type === 'ics8') glyphs[String(e.id)] = `icons/${e.file}`;
+      if (e.size !== 16 && e.type !== 'ics4' && e.type !== 'ics8') continue;
+      const id = String(e.id);
+      const d = e.depth ?? (e.type === 'ics8' ? 8 : 4); // prefer 8-bit over 4-bit at the same id
+      if (d > (depthAt[id] ?? 0)) { glyphs[id] = `icons/${e.file}`; depthAt[id] = d; }
     }
     return Object.keys(glyphs).length ? glyphs : null;
   } catch {
