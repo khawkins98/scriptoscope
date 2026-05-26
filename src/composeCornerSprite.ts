@@ -139,6 +139,29 @@ function dominantColor(buf: PixelBuffer, x0: number, y0: number, w: number, h: n
   return bk < 0 ? fallback : [(bk >> 16) & 255, (bk >> 8) & 255, bk & 255, 255];
 }
 
+/** Is a title-bar stripe sprite a HORIZONTAL-LINE pattern (each row ~uniform across
+ *  the width — the document/dialog racing stripes) vs a per-column pattern (the
+ *  utility DOTS)? Line patterns are STRETCHED on X (one interior column scaled across
+ *  the run) so the sprite's right-edge margin can't tile into a repeating vertical
+ *  seam — apple-platinum-2's stripes stop ~2px short of the edge, which tiled into a
+ *  "sliced" look. Dot patterns are TILED (stretching a column would smear the dots).
+ *  Tests interior columns only (skips the edge margin where the seam lives). */
+function isHorizontalLineStripe(pin: PixelBuffer): boolean {
+  const w = pin.width, h = pin.height;
+  if (w < 6 || h < 2) return false;
+  let uniform = 0;
+  for (let y = 0; y < h; y += 1) {
+    const f = pin.getPixel(2, y);
+    let ok = true;
+    for (let x = 3; x < w - 2; x += 1) {
+      const p = pin.getPixel(x, y);
+      if (Math.abs(p[0] - f[0]) + Math.abs(p[1] - f[1]) + Math.abs(p[2] - f[2]) > 60) { ok = false; break; }
+    }
+    if (ok) uniform += 1;
+  }
+  return uniform >= h * 0.75;
+}
+
 /**
  * FRAME-EXTRACT a window-frame proxy cicn (e.g. -14332): copy the 8 BORDER cells
  * — 4 corners + 4 edges (edges stretched along their run) — and leave the CENTRE
@@ -319,19 +342,29 @@ export function composeCornerSpriteChrome(
       const segs: [number, number][] = plateX >= 0
         ? [[stripeLeft, plateX - 2], [plateX + plateW + 2, stripeRight]]
         : [[stripeLeft, stripeRight]];
+      // Horizontal-line stripes (document/dialog racing stripes) are STRETCHED on X —
+      // one interior column scaled across the run — so the sprite's right-edge margin
+      // can't tile into a repeating vertical seam (apple-platinum-2's "sliced" look).
+      // Dot patterns (utility) are TILED. Y always tiles the sprite + clips to the band.
+      const stretchX = isHorizontalLineStripe(pin);
+      const srcCol = pin.width >> 1; // a clean interior column (clear of the edge margin)
       const drawn: { x: number; y: number; w: number; h: number }[] = [];
       for (const [x0, x1] of segs) {
         if (x1 - x0 < 2) continue;
         for (let dy = sy0; dy < sy1; dy += pin.height) {
           const hh = Math.min(pin.height, sy1 - dy);
-          for (let dx = x0; dx < x1; dx += pin.width) {
-            const ww = Math.min(pin.width, x1 - dx);
-            out.copyBits(pin, { x: 0, y: 0, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
+          if (stretchX) {
+            out.copyBits(pin, { x: srcCol, y: 0, w: 1, h: hh }, { x: x0, y: dy, w: x1 - x0, h: hh });
+          } else {
+            for (let dx = x0; dx < x1; dx += pin.width) {
+              const ww = Math.min(pin.width, x1 - dx);
+              out.copyBits(pin, { x: 0, y: 0, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
+            }
           }
         }
         drawn.push({ x: x0, y: sy0, w: x1 - x0, h: sy1 - sy0 });
       }
-      if (drawn.length) placement.push({ edge: 'top', code: 8, role: 'title pinstripe', mode: 'tile', src: { x: 0, y: 0, w: pin.width, h: pin.height }, rects: drawn });
+      if (drawn.length) placement.push({ edge: 'top', code: 8, role: 'title pinstripe', mode: stretchX ? 'stretch' : 'tile', src: { x: 0, y: 0, w: pin.width, h: pin.height }, rects: drawn });
     }
   }
 
