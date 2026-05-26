@@ -623,7 +623,8 @@
 
       // ── "On/Off" Options dialog — utility window, overlapping top-right ──
       const DLG_W = 108, DLG_PAD = 5, DLG_INNER = DLG_W - DLG_PAD * 2; // content + usable width
-      const dlg = await renderWindow(theme, { windowType: 'titled-utility-window', title: 'Options', width: DLG_W, height: 84, scale: 1, state });
+      // No-title utility window — the references' "On/Off" floater has no title bar.
+      const dlg = await renderWindow(theme, { windowType: 'no-title-utility-window', title: 'Options', width: DLG_W, height: 84, scale: 1, state });
       const dlgW = parseInt(dlg.style.width) || (DLG_W + 4);
       const dlgH = parseInt(dlg.style.height) || (84 + 22);
       // Right-aligned (small margin), top at the main window's title-bar line —
@@ -1303,7 +1304,7 @@
             onZoom: () => say('Document zoom'),
             onCollapse: () => say('Document collapse'),
           });
-          const w2 = await wm.add(theme, { title: 'Options', windowType: 'titled-utility-window', width: 168, height: 84 }, {
+          const w2 = await wm.add(theme, { title: 'Options', windowType: 'no-title-utility-window', width: 168, height: 84 }, {
             onClose: () => { w2.style.display = 'none'; say('Options closed'); },
           });
           w1.style.left = '14px'; w1.style.top = '14px';

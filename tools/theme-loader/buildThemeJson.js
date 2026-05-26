@@ -437,7 +437,11 @@ const CORNER_SPRITE_WINDOWS = [
   { slug: 'collapsed-titled-utility',   active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close', 'collapse'], collapsed: true  },
   { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null, titleH: 11, widgets: [],         collapsed: false },
   { slug: 'collapsed-side-utility',     active: -14315, inactive: -14319, pinstripe: -14314, growBox: null,   titleH: 11, widgets: [],         collapsed: true  },
-  { slug: 'no-title-utility-window',    active: -14316, inactive: -14320, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
+  // No-title utility = a tool-palette DRAG BAR (dotted -14314 + close/collapse widgets),
+  // NOT a title-LESS frame — the references show this dotted bar. The title TEXT is
+  // already suppressed for every utility window (renderWindow's isUtility), so this is
+  // the bar + widgets with no centred title — exactly the palette look.
+  { slug: 'no-title-utility-window',    active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close', 'collapse'], collapsed: false },
   // NOT mapped (fall back to the apple-platinum-replica base):
   //   • collapsed-no-title-utility — a title-LESS collapsed window is neither a
   //     title bar nor a body, just an empty 1px frame; nothing meaningful to draw.
