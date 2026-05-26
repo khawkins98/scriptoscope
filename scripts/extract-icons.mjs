@@ -41,17 +41,13 @@ const PALETTE16 = [
 // by 4×10 single-channel ramps (red, green, blue, GREY) over the off-cube steps
 // {238,221,187,170,136,119,85,68,34,17}. The grey ramp + cube greys give a full
 // 17-step grayscale, which is what the (greyscale) control/widget glyphs use.
-const PALETTE256 = (() => {
-  const pal = [];
-  const cube = [0xff, 0xcc, 0x99, 0x66, 0x33, 0x00];
-  for (const r of cube) for (const g of cube) for (const b of cube) pal.push([r, g, b]); // 0..215
-  const ramp = [0xee, 0xdd, 0xbb, 0xaa, 0x88, 0x77, 0x55, 0x44, 0x22, 0x11];
-  for (const v of ramp) pal.push([v, 0, 0]); // 216..225 red
-  for (const v of ramp) pal.push([0, v, 0]); // 226..235 green
-  for (const v of ramp) pal.push([0, 0, v]); // 236..245 blue
-  for (const v of ramp) pal.push([v, v, v]); // 246..255 grey
-  return pal;
-})();
+// The Macintosh 8-bit SYSTEM palette — the real 256-colour CLUT that icl8/ics8
+// index into. Sourced from the Mac OS 8.5 System file (clut 9, normalized to 8-bit)
+// and verified to render BOTH the rainbow Apple logo AND grayscale Finder icons
+// correctly (idx0=white, idx255=black, idx245=gray). This REPLACES a hand-built
+// cube+ramp approximation that mis-mapped the ramp region (idx245→blue), which
+// turned grayscale icons' shading into blue-black blotches/checkerboard noise.
+const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, 'lib/mac-system-palette.json'), 'utf8')).palette;
 
 // ── minimal RGBA PNG encoder (same approach as extract-scheme.mjs) ──
 const CRC = (() => {
