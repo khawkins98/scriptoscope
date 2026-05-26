@@ -186,10 +186,14 @@ export async function renderWindow(
       zoom: await loadWidgetGlyph(owner, wBase + 1 + wOff),
       collapse: await loadWidgetGlyph(owner, wBase + 2 + wOff),
     };
+    // The window-frame proxy cicn (chrome.active -14332 / chrome.inactive -14336) —
+    // frame-extracted by the compositor into the scheme's own beveled frame + corners.
+    const frameAsset = state === 'inactive' ? (wt.chrome?.inactive ?? wt.chrome?.active) : wt.chrome?.active;
+    const frameCicn = frameAsset ? await loadCicnBuffer(assetUrl(owner, frameAsset)) : null;
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
       pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
       lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
-      titleWidthPx, widgets: wt.widgets, widgetGlyphs,
+      titleWidthPx, widgets: wt.widgets, widgetGlyphs, frameCicn,
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });

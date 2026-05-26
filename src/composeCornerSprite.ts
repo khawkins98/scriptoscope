@@ -53,6 +53,13 @@ export interface CornerSpriteOptions {
   pinstripe?: PixelBuffer | null;
   /** The grow-box cicn (-14330), stamped bottom-right. Omit to skip it. */
   growBox?: PixelBuffer | null;
+  /** The window-frame proxy cicn (-14332 active / -14336 inactive, = chrome.active/
+   *  inactive). When present it is FRAME-EXTRACTED — the 8 border cells 9-sliced
+   *  (corners 1:1, edges stretched) with the centre left TRANSPARENT (the content
+   *  hole) — to draw the scheme's OWN beveled frame + corners that scale, instead of
+   *  the procedural bevel. ("Slice around the centre.") Distinct from the same-id
+   *  ics4 widget glyph (dual channel: cicn = frame, ics4 = pressed-zoom widget). */
+  frameCicn?: PixelBuffer | null;
   /** Header frame colour (theme.headerColors.<state>.frame). The 1px ring +
    *  widget outlines are drawn in this. Defaults to a mid grey. */
   frameColor?: string | undefined;
@@ -117,6 +124,40 @@ function darken(c: [number, number, number, number], amt: number): [number, numb
 }
 
 /**
+ * FRAME-EXTRACT a window-frame proxy cicn (e.g. -14332): copy the 8 BORDER cells
+ * — 4 corners + 4 edges (edges stretched along their run) — and leave the CENTRE
+ * untouched (the transparent content hole / the title fill already drawn). "Slice
+ * AROUND the centre." The proxy's bevel is hairline at 16px, so each border cell is
+ * scaled up by `scale` (the Platinum frame reads ~2× the proxy's border) → the dest
+ * border is `cSrc × scale` px thick. `cSrc` = source px forming a corner/edge.
+ */
+function frameExtract(out: PixelBuffer, src: PixelBuffer, cSrc: number, scale: number, fullW: number, fullH: number, drawTopEdge = true): void {
+  const S = src.width, Sh = src.height;
+  const cs = Math.max(1, Math.min(cSrc, Math.floor((Math.min(S, Sh) - 1) / 2)));
+  const C = cs * scale; // dest border thickness
+  const cp = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void =>
+    out.copyBits(src, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh });
+  const midSW = S - cs * 2, midSH = Sh - cs * 2;       // source middle spans
+  const midDW = fullW - C * 2, midDH = fullH - C * 2;  // dest middle spans
+  cp(0, 0, cs, cs, 0, 0, C, C);                                   // TL
+  cp(S - cs, 0, cs, cs, fullW - C, 0, C, C);                      // TR
+  cp(0, Sh - cs, cs, cs, 0, fullH - C, C, C);                     // BL
+  cp(S - cs, Sh - cs, cs, cs, fullW - C, fullH - C, C, C);        // BR
+  if (midDW > 0 && midSW > 0) {
+    // The TOP edge carries the proxy's title-band detail, which smears across a
+    // titled bar — skip it there (the racing-stripes own the bar); keep it for
+    // title-less frames. The top CORNERS are always drawn (the beveled joins).
+    if (drawTopEdge) cp(cs, 0, midSW, cs, C, 0, midDW, C);        // top edge
+    cp(cs, Sh - cs, midSW, cs, C, fullH - C, midDW, C);           // bottom edge
+  }
+  if (midDH > 0 && midSH > 0) {
+    cp(0, cs, cs, midSH, 0, C, C, midDH);                         // left edge
+    cp(S - cs, cs, cs, midSH, fullW - C, C, C, midDH);            // right edge
+  }
+  // centre cell deliberately NOT copied → stays the content hole / title fill.
+}
+
+/**
  * Compose a Platinum corner-sprite window into a pixel buffer at native
  * resolution. The content rect (contentW × contentH) is a transparent hole.
  * The frame thicknesses come from part-0's inset (synthesized by the extractor:
@@ -159,6 +200,20 @@ export function composeCornerSpriteChrome(
     frame.right = Math.max(frame.right, 3);
     frame.bottom = Math.max(frame.bottom, 3);
     if (!opts.pinstripe) frame.top = Math.max(frame.top, 3); // title-less ⇒ beveled top band too
+  }
+
+  // FRAME-EXTRACTED mode: the scheme ships a window-frame proxy cicn (-14332 active /
+  // -14336 inactive) → frame-extract it (border cells, transparent centre) for the
+  // beveled frame + corners that scale, instead of the procedural bevel. The proxy's
+  // bevel is hairline at 16px, so the border cells are scaled 2× (owner-confirmed).
+  const FRAME_SCALE = 2;
+  const FRAME_CSRC = 4; // source px per corner / edge cross-section (the proxy's outer bevel)
+  const useFrame = !!(opts.frameCicn && opts.frameCicn.width >= 8 && opts.frameCicn.height >= 8);
+  if (useFrame) {
+    const C = FRAME_CSRC * FRAME_SCALE;
+    frame.left = Math.max(frame.left, C);
+    frame.right = Math.max(frame.right, C);
+    frame.bottom = Math.max(frame.bottom, C);
   }
 
   const fullW = frame.left + contentW + frame.right;
@@ -219,7 +274,15 @@ export function composeCornerSpriteChrome(
     out.fillRect({ x: rect.x, y: rect.y, w: 1, h: rect.h }, ringRgba[0], ringRgba[1], ringRgba[2], 255); // left
     out.fillRect({ x: rect.x + rect.w - 1, y: rect.y, w: 1, h: rect.h }, ringRgba[0], ringRgba[1], ringRgba[2], 255); // right
   };
-  ring({ x: 0, y: 0, w: fullW, h: fullH });
+  // Frame-extracted border (the scheme's own beveled frame + corners) REPLACES the
+  // procedural 1px ring + bevel when a frame proxy cicn is supplied. Drawn after the
+  // title fill so it frames the pinstripe; the centre stays the content hole.
+  if (useFrame) {
+    frameExtract(out, opts.frameCicn!, FRAME_CSRC, FRAME_SCALE, fullW, fullH, !hasTitleBar);
+    // Titled bar: the frame's top EDGE is skipped (it would smear the proxy's title-
+    // band detail across the pinstripe), so draw a 1px top outline between the corners.
+    if (hasTitleBar) out.fillRect({ x: 0, y: 0, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+  } else ring({ x: 0, y: 0, w: fullW, h: fullH });
   if (hasTitleBar) {
     // under-line: the 1px frame line dividing the title bar from the body.
     // Title-less frames (no bar) have nothing to divide — just the outer ring.
@@ -231,7 +294,7 @@ export function composeCornerSpriteChrome(
   // and bottom/right shadow, plus a content-well recess so the content reads sunken.
   // This is the ~3px beveled gray border the references show (System 7 / Platinum
   // window frame), using the scheme's own lightBevel/darkBevel tones.
-  if (beveled) {
+  if (beveled && !useFrame) {
     const fill = (x: number, y: number, w: number, h: number, c: [number, number, number, number]): void => {
       if (w > 0 && h > 0) out.fillRect({ x, y, w, h }, c[0], c[1], c[2], 255);
     };
@@ -280,7 +343,7 @@ export function composeCornerSpriteChrome(
   // change that stops the window looking like "one giant box". Drawn over the
   // pinstripe (the WDEF fills the rect then strokes the bevel); the widgets sit
   // on top at the ends. Mirrors the widget bevel's lighten/darken amounts.
-  if (hasTitleBar && titleH >= 5 && fullW >= 5) {
+  if (hasTitleBar && titleH >= 5 && fullW >= 5 && !useFrame) {
     const hi = lighten(faceRgba, 0.55);
     const sh = darken(faceRgba, 0.22);
     const innerH = titleH - 3; // y=1 down to the row just above the under-line
