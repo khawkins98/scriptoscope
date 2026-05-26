@@ -207,7 +207,9 @@ export function composeCornerSpriteChrome(
   // beveled frame + corners that scale, instead of the procedural bevel. The proxy's
   // bevel is hairline at 16px, so the border cells are scaled 2× (owner-confirmed).
   const FRAME_SCALE = 2;
-  const FRAME_CSRC = 4; // source px per corner / edge cross-section (the proxy's outer bevel)
+  const FRAME_CSRC = 5; // source px per corner / edge cross-section: the proxy's outer
+                        // bevel PLUS its inner shadow/highlight row (4 trimmed that
+                        // inner px into the discarded centre — the inner shading read wrong)
   const useFrame = !!(opts.frameCicn && opts.frameCicn.width >= 8 && opts.frameCicn.height >= 8);
   if (useFrame) {
     const C = FRAME_CSRC * FRAME_SCALE;
