@@ -293,6 +293,21 @@ export function composeCornerSpriteChrome(
   const hasTitleBar = !!opts.pinstripe && titleH >= 6;
   const widgets = opts.widgets ?? ['close', 'collapse', 'zoom'];
 
+  // Top frame border: the window's raised frame wraps the TOP edge (like the
+  // sides/bottom) instead of the title bar running flush to the window top. We
+  // carve `topBorder` px off the top of the title inset for a visible frame strip
+  // and place the title content (stripes + widgets) BELOW it — which both reveals
+  // the top border and tightens the bar (the references show the frame edge above
+  // a snug striped band, not a tall flush bar). Only for FRAMED titled windows
+  // (beveled / frame-proxy); a flat 1px-ring scheme keeps its thin top line.
+  const topBorder = hasTitleBar && (beveled || useFrame)
+    ? Math.min(GEOM.titleBar.topBorder, Math.max(0, titleH - GEOM.widget.box - 2))
+    : 0;
+  // The band the title content occupies: below the top frame strip, above the
+  // under-line. Widgets centre here; stripes fill it snugly.
+  const contentTop = topBorder;
+  const contentBot = titleH - 1; // the under-line row
+
   const placement: PlacementSlice[] = [];
 
   // ── Title-bar widget LAYOUT (positions only) ───────────────────────────────
@@ -322,7 +337,7 @@ export function composeCornerSpriteChrome(
     if (widgets.includes('close')) {
       const b = boxOf('close');
       const x = frame.left + GEOM.widget.closeFromLeft; // decode: title.left + 4
-      widgetLayout.push({ glyph: 'close', x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+      widgetLayout.push({ glyph: 'close', x, y: contentTop + Math.max(0, Math.round((contentBot - contentTop - b.h) / 2)), w: b.w, h: b.h });
     }
     let rx = -1; // sentinel: compute from fullW on the first right widget
     for (const glyph of ['zoom', 'collapse'] as const) {
@@ -330,7 +345,7 @@ export function composeCornerSpriteChrome(
       const b = boxOf(glyph);
       if (rx < 0) rx = fullW - frame.right - GEOM.widget.zoomFromRight - b.w; // decode: title.right − 4
       const x = Math.max(0, rx);
-      widgetLayout.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+      widgetLayout.push({ glyph, x, y: contentTop + Math.max(0, Math.round((contentBot - contentTop - b.h) / 2)), w: b.w, h: b.h });
       rx = Math.max(0, x - b.w - GEOM.widget.collapseGap);
     }
   }
@@ -364,8 +379,11 @@ export function composeCornerSpriteChrome(
     const rightWs = widgetLayout.filter((w) => w.glyph !== 'close');
     const stripeLeft = (leftW ? leftW.x + leftW.w : frame.left) + STRIPE_PAD;
     const stripeRight = (rightWs.length ? Math.min(...rightWs.map((w) => w.x)) : fullW - frame.right) - STRIPE_PAD;
-    const sy0 = Math.max(2, Math.round((titleH - 1) * GEOM.titleBar.insetTop));
-    const sy1 = titleH - 1 - Math.max(2, Math.round((titleH - 1) * GEOM.titleBar.insetBottom));
+    // Stripes fill the content band snugly (1px margin), aligned to the widget
+    // extent — "tight to the top/bottom of the close button" — rather than floating
+    // inset in a tall bar. Below the top frame strip, above the under-line.
+    const sy0 = Math.max(contentTop + 1, Math.round((titleH - 1) * GEOM.titleBar.insetTop));
+    const sy1 = contentBot - 1;
     if (pin.width > 0 && pin.height > 0 && stripeRight > stripeLeft && sy1 > sy0) {
       const segs: [number, number][] = plateX >= 0
         ? [[stripeLeft, plateX - 2], [plateX + plateW + 2, stripeRight]]
@@ -436,6 +454,17 @@ export function composeCornerSpriteChrome(
     // Procedural fallback (no frame proxy): the flat full-width divider; the §2c
     // beveled section adds the sunken content-well recess for these.
     out.fillRect({ x: 0, y: titleH - 1, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+  }
+
+  // ── 2a. raised top frame border ─────────────────────────────────────────────
+  // A gray frame strip just under the y=0 outer line, so the window frame visibly
+  // wraps the TOP edge (like the sides) and the title content sits below it — was
+  // flush to the window top. `topBorder` px tall; drawn over the bar fill, under the
+  // widgets. A 1px shadow at its base recesses the title band below the frame edge.
+  if (hasTitleBar && topBorder > 1) {
+    const face = useFrame ? hiBevelRgba : faceRgba;
+    out.fillRect({ x: 1, y: 1, w: fullW - 2, h: topBorder - 1 }, face[0], face[1], face[2], 255);
+    out.fillRect({ x: 1, y: topBorder, w: fullW - 2, h: 1 }, shBevelRgba[0], shBevelRgba[1], shBevelRgba[2], 255);
   }
 
   // ── 2c. beveled side/bottom frame (raised gray PANEL, not a flat line) ──────

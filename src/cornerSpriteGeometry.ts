@@ -30,8 +30,10 @@ export interface CornerSpriteGeometry {
   frame: { side: number; bottom: number };
   /** decode: raised bevel — top/left = light (highlight), bottom/right = dark (shadow). 0x60a/0x664. */
   bevel: { raised: true; highlight: number; shadow: number };
-  /** tuning: title-bar pinstripe inset margins (fraction of titleH) + plate/stripe paddings. */
-  titleBar: { insetTop: number; insetBottom: number; platePad: number; stripePad: number };
+  /** tuning: title-bar layout. `topBorder` = px of raised window-frame edge ABOVE
+   *  the title content (the frame wraps the top like the sides; the content sits
+   *  below it). pinstripe inset margins (fraction of titleH) + plate/stripe paddings. */
+  titleBar: { topBorder: number; insetTop: number; insetBottom: number; platePad: number; stripePad: number };
   /** tuning: frame-proxy 9-slice extract params (source px per border, dest scale). */
   frameExtract: { csrc: number; scale: number };
 }
@@ -50,6 +52,6 @@ export const CORNER_SPRITE_GEOMETRY: CornerSpriteGeometry = {
   },
   frame: { side: 1, bottom: 1 },             // decode: 1px (0x434)
   bevel: { raised: true, highlight: 0.55, shadow: 0.22 }, // decode order; amounts are tuning
-  titleBar: { insetTop: 0.2, insetBottom: 0.24, platePad: 6, stripePad: 5 }, // tuning
+  titleBar: { topBorder: 3, insetTop: 0.2, insetBottom: 0.24, platePad: 6, stripePad: 5 }, // tuning
   frameExtract: { csrc: 5, scale: 1 },       // tuning
 };
