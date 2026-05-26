@@ -306,6 +306,34 @@ export async function renderWindow(
   scaleBodyPattern(content, owner, scale);
 
   win.append(canvas, content);
+
+  // ── grow box overlay: stacked ABOVE the content so the resize control sits
+  //    just inside the bottom-right frame corner, over the body — the chrome
+  //    canvas is behind the content, so a grow box drawn into it (at the inner
+  //    corner) would be hidden. composeCornerSprite returns it as its own sprite
+  //    (with any procedural handle baked in) precisely so it can stack on top. ──
+  if (composed.growBox) {
+    const gb = composed.growBox;
+    const gcv = document.createElement('canvas');
+    gcv.className = 'aw-growbox';
+    gcv.width = gb.w;
+    gcv.height = gb.h;
+    const gctx = gcv.getContext('2d');
+    if (gctx) {
+      gctx.putImageData(gb.buffer.toImageData(), 0, 0);
+      Object.assign(gcv.style, {
+        position: 'absolute',
+        left: `${gb.x * scale}px`,
+        top: `${gb.y * scale}px`,
+        width: `${gb.w * scale}px`,
+        height: `${gb.h * scale}px`,
+        imageRendering: 'pixelated',
+        zIndex: '2',
+        pointerEvents: 'none',
+      } satisfies Partial<CSSStyleDeclaration>);
+      win.append(gcv);
+    }
+  }
   // Expose the composed result (incl. the slice placement map) for diagnostics.
   (win as unknown as { _awComposed?: typeof composed })._awComposed = composed;
   return win;

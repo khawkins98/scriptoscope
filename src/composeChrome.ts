@@ -566,6 +566,14 @@ export interface ComposedChrome {
   titleFillSrcX: number;
   /** Slice-by-slice placement map for the diagnostic inspector. */
   placement: PlacementSlice[];
+  /**
+   * The grow box (resize control), as a SEPARATE sprite to be stacked ABOVE the
+   * content layer — it sits just inside the bottom-right frame corner, over the
+   * content, so the frame's bottom/right edge strips stay clean (the chrome
+   * buffer is behind the content). renderWindow draws this as a top overlay.
+   * Omitted when the window has no grow box.
+   */
+  growBox?: { buffer: PixelBuffer; x: number; y: number; w: number; h: number } | undefined;
 }
 
 /**
