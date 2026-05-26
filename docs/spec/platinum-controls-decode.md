@@ -20,11 +20,14 @@ Mirrors the kDEF/WDEF playbook: cite `0xADDR`/offset, describe the algorithm,
 
 Two findings reshaped this decode:
 
-1. **The control CDEFs are split by family, not a single multi-kind proc.**
-   `CDEF -63` is **only** the value/min/max **track-with-thumb** family
-   (scroll-bar / slider / indicator). It has *no* dispatch on control kind. The
-   **button / checkbox / radio / popup / tab** family lives in the separate
-   **`CDEF -1`** (~3 KB, not yet decoded — Phase-B prerequisite).
+1. **The control CDEFs are track procs; there is no rich per-scheme button CDEF.**
+   `CDEF -63` **and** `CDEF -1` are *both* value/min/max **track-with-thumb**
+   procs (scroll-bar / slider / indicator) — neither dispatches on control kind,
+   and the genuine **button / checkbox / radio / popup / tab** CDEF is **not in
+   the extracted corpus**. Consistent with the AppearanceLib finding: buttons go
+   Control Manager → `DrawThemeButton` → AppearanceLib (a vtable dispatcher), so
+   button geometry is **standard Appearance metrics** (and the sizes the renderer
+   already fixes), not a decodable proc — sourced that way under the FALLBACK.
 2. **The pixels are drawn by `AppearanceLib` (PowerPC), and even `DrawThemeButton`
    is a thin dispatcher**, not the drawer — it validates args and dispatches
    through the *current theme object's vtable* (method at offset `0xCC`). Apple
@@ -191,7 +194,9 @@ or clut-backed).
    its pixels aren't in `CDEF -63`.
 4. The concrete Platinum button drawer — the `DrawThemeButton` vtable method at
    `+0xCC` (one PPC indirection deeper; not decoded by gate decision).
-5. **`CDEF -1`** (button family geometry) — entirely un-decoded.
+5. **Button-family geometry has no decodable source** — `CDEF -1` decoded to
+   another track proc; no button CDEF in the corpus. Button/checkbox/radio sizes
+   come from standard Appearance metrics + the renderer's fixed sizes (FALLBACK).
 6. Per-control accent application model.
 
 ## Phase-B ledger seed
@@ -200,9 +205,14 @@ See [`platinum-controls-faithfulness-ledger.md`](./platinum-controls-faithfulnes
 
 ## Next plan (per the spike gate → FALLBACK)
 
-Write `docs/superpowers/plans/2026-MM-DD-platinum-controls-generate.md`:
-1. **Decode `CDEF -1`** (button/checkbox/radio/popup/tab geometry) — same 68k playbook.
-2. **Procedural control generator** — bake control `cicn`s × state × accent from CDEF
+**Phase-B has begun** (`scripts/generate-platinum/{control-metrics,draw-control,build-controls,raster}.mjs`):
+the data-driven control generator — a control **spec** + a generic bevel **drawer**
+(the AppearanceLib data/drawer split made explicit) — generates push button, default
+ring (real indigo), and scrollbar track + thumb into the replica bundle, superseding
+the graft. Remaining:
+1. **Button-family geometry** comes from standard Appearance metrics (no button CDEF
+   exists in the corpus; both `-1`/`-63` are track procs) + the bevel model.
+2. **Extend the generator** — checkbox/radio/popup/tab/slider/progress × state × accent from
    geometry + `platinum-palette.json` + the `WDEF 125` raised-bevel model; wire into
    the bundle; retire the `apple-platinum-2` control graft; simplify `controls.ts`.
 3. **Verify** with `npm run lint:themes` + this ledger + a Playground render; resolve
