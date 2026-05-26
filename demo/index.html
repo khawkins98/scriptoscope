@@ -799,6 +799,15 @@
       winBox.appendChild(overlay);
       const readout = document.createElement('div');
       readout.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.75;margin-top:4px;min-height:13px';
+      // Caption above the window, mirroring the reference column's caption (same
+      // height/style), so the rendered window and the reference image sit at the
+      // SAME vertical position on the page for pixel-on-pixel comparison. Only when
+      // a reference is shown alongside (foldout thumbnails without a ref skip it).
+      if (refSrc) {
+        const wcap = document.createElement('div'); wcap.textContent = 'playground';
+        wcap.style.cssText = 'font:9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-bottom:2px';
+        winCol.appendChild(wcap);
+      }
       winCol.append(winBox, readout);
       wrap.appendChild(winCol);
       const refCol = refColumn(refSrc);
@@ -1098,7 +1107,7 @@
       // restores them; Reset clears it back to defaults. ──
       // Default to a recipe theme (1138) so the playground opens showing slices,
       // not the baseline (no-wnd#) Apple Platinum.
-      const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '220', h: '120', state: 'active', scale: '2' };
+      const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '150', h: '98', state: 'active', scale: '1' };
       const writeHash = () => {
         const p = new URLSearchParams({ theme: themeSel.value, wt: wtypeSel.value, title: titleIn.value, w: wIn.value, h: hIn.value, state: stateSel.value, scale: scaleSel.value });
         history.replaceState(null, '', '#' + p.toString());
