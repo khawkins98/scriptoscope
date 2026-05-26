@@ -253,45 +253,86 @@ export function composeCornerSpriteChrome(
 
   const placement: PlacementSlice[] = [];
 
-  // ── 1. title-bar fill: tile the pinstripe cicn across the title rect ───────
-  // Anchored at (0,0), clipped to the title height; the cicn (16×13) is shorter
-  // than the bar (≈19) — the WDEF tiles a code-baked AA00 stipple edge-to-edge,
-  // so we tile the sprite on BOTH axes and clip, drawing the pinstripe rows the
-  // sprite carries and leaving the residual band to the (later) frame/face.
-  // First lay the header fill behind it so the gap below the 13px sprite reads
-  // as the bar background rather than transparent.
+  // ── Title-bar widget LAYOUT (positions only) ───────────────────────────────
+  // Resolved up front so the pinstripe (§1) can be BOUNDED to the gaps between the
+  // controls; the glyphs themselves are stamped in §3 from this same layout.
+  // Geometry (WDEF 125 §"Box geometry"): close = title.left+3; zoom 4px from the
+  // right end; collapse inboard of zoom; each vertically centred. WBOX sizes the
+  // fabricated box for any role a scheme ships no glyph for.
+  const WBOX = Math.max(7, Math.min(13, titleH - 7));
+  const widgetsActive = hasTitleBar && titleH >= WBOX + 2 && widgets.length > 0;
+  const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null } => {
+    const g = opts.widgetGlyphs?.[role];
+    if (g && g.width > 0 && g.height > 0 && g.height <= titleH - 1) return { w: g.width, h: g.height, glyph: g };
+    return { w: WBOX, h: WBOX, glyph: null };
+  };
+  const widgetLayout: { glyph: 'close' | 'collapse' | 'zoom'; x: number; y: number; w: number; h: number }[] = [];
+  if (widgetsActive) {
+    if (widgets.includes('close')) {
+      const b = boxOf('close');
+      const x = frame.left + 4 - 1 < 0 ? 2 : frame.left + 3;
+      widgetLayout.push({ glyph: 'close', x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+    }
+    let rx = -1; // sentinel: compute from fullW on the first right widget
+    for (const glyph of ['zoom', 'collapse'] as const) {
+      if (!widgets.includes(glyph)) continue;
+      const b = boxOf(glyph);
+      if (rx < 0) rx = fullW - frame.right - 4 - b.w; // zoom: 4px from the right end
+      const x = Math.max(0, rx);
+      widgetLayout.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
+      rx = Math.max(0, x - b.w - 2);
+    }
+  }
+
+  // ── 1. title bar: a header-fill FACE with the pinstripe INSET into it ───────
+  // The racing-stripe sprite is NOT painted edge-to-edge over the whole bar (that
+  // buried the widgets + ran the stripes to the very top/bottom). Per the references
+  // it sits in a band INSET a couple px top/bottom, BOUNDED to the gaps between the
+  // controls (≈5px clear of the close box and the zoom/collapse boxes), with the
+  // centred title plate cut out. The bar BACKGROUND (margins + widget gaps + title
+  // plate) is the header fill — except a dark-bar scheme (black-platinum paints
+  // white-on-black, but its face clut is a misleading light grey) where we take the
+  // sprite's own dark ground so the whole bar reads black. Sprite tiles on X
+  // (repeat), clipped to the band on Y.
   if (hasTitleBar && fullW > 0) {
-    out.fillRect({ x: 0, y: 0, w: fullW, h: titleH }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
     const pin = opts.pinstripe!;
-    if (pin.width > 0 && pin.height > 0) {
-      for (let dy = 0; dy < titleH; dy += pin.height) {
-        const hh = Math.min(pin.height, titleH - dy);
-        for (let dx = 0; dx < fullW; dx += pin.width) {
-          const ww = Math.min(pin.width, fullW - dx);
-          // drawOver respects the sprite's alpha so transparent pinstripe gaps
-          // keep the fill underneath; the seam at the tile boundary is the
-          // sprite's own period (16px), matching the WDEF's tiled FillRect.
-          out.copyBits(pin, { x: 0, y: 0, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
-        }
-      }
-    }
-    // Title PLATE: clear a centred, un-striped area behind the title text so the
-    // stripes CAP at the plate instead of running through "Hello!" (the WDEF clears
-    // the title rect to the bar face — see the references). Plate colour = the bar's
-    // dominant background, sampled from what we just tiled (light on ap2, black on
-    // black-platinum), so the contrast-picked title text still reads. Sized to the
-    // measured title width + a little padding.
+    const spriteBg = dominantColor(pin, 0, 0, pin.width, pin.height, faceRgba);
+    const spriteLum = 0.299 * spriteBg[0] + 0.587 * spriteBg[1] + 0.114 * spriteBg[2];
+    const barBg = spriteLum < 96 ? spriteBg : faceRgba; // dark-bar schemes keep their black ground
+    out.fillRect({ x: 0, y: 0, w: fullW, h: titleH }, barBg[0], barBg[1], barBg[2], 255);
+    // Centred title plate = a gap in the stripes for the title text (already the bar
+    // ground, since the stripe segments below exclude it).
+    let plateX = -1, plateW = 0;
     if (opts.titleWidthPx && opts.titleWidthPx > 4 && titleH > 3) {
-      const bg = dominantColor(out, 0, 1, fullW, titleH - 2, faceRgba);
-      const plateW = Math.min(fullW - 4, opts.titleWidthPx + 6);
-      const plateX = Math.max(1, Math.round((fullW - plateW) / 2));
-      out.fillRect({ x: plateX, y: 1, w: plateW, h: titleH - 2 }, bg[0], bg[1], bg[2], 255);
+      plateW = Math.min(fullW - 4, opts.titleWidthPx + 6);
+      plateX = Math.max(1, Math.round((fullW - plateW) / 2));
     }
-    placement.push({
-      edge: 'top', code: 8, role: 'title pinstripe', mode: 'tile',
-      src: { x: 0, y: 0, w: pin.width, h: pin.height },
-      rects: [{ x: 0, y: 0, w: fullW, h: titleH }],
-    });
+    // Inset band + horizontal bounds (clear of the widgets, gap for the title).
+    const STRIPE_PAD = 5;
+    const leftW = widgetLayout.find((w) => w.glyph === 'close');
+    const rightWs = widgetLayout.filter((w) => w.glyph !== 'close');
+    const stripeLeft = (leftW ? leftW.x + leftW.w : frame.left) + STRIPE_PAD;
+    const stripeRight = (rightWs.length ? Math.min(...rightWs.map((w) => w.x)) : fullW - frame.right) - STRIPE_PAD;
+    const sy0 = Math.max(2, Math.round((titleH - 1) * 0.2));
+    const sy1 = titleH - 1 - Math.max(2, Math.round((titleH - 1) * 0.24));
+    if (pin.width > 0 && pin.height > 0 && stripeRight > stripeLeft && sy1 > sy0) {
+      const segs: [number, number][] = plateX >= 0
+        ? [[stripeLeft, plateX - 2], [plateX + plateW + 2, stripeRight]]
+        : [[stripeLeft, stripeRight]];
+      const drawn: { x: number; y: number; w: number; h: number }[] = [];
+      for (const [x0, x1] of segs) {
+        if (x1 - x0 < 2) continue;
+        for (let dy = sy0; dy < sy1; dy += pin.height) {
+          const hh = Math.min(pin.height, sy1 - dy);
+          for (let dx = x0; dx < x1; dx += pin.width) {
+            const ww = Math.min(pin.width, x1 - dx);
+            out.copyBits(pin, { x: 0, y: 0, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
+          }
+        }
+        drawn.push({ x: x0, y: sy0, w: x1 - x0, h: sy1 - sy0 });
+      }
+      if (drawn.length) placement.push({ edge: 'top', code: 8, role: 'title pinstripe', mode: 'tile', src: { x: 0, y: 0, w: pin.width, h: pin.height }, rects: drawn });
+    }
   }
 
   // ── 2. 1px frame ring (header frame colour) ────────────────────────────────
@@ -396,17 +437,7 @@ export function composeCornerSpriteChrome(
   // title.left+4; zoom 4px from the right end; collapse inboard of zoom; vertically
   // centred. Widget SET per type (opts.widgets): document = [close,collapse,zoom];
   // movable-modal/alert/titled-utility = [close]; side/no-title = [].
-  const WBOX = Math.max(7, Math.min(13, titleH - 7));
-  if (hasTitleBar && titleH >= WBOX + 2 && widgets.length) {
-    // Per-widget box size: the supplied glyph's bounds, clamped to fit the bar;
-    // else the fabricated WBOX. Vertically centred per widget.
-    const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null } => {
-      const g = opts.widgetGlyphs?.[role];
-      if (g && g.width > 0 && g.height > 0 && g.height <= titleH - 1) {
-        return { w: g.width, h: g.height, glyph: g };
-      }
-      return { w: WBOX, h: WBOX, glyph: null };
-    };
+  if (widgetsActive) {
     const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null }, role: 'close' | 'collapse' | 'zoom'): void => {
       // A future scheme shipping real per-widget FACE art would stamp it 1:1.
       if (box.glyph) { out.copyBits(box.glyph, { x: 0, y: 0, w: box.w, h: box.h }, { x: wx, y: wy, w: box.w, h: box.h }); return; }
@@ -438,29 +469,13 @@ export function composeCornerSpriteChrome(
       }
       // close: empty box (the classic Platinum close box has no mark until pressed)
     };
-    // close anchors at the left; collapse/zoom anchor right (zoom outermost,
-    // collapse just inboard). Build each widget's box + x, then stamp + record.
-    const xs: { glyph: string; x: number; y: number; w: number; h: number }[] = [];
-    if (widgets.includes('close')) {
-      const b = boxOf('close');
-      const x = frame.left + 4 - 1 < 0 ? 2 : frame.left + 3;
-      xs.push({ glyph: 'close', x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
-    }
-    // Right group, outermost-first so each lands one box+gap inboard of the last.
-    let rx = -1; // sentinel: compute from fullW on the first right widget
-    for (const glyph of ['zoom', 'collapse'] as const) {
-      if (!widgets.includes(glyph)) continue;
-      const b = boxOf(glyph);
-      if (rx < 0) rx = fullW - frame.right - 4 - b.w; // zoom: 4px from the right end
-      const x = Math.max(0, rx);
-      xs.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
-      rx = Math.max(0, x - b.w - 2);
-    }
-    for (const w of xs) drawWidget(w.x, w.y, boxOf(w.glyph as 'close' | 'collapse' | 'zoom'), w.glyph as 'close' | 'collapse' | 'zoom');
+    // Stamp each widget at its hoisted position (widgetLayout, computed above so
+    // §1 could bound the stripes to the gaps); record the rects for hit-testing.
+    for (const w of widgetLayout) drawWidget(w.x, w.y, boxOf(w.glyph), w.glyph);
     placement.push({
-      edge: 'widget', code: 4, role: xs.map((w) => w.glyph).join('/'), mode: 'stamp',
+      edge: 'widget', code: 4, role: widgetLayout.map((w) => w.glyph).join('/'), mode: 'stamp',
       src: { x: 0, y: 0, w: WBOX, h: WBOX },
-      rects: xs.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h })),
+      rects: widgetLayout.map((w) => ({ x: w.x, y: w.y, w: w.w, h: w.h })),
     });
   }
 
