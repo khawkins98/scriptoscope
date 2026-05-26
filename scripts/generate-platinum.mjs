@@ -18,8 +18,6 @@ import { graftControls, GRAFT_CONTROL_IDS } from './generate-platinum/graft-cont
 import { sliceControls } from './generate-platinum/slice-controls.mjs';
 import { sliceIcons } from './generate-platinum/slice-icons.mjs';
 import { buildAllWindowAssets, cicnFiles } from './generate-platinum/manifest.mjs';
-import { buildControls } from './generate-platinum/build-controls.mjs';
-import { CONTROL_IDS } from './generate-platinum/control-metrics.mjs';
 import { WINDOW_TYPES } from './generate-platinum/window-types.mjs';
 import { PALETTE } from './generate-platinum/palette.mjs';
 import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
@@ -33,12 +31,6 @@ mkdirSync(cicnDir, { recursive: true });
 // Clear stale generated cicns so renamed/removed types don't linger.
 for (const f of existsSync(cicnDir) ? readdirSync(cicnDir) : [])
   if (f.startsWith('cicn-')) rmSync(resolve(cicnDir, f));
-
-// Controls we now GENERATE from the data-driven model (control-metrics.mjs +
-// draw-control.mjs). These are EXCLUDED from the graft below so the generator is
-// their single source — no shadowed/orphaned borrowed art for the same ids.
-const GENERATED_CONTROLS = ['pushButton', 'defaultRing', 'scrollTrackV', 'scrollTrackH', 'scrollThumbV', 'scrollThumbH'];
-const GENERATED_IDS = new Set(GENERATED_CONTROLS.flatMap((k) => Object.values(CONTROL_IDS[k])));
 
 // Draw every type's sprites (the procedural fallback). document-window is then
 // overridden by the screenshot slice below.
@@ -121,16 +113,15 @@ const P8_GRAFT_IDS = new Set([
 ]);
 const aplat2 = resolve(root, 'themes/apple-platinum-2');
 if (existsSync(aplat2)) {
-  const aplat2Ids = new Set([...GRAFT_CONTROL_IDS].filter((id) => !P8_GRAFT_IDS.has(id) && !GENERATED_IDS.has(id)));
+  const aplat2Ids = new Set([...GRAFT_CONTROL_IDS].filter((id) => !P8_GRAFT_IDS.has(id)));
   const { grafted, copied, missing } = graftControls(aplat2, dest, aplat2Ids);
   theme.chromeElements = { ...(theme.chromeElements || {}), ...grafted };
   console.log(`[apple-platinum-replica] grafted ${copied} control cicns from apple-platinum-2` +
     (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
 }
 const platinum8 = resolve(root, 'themes/platinum-8');
-const p8Ids = new Set([...P8_GRAFT_IDS].filter((id) => !GENERATED_IDS.has(id)));
-if (existsSync(platinum8) && p8Ids.size) {
-  const { grafted, copied, missing } = graftControls(platinum8, dest, p8Ids, { recolor: false });
+if (existsSync(platinum8)) {
+  const { grafted, copied, missing } = graftControls(platinum8, dest, P8_GRAFT_IDS, { recolor: false });
   theme.chromeElements = { ...(theme.chromeElements || {}), ...grafted };
   console.log(`[apple-platinum-replica] deferred ${copied} controls to platinum-8 (scrollbars+thumbs)` +
     (missing.length ? ` (missing ids: ${missing.join(', ')})` : ''));
@@ -149,27 +140,14 @@ try {
   console.warn(`[apple-platinum-replica] WARN: control slice skipped (${err.message}); controls fall back to baseline`);
 }
 
-// Generate Platinum controls from the DATA-DRIVEN model: control-metrics.mjs
-// (specs) + draw-control.mjs (generic bevel drawer) + the extracted
-// platinum-palette.json colors (real indigo ring). This mirrors AppearanceLib's
-// data/drawer split and SUPERSEDES the graft for the IDs it generates — one
-// decode-grounded source instead of borrowed 1999 art. Scope (PB3): the
-// graft-covered controls (push button, default ring, scrollbar track + thumb);
-// checkbox/radio stay on their faithful screenshot slices until calibrated.
-try {
-  const gen = buildControls(dest, root, GENERATED_CONTROLS);
-  const genIds = new Set(gen.ids);
-  // Drop any prior graft/slice chromeElement for an id we now generate, then add ours.
-  theme.chromeElements = Object.fromEntries(
-    Object.entries(theme.chromeElements || {}).filter(([, el]) => !genIds.has(el.sourceCicnId)),
-  );
-  theme.chromeElements = { ...theme.chromeElements, ...gen.chromeElements };
-  console.log(`[apple-platinum-replica] generated ${gen.ids.length} control cicns ` +
-    `(${GENERATED_CONTROLS.join(', ')}) — supersedes graft`);
-} catch (err) {
-  console.error('control generation FAILED:', err.message);
-  process.exit(1);
-}
+// NOTE (PB3 reverted): the data-driven control DRAWER (control-metrics.mjs +
+// draw-control.mjs + build-controls.mjs) is intentionally NOT wired here. The
+// faithful Platinum control art is REAL shipped resources — push-button face
+// (-10239) + ring (-10231) grafted from platinum-8, scrollbar/thumb likewise, and
+// checkbox/radio are real ics4 pictograms (-10229..-10240 / -10214..-10224) or
+// -9500/-9488 cicns sliced from screenshots. Procedural redraw was a fidelity
+// regression. The drawer modules remain as the documented data/fallback model and
+// the foundation for the geometry+wiring spec; they are not the primary art source.
 
 // Slice the Finder folder icons for the demo scene (icons/index.json).
 try {
