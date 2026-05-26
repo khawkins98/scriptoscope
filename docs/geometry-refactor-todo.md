@@ -81,7 +81,7 @@ below — not a one-time pass. The loop, every time:
 ### Glitch catalog (fill in as found / fixed)
 | scheme | window type | glitch (what looks wrong) | root-cause value | source of truth | status |
 |---|---|---|---|---|---|
-| platinum-8 | document | title-bar pinstripe washed out / flat | **ROOT CAUSE FOUND**: platinum-8's shipped `cicn -14331` is a FLAT gray block — no stripes. NOT render logic, NOT extraction (same extractor → crisp stripes for aplat2/system7; platinum-8's `-14331` is genuinely flat in scheme.rsrc, 398B). Render path is correct. | WDEF (AA00 2-row) for the real look; check platinum-8's `ppat`s — its stripe texture may live in a pixel pattern, not the cicn | **traced** — fix: confirm if platinum-8 stripes are in a `ppat` + wire it; else the flat bar is platinum-8-authentic (close as faithful) |
+| platinum-8 | document | (NOT A BUG) bar looked "washed out" | platinum-8's `cicn -14331` is a flat gray block BY DESIGN | platinum-8 itself | **CLOSED — FAITHFUL.** Owner confirmed: platinum-8's document bar IS flat (no pinstripe). ⚠️ GUARDRAIL: do NOT add stripes — a PRIOR agent wrongly "fixed" this and it had to be reverted. The flat `-14331` is correct; the render path is correct. This is the punch-list trap (special-casing a non-bug); the reconcile loop correctly closed it. |
 | apple-platinum-2, platinum-8 | document | close/zoom widgets carry a brown/tan tint | shipped ics4 glyph color | confirm vs real scheme art | open (confirm authentic) |
 | _(owner is seeing more — add each: scheme · type · symptom · suspected value)_ | | | | | |
 
