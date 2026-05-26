@@ -123,6 +123,22 @@ function darken(c: [number, number, number, number], amt: number): [number, numb
   return [Math.round(c[0] * (1 - amt)), Math.round(c[1] * (1 - amt)), Math.round(c[2] * (1 - amt)), 255];
 }
 
+/** Most-common opaque colour in a region of `buf` — the title bar's BACKGROUND
+ *  (the stripe gaps dominate the thin stripes), so it's right for both a light
+ *  bar (ap2) and a dark one (black-platinum's black-with-white-stripes). */
+function dominantColor(buf: PixelBuffer, x0: number, y0: number, w: number, h: number, fallback: [number, number, number, number]): [number, number, number, number] {
+  const counts = new Map<number, number>();
+  for (let y = y0; y < y0 + h; y += 1) for (let x = x0; x < x0 + w; x += 2) {
+    const [r, g, b, a] = buf.getPixel(x, y);
+    if (a < 200) continue;
+    const k = (r << 16) | (g << 8) | b;
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  let best = -1, bk = -1;
+  for (const [k, c] of counts) if (c > best) { best = c; bk = k; }
+  return bk < 0 ? fallback : [(bk >> 16) & 255, (bk >> 8) & 255, bk & 255, 255];
+}
+
 /**
  * FRAME-EXTRACT a window-frame proxy cicn (e.g. -14332): copy the 8 BORDER cells
  * — 4 corners + 4 edges (edges stretched along their run) — and leave the CENTRE
@@ -258,6 +274,18 @@ export function composeCornerSpriteChrome(
           out.copyBits(pin, { x: 0, y: 0, w: ww, h: hh }, { x: dx, y: dy, w: ww, h: hh });
         }
       }
+    }
+    // Title PLATE: clear a centred, un-striped area behind the title text so the
+    // stripes CAP at the plate instead of running through "Hello!" (the WDEF clears
+    // the title rect to the bar face — see the references). Plate colour = the bar's
+    // dominant background, sampled from what we just tiled (light on ap2, black on
+    // black-platinum), so the contrast-picked title text still reads. Sized to the
+    // measured title width + a little padding.
+    if (opts.titleWidthPx && opts.titleWidthPx > 4 && titleH > 3) {
+      const bg = dominantColor(out, 0, 1, fullW, titleH - 2, faceRgba);
+      const plateW = Math.min(fullW - 4, opts.titleWidthPx + 6);
+      const plateX = Math.max(1, Math.round((fullW - plateW) / 2));
+      out.fillRect({ x: plateX, y: 1, w: plateW, h: titleH - 2 }, bg[0], bg[1], bg[2], 255);
     }
     placement.push({
       edge: 'top', code: 8, role: 'title pinstripe', mode: 'tile',
