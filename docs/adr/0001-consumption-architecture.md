@@ -1,9 +1,24 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
 - **Status:** Proposed (spike-gated — see §Decision 1 and §Gating spike)
-- **Date:** 2026-05-25
+- **Date:** 2026-05-25 (reviewed 2026-05-26 — see §Update)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
+
+## Update — 2026-05-26 (engine deepened; decisions unchanged)
+
+A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. Confirmed still absent: any `data-aaron-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `AaronWindow`, `ResizeObserver`, or emitted CSS. Ingestion is also unchanged — `src/loadTheme.ts`'s `assetUrl` still prefixes `baseUrl` (the blob-URL passthrough Decision 4 needs hasn't landed).
+
+Two context updates that **reinforce** Decision 1 rather than alter it:
+
+1. **There are now TWO window compositors**, both already 9-slice-shaped:
+   - `composeWindowChrome` (`src/composeChrome.ts`) — the kDEF cicn 9-walk / per-edge recipe path (schemes that ship `wnd#`/`cinf`, e.g. `1138`, `beos-r503`).
+   - `composeCornerSprite` (`src/composeCornerSprite.ts`, new) — for look-only schemes that ship corner cicns + sprites but no `wnd#` recipe (`apple-platinum-2`, `platinum-8`, `system7-nostalgia-silver`). Its frame is **procedural**: a 1px arithmetic ring (→ a CSS `border`), a tiled pinstripe title bar (→ `background-repeat`), and corner-1:1 + edge-stretch cells (→ literally `border-image`'s model). `renderWindow` routes recipe → corner-sprite → base → procedural baseline.
+   The corner-sprite frame is *more* CSS-expressible than the recipe path, so the CSS-first-hybrid thesis holds harder. The cost: the border-image emitter + representability classifier must source from **both** compositors.
+
+2. **Adjusted §Gating spike scope:** test **one scheme per compositor** — a recipe scheme (`1138` / `beos-r503`) **and** a corner-sprite scheme (`apple-platinum-2` / `platinum-8`). Expect the corner-sprite frame to be the easier border-image win; learning that early de-risks the emitter.
+
+Also noted (no decision change): the engine added control classes (bevel button, list header, menus/popups), ics4/ics8/icl8 icon decode, the Charcoal title font, and 3 themes — all of which *widen* the eventual PE control-decoration surface but don't move the v1 scope guard (host-native form controls stay out).
 
 ## Context
 
@@ -46,7 +61,7 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 
 ## Gating spike (must pass before committing Decision 1 and cutting phase issues)
 
-Build a **throwaway** `border-image` emitter for ONE window frame straight from the `composeChrome` recipe and compare against the canvas render. Acceptance: the body frame (corners + L/R/bottom) is faithful at integer scale across ≥3 corpus schemes (e.g. `apple-platinum-replica`, `1138`, `beos-r503`); document which edges/schemes need the canvas fallback. Output: confirm/deny Decision 1, and the rules for the representability classifier. **No production code until the spike resolves.**
+Build a **throwaway** `border-image` emitter for ONE window frame straight from the slice recipe and compare against the canvas render. **Cover one scheme per compositor** (see §Update): a recipe scheme (`1138` / `beos-r503`, via `composeWindowChrome`) and a corner-sprite scheme (`apple-platinum-2` / `platinum-8`, via `composeCornerSprite` — likely the easier win). Acceptance: the body frame (corners + L/R/bottom) is faithful at integer scale across ≥3 corpus schemes spanning both paths; document which edges/schemes need the canvas fallback. Output: confirm/deny Decision 1, and the rules for the representability classifier. **No production code until the spike resolves.**
 
 ## Consequences
 
