@@ -1,5 +1,6 @@
 import { PixelBuffer } from './pixelBuffer.js';
 import type { WindowType } from './types.js';
+import { CORNER_SPRITE_GEOMETRY as GEOM } from './cornerSpriteGeometry.js';
 import {
   type ComposedChrome,
   type Frame,
@@ -279,11 +280,14 @@ export function composeCornerSpriteChrome(
   // ── Title-bar widget LAYOUT (positions only) ───────────────────────────────
   // Resolved up front so the pinstripe (§1) can be BOUNDED to the gaps between the
   // controls; the glyphs themselves are stamped in §3 from this same layout.
-  // Geometry (WDEF 125 §"Box geometry"): close = title.left+3; zoom 4px from the
-  // right end; collapse inboard of zoom; each vertically centred. WBOX sizes the
-  // fabricated box for any role a scheme ships no glyph for.
-  const WBOX = Math.max(7, Math.min(13, titleH - 7));
-  const widgetsActive = hasTitleBar && titleH >= WBOX + 2 && widgets.length > 0;
+  // Geometry from the WDEF 125 decode (src/cornerSpriteGeometry.ts), NOT the old
+  // hand-tuned guesses: the real Platinum widgets are a 7×7 FIXED box, close 4px
+  // from the LEFT title end, zoom 4px from the RIGHT, collapse inboard of zoom,
+  // each vertically centred. WBOX sizes the fabricated box for any role a scheme
+  // ships no glyph for; the decode pins it at 7 (was a manual 7..13 ⇒ ~12 at
+  // titleH 19, too big). Capped to titleH-2 so a short utility bar still fits.
+  const WBOX = Math.min(GEOM.widget.box, Math.max(5, titleH - 2));
+  const widgetsActive = hasTitleBar && titleH >= GEOM.widget.box + 2 && widgets.length > 0;
   const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null } => {
     const g = opts.widgetGlyphs?.[role];
     if (g && g.width > 0 && g.height > 0 && g.height <= titleH - 1) return { w: g.width, h: g.height, glyph: g };
@@ -293,17 +297,17 @@ export function composeCornerSpriteChrome(
   if (widgetsActive) {
     if (widgets.includes('close')) {
       const b = boxOf('close');
-      const x = frame.left + 4 - 1 < 0 ? 2 : frame.left + 3;
+      const x = frame.left + GEOM.widget.closeFromLeft; // decode: title.left + 4
       widgetLayout.push({ glyph: 'close', x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
     }
     let rx = -1; // sentinel: compute from fullW on the first right widget
     for (const glyph of ['zoom', 'collapse'] as const) {
       if (!widgets.includes(glyph)) continue;
       const b = boxOf(glyph);
-      if (rx < 0) rx = fullW - frame.right - 4 - b.w; // zoom: 4px from the right end
+      if (rx < 0) rx = fullW - frame.right - GEOM.widget.zoomFromRight - b.w; // decode: title.right − 4
       const x = Math.max(0, rx);
       widgetLayout.push({ glyph, x, y: Math.max(1, Math.round((titleH - b.h) / 2)), w: b.w, h: b.h });
-      rx = Math.max(0, x - b.w - 2);
+      rx = Math.max(0, x - b.w - GEOM.widget.collapseGap);
     }
   }
 
