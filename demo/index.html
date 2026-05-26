@@ -77,6 +77,16 @@
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
 
+    // Preload the bundled Charcoal faces before any rendering. rasterizeText (control
+    // labels) + rasterizeTitleFont are sync canvas draws — if the face isn't loaded
+    // yet the canvas silently falls back to sans, so the FIRST paint can flash the
+    // wrong font. Top-level await (this is a module) gates rendering on the faces.
+    try { await Promise.all([
+      document.fonts.load('16px "Charcoal 12"'),
+      document.fonts.load('13px Charcoal'),
+      document.fonts.load('11px Charcoal'),
+    ]); } catch { /* face optional — falls back to the system stack */ }
+
     // Theme bundles live under the deploy base: `/` in dev (vite middleware
     // serves repo-root themes/ at /themes/) but `/aaron-ui/` on GitHub Pages.
     // BASE_URL carries that prefix (and a trailing slash) in both, so theme

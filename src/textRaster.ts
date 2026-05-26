@@ -10,15 +10,18 @@ import { PixelBuffer } from './pixelBuffer.js';
  * is transparent (the caller clears the title band first, then alpha-
  * overs this in).
  *
- * NOTE: the glyph shapes come from the platform font (a bold geometric
- * fallback), not the period Chicago bitmap font — bundling the actual
- * scheme/system bitmap font is a known refinement.
+ * NOTE: glyph shapes come from the bundled "Charcoal" face (Virtue — the
+ * @font-face the demo loads; a local Chicago/Charcoal is preferred if the
+ * viewer has one), matching the window titles. NOT a forced 700 weight —
+ * Virtue is single-weight, so `700` faux-bolded it into a heavy geometric
+ * sans (the old "doesn't read as Mac" tell). Requires the face to be loaded
+ * before this runs (the demo preloads it).
  */
 export function rasterizeText(text: string, heightPx: number, color: string): PixelBuffer {
   const fontPx = Math.max(6, heightPx);
   const measure = document.createElement('canvas').getContext('2d');
   if (!measure) return PixelBuffer.alloc(1, 1);
-  const font = `700 ${fontPx}px Chicago, "Charcoal", Geneva, Verdana, sans-serif`;
+  const font = `${fontPx}px Chicago, "Charcoal", Geneva, sans-serif`;
   measure.font = font;
   const w = Math.max(1, Math.ceil(measure.measureText(text).width));
   const h = Math.ceil(fontPx * 1.3);
