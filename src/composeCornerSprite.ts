@@ -134,7 +134,7 @@ function darken(c: [number, number, number, number], amt: number): [number, numb
 function frameExtract(out: PixelBuffer, src: PixelBuffer, cSrc: number, scale: number, fullW: number, fullH: number, drawTopEdge = true): void {
   const S = src.width, Sh = src.height;
   const cs = Math.max(1, Math.min(cSrc, Math.floor((Math.min(S, Sh) - 1) / 2)));
-  const C = cs * scale; // dest border thickness
+  const C = Math.max(cs, Math.round(cs * scale)); // dest border thickness (scale may be fractional)
   const cp = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void =>
     out.copyBits(src, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh });
   const midSW = S - cs * 2, midSH = Sh - cs * 2;       // source middle spans
@@ -206,13 +206,13 @@ export function composeCornerSpriteChrome(
   // -14336 inactive) → frame-extract it (border cells, transparent centre) for the
   // beveled frame + corners that scale, instead of the procedural bevel. The proxy's
   // bevel is hairline at 16px, so the border cells are scaled 2× (owner-confirmed).
-  const FRAME_SCALE = 2;
+  const FRAME_SCALE = 1;
   const FRAME_CSRC = 5; // source px per corner / edge cross-section: the proxy's outer
                         // bevel PLUS its inner shadow/highlight row (4 trimmed that
                         // inner px into the discarded centre — the inner shading read wrong)
   const useFrame = !!(opts.frameCicn && opts.frameCicn.width >= 8 && opts.frameCicn.height >= 8);
   if (useFrame) {
-    const C = FRAME_CSRC * FRAME_SCALE;
+    const C = Math.max(FRAME_CSRC, Math.round(FRAME_CSRC * FRAME_SCALE));
     frame.left = Math.max(frame.left, C);
     frame.right = Math.max(frame.right, C);
     frame.bottom = Math.max(frame.bottom, C);
