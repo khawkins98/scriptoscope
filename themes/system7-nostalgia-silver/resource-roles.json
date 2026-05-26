@@ -1,0 +1,1749 @@
+{
+ "_generator": "scripts/gen-resource-roles.mjs",
+ "_note": "Per-theme resource id → DECODED role. Roles come from a rubric + the actual resource set, NOT guessed from filename slugs. The same id differs across schemes and across the cicn/ics4 dual channel. See docs/spec/kdef231-reference.md.",
+ "theme": "system7-nostalgia-silver",
+ "progress": {
+  "model": "lavender-2-part",
+  "fill": -10223,
+  "track": -10224,
+  "frame": null,
+  "alternateHues": [
+   -10222,
+   -10221,
+   -10220,
+   -10080,
+   -10079,
+   -10078,
+   -10077,
+   -10076,
+   -10075,
+   -10074,
+   -10073,
+   -10072,
+   -10071
+  ]
+ },
+ "scrollArrows": {
+  "note": "UNIVERSAL kDEF231 CDEF mapping (asm 9f0e-9f38) — RAISED is the resting/default state",
+  "raised": {
+   "right": -10201,
+   "left": -10202,
+   "down": -10203,
+   "up": -10204
+  },
+  "pressed": {
+   "right": -10197,
+   "left": -10198,
+   "down": -10199,
+   "up": -10200
+  }
+ },
+ "resources": [
+  {
+   "id": -14336,
+   "type": "cicn",
+   "slug": "inactive-document",
+   "family": "window",
+   "role": "window chrome (inactive-document)"
+  },
+  {
+   "id": -14334,
+   "type": "cicn",
+   "slug": "inactive-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-grow-box)"
+  },
+  {
+   "id": -14332,
+   "type": "cicn",
+   "slug": "active-document",
+   "family": "window",
+   "role": "window chrome (active-document)"
+  },
+  {
+   "id": -14331,
+   "type": "cicn",
+   "slug": "document-racing-stripes",
+   "family": "window",
+   "role": "window chrome (document-racing-stripes)"
+  },
+  {
+   "id": -14330,
+   "type": "cicn",
+   "slug": "active-grow-box",
+   "family": "window",
+   "role": "window chrome (active-grow-box)"
+  },
+  {
+   "id": -14328,
+   "type": "cicn",
+   "slug": "inactive-dialog",
+   "family": "window",
+   "role": "window chrome (inactive-dialog)"
+  },
+  {
+   "id": -14326,
+   "type": "cicn",
+   "slug": "active-dialog",
+   "family": "window",
+   "role": "window chrome (active-dialog)"
+  },
+  {
+   "id": -14325,
+   "type": "cicn",
+   "slug": "dialog-racing-stripes",
+   "family": "window",
+   "role": "window chrome (dialog-racing-stripes)"
+  },
+  {
+   "id": -14324,
+   "type": "cicn",
+   "slug": "inactive-alert",
+   "family": "window",
+   "role": "window chrome (inactive-alert)"
+  },
+  {
+   "id": -14322,
+   "type": "cicn",
+   "slug": "active-alert",
+   "family": "window",
+   "role": "window chrome (active-alert)"
+  },
+  {
+   "id": -14321,
+   "type": "cicn",
+   "slug": "alert-racing-stripes",
+   "family": "window",
+   "role": "window chrome (alert-racing-stripes)"
+  },
+  {
+   "id": -14320,
+   "type": "cicn",
+   "slug": "inactive-utility-window",
+   "family": "window",
+   "role": "window chrome (inactive-utility-window)"
+  },
+  {
+   "id": -14319,
+   "type": "cicn",
+   "slug": "inactive-side-utility-window",
+   "family": "window",
+   "role": "window chrome (inactive-side-utility-window)"
+  },
+  {
+   "id": -14318,
+   "type": "cicn",
+   "slug": "utility-racing-stripes-side",
+   "family": "window",
+   "role": "window chrome (utility-racing-stripes-side)"
+  },
+  {
+   "id": -14317,
+   "type": "cicn",
+   "slug": "inactive-utility-window-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-utility-window-grow-box)"
+  },
+  {
+   "id": -14316,
+   "type": "cicn",
+   "slug": "active-utility-window",
+   "family": "window",
+   "role": "window chrome (active-utility-window)"
+  },
+  {
+   "id": -14315,
+   "type": "cicn",
+   "slug": "active-side-utility-window",
+   "family": "window",
+   "role": "window chrome (active-side-utility-window)"
+  },
+  {
+   "id": -14314,
+   "type": "cicn",
+   "slug": "utility-racing-stripes",
+   "family": "window",
+   "role": "window chrome (utility-racing-stripes)"
+  },
+  {
+   "id": -14313,
+   "type": "cicn",
+   "slug": "active-utility-window-grow-box",
+   "family": "window",
+   "role": "window chrome (active-utility-window-grow-box)"
+  },
+  {
+   "id": -14312,
+   "type": "cicn",
+   "slug": "inactive-finder-header",
+   "family": "window",
+   "role": "window chrome (inactive-finder-header)"
+  },
+  {
+   "id": -14311,
+   "type": "cicn",
+   "slug": "active-finder-header",
+   "family": "window",
+   "role": "window chrome (active-finder-header)"
+  },
+  {
+   "id": -14305,
+   "type": "cicn",
+   "slug": "control-panel-list-icon",
+   "family": "window",
+   "role": "window chrome (control-panel-list-icon)"
+  },
+  {
+   "id": -12320,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "popup-menu",
+   "role": "popup-menu / tab frame"
+  },
+  {
+   "id": -12319,
+   "type": "cicn",
+   "slug": "active",
+   "family": "popup-menu",
+   "role": "popup-menu / tab frame"
+  },
+  {
+   "id": -12317,
+   "type": "cicn",
+   "slug": "inactive",
+   "family": "popup-menu",
+   "role": "popup-menu / tab frame"
+  },
+  {
+   "id": -12288,
+   "type": "cicn",
+   "slug": "menus",
+   "family": "other",
+   "role": "cicn body (menus)"
+  },
+  {
+   "id": -12287,
+   "type": "cicn",
+   "slug": "menu-highlight-lavender",
+   "family": "other",
+   "role": "cicn body (menu-highlight-lavender)"
+  },
+  {
+   "id": -12286,
+   "type": "cicn",
+   "slug": "menu-highlight-gold",
+   "family": "other",
+   "role": "cicn body (menu-highlight-gold)"
+  },
+  {
+   "id": -12285,
+   "type": "cicn",
+   "slug": "menu-highlight-emerald",
+   "family": "other",
+   "role": "cicn body (menu-highlight-emerald)"
+  },
+  {
+   "id": -12284,
+   "type": "cicn",
+   "slug": "menu-highlight-turquoise",
+   "family": "other",
+   "role": "cicn body (menu-highlight-turquoise)"
+  },
+  {
+   "id": -12283,
+   "type": "cicn",
+   "slug": "menu-highlight-crimson",
+   "family": "other",
+   "role": "cicn body (menu-highlight-crimson)"
+  },
+  {
+   "id": -12282,
+   "type": "cicn",
+   "slug": "menu-highlight-magenta",
+   "family": "other",
+   "role": "cicn body (menu-highlight-magenta)"
+  },
+  {
+   "id": -12281,
+   "type": "cicn",
+   "slug": "menu-highlight-sapphire",
+   "family": "other",
+   "role": "cicn body (menu-highlight-sapphire)"
+  },
+  {
+   "id": -12280,
+   "type": "cicn",
+   "slug": "menu-highlight-silver",
+   "family": "other",
+   "role": "cicn body (menu-highlight-silver)"
+  },
+  {
+   "id": -12256,
+   "type": "cicn",
+   "slug": "menu-highlight-aquamarine",
+   "family": "other",
+   "role": "cicn body (menu-highlight-aquamarine)"
+  },
+  {
+   "id": -12255,
+   "type": "cicn",
+   "slug": "menu-highlight-copper",
+   "family": "other",
+   "role": "cicn body (menu-highlight-copper)"
+  },
+  {
+   "id": -12254,
+   "type": "cicn",
+   "slug": "menu-highlight-french-blue",
+   "family": "other",
+   "role": "cicn body (menu-highlight-french-blue)"
+  },
+  {
+   "id": -12253,
+   "type": "cicn",
+   "slug": "menu-highlight-ivy",
+   "family": "other",
+   "role": "cicn body (menu-highlight-ivy)"
+  },
+  {
+   "id": -12252,
+   "type": "cicn",
+   "slug": "menu-highlight-lime",
+   "family": "other",
+   "role": "cicn body (menu-highlight-lime)"
+  },
+  {
+   "id": -12251,
+   "type": "cicn",
+   "slug": "menu-highlight-nutmeg",
+   "family": "other",
+   "role": "cicn body (menu-highlight-nutmeg)"
+  },
+  {
+   "id": -12250,
+   "type": "cicn",
+   "slug": "menu-highlight-olive",
+   "family": "other",
+   "role": "cicn body (menu-highlight-olive)"
+  },
+  {
+   "id": -12249,
+   "type": "cicn",
+   "slug": "menu-highlight-plum",
+   "family": "other",
+   "role": "cicn body (menu-highlight-plum)"
+  },
+  {
+   "id": -12248,
+   "type": "cicn",
+   "slug": "menu-highlight-rose",
+   "family": "other",
+   "role": "cicn body (menu-highlight-rose)"
+  },
+  {
+   "id": -12247,
+   "type": "cicn",
+   "slug": "menu-highlight-teal",
+   "family": "other",
+   "role": "cicn body (menu-highlight-teal)"
+  },
+  {
+   "id": -10240,
+   "type": "cicn",
+   "slug": "inactive-push-button",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10239,
+   "type": "cicn",
+   "slug": "active-push-button",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10238,
+   "type": "cicn",
+   "slug": "pressed-push-button",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10232,
+   "type": "cicn",
+   "slug": "inactive-default-button-ring",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10231,
+   "type": "cicn",
+   "slug": "active-default-button-ring",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10224,
+   "type": "cicn",
+   "slug": "progress-bar-track",
+   "family": "progress",
+   "role": "progress TRACK (empty trough)"
+  },
+  {
+   "id": -10223,
+   "type": "cicn",
+   "slug": "progress-bar-lavender",
+   "family": "progress",
+   "role": "progress FILL — lavender (canonical default)"
+  },
+  {
+   "id": -10222,
+   "type": "cicn",
+   "slug": "progress-bar-gold",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-gold)"
+  },
+  {
+   "id": -10221,
+   "type": "cicn",
+   "slug": "progress-bar-emerald",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-emerald)"
+  },
+  {
+   "id": -10220,
+   "type": "cicn",
+   "slug": "progress-bar-turquoise",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-turquoise)"
+  },
+  {
+   "id": -10219,
+   "type": "cicn",
+   "slug": "progress-bar-crimson",
+   "family": "other",
+   "role": "cicn body (progress-bar-crimson)"
+  },
+  {
+   "id": -10218,
+   "type": "cicn",
+   "slug": "progress-bar-magenta",
+   "family": "other",
+   "role": "cicn body (progress-bar-magenta)"
+  },
+  {
+   "id": -10217,
+   "type": "cicn",
+   "slug": "progress-bar-sapphire",
+   "family": "other",
+   "role": "cicn body (progress-bar-sapphire)"
+  },
+  {
+   "id": -10216,
+   "type": "cicn",
+   "slug": "progress-bar-silver",
+   "family": "other",
+   "role": "cicn body (progress-bar-silver)"
+  },
+  {
+   "id": -10208,
+   "type": "cicn",
+   "slug": "normal-vertical-thumb",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10207,
+   "type": "cicn",
+   "slug": "pressed-vertical-thumb",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10206,
+   "type": "cicn",
+   "slug": "normal-horizontal-thumb",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10205,
+   "type": "cicn",
+   "slug": "pressed-horizontal-thumb",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10204,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10203,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10202,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10201,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10200,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10199,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10198,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10197,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10196,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10195,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10194,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10193,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10192,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10191,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10190,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10189,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10188,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10187,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10186,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10185,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10184,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10183,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10182,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10181,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10180,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10179,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10178,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10177,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10176,
+   "type": "cicn",
+   "slug": "bevel-button-small-inactive-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10175,
+   "type": "cicn",
+   "slug": "bevel-button-small-unpressed-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10174,
+   "type": "cicn",
+   "slug": "bevel-button-small-pressed-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10173,
+   "type": "cicn",
+   "slug": "bevel-button-small-inactive-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10172,
+   "type": "cicn",
+   "slug": "bevel-button-small-unpressed-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10171,
+   "type": "cicn",
+   "slug": "bevel-button-small-pressed-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10167,
+   "type": "cicn",
+   "slug": "bevel-button-normal-inactive-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10166,
+   "type": "cicn",
+   "slug": "bevel-button-normal-unpressed-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10165,
+   "type": "cicn",
+   "slug": "bevel-button-normal-pressed-clear",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10164,
+   "type": "cicn",
+   "slug": "bevel-button-normal-inactive-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10163,
+   "type": "cicn",
+   "slug": "bevel-button-normal-unpressed-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10162,
+   "type": "cicn",
+   "slug": "bevel-button-normal-pressed-set",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10080,
+   "type": "cicn",
+   "slug": "progress-bar-aquamarine",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-aquamarine)"
+  },
+  {
+   "id": -10079,
+   "type": "cicn",
+   "slug": "progress-bar-copper",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-copper)"
+  },
+  {
+   "id": -10078,
+   "type": "cicn",
+   "slug": "progress-bar-french-blue",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-french-blue)"
+  },
+  {
+   "id": -10077,
+   "type": "cicn",
+   "slug": "progress-bar-ivy",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-ivy)"
+  },
+  {
+   "id": -10076,
+   "type": "cicn",
+   "slug": "progress-bar-lime",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-lime)"
+  },
+  {
+   "id": -10075,
+   "type": "cicn",
+   "slug": "progress-bar-nutmeg",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-nutmeg)"
+  },
+  {
+   "id": -10074,
+   "type": "cicn",
+   "slug": "progress-bar-olive",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-olive)"
+  },
+  {
+   "id": -10073,
+   "type": "cicn",
+   "slug": "progress-bar-plum",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-plum)"
+  },
+  {
+   "id": -10072,
+   "type": "cicn",
+   "slug": "progress-bar-rose",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-rose)"
+  },
+  {
+   "id": -10071,
+   "type": "cicn",
+   "slug": "progress-bar-teal",
+   "family": "progress",
+   "role": "progress FILL hue (progress-bar-teal)"
+  },
+  {
+   "id": -9472,
+   "type": "cicn",
+   "slug": "aquamarine",
+   "family": "other",
+   "role": "cicn body (aquamarine)"
+  },
+  {
+   "id": -9471,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9470,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9469,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9468,
+   "type": "cicn",
+   "slug": "copper",
+   "family": "other",
+   "role": "cicn body (copper)"
+  },
+  {
+   "id": -9467,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9466,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9465,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9464,
+   "type": "cicn",
+   "slug": "french-blue",
+   "family": "other",
+   "role": "cicn body (french-blue)"
+  },
+  {
+   "id": -9463,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9462,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9461,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9460,
+   "type": "cicn",
+   "slug": "ivy",
+   "family": "other",
+   "role": "cicn body (ivy)"
+  },
+  {
+   "id": -9459,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9458,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9457,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9456,
+   "type": "cicn",
+   "slug": "lime",
+   "family": "other",
+   "role": "cicn body (lime)"
+  },
+  {
+   "id": -9455,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9454,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9453,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9452,
+   "type": "cicn",
+   "slug": "nutmeg",
+   "family": "other",
+   "role": "cicn body (nutmeg)"
+  },
+  {
+   "id": -9451,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9450,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9449,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9448,
+   "type": "cicn",
+   "slug": "olive",
+   "family": "other",
+   "role": "cicn body (olive)"
+  },
+  {
+   "id": -9447,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9446,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9445,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9444,
+   "type": "cicn",
+   "slug": "plum",
+   "family": "other",
+   "role": "cicn body (plum)"
+  },
+  {
+   "id": -9443,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9442,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9441,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9440,
+   "type": "cicn",
+   "slug": "rose",
+   "family": "other",
+   "role": "cicn body (rose)"
+  },
+  {
+   "id": -9439,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9438,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9437,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9436,
+   "type": "cicn",
+   "slug": "teal",
+   "family": "other",
+   "role": "cicn body (teal)"
+  },
+  {
+   "id": -9435,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9434,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9433,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -8288,
+   "type": "cicn",
+   "slug": "disabled-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8287,
+   "type": "cicn",
+   "slug": "empty-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8286,
+   "type": "cicn",
+   "slug": "normal-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8285,
+   "type": "cicn",
+   "slug": "pressed-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8280,
+   "type": "cicn",
+   "slug": "disabled-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8279,
+   "type": "cicn",
+   "slug": "empty-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8278,
+   "type": "cicn",
+   "slug": "normal-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8277,
+   "type": "cicn",
+   "slug": "pressed-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8272,
+   "type": "cicn",
+   "slug": "vertical-ghost-thumb",
+   "family": "other",
+   "role": "cicn body (vertical-ghost-thumb)"
+  },
+  {
+   "id": -8271,
+   "type": "cicn",
+   "slug": "horizontal-ghost-thumb",
+   "family": "other",
+   "role": "cicn body (horizontal-ghost-thumb)"
+  },
+  {
+   "id": -8224,
+   "type": "cicn",
+   "slug": "disabled-popup-menu",
+   "family": "other",
+   "role": "cicn body (disabled-popup-menu)"
+  },
+  {
+   "id": -8223,
+   "type": "cicn",
+   "slug": "normal-popup-menu",
+   "family": "other",
+   "role": "cicn body (normal-popup-menu)"
+  },
+  {
+   "id": -8222,
+   "type": "cicn",
+   "slug": "pressed-popup-menu",
+   "family": "other",
+   "role": "cicn body (pressed-popup-menu)"
+  },
+  {
+   "id": -8216,
+   "type": "cicn",
+   "slug": "disabled",
+   "family": "other",
+   "role": "cicn body (disabled)"
+  },
+  {
+   "id": -8215,
+   "type": "cicn",
+   "slug": "normal",
+   "family": "other",
+   "role": "cicn body (normal)"
+  },
+  {
+   "id": -8214,
+   "type": "cicn",
+   "slug": "pressed",
+   "family": "other",
+   "role": "cicn body (pressed)"
+  },
+  {
+   "id": -16455,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -14336,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14335,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14334,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14333,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14332,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14331,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14320,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14319,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14318,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14317,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14316,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14315,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -10240,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10239,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10238,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10237,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10236,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10235,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10234,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10233,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10232,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10231,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10230,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10229,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10224,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10223,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10222,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10220,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10219,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10218,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10216,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10215,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10214,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10208,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10207,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10206,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10205,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10204,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (RAISED)"
+  },
+  {
+   "id": -10203,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (RAISED)"
+  },
+  {
+   "id": -10202,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (RAISED)"
+  },
+  {
+   "id": -10201,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (RAISED)"
+  },
+  {
+   "id": -10200,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (PRESSED)"
+  },
+  {
+   "id": -10199,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (PRESSED)"
+  },
+  {
+   "id": -10198,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (PRESSED)"
+  },
+  {
+   "id": -10197,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (PRESSED)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10057-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10058-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10059-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10060-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10061-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10062-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10063-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10064-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10071-teal",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10072-rose",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10073-plum",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10074-olive",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10075-nutmeg",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10076-lime",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10077-ivy",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10078-french-blue",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10079-copper",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10080-aquamarine",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8277-pressed-vertical-scrollbar",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8278-normal-vertical-scrollbar",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8285-pressed-horizontal-scrollbar",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8286-normal-horizontal-scrollbar",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  }
+ ]
+}

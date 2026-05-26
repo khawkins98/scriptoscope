@@ -266,6 +266,13 @@ hi=-8271). They reveal the control families the kDEF expects:
 > `-9488..-9504` are still derived consumer-side (not kDEF immediates). The full
 > two-channel id→role map is the **pictogram ID rubric** rendered in
 > `demo/index.html` `iconInventory` (and reproduced for authoring in the asset catalog).
+>
+> **GENERATED MANIFEST:** the decoded id→role for EVERY resource a theme ships is now
+> emitted per-theme to `themes/<slug>/resource-roles.json` (`scripts/gen-resource-roles.mjs`,
+> in `build:themes`) — each entry has `{id, type, slug, family, role}` honouring the
+> cicn/ics4 dual channel, plus a resolved `progress` model (lavender-2-part vs role-3-part)
+> and `scrollArrows` mapping. Read that instead of guessing a resource's role from its
+> filename slug (the recurring bug: same id, different role per scheme + per channel).
 
 ### 2.5 cinf id range + clut/Colr
 
