@@ -254,12 +254,20 @@
             const r = await fetch(`${theme.baseUrl}/icons/index.json`);
             if (!r.ok) return [];
             const idx = await r.json();
-            const icl4 = idx.filter((i) => i.size === 32); // 32px scene icons (icl4 + icl8)
-            const byId = new Map(icl4.map((i) => [i.id, i]));
+            const all32 = idx.filter((i) => i.size === 32); // 32px scene icons (icl4 + icl8)
+            // Prefer the HIGHEST depth per id (icl8 over icl4), matching the
+            // renderer's glyph policy (loadTheme.loadGlyphMap). The scene picker
+            // used to keep whichever sorted last in index.json, so an 8-bit-rich
+            // scheme (BeOS ships both for every folder) could fall back to its
+            // flatter 4-bit art.
+            const depthOf = (i) => i.depth ?? (i.type === 'icl8' ? 8 : 4);
+            const byId = new Map();
+            for (const i of all32) { const c = byId.get(i.id); if (!c || depthOf(i) > depthOf(c)) byId.set(i.id, i); }
+            const uniq = [...byId.values()];
             const picked = [];
             for (const id of FINDER_CONTENT_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
             const seen = new Set(picked.map((i) => i.id));
-            const cov = icl4.filter((i) => i.coverage > 0.18 && i.coverage < 0.95 && !seen.has(i.id));
+            const cov = uniq.filter((i) => i.coverage > 0.18 && i.coverage < 0.95 && !seen.has(i.id));
             return picked.concat(cov).slice(0, 8);
           } catch { return []; }
         })());
