@@ -87,6 +87,11 @@
       document.fonts.load('11px Charcoal'),
     ]); } catch { /* face optional — falls back to the system stack */ }
 
+    // Scrollbar thumb sizing: proportional (OS 8 Appearance, default) vs fixed
+    // (System 7). Toggle hook for an eventual user preference — for now `?fixedthumbs`
+    // in the URL flips it, threaded into every scrollbar's `proportional` option.
+    const SCROLL_PROPORTIONAL = !/fixed-?thumbs?/i.test(location.search);
+
     // Theme bundles live under the deploy base: `/` in dev (vite middleware
     // serves repo-root themes/ at /themes/) but `/aaron-ui/` on GitHub Pages.
     // BASE_URL carries that prefix (and a trailing slash) in both, so theme
@@ -556,9 +561,9 @@
         ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
         content.appendChild(ctlRow);
         // edge scrollbars + grow box (Finder window furniture)
-        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25 });
+        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
         const vc = place(vsb, { right: '0', top: '0' }); if (vc) content.appendChild(vc);
-        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25 });
+        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
         const hc = place(hsb, { left: '0', bottom: '0' }); if (hc) content.appendChild(hc);
         // grow box: the scheme's actual bottom-right resize cicn where shipped,
         // else a plain Platinum-gray corner.
@@ -1065,8 +1070,8 @@
       rows.appendChild(section); // append synchronously to keep section order
       (async () => {
         const base = await loadWithBase(BASE_SLUG);
-        add(r1, (await composeScrollbar(base, { orientation: 'horizontal', length: 140, value: 0.35 })) ?? platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35 }));
-        add(r1, (await composeScrollbar(base, { orientation: 'vertical', length: 90, value: 0.5 })) ?? platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5 }));
+        add(r1, (await composeScrollbar(base, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL })) ?? platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
+        add(r1, (await composeScrollbar(base, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL })) ?? platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
         add(r1, await composeProgress(base, { length: 120, value: 0.6 }));
         add(r2, (await composeSlider(base, { orientation: 'horizontal', length: 120, value: 0.4 })) ?? platinumSlider({ orientation: 'horizontal', length: 120, value: 0.4 }));
         r2.appendChild(bufferToCanvas((await composeCheckable(base, 'checkbox', { checked: true })) ?? platinumCheckable('checkbox', { checked: true }), 1));
@@ -1113,8 +1118,8 @@
         const stack = document.createElement('div'); stack.className = 'ctl-stack';
         const r1 = document.createElement('div'); r1.className = 'ctl-row';
         const r2 = document.createElement('div'); r2.className = 'ctl-row';
-        add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35 }));
-        add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5 }));
+        add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
+        add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
         r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
         add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
         add(r2, await composeDisclosure(theme, { direction: 'right' }));

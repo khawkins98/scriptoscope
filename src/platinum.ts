@@ -233,7 +233,9 @@ export interface PlatinumScrollbarOptions {
   orientation?: 'horizontal' | 'vertical';
   length?: number;
   value?: number; // 0..1
-  thumbExtent?: number; // fraction of track, 0..1
+  thumbExtent?: number; // fraction of track, 0..1 (used when proportional)
+  /** OS 8 proportional thumb (default) vs System 7 fixed-size thumb. */
+  proportional?: boolean;
   disabled?: boolean;
 }
 
@@ -268,7 +270,11 @@ export function platinumScrollbar(opts: PlatinumScrollbarOptions = {}): PixelBuf
   // thumb in the track region between the arrow boxes
   const trackStart = T;
   const trackLen = Math.max(0, length - T * 2);
-  const thumbLen = Math.max(20, Math.round(trackLen * ext));
+  // Proportional (OS 8) thumb scales with the track; fixed (System 7) is ~1.4× the
+  // bar thickness regardless of content.
+  const thumbLen = (opts.proportional ?? true)
+    ? Math.max(20, Math.round(trackLen * ext))
+    : Math.max(20, Math.round(T * 1.4));
   const pos = trackStart + Math.round(value * Math.max(0, trackLen - thumbLen));
   if (trackLen >= thumbLen) {
     if (horiz) raisedFace(out, pos, 0, thumbLen, T, opts.disabled);

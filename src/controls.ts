@@ -173,8 +173,15 @@ export interface ScrollbarOptions {
   length?: number;
   /** Thumb position, 0..1. */
   value?: number;
-  /** Thumb size as a fraction of the track, 0..1. */
+  /** Thumb size as a fraction of the track, 0..1 (used when `proportional`). */
   thumbExtent?: number;
+  /**
+   * Thumb LENGTH model. `true` (default) = OS 8 Appearance proportional thumb
+   * (length scales with `thumbExtent` / the content ratio); `false` = the classic
+   * System 7 fixed-size thumb (the cicn's native length). Era preference — exposed so
+   * a host can wire it to a user setting (System-7 vs Platinum scrolling).
+   */
+  proportional?: boolean;
   state?: ControlState;
 }
 
@@ -307,12 +314,35 @@ export async function composeScrollbar(
 
   // ── thumb: positioned by value within the track region (between arrows) ──
   if (thumb) {
-    const thumbLen = horiz ? thumb.width : thumb.height;
+    const native = horiz ? thumb.width : thumb.height;
+    const cross = horiz ? thumb.height : thumb.width;
+    const offC = Math.round((thickness - cross) / 2);
+    // PROPORTIONAL (OS 8) thumb length scales with the track; FIXED (System 7) keeps
+    // the cicn's native length. Default proportional (the bundled themes are Platinum
+    // -era); ScrollbarOptions.proportional flips it. Never shorter than the cicn.
+    const proportional = opts.proportional ?? true;
+    const thumbLen = proportional
+      ? Math.max(native, Math.round(trackLen * Math.min(1, Math.max(0.08, opts.thumbExtent ?? 0.4))))
+      : native;
     const pos = trackStart + Math.round(value * Math.max(0, trackLen - thumbLen));
-    if (horiz) {
-      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: Math.round((thickness - thumb.height) / 2), w: thumb.width, h: thumb.height });
+    if (thumbLen <= native) {
+      // fixed (or proportional collapsed to native) — stamp 1:1
+      if (horiz) out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: offC, w: thumb.width, h: thumb.height });
+      else out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: offC, y: pos, w: thumb.width, h: thumb.height });
     } else {
-      out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: Math.round((thickness - thumb.width) / 2), y: pos, w: thumb.width, h: thumb.height });
+      // 3-slice along the axis: rounded end caps copied 1:1, middle stretched (the
+      // capsule thumbs — e.g. ap2's 30px purple thumb — have a stretchable centre).
+      const cap = Math.max(2, Math.min(Math.floor((native - 1) / 2), Math.round(cross / 2)));
+      const mid = native - cap * 2;
+      if (horiz) {
+        out.copyBits(thumb, { x: 0, y: 0, w: cap, h: thumb.height }, { x: pos, y: offC, w: cap, h: thumb.height });
+        out.copyBits(thumb, { x: thumb.width - cap, y: 0, w: cap, h: thumb.height }, { x: pos + thumbLen - cap, y: offC, w: cap, h: thumb.height });
+        if (mid > 0) out.copyBits(thumb, { x: cap, y: 0, w: mid, h: thumb.height }, { x: pos + cap, y: offC, w: thumbLen - cap * 2, h: thumb.height });
+      } else {
+        out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: cap }, { x: offC, y: pos, w: thumb.width, h: cap });
+        out.copyBits(thumb, { x: 0, y: thumb.height - cap, w: thumb.width, h: cap }, { x: offC, y: pos + thumbLen - cap, w: thumb.width, h: cap });
+        if (mid > 0) out.copyBits(thumb, { x: 0, y: cap, w: thumb.width, h: mid }, { x: offC, y: pos + cap, w: thumb.width, h: thumbLen - cap * 2 });
+      }
     }
   }
 
