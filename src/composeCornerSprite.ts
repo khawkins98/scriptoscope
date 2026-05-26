@@ -387,9 +387,26 @@ export function composeCornerSpriteChrome(
     // band detail across the pinstripe), so draw a 1px top outline between the corners.
     if (hasTitleBar) out.fillRect({ x: 0, y: 0, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
   } else ring({ x: 0, y: 0, w: fullW, h: fullH });
-  if (hasTitleBar) {
-    // under-line: the 1px frame line dividing the title bar from the body.
-    // Title-less frames (no bar) have nothing to divide — just the outer ring.
+  if (hasTitleBar && useFrame) {
+    // Content-well border: a 1px frame around the INNER (content) area — its TOP
+    // edge is the title/body divider. NOT a full-width line cutting through the side
+    // bevels (the old under-line ran x=0..fullW, slicing the left/right frame). The
+    // references frame the Finder body with this 1px recess just inside the window
+    // frame; the window's outer edge is the frame proxy + the y=0 top outline above.
+    // Drawn just OUTSIDE the content hole (frame.left-1 .. fullW-frame.right, titleH-1
+    // .. fullH-frame.bottom) so it sits on the frame's inner edge, clear of the DOM
+    // content that fills the hole.
+    const cl = frame.left - 1, cr = fullW - frame.right, ct = titleH - 1, cb = fullH - frame.bottom;
+    const wline = (x: number, y: number, w: number, h: number): void => {
+      if (w > 0 && h > 0) out.fillRect({ x, y, w, h }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
+    };
+    wline(cl, ct, cr - cl + 1, 1); // top — the title/body divider, inner width only
+    wline(cl, ct, 1, cb - ct + 1); // left
+    wline(cr, ct, 1, cb - ct + 1); // right
+    wline(cl, cb, cr - cl + 1, 1); // bottom
+  } else if (hasTitleBar) {
+    // Procedural fallback (no frame proxy): the flat full-width divider; the §2c
+    // beveled section adds the sunken content-well recess for these.
     out.fillRect({ x: 0, y: titleH - 1, w: fullW, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
   }
 
