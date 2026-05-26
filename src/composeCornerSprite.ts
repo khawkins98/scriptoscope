@@ -164,6 +164,24 @@ function isHorizontalLineStripe(pin: PixelBuffer): boolean {
 }
 
 /**
+ * The opaque INK bounds of a glyph — its DRAWABLE EXTENT, trimming the transparent
+ * tails (same principle the kDEF structure rect uses). Widget glyphs are 16×16 ics
+ * resources but the actual mark is smaller and corner-anchored (e.g. black-platinum's
+ * close is a 13×13 mark in the top-left of a 16×16 cell); sizing/centering the widget
+ * by the full 16×16 made it read too big AND too high (padding all bottom-right).
+ * Returns the full buffer if fully opaque / fully transparent. */
+function inkBounds(g: PixelBuffer): { x: number; y: number; w: number; h: number } {
+  let x0 = g.width, y0 = g.height, x1 = -1, y1 = -1;
+  for (let y = 0; y < g.height; y += 1) {
+    for (let x = 0; x < g.width; x += 1) {
+      if (g.getPixel(x, y)[3] > 8) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+    }
+  }
+  if (x1 < 0) return { x: 0, y: 0, w: g.width, h: g.height }; // fully transparent → no trim
+  return { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+
+/**
  * FRAME-EXTRACT a window-frame proxy cicn (e.g. -14332): copy the 8 BORDER cells
  * — 4 corners + 4 edges (edges stretched along their run) — and leave the CENTRE
  * untouched (the transparent content hole / the title fill already drawn). "Slice
@@ -288,10 +306,16 @@ export function composeCornerSpriteChrome(
   // titleH 19, too big). Capped to titleH-2 so a short utility bar still fits.
   const WBOX = Math.min(GEOM.widget.box, Math.max(5, titleH - 2));
   const widgetsActive = hasTitleBar && titleH >= GEOM.widget.box + 2 && widgets.length > 0;
-  const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null } => {
+  const boxOf = (role: 'close' | 'collapse' | 'zoom'): { w: number; h: number; glyph: PixelBuffer | null; gx: number; gy: number } => {
     const g = opts.widgetGlyphs?.[role];
-    if (g && g.width > 0 && g.height > 0 && g.height <= titleH - 1) return { w: g.width, h: g.height, glyph: g };
-    return { w: WBOX, h: WBOX, glyph: null };
+    if (g && g.width > 0 && g.height > 0) {
+      // Size + center the widget by the glyph's INK (drawable extent), not the raw
+      // 16×16 ics resource — the mark is smaller + corner-anchored, so the full cell
+      // read too big and too high. Trim to ink so it's the real size + vertically centred.
+      const ib = inkBounds(g);
+      if (ib.h <= titleH - 1) return { w: ib.w, h: ib.h, glyph: g, gx: ib.x, gy: ib.y };
+    }
+    return { w: WBOX, h: WBOX, glyph: null, gx: 0, gy: 0 };
   };
   const widgetLayout: { glyph: 'close' | 'collapse' | 'zoom'; x: number; y: number; w: number; h: number }[] = [];
   if (widgetsActive) {
@@ -492,9 +516,10 @@ export function composeCornerSpriteChrome(
   // centred. Widget SET per type (opts.widgets): document = [close,collapse,zoom];
   // movable-modal/alert/titled-utility = [close]; side/no-title = [].
   if (widgetsActive) {
-    const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null }, role: 'close' | 'collapse' | 'zoom'): void => {
-      // A future scheme shipping real per-widget FACE art would stamp it 1:1.
-      if (box.glyph) { out.copyBits(box.glyph, { x: 0, y: 0, w: box.w, h: box.h }, { x: wx, y: wy, w: box.w, h: box.h }); return; }
+    const drawWidget = (wx: number, wy: number, box: { w: number; h: number; glyph: PixelBuffer | null; gx: number; gy: number }, role: 'close' | 'collapse' | 'zoom'): void => {
+      // Stamp the glyph's INK sub-region (box.gx/gy .. w/h) — trims the transparent
+      // tail so the widget is the mark's true size, not the padded 16×16 cell.
+      if (box.glyph) { out.copyBits(box.glyph, { x: box.gx, y: box.gy, w: box.w, h: box.h }, { x: wx, y: wy, w: box.w, h: box.h }); return; }
       // Procedural beveled square (face + 1px ring + raised bevel).
       const W = box.w;
       out.fillRect({ x: wx, y: wy, w: W, h: W }, faceRgba[0], faceRgba[1], faceRgba[2], 255);
