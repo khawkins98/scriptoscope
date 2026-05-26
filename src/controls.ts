@@ -644,6 +644,58 @@ export async function composeProgress(
   const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079)) ?? (await loadById(theme, 10223));
   if (!frame && !track) return null;
 
+  // COLOUR-VARIANT schemes (apple-platinum-2 / system7-nostalgia-silver / black-
+  // platinum / platinum-8): -10071..-10080 are the SAME progress fill tile in ten
+  // HUES (teal/rose/…/copper/aquamarine), NOT frame/track/fill roles — so the role
+  // resolve above grabbed three DIFFERENT colours and the bar came out a mash (a
+  // copper fill on a french-blue track in an aquamarine frame). A real role scheme
+  // (1138/1984/1990/evolution) has a NEUTRAL gray frame + neutral empty track, and
+  // a 2-part scheme (beos) has a neutral track (-10224); colour-variant schemes have
+  // saturation in BOTH slots. When detected, draw a procedural sunken trough and
+  // 3-slice ONE hue as the fill. (Which hue to pick, and the indeterminate spinner
+  // ppats e.g. -10064, are the deferred sub-theme-variant work.)
+  const satOf = (b: PixelBuffer): number => {
+    let s = 0, n = 0;
+    for (let y = 1; y < b.height - 1; y += 1) for (let x = 1; x < b.width - 1; x += 1) {
+      const p = b.getPixel(x, y);
+      if (p[3] < 128) continue;
+      s += Math.max(p[0], p[1], p[2]) - Math.min(p[0], p[1], p[2]); n += 1;
+    }
+    return n ? s / n : 0;
+  };
+  // The FRAME slot is the reliable signal: a role scheme's -10080 frame is a NEUTRAL
+  // gray/transparent border (satOf ≈ 0), a colour-variant scheme's -10080 is a
+  // saturated hue tile (aquamarine, satOf ≈ 70). platinum-8 ships only the -10078 hue
+  // (no frame, no fill) — a lone saturated tile with no neutral track is the same case.
+  const frameSat = frame ? satOf(frame) : 0;
+  const colorVariant = frameSat > 25 || (!frame && !fill && !!track && satOf(track) > 25);
+  const colorTile = colorVariant ? (fill ?? frame ?? track) : null;
+  if (colorVariant && colorTile) {
+    const ph = colorTile.height;
+    const out = PixelBuffer.alloc(length, ph);
+    const fr = (x: number, y: number, w: number, hh: number, r: number, g: number, bb: number): void => {
+      if (w > 0 && hh > 0) out.fillRect({ x, y, w, h: hh }, r, g, bb, 255);
+    };
+    // sunken gray trough: light fill, 1px black outer ring, dark inner top/left shadow.
+    fr(0, 0, length, ph, 204, 204, 204);
+    fr(0, 0, length, 1, 0, 0, 0); fr(0, ph - 1, length, 1, 0, 0, 0); fr(0, 0, 1, ph, 0, 0, 0); fr(length - 1, 0, 1, ph, 0, 0, 0);
+    fr(1, 1, length - 2, 1, 128, 128, 128); fr(1, 1, 1, ph - 2, 128, 128, 128);
+    // fill: 3-slice the chosen hue tile across 0..value of the interior (inset 1px).
+    const iw = length - 2, ih = ph - 2;
+    const fw = Math.round(value * iw);
+    if (fw > 0 && iw > 0 && ih > 0) {
+      const cap = Math.min(4, Math.max(1, (colorTile.width - 2) >> 1));
+      if (fw <= colorTile.width) {
+        out.copyBits(colorTile, { x: 0, y: 0, w: colorTile.width, h: colorTile.height }, { x: 1, y: 1, w: fw, h: ih });
+      } else {
+        out.copyBits(colorTile, { x: 0, y: 0, w: cap, h: colorTile.height }, { x: 1, y: 1, w: cap, h: ih });
+        out.copyBits(colorTile, { x: colorTile.width - cap, y: 0, w: cap, h: colorTile.height }, { x: 1 + fw - cap, y: 1, w: cap, h: ih });
+        out.copyBits(colorTile, { x: cap, y: 0, w: colorTile.width - cap * 2, h: colorTile.height }, { x: 1 + cap, y: 1, w: fw - cap * 2, h: ih });
+      }
+    }
+    return out;
+  }
+
   const h = frame ? frame.height : track!.height;
   const out = PixelBuffer.alloc(length, h);
 
