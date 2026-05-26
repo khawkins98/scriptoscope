@@ -139,6 +139,25 @@ function dominantColor(buf: PixelBuffer, x0: number, y0: number, w: number, h: n
   return bk < 0 ? fallback : [(bk >> 16) & 255, (bk >> 8) & 255, bk & 255, 255];
 }
 
+/** Does a grow-box cicn carry a RESIZE GLYPH, or is it a blank framed box? Some
+ *  schemes (platinum-8's -14330/-14334) ship the box with no diagonal-groove glyph —
+ *  detected by a near-uniform interior (the dominant colour covers almost all of it).
+ *  When false, the compositor draws a procedural handle so it reads as a resize control. */
+function growBoxHasGlyph(b: PixelBuffer): boolean {
+  const ins = 3, w = b.width - ins * 2, h = b.height - ins * 2;
+  if (w < 3 || h < 3) return true;
+  const counts = new Map<number, number>();
+  let total = 0;
+  for (let y = ins; y < ins + h; y++) for (let x = ins; x < ins + w; x++) {
+    const [r, g, bl, a] = b.getPixel(x, y);
+    if (a < 40) continue;
+    const k = (r << 16) | (g << 8) | bl; counts.set(k, (counts.get(k) ?? 0) + 1); total++;
+  }
+  if (total < w * h * 0.3) return false; // mostly transparent interior ⇒ no glyph
+  let best = 0; for (const c of counts.values()) if (c > best) best = c;
+  return best / total < 0.85; // dominant < 85% ⇒ a glyph breaks up the interior
+}
+
 /**
  * FRAME-EXTRACT a window-frame proxy cicn (e.g. -14332): copy the 8 BORDER cells
  * — 4 corners + 4 edges (edges stretched along their run) — and leave the CENTRE
@@ -470,6 +489,26 @@ export function composeCornerSpriteChrome(
     const gx = fullW - gb.width;
     const gy = fullH - gb.height;
     out.copyBits(gb, { x: 0, y: 0, w: gb.width, h: gb.height }, { x: gx, y: gy, w: gb.width, h: gb.height });
+    if (!growBoxHasGlyph(gb)) {
+      // The scheme ships a BLANK grow box (platinum-8's -14330 is a framed box with no
+      // resize glyph) — draw the classic Platinum diagonal-groove handle on top so it
+      // reads as a resize control, like the schemes that ship the glyph.
+      const dk = ringRgba; // the frame outline tone — darker than the bevel, so the grooves read
+      const lt = lighten(faceRgba, 0.7);
+      const gw = gb.width, gh = gb.height;
+      const dot = (x: number, y: number, c: [number, number, number, number]): void => {
+        if (x >= 0 && y >= 0 && x < fullW && y < fullH) out.setPixel(x, y, c[0], c[1], c[2], 255);
+      };
+      // 3 parallel 45° anti-diagonal grooves in the corner (dark line + 1px highlight
+      // below) — the classic Platinum resize handle.
+      for (let i = 0; i < 3; i++) {
+        const o = 3 + i * 4;
+        for (let k = 0; k <= o; k++) {
+          dot(gx + gw - 2 - o + k, gy + gh - 2 - k, dk);
+          dot(gx + gw - 2 - o + k, gy + gh - 1 - k, lt);
+        }
+      }
+    }
     placement.push({
       edge: 'widget', code: 10, role: 'grow box', mode: 'stamp',
       src: { x: 0, y: 0, w: gb.width, h: gb.height },
