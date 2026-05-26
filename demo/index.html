@@ -180,7 +180,44 @@
     const ICON_SVG = {
       folder: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#dccfa3" stroke="#7a6a3a" stroke-width="1"/><path d="M2 9 h32 v13 h-32 z" fill="#e8dcb6" stroke="#7a6a3a" stroke-width="1"/></svg>',
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
+      // baseline Finder grid/proxy glyph (a 3×3 of squares) for the volume header of
+      // schemes that don't bundle the -3790 grid icon (system7/platinum expect a
+      // built-in Finder icon they don't ship).
+      grid: '<svg width="14" height="14" viewBox="0 0 14 14" style="display:block"><g fill="#cfcfcf" stroke="#5a5a5a" stroke-width="1">'
+        + '<rect x="0.5" y="0.5" width="3.5" height="3.5"/><rect x="5" y="0.5" width="3.5" height="3.5"/><rect x="9.5" y="0.5" width="3.5" height="3.5"/>'
+        + '<rect x="0.5" y="5" width="3.5" height="3.5"/><rect x="5" y="5" width="3.5" height="3.5"/><rect x="9.5" y="5" width="3.5" height="3.5"/>'
+        + '<rect x="0.5" y="9.5" width="3.5" height="3.5"/><rect x="5" y="9.5" width="3.5" height="3.5"/><rect x="9.5" y="9.5" width="3.5" height="3.5"/>'
+        + '</g></svg>',
     };
+
+    // The volume-header grid/proxy icon: the scheme's OWN -3790 (16px ics4/ics8)
+    // where it ships one, else the baseline 3×3 grid SVG. Returns an element ready
+    // to drop into the Finder info bar.
+    const _gridCache = new Map();
+    async function gridProxyIcon(theme) {
+      if (!_gridCache.has(theme.baseUrl)) {
+        _gridCache.set(theme.baseUrl, (async () => {
+          try {
+            const r = await fetch(`${theme.baseUrl}/icons/index.json`);
+            if (r.ok) { const idx = await r.json(); const e = idx.find((i) => i.id === -3790 && i.size === 16); if (e) return e.file; }
+          } catch {}
+          return null;
+        })());
+      }
+      const file = await _gridCache.get(theme.baseUrl);
+      if (file) {
+        const img = document.createElement('img');
+        img.src = `${theme.baseUrl}/icons/${file}`;
+        img.title = '-3790 grid (scheme icon)';
+        Object.assign(img.style, { width: '14px', height: '14px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' });
+        return img;
+      }
+      const span = document.createElement('span');
+      span.innerHTML = ICON_SVG.grid;
+      span.title = '-3790 grid (baseline)';
+      Object.assign(span.style, { display: 'block', flex: '0 0 auto', lineHeight: '0' });
+      return span;
+    }
 
     // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/), shown as the
     // Finder-window content. Match what the REFERENCE screenshots show — they all
@@ -536,15 +573,22 @@
       const content = win.querySelector('.aw-content');
       if (content) {
         Object.assign(content.style, { overflow: 'hidden' });
-        // scheme-name info bar (the Finder window's volume header)
+        // scheme-name info bar (the Finder window's volume header): a grid/proxy
+        // icon + the volume name. Taller than before (~18px) and in a LIGHT face
+        // (Geneva, regular weight) — the heavy Charcoal/Chicago is the window TITLE
+        // font, not the Finder body text.
         const info = document.createElement('div');
-        info.textContent = theme.manifest?.name ?? '';
-        Object.assign(info.style, { position: 'absolute', left: '0', top: '0', right: '0', height: '13px', boxSizing: 'border-box', padding: '1px 4px', borderBottom: '1px solid #aaa', background: '#e6e6e6', font: '9px Charcoal, Geneva, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden' });
+        Object.assign(info.style, { position: 'absolute', left: '0', top: '0', right: '0', height: '18px', boxSizing: 'border-box', padding: '0 4px', borderBottom: '1px solid #aaa', background: '#e6e6e6', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' });
+        info.appendChild(await gridProxyIcon(theme));
+        const vol = document.createElement('span');
+        vol.textContent = theme.manifest?.name ?? '';
+        Object.assign(vol.style, { font: '400 10px Geneva, "Lucida Grande", Tahoma, sans-serif', color: '#000', overflow: 'hidden', textOverflow: 'ellipsis' });
+        info.appendChild(vol);
         content.appendChild(info);
         // content icons — the scheme's OWN icons where it ships them, else
         // the neutral folder SVGs.
         const folders = document.createElement('div');
-        Object.assign(folders.style, { position: 'absolute', left: '8px', top: '18px', display: 'flex', gap: '10px' });
+        Object.assign(folders.style, { position: 'absolute', left: '8px', top: '22px', display: 'flex', gap: '10px' });
         const icons = await schemeIcons(theme, 2);
         if (icons.length) {
           icons.forEach((ic) => folders.appendChild(ic));
