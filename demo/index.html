@@ -54,13 +54,80 @@
     .ctl-stack { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
     .ctl-row { display: flex; gap: 12px; align-items: flex-start; }
     .btn-stack { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+    /* ── Consolidated single-theme debug layout ──────────────────────────── */
+    /* A sticky theme RIBBON (a Kaleidoscope-style scheme picker as a film strip)
+       drives one active theme; the page below shows that theme's diagnostics. */
+    header { padding: 14px 20px 8px; }
+    #ribbon {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden;
+      padding: 9px 14px; background: linear-gradient(#3b3b3d, #29292b);
+      border-bottom: 2px solid #141416; box-shadow: 0 2px 8px #0004;
+      scrollbar-width: thin; scrollbar-color: #666 #2a2a2a;
+    }
+    .ribbon-item {
+      flex: 0 0 auto; width: 116px; cursor: pointer; appearance: none;
+      border: 0; background: transparent; padding: 4px 4px 6px; border-radius: 7px;
+      color: #c9c9cc; font: 10.5px/1.25 system-ui; opacity: .68;
+      transition: opacity .12s, background .12s; text-align: center;
+    }
+    .ribbon-item:hover { opacity: 1; background: #ffffff12; }
+    .ribbon-item.active { opacity: 1; background: #ffffff1c; box-shadow: inset 0 0 0 2px #6cc0ff; }
+    .ribbon-thumb {
+      width: 108px; height: 70px; display: block; margin: 0 auto;
+      object-fit: cover; object-position: 0 0; image-rendering: pixelated;
+      background: #c8c8c8; border-radius: 3px; box-shadow: 0 1px 3px #0007;
+      overflow: hidden;
+    }
+    .ribbon-thumb.scene { display: block; }
+    .ribbon-thumb.scene > * { transform-origin: top left; }
+    .ribbon-title { display: block; margin-top: 5px; white-space: normal; max-height: 26px; overflow: hidden; }
+    .ribbon-item.active .ribbon-title { color: #cfeaff; font-weight: 600; }
+    .ribbon-badge { display: inline-block; margin-left: 3px; font-size: 9px; opacity: .7; }
+
+    /* The single-theme detail view + its sticky section sub-nav. */
+    #detail { min-height: 60vh; }
+    .detail-head {
+      padding: 16px 24px 8px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    }
+    .detail-head h2 { font-size: 19px; margin: 0; }
+    .detail-head .meta { opacity: .58; font-size: 12px; }
+    .detail-toolbar { margin-left: auto; display: flex; gap: 14px; align-items: center; font: 12px system-ui; }
+    .detail-toolbar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+    .subnav {
+      position: sticky; top: var(--ribbon-h, 100px); z-index: 40;
+      display: flex; gap: 3px; flex-wrap: wrap; padding: 6px 22px;
+      background: #bdbdbde8; backdrop-filter: blur(5px); border-bottom: 1px solid #9a9a9a;
+    }
+    .subnav a {
+      font: 11px system-ui; color: #2b5070; text-decoration: none;
+      padding: 3px 9px; border-radius: 5px;
+    }
+    .subnav a:hover { background: #ffffffa0; color: #14304a; }
+    .dsection { border-top: 1px solid #a6a6a6; padding: 14px 24px 22px; scroll-margin-top: calc(var(--ribbon-h, 100px) + 40px); }
+    .dsection > h3 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
+      opacity: .5; margin: 0 0 12px; font-weight: 700;
+    }
+    /* resource-roles viewer */
+    .rr-summary { display: flex; gap: 18px; flex-wrap: wrap; margin: 0 0 10px; font: 12px system-ui; }
+    .rr-summary .card { background: #c8c8c8; border: 1px solid #999; border-radius: 5px; padding: 8px 11px; box-shadow: inset 0 0 0 1px #fff6; }
+    .rr-summary .card b { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .6; }
+    .rr-table { border-collapse: collapse; font: 11.5px ui-monospace, Menlo, monospace; width: 100%; max-width: 760px; }
+    .rr-table th { text-align: left; font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; padding: 2px 8px; border-bottom: 1px solid #999; }
+    .rr-table td { padding: 1px 8px; border-bottom: 1px solid #c0c0c0; vertical-align: top; white-space: nowrap; }
+    .rr-table tr:hover td { background: #ffffff70; }
+    .rr-fam { display: inline-block; min-width: 8px; padding: 0 5px; border-radius: 3px; background: #5a6b8c; color: #fff; font-size: 10px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Aaron UI <span id="ver"></span> — runtime</h1>
-    <p>Each Kaleidoscope theme, rendered on the fly at <strong>native pixel size</strong>: scene · controls · buttons · reference screenshot.</p>
+    <h1>Aaron UI <span id="ver"></span> — runtime debugger</h1>
+    <p>Pick a scheme from the ribbon; every diagnostic for it renders below at <strong>native pixel size</strong>.</p>
   </header>
+  <nav id="ribbon" aria-label="Theme selector"></nav>
+  <main id="detail" aria-live="polite"></main>
   <div id="rows"></div>
 
   <script type="module">
@@ -116,25 +183,16 @@
     };
 
     // Active/inactive toggle — our scene renderer can show BOTH window states
-    // live (the reference screenshots are frozen in one state). Re-renders the
-    // scene column for every theme on change.
+    // live (the reference screenshots are frozen in one state). The per-theme
+    // detail header owns the toggle (see buildThemeDetail's rerenderScenes).
     let sceneState = 'active';
-    const scenes = [];
-    async function renderScene(entry) {
-      entry.frame.textContent = '';
-      try { entry.frame.appendChild(await buildScene(entry.theme, sceneState)); }
-      catch (e) { entry.frame.textContent = String(e); }
-    }
-    {
-      const bar = document.createElement('div');
-      bar.style.cssText = 'padding:0 24px 8px;display:flex;gap:8px;align-items:center;font:13px system-ui';
-      const lab = document.createElement('label'); lab.style.cssText = 'display:flex;gap:6px;align-items:center;cursor:pointer';
-      const cb = document.createElement('input'); cb.type = 'checkbox';
-      cb.onchange = async () => { sceneState = cb.checked ? 'inactive' : 'active'; for (const e of scenes) await renderScene(e); };
-      lab.append(cb, document.createTextNode('Show windows as inactive'));
-      bar.appendChild(lab);
-      document.querySelector('header').appendChild(bar);
-    }
+    // ── Single-theme debugger orchestration ─────────────────────────────────
+    // The ribbon selects ONE active theme; #detail renders every diagnostic for it
+    // (lazily, on activation); the playground + interactive tools register sync
+    // hooks so they follow the active theme. activeSlug is persisted in ?theme=.
+    const detailEl = document.getElementById('detail');
+    let activeSlug = null;
+    const syncHooks = []; // (slug) => void | Promise<void>
 
     const THEMES = [
       { slug: 'apple-platinum-2', label: 'Apple Platinum 2', ref: 'apple-platinum-2.png' },
@@ -1066,7 +1124,10 @@
       const titleStep = (dir) => () => setTitle(SAMPLE_TITLES[(titleIdxOf() + dir + SAMPLE_TITLES.length) % SAMPLE_TITLES.length]);
       const randomBtn = miniBtn('rand', 'random title');
       randomBtn.onclick = () => { let i; do { i = Math.floor(Math.random() * SAMPLE_TITLES.length); } while (SAMPLE_TITLES.length > 1 && SAMPLE_TITLES[i] === titleIn.value); setTitle(SAMPLE_TITLES[i]); };
-      ctrls.append(field('theme', withSteppers(themeSel, themeStep(-1), themeStep(1))), field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
+      // The theme is driven by the ribbon; themeSel stays in the DOM but hidden so
+      // the hash/reset logic that reads themeSel.value keeps working.
+      themeSel.style.display = 'none';
+      ctrls.append(field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
 
       // Some bundles key window types by the raw wnd# resource id
       // (`wnd--14288`) rather than a friendly slug — map those ids to the
@@ -1187,117 +1248,195 @@
         if (h) writeHash(); // normalize
         rerender();
       })();
+
+      // Follow the ribbon's active theme (window type / title / size stay put).
+      syncHooks.push(async (slug) => { themeSel.value = slug; populateWindowTypes(await loadWithBase(slug)); rerender(); });
     }
 
-    // Apple Platinum baseline ✦ screenshot-sourced — the base Platinum look every
-    // cicn-less scheme now inherits, rendered from the apple-platinum-replica
-    // bundle's REAL cicns. This SUPERSEDES the old procedural platinumXxx baseline,
-    // which survives only as the last-resort `?? ` fallback below.
-    {
-      const section = document.createElement('div'); section.className = 'theme-row';
-      const title = document.createElement('h2'); title.textContent = 'Apple Platinum baseline ✦ screenshot-sourced';
-      const row = document.createElement('div'); row.className = 'row';
-      section.append(title, row);
-      const { c, frame } = colEl('baseline controls (real cicns)');
-      const stack = document.createElement('div'); stack.className = 'ctl-stack';
-      const r1 = document.createElement('div'); r1.className = 'ctl-row';
-      const r2 = document.createElement('div'); r2.className = 'ctl-row';
-      const r3 = document.createElement('div'); r3.className = 'ctl-row';
-      const r4 = document.createElement('div'); r4.className = 'ctl-row';
-      const r5 = document.createElement('div'); r5.className = 'ctl-row';
-      const r6 = document.createElement('div'); r6.className = 'ctl-row';
-      stack.append(r1, r2, r3, r4, r5, r6); frame.appendChild(stack); row.appendChild(c);
-      rows.appendChild(section); // append synchronously to keep section order
-      (async () => {
-        const base = await loadWithBase(BASE_SLUG);
-        add(r1, (await composeScrollbar(base, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL })) ?? platinumScrollbar({ orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
-        add(r1, (await composeScrollbar(base, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL })) ?? platinumScrollbar({ orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
-        add(r1, await composeProgress(base, { length: 120, value: 0.6 }));
-        add(r2, (await composeSlider(base, { orientation: 'horizontal', length: 120, value: 0.4 })) ?? platinumSlider({ orientation: 'horizontal', length: 120, value: 0.4 }));
-        r2.appendChild(bufferToCanvas((await composeCheckable(base, 'checkbox', { checked: true })) ?? platinumCheckable('checkbox', { checked: true }), 1));
-        r2.appendChild(bufferToCanvas((await composeCheckable(base, 'radio', { checked: true })) ?? platinumCheckable('radio', { checked: true }), 1));
-        r2.appendChild(bufferToCanvas((await composeDisclosure(base, { direction: 'right' })) ?? platinumDisclosure({ direction: 'right' }), 1));
-        r2.appendChild(bufferToCanvas((await composeDisclosure(base, { direction: 'down' })) ?? platinumDisclosure({ direction: 'down' }), 1));
-        add(r3, (await composeButton(base, { label: 'Cancel' })) ?? platinumButton({ label: 'Cancel' }));
-        add(r3, (await composeButton(base, { label: 'OK', default: true })) ?? platinumButton({ label: 'OK', default: true }));
-        add(r3, (await composeButton(base, { label: 'Help', disabled: true })) ?? platinumButton({ label: 'Help', disabled: true }));
-        // PROCEDURAL BASELINES for the control classes the schemes ship but we hadn't
-        // rendered (bevel button / menu bar / dropdown menu / popup / list header).
-        // These are the platinum.ts floor for uniform coverage across every theme;
-        // per-scheme cicns (-10162.., -12319/-12247.., -8200.., -9567..) graft over
-        // them later via the base chain. No composer fallback yet — procedural only.
-        const bevel = async (o) => (await composeBevelButton(base, o)) ?? platinumBevelButton(o);
-        add(r4, await bevel({ label: 'On', on: true }));
-        add(r4, await bevel({ label: 'Off' }));
-        add(r4, await bevel({ label: 'Aa', small: true }));
-        add(r4, await bevel({ label: 'Off', disabled: true }));
-        add(r5, platinumMenuBar({ titles: ['File', 'Edit', 'View'], activeIdx: 1 }));
-        add(r5, platinumPopupMenu({ label: 'Pick one' }));
-        add(r6, platinumMenu({ items: ['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste'], highlightIdx: 4 }));
-        add(r6, (await composeListHeader(base)) ?? platinumListHeader({}));
-      })();
+    const themeBySlug = new Map(THEMES.map((t) => [t.slug, t]));
+
+    // ── resource-roles viewer: the generated themes/<slug>/resource-roles.json,
+    //    as a foldout with the progress + scroll-arrow summary cards and a
+    //    filterable id → role table (the dual-channel cicn/ics4 mapping). ───────
+    async function resourceRoles(theme) {
+      const det = document.createElement('details');
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer;color:#555;font-weight:600;padding:4px 0';
+      det.appendChild(sum);
+      let data = null;
+      try { const r = await fetch(`${theme.baseUrl}/resource-roles.json`); if (r.ok) data = await r.json(); } catch { /* */ }
+      if (!data) { sum.textContent = 'Resource roles — (manifest not found)'; return det; }
+      sum.textContent = `Resource roles — ${data.resources.length} resources · progress=${data.progress?.model ?? '?'}${data.scrollArrows ? ' · scroll-arrows mapped' : ''} — click to expand`;
+      const body = document.createElement('div'); body.style.cssText = 'padding:8px 0';
+      const cards = document.createElement('div'); cards.className = 'rr-summary';
+      if (data.progress) {
+        const c = document.createElement('div'); c.className = 'card';
+        const p = data.progress;
+        const detail = p.model === 'lavender-2-part' ? `fill ${p.fill} · track ${p.track}`
+          : p.model === 'role-3-part' ? `frame ${p.frame} · fill ${p.fill} · track ${p.track}` : '—';
+        c.innerHTML = `<b>progress</b><br>${p.model}<br>${detail}`;
+        cards.appendChild(c);
+      }
+      if (data.scrollArrows) {
+        const c = document.createElement('div'); c.className = 'card'; const a = data.scrollArrows;
+        c.innerHTML = `<b>scroll arrows</b><br>raised L${a.raised.left} R${a.raised.right} U${a.raised.up} D${a.raised.down}<br>pressed L${a.pressed.left} R${a.pressed.right}`;
+        cards.appendChild(c);
+      }
+      body.appendChild(cards);
+      const filter = document.createElement('input'); filter.type = 'search'; filter.placeholder = 'filter id / family / role / slug…';
+      filter.style.cssText = 'font:12px system-ui;padding:3px 7px;margin:0 0 6px;width:280px';
+      body.appendChild(filter);
+      const wrap = document.createElement('div'); wrap.style.cssText = 'max-height:360px;overflow:auto;border:1px solid #999;background:#d6d6d6';
+      const table = document.createElement('table'); table.className = 'rr-table';
+      table.innerHTML = '<thead><tr><th>id</th><th>type</th><th>family</th><th>role</th><th>slug</th></tr></thead>';
+      const tb = document.createElement('tbody');
+      const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const sorted = data.resources.slice().sort((a, b) => (a.family < b.family ? -1 : a.family > b.family ? 1 : (a.id ?? 0) - (b.id ?? 0)));
+      for (const r of sorted) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${esc(r.id)}</td><td>${esc(r.type)}</td><td><span class="rr-fam">${esc(r.family)}</span></td><td style="white-space:normal">${esc(r.role)}</td><td>${esc(r.slug)}</td>`;
+        tb.appendChild(tr);
+      }
+      table.appendChild(tb); wrap.appendChild(table); body.appendChild(wrap);
+      filter.oninput = () => { const q = filter.value.toLowerCase(); for (const tr of tb.children) tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none'; };
+      det.appendChild(body);
+      return det;
     }
 
-    for (const t of THEMES) {
-      const section = document.createElement('div'); section.className = 'theme-row';
-      const title = document.createElement('h2'); title.textContent = t.label;
-      const row = document.createElement('div'); row.className = 'row';
-      section.append(title, row);
+    // ── buildThemeDetail: every diagnostic for ONE theme, in jump-linked sections.
+    async function buildThemeDetail(theme, meta) {
+      const frag = document.createElement('div');
+      const m = theme.manifest || {};
 
+      const head = document.createElement('div'); head.className = 'detail-head';
+      const h2 = document.createElement('h2'); h2.textContent = meta.label;
+      const metaEl = document.createElement('span'); metaEl.className = 'meta';
+      metaEl.textContent = [m.author, m.origin, m.source].filter(Boolean).join(' · ');
+      const toolbar = document.createElement('div'); toolbar.className = 'detail-toolbar';
+      const lab = document.createElement('label');
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = sceneState === 'inactive';
+      const sceneFrames = [];
+      const rerenderScenes = async () => { for (const f of sceneFrames) { f.replaceChildren(); try { f.appendChild(await buildScene(theme, sceneState)); } catch (e) { f.textContent = String(e); } } };
+      cb.onchange = () => { sceneState = cb.checked ? 'inactive' : 'active'; rerenderScenes(); };
+      lab.append(cb, document.createTextNode('inactive windows'));
+      toolbar.appendChild(lab);
+      head.append(h2, metaEl, toolbar);
+      frag.appendChild(head);
+
+      const subnav = document.createElement('nav'); subnav.className = 'subnav';
+      frag.appendChild(subnav);
+      const navItems = [];
+      const dsection = (id, label) => {
+        const s = document.createElement('section'); s.className = 'dsection'; s.id = 'd-' + id;
+        const h = document.createElement('h3'); h.textContent = label; s.appendChild(h);
+        navItems.push([id, label]); frag.appendChild(s); return s;
+      };
+
+      // 1. scene + reference (the key comparison)
+      {
+        const s = dsection('scene', 'Scene · reference');
+        const row = document.createElement('div'); row.className = 'row';
+        const { c: sc, frame: sceneFrame } = colEl('scene'); sceneFrames.push(sceneFrame);
+        try { sceneFrame.appendChild(await buildScene(theme, sceneState)); } catch (e) { sceneFrame.textContent = String(e); }
+        row.appendChild(sc);
+        if (meta.ref) { const { c: rc, frame: rf } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${meta.ref}`; rf.appendChild(img); row.appendChild(rc); }
+        s.appendChild(row);
+      }
+
+      // 2. controls + buttons
+      {
+        const s = dsection('controls', 'Controls · buttons');
+        const row = document.createElement('div'); row.className = 'row';
+        // controls
+        {
+          const { c, frame } = colEl('controls');
+          const stack = document.createElement('div'); stack.className = 'ctl-stack';
+          const r1 = document.createElement('div'); r1.className = 'ctl-row';
+          const r2 = document.createElement('div'); r2.className = 'ctl-row';
+          add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
+          add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
+          r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
+          add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
+          add(r2, await composeDisclosure(theme, { direction: 'right' }));
+          add(r2, await composeDisclosure(theme, { direction: 'down' }));
+          stack.append(r1, r2);
+          if (!r1.childElementCount && !r2.childElementCount) frame.textContent = '(no themed control cicns — baseline)';
+          else frame.appendChild(stack);
+          row.appendChild(c);
+        }
+        // buttons
+        {
+          const { c, frame } = colEl('buttons');
+          const stack = document.createElement('div'); stack.className = 'btn-stack';
+          const brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center';
+          const btn = async (label, o) => { const buf = await composeButton(theme, { label, ...o }); return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o); };
+          brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
+          const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
+          const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
+          bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
+          const cols = [{ label: 'Name', width: 96 }, { label: 'Size', width: 44 }, { label: 'Kind', width: 56 }];
+          const listHdr = (await composeListHeader(theme, { columns: cols })) ?? platinumListHeader({ columns: cols });
+          stack.append(brow, bevelRow, bufferToCanvas(listHdr, 1), await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
+          frame.appendChild(stack); row.appendChild(c);
+        }
+        s.appendChild(row);
+      }
+
+      // 3–7. window geometry, slice inspector, icons, rasters, resource-roles
+      dsection('geometry', 'Window geometry').appendChild(await diagnosticStrip(theme));
+      dsection('slices', 'Slice inspector').appendChild(await sliceInspector(theme));
+      dsection('icons', 'Icon inventory').appendChild(await iconInventory(theme));
+      dsection('rasters', 'All rasters').appendChild(await rasterInventory(theme));
+      dsection('roles', 'Resource roles').appendChild(await resourceRoles(theme));
+
+      for (const [id, label] of navItems) { const a = document.createElement('a'); a.href = '#d-' + id; a.textContent = label; subnav.appendChild(a); }
+      return frag;
+    }
+
+    // ── the theme RIBBON (a Kaleidoscope-style scheme picker as a film strip) ──
+    const ribbonEl = document.getElementById('ribbon');
+    async function buildRibbon() {
+      for (const t of THEMES) {
+        const item = document.createElement('button'); item.type = 'button'; item.className = 'ribbon-item'; item.dataset.slug = t.slug;
+        item.onclick = () => activate(t.slug);
+        if (t.ref) {
+          const img = document.createElement('img'); img.className = 'ribbon-thumb'; img.loading = 'lazy'; img.alt = ''; img.src = `./assets/references/${t.ref}`;
+          item.appendChild(img);
+        } else {
+          // No reference screenshot (generated bundle) → a scaled live scene as the thumb.
+          const box = document.createElement('div'); box.className = 'ribbon-thumb scene';
+          try { const sc = await buildScene(await loadWithBase(t.slug), 'active'); sc.style.transform = 'scale(0.56)'; box.appendChild(sc); } catch { /* */ }
+          item.appendChild(box);
+        }
+        const title = document.createElement('span'); title.className = 'ribbon-title';
+        title.textContent = t.label.replace(/\s*✦.*$/, '');
+        if (/✦/.test(t.label)) { const b = document.createElement('span'); b.className = 'ribbon-badge'; b.textContent = '✦'; b.title = '✦ ' + t.label.replace(/^.*✦\s*/, ''); title.appendChild(b); }
+        item.append(title);
+        ribbonEl.appendChild(item);
+      }
+      requestAnimationFrame(() => document.documentElement.style.setProperty('--ribbon-h', ribbonEl.offsetHeight + 'px'));
+    }
+
+    // ── activate: render the single-theme detail + sync the tools to it ───────
+    let activateToken = 0;
+    async function activate(slug) {
+      const my = ++activateToken;
+      activeSlug = slug;
+      for (const b of ribbonEl.children) b.classList.toggle('active', b.dataset.slug === slug);
+      const active = ribbonEl.querySelector('.ribbon-item.active');
+      if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+      try { const u = new URL(location.href); u.searchParams.set('theme', slug); history.replaceState(null, '', u); } catch { /* */ }
+      detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: 'loading…', style: 'padding:28px;opacity:.55' }));
       let theme;
-      try { theme = await loadWithBase(t.slug); }
-      catch (e) { row.textContent = `failed to load: ${e}`; rows.appendChild(section); continue; }
-
-      // scene
-      { const { c, frame } = colEl('scene'); const entry = { theme, frame }; scenes.push(entry); await renderScene(entry); row.appendChild(c); }
-      // reference — next to the scene for direct side-by-side comparison
-      { const { c, frame } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${t.ref}`; frame.appendChild(img); row.appendChild(c); }
-      // controls
-      {
-        const { c, frame } = colEl('controls');
-        const stack = document.createElement('div'); stack.className = 'ctl-stack';
-        const r1 = document.createElement('div'); r1.className = 'ctl-row';
-        const r2 = document.createElement('div'); r2.className = 'ctl-row';
-        add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
-        add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
-        r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
-        add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
-        add(r2, await composeDisclosure(theme, { direction: 'right' }));
-        add(r2, await composeDisclosure(theme, { direction: 'down' }));
-        stack.append(r1, r2);
-        if (!r1.childElementCount && !r2.childElementCount) frame.textContent = '(no themed control cicns — baseline)';
-        else frame.appendChild(stack);
-        row.appendChild(c);
-      }
-      // buttons — themed where the scheme ships push-button cicns, else baseline
-      {
-        const { c, frame } = colEl('buttons');
-        const stack = document.createElement('div'); stack.className = 'btn-stack';
-        const brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center';
-        const btn = async (label, o) => {
-          const buf = await composeButton(theme, { label, ...o });
-          return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o);
-        };
-        brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
-        // Bevel buttons (toolbar toggles): the scheme's own -10162..-10176 art when it
-        // ships it, else the procedural platinum.ts baseline.
-        const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
-        const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
-        bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
-        // List/Finder column header: the scheme's own -9567/-9568 cell when shipped,
-        // else the procedural platinum.ts baseline.
-        const cols = [{ label: 'Name', width: 96 }, { label: 'Size', width: 44 }, { label: 'Kind', width: 56 }];
-        const listHdr = (await composeListHeader(theme, { columns: cols })) ?? platinumListHeader({ columns: cols });
-        stack.append(brow, bevelRow, bufferToCanvas(listHdr, 1), await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
-        frame.appendChild(stack);
-        row.appendChild(c);
-      }
-
-      section.appendChild(await diagnosticStrip(theme));
-      section.appendChild(await sliceInspector(theme));
-      section.appendChild(await iconInventory(theme));
-      section.appendChild(await rasterInventory(theme));
-      rows.appendChild(section);
+      try { theme = await loadWithBase(slug); }
+      catch (e) { if (my === activateToken) detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: `failed to load ${slug}: ${e}`, style: 'padding:28px;color:#900' })); return; }
+      if (my !== activateToken) return;
+      let detail;
+      try { detail = await buildThemeDetail(theme, themeBySlug.get(slug)); }
+      catch (e) { if (my === activateToken) detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: `render error: ${e}`, style: 'padding:28px;color:#900' })); return; }
+      if (my !== activateToken) return;
+      detailEl.replaceChildren(detail);
+      for (const hook of syncHooks) { try { await hook(slug); } catch { /* tool sync best-effort */ } }
     }
 
     // ── Interactive playground (Phase 1) ─────────────────────────────────────
@@ -1309,13 +1448,9 @@
       const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live';
       const intro = document.createElement('p');
       intro.style.cssText = 'margin:2px 0 10px;opacity:.6;font-size:12px';
-      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, drag the slider/scrollbars, click a window to focus it, and click its title-bar widgets. Pick a scheme:';
-      const sel = document.createElement('select');
-      sel.style.cssText = 'font:12px system-ui;padding:2px;margin-bottom:10px';
-      for (const t of THEMES) { const o = document.createElement('option'); o.value = t.slug; o.textContent = t.label; sel.appendChild(o); }
-      sel.value = '1138';
+      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, drag the slider/scrollbars, click a window to focus it, and click its title-bar widgets — rendered in the theme selected in the ribbon above.';
       const host = document.createElement('div');
-      section.append(h2, intro, sel, host);
+      section.append(h2, intro, host);
       rows.appendChild(section);
 
       async function buildInteractive(slug) {
@@ -1387,8 +1522,15 @@
           desk.append(w1, w2);
         } catch (e) { say('window render failed: ' + (e && e.message || e)); }
       }
-      sel.onchange = () => { buildInteractive(sel.value); };
-      await buildInteractive(sel.value);
+      // Follow the ribbon's active theme — the first render fires from activate().
+      syncHooks.push((slug) => buildInteractive(slug));
+    }
+
+    // ── boot: build the ribbon, then activate the theme from ?theme= (or the first).
+    await buildRibbon();
+    {
+      const want = new URL(location.href).searchParams.get('theme');
+      activate(THEMES.some((t) => t.slug === want) ? want : THEMES[0].slug);
     }
   </script>
   <footer style="font:11px system-ui;color:#555;padding:14px 24px;border-top:1px solid #aaa;margin-top:24px">
