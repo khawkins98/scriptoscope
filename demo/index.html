@@ -374,7 +374,10 @@
           cell.title = `Click to copy:\n${copyText}`;
           const img = document.createElement('img');
           img.src = `${theme.baseUrl}/icons/${i.file}`; img.loading = 'lazy';
-          Object.assign(img.style, { width: `${px}px`, height: `${px}px`, imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
+          // Render at 2× native with pixelated scaling: a dense 8-bit icon is unreadable
+          // at 16px (reads as "corrupted" noise); 2× makes the real detail legible with no
+          // distortion (each source pixel = a crisp 2×2 block).
+          Object.assign(img.style, { width: `${px * 2}px`, height: `${px * 2}px`, imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
           const lab = document.createElement('div');
           // Show the DEPTH so the high-colour 8-bit (ics8/icl8) icons are visible +
           // distinct from the 4-bit (ics4/icl4) variant at the same id: 8-bit shown
