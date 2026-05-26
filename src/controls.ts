@@ -630,71 +630,67 @@ export async function composeProgress(
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
   const active = (opts.state ?? 'normal') !== 'inactive';
 
-  // Resolve by RESOURCE ID (kdef-layout-recipes §4): frame -10080/-10077,
-  // unfilled track -10078/-10075, fill section -10079/-10076. Bundle slugs
-  // for these differ across schemes ("progress-bar-frame-active" vs
-  // "progress-indicator-frame"); the id is the stable selector.
-  // Two progress-bar families ship across the corpus: the 3-part Platinum-style
-  // frame/track/fill (-10080/-10078/-10079) most schemes use, and a 2-part
-  // track+fill cell with NO separate frame that others ship (beos: -10224 track
-  // + -10223 lavender fill). Fall back to the latter so those schemes draw a bar
-  // instead of nothing.
-  const frame = await loadById(theme, active ? 10080 : 10077);
-  const track = (await loadById(theme, active ? 10078 : 10075)) ?? (await loadById(theme, 10078)) ?? (await loadById(theme, 10224));
-  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079)) ?? (await loadById(theme, 10223));
-  if (!frame && !track) return null;
-
-  // COLOUR-VARIANT schemes (apple-platinum-2 / system7-nostalgia-silver / black-
-  // platinum / platinum-8): -10071..-10080 are the SAME progress fill tile in ten
-  // HUES (teal/rose/…/copper/aquamarine), NOT frame/track/fill roles — so the role
-  // resolve above grabbed three DIFFERENT colours and the bar came out a mash (a
-  // copper fill on a french-blue track in an aquamarine frame). A real role scheme
-  // (1138/1984/1990/evolution) has a NEUTRAL gray frame + neutral empty track, and
-  // a 2-part scheme (beos) has a neutral track (-10224); colour-variant schemes have
-  // saturation in BOTH slots. When detected, draw a procedural sunken trough and
-  // 3-slice ONE hue as the fill. (Which hue to pick, and the indeterminate spinner
-  // ppats e.g. -10064, are the deferred sub-theme-variant work.)
-  const satOf = (b: PixelBuffer): number => {
-    let s = 0, n = 0;
-    for (let y = 1; y < b.height - 1; y += 1) for (let x = 1; x < b.width - 1; x += 1) {
-      const p = b.getPixel(x, y);
-      if (p[3] < 128) continue;
-      s += Math.max(p[0], p[1], p[2]) - Math.min(p[0], p[1], p[2]); n += 1;
-    }
-    return n ? s / n : 0;
-  };
-  // The FRAME slot is the reliable signal: a role scheme's -10080 frame is a NEUTRAL
-  // gray/transparent border (satOf ≈ 0), a colour-variant scheme's -10080 is a
-  // saturated hue tile (aquamarine, satOf ≈ 70). platinum-8 ships only the -10078 hue
-  // (no frame, no fill) — a lone saturated tile with no neutral track is the same case.
-  const frameSat = frame ? satOf(frame) : 0;
-  const colorVariant = frameSat > 25 || (!frame && !fill && !!track && satOf(track) > 25);
-  const colorTile = colorVariant ? (fill ?? frame ?? track) : null;
-  if (colorVariant && colorTile) {
-    const ph = colorTile.height;
+  // PROGRESS-BAR RESOURCE MODEL — TWO FAMILIES (enumerate the FULL id set before
+  // assuming roles from slug names; that was the recurring trap here):
+  //  • LAVENDER 2-PART (apple-platinum-2 / system7-nostalgia-silver / black-platinum /
+  //    platinum-8 / beos-r503): a dedicated FILL `-10223` ("lavender", the canonical
+  //    DEFAULT — owner-chosen) + an empty TRACK `-10224`. These schemes ALSO ship
+  //    `-10071..-10080` + `-10220..-10222` — but those are ALTERNATE HUE fills
+  //    (teal/rose/…/copper/aquamarine; picker deferred), NOT frame/track/fill roles,
+  //    and they carry NO progress frame. (I repeatedly mis-modelled these by reading
+  //    only the -1007x hue slugs and missing that -10223/-10224 also ship here.)
+  //  • ROLE 3-PART (1138 / 1984 / 1990 / evolution; replica = 2-part): the
+  //    deconstructed layers — frame `-10080`/`-10077`, fill `-10079`/`-10076`, track
+  //    `-10078`/`-10075` (active/inactive). Used only by schemes WITHOUT `-10223`.
+  // See kdef231-reference §2.4 + the per-theme resource-role manifest.
+  const lavender = await loadById(theme, 10223);
+  if (lavender) {
+    const trk = await loadById(theme, 10224);
+    const ph = (trk ?? lavender).height;
     const out = PixelBuffer.alloc(length, ph);
-    const fr = (x: number, y: number, w: number, hh: number, r: number, g: number, bb: number): void => {
-      if (w > 0 && hh > 0) out.fillRect({ x, y, w, h: hh }, r, g, bb, 255);
+    // 3-slice a tile into `dst` across its full width: rounded end caps 1:1, middle
+    // stretched. `dst` width sets the run (so the fill goes in its own buffer, below).
+    const slice3 = (dst: PixelBuffer, src: PixelBuffer): void => {
+      const w = dst.width;
+      if (w <= 0) return;
+      if (w <= src.width) { dst.copyBits(src, { x: 0, y: 0, w: src.width, h: src.height }, { x: 0, y: 0, w, h: ph }); return; }
+      const cap = Math.min(4, Math.max(1, (src.width - 2) >> 1));
+      dst.copyBits(src, { x: 0, y: 0, w: cap, h: src.height }, { x: 0, y: 0, w: cap, h: ph });
+      dst.copyBits(src, { x: src.width - cap, y: 0, w: cap, h: src.height }, { x: w - cap, y: 0, w: cap, h: ph });
+      dst.copyBits(src, { x: cap, y: 0, w: src.width - cap * 2, h: src.height }, { x: cap, y: 0, w: w - cap * 2, h: ph });
     };
-    // sunken gray trough: light fill, 1px black outer ring, dark inner top/left shadow.
-    fr(0, 0, length, ph, 204, 204, 204);
-    fr(0, 0, length, 1, 0, 0, 0); fr(0, ph - 1, length, 1, 0, 0, 0); fr(0, 0, 1, ph, 0, 0, 0); fr(length - 1, 0, 1, ph, 0, 0, 0);
-    fr(1, 1, length - 2, 1, 128, 128, 128); fr(1, 1, 1, ph - 2, 128, 128, 128);
-    // fill: 3-slice the chosen hue tile across 0..value of the interior (inset 1px).
-    const iw = length - 2, ih = ph - 2;
-    const fw = Math.round(value * iw);
-    if (fw > 0 && iw > 0 && ih > 0) {
-      const cap = Math.min(4, Math.max(1, (colorTile.width - 2) >> 1));
-      if (fw <= colorTile.width) {
-        out.copyBits(colorTile, { x: 0, y: 0, w: colorTile.width, h: colorTile.height }, { x: 1, y: 1, w: fw, h: ih });
-      } else {
-        out.copyBits(colorTile, { x: 0, y: 0, w: cap, h: colorTile.height }, { x: 1, y: 1, w: cap, h: ih });
-        out.copyBits(colorTile, { x: colorTile.width - cap, y: 0, w: cap, h: colorTile.height }, { x: 1 + fw - cap, y: 1, w: cap, h: ih });
-        out.copyBits(colorTile, { x: cap, y: 0, w: colorTile.width - cap * 2, h: colorTile.height }, { x: 1 + cap, y: 1, w: fw - cap * 2, h: ih });
+    if (trk) {
+      // The TRACK is the trough (its frame is the bar's ONE frame). Fill the trough's
+      // INTERIOR with the fill tile's interior colour (no fill frame) from 0..value —
+      // -10223 and -10224 are separate complete-framed tiles whose frame greys differ,
+      // so abutting them read as two bars; sharing the trough's frame fixes that.
+      slice3(out, trk);
+      const ins = 2; // Platinum progress trough frame ≈ 2px
+      const fw = Math.min(length - ins, Math.round(value * length));
+      const ih = ph - ins * 2;
+      if (value > 0 && fw > ins && ih > 0) {
+        out.copyBits(
+          lavender,
+          { x: ins, y: ins, w: Math.max(1, lavender.width - ins * 2), h: Math.max(1, lavender.height - ins * 2) },
+          { x: ins, y: ins, w: fw - ins, h: ih },
+        );
       }
+    } else if (value > 0) {
+      // No dedicated track: 3-slice the fill tile itself (drawOver keeps its rounded
+      // corners from erasing anything beneath).
+      const fb = PixelBuffer.alloc(Math.max(1, Math.round(value * length)), ph);
+      slice3(fb, lavender);
+      out.drawOver(fb, 0, 0);
     }
     return out;
   }
+
+  // ROLE 3-part (schemes WITHOUT -10223): the id is the stable selector (slugs differ:
+  // "progress-bar-frame-active" vs "progress-indicator-frame"). Inactive uses -1007{7,6,5}.
+  const frame = await loadById(theme, active ? 10080 : 10077);
+  const track = (await loadById(theme, active ? 10078 : 10075)) ?? (await loadById(theme, 10078));
+  const fill = (await loadById(theme, active ? 10079 : 10076)) ?? (await loadById(theme, 10079));
+  if (!frame && !track) return null;
 
   const h = frame ? frame.height : track!.height;
   const out = PixelBuffer.alloc(length, h);
