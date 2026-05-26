@@ -361,6 +361,43 @@ export async function composeScrollbar(
     }
   }
 
+  // ── CDEF scrollbar frame: mirror a one-sided long-edge border ──────────────
+  // The classic Control Manager strokes a 1px outline around the whole bar; some
+  // scheme TRACK cicns bake it onto only ONE long edge. platinum-8's -8286 carries
+  // the content-facing line but no frame-facing line, so its resting scrollbar reads
+  // as missing the hairline against the window's bottom/right frame. If one long edge
+  // is a continuous dark border and the opposite edge is opaque fill WITHOUT one,
+  // copy the border across — restoring the bar's outline. Transparent tracks (e.g.
+  // system7-nostalgia-silver, whose frame shows through the window chrome) have no
+  // border to mirror, so this is a no-op for them; schemes already framed both sides
+  // see the source edge re-painted onto itself (unchanged).
+  {
+    const lum = (p: readonly [number, number, number, number]): number => 0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2];
+    const N = length;
+    const cross = thickness - 1;
+    const at = (i: number, c: number): readonly [number, number, number, number] =>
+      horiz ? out.getPixel(i, c) : out.getPixel(c, i);
+    const paint = (c: number, col: [number, number, number]): void => {
+      for (let i = 0; i < N; i += 1) {
+        if (horiz) out.setPixel(i, c, col[0], col[1], col[2], 255);
+        else out.setPixel(c, i, col[0], col[1], col[2], 255);
+      }
+    };
+    let darkA = 0, darkB = 0, opaqA = 0, opaqB = 0;
+    const colA = new Map<number, number>(), colB = new Map<number, number>();
+    for (let i = 0; i < N; i += 1) {
+      const a = at(i, 0), b = at(i, cross);
+      if (a[3] > 200) { opaqA += 1; if (lum(a) < 110) { darkA += 1; const k = (a[0] << 16) | (a[1] << 8) | a[2]; colA.set(k, (colA.get(k) ?? 0) + 1); } }
+      if (b[3] > 200) { opaqB += 1; if (lum(b) < 110) { darkB += 1; const k = (b[0] << 16) | (b[1] << 8) | b[2]; colB.set(k, (colB.get(k) ?? 0) + 1); } }
+    }
+    const dom = (m: Map<number, number>): [number, number, number] => {
+      let bk = -1, bc = 0; for (const [k, c] of m) if (c > bc) { bc = c; bk = k; }
+      return bk < 0 ? [0, 0, 0] : [(bk >> 16) & 255, (bk >> 8) & 255, bk & 255];
+    };
+    if (darkA / N > 0.6 && darkB / N < 0.5 && opaqB > N * 0.6) paint(cross, dom(colA));
+    else if (darkB / N > 0.6 && darkA / N < 0.5 && opaqA > N * 0.6) paint(0, dom(colB));
+  }
+
   return out;
 }
 
