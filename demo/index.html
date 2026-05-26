@@ -991,6 +991,27 @@
         try { win = await renderWindow(theme, { windowType: wtypeSel.value || undefined, title: titleIn.value, width: +wIn.value, height: +hIn.value, scale: SC, state: stateSel.value }); }
         catch (e) { out.textContent = `render failed: ${e}`; return; }
         if (my !== token) return;
+        // Demonstration content: populate the window body with a control set (progress,
+        // radio/checkbox, edge scrollbars, grow handle) so the playground shows controls
+        // in a real window context — handy for checking control + frame placement.
+        // Scaled to the window (SC); robust to small windows (skips what won't fit).
+        const body = win.querySelector('.aw-content');
+        if (body) {
+          const cw = +wIn.value, ch = +hIn.value;
+          body.style.overflow = 'hidden';
+          const at = (buf, x, y) => { if (!buf) return; const k = bufferToCanvas(buf, SC); Object.assign(k.style, { position: 'absolute', left: `${x * SC}px`, top: `${y * SC}px` }); body.appendChild(k); };
+          try {
+            if (cw >= 90) at(await composeProgress(theme, { length: Math.min(cw - 16, 120), value: 0.6 }), 8, 8);
+            let rx = 8;
+            for (const [k, o] of [['radio', { checked: true }], ['radio', {}], ['checkbox', { checked: true }], ['checkbox', {}]]) {
+              const g = (await composeCheckable(theme, k, o)) ?? platinumCheckable(k, o);
+              at(g, rx, 28); rx += (g.width || 14) + 6;
+            }
+            if (ch >= 60) at(await composeScrollbar(theme, { orientation: 'vertical', length: ch - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), cw - 16, 0);
+            if (cw >= 60) at(await composeScrollbar(theme, { orientation: 'horizontal', length: cw - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), 0, ch - 16);
+            at(await composeGrowBox(theme, { state: stateSel.value }), cw - 16, ch - 16);
+          } catch { /* a control a scheme can't compose — skip it */ }
+        }
         out.textContent = '';
         const refMeta = THEMES.find((t) => t.slug === themeSel.value);
         const refSrc = refMeta ? `./assets/references/${refMeta.ref}` : null;
