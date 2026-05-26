@@ -1,5 +1,6 @@
 # TODO — graft the shipped POPUP MENU + MENU art (deferred / out of scope for now)
 
+**Tracker:** [#164](https://github.com/khawkins98/aaron-ui/issues/164) (later / out of scope).
 **Status:** DEFERRED — reference only. Both controls have working **procedural
 baselines** (`platinum.ts`), so nothing looks broken; this is a fidelity upgrade for
 *later*. The two unused control classes the all-rasters audit surfaced (see
