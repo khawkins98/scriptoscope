@@ -1,6 +1,6 @@
 {
-  "source": "1990.r",
-  "extractedAt": "2026-05-18T05:38:43.575Z",
+  "source": "1990/scheme.rsrc",
+  "extractedAt": "2026-05-26T19:33:50.349Z",
   "counts": {
     "total": 298,
     "ok": 298,
@@ -4925,6 +4925,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -4950,6 +4951,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -12237,
         "bgPixel": {
           "x": 3,
@@ -4975,6 +4977,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5000,6 +5003,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5025,6 +5029,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5050,6 +5055,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5075,6 +5081,7 @@
         "sideThickness": 3,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5100,6 +5107,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5125,6 +5133,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5150,6 +5159,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5175,6 +5185,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5200,6 +5211,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5225,6 +5237,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5250,6 +5263,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5275,6 +5289,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5300,6 +5315,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5325,6 +5341,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5350,6 +5367,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5375,6 +5393,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 6,
@@ -5400,6 +5419,7 @@
         "sideThickness": 2,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -5425,6 +5445,7 @@
         "sideThickness": 2,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -5450,6 +5471,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -5475,6 +5497,7 @@
         "sideThickness": 0,
         "tileSides": 1,
         "patternAnchor": 2,
+        "resizeBehavior": "repeat-left",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -5500,6 +5523,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5525,6 +5549,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 14,
@@ -5550,6 +5575,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 14,
@@ -5575,6 +5601,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 14,
@@ -5600,6 +5627,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 14,
@@ -5625,6 +5653,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 14,
@@ -5650,6 +5679,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -5675,6 +5705,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 5,
@@ -5700,6 +5731,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5725,6 +5757,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -5750,6 +5783,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5775,6 +5809,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5800,6 +5835,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5825,6 +5861,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5850,6 +5887,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5875,6 +5913,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5900,6 +5939,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -5925,6 +5965,7 @@
         "sideThickness": 4,
         "tileSides": 1,
         "patternAnchor": 2,
+        "resizeBehavior": "repeat-left",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -5950,6 +5991,7 @@
         "sideThickness": 6,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 9,
@@ -5975,6 +6017,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -6000,6 +6043,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 1,
+        "resizeBehavior": "stretch-top",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -6025,6 +6069,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -12236,
         "bgPixel": {
           "x": 3,
@@ -6050,6 +6095,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6075,6 +6121,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6100,6 +6147,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6125,6 +6173,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6150,6 +6199,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6175,6 +6225,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6200,6 +6251,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6225,6 +6277,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6250,6 +6303,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6275,6 +6329,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6300,6 +6355,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6325,6 +6381,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6350,6 +6407,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6375,6 +6433,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6400,6 +6459,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6425,6 +6485,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6450,6 +6511,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 20,
@@ -6475,6 +6537,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 20,
@@ -6500,6 +6563,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 21,
@@ -6525,6 +6589,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 20,
@@ -6550,6 +6615,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 20,
@@ -6575,6 +6641,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6600,6 +6667,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 1,
+        "resizeBehavior": "stretch-top",
         "bgPatternId": -9567,
         "bgPixel": {
           "x": 8,
@@ -6625,6 +6693,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -6650,6 +6719,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -6675,6 +6745,7 @@
         "sideThickness": 14,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6700,6 +6771,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 3,
+        "resizeBehavior": "stretch-bottom",
         "bgPatternId": -10239,
         "bgPixel": {
           "x": 6,
@@ -6725,6 +6797,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 3,
+        "resizeBehavior": "stretch-bottom",
         "bgPatternId": -10238,
         "bgPixel": {
           "x": 6,
@@ -6750,6 +6823,7 @@
         "sideThickness": 3,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 42,
         "bgPixel": {
           "x": 3,
@@ -6775,6 +6849,7 @@
         "sideThickness": 3,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -12236,
         "bgPixel": {
           "x": 3,
@@ -6800,6 +6875,7 @@
         "sideThickness": 11,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6825,6 +6901,7 @@
         "sideThickness": 3,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 42,
         "bgPixel": {
           "x": 3,
@@ -6850,6 +6927,7 @@
         "sideThickness": 3,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -12236,
         "bgPixel": {
           "x": 3,
@@ -6875,6 +6953,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -6900,6 +6979,7 @@
         "sideThickness": 14,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -6925,6 +7005,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -6950,6 +7031,7 @@
         "sideThickness": 4,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 4,
@@ -6975,6 +7057,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -7000,6 +7083,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 7,
@@ -7025,6 +7109,7 @@
         "sideThickness": 2,
         "tileSides": 0,
         "patternAnchor": 2,
+        "resizeBehavior": "stretch-left",
         "bgPatternId": -9568,
         "bgPixel": {
           "x": 8,
@@ -7050,6 +7135,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 1,
+        "resizeBehavior": "stretch-top",
         "bgPatternId": 17,
         "bgPixel": {
           "x": 0,
@@ -7075,6 +7161,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -9551,
         "bgPixel": {
           "x": 3,
@@ -7100,6 +7187,7 @@
         "sideThickness": 0,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 3,
@@ -7125,6 +7213,7 @@
         "sideThickness": 16,
         "tileSides": 1,
         "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -7150,6 +7239,7 @@
         "sideThickness": 4,
         "tileSides": 1,
         "patternAnchor": 4,
+        "resizeBehavior": "repeat-right",
         "bgPatternId": 0,
         "bgPixel": {
           "x": 0,
@@ -7175,6 +7265,7 @@
         "sideThickness": 7,
         "tileSides": 0,
         "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
         "bgPatternId": -14325,
         "bgPixel": {
           "x": 6,

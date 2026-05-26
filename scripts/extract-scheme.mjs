@@ -21,6 +21,7 @@ import { decodeWnd } from '../tools/theme-loader/decoders/wnd.js';
 import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
 import { validateTheme } from '../tools/theme-loader/validateTheme.js';
 import { decodeClut, headerColorsFromClut } from '../tools/theme-loader/decoders/clut.js';
+import { gammaCorrectRgba, gammaCorrectHex } from './lib/mac-gamma.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -125,6 +126,8 @@ for (const e of entries) {
   if (e.type === 'cicn' || e.type === 'ppat') {
     const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
     const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
+    // Mac→sRGB gamma (display transform) — see scripts/lib/mac-gamma.mjs.
+    gammaCorrectRgba(payload.rgba);
     writeFileSync(resolve(destDir, sub, fname), encodePng(payload.width, payload.height, payload.rgba));
     counts.ok++; counts.raster++;
     flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
@@ -153,7 +156,12 @@ const theme = buildThemeJson({ source: `${slug}/scheme.rsrc`, extractedAt, count
 // black-outline/white-fill). An earlier draft had active/inactive swapped.
 const cl = (id) => {
   const r = entries.find((x) => x.type === 'clut' && x.id === id);
-  return r ? headerColorsFromClut(decodeClut(r.data)) : null;
+  if (!r) return null;
+  // Gamma-correct each header color so procedural frames + contrast-sampled
+  // title text match the gamma'd cicn/ppat rasters (display transform).
+  const c = headerColorsFromClut(decodeClut(r.data));
+  for (const k of Object.keys(c)) if (c[k] != null) c[k] = gammaCorrectHex(c[k]);
+  return c;
 };
 const active = cl(-14336), inactive = cl(-14335);
 if (active || inactive) {

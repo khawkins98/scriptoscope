@@ -23,17 +23,20 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
 import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
+import { macRgbToSrgb } from './lib/mac-gamma.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
 
 // Apple's canonical 16-colour palette (the default 4-bit 'clut'). Exact, fixed.
+// Pre-gamma'd to sRGB at module load (display transform — see lib/mac-gamma.mjs)
+// so decodeIcon4 emits corrected pixels via a plain lookup.
 const PALETTE16 = [
   [0xff, 0xff, 0xff], [0xfc, 0xf3, 0x05], [0xff, 0x64, 0x03], [0xdd, 0x09, 0x07],
   [0xf2, 0x08, 0x84], [0x47, 0x00, 0xa5], [0x00, 0x00, 0xd3], [0x02, 0xab, 0xea],
   [0x1f, 0xb7, 0x14], [0x00, 0x64, 0x12], [0x56, 0x2c, 0x05], [0x90, 0x71, 0x3a],
   [0xc0, 0xc0, 0xc0], [0x80, 0x80, 0x80], [0x40, 0x40, 0x40], [0x00, 0x00, 0x00],
-];
+].map(macRgbToSrgb);
 
 // Apple's canonical 256-colour SYSTEM palette ('clut' 8) — schemes index ics8/
 // icl8 into this fixed table (they don't embed their own). It is the 6×6×6 RGB
@@ -47,7 +50,8 @@ const PALETTE16 = [
 // correctly (idx0=white, idx255=black, idx245=gray). This REPLACES a hand-built
 // cube+ramp approximation that mis-mapped the ramp region (idx245→blue), which
 // turned grayscale icons' shading into blue-black blotches/checkerboard noise.
-const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, 'lib/mac-system-palette.json'), 'utf8')).palette;
+// Pre-gamma'd to sRGB at module load (same display transform as PALETTE16).
+const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, 'lib/mac-system-palette.json'), 'utf8')).palette.map(macRgbToSrgb);
 
 // ── minimal RGBA PNG encoder (same approach as extract-scheme.mjs) ──
 const CRC = (() => {

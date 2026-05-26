@@ -1756,6 +1756,30 @@
    "role": "Finder/system icon (User)"
   },
   {
+   "id": -20801,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Internet Search Sites",
+   "family": "pictogram",
+   "role": "pictogram (Internet Search Sites)"
+  },
+  {
+   "id": -20797,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Scripts",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Scripts)"
+  },
+  {
+   "id": -20792,
+   "type": "icl8",
+   "size": 32,
+   "slug": "ColorSync Profiles",
+   "family": "finder-icon",
+   "role": "Finder/system icon (ColorSync Profiles)"
+  },
+  {
    "id": -20746,
    "type": "icl8",
    "size": 32,
@@ -1770,6 +1794,38 @@
    "slug": "Keep Arranged",
    "family": "finder-icon",
    "role": "Finder/system icon (Keep Arranged)"
+  },
+  {
+   "id": -20744,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Internet",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Internet)"
+  },
+  {
+   "id": -20729,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Favorites",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Favorites)"
+  },
+  {
+   "id": -20724,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Speakable Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Speakable Items)"
+  },
+  {
+   "id": -20723,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Appearance",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Appearance)"
   },
   {
    "id": -16509,
@@ -1796,6 +1852,14 @@
    "role": "Finder/system icon (Finder)"
   },
   {
+   "id": -16455,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Item Icon",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Item Icon)"
+  },
+  {
    "id": -16415,
    "type": "icl8",
    "size": 32,
@@ -1810,6 +1874,14 @@
    "slug": "Generic Document",
    "family": "finder-icon",
    "role": "Finder/system icon (Generic Document)"
+  },
+  {
+   "id": -3999,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Generic Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Generic Folder)"
   },
   {
    "id": -3998,
@@ -1834,6 +1906,14 @@
    "slug": "Apple HD",
    "family": "finder-icon",
    "role": "Finder/system icon (Apple HD)"
+  },
+  {
+   "id": -3994,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Private Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Private Folder)"
   },
   {
    "id": -3993,
@@ -1884,6 +1964,86 @@
    "role": "Finder/system icon (Trash Full)"
   },
   {
+   "id": -3983,
+   "type": "icl8",
+   "size": 32,
+   "slug": "System Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (System Folder)"
+  },
+  {
+   "id": -3982,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Apple Menu Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Apple Menu Items)"
+  },
+  {
+   "id": -3981,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Startup Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Startup Items)"
+  },
+  {
+   "id": -3979,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Drop Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Drop Folder)"
+  },
+  {
+   "id": -3978,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Share Point",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Share Point)"
+  },
+  {
+   "id": -3977,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Mounted Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Mounted Folder)"
+  },
+  {
+   "id": -3976,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Control Panel Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Panel Folder)"
+  },
+  {
+   "id": -3975,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Print Monitor Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Print Monitor Folder)"
+  },
+  {
+   "id": -3974,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Preferences Fodler",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Preferences Fodler)"
+  },
+  {
+   "id": -3973,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Extensions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Extensions)"
+  },
+  {
    "id": -3971,
    "type": "icl8",
    "size": 32,
@@ -1908,12 +2068,204 @@
    "role": "Finder/system icon (Generic DA Document)"
   },
   {
+   "id": -3968,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Fonts",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Fonts)"
+  },
+  {
    "id": -3967,
    "type": "icl8",
    "size": 32,
    "slug": null,
    "family": "finder-icon",
    "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Recent Documents",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Documents)"
+  },
+  {
+   "id": -3965,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Recent Applications",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Applications)"
+  },
+  {
+   "id": -3964,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Recent Servers",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Servers)"
+  },
+  {
+   "id": -3963,
+   "type": "icl8",
+   "size": 32,
+   "slug": "MacOS Read Me Files",
+   "family": "finder-icon",
+   "role": "Finder/system icon (MacOS Read Me Files)"
+  },
+  {
+   "id": -3962,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Control Strip Modules",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Strip Modules)"
+  },
+  {
+   "id": -3961,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Sounds",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Sounds)"
+  },
+  {
+   "id": -3960,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Help",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Help)"
+  },
+  {
+   "id": -3959,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Scripting Additions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Scripting Additions)"
+  },
+  {
+   "id": -3958,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Internet Plug-ins",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Internet Plug-ins)"
+  },
+  {
+   "id": -3957,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Language Support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Language Support)"
+  },
+  {
+   "id": -3956,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Shared Libraries",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Shared Libraries)"
+  },
+  {
+   "id": -3955,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Text Encodings",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Text Encodings)"
+  },
+  {
+   "id": -3952,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Voices",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Voices)"
+  },
+  {
+   "id": -3951,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Control Panels (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Panels (Disabled))"
+  },
+  {
+   "id": -3950,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Extensions (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Extensions (Disabled))"
+  },
+  {
+   "id": -3949,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Startup Items (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Startup Items (Disabled))"
+  },
+  {
+   "id": -3948,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Shutdown Items (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Shutdown Items (Disabled))"
+  },
+  {
+   "id": -3947,
+   "type": "icl8",
+   "size": 32,
+   "slug": "System Extensions (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (System Extensions (Disabled))"
+  },
+  {
+   "id": -3946,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Assistants",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Assistants)"
+  },
+  {
+   "id": -3945,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Utilities",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Utilities)"
+  },
+  {
+   "id": -3944,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Application Support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Application Support)"
+  },
+  {
+   "id": -3943,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Apple Extras",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Apple Extras)"
+  },
+  {
+   "id": -3942,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Contextual Menu Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Contextual Menu Items)"
   },
   {
    "id": -3851,
@@ -1994,6 +2346,22 @@
    "slug": "Removable Disk",
    "family": "finder-icon",
    "role": "Finder/system icon (Removable Disk)"
+  },
+  {
+   "id": -3812,
+   "type": "icl8",
+   "size": 32,
+   "slug": "WorkGroup",
+   "family": "finder-icon",
+   "role": "Finder/system icon (WorkGroup)"
+  },
+  {
+   "id": -3811,
+   "type": "icl8",
+   "size": 32,
+   "slug": "User",
+   "family": "finder-icon",
+   "role": "Finder/system icon (User)"
   },
   {
    "id": -3810,
@@ -2452,6 +2820,30 @@
    "role": "Finder/system icon (User)"
   },
   {
+   "id": -20801,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Internet Search Sites",
+   "family": "pictogram",
+   "role": "pictogram (Internet Search Sites)"
+  },
+  {
+   "id": -20797,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Scripts",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Scripts)"
+  },
+  {
+   "id": -20792,
+   "type": "ics8",
+   "size": 16,
+   "slug": "ColorSync Profiles",
+   "family": "finder-icon",
+   "role": "Finder/system icon (ColorSync Profiles)"
+  },
+  {
    "id": -20746,
    "type": "ics8",
    "size": 16,
@@ -2466,6 +2858,38 @@
    "slug": "Keep Arranged",
    "family": "finder-icon",
    "role": "Finder/system icon (Keep Arranged)"
+  },
+  {
+   "id": -20744,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Internet",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Internet)"
+  },
+  {
+   "id": -20729,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Favorites",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Favorites)"
+  },
+  {
+   "id": -20724,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Speakable Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Speakable Items)"
+  },
+  {
+   "id": -20723,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Appearance",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Appearance)"
   },
   {
    "id": -16509,
@@ -2492,6 +2916,14 @@
    "role": "Finder/system icon (Finder)"
   },
   {
+   "id": -16455,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Item Icon",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Item Icon)"
+  },
+  {
    "id": -16415,
    "type": "ics8",
    "size": 16,
@@ -2516,6 +2948,14 @@
    "role": "Finder/system icon (Generic Document)"
   },
   {
+   "id": -3999,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Generic Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Generic Folder)"
+  },
+  {
    "id": -3998,
    "type": "ics8",
    "size": 16,
@@ -2538,6 +2978,14 @@
    "slug": "Apple HD",
    "family": "finder-icon",
    "role": "Finder/system icon (Apple HD)"
+  },
+  {
+   "id": -3994,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Private Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Private Folder)"
   },
   {
    "id": -3993,
@@ -2588,6 +3036,86 @@
    "role": "Finder/system icon (Trash Full)"
   },
   {
+   "id": -3983,
+   "type": "ics8",
+   "size": 16,
+   "slug": "System Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (System Folder)"
+  },
+  {
+   "id": -3982,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Apple Menu Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Apple Menu Items)"
+  },
+  {
+   "id": -3981,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Startup Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Startup Items)"
+  },
+  {
+   "id": -3979,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Drop Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Drop Folder)"
+  },
+  {
+   "id": -3978,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Share Point",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Share Point)"
+  },
+  {
+   "id": -3977,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Mounted Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Mounted Folder)"
+  },
+  {
+   "id": -3976,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Control Panel Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Panel Folder)"
+  },
+  {
+   "id": -3975,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Print Monitor Folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Print Monitor Folder)"
+  },
+  {
+   "id": -3974,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Preferences Fodler",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Preferences Fodler)"
+  },
+  {
+   "id": -3973,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Extensions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Extensions)"
+  },
+  {
    "id": -3971,
    "type": "ics8",
    "size": 16,
@@ -2612,12 +3140,204 @@
    "role": "Finder/system icon (Generic DA Document)"
   },
   {
+   "id": -3968,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Fonts",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Fonts)"
+  },
+  {
    "id": -3967,
    "type": "ics8",
    "size": 16,
    "slug": null,
    "family": "finder-icon",
    "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Recent Documents",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Documents)"
+  },
+  {
+   "id": -3965,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Recent Applications",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Applications)"
+  },
+  {
+   "id": -3964,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Recent Servers",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Recent Servers)"
+  },
+  {
+   "id": -3963,
+   "type": "ics8",
+   "size": 16,
+   "slug": "MacOS Read Me Files",
+   "family": "finder-icon",
+   "role": "Finder/system icon (MacOS Read Me Files)"
+  },
+  {
+   "id": -3962,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Control Strip Modules",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Strip Modules)"
+  },
+  {
+   "id": -3961,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Sounds",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Sounds)"
+  },
+  {
+   "id": -3960,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Help",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Help)"
+  },
+  {
+   "id": -3959,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Scripting Additions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Scripting Additions)"
+  },
+  {
+   "id": -3958,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Internet Plug-ins",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Internet Plug-ins)"
+  },
+  {
+   "id": -3957,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Language Support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Language Support)"
+  },
+  {
+   "id": -3956,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Shared Libraries",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Shared Libraries)"
+  },
+  {
+   "id": -3955,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Text Encodings",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Text Encodings)"
+  },
+  {
+   "id": -3952,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Voices",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Voices)"
+  },
+  {
+   "id": -3951,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Control Panels (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Control Panels (Disabled))"
+  },
+  {
+   "id": -3950,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Extensions (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Extensions (Disabled))"
+  },
+  {
+   "id": -3949,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Startup Items (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Startup Items (Disabled))"
+  },
+  {
+   "id": -3948,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Shutdown Items (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Shutdown Items (Disabled))"
+  },
+  {
+   "id": -3947,
+   "type": "ics8",
+   "size": 16,
+   "slug": "System Extensions (Disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (System Extensions (Disabled))"
+  },
+  {
+   "id": -3946,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Assistants",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Assistants)"
+  },
+  {
+   "id": -3945,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Utilities",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Utilities)"
+  },
+  {
+   "id": -3944,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Application Support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Application Support)"
+  },
+  {
+   "id": -3943,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Apple Extras",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Apple Extras)"
+  },
+  {
+   "id": -3942,
+   "type": "ics8",
+   "size": 16,
+   "slug": "Contextual Menu Items",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Contextual Menu Items)"
   },
   {
    "id": -3851,
@@ -2690,6 +3410,22 @@
    "slug": "Removable Disk",
    "family": "finder-icon",
    "role": "Finder/system icon (Removable Disk)"
+  },
+  {
+   "id": -3812,
+   "type": "ics8",
+   "size": 16,
+   "slug": "WorkGroup",
+   "family": "finder-icon",
+   "role": "Finder/system icon (WorkGroup)"
+  },
+  {
+   "id": -3811,
+   "type": "ics8",
+   "size": 16,
+   "slug": "User",
+   "family": "finder-icon",
+   "role": "Finder/system icon (User)"
   },
   {
    "id": -3810,

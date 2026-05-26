@@ -4604,20 +4604,20 @@
   },
   "headerColors": {
     "active": {
-      "frame": "#001f52",
-      "fill": "#295ab5",
-      "lightTinge": "#5a8ce7",
-      "darkTinge": "#001f52",
-      "lightBevel": "#5a8ce7",
-      "darkBevel": "#001f52"
+      "frame": "#002d65",
+      "fill": "#396dc1",
+      "lightTinge": "#6d9ceb",
+      "darkTinge": "#002d65",
+      "lightBevel": "#6d9ceb",
+      "darkBevel": "#002d65"
     },
     "inactive": {
-      "frame": "#003366",
-      "fill": "#3366cc",
-      "lightTinge": "#6699ff",
-      "darkTinge": "#003366",
-      "lightBevel": "#6699ff",
-      "darkBevel": "#003366"
+      "frame": "#004478",
+      "fill": "#4478d4",
+      "lightTinge": "#78a8ff",
+      "darkTinge": "#004478",
+      "lightBevel": "#78a8ff",
+      "darkBevel": "#004478"
     }
   },
   "bodyBackground": {

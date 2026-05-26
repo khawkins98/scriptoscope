@@ -5396,19 +5396,19 @@
   "headerColors": {
     "active": {
       "frame": "#000000",
-      "fill": "#222222",
-      "lightTinge": "#444444",
-      "darkTinge": "#111111",
-      "lightBevel": "#444444",
-      "darkBevel": "#111111"
+      "fill": "#313131",
+      "lightTinge": "#565656",
+      "darkTinge": "#1c1c1c",
+      "lightBevel": "#565656",
+      "darkBevel": "#1c1c1c"
     },
     "inactive": {
-      "frame": "#111111",
-      "fill": "#222222",
-      "lightTinge": "#222222",
-      "darkTinge": "#222222",
-      "lightBevel": "#222222",
-      "darkBevel": "#111111"
+      "frame": "#1c1c1c",
+      "fill": "#313131",
+      "lightTinge": "#313131",
+      "darkTinge": "#313131",
+      "lightBevel": "#313131",
+      "darkBevel": "#1c1c1c"
     }
   },
   "bodyBackground": {

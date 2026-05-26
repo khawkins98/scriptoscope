@@ -5135,19 +5135,19 @@
   "headerColors": {
     "active": {
       "frame": "#000000",
-      "fill": "#dedede",
+      "fill": "#e4e4e4",
       "lightTinge": "#ffffff",
-      "darkTinge": "#aaaaaa",
-      "lightBevel": "#eeeeee",
-      "darkBevel": "#aaaaaa"
+      "darkTinge": "#b7b7b7",
+      "lightBevel": "#f1f1f1",
+      "darkBevel": "#b7b7b7"
     },
     "inactive": {
       "frame": "#000000",
-      "fill": "#777777",
-      "lightTinge": "#dedede",
-      "darkTinge": "#212121",
-      "lightBevel": "#dedede",
-      "darkBevel": "#212121"
+      "fill": "#898989",
+      "lightTinge": "#e4e4e4",
+      "darkTinge": "#303030",
+      "lightBevel": "#e4e4e4",
+      "darkBevel": "#303030"
     }
   }
 }
