@@ -130,6 +130,21 @@ wanted for cicn-less schemes beyond the existing baseline.
 
 ---
 
+## Future directions (owner-flagged, not yet started)
+
+- **Analyze the `Mac OS 8.5b6 Beta Themes`** (`~/Downloads/Mac OS 8.5b6 Beta Themes/` +
+  `.sit`). Strong lead: the AppearanceLib decode established that Platinum's look is
+  DATA-driven — the engine is a generic drawer; the gradients/colors/bevel params live
+  in the theme file / `wctb`, NOT in the code (which is why our `tuning:` values in
+  `cornerSpriteGeometry.ts` are calibrated guesses). Those beta theme files ARE that data
+  layer. Enumerating one (via `tools/theme-loader/resource-fork.js`) for `thme`/`clut`/
+  `ppat`/gradient resources could give us the real parameter values to replace the guesses
+  — turning more `tuning:` fields into sourced ones. High-value, bounded research task.
+- **Support Appearance Manager (`.thme`) themes** as a first-class theme kind. This is the
+  natural endpoint of the data/drawer architecture we validated: a `.thme` file IS the
+  DATA, our compositor can be the generic DRAWER. Higher fidelity than the Kaleidoscope
+  recreations. Big bridge (parse the theme format, map params → renderer); later.
+
 ## How to work here
 
 **Verification recipe (corner-sprite render changes):**
