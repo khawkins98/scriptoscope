@@ -376,9 +376,15 @@
           img.src = `${theme.baseUrl}/icons/${i.file}`; img.loading = 'lazy';
           Object.assign(img.style, { width: `${px}px`, height: `${px}px`, imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
           const lab = document.createElement('div');
-          const labText = `${i.id}${i.name ? '\n' + i.name.trim() : ''}`;
+          // Show the DEPTH so the high-colour 8-bit (ics8/icl8) icons are visible +
+          // distinct from the 4-bit (ics4/icl4) variant at the same id: 8-bit shown
+          // green/bold, 4-bit dimmed gray. (We render the highest depth; the gallery
+          // shows every depth available.)
+          const hiDepth = i.type === 'ics8' || i.type === 'icl8';
+          const labText = `${i.id} ${i.type}${i.name ? '\n' + i.name.trim() : ''}`;
           lab.textContent = labText;
-          lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word';
+          lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word'
+            + (hiDepth ? '; color:#1a7f37; font-weight:600' : '; color:#aaa');
           cell.append(img, lab);
           cell.onclick = async () => {
             try { await navigator.clipboard.writeText(copyText); }
