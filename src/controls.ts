@@ -221,20 +221,35 @@ export async function composeScrollbar(
   const thumb = await loadById(theme, horiz ? (state === 'pressed' ? 10205 : 10206) : state === 'pressed' ? 10207 : 10208);
 
   // Arrow-BUTTON glyphs — the scheme's OWN ics4 pictograms for the end buttons.
-  // The faithful arrow art is the directional button family -10197..-10204 (a
-  // 16×16 button with face + arrow + bevel baked in), NOT -10205..-10208 (those
-  // ids carry a blank bevelled face with no glyph). Directional mapping (verified
-  // against the apple-platinum-2 / platinum-8 / system7-nostalgia-silver art):
-  //   normal:  right -10197 · left -10198 · down -10199 · up -10200
-  //   pressed: right -10201 · left -10202 · down -10203 · up -10204
+  // The directional arrow family is -10197..-10204 (a 16×16 button: face + arrow +
+  // bevel), NOT -10205..-10208 (those are the slider THUMB, h/v × normal/pressed).
+  //
+  // The normal/pressed id split is UNIVERSAL — it is NOT stored per scheme (the
+  // scheme resource forks carry no CDEF/control template, only art). It is hardcoded
+  // in Kaleidoscope's shared CDEF, decoded at kDEF231_0.asm:9f0e-9f38, which writes
+  // BOTH ids per direction into the control record and selects at draw time by
+  // contrlHilite — the PRESSED id for the one arrow under the mouse, the RAISED id
+  // for the rest; a disabled control draws the RAISED art dimmed (there is no
+  // separate inactive-arrow bitmap). Canonical table mirrored in
+  // docs/spec/kdef231-reference.md §"Scroll-arrow ics4 family" — keep all three in sync.
+  //   RAISED / normal: right -10201 · left -10202 · down -10203 · up -10204
+  //   PRESSED:         right -10197 · left -10198 · down -10199 · up -10200
+  // NB the scheme art APPEARANCE of each quartet varies (s7-nostalgia-silver's raised
+  // set is a beveled 3-D arrow, platinum-8's is a boxed gray button whose pressed
+  // quartet is a flat arrow), but the id→state mapping above is the engine's and we
+  // apply it universally. CONSEQUENCE: platinum-8 (a 1998/Kaleidoscope-1.x scheme that
+  // placed art the other way) renders its boxed -10202 at rest rather than the flat
+  // -10198 its own preview shows — an accepted divergence (owner: follow the 2.3.1
+  // decode universally, see kdef-faithfulness-ledger). Earlier these were swapped, so
+  // every resting scrollbar drew the depressed arrows.
   // For a horizontal bar the LOW end is the left button, the HIGH end the right;
   // for vertical, low = up (top), high = down (bottom). These glyphs are the WHOLE
   // button (they carry their own face), so we stamp them in place of the
   // procedural face+triangle when the scheme ships them; otherwise fall back to
   // drawArrowGlyph so the sliced schemes + cicn-less schemes render unchanged.
   const pressed = state === 'pressed';
-  const lowArrowId = horiz ? (pressed ? 10202 : 10198) : (pressed ? 10204 : 10200); // left / up
-  const highArrowId = horiz ? (pressed ? 10201 : 10197) : (pressed ? 10203 : 10199); // right / down
+  const lowArrowId = horiz ? (pressed ? 10198 : 10202) : (pressed ? 10200 : 10204); // left / up
+  const highArrowId = horiz ? (pressed ? 10197 : 10201) : (pressed ? 10199 : 10203); // right / down
   const lowArrow = await loadGlyphById(theme, -lowArrowId);
   const highArrow = await loadGlyphById(theme, -highArrowId);
 

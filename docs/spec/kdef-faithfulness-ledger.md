@@ -73,6 +73,18 @@ to a bug class we hit reactively before the linter existed:
 - Anything requiring the **per-edge title-fits flag** or the **widget-draw pass**
   we skip — guarded only indirectly (corpus has no widget in a growing cell).
 
+## Accepted divergences (decode beats reference, by owner decision)
+
+- **Scroll-arrow id→state mapping is the 2.3.1 CDEF's, applied universally.** The
+  shared CDEF (no per-scheme control template exists) fixes RAISED/normal =
+  `-10201..-10204`, PRESSED = `-10197..-10200` (`kDEF231_0.asm:9f0e-9f38`; see
+  kdef231-reference §2.4 "Scroll-arrow ics4 family" and `controls.ts composeScrollbar`).
+  **platinum-8** is a 1998/Kaleidoscope-1.x scheme that placed its arrow art the other
+  way (its preview shows the flat `-10198` at rest, our universal mapping draws its
+  boxed `-10202`). We follow the 2.3.1 decode rather than the 1.x-era scheme preview —
+  faithful to the engine, divergent from that one scheme's shipped image. s7-nostalgia-
+  silver + apple-platinum-2 match the 2.3.1 convention. (Owner decision 2026-05-26.)
+
 ## References
 - `compositor-spec.md` — the model these routines implement.
 - `kdef231-recipe-walk.md` — the part-code / draw decode (the source behind the spec).

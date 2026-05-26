@@ -238,6 +238,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 |---|---|---|
 | `-10208`..`-10197` | **slider** part table (12 parts) | track + directional thumb variants; `0x4f7e`-era stores 12 ids (1.8.2-era, see §2.6) |
 | `-10205`..`-10208` | slider thumb/track h+v | `controls.ts:166`: thumb -10206 h / -10208 v (pressed -10205/-10207) |
+| `-10197`..`-10204` | **Scroll-arrow ics4 family** — directional ARROW BUTTONS (each a whole 16×16 button: face + arrow + bevel) | `controls.ts composeScrollbar` (keep in sync with that code comment). **RAISED / normal:** right `-10201` · left `-10202` · down `-10203` · up `-10204`. **PRESSED:** right `-10197` · left `-10198` · down `-10199` · up `-10200`. **This split is UNIVERSAL, not per-scheme** — the scheme forks carry no CDEF/control template (only art), so the mapping lives in Kaleidoscope's shared CDEF. Decoded at `kDEF231_0.asm:9f0e-9f38`: the CDEF writes BOTH ids per direction into the control record (offsets left 24/26, up 28/30, right 32/34, down 36/38) and picks by `contrlHilite` at draw time — PRESSED id for the held arrow, RAISED for the rest; a disabled control dims the RAISED art (there is **no separate inactive-arrow bitmap** — the 12-id part table is 8 arrows + 4 thumb `-10205..-10208`). Scheme art APPEARANCE of each quartet varies (s7 raised = beveled 3-D, platinum-8 raised = boxed gray button / its pressed = flat arrow). **(Corrected 2026-05-26 — the two quartets were previously swapped, so resting scrollbars showed depressed arrows. Owner chose to follow the 2.3.1 decode universally; platinum-8 — a 1998/1.x scheme — placed art the other way, so it renders its boxed `-10202` at rest, diverging from its own preview; logged in the faithfulness ledger.)** |
 | `-8288`/`-8280` | scrollbar pressed (h/v) | immediates at the drawer |
 | `-8272`/`-8271` | scrollbar thumb ghost | drag preview |
 | `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **computed, not a kDEF immediate** |
@@ -257,7 +258,9 @@ hi=-8271). They reveal the control families the kDEF expects:
 >   This is the channel the 2.3.1 kDEF draws (verified §2.2) — correct.
 > - `ics4` `-10229..-10240` = **checkbox** glyphs (empty / ✓ / – / ✕ × active·pressed·
 >   disabled); `ics4` `-10214..-10224` = **radio** glyphs (off/on/mixed × states);
->   `ics4` `-10197..-10208` = scroll/slider **arrows** (R,L,D,U × normal·pressed·inactive);
+>   `ics4` `-10197..-10204` = scroll/slider directional **arrows** (R,L,D,U × raised·pressed
+>   — see §2.4 row; raised = `-10201..-10204`), `-10205..-10208` = slider **thumb** (h/v ×
+>   normal·pressed) — there is NO separate inactive-arrow art;
 >   `ics4` `-14315..-14320` / `-14331..-14336` = utility / document window **widget**
 >   glyphs. These are the scheme-supplied control *pictograms*.
 > `-9488..-9504` are still derived consumer-side (not kDEF immediates). The full
