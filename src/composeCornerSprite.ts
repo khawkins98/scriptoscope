@@ -246,8 +246,8 @@ export function composeCornerSpriteChrome(
   // -14336 inactive) → frame-extract it (border cells, transparent centre) for the
   // beveled frame + corners that scale, instead of the procedural bevel. The proxy's
   // bevel is hairline at 16px, so the border cells are scaled 2× (owner-confirmed).
-  const FRAME_SCALE = 1;
-  const FRAME_CSRC = 5; // source px per corner / edge cross-section: the proxy's outer
+  const FRAME_SCALE = GEOM.frameExtract.scale;
+  const FRAME_CSRC = GEOM.frameExtract.csrc; // source px per corner / edge cross-section: the proxy's outer
                         // bevel PLUS its inner shadow/highlight row (4 trimmed that
                         // inner px into the discarded centre — the inner shading read wrong)
   const useFrame = !!(opts.frameCicn && opts.frameCicn.width >= 8 && opts.frameCicn.height >= 8);
@@ -331,17 +331,17 @@ export function composeCornerSpriteChrome(
     // ground, since the stripe segments below exclude it).
     let plateX = -1, plateW = 0;
     if (opts.titleWidthPx && opts.titleWidthPx > 4 && titleH > 3) {
-      plateW = Math.min(fullW - 4, opts.titleWidthPx + 6);
+      plateW = Math.min(fullW - 4, opts.titleWidthPx + GEOM.titleBar.platePad);
       plateX = Math.max(1, Math.round((fullW - plateW) / 2));
     }
     // Inset band + horizontal bounds (clear of the widgets, gap for the title).
-    const STRIPE_PAD = 5;
+    const STRIPE_PAD = GEOM.titleBar.stripePad;
     const leftW = widgetLayout.find((w) => w.glyph === 'close');
     const rightWs = widgetLayout.filter((w) => w.glyph !== 'close');
     const stripeLeft = (leftW ? leftW.x + leftW.w : frame.left) + STRIPE_PAD;
     const stripeRight = (rightWs.length ? Math.min(...rightWs.map((w) => w.x)) : fullW - frame.right) - STRIPE_PAD;
-    const sy0 = Math.max(2, Math.round((titleH - 1) * 0.2));
-    const sy1 = titleH - 1 - Math.max(2, Math.round((titleH - 1) * 0.24));
+    const sy0 = Math.max(2, Math.round((titleH - 1) * GEOM.titleBar.insetTop));
+    const sy1 = titleH - 1 - Math.max(2, Math.round((titleH - 1) * GEOM.titleBar.insetBottom));
     if (pin.width > 0 && pin.height > 0 && stripeRight > stripeLeft && sy1 > sy0) {
       const segs: [number, number][] = plateX >= 0
         ? [[stripeLeft, plateX - 2], [plateX + plateW + 2, stripeRight]]
@@ -469,8 +469,8 @@ export function composeCornerSpriteChrome(
   // pinstripe (the WDEF fills the rect then strokes the bevel); the widgets sit
   // on top at the ends. Mirrors the widget bevel's lighten/darken amounts.
   if (hasTitleBar && titleH >= 5 && fullW >= 5 && !useFrame) {
-    const hi = lighten(faceRgba, 0.55);
-    const sh = darken(faceRgba, 0.22);
+    const hi = lighten(faceRgba, GEOM.bevel.highlight);
+    const sh = darken(faceRgba, GEOM.bevel.shadow);
     const innerH = titleH - 3; // y=1 down to the row just above the under-line
     out.fillRect({ x: 1, y: 1, w: fullW - 2, h: 1 }, hi[0], hi[1], hi[2], 255); // top highlight
     out.fillRect({ x: 1, y: 1, w: 1, h: innerH }, hi[0], hi[1], hi[2], 255); // left highlight
@@ -502,8 +502,8 @@ export function composeCornerSpriteChrome(
       out.fillRect({ x: wx, y: wy + W - 1, w: W, h: 1 }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
       out.fillRect({ x: wx, y: wy, w: 1, h: W }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
       out.fillRect({ x: wx + W - 1, y: wy, w: 1, h: W }, ringRgba[0], ringRgba[1], ringRgba[2], 255);
-      const hi = lighten(faceRgba, 0.5);
-      const sh = darken(faceRgba, 0.18);
+      const hi = lighten(faceRgba, GEOM.widget.bevel.highlight);
+      const sh = darken(faceRgba, GEOM.widget.bevel.shadow);
       out.fillRect({ x: wx + 1, y: wy + 1, w: W - 2, h: 1 }, hi[0], hi[1], hi[2], 255); // top
       out.fillRect({ x: wx + 1, y: wy + 1, w: 1, h: W - 2 }, hi[0], hi[1], hi[2], 255); // left
       out.fillRect({ x: wx + 1, y: wy + W - 2, w: W - 2, h: 1 }, sh[0], sh[1], sh[2], 255); // bottom
