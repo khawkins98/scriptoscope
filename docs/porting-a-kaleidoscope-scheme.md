@@ -263,7 +263,7 @@ PR body checklist:
 
 ### "The chrome cicn body is white but the reference shows gray"
 
-This is the ppat-overlay case (LEARNINGS 2026-05-16). Some schemes have white cicn body pixels but Kaleidoscope overlaid a `ppat` tile on the body region at draw time. Aaron UI's runtime supports this via `cinf.bgPatternId`, but the extractor currently emits `bgPatternId: 0` for every cinf because the geometry decoder doesn't read the field yet. This is a known gap — track via the Phase 4 follow-ons or open a new issue. Workaround for now: accept the visual difference; document in your PROVENANCE.md.
+This is the ppat-overlay case: some schemes have white `cicn` body pixels but Kaleidoscope tiled a `ppat` behind the window content at draw time. **This now works end-to-end** (the "decoder doesn't read `bgPatternId`" note here was stale): `tools/theme-loader/decoders/cinf.js` decodes `bgPatternId` (offset 4), `extract-scheme.mjs` reads it off the Icon/List-View cinf (`-9551`/`-9550`) into `theme.bodyBackground.pattern`, and `renderWindow.ts` tiles it behind the content (`bodyBackgroundStyle` + `scaleBodyPattern`, scale-matched + pixelated). 1984, 1990, and evolution ship one; `npm run import` reports the resolved body pattern. **Remaining nuance:** a body pattern carried by a *per-window-type* cinf (one paired with a window's own `cicn`) is untested — no corpus scheme ships a window cinf (they're all menu/control elements), so `windowTypes[*].cinf` is null everywhere. If you port a scheme that does, verify that path.
 
 ### "The wnd# parts are positioned wrong / not where the close box appears in the cicn"
 

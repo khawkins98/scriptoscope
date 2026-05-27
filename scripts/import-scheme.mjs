@@ -119,6 +119,7 @@ console.log(`
 │ window types    ${wtNames.length}  (${wtNames.slice(0, 6).join(', ')}${wtNames.length > 6 ? ', …' : ''})
 │ header colors   ${ok(!!theme.headerColors)}${theme.headerColors ? `  active.frame=${theme.headerColors.active?.frame ?? '?'}` : ''}
 │ chrome cicns    ${chromeN}
+│ body pattern    ${theme.bodyBackground?.pattern ? theme.bodyBackground.pattern.replace(/^ppats\//, '') : 'none (white)'}
 │ icons           ${iconIdx.length}  (icl4=${byType('icl4')} ics4=${byType('ics4')} icl8=${byType('icl8')} ics8=${byType('ics8')})
 │ control roles   progress=${roles?.progress?.model ?? '?'}${roles?.scrollArrows ? ' · scroll-arrows mapped' : ''}${roles ? '' : ' (no resource-roles.json)'}
 │ glyphs wired    ${familiesLine.replace(/^[·\s]*\(glyph families wired\)\s*/, '') || '(see lint)'}
