@@ -21,9 +21,9 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deflateSync } from 'node:zlib';
 import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
 import { macRgbToSrgb } from './lib/mac-gamma.mjs';
+import { encodePng } from './lib/png-encode.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -38,43 +38,17 @@ const PALETTE16 = [
   [0xc0, 0xc0, 0xc0], [0x80, 0x80, 0x80], [0x40, 0x40, 0x40], [0x00, 0x00, 0x00],
 ].map(macRgbToSrgb);
 
-// Apple's canonical 256-colour SYSTEM palette ('clut' 8) — schemes index ics8/
-// icl8 into this fixed table (they don't embed their own). It is the 6×6×6 RGB
-// cube (channels {255,204,153,102,51,0}, index 0 = white … 215 = black) followed
-// by 4×10 single-channel ramps (red, green, blue, GREY) over the off-cube steps
-// {238,221,187,170,136,119,85,68,34,17}. The grey ramp + cube greys give a full
-// 17-step grayscale, which is what the (greyscale) control/widget glyphs use.
-// The Macintosh 8-bit SYSTEM palette — the real 256-colour CLUT that icl8/ics8
-// index into. Sourced from the Mac OS 8.5 System file (clut 9, normalized to 8-bit)
-// and verified to render BOTH the rainbow Apple logo AND grayscale Finder icons
-// correctly (idx0=white, idx255=black, idx245=gray). This REPLACES a hand-built
-// cube+ramp approximation that mis-mapped the ramp region (idx245→blue), which
-// turned grayscale icons' shading into blue-black blotches/checkerboard noise.
-// Pre-gamma'd to sRGB at module load (same display transform as PALETTE16).
+// Apple's canonical 256-colour SYSTEM palette ('clut' 8) — schemes index ics8/icl8
+// into this fixed table (they don't embed their own). RECONSTRUCTED canonically (not
+// extracted): 0-214 = the 6×6×6 RGB cube (channels {255,204,153,102,51,0}, black
+// omitted), 215-254 = four 10-step ramps {238,221,187,170,136,119,85,68,34,17} in
+// order red/green/blue/GREY, 255 = black (relocating black to 255 shifts the GREY ramp
+// to 245-254, so idx245 = light grey — the bug a prior hand-built version got wrong,
+// blue trash can). See scripts/lib/mac-system-palette.json + its note. Pre-gamma'd to
+// sRGB at module load (same display transform as PALETTE16).
 const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, 'lib/mac-system-palette.json'), 'utf8')).palette.map(macRgbToSrgb);
 
-// ── minimal RGBA PNG encoder (same approach as extract-scheme.mjs) ──
-const CRC = (() => {
-  const t = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
-  return (buf) => { let c = 0xffffffff; for (let i = 0; i < buf.length; i++) c = t[(c ^ buf[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
-})();
-function chunk(type, data) {
-  const len = Buffer.alloc(4); len.writeUInt32BE(data.length, 0);
-  const body = Buffer.concat([Buffer.from(type, 'latin1'), data]);
-  const crc = Buffer.alloc(4); crc.writeUInt32BE(CRC(body), 0);
-  return Buffer.concat([len, body, crc]);
-}
-function encodePng(width, height, rgba) {
-  const sig = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4);
-  ihdr[8] = 8; ihdr[9] = 6; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
-  const stride = width * 4;
-  const raw = Buffer.alloc((stride + 1) * height);
-  for (let y = 0; y < height; y++) { raw[y * (stride + 1)] = 0; Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(raw, y * (stride + 1) + 1); }
-  return Buffer.concat([sig, chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
-}
+// PNG (RGBA) encoder: scripts/lib/png-encode.mjs (shared — was triplicated inline).
 
 const idStr = (id) => (id < 0 ? `n${-id}` : String(id));
 
