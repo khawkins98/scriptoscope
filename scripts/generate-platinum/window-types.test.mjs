@@ -8,16 +8,20 @@ import { geometryFor, WINDOW_TYPES } from './window-types.mjs';
 
 const bySlug = (s) => WINDOW_TYPES.find((c) => c.slug === s);
 
-test('document-window reproduces the reference plate dims (98×24, borders 21,27,57,63,98)', () => {
+test('document-window keeps the screenshot-slice dims (98×24, borders 21,27,57,63,98) at barH 20', () => {
   const g = geometryFor(bySlug('document-window'));
+  // The document is SLICED from a real Platinum screenshot (barH 20) — SLICED_BARH
+  // overrides the shared decode value (19) here so the recipe matches the sliced art.
+  // (The decode-grounded 19 governs the REAL schemes, which draw the document
+  // procedurally — see window-recipes.mjs.)
+  assert.equal(g.barH, 20);
   assert.equal(g.width, 98);
   assert.equal(g.height, 24); // title(21) + body stub(1) + 2px real bottom band
   assert.equal(g.bottomFrame, 2);
-  assert.equal(g.barH, 20);
   const borders = [g.leftFixed, g.leftFixed + g.leftFill, g.leftFixed + g.leftFill + g.plate,
     g.leftFixed + g.leftFill + g.plate + g.rightFill, g.width];
   assert.deepEqual(borders, [21, 27, 57, 63, 98]);
-  // widgets unchanged: close@5, collapse@66, zoom@81, all 13px.
+  // widgets: close@5, collapse@66, zoom@81, all 13px (clamp(barH-7,5,13) = 13 at barH 20).
   assert.deepEqual(g.widgetSlots.map((s) => [s.glyph, s.x, s.size]),
     [['close', 5, 13], ['collapse', 66, 13], ['zoom', 81, 13]]);
 });
@@ -43,12 +47,21 @@ test('every titlePlate type gets hasPlate + a non-degenerate 5-cell top scaled t
 });
 
 test('title-less types stay no-plate 3-cell frames', () => {
-  for (const slug of ['dialog', 'alert', 'no-title-utility-window', 'collapsed-no-title-utility']) {
+  // no-title-utility is NO LONGER here: it's a dotted DRAG BAR (barH 11 + widgets) per
+  // the shared recipe / the references, not a title-less frame. See the next test.
+  for (const slug of ['dialog', 'alert', 'collapsed-no-title-utility']) {
     const g = geometryFor(bySlug(slug));
     assert.ok(!g.hasPlate, `${slug} has no plate`);
     assert.equal(g.barH, 0, `${slug} is title-less`);
     assert.equal(g.widgetSlots.length, 0, `${slug} has no widgets`);
   }
+});
+
+test('no-title-utility is a drag bar (barH 11 + close/collapse), NOT title-less', () => {
+  const g = geometryFor(bySlug('no-title-utility-window'));
+  assert.equal(g.barH, 11);               // shared WINDOW_RECIPES: a dotted drag bar
+  assert.ok(!g.hasPlate);                  // no centred title plate (title text is suppressed)
+  assert.equal(g.widgetSlots.length, 2);   // close + collapse
 });
 
 test('side-floating utility (titled, no widgets) still ships a full 5-cell plate', () => {

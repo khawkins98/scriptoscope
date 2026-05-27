@@ -66,6 +66,9 @@ test('top recipe: corners decompose into a distinct cell per widget + GROW fill 
 test('document-window ships the decomposed plate recipe (a cell per widget: close/collapse/zoom)', () => {
   const assets = buildAllWindowAssets(fakeDrawn());
   const doc = assets.find(a => a.type === 'wnd#' && a.id === -14336);
+  // Borders at barH 20 — the document is SLICED from a screenshot (SLICED_BARH keeps
+  // it at 20 so the recipe matches the sliced art; the decode-grounded 19 governs the
+  // real schemes that draw the document procedurally).
   assert.deepEqual(doc.data.topSide, [
     { part: 1, border: 5 },   // left frame
     { part: 2, border: 18 },  // close box (GAP code 2)

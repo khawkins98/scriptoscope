@@ -797,7 +797,7 @@
       "name": "Titled Utility Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14304-titled-utility-window-inactive.png",
-      "width": 47,
+      "width": 54,
       "height": 14
     },
     {
@@ -806,7 +806,7 @@
       "name": "Active Titled Utility Window",
       "status": "ok",
       "file": "cicns/cicn-n14303-titled-utility-window-active.png",
-      "width": 47,
+      "width": 54,
       "height": 14
     },
     {
@@ -822,7 +822,7 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 46
+              "right": 53
             }
           },
           {
@@ -832,6 +832,15 @@
               "left": 5,
               "bottom": 9,
               "right": 10
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 45,
+              "bottom": 9,
+              "right": 50
             }
           }
         ],
@@ -862,7 +871,15 @@
           },
           {
             "part": 1,
-            "border": 47
+            "border": 45
+          },
+          {
+            "part": 4,
+            "border": 50
+          },
+          {
+            "part": 1,
+            "border": 54
           }
         ],
         "bottomSide": [
@@ -872,7 +889,7 @@
           },
           {
             "part": 8,
-            "border": 47
+            "border": 54
           }
         ],
         "leftSide": [
@@ -929,7 +946,7 @@
       "name": "Collapsed Titled Utility (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14300-collapsed-titled-utility-inactive.png",
-      "width": 47,
+      "width": 54,
       "height": 14
     },
     {
@@ -938,7 +955,7 @@
       "name": "Active Collapsed Titled Utility",
       "status": "ok",
       "file": "cicns/cicn-n14299-collapsed-titled-utility-active.png",
-      "width": 47,
+      "width": 54,
       "height": 14
     },
     {
@@ -954,7 +971,7 @@
               "top": 12,
               "left": 1,
               "bottom": 13,
-              "right": 46
+              "right": 53
             }
           },
           {
@@ -964,6 +981,15 @@
               "left": 5,
               "bottom": 9,
               "right": 10
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 45,
+              "bottom": 9,
+              "right": 50
             }
           }
         ],
@@ -994,7 +1020,15 @@
           },
           {
             "part": 1,
-            "border": 47
+            "border": 45
+          },
+          {
+            "part": 4,
+            "border": 50
+          },
+          {
+            "part": 1,
+            "border": 54
           }
         ],
         "bottomSide": [],
@@ -1237,8 +1271,8 @@
       "name": "No Title Utility Window (Inactive)",
       "status": "ok",
       "file": "cicns/cicn-n14288-no-title-utility-window-inactive.png",
-      "width": 18,
-      "height": 3
+      "width": 36,
+      "height": 14
     },
     {
       "type": "cicn",
@@ -1246,8 +1280,8 @@
       "name": "Active No Title Utility Window",
       "status": "ok",
       "file": "cicns/cicn-n14287-no-title-utility-window-active.png",
-      "width": 18,
-      "height": 3
+      "width": 36,
+      "height": 14
     },
     {
       "type": "wnd#",
@@ -1259,10 +1293,28 @@
           {
             "part": 0,
             "rect": {
-              "top": 1,
+              "top": 12,
               "left": 1,
-              "bottom": 2,
-              "right": 17
+              "bottom": 13,
+              "right": 35
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 5,
+              "bottom": 9,
+              "right": 10
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 4,
+              "left": 26,
+              "bottom": 9,
+              "right": 31
             }
           }
         ],
@@ -1272,12 +1324,28 @@
             "border": 5
           },
           {
-            "part": 8,
-            "border": 13
+            "part": 2,
+            "border": 10
           },
           {
             "part": 1,
-            "border": 18
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 22
+          },
+          {
+            "part": 1,
+            "border": 26
+          },
+          {
+            "part": 4,
+            "border": 31
+          },
+          {
+            "part": 1,
+            "border": 36
           }
         ],
         "bottomSide": [
@@ -1287,7 +1355,7 @@
           },
           {
             "part": 8,
-            "border": 18
+            "border": 36
           }
         ],
         "leftSide": [
@@ -1297,7 +1365,7 @@
           },
           {
             "part": 8,
-            "border": 3
+            "border": 14
           }
         ],
         "rightSide": [
@@ -1307,7 +1375,7 @@
           },
           {
             "part": 8,
-            "border": 3
+            "border": 14
           }
         ]
       }

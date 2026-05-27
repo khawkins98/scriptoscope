@@ -19,6 +19,8 @@
 // titleBarHeight 0 ⇒ a title-less frame (dialog/alert/no-title utility): the
 // top edge is just the frame band, same recipe shape as the bottom.
 
+import { WINDOW_RECIPES } from '../../tools/theme-loader/window-recipes.mjs';
+
 export const FRAME_INSET = 1; // L/R/B frame thickness (1px); top = titleBarHeight + inset (or inset when title-less)
 
 // Part codes (see classifyPart in src/composeChrome.ts):
@@ -42,24 +44,54 @@ export const WIDGET = { size: 7, gap: 2, edgeMargin: 4 };
  * @property {('top'|'side')} titleEdge  which edge carries the title bar (side = left edge)
  */
 
-/** @type {WindowTypeConfig[]} */
-export const WINDOW_TYPES = [
-  // Document windows: a centred title PLATE (part-5) flanked by pinstripe-fill,
-  // chunky ~⅔-bar widgets. 20px bar (reference-matched). titlePlate ⇒ 5-cell top.
-  { slug: 'document-window',            name: 'Document Window',            wndId: -14336, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: false, titleEdge: 'top', titlePlate: true, bottomFrame: 2, ref: '92×30' },
-  { slug: 'collapsed-document-window',  name: 'Collapsed Document Window',  wndId: -14332, titleBarHeight: 20, widgets: ['close', 'collapse', 'zoom'], collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '92×25' },
-  { slug: 'dialog',                     name: 'Dialog',                     wndId: -14328, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
-  { slug: 'alert',                      name: 'Alert',                      wndId: -14326, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '39×11' },
-  { slug: 'movable-modal',              name: 'Movable Modal',              wndId: -14324, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, bottomFrame: 2, ref: '39×30' },
-  { slug: 'movable-alert',              name: 'Movable Alert',              wndId: -14322, titleBarHeight: 16, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, ref: '39×30' },
-  { slug: 'titled-utility-window',      name: 'Titled Utility Window',      wndId: -14304, titleBarHeight: 11, widgets: ['close'],                     collapsed: false, titleEdge: 'top', titlePlate: true, ref: '44×27' },
-  { slug: 'collapsed-titled-utility',   name: 'Collapsed Titled Utility',   wndId: -14300, titleBarHeight: 11, widgets: ['close'],                     collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '44×27' },
-  { slug: 'side-floating-utility-window', name: 'Side Floating Utility Window', wndId: -14296, titleBarHeight: 11, widgets: [],                       collapsed: false, titleEdge: 'top', titlePlate: true, ref: '27×38' },
-  { slug: 'collapsed-side-utility',     name: 'Collapsed Side Utility',     wndId: -14292, titleBarHeight: 11, widgets: [],                            collapsed: true,  titleEdge: 'top', titlePlate: true, ref: '27×38' },
-  { slug: 'no-title-utility-window',    name: 'No Title Utility Window',    wndId: -14288, titleBarHeight: 0,  widgets: [],                            collapsed: false, titleEdge: 'top', ref: '38×27' },
-  { slug: 'collapsed-no-title-utility', name: 'Collapsed No Title Utility', wndId: -14284, titleBarHeight: 0,  widgets: [],                            collapsed: true,  titleEdge: 'top', ref: '38×27' },
-  { slug: 'popup-window',               name: 'Popup Window',               wndId: -12320, titleBarHeight: 14, widgets: [],                            collapsed: false, titleEdge: 'top', titlePlate: true, ref: '75×75' },
+// Generator-LOCAL drawing params (procedural-replica specifics): canonical wnd# id,
+// human name, title edge, plate/bottom-frame knobs, reference dims. The title-bar
+// HEIGHT, widget set, and collapsed flag are NO LONGER hardcoded here — they come
+// from the shared WINDOW_RECIPES (the decode-grounded source the theme-builder +
+// runtime also use), so the replica matches the real schemes instead of a screenshot
+// measurement. WHY the switch: the WDEF 125 decode shows the title height is
+// FONT-DERIVED (ascent+descent+2, +1 for the bar) — NOT a measured constant; for the
+// Platinum system font that lands on ~19, which is the shared value. The old
+// hardcoded 20 was a screenshot artifact; utility's 11 falls out of the small system
+// font. (Truest future form: derive titleH from the font metrics directly.)
+// `titlePlate` is local because it's a DRAWING choice (a centred title-plate gap):
+// no-title-utility now has a bar+widgets but still NO plate (its title text is
+// suppressed — it's a drag bar, not a titled window).
+const DRAW_PARAMS = [
+  { slug: 'document-window',              name: 'Document Window',              wndId: -14336, titleEdge: 'top', titlePlate: true, bottomFrame: 2, ref: '92×30' },
+  { slug: 'collapsed-document-window',    name: 'Collapsed Document Window',    wndId: -14332, titleEdge: 'top', titlePlate: true, ref: '92×25' },
+  { slug: 'dialog',                       name: 'Dialog',                       wndId: -14328, titleEdge: 'top', ref: '39×11' },
+  { slug: 'alert',                        name: 'Alert',                        wndId: -14326, titleEdge: 'top', ref: '39×11' },
+  { slug: 'movable-modal',                name: 'Movable Modal',                wndId: -14324, titleEdge: 'top', titlePlate: true, bottomFrame: 2, ref: '39×30' },
+  { slug: 'movable-alert',                name: 'Movable Alert',                wndId: -14322, titleEdge: 'top', titlePlate: true, ref: '39×30' },
+  { slug: 'titled-utility-window',        name: 'Titled Utility Window',        wndId: -14304, titleEdge: 'top', titlePlate: true, ref: '44×27' },
+  { slug: 'collapsed-titled-utility',     name: 'Collapsed Titled Utility',     wndId: -14300, titleEdge: 'top', titlePlate: true, ref: '44×27' },
+  { slug: 'side-floating-utility-window', name: 'Side Floating Utility Window',  wndId: -14296, titleEdge: 'top', titlePlate: true, ref: '27×38' },
+  { slug: 'collapsed-side-utility',       name: 'Collapsed Side Utility',       wndId: -14292, titleEdge: 'top', titlePlate: true, ref: '27×38' },
+  { slug: 'no-title-utility-window',      name: 'No Title Utility Window',       wndId: -14288, titleEdge: 'top', ref: '38×27' },
+  { slug: 'collapsed-no-title-utility',   name: 'Collapsed No Title Utility',   wndId: -14284, titleEdge: 'top', ref: '38×27' },
+  { slug: 'popup-window',                 name: 'Popup Window',                 wndId: -12320, titleEdge: 'top', titlePlate: true, ref: '75×75' },
 ];
+
+// SCREENSHOT-SLICE bar-height exception. The replica DRAWS most types procedurally
+// from the decode-grounded shared recipe, but the document window is SLICED from a
+// real Platinum screenshot (slice-doc-window.mjs) whose bar is barH 20 — and the
+// recipe MUST match that art (else the frame ends 4px short of the sliced sprite).
+// So these screenshot-sliced types keep barH 20, overriding the shared decode value
+// (19) that governs the REAL schemes — which draw the document PROCEDURALLY from the
+// corner-sprite/WDEF geometry, where the font-derived height is ~19. Collapsed-document
+// follows so its bar matches its parent's. (movable-modal is also sliced but its slice
+// barH 16 already equals the recipe, so it needs no override.) To make the replica's
+// document decode-19 too, it would have to be drawn procedurally instead of sliced —
+// a separate fidelity call (the slice was chosen for its screenshot accuracy).
+const SLICED_BARH = { 'document-window': 20, 'collapsed-document-window': 20 };
+
+/** @type {WindowTypeConfig[]} */
+export const WINDOW_TYPES = DRAW_PARAMS.map((p) => {
+  const rec = WINDOW_RECIPES[p.slug];
+  if (!rec) throw new Error(`window-types: no WINDOW_RECIPES entry for "${p.slug}"`);
+  return { ...p, titleBarHeight: SLICED_BARH[p.slug] ?? rec.titleH, widgets: rec.widgets, collapsed: rec.collapsed };
+});
 
 /**
  * Derive the minimum-cicn geometry + recipe cell boundaries for a type.
