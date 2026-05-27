@@ -406,6 +406,10 @@ interface ManagedWindow {
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
   active: boolean;
+  /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
+   *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
+   *  subtree, so without this the slotted content would be destroyed on focus/resize. */
+  contentEl?: HTMLElement;
 }
 
 /**
@@ -428,15 +432,30 @@ export class WindowManager {
     theme: LoadedTheme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
+    extra: { contentEl?: HTMLElement } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
-    const entry: ManagedWindow = { theme, opts, handlers, host, active: this.windows.length === 0 };
+    const entry: ManagedWindow = {
+      theme, opts, handlers, host, active: this.windows.length === 0,
+      ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
+    };
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('mousedown', () => { void this.focus(entry); });
     await this.render(entry);
     return host;
+  }
+
+  /** Re-render an already-added window at a new CONTENT size (used by the declarative content-fit
+   *  path). No-op if the host isn't managed or the size is unchanged. Public so the declarative
+   *  layer can drive resize without reaching into private state. */
+  async setContentSize(host: HTMLElement, width: number, height: number): Promise<void> {
+    const entry = this.windows.find((w) => w.host === host);
+    if (!entry) return;
+    if (entry.opts.width === width && entry.opts.height === height) return;
+    entry.opts = { ...entry.opts, width, height };
+    await this.render(entry);
   }
 
   private async focus(entry: ManagedWindow): Promise<void> {
@@ -456,6 +475,9 @@ export class WindowManager {
     entry.host.style.zIndex = entry.active ? '2' : '1';
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
+    // Re-slot the persistent consumer content into the freshly-built content hole (the SAME node,
+    // so listeners/selection survive) before the window goes into the DOM. See ManagedWindow.contentEl.
+    if (entry.contentEl) win.querySelector('.aw-content')?.replaceChildren(entry.contentEl);
     entry.host.replaceChildren(win);
   }
 
