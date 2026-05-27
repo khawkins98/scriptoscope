@@ -109,4 +109,46 @@ bundle has. The decoders' existing tests stay green.
 4. **StuffIt input scope (#3, deferred):** a background agent is researching whether a
    JS/WASM StuffIt/.hqx/.bin decoder exists. The core takes fork BYTES regardless, so this
    is orthogonal to #1 — but it decides whether the demo accepts `.sit`, `.hqx`, `.bin`,
-   or just raw `.rsrc`.
+   or just raw `.rsrc`. **→ RESOLVED (see Status): all of `.sit`/`.hqx`/`.bin`/`.rsrc`.**
+
+## Status — 2026-05-27: shipped end to end
+
+The full drag-and-drop path is built and verified. Drop a Kaleidoscope theme into the demo and
+it converts + renders entirely client-side — no build, no upload, no server:
+
+- **Conversion core** (`tools/theme-loader/convert.js`) — pure, portable; both Node CLIs and the
+  browser shell call it; parity-gated byte-identical to the committed bundles. (1c45d0d)
+- **Browser shell** (`loadKaleidoscopeScheme`) → in-memory `LoadedTheme` with OffscreenCanvas
+  blob-URL assets + glyphs; `assetUrl` passes absolute URLs through. (5afd70b)
+- **Input decoders:** raw `.rsrc`; `.hqx` / MacBinary / AppleSingle·Double (pure JS,
+  `tools/theme-loader/containers.js`, ba7514e); StuffIt `.sit` (munbox→WASM, `tools/sit-wasm/`,
+  8cb79ef + abcb0e8 — see `2026-05-27-sit-decoder-spike.md`).
+- **Drop-zone UI** in the demo (b7d9cac).
+
+Validated on real archives: classic `SIT!` method 13 byte-identical to corpus; SIT5 method 15
+(multi-file) decodes to a structurally valid theme.
+
+## Known limitations (mirrored in the drop-zone UI)
+
+- **`.sitx` (StuffIt X) is not supported** — only classic StuffIt + SIT5 (munbox scope). Classic
+  methods 3/5/8/14 are also out (absent from the era's archives).
+- **Multi-file `.sit`** (scheme + folder `Icon` + ReadMe) surfaces the **largest** resource fork
+  as the scheme — a heuristic, not a guarantee.
+- **Nested wrappers** (`.sit.hqx`, `.sit.bin`) are untested in the wild (munbox auto-chains).
+- **Preview only — no save yet.** A converted theme lives in memory for the session; there is no
+  export. See Next steps.
+
+## Next steps
+
+1. **Export / save the translated output.** Today a dropped theme renders but evaporates on
+   reload. The natural deliverable is the same on-disk bundle the Node pipeline writes
+   (`theme.json` + `cicns/` + `ppats/` + `icons/`), downloadable as a `.zip` — the conversion
+   core already yields exactly those in memory (`convertScheme` → `{ theme, assets }`), so this is
+   mechanical (PNG-encode the RGBA assets + zip them with the manifest).
+2. **Grafting onto real web pages.** *Where* a translated theme actually gets applied is the
+   consumption layer — the still-unbuilt scanner / window-manager / CSS-emission work in
+   **[ADR-0001](../../adr/0001-consumption-architecture.md)** (spike-gated). The export FORMAT
+   should be decided *with* that plan: a downloadable `.zip` bundle vs. an in-page handoff (pass
+   the in-memory `LoadedTheme` straight to the consumer, no disk round-trip) are different shapes.
+   Sequence export **after** ADR-0001's gating spike, so we don't build a save format the consumer
+   can't use.

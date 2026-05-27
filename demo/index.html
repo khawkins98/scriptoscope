@@ -130,7 +130,8 @@
     #byo-drop:focus-visible { outline: 2px solid #2b5070; outline-offset: 2px; }
     #byo-drop strong { font: 13px system-ui; }
     #byo .byo-hint { font: 11.5px system-ui; opacity: .62; }
-    #byo .byo-hint code { background: #0001; padding: 0 3px; border-radius: 3px; }
+    #byo .byo-hint code, #byo .byo-limits code { background: #0001; padding: 0 3px; border-radius: 3px; }
+    #byo .byo-limits { font: 10.5px system-ui; opacity: .5; margin-top: 2px; }
     #byo-out { margin-top: 12px; }
     #byo-out .byo-report { font: 12px system-ui; display: flex; gap: 13px; flex-wrap: wrap; align-items: center; margin-bottom: 11px; }
     #byo-out .byo-err { color: #a01818; font: 12px ui-monospace, Menlo, monospace; }
@@ -149,6 +150,7 @@
     <div id="byo-drop" tabindex="0" role="button" aria-label="Drop a Kaleidoscope resource fork to convert and render in your browser">
       <strong>Bring your own theme</strong>
       <span class="byo-hint">Drop a Kaleidoscope theme here (or click to pick): a <code>.sit</code> archive, a <code>.hqx</code> / MacBinary / AppleDouble wrapper, or a raw <code>.rsrc</code> resource fork. Decoded (StuffIt via WebAssembly), gamma-corrected, and rendered entirely in your browser. No build, no upload.</span>
+      <span class="byo-limits">Known limits: <code>.sitx</code> (StuffIt X) isn't supported yet · a multi-file archive shows the largest theme in it · converted in memory for this session only — no save/export yet.</span>
       <input id="byo-file" type="file" hidden>
     </div>
     <div id="byo-out"></div>
