@@ -31,7 +31,7 @@ The vision (per `PRD.md` North Star): a consumer either picks a bundled theme **
 What actually exists today (verified 2026-05-25):
 
 - **Built:** a faithful canvas chrome compositor (`src/composeChrome.ts` → `src/renderWindow.ts`) that replays the Kaleidoscope kDEF and insets real DOM content into the frame's interior; interactive controls with real ARIA (`src/interactive.ts`); base-theme inheritance (`src/baseChain.ts`); browser-portable decoders (`tools/theme-loader/`, incl. `loadKaleidoscopeScheme.js` which already accepts a `Blob` and emits blob-URL assets via `OffscreenCanvas`). Zero runtime deps, ~51 KB ESM.
-- **Not built — the entire consumption layer:** no `data-aaron-*` scanner, no `MutationObserver`, no wrapper generation, **no emitted CSS at all** (everything is inline CSS-in-JS), no `AaronWindow` front door, and no real window manager (`WindowManager` does focus + z-index only — not drag/resize/persistence).
+- **Not built — the entire consumption layer:** no `data-aaron-*` scanner, no `MutationObserver`, no wrapper generation, **no emitted CSS at all** (everything is inline CSS-in-JS), no `AaronWindow` front door, and no production window manager (`WindowManager` now does focus + z-index + demo-grade drag-to-move / grow-box resize / title-widget press, but still no persistence, snapping, or constraints — see the 2026-05-27 update).
 
 The central tension: faithful chrome is a **fixed-resolution raster**, but a live site's content **reflows, is selectable/accessible, zooms, scrolls, and is responsive**. Wrapping a third party's live DOM in a canvas frame fights all of that — and a canvas is invisible to assistive tech.
 

@@ -1537,24 +1537,25 @@
         host.appendChild(ctrls);
 
         const deskLabel = document.createElement('div');
-        deskLabel.textContent = 'Click a window to focus it (active vs. inactive chrome). Click a title-bar widget (close/zoom/collapse) to fire its handler — and HOLD it to see the pressed state (real pressed art where the scheme ships it; a darkened press otherwise):';
+        deskLabel.textContent = 'Drag a title bar to MOVE a window; drag the grow box (bottom-right) to RESIZE it. Click a window to focus it (active vs. inactive chrome). Click a title-bar widget (close/zoom/collapse) to fire its handler — and HOLD it to see the pressed state (real pressed art where the scheme ships it; a darkened press otherwise):';
         deskLabel.style.cssText = 'font:11px system-ui;opacity:.6;margin-bottom:4px';
         const desk = document.createElement('div');
-        desk.style.cssText = 'position:relative;height:260px;max-width:560px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
+        desk.style.cssText = 'position:relative;height:280px;max-width:560px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
         host.append(deskLabel, desk);
         try {
           const wm = new WindowManager();
           // The document window renders at 2× so the title-bar widgets (and their pressed state) are legible.
+          // Handlers just report (no hide) so the windows persist for move/resize/press exploration.
           const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104, scale: 2 }, {
-            onClose: () => { w1.style.display = 'none'; say('Document closed'); },
-            onZoom: () => say('Document zoom'),
-            onCollapse: () => say('Document collapse'),
+            onClose: () => say('Document — close clicked'),
+            onZoom: () => say('Document — zoom clicked'),
+            onCollapse: () => say('Document — collapse clicked'),
           });
           const w2 = await wm.add(theme, { title: 'Options', windowType: 'no-title-utility-window', width: 168, height: 84 }, {
-            onClose: () => { w2.style.display = 'none'; say('Options closed'); },
+            onClose: () => say('Options — close clicked'),
           });
-          w1.style.left = '14px'; w1.style.top = '14px';
-          w2.style.left = '250px'; w2.style.top = '46px';
+          w1.style.left = '14px'; w1.style.top = '12px';
+          w2.style.left = '120px'; w2.style.top = '160px';
           desk.append(w1, w2);
         } catch (e) { say('window render failed: ' + (e && e.message || e)); }
       }

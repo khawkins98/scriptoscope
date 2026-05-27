@@ -455,7 +455,72 @@ export class WindowManager {
     });
     entry.host.style.zIndex = entry.active ? '2' : '1';
     this.overlayWidgets(entry, win);
+    this.wireMoveResize(entry, win);
     entry.host.replaceChildren(win);
+  }
+
+  /**
+   * Make the window movable (drag the title bar) and resizable (drag the grow box). Move is live
+   * (CSS left/top — cheap); resize draws a classic ghost OUTLINE during the drag and re-renders the
+   * window at the new content size on release (faithful to the Mac grow-box, and avoids an async
+   * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
+   */
+  private wireMoveResize(entry: ManagedWindow, win: HTMLElement): void {
+    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    if (!composed) return;
+    const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    const host = entry.host;
+
+    // MOVE — mousedown on the title bar (top frame, not a widget: widgets stopPropagation).
+    const frameTop = composed.frame.top * scale;
+    win.addEventListener('mousedown', (e) => {
+      if (e.clientY - win.getBoundingClientRect().top > frameTop) return; // below the title bar
+      e.preventDefault();
+      void this.focus(entry);
+      const sx = e.clientX, sy = e.clientY;
+      const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
+      const mv = (ev: MouseEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
+      const up = (): void => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    });
+
+    // RESIZE — drag the grow box: ghost outline during the drag, commit (re-render) on release.
+    if (composed.growBox) {
+      const gb = composed.growBox;
+      const handle = document.createElement('div');
+      Object.assign(handle.style, {
+        position: 'absolute', left: `${gb.x * scale}px`, top: `${gb.y * scale}px`,
+        width: `${gb.w * scale}px`, height: `${gb.h * scale}px`, cursor: 'nwse-resize', zIndex: '3',
+      } satisfies Partial<CSSStyleDeclaration>);
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        void this.focus(entry);
+        const sx = e.clientX, sy = e.clientY;
+        const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
+        const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
+        const outline = document.createElement('div');
+        Object.assign(outline.style, {
+          position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
+          border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
+        } satisfies Partial<CSSStyleDeclaration>);
+        host.appendChild(outline);
+        let nw = w0, nh = h0;
+        const mv = (ev: MouseEvent): void => {
+          nw = Math.max(64, w0 + Math.round((ev.clientX - sx) / scale));
+          nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
+          outline.style.width = `${hw0 + (nw - w0) * scale}px`;
+          outline.style.height = `${hh0 + (nh - h0) * scale}px`;
+        };
+        const up = (): void => {
+          document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up);
+          outline.remove();
+          entry.opts = { ...entry.opts, width: nw, height: nh };
+          void this.render(entry);
+        };
+        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+      });
+      win.appendChild(handle);
+    }
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
@@ -504,7 +569,9 @@ export class WindowManager {
           if (pressedCanvas) cctx.drawImage(pressedCanvas, 0, 0);
         };
         const release = (): void => { if (normalSnap) cctx.drawImage(normalSnap, 0, 0); };
-        btn.addEventListener('mousedown', (e) => { e.preventDefault(); void press(); });
+        // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
+        // destroy this button mid-press); a widget press shouldn't require focusing the window first.
+        btn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });
         btn.addEventListener('mouseup', release);
         btn.addEventListener('mouseleave', release);
       }
