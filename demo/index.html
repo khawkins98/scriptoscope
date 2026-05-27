@@ -1334,7 +1334,14 @@
       const head = document.createElement('div'); head.className = 'detail-head';
       const h2 = document.createElement('h2'); h2.textContent = meta.label;
       const metaEl = document.createElement('span'); metaEl.className = 'meta';
-      metaEl.textContent = [m.author, m.origin, m.source].filter(Boolean).join(' · ');
+      // author/origin are STRUCTURED objects in theme.json (e.g. author {name, year}; origin
+      // {kind, originalFormat, originalSchemeId, …}) — render them readably instead of letting
+      // String() emit "[object Object]". Tolerates plain-string values too (older bundles).
+      const fmtAuthor = (a) => (!a ? '' : typeof a === 'string' ? a : [a.name, a.year].filter(Boolean).join(', '));
+      const fmtOrigin = (o) => (!o ? '' : typeof o === 'string' ? o
+        : [o.kind && o.kind.replace(/-/g, ' '), o.originalFormat, o.originalSchemeId != null ? `#${o.originalSchemeId}` : '']
+          .filter(Boolean).join(' '));
+      metaEl.textContent = [fmtAuthor(m.author), fmtOrigin(m.origin), m.source].filter(Boolean).join(' · ');
       const toolbar = document.createElement('div'); toolbar.className = 'detail-toolbar';
       const lab = document.createElement('label');
       const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = sceneState === 'inactive';
