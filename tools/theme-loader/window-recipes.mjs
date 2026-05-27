@@ -25,24 +25,41 @@
 
 /** @typedef {{ titleH: number, widgets: ('close'|'collapse'|'zoom')[], collapsed: boolean }} WindowRecipe */
 
+// titleH is FONT-DERIVED in the original WDEF, not a magic constant: the decode
+// (WDEF 125 @ 0x392, `fp@(-356)`) computes `titleHeight = ascent + descent + 2`
+// (GetFontInfo of the title font, clamped ≥10), and the bar adds a 1px under-line ⇒
+//   barH = ascent + descent + 3.
+// Encoding that formula here ties each height to its FONT CLASS instead of a bare
+// number:
+//   • SYSTEM font  (Charcoal 12)        ascent+descent = 16 ⇒ barH 19  (document body)
+//   • SMALL system font                 ascent+descent =  8 ⇒ barH 11  (utility palettes)
+// (The ascent/descent are the values that reproduce the verified heights; a true
+// GetFontInfo read of the shipped Charcoal woff + the small system font would confirm
+// them — the remaining step to make this fully sourced rather than calibrated.)
+// Window CLASSES with a fixed bar that is NOT font-derived keep an explicit height:
+// movable modal/alert (16) and popup (14); title-LESS frames are 0.
+const barHForFont = (ascentPlusDescent) => ascentPlusDescent + 3; // +2 (decode titleHeight) +1 under-line
+const SYSTEM_BAR = barHForFont(16); // 19 — Charcoal 12 (the Platinum system font)
+const SMALL_BAR = barHForFont(8);   // 11 — the small system font (floating/utility palettes)
+
 /** @type {Record<string, WindowRecipe>} */
 export const WINDOW_RECIPES = {
-  'document-window':              { titleH: 19, widgets: ['close', 'collapse', 'zoom'], collapsed: false },
-  'collapsed-document-window':    { titleH: 19, widgets: ['close', 'collapse', 'zoom'], collapsed: true  },
-  'dialog':                       { titleH: 0,  widgets: [],                            collapsed: false },
-  'alert':                        { titleH: 0,  widgets: [],                            collapsed: false },
-  'movable-modal':                { titleH: 16, widgets: ['close'],                     collapsed: false },
-  'movable-alert':                { titleH: 16, widgets: ['close'],                     collapsed: false },
-  'titled-utility-window':        { titleH: 11, widgets: ['close', 'collapse'],         collapsed: false },
-  'collapsed-titled-utility':     { titleH: 11, widgets: ['close', 'collapse'],         collapsed: true  },
-  'side-floating-utility-window': { titleH: 11, widgets: [],                            collapsed: false },
-  'collapsed-side-utility':       { titleH: 11, widgets: [],                            collapsed: true  },
+  'document-window':              { titleH: SYSTEM_BAR, widgets: ['close', 'collapse', 'zoom'], collapsed: false },
+  'collapsed-document-window':    { titleH: SYSTEM_BAR, widgets: ['close', 'collapse', 'zoom'], collapsed: true  },
+  'dialog':                       { titleH: 0,          widgets: [],                            collapsed: false },
+  'alert':                        { titleH: 0,          widgets: [],                            collapsed: false },
+  'movable-modal':                { titleH: 16,         widgets: ['close'],                     collapsed: false },
+  'movable-alert':                { titleH: 16,         widgets: ['close'],                     collapsed: false },
+  'titled-utility-window':        { titleH: SMALL_BAR,  widgets: ['close', 'collapse'],         collapsed: false },
+  'collapsed-titled-utility':     { titleH: SMALL_BAR,  widgets: ['close', 'collapse'],         collapsed: true  },
+  'side-floating-utility-window': { titleH: SMALL_BAR,  widgets: [],                            collapsed: false },
+  'collapsed-side-utility':       { titleH: SMALL_BAR,  widgets: [],                            collapsed: true  },
   // No-title utility = a tool-palette DRAG BAR (dotted -14314 + close/collapse), NOT
   // a title-less frame — the references show this dotted bar (title TEXT is already
   // suppressed for every utility window by renderWindow's isUtility).
-  'no-title-utility-window':      { titleH: 11, widgets: ['close', 'collapse'],         collapsed: false },
-  'collapsed-no-title-utility':   { titleH: 0,  widgets: [],                            collapsed: true  },
-  'popup-window':                 { titleH: 14, widgets: [],                            collapsed: false },
+  'no-title-utility-window':      { titleH: SMALL_BAR, widgets: ['close', 'collapse'],  collapsed: false },
+  'collapsed-no-title-utility':   { titleH: 0,         widgets: [],                     collapsed: true  },
+  'popup-window':                 { titleH: 14,        widgets: [],                     collapsed: false },
 };
 
 /** The compositor's default widget set (src/composeCornerSprite.ts); a window type
