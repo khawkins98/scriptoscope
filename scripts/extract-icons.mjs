@@ -22,7 +22,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
-import { macRgbToSrgb } from './lib/mac-gamma.mjs';
+import { macRgbToSrgb } from '../tools/theme-loader/mac-gamma.js';
 import { encodePng } from './lib/png-encode.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -46,7 +46,7 @@ const PALETTE16 = [
 // to 245-254, so idx245 = light grey — the bug a prior hand-built version got wrong,
 // blue trash can). See scripts/lib/mac-system-palette.json + its note. Pre-gamma'd to
 // sRGB at module load (same display transform as PALETTE16).
-const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, 'lib/mac-system-palette.json'), 'utf8')).palette.map(macRgbToSrgb);
+const PALETTE256 = JSON.parse(readFileSync(resolve(__dirname, '../tools/theme-loader/mac-system-palette.json'), 'utf8')).palette.map(macRgbToSrgb);
 
 // PNG (RGBA) encoder: scripts/lib/png-encode.mjs (shared — was triplicated inline).
 

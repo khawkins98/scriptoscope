@@ -21,7 +21,7 @@ import { decodeWnd } from '../tools/theme-loader/decoders/wnd.js';
 import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
 import { validateTheme } from '../tools/theme-loader/validateTheme.js';
 import { decodeClut, headerColorsFromClut } from '../tools/theme-loader/decoders/clut.js';
-import { gammaCorrectRgba, gammaCorrectHex } from './lib/mac-gamma.mjs';
+import { gammaCorrectRgba, gammaCorrectHex } from '../tools/theme-loader/mac-gamma.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
