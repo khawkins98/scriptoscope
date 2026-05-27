@@ -4,7 +4,11 @@
 // PNG filenames. The theme.json is the runtime contract — typed in src/types.ts
 // (the schema of record), validated by validateTheme.js here.
 //
-// This module is pure: no Node imports, no file I/O. The CLI wraps it.
+// This module is pure: no file I/O, no Node built-ins. The CLI wraps it. (The one
+// import is the shared, pure WINDOW_RECIPES data — the per-type recipe both this
+// builder and the replica generator derive from; see window-recipes.mjs.)
+
+import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
 
 /**
  * @typedef {object} ManifestAsset
@@ -191,6 +195,8 @@ export function buildThemeJson(manifest, options = {}) {
     // Side-utility ships no own pinstripe (-14318 is absent in the corpus); it
     // reuses the utility racing-stripes (-14314). The table notes the fallback.
     for (const row of CORNER_SPRITE_WINDOWS) {
+      const rec = WINDOW_RECIPES[row.slug]; // titleH / widgets / collapsed (shared)
+      if (!rec) continue; // a wired slug with no recipe would be a spec bug
       const activeFile = cicnFile(row.active);
       const inactiveFile = cicnFile(row.inactive) ?? activeFile;
       if (!activeFile) continue; // no corner cicn for this type → can't draw it
@@ -209,7 +215,7 @@ export function buildThemeJson(manifest, options = {}) {
       // the title-bar height + the 1px bottom-of-bar rule for titled types, or
       // 1px (just the frame band) for title-less / collapsed-title-less. The
       // compositor treats part-0.rect as the four thicknesses directly.
-      const top = row.titleH > 0 ? row.titleH : 1;
+      const top = rec.titleH > 0 ? rec.titleH : 1;
       // Collapsed windows are the title bar only — a 0-height body. We still give
       // them a part-0 so the compositor frames them; the renderer passes a small
       // content height. Nothing special needed here beyond the title height.
@@ -223,7 +229,7 @@ export function buildThemeJson(manifest, options = {}) {
       // Only emit `widgets` when it differs from the compositor default
       // ([close,collapse,zoom]) so the document-window row stays byte-identical
       // to the prior single-type output (which omitted the field).
-      if (row.widgets) wt.widgets = row.widgets;
+      if (!isDefaultWidgets(rec.widgets)) wt.widgets = rec.widgets;
       windowTypes[row.slug] = wt;
     }
   }
@@ -425,28 +431,30 @@ function uniquePatternSlug(existing, slug) {
  *   • popup-window (-12320) and collapsed-no-title-utility are NOT in this table
  *     — see the comment after it.
  */
+// Per-type SHIPPED-cicn WIRING only: which Kaleidoscope cicn ids dress each window
+// type. The title-bar height / widget set / collapsed flag come from the shared
+// WINDOW_RECIPES (imported above) — this table is just the resource ids: the
+// active/inactive corner markers (wndId+1 active / wndId+0 inactive, per the WDEF
+// id convention), the pinstripe title-bar fill, and the grow-box sprite.
+//   • Side-utility ships no own pinstripe (-14318 is absent in the corpus) → it
+//     reuses the utility racing-stripes (-14314).
+//   • no-title-utility is a tool-palette DRAG BAR (dotted -14314 + close/collapse) —
+//     its titleH/widgets live in WINDOW_RECIPES (the references show the dotted bar).
+//   • NOT wired here (fall back to the apple-platinum-replica base): popup-window
+//     (-12320/-12319 are popup-MENU art, not a window corner) and the title-LESS
+//     collapsed-no-title-utility (an empty 1px frame — nothing to draw).
 const CORNER_SPRITE_WINDOWS = [
-  // slug, corner cicns, pinstripe, growBox, titleH, widgets, collapsed
-  { slug: 'document-window',            active: -14332, inactive: -14336, pinstripe: -14331, growBox: -14330, titleH: 19, widgets: null,       collapsed: false },
-  { slug: 'collapsed-document-window',  active: -14332, inactive: -14336, pinstripe: -14331, growBox: null,   titleH: 19, widgets: null,       collapsed: true  },
-  { slug: 'dialog',                     active: -14326, inactive: -14328, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
-  { slug: 'alert',                      active: -14322, inactive: -14324, pinstripe: null,    growBox: null,   titleH: 0,  widgets: [],         collapsed: false },
-  { slug: 'movable-modal',              active: -14326, inactive: -14328, pinstripe: -14325, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
-  { slug: 'movable-alert',              active: -14322, inactive: -14324, pinstripe: -14321, growBox: null,   titleH: 16, widgets: ['close'],  collapsed: false },
-  { slug: 'titled-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: -14313, titleH: 11, widgets: ['close', 'collapse'], collapsed: false },
-  { slug: 'collapsed-titled-utility',   active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close', 'collapse'], collapsed: true  },
-  { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null, titleH: 11, widgets: [],         collapsed: false },
-  { slug: 'collapsed-side-utility',     active: -14315, inactive: -14319, pinstripe: -14314, growBox: null,   titleH: 11, widgets: [],         collapsed: true  },
-  // No-title utility = a tool-palette DRAG BAR (dotted -14314 + close/collapse widgets),
-  // NOT a title-LESS frame — the references show this dotted bar. The title TEXT is
-  // already suppressed for every utility window (renderWindow's isUtility), so this is
-  // the bar + widgets with no centred title — exactly the palette look.
-  { slug: 'no-title-utility-window',    active: -14316, inactive: -14320, pinstripe: -14314, growBox: null,   titleH: 11, widgets: ['close', 'collapse'], collapsed: false },
-  // NOT mapped (fall back to the apple-platinum-replica base):
-  //   • collapsed-no-title-utility — a title-LESS collapsed window is neither a
-  //     title bar nor a body, just an empty 1px frame; nothing meaningful to draw.
-  //   • popup-window (-12320/-12319) — those cicns are popup-MENU art (46×38 /
-  //     34×28), not a window corner marker, so the corner-sprite model doesn't fit.
+  { slug: 'document-window',              active: -14332, inactive: -14336, pinstripe: -14331, growBox: -14330 },
+  { slug: 'collapsed-document-window',    active: -14332, inactive: -14336, pinstripe: -14331, growBox: null   },
+  { slug: 'dialog',                       active: -14326, inactive: -14328, pinstripe: null,    growBox: null   },
+  { slug: 'alert',                        active: -14322, inactive: -14324, pinstripe: null,    growBox: null   },
+  { slug: 'movable-modal',                active: -14326, inactive: -14328, pinstripe: -14325, growBox: null   },
+  { slug: 'movable-alert',                active: -14322, inactive: -14324, pinstripe: -14321, growBox: null   },
+  { slug: 'titled-utility-window',        active: -14316, inactive: -14320, pinstripe: -14314, growBox: -14313 },
+  { slug: 'collapsed-titled-utility',     active: -14316, inactive: -14320, pinstripe: -14314, growBox: null   },
+  { slug: 'side-floating-utility-window', active: -14315, inactive: -14319, pinstripe: -14314, growBox: null   },
+  { slug: 'collapsed-side-utility',       active: -14315, inactive: -14319, pinstripe: -14314, growBox: null   },
+  { slug: 'no-title-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: null   },
 ];
 
 const CANONICAL_WNDTYPE_SLUGS = {
