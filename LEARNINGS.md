@@ -1655,3 +1655,96 @@ corpus almost always carries it; procedural is the fallback, not the default. Wh
 placement looks off, look for a scheme-provided marker/anchor before reaching for a
 constant. See `docs/spec/compositor-spec.md` (Title TEXT + plate), the `title` /
 control-coverage rules in `scripts/lint-themes.mjs`, and `docs/tracking/mac-fonts-todo.md`.
+
+## 2026-05-27 — Drop a real `.sit` in the browser: the StuffIt→WASM port and its gotchas
+
+The whole drag-and-drop vision shipped: drop a Kaleidoscope theme (`.sit`, `.hqx`, MacBinary,
+AppleDouble, or raw `.rsrc`) onto the demo and it decodes + renders **entirely client-side** — no
+server, no build. The conversion core (`tools/theme-loader/convert.js`) stayed pure; the browser
+shell (`loadKaleidoscopeScheme`) runs it and emits OffscreenCanvas blob-URL assets. Container
+unwrappers (`containers.js`) are pure JS; StuffIt is a separate MIT artifact, `tools/sit-wasm/`
+(munbox C lib → WASM). Design/status: `docs/superpowers/specs/2026-05-27-browser-conversion-design.md`;
+remaining work: `docs/tracking/byo-theme-todo.md`.
+
+**The 64 KB WASM stack overflow — "works native, breaks in WASM."** The single biggest time-sink.
+munbox decoded our `.sit` perfectly when compiled natively, but the *same source* compiled to
+wasm32 mis-decoded (garbage `num_files`, corrupted `archive_data`) and sometimes trapped. Cause:
+the default Emscripten stack is **64 KB**, and a single 64 KB stack buffer in our shim (plus
+munbox's own decoder frames) overflowed it, silently clobbering the heap. Native has an 8 MB
+stack, so it never showed. **Optimization level was a RED HERRING** (failed at `-O0`/`-O1`/`-O2`/
+`-Os`); **AddressSanitizer MASKED it** (its redzones/relocation made the one passing build, which
+sent me chasing "UB under -O2"). `-sSAFE_HEAP=1` named it instantly: "stack overflow… set SP…".
+Fix: small stack buffers + `-sSTACK_SIZE=5MB`. Lesson: for a "works native / breaks WASM" memory
+bug, reach for **SAFE_HEAP first** (it pinpoints the faulting access); don't trust ASan's silence
+or blame the optimizer; and remember WASM's stack is tiny — no multi-KB stack arrays.
+
+**Validate the candidate against a REAL file before committing — "young/unproven" is concrete.**
+Research (a background agent) picked munbox: MIT, right methods (0/1/2/13/15), emits resource
+forks, WASM-portable. All true. But a native validation run against our actual `.sit` immediately
+found a real bug: classic-SIT **folder markers were counted against `num_files`**, so a single file
+nested in a folder (which is *every* Kaleidoscope `.sit`) extracted **nothing** while reporting
+success. A second bug surfaced on a SIT5 archive: the iterator **over-runs the last entry** and
+returns an error instead of clean end-of-archive. Both are tiny, both are now patched/worked-around
+(`tools/sit-wasm/munbox/PATCHES.md`, and a shim "keep what decoded before a trailing error"). The
+research verdict was right *and* the library needed fixing — only a real fixture showed which.
+
+**Debug native-first, then WASM.** Reproducing in a 40-line native `clang` harness (same source)
+proved the bug was WASM-specific and gave a fast edit/run loop, before fighting the WASM toolchain.
+
+**Multi-file archives: pick the LARGEST resource fork, not the first.** A real scheme ships in a
+folder alongside a custom-folder-icon file (`Icon\r`) and a ReadMe, each with its own little
+resource fork. `stuffItResourceFork` returning the *first* fork gave the 7 KB folder icon, not the
+119 KB scheme. Largest-non-`Icon` is the robust heuristic for the corpus.
+
+**Two tiers of "validated."** Method 13 (classic) we proved **byte-identical** to the committed
+corpus fork — the gold standard. Method 15 (SIT5/Arsenic BWT) we only proved **decodes to a
+structurally valid theme** (6 window types, 161 cicn assets) because we have no method-15 corpus
+fixture. Keep the distinction explicit; a structurally-valid pass is "didn't crash + parses," not
+"bit-exact."
+
+**Ship the build output, not the toolchain.** `dist/munbox.{mjs,wasm}` is committed (a `.gitignore`
+negation past the blanket `dist/` rule), so consumers never need Emscripten — only rebuilding does.
+The lazy `import('../sit-wasm/…')` in the loader keeps WASM out of the pure conversion core until a
+`.sit` is actually dropped.
+
+**Application:** when porting a C lib to WASM and it "works native, breaks in WASM," suspect the
+stack (default 64 KB) and use `-sSAFE_HEAP=1` before ASan or the optimizer. Always validate a
+chosen decoder against a real corpus file, not just its README. Reproduce native-first. For
+multi-fork Mac archives, the scheme is the largest non-`Icon` resource fork.
+
+## 2026-05-27 — One core / two shells, and docs that drifted within a day
+
+Meta-lessons from the same thread, worth remembering apart from the StuffIt specifics.
+
+**One conversion core, two shells, gated by byte-identity.** `tools/theme-loader/convert.js` is
+PURE (no fs/zlib/canvas) and is called by BOTH the Node extractors (`extract-scheme`/`extract-icons`,
+which add a PNG-encode shell) and the browser `loadKaleidoscopeScheme` (which adds an OffscreenCanvas
+blob-URL shell). That ended a two-implementation drift (the browser path previously skipped gamma /
+headerColors / icons that the Node path did). The safety net for extracting the core was a
+**byte-identity gate**: re-run the extractors and `git diff` must be empty across all bundles (modulo
+the `extractedAt` timestamp). A `convert.test.mjs` asserts `convertScheme(fork)` deep-equals the
+committed `theme.json` + `icons/index.json`. That gate let us move ~hundreds of lines with confidence
+and is the thing that makes the browser path trustworthy without re-validating every theme by eye.
+
+**Layer separation paid off immediately, not "someday."** Because the core had no platform deps, the
+browser drop-a-fork feature was a *thin* shell (RGBA → blob URL) + a one-line `assetUrl` passthrough
+in `src/loadTheme.ts` (absolute `blob:`/`http(s):`/`data:` refs pass through; relative ones still
+resolve to `baseUrl`). The seam — the `theme.json`/`ThemeManifest` contract — is what made "drop a
+theme in the browser" a small change instead of a second renderer.
+
+**Specs/comments drift within a DAY of writing them.** A 3-persona review (developer advocate /
+technical writer / user advocate) found three docs/comments contradicting code shipped *hours*
+earlier: `containers.js` still said ".sit not supported," the sit-decoder spike was frozen at
+"plan / emsdk not installed," and ADR-0001 Decision 4 still said "no clean JS decompressor; don't
+promise drop-any-download." Staleness isn't a six-months-later problem. Lesson: when you write a
+design/spec doc *before* finishing the implementation, schedule a reconciliation pass when it lands.
+The multi-persona review was a cheap, effective catch — and **convergence was the signal**: all three
+independently flagged the same top gap (a converted theme renders but can't be saved — the
+preview-only dead-end). Review findings were filed as tracked work in
+`docs/tracking/byo-theme-todo.md` so they became a to-do list, not a lost transcript.
+
+**Application:** keep one portable core + thin platform shells, and gate any core refactor on a
+byte-identity diff. After shipping a feature you spec'd earlier the same day, grep the spec/comments
+you wrote for now-false claims. When you want a fresh-eyes audit, a few role-specific review passes
+(adopter / reader / end-user) surface non-overlapping issues; treat the points where they agree as
+the priorities.

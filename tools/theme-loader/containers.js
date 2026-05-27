@@ -11,8 +11,10 @@
 //   • BinHex 4.0 (.hqx) — 6-bit ASCII + RLE90, forks length-prefixed.
 //   • raw resource fork — passed through unchanged.
 //
-// StuffIt (.sit) is DETECTED here (so we can route + give a clear message) but not yet
-// decoded — that needs a separate WASM decoder (see the browser-conversion design).
+// StuffIt (.sit) is DETECTED here but decoded ELSEWHERE: loadKaleidoscopeScheme intercepts
+// 'stuffit' and routes it to the munbox WASM decoder (tools/sit-wasm/). This module stays
+// pure JS, so unwrapToResourceFork() still throws for .sit if called directly (i.e. bypassing
+// the loader) rather than pulling WASM into the conversion core.
 //
 // Format references:
 //   MacBinary II:  https://files.stairways.com/other/macbinaryii-standard-info.txt
@@ -87,7 +89,9 @@ export function unwrapToResourceFork(bytes, kind = detectContainer(bytes)) {
     case 'appledouble': return unwrapAppleSingleDouble(bytes);
     case 'binhex': return decodeBinHex(bytes).rsrc;
     case 'stuffit':
-      throw new Error('StuffIt (.sit) archives are not yet supported in-browser — un-stuff it first (the .sit decoder is a separate work item). Expand the scheme and drop its resource fork / .hqx / MacBinary instead.');
+      // Reached only if called DIRECTLY on .sit bytes — loadKaleidoscopeScheme handles .sit via
+      // the munbox WASM decoder (tools/sit-wasm/) before calling here, to keep this module pure.
+      throw new Error('StuffIt (.sit) must be decoded via tools/sit-wasm (loadKaleidoscopeScheme does this automatically); unwrapToResourceFork handles only .hqx / MacBinary / AppleSingle·Double / raw forks.');
     default:
       throw new Error(`unwrapToResourceFork: unknown container kind "${kind}"`);
   }

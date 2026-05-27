@@ -3,10 +3,11 @@
 // imported lazily, only when a .sit is actually dropped.
 import createMunbox from './dist/munbox.mjs';
 
+// The WASM module is instantiated ONCE and shared across all calls (the first call pays the
+// instantiation cost). Silence munbox's stdout debug chatter ("Detected format: …", "SIT5:
+// created file …") — it would spam the browser console. Real errors surface via sit_error(),
+// not stdout; stderr (genuine warnings) is left intact.
 let _modP;
-// Silence munbox's stdout debug chatter ("Detected format: …", "SIT5: created file …") —
-// it would spam the browser console. Real errors surface via sit_error(), not stdout;
-// stderr (genuine warnings) is left intact.
 const mod = () => (_modP ??= createMunbox({ print: () => {} }));
 
 const readU32 = (h, o) => (h[o] | (h[o + 1] << 8) | (h[o + 2] << 16) | (h[o + 3] << 24)) >>> 0;
@@ -16,7 +17,10 @@ const readU32 = (h, o) => (h[o] | (h[o + 1] << 8) | (h[o + 2] << 16) | (h[o + 3]
  * Pro `.cpt`) into its forks.
  * @param {Uint8Array|ArrayBuffer} bytes
  * @returns {Promise<Array<{ name: string, type: number, creator: number, forkType: 0|1, bytes: Uint8Array }>>}
- *   one entry per fork; forkType 0 = data fork, 1 = resource fork.
+ *   one entry per fork; `forkType` 0 = data fork, 1 = resource fork. `type`/`creator` are Mac
+ *   OSType codes packed big-endian into a u32 (e.g. 'APPL' → 0x4150504C), NOT strings — decode
+ *   with `String.fromCharCode((v>>24)&255, (v>>16)&255, (v>>8)&255, v&255)` if you need the text.
+ *   A non-archive input passes through as a single data fork (forkType 0).
  */
 export async function decodeArchive(bytes) {
   const m = await mod();

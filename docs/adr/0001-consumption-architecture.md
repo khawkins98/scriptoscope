@@ -61,7 +61,7 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 ### 4. Scope guards (to bound maintenance surface)
 
 - **Native host form controls (`<input>`, `<select>`, scrollbars) are NOT themed in v1.** Faithful cross-browser control reskinning via CSS is a tar pit. v1 themes window **chrome** + **opt-in** controls the consumer explicitly wraps.
-- **Ingestion v1 = curated bundles + a bare resource fork** dropped in (the decode core is already portable; needs a drop zone + an `assetUrl` blob-URL passthrough in `src/loadTheme.ts`). **Archive unpacking** (`.sit`/`.hqx`/MacBinary off Macintosh Garden) is a **separable later track** — StuffIt in particular has no clean JS decompressor; don't promise "drop any download" in v1.
+- **Ingestion v1 = curated bundles + a bare resource fork** dropped in (the decode core is already portable; needs a drop zone + an `assetUrl` blob-URL passthrough in `src/loadTheme.ts`). **Archive unpacking** (`.sit`/`.hqx`/MacBinary off Macintosh Garden) is a **separable later track** — StuffIt in particular has no clean JS decompressor; don't promise "drop any download" in v1. **→ SUPERSEDED (2026-05-27, see the update note above): archive unpacking SHIPPED — the drop zone, the `assetUrl` passthrough, and `.sit`/`.hqx`/MacBinary decoding (StuffIt via the `tools/sit-wasm` WASM build) are all live. "Drop any download" is now largely true (caveat: `.sitx` unsupported).**
 
 ## Gating spike (must pass before committing Decision 1 and cutting phase issues)
 

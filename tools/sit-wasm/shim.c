@@ -68,7 +68,8 @@ uint8_t *sit_decode(const uint8_t *in, int in_len) {
         size_t lenPos = b.len;   // backpatch the fork length here once we've read it all
         bu32(&b, 0);
         uint32_t forkLen = 0;
-        uint8_t tmp[16384];      // small: the WASM stack is modest (a 64KB frame overflows it)
+        uint8_t tmp[16384];      // kept modest to bound per-call stack use (build.sh raises the
+                                 // WASM stack to 5MB; the default 64KB would overflow on big frames)
         ssize_t n;
         while ((n = proc->read(proc, tmp, sizeof tmp)) > 0) { bput(&b, tmp, (size_t)n); forkLen += (uint32_t)n; }
         if (n < 0) b.ok = 0;

@@ -2,6 +2,14 @@
 
 **Date:** 2026-05-27 · **Status:** validated, GO · **Sibling:** `2026-05-27-browser-conversion-design.md`
 
+> **Update — BUILT (2026-05-27, after this spike):** the WASM port shipped to `tools/sit-wasm/`
+> (emsdk was installed; both patches applied; `dist/munbox.{mjs,wasm}` committed). Method **15
+> (SIT5)** has since been exercised on a real archive (`masswerk7le.sit`), and a multi-file
+> handling + trailing-over-run fix landed. So the "WASM-port plan (gated on emscripten)" and
+> "method 15 not yet exercised" notes in the lower half are now **historical** — read them as the
+> pre-build plan. Current state + remaining work: the design doc's Status/Next-steps and
+> `docs/tracking/byo-theme-todo.md`.
+
 Lets a user drop a real downloaded Kaleidoscope theme (`.sit`) and have it decode to a
 resource fork entirely client-side — the last input format the pure-JS unwrappers
 (`tools/theme-loader/containers.js`, handles `.hqx`/`.bin`/AppleDouble) can't do.

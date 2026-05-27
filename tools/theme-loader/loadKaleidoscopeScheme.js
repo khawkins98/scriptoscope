@@ -38,6 +38,9 @@ import { unwrapToResourceFork, detectContainer } from './containers.js';
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const bytes = await toUint8Array(input);
+  if (!bytes || bytes.length === 0) {
+    throw new Error('loadKaleidoscopeScheme: empty input (0 bytes) — not a theme file.');
+  }
   // Unwrap a Mac transfer container down to the raw resource fork. StuffIt (.sit) needs the
   // munbox WASM decoder, lazily imported here so the conversion core stays WASM-free until a
   // .sit is actually dropped; the toolchain-free formats (MacBinary / AppleSingle·Double /

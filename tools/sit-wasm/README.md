@@ -2,10 +2,12 @@
 
 A small WebAssembly build of [munbox](https://github.com/idolpx/munbox) (MIT) that decodes
 classic-Mac archives **entirely client-side** — bytes in, forks out, no server, no filesystem.
-Built for [aaron-ui](../../README.md) to accept a dropped Kaleidoscope `.sit` theme, but the
-module is self-contained and dependency-free: a standalone "decode StuffIt in JavaScript" tool
-that, as far as we found, didn't otherwise exist. Separable on purpose — it could become its own
-package/repo with no changes.
+Built for [aaron-ui](https://github.com/khawkins98/aaron-ui) to accept a dropped Kaleidoscope
+`.sit` theme, but the module is self-contained and dependency-free: a standalone "decode StuffIt
+in the browser" tool that, as far as we could find, didn't otherwise exist. Separable on purpose —
+it could become its own package/repo with no changes. (Origin note: the test below compares
+against aaron-ui's "corpus" — its set of bundled themes — but the module itself has no aaron-ui
+dependency.)
 
 ## Use
 
@@ -49,9 +51,12 @@ source ~/emsdk/emsdk_env.sh   # install: https://emscripten.org/docs/getting_sta
 ./build.sh                    # → dist/munbox.mjs + dist/munbox.wasm  (~70 KB wasm)
 ```
 
-`build.sh` notes: `-sSTACK_SIZE=5MB` (munbox's decoders, and our chunked reads, want more than the
-64 KB default WASM stack — too small a stack silently corrupts memory on wasm32), `-sFILESYSTEM=0`
-(the in-memory API needs no FS), `-sALLOW_MEMORY_GROWTH=1`.
+`build.sh` invokes `emcc -O2` over the vendored `munbox/lib/**` + `shim.c`. Key flags (see
+`build.sh` for the full set): `-sSTACK_SIZE=5MB` (munbox's decoders, and our chunked reads, want
+more than the 64 KB default WASM stack — too small a stack silently corrupts memory on wasm32),
+`-sFILESYSTEM=0` (the in-memory API needs no FS), `-sALLOW_MEMORY_GROWTH=1` + `-sINITIAL_MEMORY=32MB`,
+and `-sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createMunbox -sENVIRONMENT=web,node` (an ES-module
+factory that runs in both the browser and Node — the latter is what the test uses).
 
 ## What's vendored, and our patches
 

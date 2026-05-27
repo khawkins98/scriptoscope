@@ -110,5 +110,5 @@ test('a raw fork passes through unwrapToResourceFork unchanged', () => {
 test('StuffIt is detected but unwrap throws a clear, actionable message', () => {
   const sit = Uint8Array.from('SIT!\0\0\0\0\0\0rLau\0\0\0\0', (c) => c.charCodeAt(0));
   assert.equal(detectContainer(sit), 'stuffit');
-  assert.throws(() => unwrapToResourceFork(sit), /StuffIt .* not yet supported/);
+  assert.throws(() => unwrapToResourceFork(sit), /StuffIt .* must be decoded via tools\/sit-wasm/);
 });
