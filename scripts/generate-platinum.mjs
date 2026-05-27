@@ -140,14 +140,13 @@ try {
   console.warn(`[apple-platinum-replica] WARN: control slice skipped (${err.message}); controls fall back to baseline`);
 }
 
-// NOTE (PB3 reverted): the data-driven control DRAWER (control-metrics.mjs +
-// draw-control.mjs + build-controls.mjs) is intentionally NOT wired here. The
-// faithful Platinum control art is REAL shipped resources — push-button face
-// (-10239) + ring (-10231) grafted from platinum-8, scrollbar/thumb likewise, and
-// checkbox/radio are real ics4 pictograms (-10229..-10240 / -10214..-10224) or
-// -9500/-9488 cicns sliced from screenshots. Procedural redraw was a fidelity
-// regression. The drawer modules remain as the documented data/fallback model and
-// the foundation for the geometry+wiring spec; they are not the primary art source.
+// NOTE (PB3 reverted): the data-driven control DRAWER is intentionally NOT wired
+// here — it now lives in generate-platinum/_deferred/ (control-metrics + draw-control
+// + build-controls + raster), archived as the documented data/fallback model. The
+// faithful Platinum control art is REAL shipped resources — push-button face (-10239)
+// + ring (-10231) grafted from platinum-8, scrollbar/thumb likewise, and checkbox/radio
+// are real ics4 pictograms (-10229..-10240 / -10214..-10224) or -9500/-9488 cicns
+// sliced from screenshots. Procedural redraw was a fidelity regression.
 
 // Slice the Finder folder icons for the demo scene (icons/index.json).
 try {
