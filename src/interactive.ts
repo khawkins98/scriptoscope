@@ -484,17 +484,22 @@ export class WindowManager {
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
 
-    // RESIZE — drag the bottom / right / corner border (a generous band, NOT a hairline grow box;
-    // and it works for native schemes whose grow box is baked into the chrome with no sprite). A
-    // classic ghost OUTLINE tracks the drag; the window re-renders at the new content size on release.
-    const ft = composed.frame.top * scale;
-    const fr = Math.max(7, composed.frame.right) * scale;  // resize band ≥ 7px native so it's grabbable
-    const fb = Math.max(7, composed.frame.bottom) * scale;
-    // Mac OS hard minimum window width is 110px (native). Clamp the CONTENT width so the FULL window
-    // (content + chrome) never goes below it. (Chrome width is constant for the frame.)
-    const chromeW = composed.fullWidth - (entry.opts.width ?? 240);
-    const minContentW = Math.max(40, 110 - chromeW);
-    const startResize = (e: MouseEvent, dW: boolean, dH: boolean): void => {
+    // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
+    // right/bottom edges: those run the length of the borders where the scrollbar tracks sit, and a
+    // resize band there would steal their clicks. The corner square is safe — scrollbars stop above
+    // and left of the grow box. The zone reaches inward to cover the gripper (which sits at the INNER
+    // frame corner, over the content) plus the outer frame corner. Ghost outline; commit on release.
+    // Mac OS hard minimum window width is 110px (native): clamp the CONTENT width so the FULL window
+    // (content + chrome, chrome being constant) never drops below it.
+    const minContentW = Math.max(40, 110 - (composed.fullWidth - (entry.opts.width ?? 240)));
+    const cw = (Math.max(7, composed.frame.right) + (composed.growBox?.w ?? 15)) * scale;
+    const ch = (Math.max(7, composed.frame.bottom) + (composed.growBox?.h ?? 15)) * scale;
+    const corner = document.createElement('div');
+    Object.assign(corner.style, {
+      position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
+      cursor: 'nwse-resize', zIndex: '4',
+    } satisfies Partial<CSSStyleDeclaration>);
+    corner.addEventListener('mousedown', (e) => {
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
       const sx = e.clientX, sy = e.clientY;
@@ -508,8 +513,8 @@ export class WindowManager {
       host.appendChild(outline);
       let nw = w0, nh = h0;
       const mv = (ev: MouseEvent): void => {
-        if (dW) nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / scale));
-        if (dH) nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
+        nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / scale));
+        nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
@@ -520,21 +525,8 @@ export class WindowManager {
         void this.render(entry);
       };
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
-    };
-    const mkZone = (css: Partial<CSSStyleDeclaration>, dW: boolean, dH: boolean): void => {
-      const z = document.createElement('div');
-      Object.assign(z.style, { position: 'absolute', zIndex: '4', ...css } satisfies Partial<CSSStyleDeclaration>);
-      z.addEventListener('mousedown', (e) => startResize(e, dW, dH));
-      win.appendChild(z);
-    };
-    // Corner zone reaches INWARD to cover the grow-box gripper, which sits at the INNER frame corner
-    // (over the content), not the outer edge — so clicking the visible gripper actually resizes.
-    const gripW = (composed.growBox?.w ?? 15) * scale;
-    const gripH = (composed.growBox?.h ?? 15) * scale;
-    const cw = fr + gripW, ch = fb + gripH;
-    mkZone({ right: '0', top: `${ft}px`, width: `${fr}px`, bottom: `${ch}px`, cursor: 'ew-resize' }, true, false);  // right edge
-    mkZone({ left: '0', bottom: '0', height: `${fb}px`, right: `${cw}px`, cursor: 'ns-resize' }, false, true);     // bottom edge
-    mkZone({ right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`, cursor: 'nwse-resize' }, true, true);   // corner + gripper
+    });
+    win.appendChild(corner);
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
