@@ -264,3 +264,28 @@ export function convertIcons(fork) {
   index.sort((a, b) => (b.size - a.size) || (a.id - b.id));
   return { assets, index, census };
 }
+
+/**
+ * Whole-scheme conversion in one call — chrome + icons — for the browser drop path.
+ * (The Node CLIs call convertChrome / convertIcons separately to keep their no-cross-churn
+ * file-write workflow.) Returns the theme.json object, ALL decoded RGBA assets (chrome +
+ * icons) tagged with their bundle paths, and the icon index. The caller (a thin I/O shell)
+ * turns the RGBA into PNGs (Node) or blob-URLs (browser) and resolves the theme's asset
+ * refs + glyph map against them.
+ *
+ * @param {Uint8Array|ArrayBuffer} fork
+ * @param {{ meta?: object, source?: string }} [opts]
+ * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
+ *             manifest: object }}
+ */
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc' } = {}) {
+  const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
+  const chrome = convertChrome(bytes, { meta, source });
+  const icons = convertIcons(bytes);
+  return {
+    theme: chrome.theme,
+    assets: [...chrome.assets, ...icons.assets],
+    iconIndex: icons.index,
+    manifest: chrome.manifest,
+  };
+}
