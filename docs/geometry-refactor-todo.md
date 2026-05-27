@@ -96,17 +96,36 @@ below — not a one-time pass. The loop, every time:
 
 ## Remaining work (priority order)
 
-### 1. Unify the split window-recipe spec  ← the big one
-Geometry currently lives in **three** places that must agree by hand:
-- `src/cornerSpriteGeometry.ts` — runtime composer's algorithm constants (clean now).
-- `tools/theme-loader/buildThemeJson.js` `CORNER_SPRITE_WINDOWS` — per-type title-bar
-  height, widget set, sprite ids (flows to `theme.json`).
-- `scripts/generate-platinum/window-types.mjs` — the Platinum replica generator's version.
+### 1. Unify the split window-recipe spec  ← **DONE** (0f7be5a builder · 172f729 generator)
+The per-type recipe (title-bar height, widget set, collapsed flag) was hand-duplicated
+between the theme-builder (`buildThemeJson.js` `CORNER_SPRITE_WINDOWS`) and the replica
+generator (`scripts/generate-platinum/window-types.mjs`), and the two had DRIFTED.
+Consolidated into ONE source: **`tools/theme-loader/window-recipes.mjs`** (`WINDOW_RECIPES`,
+keyed by slug, decode-grounded). Both consumers import it; each adds only its own layer
+(builder = shipped-cicn wiring; generator = procedural drawing params). Real schemes'
+`theme.json` is BYTE-IDENTICAL (verified). `src/cornerSpriteGeometry.ts` stays separate —
+it's the runtime's ALGORITHM constants (bevels/insets), a different slice, already single-source.
 
-**Do:** consolidate into ONE window-recipe spec that both the runtime and the generator
-import. Multi-file (touches generator + theme-builder + runtime together). **Verify
-across ALL schemes**, not just the 2 usual spot-checks. Behavior-preserving where the
-values already agree; where they don't, prefer the decode-grounded value and note the delta.
+**KEY DECODE INSIGHT (the answer to "trust the screenshot or the original geometry?"):**
+the WDEF 125 title-bar height is **FONT-DERIVED** — `titleHeight = ascent + descent + 2`
+(clamped ≥10), frame top = `titleHeight + 1` (decode `0x392` step, `fp@(-356)`). For the
+Platinum system font that lands on **~19** — the shared value. The generator's old hardcoded
+**20 was a screenshot measurement** (an artifact); utility's 11 falls out of the *small*
+system font. So the resolution was decode-grounded, not screenshot. **Truest future form:**
+compute `titleH` from the font metrics directly (per window class's font) instead of any
+hardcoded number — then the per-type heights aren't data at all, they're derived.
+
+**THE ONE EXCEPTION (`SLICED_BARH` in window-types.mjs):** the replica's document window is
+SLICED from a real Platinum screenshot (barH 20), and its recipe MUST match the sliced art
+(else 4px undrawn — lint catches it). So document + collapsed-document keep barH 20 in the
+GENERATOR; the decode-grounded 19 governs the REAL schemes (which draw the document
+procedurally). To make the replica's document 19 too → draw it procedurally, drop the slice
+(a separate fidelity call; the slice was chosen for screenshot accuracy).
+
+### 1b. Two compositors stay split (by design — NOT a duplication to merge)
+`composeWindowChrome` (data-driven 9-slice from a real `wnd#`) and `composeCornerSpriteChrome`
+(procedural Platinum) are different rendering MODELS; they already share the `ComposedChrome`
+output contract + branch cleanly in renderWindow. Reconciliation there is done.
 
 ### 2. Visible fidelity fixes (from the 4-scheme visual baseline)
 - **platinum-8 pinstripe is washed out / low-contrast** vs apple-platinum-2 + system7 —
