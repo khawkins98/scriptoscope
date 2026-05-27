@@ -1,0 +1,131 @@
+// AaronWindow — promotes a single consumer element into a managed Mac window. The element's
+// CHILDREN become the window's content (moved into the chrome's `.aw-content` hole as live light
+// DOM — still selectable, focusable, reflowing); the chrome is the canvas behind them. Two size
+// modes: declared (data-aaron-width/height) or content-fit (a ResizeObserver re-renders the chrome
+// when the content reflows). Built on the WindowManager's contentEl re-slot hook.
+
+import type { LoadedTheme } from '../types.js';
+import type { WindowManager } from '../interactive.js';
+import { parseWindowAttrs } from './parse.js';
+
+export interface AaronWindowDeps {
+  manager: WindowManager;
+  theme: LoadedTheme;
+}
+
+const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for content-fit (corrected after measure)
+const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
+const MIN_W = 80, MIN_H = 40;
+
+export class AaronWindow {
+  /** The positioned WindowManager host element (lives in the document). */
+  readonly host: HTMLElement;
+  private readonly fit: HTMLElement; // max-content wrapper inside the slot; the resize-observe target
+  private readonly deps: AaronWindowDeps;
+  private readonly restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement };
+  private ro: ResizeObserver | undefined;
+  private rafId = 0;
+  private rendering = false;
+  private last = { w: 0, h: 0 };
+
+  private constructor(
+    host: HTMLElement, fit: HTMLElement, deps: AaronWindowDeps,
+    restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement },
+  ) {
+    this.host = host; this.fit = fit; this.deps = deps; this.restore = restore;
+  }
+
+  /** Promote `el` into a window. `fallbackPos` positions windows whose x/y aren't declared. */
+  static async promote(
+    el: HTMLElement, deps: AaronWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
+  ): Promise<AaronWindow> {
+    const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
+    el.dataset.aaronPromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
+
+    // Persistent slot → fit wrapper holding the consumer's moved children.
+    const slot = document.createElement('div');
+    slot.className = 'aw-slot';
+    Object.assign(slot.style, { width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'auto' });
+    const fit = document.createElement('div');
+    fit.className = 'aw-fit';
+    if (parsed.sizeMode === 'fit') {
+      Object.assign(fit.style, { width: 'max-content', maxWidth: `${FIT_MAX_W}px`, height: 'max-content' });
+    } else {
+      Object.assign(fit.style, { width: '100%', minHeight: '100%' });
+    }
+    fit.append(...Array.from(el.childNodes)); // MOVE children (identity + listeners preserved)
+    slot.append(fit);
+
+    const restore = { parent: el.parentNode, next: el.nextSibling, el };
+    const w0 = Math.max(MIN_W, parsed.width ?? FIT_DEFAULT.w);
+    const h0 = Math.max(MIN_H, parsed.height ?? FIT_DEFAULT.h);
+
+    let inst: AaronWindow | undefined;
+    const host = await deps.manager.add(
+      deps.theme,
+      {
+        windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
+        ...(parsed.title != null ? { title: parsed.title } : {}),
+      },
+      { onClose: () => inst?.unmount() },
+      { contentEl: slot },
+    );
+    inst = new AaronWindow(host, fit, deps, restore);
+
+    // Place the host where the original element was (in-flow position; the host is absolute, so it
+    // floats relative to the nearest positioned ancestor — the demo provides one), then drop `el`.
+    host.style.left = `${parsed.x ?? fallbackPos.x}px`;
+    host.style.top = `${parsed.y ?? fallbackPos.y}px`;
+    if (restore.parent) restore.parent.insertBefore(host, restore.el);
+    restore.el.remove();
+
+    if (parsed.sizeMode === 'fit') await inst.fitToContent(true);
+    return inst;
+  }
+
+  /** Measure the content and re-render the chrome to fit it; optionally start observing reflow. */
+  private async fitToContent(startObserving: boolean): Promise<void> {
+    this.rendering = true;
+    const w = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
+    const h = Math.max(MIN_H, this.fit.scrollHeight);
+    this.last = { w, h };
+    await this.deps.manager.setContentSize(this.host, w, h);
+    this.rendering = false;
+    if (startObserving && typeof ResizeObserver !== 'undefined' && !this.ro) {
+      this.ro = new ResizeObserver(() => this.scheduleFit());
+      this.ro.observe(this.fit);
+    }
+  }
+
+  /** Debounced, loop-guarded re-fit on content reflow. Observes the max-content `fit` wrapper (whose
+   *  natural size is independent of the `.aw-content` box we resize), with an epsilon + re-entrancy
+   *  flag + disconnect-during-render so our own size changes can't re-trigger it. */
+  private scheduleFit(): void {
+    if (this.rendering || this.rafId) return;
+    this.rafId = requestAnimationFrame(() => {
+      void (async () => {
+        this.rafId = 0;
+        const w = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
+        const h = Math.max(MIN_H, this.fit.scrollHeight);
+        if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) return;
+        this.rendering = true;
+        this.ro?.disconnect();
+        this.last = { w, h };
+        await this.deps.manager.setContentSize(this.host, w, h);
+        if (this.ro) this.ro.observe(this.fit); // the SAME fit node survives the re-slot
+        this.rendering = false;
+      })();
+    });
+  }
+
+  /** Restore the original DOM: move the content back into the original element and remove the window. */
+  unmount(): void {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.ro?.disconnect();
+    const { el, parent, next } = this.restore;
+    el.append(...Array.from(this.fit.childNodes));
+    delete el.dataset.aaronPromoted;
+    if (parent) parent.insertBefore(el, next);
+    this.host.remove();
+  }
+}
