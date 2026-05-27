@@ -42,7 +42,8 @@ spike-gated — this build is canvas-only); whether content-fit should be the de
 should; and whether a manually-resized fit window should auto-switch to declared mode.
 
 **Commits:** design `52bea78` · parse+tests `cb3e816` · WM hook `8da43a5` · AaronWindow `e443d98` ·
-theme/scanner/button/entry `1323600` · demo page+vite `<page commit>` · review P1 fixes `10cbc47`.
+theme/scanner/button/entry `1323600` · demo page+vite `bd5d248` · review P1 fixes `10cbc47` ·
+morning handoff `5f95dc0` · disconnect teardown (P2) `ec7ce86`. Two subagent reviews; final = GO.
 
 ---
 
