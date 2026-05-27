@@ -16,11 +16,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseResourceFork } from '../../tools/theme-loader/resource-fork.js';
-import { decodeCicn } from '../../tools/theme-loader/decoders/cicn.js';
-import { decodeClut } from '../../tools/theme-loader/decoders/clut.js';
+import { parseResourceFork } from '../../../tools/theme-loader/resource-fork.js';
+import { decodeCicn } from '../../../tools/theme-loader/decoders/cicn.js';
+import { decodeClut } from '../../../tools/theme-loader/decoders/clut.js';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'); // _deferred/ → repo root
 const rsrc = parseResourceFork(new Uint8Array(readFileSync(resolve(root, 'themes/apple-platinum-2/scheme.rsrc'))));
 
 const cicnById = (id) => {

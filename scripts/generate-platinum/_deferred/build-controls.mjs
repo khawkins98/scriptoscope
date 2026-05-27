@@ -9,8 +9,8 @@
 // generates: one coherent, decode-grounded source instead of borrowed 1999 art.
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { encodePng } from '../lib/png-encode.mjs';
-import { PALETTE } from './palette.mjs';
+import { encodePng } from '../../lib/png-encode.mjs';
+import { PALETTE } from '../palette.mjs';
 import { CONTROL_SPECS, CONTROL_IDS } from './control-metrics.mjs';
 import { drawControl } from './draw-control.mjs';
 
