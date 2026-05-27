@@ -345,18 +345,27 @@ export async function composeScrollbar(
       if (horiz) out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: offC, w: thumb.width, h: thumb.height });
       else out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: offC, y: pos, w: thumb.width, h: thumb.height });
     } else {
-      // 3-slice along the axis: rounded end caps copied 1:1, middle stretched (the
-      // capsule thumbs — e.g. ap2's 30px purple thumb — have a stretchable centre).
+      // 3-slice along the axis: rounded end caps copied 1:1, centre TILED (not stretched).
+      // The kDEF default blit (0xfeae) always TILES the source — stretching would smear the
+      // capsule thumb's diagonal grip texture (e.g. ap2's purple thumb). The last tile is
+      // clipped to fit. See docs/spec/compositor-spec.md §blit ("always TILES").
       const cap = Math.max(2, Math.min(Math.floor((native - 1) / 2), Math.round(cross / 2)));
       const mid = native - cap * 2;
+      const gap = thumbLen - cap * 2; // dst length for the tiled centre
       if (horiz) {
         out.copyBits(thumb, { x: 0, y: 0, w: cap, h: thumb.height }, { x: pos, y: offC, w: cap, h: thumb.height });
         out.copyBits(thumb, { x: thumb.width - cap, y: 0, w: cap, h: thumb.height }, { x: pos + thumbLen - cap, y: offC, w: cap, h: thumb.height });
-        if (mid > 0) out.copyBits(thumb, { x: cap, y: 0, w: mid, h: thumb.height }, { x: pos + cap, y: offC, w: thumbLen - cap * 2, h: thumb.height });
+        for (let x = 0; mid > 0 && x < gap; x += mid) {
+          const w = Math.min(mid, gap - x);
+          out.copyBits(thumb, { x: cap, y: 0, w, h: thumb.height }, { x: pos + cap + x, y: offC, w, h: thumb.height });
+        }
       } else {
         out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: cap }, { x: offC, y: pos, w: thumb.width, h: cap });
         out.copyBits(thumb, { x: 0, y: thumb.height - cap, w: thumb.width, h: cap }, { x: offC, y: pos + thumbLen - cap, w: thumb.width, h: cap });
-        if (mid > 0) out.copyBits(thumb, { x: 0, y: cap, w: thumb.width, h: mid }, { x: offC, y: pos + cap, w: thumb.width, h: thumbLen - cap * 2 });
+        for (let y = 0; mid > 0 && y < gap; y += mid) {
+          const h = Math.min(mid, gap - y);
+          out.copyBits(thumb, { x: 0, y: cap, w: thumb.width, h }, { x: offC, y: pos + cap + y, w: thumb.width, h });
+        }
       }
     }
   }
