@@ -484,43 +484,48 @@ export class WindowManager {
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
 
-    // RESIZE — drag the grow box: ghost outline during the drag, commit (re-render) on release.
-    if (composed.growBox) {
-      const gb = composed.growBox;
-      const handle = document.createElement('div');
-      Object.assign(handle.style, {
-        position: 'absolute', left: `${gb.x * scale}px`, top: `${gb.y * scale}px`,
-        width: `${gb.w * scale}px`, height: `${gb.h * scale}px`, cursor: 'nwse-resize', zIndex: '3',
+    // RESIZE — drag the bottom / right / corner border (a generous band, NOT a hairline grow box;
+    // and it works for native schemes whose grow box is baked into the chrome with no sprite). A
+    // classic ghost OUTLINE tracks the drag; the window re-renders at the new content size on release.
+    const ft = composed.frame.top * scale;
+    const fr = Math.max(7, composed.frame.right) * scale;  // resize band ≥ 7px native so it's grabbable
+    const fb = Math.max(7, composed.frame.bottom) * scale;
+    const startResize = (e: MouseEvent, dW: boolean, dH: boolean): void => {
+      e.preventDefault(); e.stopPropagation();
+      void this.focus(entry);
+      const sx = e.clientX, sy = e.clientY;
+      const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
+      const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
+      const outline = document.createElement('div');
+      Object.assign(outline.style, {
+        position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
+        border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
       } satisfies Partial<CSSStyleDeclaration>);
-      handle.addEventListener('mousedown', (e) => {
-        e.preventDefault(); e.stopPropagation();
-        void this.focus(entry);
-        const sx = e.clientX, sy = e.clientY;
-        const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
-        const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
-        const outline = document.createElement('div');
-        Object.assign(outline.style, {
-          position: 'absolute', left: '0', top: '0', width: `${hw0}px`, height: `${hh0}px`,
-          border: '1px dotted #000', zIndex: '10', pointerEvents: 'none',
-        } satisfies Partial<CSSStyleDeclaration>);
-        host.appendChild(outline);
-        let nw = w0, nh = h0;
-        const mv = (ev: MouseEvent): void => {
-          nw = Math.max(64, w0 + Math.round((ev.clientX - sx) / scale));
-          nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
-          outline.style.width = `${hw0 + (nw - w0) * scale}px`;
-          outline.style.height = `${hh0 + (nh - h0) * scale}px`;
-        };
-        const up = (): void => {
-          document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up);
-          outline.remove();
-          entry.opts = { ...entry.opts, width: nw, height: nh };
-          void this.render(entry);
-        };
-        document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
-      });
-      win.appendChild(handle);
-    }
+      host.appendChild(outline);
+      let nw = w0, nh = h0;
+      const mv = (ev: MouseEvent): void => {
+        if (dW) nw = Math.max(64, w0 + Math.round((ev.clientX - sx) / scale));
+        if (dH) nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
+        outline.style.width = `${hw0 + (nw - w0) * scale}px`;
+        outline.style.height = `${hh0 + (nh - h0) * scale}px`;
+      };
+      const up = (): void => {
+        document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up);
+        outline.remove();
+        entry.opts = { ...entry.opts, width: nw, height: nh };
+        void this.render(entry);
+      };
+      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    };
+    const mkZone = (css: Partial<CSSStyleDeclaration>, dW: boolean, dH: boolean): void => {
+      const z = document.createElement('div');
+      Object.assign(z.style, { position: 'absolute', zIndex: '4', ...css } satisfies Partial<CSSStyleDeclaration>);
+      z.addEventListener('mousedown', (e) => startResize(e, dW, dH));
+      win.appendChild(z);
+    };
+    mkZone({ right: '0', top: `${ft}px`, width: `${fr}px`, bottom: `${fb}px`, cursor: 'ew-resize' }, true, false);  // right edge
+    mkZone({ left: '0', bottom: '0', height: `${fb}px`, right: `${fr}px`, cursor: 'ns-resize' }, false, true);     // bottom edge
+    mkZone({ right: '0', bottom: '0', width: `${fr}px`, height: `${fb}px`, cursor: 'nwse-resize' }, true, true);   // corner
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */

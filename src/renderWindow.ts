@@ -106,6 +106,19 @@ export function resolveTitleWidgetRects(
   wt: WindowType,
   composed: ComposedChrome,
 ): { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] {
+  // Corner-sprite model (composeCornerSprite): ONE `edge:'widget'` placement whose `rects` are the
+  // widgets in order and whose `role` joins their glyph names (e.g. "close/collapse/zoom").
+  const ws = composed.placement.find((s) => s.edge === 'widget');
+  if (ws && ws.rects.length) {
+    const roles = ws.role.split('/');
+    const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
+    ws.rects.forEach((r, i) => {
+      const role = roles[i];
+      if (role === 'close' || role === 'zoom' || role === 'collapse') out.push({ role, rect: { x: r.x, y: r.y, w: r.w, h: r.h } });
+    });
+    return out;
+  }
+  // Native wnd# model: widget rects are wnd# parts mapped onto the stretched title bar.
   const top = composed.placement.filter((s) => s.edge === 'top');
   if (!top.length || !wt.parts) return [];
   const shiftOf = (s: (typeof top)[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
