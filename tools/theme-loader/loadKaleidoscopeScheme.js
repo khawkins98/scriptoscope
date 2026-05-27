@@ -10,7 +10,7 @@
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
 import { convertScheme } from './convert.js';
-import { unwrapToResourceFork } from './containers.js';
+import { unwrapToResourceFork, detectContainer } from './containers.js';
 
 /**
  * @typedef {object} LoadOptions
@@ -38,10 +38,17 @@ import { unwrapToResourceFork } from './containers.js';
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const bytes = await toUint8Array(input);
-  // Unwrap a Mac transfer container (MacBinary / AppleSingle·Double / BinHex) down to
-  // the raw resource fork; a raw fork passes through untouched, and a .sit throws an
-  // actionable message (its decoder is a separate work item). See containers.js.
-  const fork = unwrapToResourceFork(bytes);
+  // Unwrap a Mac transfer container down to the raw resource fork. StuffIt (.sit) needs the
+  // munbox WASM decoder, lazily imported here so the conversion core stays WASM-free until a
+  // .sit is actually dropped; the toolchain-free formats (MacBinary / AppleSingle·Double /
+  // BinHex) and a raw fork go through the pure-JS containers.js. See tools/sit-wasm.
+  let fork;
+  if (detectContainer(bytes) === 'stuffit') {
+    const { stuffItResourceFork } = await import('../sit-wasm/index.mjs');
+    fork = await stuffItResourceFork(bytes);
+  } else {
+    fork = unwrapToResourceFork(bytes);
+  }
   const { theme, assets, iconIndex } = convertScheme(fork, {
     meta: options.meta,
     source: options.source ?? 'resource-fork',
