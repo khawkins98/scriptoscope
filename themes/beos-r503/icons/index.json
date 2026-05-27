@@ -277,7 +277,7 @@
     "file": "icl8-n20786.png",
     "name": null,
     "masked": false,
-    "coverage": 1
+    "coverage": 0.096
   },
   {
     "id": -20785,
@@ -347,7 +347,7 @@
     "file": "icl8-n20740.png",
     "name": "Script Badge ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.066
   },
   {
     "id": -20739,
@@ -597,7 +597,7 @@
     "file": "icl8-n20727.png",
     "name": " ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.86
   },
   {
     "id": -20726,
@@ -2707,7 +2707,7 @@
     "file": "ics8-n20798.png",
     "name": "Unlocked ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.297
   },
   {
     "id": -20797,
@@ -2937,7 +2937,7 @@
     "file": "ics8-n20751.png",
     "name": "Privileges: Writable ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.172
   },
   {
     "id": -20750,
@@ -2947,7 +2947,7 @@
     "file": "ics8-n20750.png",
     "name": "Privileges: Uknown ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.492
   },
   {
     "id": -20749,
@@ -2957,7 +2957,7 @@
     "file": "ics8-n20749.png",
     "name": "Privileges: N/A ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.094
   },
   {
     "id": -20748,
@@ -2967,7 +2967,7 @@
     "file": "ics8-n20748.png",
     "name": "Privileges: Read ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.254
   },
   {
     "id": -20747,
@@ -2977,7 +2977,7 @@
     "file": "ics8-n20747.png",
     "name": "Privileges: Read/Write ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.555
   },
   {
     "id": -20746,
@@ -3097,7 +3097,7 @@
     "file": "ics8-n20740.png",
     "name": "Script Badge ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.16
   },
   {
     "id": -20739,
@@ -3347,7 +3347,7 @@
     "file": "ics8-n20727.png",
     "name": " ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.898
   },
   {
     "id": -20726,
@@ -3417,7 +3417,7 @@
     "file": "ics8-n20271.png",
     "name": "Help Icon ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.672
   },
   {
     "id": -16509,
@@ -4907,7 +4907,7 @@
     "file": "ics8-n3823.png",
     "name": "Locked ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.305
   },
   {
     "id": -3822,
@@ -4997,7 +4997,7 @@
     "file": "ics8-n3816.png",
     "name": "Group ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.66
   },
   {
     "id": -3815,
@@ -5007,7 +5007,7 @@
     "file": "ics8-n3815.png",
     "name": "Owner ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.699
   },
   {
     "id": -3814,
@@ -5017,7 +5017,7 @@
     "file": "ics8-n3814.png",
     "name": "User ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.438
   },
   {
     "id": -3813,
@@ -5027,7 +5027,7 @@
     "file": "ics8-n3813.png",
     "name": "Guest User ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.645
   },
   {
     "id": -3812,
@@ -5327,7 +5327,7 @@
     "file": "ics8-n3783.png",
     "name": "Privileges: No Write ",
     "masked": false,
-    "coverage": 1
+    "coverage": 0.332
   },
   {
     "id": -3782,
@@ -5397,7 +5397,7 @@
     "file": "ics8-128.png",
     "name": null,
     "masked": false,
-    "coverage": 1
+    "coverage": 0.207
   },
   {
     "id": 14000,

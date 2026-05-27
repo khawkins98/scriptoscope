@@ -117,6 +117,35 @@ function decodeIcon8(data, size, mask) {
   return rgba;
 }
 
+// Fallback transparency for an icon that ships NO ICN#/ics# mask (it would otherwise
+// render as a fully-opaque square — e.g. a Finder icon on a white box). If all four
+// CORNERS are the same colour (a uniform background to key out), flood-fill that exact
+// colour inward from the border and make it transparent. Border-connected only, so an
+// enclosed same-colour region inside the shape (e.g. a white document face) stays
+// opaque. No-op if the corners differ (full-bleed art with no background). Returns the
+// number of pixels cleared (0 ⇒ left fully opaque). Mutates `rgba` alpha in place.
+function cornerFloodTransparency(rgba, size) {
+  const at = (x, y) => (y * size + x) * 4;
+  const bg = [rgba[0], rgba[1], rgba[2]];
+  const corners = [[0, 0], [size - 1, 0], [0, size - 1], [size - 1, size - 1]];
+  const isBg = (o) => rgba[o] === bg[0] && rgba[o + 1] === bg[1] && rgba[o + 2] === bg[2];
+  for (const [x, y] of corners) if (!isBg(at(x, y))) return 0; // corners not uniform → no background to key
+  const seen = new Uint8Array(size * size);
+  const stack = [];
+  for (const [x, y] of corners) { const p = y * size + x; if (!seen[p]) { seen[p] = 1; stack.push(p); } }
+  let cleared = 0;
+  while (stack.length) {
+    const p = stack.pop(), x = p % size, y = (p / size) | 0, o = p * 4;
+    if (!isBg(o)) continue;          // a non-bg edge — the flood stops here
+    rgba[o + 3] = 0; cleared++;       // background pixel → transparent
+    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+      if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+      const np = ny * size + nx; if (!seen[np]) { seen[np] = 1; stack.push(np); }
+    }
+  }
+  return cleared;
+}
+
 function extract(slug) {
   const destDir = resolve(repoRoot, 'themes', slug);
   const rsrcPath = resolve(destDir, 'scheme.rsrc');
@@ -163,6 +192,9 @@ function extract(slug) {
       const maskData = maskOf(cfg.maskType, e.id);
       const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;
       const rgba = cfg.depth === 4 ? decodeIcon4(e.data, cfg.size, mask) : decodeIcon8(e.data, cfg.size, mask);
+      // No shipped ICN#/ics# mask → key out a uniform corner background (flood from
+      // the border) so the icon reads as a cut-out shape, not an opaque white box.
+      if (!mask) cornerFloodTransparency(rgba, cfg.size);
       // opaque coverage: full-bleed art (≈1.0) is usually a scheme logo/splash;
       // document/folder icons leave transparent margins. Lets the scene prefer
       // real "object" icons over the scheme's hero glyph.
