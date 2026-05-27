@@ -2,7 +2,7 @@ import type { LoadedTheme, WindowState, WindowType } from './types.js';
 import { resolveInChain } from './baseChain.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
-import { composeWindowChrome } from './composeChrome.js';
+import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
 import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
 import { PixelBuffer } from './pixelBuffer.js';
@@ -84,6 +84,63 @@ export interface RenderWindowOptions {
   height?: number;
   /** Integer display scale (crisp upscaling via CSS). Default 1. */
   scale?: number;
+  /** Render one title-bar widget in its PRESSED state (mouse held down on it).
+   *  Corner-sprite schemes swap to the widget's pressed glyph (-14333/-14332/-14331);
+   *  native-recipe schemes (widget baked into the title cicn) darken its rect. */
+  pressedWidget?: TitleWidgetRole;
+}
+
+/** A title-bar widget role, left→right: close · collapse(windowshade) · zoom. */
+export type TitleWidgetRole = 'close' | 'zoom' | 'collapse';
+
+/**
+ * Resolve title-bar widget rects (UNSCALED, in composed-buffer pixel space) from the `wnd#`
+ * parts, mapped onto the stretched window — the single source of truth shared by the pressed-
+ * widget effect here and `interactive.titleWidgetHits` (which just ×scale's these). The widget
+ * art is a `wnd#` part rect (`part-1`…; `part-0` is the body, any ≤2px-wide top-band part is the
+ * title-text marker). The title bar grows in its middle, so left-anchored widgets keep their x
+ * and right-anchored ones shift by the compositor's right-band delta. Roles follow the classic
+ * Mac layout: close at the left; on the right the far box is zoom, an inner one collapse.
+ */
+export function resolveTitleWidgetRects(
+  wt: WindowType,
+  composed: ComposedChrome,
+): { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] {
+  const top = composed.placement.filter((s) => s.edge === 'top');
+  if (!top.length || !wt.parts) return [];
+  const shiftOf = (s: (typeof top)[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
+  const rightShift = top.reduce((m, s) => Math.max(m, shiftOf(s)), 0);
+  const rightBandSrcX = rightShift > 0
+    ? top.reduce((m, s) => (shiftOf(s) === rightShift ? Math.min(m, s.src.x) : m), Infinity)
+    : Infinity;
+  const frameTop = composed.frame.top;
+  const placed: { right: boolean; x: number; y: number; w: number; h: number }[] = [];
+  for (const [slug, part] of Object.entries(wt.parts)) {
+    if (slug === 'part-0' || !part.rect) continue;
+    const [l, t, r, b] = part.rect;
+    if (r <= l || b <= t) continue; // empty rect
+    if (t < frameTop && r - l <= 2) continue; // thin title-text marker, not a widget
+    const right = (l + r) / 2 >= rightBandSrcX;
+    placed.push({ right, x: right ? l + rightShift : l, y: t, w: r - l, h: b - t });
+  }
+  const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
+  const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
+  const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
+  if (lefties[0]) out.push({ role: 'close', rect: { x: lefties[0].x, y: lefties[0].y, w: lefties[0].w, h: lefties[0].h } });
+  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
+  return out;
+}
+
+/** Darken a rect of a chrome buffer to read as a "pressed in" title-bar widget — the synthesized
+ *  press for native-recipe schemes that bake the widget into the title cicn (no pressed art). */
+function pressRect(buf: PixelBuffer, r: { x: number; y: number; w: number; h: number }): void {
+  const x1 = Math.min(buf.width, r.x + r.w), y1 = Math.min(buf.height, r.y + r.h);
+  for (let y = Math.max(0, r.y); y < y1; y++) {
+    for (let x = Math.max(0, r.x); x < x1; x++) {
+      const [pr, pg, pb, pa] = buf.getPixel(x, y);
+      if (pa > 0) buf.setPixel(x, y, Math.round(pr * 0.6), Math.round(pg * 0.6), Math.round(pb * 0.6), pa);
+    }
+  }
 }
 
 /**
@@ -176,15 +233,18 @@ export async function renderWindow(
     // ics8 WIDGET channel; the same-id cicn is a window-type proxy). The base
     // differs by window FAMILY: document / dialog / movable use the -14336.. set;
     // UTILITY / mini / floating windows use their OWN -14320.. set. Within a set:
-    // close = base, zoom = base+1, collapse = base+2 (active); the inactive trio is
-    // +3 (less negative). The compositor stamps the ones in opts.widgets (and falls
-    // back to a procedural box for any role a scheme doesn't ship).
+    // close = base, zoom = base+1, collapse = base+2 (ACTIVE/normal); the +3 trio is the
+    // PRESSED variant (per resource-roles: close/zoom/collapse × active/pressed — NOT inactive;
+    // classic Mac inactive windows don't draw pressed-looking widgets). So inactive uses the
+    // normal glyphs (greyed via the inactive header colours), and only the held widget loads its
+    // pressed glyph. The compositor stamps the ones in opts.widgets (procedural box otherwise).
     const wBase = isUtility ? -14320 : -14336;
-    const wOff = state === 'inactive' ? 3 : 0;
+    const wIdx = { close: 0, zoom: 1, collapse: 2 } as const;
+    const gid = (role: keyof typeof wIdx): number => wBase + wIdx[role] + (opts.pressedWidget === role ? 3 : 0);
     const widgetGlyphs = {
-      close: await loadWidgetGlyph(owner, wBase + wOff),
-      zoom: await loadWidgetGlyph(owner, wBase + 1 + wOff),
-      collapse: await loadWidgetGlyph(owner, wBase + 2 + wOff),
+      close: await loadWidgetGlyph(owner, gid('close')),
+      zoom: await loadWidgetGlyph(owner, gid('zoom')),
+      collapse: await loadWidgetGlyph(owner, gid('collapse')),
     };
     // The window-frame proxy cicn (chrome.active -14332 / chrome.inactive -14336) —
     // frame-extracted by the compositor into the scheme's own beveled frame + corners.
@@ -197,6 +257,12 @@ export async function renderWindow(
     });
   } else {
     composed = composeWindowChrome(cicn, wt, contentW, contentH, { cinf: wt.cinf ?? null, titleWidthPx });
+    // Native-recipe widgets are baked into the title cicn (no pressed art), so synthesize the
+    // press by darkening the held widget's rect (corner-sprite schemes used the pressed glyph above).
+    if (opts.pressedWidget && wt) {
+      const wr = resolveTitleWidgetRects(wt, composed).find((w) => w.role === opts.pressedWidget);
+      if (wr) pressRect(composed.buffer, wr.rect);
+    }
   }
   const { frame, fullWidth, fullHeight } = composed;
 

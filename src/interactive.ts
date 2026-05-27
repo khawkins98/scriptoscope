@@ -18,7 +18,7 @@ import {
   type ButtonOptions, type ControlState,
 } from './controls.js';
 import { platinumSlider, platinumScrollbar } from './platinum.js';
-import { renderWindow, type RenderWindowOptions } from './renderWindow.js';
+import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { ComposedChrome } from './composeChrome.js';
 import type { LoadedTheme } from './types.js';
@@ -391,35 +391,12 @@ export function titleWidgetHits(
   // chaining, not an index into undefined.)
   const wt = resolveInChain(theme, (t) => t.manifest.windowTypes?.[windowType]);
   if (!wt) return [];
-  const top = composed.placement.filter((s) => s.edge === 'top');
-  if (!top.length) return [];
-  const shiftOf = (s: typeof top[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
-  const rightShift = top.reduce((m, s) => Math.max(m, shiftOf(s)), 0);
-  // The src.x at which the right (max-shift) fixed band begins — anything whose
-  // centre is at/after it is right-anchored.
-  const rightBandSrcX = rightShift > 0
-    ? top.reduce((m, s) => (shiftOf(s) === rightShift ? Math.min(m, s.src.x) : m), Infinity)
-    : Infinity;
-  const frameTop = composed.frame.top;
-
-  const placed: { right: boolean; x: number; y: number; w: number; h: number }[] = [];
-  for (const [slug, part] of Object.entries(wt.parts)) {
-    if (slug === 'part-0' || !part.rect) continue;
-    const [l, t, r, b] = part.rect;
-    if (r <= l || b <= t) continue;                       // empty rect
-    if (t < frameTop && r - l <= 2) continue;             // thin title-text marker
-    const right = (l + r) / 2 >= rightBandSrcX;
-    placed.push({ right, x: right ? l + rightShift : l, y: t, w: r - l, h: b - t });
-  }
-
-  const sc = (p: { x: number; y: number; w: number; h: number }): TitleWidgetHit['rect'] =>
-    ({ x: p.x * scale, y: p.y * scale, w: p.w * scale, h: p.h * scale });
-  const hits: TitleWidgetHit[] = [];
-  const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
-  const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
-  if (lefties[0]) hits.push({ role: 'close', rect: sc(lefties[0]) });
-  righties.forEach((p, i) => hits.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: sc(p) }));
-  return hits;
+  // Single source of truth (renderWindow.resolveTitleWidgetRects) — gives UNSCALED rects + roles;
+  // the hit zones are those ×scale (the window element's own scaled pixel space).
+  return resolveTitleWidgetRects(wt, composed).map(({ role, rect }) => ({
+    role,
+    rect: { x: rect.x * scale, y: rect.y * scale, w: rect.w * scale, h: rect.h * scale },
+  }));
 }
 
 // ── Window focus manager ────────────────────────────────────────────────────
@@ -490,6 +467,17 @@ export class WindowManager {
     const cb: Record<TitleWidget, (() => void) | undefined> = {
       close: entry.handlers.onClose, zoom: entry.handlers.onZoom, collapse: entry.handlers.onCollapse,
     };
+    // To show the PRESSED state on mousedown we repaint the live chrome canvas with a pre-rendered
+    // pressed variant (renderWindow's pressedWidget), then restore a snapshot of the normal chrome
+    // on release. Cheap + lag-free after the first press (the pressed render is cached per widget).
+    const chrome = win.querySelector('.aw-chrome') as HTMLCanvasElement | null;
+    const cctx = chrome?.getContext('2d') ?? null;
+    let normalSnap: HTMLCanvasElement | null = null;
+    if (chrome) {
+      normalSnap = document.createElement('canvas');
+      normalSnap.width = chrome.width; normalSnap.height = chrome.height;
+      normalSnap.getContext('2d')?.drawImage(chrome, 0, 0);
+    }
     for (const hit of titleWidgetHits(entry.theme, slug, composed, scale)) {
       const handler = cb[hit.role];
       if (!handler) continue;
@@ -504,6 +492,22 @@ export class WindowManager {
         cursor: 'default', zIndex: '2',
       } satisfies Partial<CSSStyleDeclaration>);
       btn.addEventListener('click', (e) => { e.stopPropagation(); handler(); });
+      if (chrome && cctx && normalSnap) {
+        let pressedCanvas: HTMLCanvasElement | null | undefined; // undefined = not yet rendered
+        const press = async (): Promise<void> => {
+          if (pressedCanvas === undefined) {
+            try {
+              const pwin = await renderWindow(entry.theme, { ...entry.opts, state: entry.active ? 'active' : 'inactive', pressedWidget: hit.role });
+              pressedCanvas = (pwin.querySelector('.aw-chrome') as HTMLCanvasElement | null) ?? null;
+            } catch { pressedCanvas = null; }
+          }
+          if (pressedCanvas) cctx.drawImage(pressedCanvas, 0, 0);
+        };
+        const release = (): void => { if (normalSnap) cctx.drawImage(normalSnap, 0, 0); };
+        btn.addEventListener('mousedown', (e) => { e.preventDefault(); void press(); });
+        btn.addEventListener('mouseup', release);
+        btn.addEventListener('mouseleave', release);
+      }
       win.appendChild(btn);
     }
   }
