@@ -33,9 +33,14 @@
 // number:
 //   • SYSTEM font  (Charcoal 12)        ascent+descent = 16 ⇒ barH 19  (document body)
 //   • SMALL system font                 ascent+descent =  8 ⇒ barH 11  (utility palettes)
-// (The ascent/descent are the values that reproduce the verified heights; a true
-// GetFontInfo read of the shipped Charcoal woff + the small system font would confirm
-// them — the remaining step to make this fully sourced rather than calibrated.)
+// SOURCING (investigated): ascent+descent=16 is grounded in the CORPUS-VERIFIED 19px bar
+// — i.e. the ORIGINAL Mac bitmap Charcoal's GetFontInfo, which the WDEF measured in 1998,
+// gave ≈16, confirmed by every rendered scheme. Do NOT "source" it from the shipped
+// assets/fonts/charcoal-12.woff: that's an OUTLINE RECREATION whose font metrics (hhea
+// ascender 1250 / descender -250 over unitsPerEm 2000 = ~9px at 12pt ⇒ barH 12) do NOT
+// match the original bitmap font — parsing the woff would BREAK the verified heights. The
+// rendered geometry is the authoritative source here; the woff is not. (SMALL font: no
+// shipped file to read; calibrated to the verified 11px utility bar.)
 // Window CLASSES with a fixed bar that is NOT font-derived keep an explicit height:
 // movable modal/alert (16) and popup (14); title-LESS frames are 0.
 const barHForFont = (ascentPlusDescent) => ascentPlusDescent + 3; // +2 (decode titleHeight) +1 under-line
