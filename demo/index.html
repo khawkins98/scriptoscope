@@ -134,7 +134,10 @@
     #byo .byo-limits { font: 10.5px system-ui; opacity: .5; margin-top: 2px; }
     #byo-out { margin-top: 12px; }
     #byo-out .byo-report { font: 12px system-ui; display: flex; gap: 13px; flex-wrap: wrap; align-items: center; margin-bottom: 11px; }
-    #byo-out .byo-err { color: #a01818; font: 12px ui-monospace, Menlo, monospace; }
+    #byo-out .byo-note { opacity: .6; font-size: 11px; }
+    #byo-out .byo-err { color: #a01818; font: 12px system-ui; }
+    #byo-out .byo-err summary { cursor: pointer; opacity: .8; font-size: 11px; margin-top: 4px; }
+    #byo-out .byo-raw { font: 11.5px ui-monospace, Menlo, monospace; opacity: .85; margin-top: 3px; white-space: pre-wrap; }
     #byo-out .byo-grid { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
     #byo-out .byo-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
     #byo-out .byo-cell .lbl { font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; }
@@ -147,13 +150,13 @@
     <p>Pick a scheme from the ribbon; every diagnostic for it renders below at <strong>native pixel size</strong>.</p>
   </header>
   <section id="byo" aria-label="Bring your own theme">
-    <div id="byo-drop" tabindex="0" role="button" aria-label="Drop a Kaleidoscope resource fork to convert and render in your browser">
+    <div id="byo-drop" tabindex="0" role="button" aria-label="Bring your own theme — drop a Kaleidoscope theme file, or click to choose one">
       <strong>Bring your own theme</strong>
-      <span class="byo-hint">Drop a Kaleidoscope theme here (or click to pick): a <code>.sit</code> archive, a <code>.hqx</code> / MacBinary / AppleDouble wrapper, or a raw <code>.rsrc</code> resource fork. Decoded (StuffIt via WebAssembly), gamma-corrected, and rendered entirely in your browser. No build, no upload.</span>
-      <span class="byo-limits">Known limits: <code>.sitx</code> (StuffIt X) isn't supported yet · a multi-file archive shows the largest theme in it · converted in memory for this session only — no save/export yet.</span>
-      <input id="byo-file" type="file" hidden>
+      <span class="byo-hint">Drop a classic-Mac Kaleidoscope theme file here, or click to choose one — it's decoded and rendered <strong>entirely in your browser</strong> (nothing is uploaded). Accepts a <code>.sit</code> archive, a <code>.hqx</code> / MacBinary / AppleDouble wrapper, or a raw <code>.rsrc</code> resource fork. New to this? Grab a scheme from the <a href="https://macintoshgarden.org/apps/kaleidoscope" target="_blank" rel="noopener">Kaleidoscope archive</a>.</span>
+      <span class="byo-limits">Limits: <code>.sitx</code> (StuffIt X) isn't supported yet · a bundle containing several themes shows the largest · this is a <strong>preview</strong> — the converted theme isn't saved (it's gone on reload).</span>
+      <input id="byo-file" type="file" accept=".sit,.hqx,.bin,.rsrc,.as,.adf,.cpt" hidden>
     </div>
-    <div id="byo-out"></div>
+    <div id="byo-out" role="status" aria-live="polite"></div>
   </section>
   <nav id="ribbon" aria-label="Theme selector"></nav>
   <main id="detail" aria-live="polite"></main>
@@ -1587,6 +1590,7 @@
         status.className = 'byo-report';
         status.textContent = `Converting ${file.name}…`;
         out.appendChild(status);
+        zone.setAttribute('aria-busy', 'true'); // announce the in-flight decode to AT
 
         const name = file.name.replace(/\.[^.]+$/, '') || file.name;
         let loaded;
@@ -1598,11 +1602,22 @@
           loaded.base = await loadWithBase(BASE_SLUG);
         } catch (err) {
           if (my !== token) return;
+          zone.removeAttribute('aria-busy');
+          // Human top line; raw decoder text tucked behind a disclosure (it's diagnostic, not
+          // for the user — e.g. munbox "header2 out of range" or a fork-parser overrun).
           status.className = 'byo-err';
-          status.textContent = `✗ ${file.name}: ${(err && err.message) || err}`;
+          status.innerHTML = '';
+          const top = document.createElement('div');
+          top.textContent = `Couldn't read “${file.name}” as a Kaleidoscope theme — it may not be a theme file, or it's a format we don't support yet (e.g. StuffIt X .sitx).`;
+          const det = document.createElement('details');
+          const sum = document.createElement('summary'); sum.textContent = 'Technical detail';
+          const raw = document.createElement('div'); raw.className = 'byo-raw'; raw.textContent = (err && err.message) || String(err);
+          det.append(sum, raw);
+          status.append(top, det);
           return;
         }
         if (my !== token) return;
+        zone.removeAttribute('aria-busy');
 
         const wtypes = Object.keys(loaded.manifest.windowTypes || {});
         const glyphCount = Object.keys(loaded.glyphs || {}).length;
@@ -1615,6 +1630,9 @@
         counts.textContent = `${wtypes.length} window type${wtypes.length === 1 ? '' : 's'} · ${glyphCount} glyph${glyphCount === 1 ? '' : 's'}`;
         status.append(tick, counts);
         if (fill) { const sw = document.createElement('span'); sw.className = 'byo-sw'; sw.style.background = fill; sw.title = `headerColors.active.fill ${fill}`; status.appendChild(sw); }
+        // Set the expectation at the moment of success: this is a preview, not a save.
+        const note = document.createElement('span'); note.className = 'byo-note'; note.textContent = 'Preview only — not saved (gone on reload).';
+        status.appendChild(note);
 
         // Lead render: the default document window at 2× so the chrome is legible.
         const big = document.createElement('div'); big.className = 'byo-cell';
