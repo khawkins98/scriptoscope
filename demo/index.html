@@ -97,17 +97,15 @@
     .detail-toolbar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
     .subnav {
       position: sticky; top: var(--ribbon-h, 100px); z-index: 40;
-      display: flex; gap: 2px; flex-wrap: wrap; align-items: flex-end; padding: 0 18px;
+      display: flex; gap: 3px; flex-wrap: wrap; padding: 6px 22px;
       background: #bdbdbde8; backdrop-filter: blur(5px); border-bottom: 1px solid #9a9a9a;
     }
-    .subnav .tab {
-      font: 12px system-ui; color: #2b5070; cursor: pointer; background: transparent;
-      border: 0; border-bottom: 3px solid transparent; padding: 8px 13px 6px; margin: 0;
+    .subnav a {
+      font: 11px system-ui; color: #2b5070; text-decoration: none;
+      padding: 3px 9px; border-radius: 5px;
     }
-    .subnav .tab:hover { background: #ffffff70; }
-    .subnav .tab.active { color: #14304a; font-weight: 600; border-bottom-color: #2b6cb0; background: #ffffff90; }
-    .dsection { padding: 16px 24px 28px; display: none; }
-    .dsection.show { display: block; }
+    .subnav a:hover { background: #ffffffa0; color: #14304a; }
+    .dsection { border-top: 1px solid #a6a6a6; padding: 14px 24px 22px; scroll-margin-top: calc(var(--ribbon-h, 100px) + 40px); }
     .dsection > h3 {
       font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
       opacity: .5; margin: 0 0 12px; font-weight: 700;
@@ -1391,18 +1389,7 @@
       dsection('rasters', 'All rasters').appendChild(await rasterInventory(theme));
       dsection('roles', 'Resource roles').appendChild(await resourceRoles(theme));
 
-      // Tabbed detail: one diagnostic panel at a time (Storybook-style), no long scroll.
-      const tabBtns = [];
-      const showTab = (id) => {
-        for (const sec of frag.querySelectorAll('.dsection')) sec.classList.toggle('show', sec.id === 'd-' + id);
-        for (const b of tabBtns) b.classList.toggle('active', b.dataset.tab === id);
-      };
-      for (const [id, label] of navItems) {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'tab'; b.dataset.tab = id; b.textContent = label;
-        b.onclick = () => showTab(id);
-        tabBtns.push(b); subnav.appendChild(b);
-      }
-      if (navItems.length) showTab(navItems[0][0]); // default to the first tab
+      for (const [id, label] of navItems) { const a = document.createElement('a'); a.href = '#d-' + id; a.textContent = label; subnav.appendChild(a); }
       return frag;
     }
 
