@@ -10,6 +10,7 @@
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
 import { convertScheme } from './convert.js';
+import { unwrapToResourceFork } from './containers.js';
 
 /**
  * @typedef {object} LoadOptions
@@ -26,8 +27,10 @@ import { convertScheme } from './convert.js';
 /**
  * Decode a Kaleidoscope scheme resource fork into a render-ready in-memory theme.
  *
- * @param {Uint8Array|ArrayBuffer|Blob|string} input  fork bytes, ArrayBuffer, Blob
- *   (a dropped File), or a URL to fetch.
+ * @param {Uint8Array|ArrayBuffer|Blob|string} input  a raw resource fork OR a Mac
+ *   transfer container (MacBinary `.bin`, AppleSingle/Double, BinHex `.hqx`) — as
+ *   bytes, an ArrayBuffer, a dropped Blob/File, or a URL to fetch. The container is
+ *   unwrapped to its resource fork automatically; `.sit` throws (separate decoder).
  * @param {LoadOptions} [options]
  * @returns {Promise<object>} encodeAssets ⇒ a LoadedTheme `{ manifest, baseUrl:'', glyphs? }`
  *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
@@ -35,7 +38,11 @@ import { convertScheme } from './convert.js';
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const bytes = await toUint8Array(input);
-  const { theme, assets, iconIndex } = convertScheme(bytes, {
+  // Unwrap a Mac transfer container (MacBinary / AppleSingle·Double / BinHex) down to
+  // the raw resource fork; a raw fork passes through untouched, and a .sit throws an
+  // actionable message (its decoder is a separate work item). See containers.js.
+  const fork = unwrapToResourceFork(bytes);
+  const { theme, assets, iconIndex } = convertScheme(fork, {
     meta: options.meta,
     source: options.source ?? 'resource-fork',
   });

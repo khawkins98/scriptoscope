@@ -51,7 +51,7 @@
     "diag:render": "node scripts/render-window.mjs",
     "diag:audit": "node scripts/audit-placement.mjs",
     "lint:themes": "node scripts/lint-themes.mjs",
-    "test": "node --test scripts/generate-platinum/*.test.mjs",
+    "test": "node --test scripts/generate-platinum/*.test.mjs tools/theme-loader/*.test.mjs",
     "import": "node scripts/import-scheme.mjs"
   },
   "engines": {
