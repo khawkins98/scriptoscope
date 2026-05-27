@@ -1,0 +1,53 @@
+{
+  "name": "stuffit-wasm",
+  "version": "0.1.0",
+  "description": "Decode classic-Mac StuffIt (.sit), BinHex (.hqx), MacBinary, and Compact Pro archives to their data/resource forks — in the browser or Node, via WebAssembly, with zero dependencies.",
+  "type": "module",
+  "main": "./index.mjs",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    },
+    "./dist/munbox.wasm": "./dist/munbox.wasm"
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "dist",
+    "shim.c",
+    "build.sh",
+    "munbox",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "stuffit",
+    "sit",
+    "binhex",
+    "hqx",
+    "macbinary",
+    "applesingle",
+    "appledouble",
+    "compact-pro",
+    "resource-fork",
+    "classic-mac",
+    "macintosh",
+    "wasm",
+    "webassembly",
+    "decoder",
+    "unarchive"
+  ],
+  "license": "MIT",
+  "author": "Ken Hawkins",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khawkins98/aaron-ui.git",
+    "directory": "tools/sit-wasm"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

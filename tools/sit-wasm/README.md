@@ -9,22 +9,62 @@ it could become its own package/repo with no changes. (Origin note: the test bel
 against aaron-ui's "corpus" — its set of bundled themes — but the module itself has no aaron-ui
 dependency.)
 
-## Use
+## Install
 
-```js
-import { decodeArchive, stuffItResourceFork } from './index.mjs';
-
-// All forks of every entry:
-const entries = await decodeArchive(bytes); // bytes: Uint8Array | ArrayBuffer
-//  → [{ name, type, creator, forkType /* 0=data, 1=resource */, bytes: Uint8Array }, ...]
-
-// Convenience for classic Mac files that keep everything in the resource fork:
-const fork = await stuffItResourceFork(bytes); // Uint8Array, or throws if there's none
+```sh
+npm install stuffit-wasm   # (or copy this folder — it's dependency-free)
 ```
 
-Runs in the browser and in Node (the test decodes a real `.sit`). The WASM lazily instantiates
-on first call. `dist/munbox.{mjs,wasm}` is **committed**, so consumers never need Emscripten —
-only rebuilding does.
+The build output `dist/munbox.{mjs,wasm}` is **committed**, so consumers never need Emscripten —
+only rebuilding does. Runs in the browser and in Node; the WASM instantiates once on first call.
+
+## API
+
+```js
+import { decodeArchive, stuffItResourceFork } from 'stuffit-wasm';
+
+// Every fork of every entry:
+const entries = await decodeArchive(bytes); // bytes: Uint8Array | ArrayBuffer
+//  → [{ name, type, creator, forkType /* 0=data, 1=resource */, bytes: Uint8Array }, ...]
+//  `type`/`creator` are u32 OSType codes (e.g. 'APPL' → 0x4150504C), NOT strings.
+
+// Convenience: the largest resource fork — for classic-Mac files that keep their payload there
+// (e.g. Kaleidoscope schemes). Throws if the archive has no resource fork.
+const fork = await stuffItResourceFork(bytes);
+```
+
+### Node
+
+```js
+import { readFileSync } from 'node:fs';
+import { decodeArchive } from 'stuffit-wasm';
+
+const entries = await decodeArchive(readFileSync('scheme.sit'));
+for (const e of entries) {
+  console.log(e.name, e.forkType === 1 ? 'rsrc' : 'data', e.bytes.length);
+}
+```
+
+### Browser (`<input type="file">`)
+
+```html
+<input type="file" id="f">
+<script type="module">
+  import { stuffItResourceFork } from 'https://esm.sh/stuffit-wasm'; // or your bundler / local path
+  document.getElementById('f').addEventListener('change', async (ev) => {
+    const buf = new Uint8Array(await ev.target.files[0].arrayBuffer());
+    const fork = await stuffItResourceFork(buf); // → Uint8Array of the resource fork
+    console.log('resource fork:', fork.length, 'bytes');
+  });
+</script>
+```
+
+### Locating the `.wasm`
+
+`index.mjs` loads `dist/munbox.wasm` relative to `dist/munbox.mjs`, so keep them together (a
+bundler that fingerprints assets — Vite, etc. — handles this automatically). If you serve the
+`.wasm` from a different path, override the Emscripten `locateFile` hook (see `index.mjs`'s
+`createMunbox({ … })` call).
 
 ## Coverage
 
@@ -68,10 +108,16 @@ for the diffs and provenance. munbox is MIT — see [`munbox/LICENSE`](munbox/LI
 ## Layout
 
 ```
+index.mjs     public API: decodeArchive / stuffItResourceFork (JS over the packed buffer)
+index.d.ts    TypeScript types
+package.json  name "stuffit-wasm", exports, files (MIT)
+LICENSE       MIT — covers the first-party files here (munbox/ is separately MIT)
 shim.c        C entry point: decode → one packed [count]{name,type,creator,forkType,len,bytes} buffer
-index.mjs     JS wrapper over the packed buffer (decodeArchive / stuffItResourceFork)
 build.sh      emcc build → dist/
 dist/         committed munbox.mjs + munbox.wasm (no Emscripten needed to consume)
 munbox/       vendored upstream subset + LICENSE + PATCHES.md
-sit-wasm.test.mjs   Node test: decodes a real .sit byte-identical to the corpus fork
+sit-wasm.test.mjs   Node test: decodes a real .sit byte-identical to a known fork
 ```
+
+> **License:** MIT — see [`LICENSE`](LICENSE). The vendored `munbox/` is separately MIT
+> ([`munbox/LICENSE`](munbox/LICENSE)).
