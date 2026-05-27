@@ -58,6 +58,24 @@ If the copied file is tiny (a few hundred bytes or empty), the resource fork was
 
 ## 3. Run the extractor
 
+**Quick path (recommended):** once `themes/<your-slug>/scheme.rsrc` is in place,
+one command runs the WHOLE pipeline (chrome + icons + rasters + roles + lint),
+scaffolds a `meta.json` stub if missing, and prints a report card of what it
+figured out (scheme type, window types, header colours, control/icon/glyph
+coverage, lint verdict):
+
+```sh
+npm run import -- <your-slug>
+# or, to copy the fork in at the same time:
+node scripts/import-scheme.mjs <your-slug> path/to/scheme.rsrc
+```
+
+If the report is clean, skip to step 4 (provenance) and step 6 (reference image).
+The rest of this section is the long-form / troubleshooting breakdown of what that
+command does.
+
+---
+
 With `themes/<your-slug>/scheme.rsrc` in place (and, ideally, a `meta.json`
 beside it — see step 4; the extractor auto-reads it if present), run from the
 repo root:
