@@ -9,6 +9,8 @@
 
 A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. Confirmed still absent: any `data-aaron-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `AaronWindow`, `ResizeObserver`, or emitted CSS. Ingestion is also unchanged — `src/loadTheme.ts`'s `assetUrl` still prefixes `baseUrl` (the blob-URL passthrough Decision 4 needs hasn't landed).
 
+**Open architecture item for the consumption layer (noted 2026-05-27):** the base-theme chain is wired ONLY in `demo/index.html` (`BASE_SLUG = 'apple-platinum-replica'` + `loadWithBase`), not in the `loadTheme` library default or any manifest — so a non-demo consumer gets NO base (missing controls/windows won't fall back). When the consumption layer is built, base selection should move to the library/manifest level. (Related: the `apple-platinum-replica` base is now narrow — post the ics4 wiring its only unique supply is the slider + window-geometry fallbacks — and its chrome is sliced from real Mac screenshots; a retire-and-promote-`apple-platinum-2` is actionable but breaks the generator suite + demo showcase. Owner call.)
+
 Two context updates that **reinforce** Decision 1 rather than alter it:
 
 1. **There are now TWO window compositors**, both already 9-slice-shaped:
