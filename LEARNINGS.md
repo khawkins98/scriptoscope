@@ -1656,6 +1656,52 @@ placement looks off, look for a scheme-provided marker/anchor before reaching fo
 constant. See `docs/spec/compositor-spec.md` (Title TEXT + plate), the `title` /
 control-coverage rules in `scripts/lint-themes.mjs`, and `docs/tracking/mac-fonts-todo.md`.
 
+## 2026-05-26 — Palette sourcing, geometry-from-the-decode, and the faithfulness punch-list
+
+A few days of corner-sprite/icon/geometry work. The reusable lessons, apart from the per-bug
+detail in `docs/geometry-refactor-todo.md`:
+
+**The 8-bit icons looked "too dark" — and the decode wasn't the problem, the palette SOURCE was.**
+I'd asserted the icon decode was correct and blamed gamma. The owner pushed back ("that didn't fix
+the darkness — where did we source?") and was right. Two real issues, neither in the decode logic:
+(1) the 256-colour palette was **mis-sourced** — we'd grabbed clut **9** (entry 0 is ~50% gray) and
+oversaturated it dividing by `0x7fff`; the fix was reconstructing the **canonical Apple clut 8** (the
+6×6×6 cube + four 10-step ramps) from first principles. (2) Mac used a deeper display gamma (1.8) than
+sRGB (2.2). LESSON: when colours look wrong, suspect the **palette resource you sourced** and the
+**gamma** before the decode loop — and when someone says "that didn't fix it," believe them and
+re-check the source instead of re-asserting the code is right.
+
+**Gamma is a BAKE-TIME display transform, not part of the decoders.** Mac 1.8 → sRGB 2.2 is applied
+when writing PNGs (`extract-scheme`/`extract-icons`), NOT inside the cicn/clut decoders — because the
+lint and resource-role tooling need the RAW bytes. Keep display correction at the I/O edge.
+
+**Prefer the highest bit-depth a scheme ships; key out maskless icons.** Schemes carry icl4+icl8 /
+ics4+ics8 for the same id — extract ALL depths (full gallery inventory) but render the highest
+(icl8 over icl4) for richer colour. Maskless 8-bit icons were rendering as opaque white boxes; they
+need their background colour-keyed to transparent.
+
+**Window geometry is DATA sourced from the decode — a font RECREATION is not a valid metric source.**
+Unified the per-window-type recipe (widget positions, bar heights) into one shared data source (was
+duplicated + drifting between the runtime and the generator). Title-bar height is **font-derived**
+(ascent + descent + offset) from the decode, NOT measured off our Charcoal *recreation* woff (which
+renders ~9px@12pt and would be a wrong source). Source geometry from the binary/decode, never from a
+proxy artifact.
+
+**The faithfulness punch-list trap: most "glitches" were faithful.** A long sweep of suspected
+rendering bugs — the platinum-8 pinstripe "glitch," apple-platinum-2 fidelity, the 1138 inset border,
+the title-bar-top crop, missing icon "shades" — each resolved to **"this matches the original"** or
+**"the decode is correct; it's the recreation-art ceiling,"** not a compositor bug. LESSON: before
+patching the compositor to fix a "glitch," check the **reference image / the original** FIRST; reactive
+fixes to faithful output are wasted and risk introducing un-faithfulness. Record each finding
+("faithful, no patch") so it isn't relitigated.
+
+**Built-then-reverted: don't generate what the corpus already ships.** A data-driven Platinum control
+generator (push button / ring / scrollbar from a spec + drawer) was built — elegant — then reverted
+because the scheme's **real shipped control art** is more faithful. Echoes the all-rasters lesson:
+procedural is the fallback; ship the corpus's own pixels when it has them. (Decode work confirmed the
+unbuildable part — Platinum control pixels live in AppearanceLib, a PPC PEF — so the procedural path
+stays a calibrated FALLBACK, not the source of truth.)
+
 ## 2026-05-27 — Drop a real `.sit` in the browser: the StuffIt→WASM port and its gotchas
 
 The whole drag-and-drop vision shipped: drop a Kaleidoscope theme (`.sit`, `.hqx`, MacBinary,
