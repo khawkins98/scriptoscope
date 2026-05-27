@@ -77,7 +77,11 @@ uint8_t *sit_decode(const uint8_t *in, int in_len) {
     }
     proc->close(proc);
 
-    if (!b.ok || r < 0) { free(b.p); return NULL; }
+    // A trailing open() error AFTER we've collected entries is munbox over-running the end of
+    // some archives (SIT5 iteration doesn't always stop cleanly — it reads one entry past the
+    // last and trips a bounds check instead of returning end-of-archive). The entries already
+    // decoded are valid, so keep them. Only fail hard if nothing decoded or our own buffer broke.
+    if (!b.ok || (r < 0 && count == 0)) { free(b.p); return NULL; }
     patch_u32(b.p + 0, (uint32_t)b.len);
     patch_u32(b.p + 4, count);
     return b.p;

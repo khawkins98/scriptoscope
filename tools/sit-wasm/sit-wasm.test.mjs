@@ -13,6 +13,7 @@ import { decodeArchive, stuffItResourceFork } from './index.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const FIXTURE = resolve(root, '.scratch', 'system7nostalgiasilver.sit');
 const CORPUS = resolve(root, 'themes', 'system7-nostalgia-silver', 'scheme.rsrc');
+const SIT5 = resolve(root, '.scratch', 'masswerk7le.sit'); // a multi-file SIT5 / method-15 archive
 
 test('decodes a real Kaleidoscope .sit → resource fork byte-identical to the corpus', {
   skip: existsSync(FIXTURE) ? false : 'fixture .scratch/system7nostalgiasilver.sit absent',
@@ -28,6 +29,24 @@ test('decodes a real Kaleidoscope .sit → resource fork byte-identical to the c
   const corpus = new Uint8Array(readFileSync(CORPUS));
   assert.equal(fork.length, corpus.length, 'resource-fork length matches the corpus');
   assert.deepEqual(fork, corpus, 'resource-fork bytes match the corpus exactly');
+});
+
+test('multi-file SIT5 (method 15): picks the scheme fork, tolerates munbox’s trailing over-run', {
+  skip: existsSync(SIT5) ? false : 'fixture .scratch/masswerk7le.sit absent',
+}, async () => {
+  const sit = new Uint8Array(readFileSync(SIT5));
+  // Must NOT throw, even though munbox over-runs the last SIT5 entry (returns -1) — the shim
+  // keeps the entries it decoded.
+  const entries = await decodeArchive(sit);
+  const rsrc = entries.filter((e) => e.forkType === 1 && e.bytes.length > 0);
+  assert.ok(rsrc.length >= 2, 'several resource forks (folder Icon + scheme + ReadMe)');
+
+  // stuffItResourceFork picks the LARGEST non-Icon resource fork (the scheme), not the first
+  // (which is the tiny folder-icon file).
+  const fork = await stuffItResourceFork(sit);
+  const largest = Math.max(...rsrc.filter((e) => !/(^|\/)Icon\r?$/.test(e.name)).map((e) => e.bytes.length));
+  assert.equal(fork.length, largest, 'returns the scheme fork (largest), not the folder icon');
+  assert.ok(fork.length > 8000, 'the scheme fork is the substantial one');
 });
 
 test('a non-archive input yields no resource fork (the scheme helper rejects it clearly)', async () => {

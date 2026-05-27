@@ -33,6 +33,13 @@ BWT+arithmetic)**, plus SIT5. It also reads BinHex `.hqx`, MacBinary `.bin`, and
 and the rare classic methods 3/5/8/14. A non-archive input passes through as a data fork (so
 `stuffItResourceFork` throws "no resource fork" rather than mis-decoding).
 
+**Multi-file archives:** a scheme often ships in a folder with a custom-folder-icon file
+(`Icon\r`) and a ReadMe, each with its own small resource fork. `stuffItResourceFork` returns
+the **largest** resource fork (the scheme dwarfs the others) and skips the folder-icon file;
+use `decodeArchive` if you need every entry. Note: munbox's SIT5 iterator over-runs the last
+entry and returns an error instead of a clean end-of-archive — the shim keeps the entries it
+decoded rather than discarding them, so a trailing over-run is harmless.
+
 ## Rebuild
 
 Requires the Emscripten SDK:

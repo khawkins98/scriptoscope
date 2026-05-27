@@ -42,9 +42,14 @@ export async function decodeArchive(bytes) {
  */
 export async function stuffItResourceFork(bytes) {
   const entries = await decodeArchive(bytes);
-  const r = entries.find((e) => e.forkType === 1 && e.bytes.length > 0);
-  if (!r) throw new Error('stuffItResourceFork: archive has no resource fork');
-  return r.bytes;
+  // A scheme often ships in a folder alongside a custom-folder-icon file ("Icon\r") and a
+  // ReadMe — each with its own little resource fork. The scheme's fork dwarfs them, so pick
+  // the LARGEST resource fork, skipping the special folder-icon file.
+  const rsrc = entries
+    .filter((e) => e.forkType === 1 && e.bytes.length > 0 && !/(^|\/)Icon\r?$/.test(e.name))
+    .sort((a, b) => b.bytes.length - a.bytes.length);
+  if (!rsrc.length) throw new Error('stuffItResourceFork: archive has no resource fork');
+  return rsrc[0].bytes;
 }
 
 function parsePacked(b) {
