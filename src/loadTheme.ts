@@ -67,8 +67,13 @@ async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | n
   }
 }
 
-/** Resolve a manifest-relative asset path to a fetchable URL. */
+/** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
+ *  URL (`blob:`/`http(s):`/`data:`) passes through unchanged — that's how an IN-MEMORY
+ *  theme works: `loadKaleidoscopeScheme` converts a dropped scheme and rewrites every
+ *  asset ref (and glyph) to an OffscreenCanvas `blob:` URL, so the runtime renders it
+ *  with no `baseUrl` fetch. A bundle-relative path is resolved against `baseUrl` as before. */
 export function assetUrl(theme: LoadedTheme, relativePath: string): string {
+  if (/^(?:blob:|https?:|data:)/.test(relativePath)) return relativePath;
   return `${theme.baseUrl}/${relativePath}`;
 }
 

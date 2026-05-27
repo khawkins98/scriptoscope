@@ -1,92 +1,94 @@
-// Runtime Kaleidoscope scheme loader — decode a .ksc / .rsrc resource
-// fork on the fly into an in-memory Theme.
+// Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
+// conversion core (convert.js). A single in-browser call instead of the Node
+// build pipeline: decode a dropped .ksc/.rsrc resource fork → a render-ready,
+// in-memory LoadedTheme (the same theme.json the CLIs write, plus OffscreenCanvas
+// blob-URL assets + the glyph map), with no build step and no macOS toolchain.
 //
-// A single runtime call instead of the build-time pipeline (extractor →
-// theme.json bundle). Same output shape (a Theme matching the src/types.ts
-// schema), but no conversion step and no macOS-only toolchain.
-//
-// Browser-portable: uses fetch + OffscreenCanvas (with a no-canvas
-// option for Node tests).
+// Layering: convert.js does the PURE conversion (fork → theme + RGBA assets); THIS
+// file is the browser I/O shell (RGBA → blob-URL via OffscreenCanvas) + the glue that
+// produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
+// parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
-import { parseResourceFork } from './resource-fork.js';
-import { decodeCicn } from './decoders/cicn.js';
-import { decodePpat } from './decoders/ppat.js';
-import { decodeCinf } from './decoders/cinf.js';
-import { decodeWnd }  from './decoders/wnd.js';
-import { decodeColr } from './decoders/colr.js';
-import { buildThemeJson } from './buildThemeJson.js';
-import { validateTheme } from './validateTheme.js';
+import { convertScheme } from './convert.js';
 
 /**
  * @typedef {object} LoadOptions
- * @property {object} [meta]
- *   Optional metadata (name, author, origin) merged into the theme.
- *   The binary scheme doesn't carry these — supply them here.
- * @property {boolean} [encodeAssets]
- *   When true (default in browser, false elsewhere), encode cicn/ppat
- *   RGBA buffers into PNG blob URLs and put those in `asset` fields.
- *   When false, `asset` is a placeholder path — useful for tests + for
- *   cases where the caller wants to do its own encoding.
- * @property {(rgba: Uint8Array, w: number, h: number, key: string) => Promise<string>} [assetUrlFactory]
- *   Custom asset URL factory. Receives RGBA bytes + dimensions + a
- *   stable cache key. Default uses OffscreenCanvas in browser.
- * @property {boolean} [validate]
- *   Run schema validation on the result. Default true.
+ * @property {object}  [meta]   name/author/origin merged into the theme (the binary
+ *   scheme doesn't carry these).
+ * @property {string}  [source] source label for the manifest (default 'resource-fork').
+ * @property {boolean} [encodeAssets] encode RGBA → blob-URL assets (default: true in a
+ *   browser w/ OffscreenCanvas). When false, returns the raw RGBA assets instead — for
+ *   Node tests or a caller doing its own encoding.
+ * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
+ *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
  */
 
 /**
- * Decode a Kaleidoscope scheme resource fork into a Theme.
+ * Decode a Kaleidoscope scheme resource fork into a render-ready in-memory theme.
  *
- * @param {Uint8Array | ArrayBuffer | Blob | string} input
- *   Resource fork bytes, ArrayBuffer, Blob (e.g. from a File input),
- *   or a URL string to fetch.
+ * @param {Uint8Array|ArrayBuffer|Blob|string} input  fork bytes, ArrayBuffer, Blob
+ *   (a dropped File), or a URL to fetch.
  * @param {LoadOptions} [options]
- * @returns {Promise<object>} A validated, render-ready Theme.
+ * @returns {Promise<object>} encodeAssets ⇒ a LoadedTheme `{ manifest, baseUrl:'', glyphs? }`
+ *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
+ *   `{ manifest, assets, iconIndex }`.
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const bytes = await toUint8Array(input);
-  const entries = parseResourceFork(bytes);
-
-  // Decode every resource of a known chrome type. Unknown types are
-  // preserved for diagnostics but not decoded — the runtime doesn't
-  // currently render anything from STR#, DITL, PICT, etc.
-  const decoded = entries.map((e) => {
-    let payload = null;
-    let error = null;
-    try {
-      if      (e.type === 'cicn') payload = decodeCicn(e.data);
-      else if (e.type === 'ppat') payload = decodePpat(e.data);
-      else if (e.type === 'cinf') payload = decodeCinf(e.data);
-      else if (e.type === 'wnd#') payload = decodeWnd(e.data);
-      else if (e.type === 'Colr') payload = decodeColr(e.data);
-    } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
-    }
-    return { entry: e, payload, error };
+  const { theme, assets, iconIndex } = convertScheme(bytes, {
+    meta: options.meta,
+    source: options.source ?? 'resource-fork',
   });
+  // convertScheme already validated the theme (convertChrome → validateTheme).
 
-  // Build a synthetic manifest that buildThemeJson can consume. The
-  // shape mirrors what the CLI emits — `assets` array with type/id/name,
-  // `file` for raster, `data` for geometry. We invent placeholder `file`
-  // paths; if encodeAssets is on we replace them with blob URLs below.
-  const manifest = buildSyntheticManifest(decoded);
-  const theme = buildThemeJson(manifest, { meta: options.meta });
-
-  // Encode RGBA buffers into asset URLs if requested.
   const encodeAssets = options.encodeAssets ?? (typeof OffscreenCanvas !== 'undefined');
-  if (encodeAssets) {
-    const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
-    await replaceAssetsWithEncodedUrls(theme, decoded, urlFor);
+  if (!encodeAssets) {
+    // Raw mode: hand back the contract + the un-encoded RGBA assets.
+    return { manifest: theme, assets, iconIndex };
   }
 
-  if (options.validate !== false) validateTheme(theme);
-  return theme;
+  const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
+  // Encode every decoded asset → a URL, keyed by its bundle path.
+  const urlByPath = new Map();
+  for (const a of assets) urlByPath.set(a.path, await urlFor(a.rgba, a.width, a.height, a.path));
+
+  // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
+  // proxy, patterns, body pattern — all stored as path strings that match an asset).
+  rewriteAssetRefs(theme, urlByPath);
+
+  // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
+  const glyphs = buildGlyphMap(iconIndex, urlByPath);
+
+  return { manifest: theme, baseUrl: '', ...(Object.keys(glyphs).length ? { glyphs } : {}) };
+}
+
+/** Recursively replace any string value that is a known asset bundle-path with its URL. */
+function rewriteAssetRefs(node, urlByPath) {
+  if (Array.isArray(node)) { for (const v of node) rewriteAssetRefs(v, urlByPath); return; }
+  if (node && typeof node === 'object') {
+    for (const k of Object.keys(node)) {
+      const v = node[k];
+      if (typeof v === 'string') { if (urlByPath.has(v)) node[k] = urlByPath.get(v); }
+      else if (v && typeof v === 'object') rewriteAssetRefs(v, urlByPath);
+    }
+  }
+}
+
+/** id → glyph URL, highest depth per id (mirrors src/loadTheme.loadGlyphMap). */
+function buildGlyphMap(iconIndex, urlByPath) {
+  const glyphs = {};
+  const depthAt = {};
+  for (const e of iconIndex) {
+    if (e.size !== 16 && e.type !== 'ics4' && e.type !== 'ics8') continue;
+    const id = String(e.id);
+    const d = e.depth ?? (e.type === 'ics8' ? 8 : 4);
+    if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath.get(`icons/${e.file}`); depthAt[id] = d; }
+  }
+  return glyphs;
 }
 
 async function toUint8Array(input) {
   if (input instanceof Uint8Array) return input;
-  // ArrayBuffer-ish: ArrayBuffer + SharedArrayBuffer both expose
-  // .byteLength + can wrap into a Uint8Array view.
   if (input && typeof input === 'object' && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     return new Uint8Array(input);
   }
@@ -95,159 +97,17 @@ async function toUint8Array(input) {
   }
   if (typeof input === 'string') {
     const res = await fetch(input);
-    if (!res.ok) {
-      throw new Error(`loadKaleidoscopeScheme: failed to fetch ${input} (${res.status} ${res.statusText})`);
-    }
+    if (!res.ok) throw new Error(`loadKaleidoscopeScheme: failed to fetch ${input} (${res.status} ${res.statusText})`);
     return new Uint8Array(await res.arrayBuffer());
   }
   throw new Error(`loadKaleidoscopeScheme: unsupported input type ${typeof input}`);
 }
 
-function buildSyntheticManifest(decoded) {
-  const assets = [];
-  for (const { entry, payload, error } of decoded) {
-    const base = {
-      type: entry.type,
-      id: entry.id,
-      name: entry.name || null,
-    };
-    if (error) {
-      assets.push({ ...base, status: 'error', error });
-      continue;
-    }
-    if (!payload) {
-      // Type we don't decode — pass through as skipped (still recorded
-      // for diagnostics, ignored by buildThemeJson).
-      assets.push({ ...base, status: 'skipped' });
-      continue;
-    }
-    if (entry.type === 'cicn' || entry.type === 'ppat') {
-      assets.push({
-        ...base,
-        status: 'ok',
-        file: placeholderAssetPath(entry),
-        width: payload.width,
-        height: payload.height,
-      });
-    } else {
-      // cinf / wnd# — geometry, no file
-      assets.push({
-        ...base,
-        status: 'ok',
-        data: payload,
-      });
-    }
-  }
-  return {
-    source: 'resource-fork',
-    extractedAt: new Date().toISOString(),
-    counts: countManifest(assets),
-    assets,
-  };
-}
-
-function countManifest(assets) {
-  const out = { total: assets.length, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0 };
-  for (const a of assets) {
-    if (a.status === 'ok') {
-      out.ok++;
-      if (a.file) out.raster++;
-      else out.geometry++;
-    } else if (a.status === 'skipped') out.skipped++;
-    else if (a.status === 'error') out.errored++;
-  }
-  return out;
-}
-
-function placeholderAssetPath(entry) {
-  const slugBase = (entry.name || '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const idStr = entry.id < 0 ? `n${-entry.id}` : String(entry.id);
-  const slug = slugBase ? `${slugBase}` : 'unnamed';
-  if (entry.type === 'cicn') return `cicns/cicn-${idStr}-${slug}.png`;
-  if (entry.type === 'ppat') return `ppats/ppat-${idStr}-${slug}.png`;
-  return `unknown/${entry.type}-${idStr}.bin`;
-}
-
-/**
- * Walk the theme's catalogs and replace each `asset` placeholder with a
- * real URL derived from the corresponding decoded RGBA buffer.
- */
-async function replaceAssetsWithEncodedUrls(theme, decoded, urlFor) {
-  // Index decoded raster payloads by (type, id) for quick lookup.
-  const byKey = new Map();
-  for (const { entry, payload } of decoded) {
-    if (!payload) continue;
-    if (entry.type !== 'cicn' && entry.type !== 'ppat') continue;
-    byKey.set(`${entry.type}:${entry.id}`, { entry, payload });
-  }
-
-  // chromeElements
-  if (theme.chromeElements) {
-    for (const elem of Object.values(theme.chromeElements)) {
-      const id = elem.sourceCicnId;
-      if (id == null) continue;
-      const hit = byKey.get(`cicn:${id}`);
-      if (!hit) continue;
-      elem.asset = await urlFor(
-        hit.payload.rgba, hit.payload.width, hit.payload.height,
-        `cicn-${id}`,
-      );
-    }
-  }
-
-  // patterns (ppat)
-  if (theme.patterns) {
-    for (const entry of Object.values(theme.patterns)) {
-      const id = entry.sourcePpatId;
-      if (id == null) continue;
-      const hit = byKey.get(`ppat:${id}`);
-      if (!hit) continue;
-      entry.asset = await urlFor(
-        hit.payload.rgba, hit.payload.width, hit.payload.height,
-        `ppat-${id}`,
-      );
-    }
-  }
-
-  // windowTypes' chrome map references the asset path stored on the
-  // chromeElement entry — those paths were already updated above. But
-  // windowType.chrome stores its own copy of the URL, so refresh it.
-  if (theme.windowTypes && theme.chromeElements) {
-    for (const wt of Object.values(theme.windowTypes)) {
-      const chrome = wt.chrome || {};
-      for (const state of Object.keys(chrome)) {
-        const oldPath = chrome[state];
-        if (typeof oldPath !== 'string') continue;
-        // Find the chromeElement entry that originally had this path.
-        for (const elem of Object.values(theme.chromeElements)) {
-          if (placeholderMatches(elem, oldPath)) {
-            chrome[state] = elem.asset;
-            break;
-          }
-        }
-      }
-    }
-  }
-}
-
-function placeholderMatches(elem, candidate) {
-  // The chrome map stores the SAME path string the chromeElement
-  // originally had (placeholder). After we update elem.asset to a blob
-  // URL, we identify by sourceCicnId convention in the placeholder.
-  if (!elem.sourceCicnId) return false;
-  const idStr = elem.sourceCicnId < 0 ? `n${-elem.sourceCicnId}` : String(elem.sourceCicnId);
-  return candidate.includes(`cicn-${idStr}-`) || candidate.includes(`cicn-${idStr}.`);
-}
-
-/**
- * Default asset URL factory — encodes RGBA into a PNG blob URL via
- * OffscreenCanvas. Browser-only; Node tests should pass their own
- * factory (or set encodeAssets: false).
- */
+/** Default RGBA→URL encoder: a PNG blob URL via OffscreenCanvas. Browser-only; Node
+ *  callers pass their own assetUrlFactory (or encodeAssets:false). */
 async function defaultAssetUrlFactory(rgba, width, height) {
-  if (typeof OffscreenCanvas === 'undefined' || typeof createImageBitmap === 'undefined') {
-    throw new Error('defaultAssetUrlFactory: OffscreenCanvas + createImageBitmap required (browser only)');
+  if (typeof OffscreenCanvas === 'undefined') {
+    throw new Error('defaultAssetUrlFactory: OffscreenCanvas required (browser only) — pass assetUrlFactory or encodeAssets:false');
   }
   const canvas = new OffscreenCanvas(width, height);
   const ctx = canvas.getContext('2d');
