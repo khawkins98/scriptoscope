@@ -125,7 +125,12 @@ export class AaronWindow {
     const { el, parent, next } = this.restore;
     el.append(...Array.from(this.fit.childNodes));
     delete el.dataset.aaronPromoted;
-    if (parent) parent.insertBefore(el, next);
+    // The captured nextSibling may itself have been removed (e.g. an adjacent promoted window) —
+    // only insert before it if it's still a child of the parent, else append.
+    if (parent) {
+      if (next && next.parentNode === parent) parent.insertBefore(el, next);
+      else parent.appendChild(el);
+    }
     this.host.remove();
   }
 }

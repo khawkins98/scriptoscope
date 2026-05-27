@@ -3,7 +3,6 @@
 // Idempotent: promoted elements are stamped `data-aaron-promoted`, so re-scans (incl. the observer
 // firing on our OWN DOM moves) skip them and settle.
 
-import type { LoadedTheme } from '../types.js';
 import { WindowManager } from '../interactive.js';
 import { AaronWindow } from './AaronWindow.js';
 import { promoteButton } from './button.js';
@@ -34,20 +33,25 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const isPromoted = (el: Element): boolean =>
     (el as HTMLElement).dataset?.aaronPromoted != null || inFlight.has(el);
 
-  const themeForEl = async (el: Element): Promise<LoadedTheme> => {
+  // Nearest-ancestor-wins theme ref for an element (walk ancestors collecting data-aaron-theme).
+  const refForEl = (el: Element): string => {
     const chain: (string | null)[] = [];
     for (let n: Element | null = el; n; n = n.parentElement) chain.unshift(n.getAttribute('data-aaron-theme'));
-    return resolver.load(resolveThemeRef(chain, pageDefault) ?? pageDefault);
+    return resolveThemeRef(chain, pageDefault) ?? pageDefault;
   };
 
   const promoteWindow = async (el: HTMLElement): Promise<void> => {
     if (isPromoted(el) || el.closest('.aw-window')) return; // skip done / nested-in-chrome
     inFlight.add(el);
     try {
-      const theme = await themeForEl(el);
+      const ref = refForEl(el);
+      const theme = await resolver.load(ref);
       const pos = { x: 24 + cascade * 26, y: 24 + cascade * 26 };
       cascade += 1;
-      await AaronWindow.promote(el, { manager, theme }, pos);
+      const aw = await AaronWindow.promote(el, { manager, theme }, pos);
+      // Stamp the resolved ref on the host: the original element that carried data-aaron-theme is
+      // now removed, so descendant buttons inherit the window's theme via this stamp (not the body).
+      aw.host.dataset.aaronTheme = ref;
     } catch (err) {
       console.error('[aaron] window promote failed:', err);
     } finally {
@@ -59,7 +63,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .aw-window
     inFlight.add(el);
     try {
-      await promoteButton(el, await themeForEl(el));
+      await promoteButton(el, await resolver.load(refForEl(el)));
     } catch (err) {
       console.error('[aaron] button promote failed:', err);
     } finally {
@@ -67,10 +71,12 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
   };
 
-  // Windows first (this moves their content — including any buttons — into the chrome), THEN buttons
-  // anywhere (now in their final location). Stamps make this safe to run repeatedly.
+  // Windows in DOCUMENT ORDER, sequentially, so the first declared window becomes the active one
+  // deterministically (WindowManager focus follows add-order). This moves window content — including
+  // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
+  // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
-    await Promise.all(Array.from(within.querySelectorAll(WINDOW_SEL), (el) => promoteWindow(el as HTMLElement)));
+    for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
     await Promise.all(Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)));
   };
 

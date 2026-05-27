@@ -436,8 +436,11 @@ export class WindowManager {
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
+    // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
+    // (so a declarative `data-aaron-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow = {
-      theme, opts, handlers, host, active: this.windows.length === 0,
+      theme, opts, handlers, host,
+      active: this.windows.length === 0 && opts.state !== 'inactive',
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
     };
     this.windows.push(entry);
