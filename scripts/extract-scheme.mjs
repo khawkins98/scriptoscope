@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// Extract a Kaleidoscope scheme bundle straight from its binary resource fork
-// (no macOS DeRez step): (a) reads the raw resource fork via parseResourceFork,
-// (b) imports the live decoders from tools/theme-loader, (c) writes PNGs into
-// cicns/ + ppats/ subdirs and decodes the header cluts — producing the
-// themes/<slug>/ bundle layout. This is the live extractor.
+// Extract a Kaleidoscope scheme bundle straight from its binary resource fork.
+// Thin Node shell over the portable conversion core (tools/theme-loader/convert.js):
+// reads themes/<slug>/scheme.rsrc, runs convertChrome (decode → gamma → theme.json →
+// headerColors → bodyBackground), then does the Node-only I/O — PNG-encodes each RGBA
+// asset (zlib) and writes the themes/<slug>/ bundle. The browser loader runs the SAME
+// convertChrome over a dropped Blob; this CLI just adds fs + zlib.
 //
-// Usage: node scripts/extract-scheme.mjs <slug>
+// Usage: node scripts/extract-scheme.mjs <slug> [<slug>...] | --all
 //   reads  themes/<slug>/scheme.rsrc  (+ optional meta.json)
 //   writes themes/<slug>/{cicns,ppats}/*.png, extraction-manifest.json, theme.json
 
@@ -13,15 +14,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
-import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
-import { decodeCicn } from '../tools/theme-loader/decoders/cicn.js';
-import { decodePpat } from '../tools/theme-loader/decoders/ppat.js';
-import { decodeCinf } from '../tools/theme-loader/decoders/cinf.js';
-import { decodeWnd } from '../tools/theme-loader/decoders/wnd.js';
-import { buildThemeJson } from '../tools/theme-loader/buildThemeJson.js';
-import { validateTheme } from '../tools/theme-loader/validateTheme.js';
-import { decodeClut, headerColorsFromClut } from '../tools/theme-loader/decoders/clut.js';
-import { gammaCorrectRgba, gammaCorrectHex } from '../tools/theme-loader/mac-gamma.js';
+import { convertChrome } from '../tools/theme-loader/convert.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -38,131 +31,43 @@ const slugs = argv.includes('--all')
 for (const s of slugs) extract(s);
 
 function extract(slug) {
-const destDir = resolve(repoRoot, 'themes', slug);
-const rsrcPath = resolve(destDir, 'scheme.rsrc');
-if (!existsSync(rsrcPath)) {
-  console.error(`Not found: ${rsrcPath}`);
-  process.exit(1);
-}
+  const destDir = resolve(repoRoot, 'themes', slug);
+  const rsrcPath = resolve(destDir, 'scheme.rsrc');
+  if (!existsSync(rsrcPath)) {
+    console.error(`Not found: ${rsrcPath}`);
+    process.exit(1);
+  }
+  const metaPath = resolve(destDir, 'meta.json');
+  const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
+  const fork = new Uint8Array(readFileSync(rsrcPath));
 
-// PNG (RGBA) encoder: scripts/lib/png-encode.mjs (shared with extract-icons +
-// the platinum generator — was triplicated inline here).
-
-function slugify(name) {
-  if (!name) return 'unnamed';
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'unnamed';
-}
-const idStr = (id) => (id < 0 ? `n${-id}` : String(id));
-
-// ── decode the resource fork ──
-const entries = parseResourceFork(new Uint8Array(readFileSync(rsrcPath)));
-console.log(`Parsed ${entries.length} resources from ${slug}/scheme.rsrc`);
-
-mkdirSync(resolve(destDir, 'cicns'), { recursive: true });
-mkdirSync(resolve(destDir, 'ppats'), { recursive: true });
-
-const flatAssets = []; // for extraction-manifest.json (flat file paths)
-const subAssets = [];   // for buildThemeJson (cicns/ + ppats/ paths)
-const counts = { total: 0, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0 };
-
-for (const e of entries) {
-  if (!['cicn', 'ppat', 'cinf', 'wnd#'].includes(e.type)) continue;
-  counts.total++;
-  const base = { type: e.type, id: e.id, name: e.name || null };
-  let payload = null, error = null;
+  let result;
   try {
-    if (e.type === 'cicn') payload = decodeCicn(e.data);
-    else if (e.type === 'ppat') payload = decodePpat(e.data);
-    else if (e.type === 'cinf') payload = decodeCinf(e.data);
-    else if (e.type === 'wnd#') payload = decodeWnd(e.data);
-  } catch (err) { error = err instanceof Error ? err.message : String(err); }
-
-  if (error) {
-    counts.errored++;
-    flatAssets.push({ ...base, status: 'error', error });
-    subAssets.push({ ...base, status: 'error', error });
-    continue;
+    result = convertChrome(fork, { meta, source: `${slug}/scheme.rsrc` });
+  } catch (err) {
+    console.error(`[${slug}] conversion FAILED:`, err instanceof Error ? err.message : String(err));
+    process.exit(1);
   }
-  if (!payload) {
-    counts.skipped++;
-    flatAssets.push({ ...base, status: 'skipped', reason: 'unsupported variant' });
-    subAssets.push({ ...base, status: 'skipped', reason: 'unsupported variant' });
-    continue;
+  const { theme, assets, manifest } = result;
+
+  // ── Node I/O: PNG-encode each RGBA asset (zlib) + write the bundle ──
+  mkdirSync(resolve(destDir, 'cicns'), { recursive: true });
+  mkdirSync(resolve(destDir, 'ppats'), { recursive: true });
+  for (const a of assets) {
+    writeFileSync(resolve(destDir, a.path), encodePng(a.width, a.height, a.rgba));
   }
-  if (e.type === 'cicn' || e.type === 'ppat') {
-    const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
-    const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
-    // Mac→sRGB gamma (display transform) — see scripts/lib/mac-gamma.mjs.
-    gammaCorrectRgba(payload.rgba);
-    writeFileSync(resolve(destDir, sub, fname), encodePng(payload.width, payload.height, payload.rgba));
-    counts.ok++; counts.raster++;
-    flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
-    subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug });
-  } else {
-    counts.ok++; counts.geometry++;
-    flatAssets.push({ ...base, status: 'ok', data: payload });
-    subAssets.push({ ...base, status: 'ok', data: payload });
-  }
-}
+  // extraction-manifest carries the wall-clock (the one non-deterministic field; lives
+  // here, not in the deterministic theme.json).
+  writeFileSync(
+    resolve(destDir, 'extraction-manifest.json'),
+    JSON.stringify({ source: manifest.source, extractedAt: new Date().toISOString(), counts: manifest.counts, assets: manifest.assets }, null, 2),
+  );
+  writeFileSync(resolve(destDir, 'theme.json'), JSON.stringify(theme, null, 2));
 
-const extractedAt = new Date().toISOString();
-writeFileSync(
-  resolve(destDir, 'extraction-manifest.json'),
-  JSON.stringify({ source: `${slug}/scheme.rsrc`, extractedAt, counts, assets: flatAssets }, null, 2),
-);
-
-// ── build theme.json ──
-const metaPath = resolve(destDir, 'meta.json');
-const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
-const theme = buildThemeJson({ source: `${slug}/scheme.rsrc`, extractedAt, counts, assets: subAssets }, { meta });
-
-// header colors from the window cluts. The scheme NAMES these -14336 "Active
-// Header" / -14335 "Inactive Header" (verified across the corpus), and the colors
-// confirm it: -14336 is the focused look (Black Platinum's black frame, System 7's
-// black-outline/white-fill). An earlier draft had active/inactive swapped.
-const cl = (id) => {
-  const r = entries.find((x) => x.type === 'clut' && x.id === id);
-  if (!r) return null;
-  // Gamma-correct each header color so procedural frames + contrast-sampled
-  // title text match the gamma'd cicn/ppat rasters (display transform).
-  const c = headerColorsFromClut(decodeClut(r.data));
-  for (const k of Object.keys(c)) if (c[k] != null) c[k] = gammaCorrectHex(c[k]);
-  return c;
-};
-const active = cl(-14336), inactive = cl(-14335);
-if (active || inactive) {
-  theme.headerColors = {};
-  if (active) theme.headerColors.active = active;
-  if (inactive) theme.headerColors.inactive = inactive;
-}
-
-// Window body background: the Icon/List View cinf's bgPatternId ppat,
-// tiled behind window content (absent → OS-default white).
-const viewBg = (() => {
-  for (const id of [-9551, -9550]) {
-    const r = entries.find((x) => x.type === 'cinf' && x.id === id);
-    if (!r) continue;
-    try { const d = decodeCinf(r.data); if (d?.bgPatternId) return d.bgPatternId; } catch { /* skip */ }
-  }
-  return 0;
-})();
-if (viewBg) {
-  const abs = Math.abs(viewBg);
-  for (const v of Object.values(theme.patterns ?? {})) {
-    const m = /ppat-n?-?(\d+)/.exec(v.asset ?? '');
-    if (m && parseInt(m[1], 10) === abs) { theme.bodyBackground = { pattern: v.asset }; break; }
-  }
-}
-
-try { validateTheme(theme); } catch (err) {
-  console.error(`[${slug}] schema validation FAILED:`, err.message);
-  process.exit(1);
-}
-writeFileSync(resolve(destDir, 'theme.json'), JSON.stringify(theme, null, 2));
-
-console.log(
-  `[${slug}] ok=${counts.ok} (raster=${counts.raster}, geometry=${counts.geometry}) ` +
-  `skipped=${counts.skipped} errored=${counts.errored} → ${Object.keys(theme.chromeElements || {}).length} chrome elements, ` +
-  `${Object.keys(theme.windowTypes || {}).length} window types, headerColors=${!!theme.headerColors}`,
-);
+  const c = manifest.counts;
+  console.log(
+    `[${slug}] ok=${c.ok} (raster=${c.raster}, geometry=${c.geometry}) ` +
+    `skipped=${c.skipped} errored=${c.errored} → ${Object.keys(theme.chromeElements || {}).length} chrome elements, ` +
+    `${Object.keys(theme.windowTypes || {}).length} window types, headerColors=${!!theme.headerColors}`,
+  );
 }
