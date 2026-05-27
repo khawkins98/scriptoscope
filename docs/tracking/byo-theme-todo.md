@@ -21,6 +21,14 @@ Validated on real archives: classic `SIT!` method 13 byte-identical to corpus; S
   "Bring your own theme" section; softened the "didn't otherwise exist" claim; full build-flag note.
 - Code/robustness: empty-input (0-byte) guard in `loadKaleidoscopeScheme`; `index.mjs` JSDoc now
   documents `type`/`creator` as u32 OSType codes + the shared-singleton WASM instance.
+- **Licensing (owner decided MIT):** root `LICENSE` (MIT, scoped away from `themes/` + munbox +
+  fonts), `package.json` MIT + author, README §License rewrite, and a `tools/sit-wasm/LICENSE`.
+- **sit-wasm packaging:** `tools/sit-wasm/package.json` ("stuffit-wasm", exports/files/keywords),
+  `index.d.ts`, README install + runnable Node/browser examples + a `locateFile` note.
+- **Drop-zone UX/a11y:** friendly error wrapping (raw text behind a `<details>`); a visible
+  "preview only — not saved" note at success + in the limits line; `role=status aria-live=polite`
+  on `#byo-out` + `aria-busy` during decode; plainer hint copy + a "Kaleidoscope archive" link +
+  simpler `aria-label` + `accept=` on the picker.
 
 ## Open — gated (decide before building)
 
@@ -31,40 +39,30 @@ Validated on real archives: classic `SIT!` method 13 byte-identical to corpus; S
   *Gate: ADR-0001 gating spike.* (User advocate flagged the missing-save dead-end as the top UX gap.)
 - **Grafting onto live web pages** — the unbuilt consumption layer (scanner / window-manager /
   CSS emission). See ADR-0001. *Gate: its own spike.*
-- **sit-wasm as a standalone OSS release** — the owner wants to potentially offer it to the
-  community, but it's not adoptable yet:
-  - **LICENSE for the first-party files** (`shim.c`, `index.mjs`, `build.sh`) — they currently
-    inherit the repo's `UNLICENSED` status, so the "MIT" claim has no grant behind it (only the
-    vendored `munbox/` is MIT). *Gate: owner decision — the repo license is deliberately undecided.*
-  - Its own `package.json` (name/version/`exports`/`files`), a hand-written `index.d.ts`, runnable
-    Node + browser usage examples, a CDN/`locateFile` note, and a committed license-clean `.sit`
-    test fixture (today both real-decode tests skip on a fresh clone — fixtures are git-ignored).
-  - Naming/positioning for discoverability (e.g. `stuffit-wasm`), npm keywords. *All gated on the
-    LICENSE decision.*
+- **sit-wasm as a standalone OSS release** — license + packaging now DONE (MIT, `package.json`
+  "stuffit-wasm", `index.d.ts`, examples). Remaining to actually ship it:
+  - **Publish to npm** (and/or split to its own repo — `repository.directory` already points here).
+  - **A committed license-clean `.sit` test fixture** so the byte-identical test runs on a fresh
+    clone (today both real-decode tests skip — fixtures are git-ignored `.scratch/` clean-room
+    sources). Likely a synthetic minimal `SIT!` archive (method 0) generated first-party.
 
-## Open — drop-zone UX & accessibility (deferred polish, not blockers)
+## Open — drop-zone UX & accessibility (remaining)
 
-From the user-advocate review; the demo bills itself as a "runtime debugger," so some
-developer-flavored text is in-character — these matter most if the drop-zone courts non-developers.
+The P0/P1 items from the user-advocate review shipped (see Done above: friendly errors,
+preview-only expectation, `aria-live`/`aria-busy`, plainer copy, `accept=`). Remaining:
 
-- **P1 Friendly error wrapping.** Raw decoder strings leak to the UI (`theme.json.windowTypes:
-  expected object`, `parseResourceFork: data section overruns…`, munbox `header2 out of range`).
-  Wrap with a human top line; tuck the raw text behind a `<details>`. (`demo/index.html` `convertAndRender`)
-- **P1 Visible "preview only — no save yet" line** by the success check (not just the 10.5px fine
-  print). Reinforces the privacy promise; pre-empts the missing-save disappointment.
-- **P1 `aria-live` on `#byo-out`** (and `role=alert` on errors) — screen-reader users currently get
-  no feedback on convert success/failure/progress. Highest-leverage small a11y fix.
-- **P2 Surface multi-file disclosure** — when an archive had >1 candidate theme, say "showing the
-  largest of N" in the report (today it silently picks the largest).
-- **P2 Busy/progress state** during a heavy `.sit` decode (`aria-busy`/spinner).
-- **P2 Plainer copy** — demote `.sitx`/"resource fork"/"AppleDouble" jargon below a plain-language
-  lead; answer "where do I get a theme file?" (link the Kaleidoscope archive / a sample).
-- **P2 Recovery affordance** after an error ("try another file"); `accept=` on the file input.
+- **P2 Dynamic multi-file disclosure** — when an archive had >1 candidate theme, say "showing the
+  largest of N" in the report. Needs fork-count plumbing through `loadKaleidoscopeScheme` (or a
+  second `decodeArchive` pass in the demo); the static limits line already warns it *can* happen.
+- **P2 Busy spinner** — `aria-busy` is set during decode, but there's no visual spinner for a heavy
+  `.sit`; the static "Converting…" text reads as frozen on large files.
+- **P2 Recovery affordance** — a "try another file" / dismiss control after an error.
 
 ## Open — decoder coverage & robustness (the real edges)
 
-- **`.sitx` (StuffIt X)** unsupported — munbox scope. Detect + give a clear message (currently it
-  may fall through to a generic failure). 
+- **`.sitx` (StuffIt X)** unsupported — munbox scope. A dropped `.sitx` now fails *gracefully* (the
+  friendly error names `.sitx` as a likely cause). A *dedicated* detector (route `.sitx` to a
+  specific message) needs a real `.sitx` sample to confirm its magic — don't guess the format.
 - **Multi-file `.sit` selection is a heuristic** — "largest resource fork = the scheme." Robust for
   the corpus, not guaranteed. A content-aware pick (which fork parses as a valid scheme) would be
   stronger.
