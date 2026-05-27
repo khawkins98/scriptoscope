@@ -26,6 +26,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? 'apple-platinum-replica';
   const root: Document | Element = opts.root ?? document;
   const inFlight = new Set<Element>();
+  const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   let cascade = 0;
 
   await resolver.preloadFonts();
@@ -52,6 +53,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
       // Stamp the resolved ref on the host: the original element that carried data-aaron-theme is
       // now removed, so descendant buttons inherit the window's theme via this stamp (not the body).
       aw.host.dataset.aaronTheme = ref;
+      mounted.push(aw);
     } catch (err) {
       console.error('[aaron] window promote failed:', err);
     } finally {
@@ -96,5 +98,15 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const target = root instanceof Document ? (root.body ?? root.documentElement) : root;
   if (target) obs.observe(target, { childList: true, subtree: true });
 
-  return { disconnect: () => obs.disconnect() };
+  // Full teardown: stop watching AND unmount every promoted window (restores its content + the
+  // original element, disconnects its ResizeObserver). NB: skinned buttons aren't restored to their
+  // original elements (the window's content, incl. the skinned button, is moved back as-is). v1.
+  // Also note: declarative elements added INSIDE an already-promoted window's content are not
+  // promoted (the observer ignores `.aw-window` subtrees) — a documented v1 limitation.
+  return {
+    disconnect: () => {
+      obs.disconnect();
+      for (const w of mounted.splice(0)) w.unmount();
+    },
+  };
 }
