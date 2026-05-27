@@ -18,7 +18,34 @@ import { decodeWnd } from './decoders/wnd.js';
 import { decodeClut, headerColorsFromClut } from './decoders/clut.js';
 import { buildThemeJson } from './buildThemeJson.js';
 import { validateTheme } from './validateTheme.js';
-import { gammaCorrectRgba, gammaCorrectHex } from './mac-gamma.js';
+import { gammaCorrectRgba, gammaCorrectHex, macRgbToSrgb } from './mac-gamma.js';
+
+// ── Icon palettes (pre-gamma'd to sRGB at module load, same display transform) ──
+// Apple's canonical 16-colour 4-bit palette. Exact, fixed.
+const PALETTE16 = [
+  [0xff, 0xff, 0xff], [0xfc, 0xf3, 0x05], [0xff, 0x64, 0x03], [0xdd, 0x09, 0x07],
+  [0xf2, 0x08, 0x84], [0x47, 0x00, 0xa5], [0x00, 0x00, 0xd3], [0x02, 0xab, 0xea],
+  [0x1f, 0xb7, 0x14], [0x00, 0x64, 0x12], [0x56, 0x2c, 0x05], [0x90, 0x71, 0x3a],
+  [0xc0, 0xc0, 0xc0], [0x80, 0x80, 0x80], [0x40, 0x40, 0x40], [0x00, 0x00, 0x00],
+].map(macRgbToSrgb);
+
+// Apple's canonical 256-colour SYSTEM palette ('clut' 8), RECONSTRUCTED in-code (so the
+// portable core needs no file read — was scripts/lib/mac-system-palette.json): the 6×6×6
+// RGB cube (levels {255,204,153,102,51,0}, 0-214, black omitted), then four 10-step ramps
+// {238,221,187,170,136,119,85,68,34,17} in order red/green/blue/GREY (215-254), black at
+// 255. Relocating black to 255 shifts the GREY ramp to 245-254 (idx245 = light grey — the
+// bug a prior hand-built palette got wrong, blue trash can). Byte-identical to the old JSON.
+const PALETTE256 = (() => {
+  const L = [255, 204, 153, 102, 51, 0], pal = [];
+  for (let x = 0; x < 215; x++) pal.push([L[(x / 36) | 0], L[((x / 6) | 0) % 6], L[x % 6]]);
+  const R = [238, 221, 187, 170, 136, 119, 85, 68, 34, 17];
+  for (const v of R) pal.push([v, 0, 0]);
+  for (const v of R) pal.push([0, v, 0]);
+  for (const v of R) pal.push([0, 0, v]);
+  for (const v of R) pal.push([v, v, v]);
+  pal.push([0, 0, 0]);
+  return pal.map(macRgbToSrgb);
+})();
 
 /** Slugify a resource name for its PNG filename (same rule the old extractor used). */
 export function slugify(name) {
@@ -127,4 +154,113 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
 
   validateTheme(theme); // throws on a malformed bundle; callers report/abort
   return { theme, assets, manifest: { source, counts, assets: flatAssets } };
+}
+
+// ── Icon decode (moved verbatim from extract-icons.mjs) ─────────────────────
+
+/** 1-bit mask bitmap (rowBytes per row, MSB first) → Uint8Array(size²) of 0/1. */
+function decodeMaskBits(buf, off, size) {
+  const rowBytes = size / 8;
+  const out = new Uint8Array(size * size);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const byte = buf[off + y * rowBytes + (x >> 3)] ?? 0;
+      out[y * size + x] = (byte >> (7 - (x & 7))) & 1;
+    }
+  }
+  return out;
+}
+/** 4-bit icon → RGBA via PALETTE16, alpha from `mask` (null → opaque). */
+function decodeIcon4(data, size, mask) {
+  const rgba = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const byte = data[i >> 1] ?? 0;
+    const idx = (i & 1) === 0 ? byte >> 4 : byte & 0x0f;
+    const [r, g, b] = PALETTE16[idx];
+    const a = mask ? (mask[i] ? 255 : 0) : 255;
+    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b; rgba[i * 4 + 3] = a;
+  }
+  return rgba;
+}
+/** 8-bit icon → RGBA via PALETTE256, alpha from `mask` (null → opaque). */
+function decodeIcon8(data, size, mask) {
+  const rgba = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i++) {
+    const [r, g, b] = PALETTE256[data[i] ?? 0];
+    const a = mask ? (mask[i] ? 255 : 0) : 255;
+    rgba[i * 4] = r; rgba[i * 4 + 1] = g; rgba[i * 4 + 2] = b; rgba[i * 4 + 3] = a;
+  }
+  return rgba;
+}
+/** Key out a uniform corner background (border-flood) for a mask-less icon, so it's
+ *  a cut-out shape not an opaque box. No-op if the corners differ. Mutates rgba alpha. */
+function cornerFloodTransparency(rgba, size) {
+  const at = (x, y) => (y * size + x) * 4;
+  const bg = [rgba[0], rgba[1], rgba[2]];
+  const corners = [[0, 0], [size - 1, 0], [0, size - 1], [size - 1, size - 1]];
+  const isBg = (o) => rgba[o] === bg[0] && rgba[o + 1] === bg[1] && rgba[o + 2] === bg[2];
+  for (const [x, y] of corners) if (!isBg(at(x, y))) return 0;
+  const seen = new Uint8Array(size * size);
+  const stack = [];
+  for (const [x, y] of corners) { const p = y * size + x; if (!seen[p]) { seen[p] = 1; stack.push(p); } }
+  let cleared = 0;
+  while (stack.length) {
+    const p = stack.pop(), x = p % size, y = (p / size) | 0, o = p * 4;
+    if (!isBg(o)) continue;
+    rgba[o + 3] = 0; cleared++;
+    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+      if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+      const np = ny * size + nx; if (!seen[np]) { seen[np] = 1; stack.push(np); }
+    }
+  }
+  return cleared;
+}
+
+const ICON_TYPES = {
+  icl4: { size: 32, maskType: 'ICN#', maskOff: 128, depth: 4 },
+  ics4: { size: 16, maskType: 'ics#', maskOff: 32, depth: 4 },
+  icl8: { size: 32, maskType: 'ICN#', maskOff: 128, depth: 8 },
+  ics8: { size: 16, maskType: 'ics#', maskOff: 32, depth: 8 },
+};
+
+/**
+ * Decode a scheme's icon-family glyphs (icl4/ics4/icl8/ics8) → RGBA assets + the
+ * icons/index.json array. Mirrors extract-icons.mjs verbatim: every depth emitted
+ * (dedup per type+id), gamma'd palettes, mask from ICN#/ics# (else corner-flood).
+ *
+ * @param {Uint8Array|ArrayBuffer} fork
+ * @returns {{ assets: {path,rgba,width,height}[], index: object[], census: object }}
+ */
+export function convertIcons(fork) {
+  const entries = parseResourceFork(asBytes(fork));
+  const maskOf = (type, id) => { const r = entries.find((x) => x.type === type && x.id === id); return r ? r.data : null; };
+  const assets = [];
+  const index = [];
+  const done = new Set();
+  const census = { ics4: 0, ics8: 0, icl4: 0, icl8: 0 };
+  for (const e of entries) if (e.type in census) census[e.type]++;
+
+  for (const type of ['icl8', 'ics8', 'icl4', 'ics4']) {
+    const cfg = ICON_TYPES[type];
+    const need = cfg.depth === 4 ? (cfg.size * cfg.size) / 2 : cfg.size * cfg.size;
+    for (const e of entries) {
+      if (e.type !== type) continue;
+      const key = `${type}:${e.id}`;
+      if (done.has(key)) continue;
+      if (e.data.length < need) continue;
+      const maskData = maskOf(cfg.maskType, e.id);
+      const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;
+      const rgba = cfg.depth === 4 ? decodeIcon4(e.data, cfg.size, mask) : decodeIcon8(e.data, cfg.size, mask);
+      if (!mask) cornerFloodTransparency(rgba, cfg.size);
+      let opaque = 0;
+      for (let i = 0; i < cfg.size * cfg.size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
+      const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
+      const fname = `${type}-${idStr(e.id)}.png`;
+      assets.push({ path: `icons/${fname}`, rgba, width: cfg.size, height: cfg.size });
+      index.push({ id: e.id, type, size: cfg.size, depth: cfg.depth, file: fname, name: e.name || null, masked: !!mask, coverage });
+      done.add(key);
+    }
+  }
+  index.sort((a, b) => (b.size - a.size) || (a.id - b.id));
+  return { assets, index, census };
 }
