@@ -1544,9 +1544,9 @@
         host.append(deskLabel, desk);
         try {
           const wm = new WindowManager();
-          // The document window renders at 2× so the title-bar widgets (and their pressed state) are legible.
-          // Handlers just report (no hide) so the windows persist for move/resize/press exploration.
-          const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104, scale: 2 }, {
+          // Both windows render at native 1×. Handlers just report (no hide) so the windows persist
+          // for move/resize/press exploration.
+          const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 }, {
             onClose: () => say('Document — close clicked'),
             onZoom: () => say('Document — zoom clicked'),
             onCollapse: () => say('Document — collapse clicked'),
