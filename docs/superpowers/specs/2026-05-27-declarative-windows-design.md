@@ -1,6 +1,50 @@
 # Declarative window management via `data-aaron-*` — design (litmus-test build)
 
-**Date:** 2026-05-27 · **Branch:** `feat/declarative-windows` (isolated; abandonable) · **Status:** building
+**Date:** 2026-05-27 · **Branch:** `feat/declarative-windows` (isolated; abandonable) · **Status:** BUILT overnight
+
+---
+
+## ☀️ MORNING HANDOFF — read this first
+
+**It's built and it's green.** Implemented overnight, isolated on `feat/declarative-windows`. `main`
+is untouched — `git checkout main` walks away from the entire experiment if you don't like it.
+
+**Try it:**
+```
+npm run dev    # then open  http://localhost:5173/declarative.html
+```
+You should see four Mac windows, each just a `<div data-aaron-window>` with live HTML inside:
+1. **"Read Me"** — declared size; scrollable content; drag the title to move, the gripper to resize, click to focus. Selectable text. Should start ACTIVE.
+2. **"Notes"** — *content-fit* (no declared size): fits its content, and clicking **"Add a line"** grows the chrome (a ResizeObserver re-render). The litmus of the canvas-vs-live-DOM tension.
+3. **"Save changes?"** — a `1138`-themed modal (per-window `data-aaron-theme`) with a **default OK button** (the ring); buttons fire their `alert()`.
+4. **"Background"** — starts inactive (`data-aaron-state="inactive"`); click to focus.
+
+**Verification done overnight:** `npm run typecheck` clean · `npm test` 46/46 (7 new pure-logic
+tests) · `npm run build` + `npm run build:demo` green (both pages emit). Two subagents reviewed the
+runtime DOM logic I can't run in Node — they confirmed the slot-survival, content-fit loop guards,
+MutationObserver settling, button-forwarding, and positioning are correct, and flagged 3 P1 bugs
+which are FIXED (active-state determinism, per-window button theme, safe unmount).
+
+**The verdict is yours:** does "drop a data-attribute, get a real Mac window wrapping live content"
+feel practical? If yes → the ADR-0001 PA/PB/PC work (Shadow DOM, border-image/CSS, persistence)
+becomes the path to production. If it fights you → abandon the branch; nothing on `main` changed.
+
+**Known P2s (not blockers, deliberately deferred):**
+- A *content-fit* window manually resized via the gripper snaps back to content size on the next
+  content reflow (fit vs. manual-size is a semantic conflict — declared windows resize fine).
+- `#desktop` clips windows dragged past its bounds (it's a bounded "screen").
+- Auto-cascade position order is nondeterministic for windows without declared x/y (the demo
+  declares all positions, so unaffected).
+
+**Open questions for the next pass:** Shadow-DOM encapsulation (ADR Decision 2 — light DOM for now,
+host-page CSS can reach the slotted content); the border-image/CSS chrome (ADR Decision 1, still
+spike-gated — this build is canvas-only); whether content-fit should be the default or declared-size
+should; and whether a manually-resized fit window should auto-switch to declared mode.
+
+**Commits:** design `52bea78` · parse+tests `cb3e816` · WM hook `8da43a5` · AaronWindow `e443d98` ·
+theme/scanner/button/entry `1323600` · demo page+vite `<page commit>` · review P1 fixes `10cbc47`.
+
+---
 
 **One line:** put `data-aaron-window` on a plain `<div>` and the library promotes it into a faithful
 classic-Mac window — no JS required for the common case — over the EXISTING canvas runtime.
@@ -56,6 +100,23 @@ it (already how `renderWindow` works). Two size modes:
   elements get `data-aaron-promoted` so re-scans skip them.
 - An imperative foundation underneath: an **`AaronWindow`** class (wraps one element) + a
   `mountDeclarative(root?, opts?)` entry the scanner and consumers both use.
+
+## Plan-agent corrections (red-team, 2026-05-27)
+
+- **`WindowManager` re-render destroys slotted content (the load-bearing finding).** `render()` does
+  `host.replaceChildren(win)` on every focus/resize, rebuilding `.aw-content`. Fix: an ADDITIVE
+  `contentEl` hook on `add(theme, opts, handlers, { contentEl })` — `render()` re-attaches the SAME
+  persistent content node into the fresh `.aw-content` each time (preserves listeners/selection).
+  Existing callers pass 3 args → unaffected.
+- **Content-fit is highest-risk → LAST task.** Build it on the declared-size re-render path. Observe
+  an inner `max-content` wrapper (NOT `.aw-content`, which we resize), with rAF debounce + epsilon +
+  re-entrancy flag + disconnect-during-render to kill the feedback loop.
+- **Base chain needs a configurable base URL** in the bootstrap (standalone consumers must point at a
+  reachable `apple-platinum-replica` bundle). Port `loadWithBase` from `demo/index.html` into
+  `src/declarative/theme.ts`.
+- **Drop `data-aaron-scale` from v1** (scale 1 only) — avoids the scale×content-measurement interaction.
+- **Tests: pure logic in Node, NO DOM devDep** (jsdom/etc. can't do the canvas the runtime needs).
+  `demo/declarative.html` is the integration litmus.
 
 ## What we reuse / must touch
 
