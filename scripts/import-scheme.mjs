@@ -90,6 +90,39 @@ if (!existsSync(metaPath)) {
   metaState = filled ? `present (${m.name})` : 'present but INCOMPLETE (placeholders remain)';
 }
 
+// PROVENANCE.md — the human-readable companion. Scaffold from meta.json where we can;
+// the About/Sourcing prose is for the porter. Never overwrite an existing one.
+const provPath = resolve(dir, 'PROVENANCE.md');
+let provState;
+if (!existsSync(provPath)) {
+  const m = JSON.parse(readFileSync(metaPath, 'utf8'));
+  const a = m.author || {};
+  const ph = (v, msg) => (v && !String(v).includes('←') ? v : `_${msg}_`);
+  writeFileSync(provPath, `# ${ph(m.name, 'scheme name — fill in')}
+
+**Author:** ${ph(a.name, 'author — fill in')}${a.email ? ` (${a.email})` : ''}
+**Year:** ${a.year ?? '_year — fill in_'}
+**License:** ${ph(m.origin?.originalLicense, 'verbatim license string from the scheme readme — fill in')}
+
+## About
+
+_What this scheme is, and why it's in the corpus (stylistic distinctiveness, historical
+significance, faithful reproduction…). Quote the readme where useful; be honest._
+
+## Sourcing
+
+- **Source archive:** ${ph(m.origin?.sourceUrl, 'where the .sit came from — fill in')}
+- Resource fork extracted to \`scheme.rsrc\`.
+
+## Acknowledgements
+
+- **${ph(a.name, 'author')}** for creating this scheme.
+`);
+  provState = 'SCAFFOLDED (fill in About/Sourcing)';
+} else {
+  provState = 'present';
+}
+
 // ── 7. Report card ──────────────────────────────────────────────────────────
 const readJson = (p) => { try { return JSON.parse(readFileSync(resolve(dir, p), 'utf8')); } catch { return null; } };
 const theme = readJson('theme.json') || {};
@@ -124,6 +157,7 @@ console.log(`
 │ control roles   progress=${roles?.progress?.model ?? '?'}${roles?.scrollArrows ? ' · scroll-arrows mapped' : ''}${roles ? '' : ' (no resource-roles.json)'}
 │ glyphs wired    ${familiesLine.replace(/^[·\s]*\(glyph families wired\)\s*/, '') || '(see lint)'}
 │ provenance      meta.json ${metaState}
+│                 PROVENANCE.md ${provState}
 │ lint            ${errs} error(s) · ${warns} window-warning(s)${tail ? '  — ' + tail.replace(/^-+\s*/, '') : ''}
 └${'─'.repeat(60)}`);
 
