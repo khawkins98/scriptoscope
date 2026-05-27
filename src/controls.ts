@@ -186,6 +186,36 @@ export interface ScrollbarOptions {
 }
 
 /**
+ * Locate the centred grip motif of a capsule thumb cicn along its long axis. The kDEF thumb is a
+ * capsule — rounded end caps + a small grip in the CENTRE — that grows by stretching ONLY the
+ * uniform body between cap and grip; the caps and grip stay 1:1 (verified on the corpus art:
+ * `#oooooooXXXXXXXoooooo#` — flat edge, beveled body, a busy centre grip). The body is near-uniform
+ * along the long axis, so the grip is the central run of lines that differ from a body reference
+ * line. Returns the grip's native start+length, or null when there's no distinct centre motif.
+ */
+function thumbGrip(thumb: PixelBuffer, horiz: boolean): { start: number; len: number } | null {
+  const len = horiz ? thumb.width : thumb.height;
+  const cross = horiz ? thumb.height : thumb.width;
+  if (len < 8) return null;
+  const at = (i: number, j: number) => (horiz ? thumb.getPixel(i, j) : thumb.getPixel(j, i));
+  const ref = Math.floor(len * 0.25); // a body line: inside the cap, outside the centre grip
+  const diff = (i: number) => {
+    let d = 0;
+    for (let j = 0; j < cross; j++) {
+      const p = at(i, j), r = at(ref, j);
+      d += Math.abs(p[0] - r[0]) + Math.abs(p[1] - r[1]) + Math.abs(p[2] - r[2]) + Math.abs(p[3] - r[3]);
+    }
+    return d / cross; // avg per-cross-pixel RGBA delta from the body reference
+  };
+  const THRESH = 28;
+  let gs = -1, ge = -1;
+  for (let i = Math.floor(len * 0.2); i < Math.ceil(len * 0.8); i++) {
+    if (diff(i) > THRESH) { if (gs < 0) gs = i; ge = i; }
+  }
+  return gs >= 0 ? { start: gs, len: ge - gs + 1 } : null;
+}
+
+/**
  * Compose a scrollbar into a pixel buffer (kdef-layout-recipes §3):
  * stretch the track cicn along the axis, stamp the thumb at the
  * value-proportional position. 7 Le ships an empty (white) track + a
@@ -345,27 +375,34 @@ export async function composeScrollbar(
       if (horiz) out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: pos, y: offC, w: thumb.width, h: thumb.height });
       else out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: thumb.height }, { x: offC, y: pos, w: thumb.width, h: thumb.height });
     } else {
-      // 3-slice along the axis: rounded end caps copied 1:1, centre TILED (not stretched).
-      // The kDEF default blit (0xfeae) always TILES the source — stretching would smear the
-      // capsule thumb's diagonal grip texture (e.g. ap2's purple thumb). The last tile is
-      // clipped to fit. See docs/spec/compositor-spec.md §blit ("always TILES").
-      const cap = Math.max(2, Math.min(Math.floor((native - 1) / 2), Math.round(cross / 2)));
-      const mid = native - cap * 2;
-      const gap = thumbLen - cap * 2; // dst length for the tiled centre
+      // Capsule multi-slice: the rounded end caps AND the centre grip stay 1:1 (never stretched);
+      // only the uniform body fill between them grows. The grip is re-CENTRED in the grown thumb.
+      // (The body is uniform along the long axis, so stretching a 1px body slice is seamless.)
+      const grip = thumbGrip(thumb, horiz);
+      let cap = Math.max(2, Math.min(Math.floor((native - 1) / 2), Math.round(cross / 2)));
+      if (grip) cap = Math.max(1, Math.min(cap, grip.start, native - (grip.start + grip.len)));
+      const gw = grip ? grip.len : 0;
+      const gctr = pos + Math.round((thumbLen - gw) / 2); // grip centred in the grown thumb
+      const refIdx = grip ? Math.max(0, Math.min(cap, grip.start - 1)) : cap; // a uniform body line
+      const W = thumb.width, Hh = thumb.height;
       if (horiz) {
-        out.copyBits(thumb, { x: 0, y: 0, w: cap, h: thumb.height }, { x: pos, y: offC, w: cap, h: thumb.height });
-        out.copyBits(thumb, { x: thumb.width - cap, y: 0, w: cap, h: thumb.height }, { x: pos + thumbLen - cap, y: offC, w: cap, h: thumb.height });
-        for (let x = 0; mid > 0 && x < gap; x += mid) {
-          const w = Math.min(mid, gap - x);
-          out.copyBits(thumb, { x: cap, y: 0, w, h: thumb.height }, { x: pos + cap + x, y: offC, w, h: thumb.height });
-        }
+        const fill = (x0: number, x1: number) => { if (x1 > x0) out.copyBits(thumb, { x: refIdx, y: 0, w: 1, h: Hh }, { x: x0, y: offC, w: x1 - x0, h: Hh }); };
+        out.copyBits(thumb, { x: 0, y: 0, w: cap, h: Hh }, { x: pos, y: offC, w: cap, h: Hh });
+        out.copyBits(thumb, { x: native - cap, y: 0, w: cap, h: Hh }, { x: pos + thumbLen - cap, y: offC, w: cap, h: Hh });
+        if (grip) {
+          fill(pos + cap, gctr);
+          out.copyBits(thumb, { x: grip.start, y: 0, w: gw, h: Hh }, { x: gctr, y: offC, w: gw, h: Hh });
+          fill(gctr + gw, pos + thumbLen - cap);
+        } else fill(pos + cap, pos + thumbLen - cap);
       } else {
-        out.copyBits(thumb, { x: 0, y: 0, w: thumb.width, h: cap }, { x: offC, y: pos, w: thumb.width, h: cap });
-        out.copyBits(thumb, { x: 0, y: thumb.height - cap, w: thumb.width, h: cap }, { x: offC, y: pos + thumbLen - cap, w: thumb.width, h: cap });
-        for (let y = 0; mid > 0 && y < gap; y += mid) {
-          const h = Math.min(mid, gap - y);
-          out.copyBits(thumb, { x: 0, y: cap, w: thumb.width, h }, { x: offC, y: pos + cap + y, w: thumb.width, h });
-        }
+        const fill = (y0: number, y1: number) => { if (y1 > y0) out.copyBits(thumb, { x: 0, y: refIdx, w: W, h: 1 }, { x: offC, y: y0, w: W, h: y1 - y0 }); };
+        out.copyBits(thumb, { x: 0, y: 0, w: W, h: cap }, { x: offC, y: pos, w: W, h: cap });
+        out.copyBits(thumb, { x: 0, y: native - cap, w: W, h: cap }, { x: offC, y: pos + thumbLen - cap, w: W, h: cap });
+        if (grip) {
+          fill(pos + cap, gctr);
+          out.copyBits(thumb, { x: 0, y: grip.start, w: W, h: gw }, { x: offC, y: gctr, w: W, h: gw });
+          fill(gctr + gw, pos + thumbLen - cap);
+        } else fill(pos + cap, pos + thumbLen - cap);
       }
     }
   }
