@@ -119,6 +119,25 @@
     .rr-table td { padding: 1px 8px; border-bottom: 1px solid #c0c0c0; vertical-align: top; white-space: nowrap; }
     .rr-table tr:hover td { background: #ffffff70; }
     .rr-fam { display: inline-block; min-width: 8px; padding: 0 5px; border-radius: 3px; background: #5a6b8c; color: #fff; font-size: 10px; }
+    /* bring-your-own-theme drop-zone */
+    #byo { padding: 12px 24px; border-bottom: 1px solid #9a9a9a; }
+    #byo-drop {
+      border: 2px dashed #8a8a8a; border-radius: 8px; padding: 13px 18px; max-width: 720px;
+      background: #ffffff55; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+      transition: background .12s, border-color .12s;
+    }
+    #byo-drop.drag { border-color: #2b5070; background: #dbe7f5; }
+    #byo-drop:focus-visible { outline: 2px solid #2b5070; outline-offset: 2px; }
+    #byo-drop strong { font: 13px system-ui; }
+    #byo .byo-hint { font: 11.5px system-ui; opacity: .62; }
+    #byo .byo-hint code { background: #0001; padding: 0 3px; border-radius: 3px; }
+    #byo-out { margin-top: 12px; }
+    #byo-out .byo-report { font: 12px system-ui; display: flex; gap: 13px; flex-wrap: wrap; align-items: center; margin-bottom: 11px; }
+    #byo-out .byo-err { color: #a01818; font: 12px ui-monospace, Menlo, monospace; }
+    #byo-out .byo-grid { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+    #byo-out .byo-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+    #byo-out .byo-cell .lbl { font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; }
+    #byo-out .byo-sw { display: inline-block; width: 13px; height: 13px; border: 1px solid #0003; border-radius: 2px; }
   </style>
 </head>
 <body>
@@ -126,6 +145,14 @@
     <h1>Aaron UI <span id="ver"></span> — runtime debugger</h1>
     <p>Pick a scheme from the ribbon; every diagnostic for it renders below at <strong>native pixel size</strong>.</p>
   </header>
+  <section id="byo" aria-label="Bring your own theme">
+    <div id="byo-drop" tabindex="0" role="button" aria-label="Drop a Kaleidoscope resource fork to convert and render in your browser">
+      <strong>Bring your own theme</strong>
+      <span class="byo-hint">Drop a Kaleidoscope <code>.rsrc</code> resource fork here (or click to pick) — decoded, gamma-corrected, and rendered entirely in your browser. No build, no upload.</span>
+      <input id="byo-file" type="file" hidden>
+    </div>
+    <div id="byo-out"></div>
+  </section>
   <nav id="ribbon" aria-label="Theme selector"></nav>
   <main id="detail" aria-live="polite"></main>
   <div id="rows"></div>
@@ -142,6 +169,9 @@
       interactiveSlider, interactiveScrollbar, WindowManager,
     } from '../src/index.ts';
     import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
+    // The BROWSER conversion shell over the portable core: a dropped resource fork →
+    // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
+    import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
 
@@ -1518,6 +1548,88 @@
       // Follow the ribbon's active theme — the first render fires from activate().
       syncHooks.push((slug) => buildInteractive(slug));
     }
+
+    // ── Bring-your-own-theme drop-zone ──────────────────────────────────────
+    // Exercises the in-browser conversion path END TO END, no build step, no upload:
+    // a dropped Kaleidoscope resource fork → loadKaleidoscopeScheme → convertScheme
+    // (decode cicn/ppat/cinf/wnd# + gamma + headerColors + icons) → OffscreenCanvas
+    // blob-URL assets + glyph map → the SAME renderWindow the gallery uses. This is
+    // the debug layer driving the browser shell over the conversion core; the only
+    // bit that can't run in Node (OffscreenCanvas) and so the real proof of the path.
+    function setupByo() {
+      const zone = document.getElementById('byo-drop');
+      const fileIn = document.getElementById('byo-file');
+      const out = document.getElementById('byo-out');
+      if (!zone || !out) return;
+
+      const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+      zone.addEventListener('click', () => fileIn.click());
+      zone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
+      ['dragenter', 'dragover'].forEach((t) => zone.addEventListener(t, (e) => { stop(e); zone.classList.add('drag'); }));
+      ['dragleave', 'drop'].forEach((t) => zone.addEventListener(t, (e) => { stop(e); zone.classList.remove('drag'); }));
+      zone.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) convertAndRender(f); });
+      fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; if (f) convertAndRender(f); });
+
+      let token = 0;
+      async function convertAndRender(file) {
+        const my = ++token;
+        out.innerHTML = '';
+        const status = document.createElement('div');
+        status.className = 'byo-report';
+        status.textContent = `Converting ${file.name}…`;
+        out.appendChild(status);
+
+        const name = file.name.replace(/\.[^.]+$/, '') || file.name;
+        let loaded;
+        try {
+          // The whole conversion runs HERE in the browser (OffscreenCanvas encodes the
+          // RGBA assets to blob: URLs); base = the universal Platinum baseline so a
+          // sparse scheme still renders anything it doesn't ship.
+          loaded = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+          loaded.base = await loadWithBase(BASE_SLUG);
+        } catch (err) {
+          if (my !== token) return;
+          status.className = 'byo-err';
+          status.textContent = `✗ ${file.name}: ${(err && err.message) || err}`;
+          return;
+        }
+        if (my !== token) return;
+
+        const wtypes = Object.keys(loaded.manifest.windowTypes || {});
+        const glyphCount = Object.keys(loaded.glyphs || {}).length;
+        const fill = loaded.manifest.headerColors && loaded.manifest.headerColors.active && loaded.manifest.headerColors.active.fill;
+
+        status.className = 'byo-report';
+        status.innerHTML = '';
+        const tick = document.createElement('span'); tick.textContent = `✓ ${name} converted in-browser`; tick.style.fontWeight = '600';
+        const counts = document.createElement('span'); counts.style.opacity = '.7';
+        counts.textContent = `${wtypes.length} window type${wtypes.length === 1 ? '' : 's'} · ${glyphCount} glyph${glyphCount === 1 ? '' : 's'}`;
+        status.append(tick, counts);
+        if (fill) { const sw = document.createElement('span'); sw.className = 'byo-sw'; sw.style.background = fill; sw.title = `headerColors.active.fill ${fill}`; status.appendChild(sw); }
+
+        // Lead render: the default document window at 2× so the chrome is legible.
+        const big = document.createElement('div'); big.className = 'byo-cell';
+        const blbl = document.createElement('div'); blbl.className = 'lbl'; blbl.textContent = 'default window · 2×'; big.appendChild(blbl);
+        try { big.appendChild(await renderWindow(loaded, { title: name, width: 200, height: 120, scale: 2, state: 'active' })); }
+        catch (err) { const e = document.createElement('div'); e.className = 'byo-err'; e.textContent = `render failed: ${(err && err.message) || err}`; big.appendChild(e); }
+        out.appendChild(big);
+        if (my !== token) return;
+
+        // Every converted window type at 1×, active — proves the WHOLE convertChrome
+        // output renders, not just the lead type.
+        const grid = document.createElement('div'); grid.className = 'byo-grid';
+        for (const wt of wtypes) {
+          const cell = document.createElement('div'); cell.className = 'byo-cell';
+          const l = document.createElement('div'); l.className = 'lbl'; l.textContent = wt; cell.appendChild(l);
+          try { cell.appendChild(await renderWindow(loaded, { windowType: wt, title: name, width: 150, height: 96, scale: 1, state: 'active' })); }
+          catch { const e = document.createElement('div'); e.className = 'byo-err'; e.textContent = '— (type skipped)'; cell.appendChild(e); }
+          if (my !== token) return;
+          grid.appendChild(cell);
+        }
+        out.appendChild(grid);
+      }
+    }
+    setupByo();
 
     // ── boot: build the ribbon, then activate the theme from ?theme= (or the first).
     await buildRibbon();
