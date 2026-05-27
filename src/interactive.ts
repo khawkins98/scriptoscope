@@ -490,6 +490,10 @@ export class WindowManager {
     const ft = composed.frame.top * scale;
     const fr = Math.max(7, composed.frame.right) * scale;  // resize band ≥ 7px native so it's grabbable
     const fb = Math.max(7, composed.frame.bottom) * scale;
+    // Mac OS hard minimum window width is 110px (native). Clamp the CONTENT width so the FULL window
+    // (content + chrome) never goes below it. (Chrome width is constant for the frame.)
+    const chromeW = composed.fullWidth - (entry.opts.width ?? 240);
+    const minContentW = Math.max(40, 110 - chromeW);
     const startResize = (e: MouseEvent, dW: boolean, dH: boolean): void => {
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
@@ -504,7 +508,7 @@ export class WindowManager {
       host.appendChild(outline);
       let nw = w0, nh = h0;
       const mv = (ev: MouseEvent): void => {
-        if (dW) nw = Math.max(64, w0 + Math.round((ev.clientX - sx) / scale));
+        if (dW) nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / scale));
         if (dH) nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
@@ -523,9 +527,14 @@ export class WindowManager {
       z.addEventListener('mousedown', (e) => startResize(e, dW, dH));
       win.appendChild(z);
     };
-    mkZone({ right: '0', top: `${ft}px`, width: `${fr}px`, bottom: `${fb}px`, cursor: 'ew-resize' }, true, false);  // right edge
-    mkZone({ left: '0', bottom: '0', height: `${fb}px`, right: `${fr}px`, cursor: 'ns-resize' }, false, true);     // bottom edge
-    mkZone({ right: '0', bottom: '0', width: `${fr}px`, height: `${fb}px`, cursor: 'nwse-resize' }, true, true);   // corner
+    // Corner zone reaches INWARD to cover the grow-box gripper, which sits at the INNER frame corner
+    // (over the content), not the outer edge — so clicking the visible gripper actually resizes.
+    const gripW = (composed.growBox?.w ?? 15) * scale;
+    const gripH = (composed.growBox?.h ?? 15) * scale;
+    const cw = fr + gripW, ch = fb + gripH;
+    mkZone({ right: '0', top: `${ft}px`, width: `${fr}px`, bottom: `${ch}px`, cursor: 'ew-resize' }, true, false);  // right edge
+    mkZone({ left: '0', bottom: '0', height: `${fb}px`, right: `${cw}px`, cursor: 'ns-resize' }, false, true);     // bottom edge
+    mkZone({ right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`, cursor: 'nwse-resize' }, true, true);   // corner + gripper
   }
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */

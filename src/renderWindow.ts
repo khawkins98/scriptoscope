@@ -140,7 +140,11 @@ export function resolveTitleWidgetRects(
   const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
   const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
   if (lefties[0]) out.push({ role: 'close', rect: { x: lefties[0].x, y: lefties[0].y, w: lefties[0].w, h: lefties[0].h } });
-  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
+  // Right-side roles: the OUTER (rightmost) box is the windowshade/COLLAPSE, the inner one is ZOOM —
+  // the order the corpus's native schemes actually bake (verified against evolution). The wnd# parts
+  // carry NO role labels, so this is a positional heuristic; revisit here if a scheme proves to be
+  // zoom-outermost. (Corner-sprite schemes don't use this path — their roles come from the glyphs.)
+  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'collapse' : 'zoom', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
   return out;
 }
 
@@ -293,42 +297,52 @@ export async function renderWindow(
     // a genuinely COLOURED title; pinning that coordinate is still open
     // (docs/tracking/title-text-color.md). Until then, black is correct here.
     const tr = composed.titleRegion;
-    // Title colour CONTRASTS with the bar the text actually sits on. We sample the
-    // composed buffer over the text's OWN footprint (the title plate / pinstripe),
-    // not the dark frame — the flaw in the earlier luminance heuristic. So a dark
-    // title bar (e.g. Black Platinum's black pinstripe, whose headerColors.fill is
-    // a misleadingly light #ddd) gets WHITE text; light bars keep BLACK (the corpus
-    // default). NOT headerColors.text (a frame tint; see title-text-color.md).
     const cx = tr.x + tr.w / 2;
-    // Vertical anchor for the title text: the centre of the scheme's title-text
-    // marker band (tr.midY — the cicn colour-sample line, drawn at the text
-    // location), faithful for tall ornate bars (evolution) where the bar's
-    // geometric centre sits too high; else the geometric centre of the title bar.
+    // Vertical anchor: the centre of the scheme's title-text marker band (tr.midY — the cicn
+    // colour-sample line), faithful for tall ornate bars (evolution); else the bar's geometric centre.
     const titleMidY = tr.midY ?? frame.top / 2;
-    const sgx = Math.max(1, Math.min(fullWidth - glyphs.width - 1, Math.round(cx - glyphs.width / 2)));
-    const sgy = Math.max(1, Math.round(titleMidY - glyphs.height / 2));
-    let lumSum = 0, lumN = 0;
-    const sx1 = Math.min(fullWidth, sgx + glyphs.width), sy1 = Math.min(frame.top - 1, sgy + glyphs.height);
-    for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
-      const [pr, pg, pb, pa] = composed.buffer.getPixel(sx, sy);
-      if (pa < 8) continue;
-      lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
+
+    // TRUNCATION — the available title width is the gap between the close (left) and zoom/collapse
+    // (right) widgets, centred at cx. When the full title can't fit (a narrow window) we truncate it
+    // with an ellipsis, and when even "…" can't fit we drop the title entirely — Mac OS behaviour
+    // ("Infinite HD" → "Infi…" → nothing). Widget rects come from the SAME resolver the hit-testing
+    // uses, so the text never runs under a widget.
+    const wrects = resolveTitleWidgetRects(wt, composed);
+    const leftEnd = wrects.filter((w) => w.role === 'close').reduce((m, w) => Math.max(m, w.rect.x + w.rect.w), frame.left);
+    const rightStart = wrects.filter((w) => w.role !== 'close').reduce((m, w) => Math.min(m, w.rect.x), fullWidth - frame.right);
+    const maxTitleW = Math.max(0, Math.floor(2 * Math.min(cx - (leftEnd + 5), (rightStart - 5) - cx)));
+    let dispTitle = title;
+    if (glyphs.width > maxTitleW && title.length > 1) {
+      dispTitle = '…';
+      for (let n = title.length - 1; n >= 1; n--) {
+        const cand = `${title.slice(0, n)}…`;
+        const cg = rasterizeTitleFont(cand, textH, '#000000') ?? rasterizeText(cand, textH, '#000000');
+        if (cg && cg.width <= maxTitleW) { dispTitle = cand; break; }
+      }
     }
-    const darkBar = lumN > 0 && lumSum / lumN < 112;
-    const fgHex = darkBar
-      ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
-      : (state === 'inactive' ? '#808080' : '#000000');
-    const g = fgHex === '#000000' ? glyphs : (rasterizeTitleFont(title, textH, fgHex) ?? rasterizeText(title, textH, fgHex));
-    // The title text centres on the TITLE REGION — the reserved title-plate the
-    // compositor places per the kDEF (0x4a64): centred in the bar when the recipe
-    // is symmetric (e.g. 1138, where this equals the content centre), but pinned
-    // toward whichever side can't grow when it's not — e.g. beos, whose title
-    // pins left into the yellow tab. (Earlier this used the content centre as a
-    // workaround for a pre-title-plate regression; the plate is now positioned
-    // faithfully, so we follow it.)
-    const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
-    const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));
-    composed.buffer.drawOver(g, gx, gy);
+    const baseGlyphs = dispTitle === title ? glyphs : (rasterizeTitleFont(dispTitle, textH, '#000000') ?? rasterizeText(dispTitle, textH, '#000000'));
+    if (baseGlyphs && baseGlyphs.width <= maxTitleW) {
+      // Title colour CONTRASTS with the bar the text sits on: sample the composed buffer over the
+      // text's OWN footprint (the title plate / pinstripe), not the dark frame — a dark bar (Black
+      // Platinum) gets WHITE text; light bars keep BLACK. NOT headerColors.text (a frame tint).
+      const sgx = Math.max(1, Math.min(fullWidth - baseGlyphs.width - 1, Math.round(cx - baseGlyphs.width / 2)));
+      const sgy = Math.max(1, Math.round(titleMidY - baseGlyphs.height / 2));
+      let lumSum = 0, lumN = 0;
+      const sx1 = Math.min(fullWidth, sgx + baseGlyphs.width), sy1 = Math.min(frame.top - 1, sgy + baseGlyphs.height);
+      for (let sy = sgy; sy < sy1; sy++) for (let sx = sgx; sx < sx1; sx++) {
+        const [pr, pg, pb, pa] = composed.buffer.getPixel(sx, sy);
+        if (pa < 8) continue;
+        lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
+      }
+      const darkBar = lumN > 0 && lumSum / lumN < 112;
+      const fgHex = darkBar
+        ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
+        : (state === 'inactive' ? '#808080' : '#000000');
+      const g = fgHex === '#000000' ? baseGlyphs : (rasterizeTitleFont(dispTitle, textH, fgHex) ?? rasterizeText(dispTitle, textH, fgHex));
+      const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
+      const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));
+      composed.buffer.drawOver(g, gx, gy);
+    }
   }
 
   // ── window root: bounds the FULL window footprint (chrome included), so the
