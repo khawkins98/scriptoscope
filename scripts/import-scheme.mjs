@@ -70,6 +70,7 @@ if (!scheme.ok) { console.error('\n✗ extract-scheme failed (theme.json did not
 const icons = step('extract icons (icl/ics + masks)', 'extract-icons.mjs');
 step('index rasters', 'index-rasters.mjs');
 step('generate resource-roles', 'gen-resource-roles.mjs');
+step('update demo gallery list', 'gen-themes-manifest.mjs', []); // not slug-scoped — re-derives the whole list
 const lint = step('lint', 'lint-themes.mjs');
 
 // ── 6. Scaffold provenance if missing (never overwrite) ─────────────────────

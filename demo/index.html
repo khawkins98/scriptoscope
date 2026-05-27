@@ -141,6 +141,7 @@
       interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
     } from '../src/index.ts';
+    import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
     document.getElementById('ver').textContent = `v${VERSION}`;
     const rows = document.getElementById('rows');
 
@@ -194,18 +195,10 @@
     let activeSlug = null;
     const syncHooks = []; // (slug) => void | Promise<void>
 
-    const THEMES = [
-      { slug: 'apple-platinum-2', label: 'Apple Platinum 2', ref: 'apple-platinum-2.png' },
-      { slug: 'beos-r503', label: 'BeOS R5.0.3', ref: 'beos-r503.png' },
-      { slug: '1990', label: '1990', ref: '1990.png' },
-      { slug: '1138', label: '1138', ref: '1138.png' },
-      { slug: '1984', label: '1984', ref: '1984.png' },
-      { slug: 'evolution', label: 'Evolution', ref: 'evolution.png' },
-      { slug: 'apple-platinum-replica', label: 'Apple Platinum (replica) ✦ generated' },
-      { slug: 'platinum-8', label: 'Platinum 8 (Russell Silver Jr., 1998) ✦ real scheme', ref: 'platinum-8.png' },
-      { slug: 'system7-nostalgia-silver', label: 'System 7 Nostalgia Silver (mollusc, 1997) ✦ real scheme', ref: 'system7-nostalgia-silver.png' },
-      { slug: 'black-platinum', label: 'Black Platinum (Daisuke Yamashita, 1999) ✦ real scheme', ref: 'black-platinum.png' },
-    ];
+    // THEMES is the AUTO-GENERATED gallery list (demo/themes-manifest.json, imported
+    // at the top of this module) — derived from each bundle's meta.json + reference by
+    // scripts/gen-themes-manifest.mjs (run in build:themes + after `npm run import`), so
+    // a freshly-imported scheme appears here with no hand-edit. Don't hardcode the list.
 
     function colEl(label) {
       const c = document.createElement('div'); c.className = 'col';
