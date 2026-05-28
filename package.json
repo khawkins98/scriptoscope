@@ -38,6 +38,10 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/scriptoscope.js"
     },
+    "./declarative": {
+      "types": "./dist/types/declarative/index.d.ts",
+      "import": "./dist/scriptoscope.js"
+    },
     "./scriptoscope.css": "./dist/scriptoscope.css",
     "./package.json": "./package.json"
   },

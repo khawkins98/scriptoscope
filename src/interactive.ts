@@ -66,7 +66,7 @@
 //
 // CROSS-FILE RELATIONSHIPS:
 //   composeChrome.ts                     → static chrome geometry (the pixel
-//                                          recipe Aaron walks); produces a
+//                                          recipe Scriptoscope walks); produces a
 //                                          ComposedChrome attached to the
 //                                          rendered win as _awComposed
 //   renderWindow.ts                      → wraps the composed chrome in a DOM
@@ -1220,7 +1220,7 @@ export class WindowManager {
       outlineOffset: '2px',
     } satisfies Partial<CSSStyleDeclaration>);
     // Keyboard alternative for the pointer-driven resize: arrow keys nudge size by 8px; Shift×4.
-    // (Aaron's growbox is otherwise pointer-only — and an a11y dead-end if a keyboard user wants to
+    // (Scriptoscope's growbox is otherwise pointer-only — and an a11y dead-end if a keyboard user wants to
     // resize. Production WMs do this; we should too.)
     corner.addEventListener('keydown', (e) => {
       const step = (e.shiftKey ? 32 : 8);

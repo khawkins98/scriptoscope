@@ -2,6 +2,17 @@
 // declarations into dist/types/, without test files or config files.
 // `npm run typecheck` continues to use the root tsconfig.json which
 // includes tests + configs so they're type-safe in development.
+//
+// declarationMap is OFF deliberately: the .d.ts.map sidecars (~104 kB
+// across 26 files) only help IDE "Go to source" from a .d.ts back
+// into the original .ts. Since the .ts source isn't in the published
+// tarball (we slim to dist/-only), the maps reference files consumers
+// don't have. They'd 404 on jump-to-source anyway. The JS sourcemap
+// (dist/scriptoscope.js.map) is KEPT because it does real work —
+// browser DevTools + Node stack traces use it to point at logical
+// scriptoscope-internal source positions instead of minified ESM
+// columns, so when a consumer hits a runtime error inside this lib,
+// they see a coherent stack.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -9,7 +20,7 @@
     "outDir": "./dist/types",
     "noEmit": false,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": true
   },
   "include": ["src/**/*.ts"],

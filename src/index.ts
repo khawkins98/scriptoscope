@@ -88,9 +88,17 @@ export {
 
 // ── Declarative front door (data-aaron-*) ──────────────────────────────────
 // Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from
-// 'scriptoscope'` rather than reach into a subpath. The declarative entry (`src/declarative/index.ts`)
-// remains the canonical place to import from for tree-shakers and library authors; this just keeps
-// the bare-package import path covering the public surface.
+// 'scriptoscope'` directly from the bare-package path.
+//
+// Two import shapes are supported (both resolve to the same dist bundle; the difference is the
+// types view + which symbols are visible):
+//   `from 'scriptoscope'`             — the wide entry: imperative runtime + the declarative
+//                                       symbols re-exported below. The right choice for most use.
+//   `from 'scriptoscope/declarative'` — focused declarative entry. Exposes the full declarative
+//                                       public surface (incl. `createThemeResolver`,
+//                                       `ThemeResolver`, `AaronWindowDeps`, `SizeMode`,
+//                                       `ThemeBootstrapOpts` — not re-exported below). For
+//                                       library authors who want only the declarative tree.
 //
 // Note: the consumer attribute namespace stays `data-aaron-*` (and the CSS class prefix `.aw-*`
 // and the `AaronWindow` class name) even though the package name pivoted to scriptoscope — these
