@@ -497,6 +497,9 @@ export class WindowManager {
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
+    // NB: role + aria-label live on the INNER `.aw-window` element built by renderWindow.ts (which
+    // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
+    // them on the host — double-labelling makes screen readers announce the window twice.
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-aaron-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow = {
@@ -659,6 +662,9 @@ export class WindowManager {
     } satisfies Partial<CSSStyleDeclaration>);
     bar.setAttribute('role', 'scrollbar');
     bar.setAttribute('aria-orientation', 'vertical');
+    bar.setAttribute('aria-valuemin', '0');
+    bar.setAttribute('aria-valuemax', '100');
+    bar.setAttribute('aria-label', 'Scroll content');
     bar.tabIndex = 0;
 
     let raf = 0;
@@ -788,11 +794,32 @@ export class WindowManager {
     const minContentW = Math.max(40, 110 - (composed.fullWidth - (entry.opts.width ?? 240)));
     const cw = (Math.max(7, composed.frame.right) + (composed.growBox?.w ?? 15)) * scale;
     const ch = (Math.max(7, composed.frame.bottom) + (composed.growBox?.h ?? 15)) * scale;
-    const corner = document.createElement('div');
+    const corner = document.createElement('button');
+    corner.type = 'button';
+    corner.className = 'aw-growbox';
+    corner.setAttribute('aria-label', 'Resize window');
     Object.assign(corner.style, {
       position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
       cursor: 'nwse-resize', zIndex: '4', touchAction: 'none', // touch-drag must not page-scroll
+      padding: '0', margin: '0', border: '0', background: 'transparent',
+      outlineOffset: '2px',
     } satisfies Partial<CSSStyleDeclaration>);
+    // Keyboard alternative for the pointer-driven resize: arrow keys nudge size by 8px; Shift×4.
+    // (Aaron's growbox is otherwise pointer-only — and an a11y dead-end if a keyboard user wants to
+    // resize. Production WMs do this; we should too.)
+    corner.addEventListener('keydown', (e) => {
+      const step = (e.shiftKey ? 32 : 8);
+      let dw = 0, dh = 0;
+      if (e.key === 'ArrowRight')      dw =  step;
+      else if (e.key === 'ArrowLeft')  dw = -step;
+      else if (e.key === 'ArrowDown')  dh =  step;
+      else if (e.key === 'ArrowUp')    dh = -step;
+      else return;
+      e.preventDefault();
+      const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
+      entry.opts = { ...entry.opts, width: Math.max(minContentW, w0 + dw), height: Math.max(40, h0 + dh) };
+      void this.render(entry);
+    });
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
     corner.addEventListener('pointerdown', (e) => {
@@ -862,7 +889,17 @@ export class WindowManager {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = `aw-titlewidget aw-titlewidget-${hit.role}`;
-      btn.setAttribute('aria-label', hit.role);
+      // Friendlier labels than the bare role string ("close" → "Close window" etc.) so screen
+      // readers announce the action, not just the technical name. aria-pressed is intentionally
+      // omitted — these are momentary actions, not toggles (window-shade collapses the WINDOW, not
+      // the button itself; AT users hear the new window state via the host's aria-label changing).
+      const label = (
+        hit.role === 'close'    ? 'Close window' :
+        hit.role === 'zoom'     ? 'Zoom window'  :
+        hit.role === 'collapse' ? 'Collapse window' :
+        hit.role
+      );
+      btn.setAttribute('aria-label', label);
       Object.assign(btn.style, {
         position: 'absolute', left: `${hit.rect.x}px`, top: `${hit.rect.y}px`,
         width: `${hit.rect.w}px`, height: `${hit.rect.h}px`,
