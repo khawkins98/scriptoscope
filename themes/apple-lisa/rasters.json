@@ -1,0 +1,975 @@
+{
+ "cicns": [
+  {
+   "file": "cicn-0-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-1-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-2-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-3000-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-3001-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-3002-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-n10045-pressed-down-little-arrow.png",
+   "id": -10045,
+   "name": "pressed-down-little-arrow"
+  },
+  {
+   "file": "cicn-n10046-pressed-up-little-arrow.png",
+   "id": -10046,
+   "name": "pressed-up-little-arrow"
+  },
+  {
+   "file": "cicn-n10047-active-little-arrows.png",
+   "id": -10047,
+   "name": "active-little-arrows"
+  },
+  {
+   "file": "cicn-n10048-disabled-little-arrows.png",
+   "id": -10048,
+   "name": "disabled-little-arrows"
+  },
+  {
+   "file": "cicn-n10078-progress-indicator-track.png",
+   "id": -10078,
+   "name": "progress-indicator-track"
+  },
+  {
+   "file": "cicn-n10079-full-progress-indicator-section.png",
+   "id": -10079,
+   "name": "full-progress-indicator-section"
+  },
+  {
+   "file": "cicn-n10080-progress-indicator-frame.png",
+   "id": -10080,
+   "name": "progress-indicator-frame"
+  },
+  {
+   "file": "cicn-n10086-unnamed.png",
+   "id": -10086,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10087-unnamed.png",
+   "id": -10087,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10088-unnamed.png",
+   "id": -10088,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10094-left-pointing-disclosure-pressed.png",
+   "id": -10094,
+   "name": "left-pointing-disclosure-pressed"
+  },
+  {
+   "file": "cicn-n10095-left-pointing-disclosure-normal.png",
+   "id": -10095,
+   "name": "left-pointing-disclosure-normal"
+  },
+  {
+   "file": "cicn-n10096-left-pointing-disclosure-disabled.png",
+   "id": -10096,
+   "name": "left-pointing-disclosure-disabled"
+  },
+  {
+   "file": "cicn-n10102-unnamed.png",
+   "id": -10102,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10103-unnamed.png",
+   "id": -10103,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10104-unnamed.png",
+   "id": -10104,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10110-unnamed.png",
+   "id": -10110,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10111-unnamed.png",
+   "id": -10111,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10112-unnamed.png",
+   "id": -10112,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10113-vertical-non-directional-slider-thumbs.png",
+   "id": -10113,
+   "name": "vertical-non-directional-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10115-non-directional-vertical-slider-track.png",
+   "id": -10115,
+   "name": "non-directional-vertical-slider-track"
+  },
+  {
+   "file": "cicn-n10116-inactive-non-directional-vertical-slider-track.png",
+   "id": -10116,
+   "name": "inactive-non-directional-vertical-slider-track"
+  },
+  {
+   "file": "cicn-n10119-left-pointing-slider-thumbs.png",
+   "id": -10119,
+   "name": "left-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10121-left-pointing-slider-track.png",
+   "id": -10121,
+   "name": "left-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10122-inactive-left-pointing-slider-track.png",
+   "id": -10122,
+   "name": "inactive-left-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10123-vertical-tick-mark.png",
+   "id": -10123,
+   "name": "vertical-tick-mark"
+  },
+  {
+   "file": "cicn-n10124-inactive-vertical-tick-mark.png",
+   "id": -10124,
+   "name": "inactive-vertical-tick-mark"
+  },
+  {
+   "file": "cicn-n10125-right-pointing-slider-thumbs.png",
+   "id": -10125,
+   "name": "right-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10127-right-pointing-slider-track.png",
+   "id": -10127,
+   "name": "right-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10128-inactive-right-pointing-slider-track.png",
+   "id": -10128,
+   "name": "inactive-right-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10129-non-directional-horizontal-slider-thumbs.png",
+   "id": -10129,
+   "name": "non-directional-horizontal-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10131-non-directional-horizontal-slider-track.png",
+   "id": -10131,
+   "name": "non-directional-horizontal-slider-track"
+  },
+  {
+   "file": "cicn-n10132-inactive-non-directional-horizontal-slider-track.png",
+   "id": -10132,
+   "name": "inactive-non-directional-horizontal-slider-track"
+  },
+  {
+   "file": "cicn-n10135-up-pointing-slider-thumbs.png",
+   "id": -10135,
+   "name": "up-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10137-up-pointing-slider-track.png",
+   "id": -10137,
+   "name": "up-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10138-inactive-up-pointing-slider-track.png",
+   "id": -10138,
+   "name": "inactive-up-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10139-horizontal-slider-tick.png",
+   "id": -10139,
+   "name": "horizontal-slider-tick"
+  },
+  {
+   "file": "cicn-n10140-inactive-horizontal-slider-tick.png",
+   "id": -10140,
+   "name": "inactive-horizontal-slider-tick"
+  },
+  {
+   "file": "cicn-n10141-down-pointing-slider-thumbs.png",
+   "id": -10141,
+   "name": "down-pointing-slider-thumbs"
+  },
+  {
+   "file": "cicn-n10143-down-pointing-slider-track.png",
+   "id": -10143,
+   "name": "down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10144-inactive-down-pointing-slider-track.png",
+   "id": -10144,
+   "name": "inactive-down-pointing-slider-track"
+  },
+  {
+   "file": "cicn-n10171-small-on-pressed.png",
+   "id": -10171,
+   "name": "small-on-pressed"
+  },
+  {
+   "file": "cicn-n10172-small-on-normal.png",
+   "id": -10172,
+   "name": "small-on-normal"
+  },
+  {
+   "file": "cicn-n10173-small-on-disabled.png",
+   "id": -10173,
+   "name": "small-on-disabled"
+  },
+  {
+   "file": "cicn-n10174-small-off-pressed.png",
+   "id": -10174,
+   "name": "small-off-pressed"
+  },
+  {
+   "file": "cicn-n10175-small-off-normal.png",
+   "id": -10175,
+   "name": "small-off-normal"
+  },
+  {
+   "file": "cicn-n10176-small-off-disabled.png",
+   "id": -10176,
+   "name": "small-off-disabled"
+  },
+  {
+   "file": "cicn-n10205-unnamed.png",
+   "id": -10205,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10206-unnamed.png",
+   "id": -10206,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10207-unnamed.png",
+   "id": -10207,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10208-unnamed.png",
+   "id": -10208,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10231-unnamed.png",
+   "id": -10231,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10232-unnamed.png",
+   "id": -10232,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10238-unnamed.png",
+   "id": -10238,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10239-unnamed.png",
+   "id": -10239,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10240-unnamed.png",
+   "id": -10240,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n12230-unnamed.png",
+   "id": -12230,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n12231-unnamed.png",
+   "id": -12231,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n12235-divider-line.png",
+   "id": -12235,
+   "name": "divider-line"
+  },
+  {
+   "file": "cicn-n12272-menu-colors.png",
+   "id": -12272,
+   "name": "menu-colors"
+  },
+  {
+   "file": "cicn-n12287-menu-highlight-lavender.png",
+   "id": -12287,
+   "name": "menu-highlight-lavender"
+  },
+  {
+   "file": "cicn-n12288-menu-bar.png",
+   "id": -12288,
+   "name": "menu-bar"
+  },
+  {
+   "file": "cicn-n12318-inactive-pop-up-window.png",
+   "id": -12318,
+   "name": "inactive-pop-up-window"
+  },
+  {
+   "file": "cicn-n12320-pop-up-window.png",
+   "id": -12320,
+   "name": "pop-up-window"
+  },
+  {
+   "file": "cicn-n14285-unnamed.png",
+   "id": -14285,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14286-unnamed.png",
+   "id": -14286,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14287-active-unitled-utility-window.png",
+   "id": -14287,
+   "name": "active-unitled-utility-window"
+  },
+  {
+   "file": "cicn-n14288-inactive-unitled-utility-window.png",
+   "id": -14288,
+   "name": "inactive-unitled-utility-window"
+  },
+  {
+   "file": "cicn-n14290-pressed-utility-widgets.png",
+   "id": -14290,
+   "name": "pressed-utility-widgets"
+  },
+  {
+   "file": "cicn-n14295-active-side-utility-window.png",
+   "id": -14295,
+   "name": "active-side-utility-window"
+  },
+  {
+   "file": "cicn-n14296-inactive-side-utility-window.png",
+   "id": -14296,
+   "name": "inactive-side-utility-window"
+  },
+  {
+   "file": "cicn-n14298-pressed-utility-widgets.png",
+   "id": -14298,
+   "name": "pressed-utility-widgets"
+  },
+  {
+   "file": "cicn-n14301-unnamed.png",
+   "id": -14301,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14302-unnamed.png",
+   "id": -14302,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14303-active-titled-utility-window.png",
+   "id": -14303,
+   "name": "active-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14304-inactive-titled-utility-window.png",
+   "id": -14304,
+   "name": "inactive-titled-utility-window"
+  },
+  {
+   "file": "cicn-n14305-unnamed.png",
+   "id": -14305,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14309-active-moveable-dialog-grow-box.png",
+   "id": -14309,
+   "name": "active-moveable-dialog-grow-box"
+  },
+  {
+   "file": "cicn-n14310-inactive-moveable-dialog-grow-box.png",
+   "id": -14310,
+   "name": "inactive-moveable-dialog-grow-box"
+  },
+  {
+   "file": "cicn-n14321-active-moveable-alert.png",
+   "id": -14321,
+   "name": "active-moveable-alert"
+  },
+  {
+   "file": "cicn-n14322-inactive-moveable-alert.png",
+   "id": -14322,
+   "name": "inactive-moveable-alert"
+  },
+  {
+   "file": "cicn-n14323-active-moveable-modal.png",
+   "id": -14323,
+   "name": "active-moveable-modal"
+  },
+  {
+   "file": "cicn-n14324-inactive-moveable-modal.png",
+   "id": -14324,
+   "name": "inactive-moveable-modal"
+  },
+  {
+   "file": "cicn-n14325-modal-alert.png",
+   "id": -14325,
+   "name": "modal-alert"
+  },
+  {
+   "file": "cicn-n14326-inactive-modal-alert.png",
+   "id": -14326,
+   "name": "inactive-modal-alert"
+  },
+  {
+   "file": "cicn-n14327-modal-dialog.png",
+   "id": -14327,
+   "name": "modal-dialog"
+  },
+  {
+   "file": "cicn-n14328-inactive-modal-dialog.png",
+   "id": -14328,
+   "name": "inactive-modal-dialog"
+  },
+  {
+   "file": "cicn-n14329-unnamed.png",
+   "id": -14329,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14330-pressed-window-widgets.png",
+   "id": -14330,
+   "name": "pressed-window-widgets"
+  },
+  {
+   "file": "cicn-n14331-collapsed-document-window.png",
+   "id": -14331,
+   "name": "collapsed-document-window"
+  },
+  {
+   "file": "cicn-n14332-collapsed-inactive-document-window.png",
+   "id": -14332,
+   "name": "collapsed-inactive-document-window"
+  },
+  {
+   "file": "cicn-n14333-active-grow-box.png",
+   "id": -14333,
+   "name": "active-grow-box"
+  },
+  {
+   "file": "cicn-n14334-inactive-grow-box.png",
+   "id": -14334,
+   "name": "inactive-grow-box"
+  },
+  {
+   "file": "cicn-n14335-unnamed.png",
+   "id": -14335,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14336-unnamed.png",
+   "id": -14336,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3969-unnamed.png",
+   "id": -3969,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3970-unnamed.png",
+   "id": -3970,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3972-unnamed.png",
+   "id": -3972,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3987-unnamed.png",
+   "id": -3987,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3992-unnamed.png",
+   "id": -3992,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3993-unnamed.png",
+   "id": -3993,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3995-unnamed.png",
+   "id": -3995,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3997-unnamed.png",
+   "id": -3997,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3998-unnamed.png",
+   "id": -3998,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n3999-unnamed.png",
+   "id": -3999,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n4000-unnamed.png",
+   "id": -4000,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n8214-pressed.png",
+   "id": -8214,
+   "name": "pressed"
+  },
+  {
+   "file": "cicn-n8215-normal.png",
+   "id": -8215,
+   "name": "normal"
+  },
+  {
+   "file": "cicn-n8216-disabled.png",
+   "id": -8216,
+   "name": "disabled"
+  },
+  {
+   "file": "cicn-n8222-pressed.png",
+   "id": -8222,
+   "name": "pressed"
+  },
+  {
+   "file": "cicn-n8223-normal.png",
+   "id": -8223,
+   "name": "normal"
+  },
+  {
+   "file": "cicn-n8224-disabled.png",
+   "id": -8224,
+   "name": "disabled"
+  },
+  {
+   "file": "cicn-n8249-pressed-small-horizontal-thumb.png",
+   "id": -8249,
+   "name": "pressed-small-horizontal-thumb"
+  },
+  {
+   "file": "cicn-n8250-small-horizontal-thumb.png",
+   "id": -8250,
+   "name": "small-horizontal-thumb"
+  },
+  {
+   "file": "cicn-n8251-pressed-small-vertical-thumb.png",
+   "id": -8251,
+   "name": "pressed-small-vertical-thumb"
+  },
+  {
+   "file": "cicn-n8252-small-vertical-thumb.png",
+   "id": -8252,
+   "name": "small-vertical-thumb"
+  },
+  {
+   "file": "cicn-n8253-small-horizontal-thumb-ghost.png",
+   "id": -8253,
+   "name": "small-horizontal-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8254-small-vertical-thumb-ghost.png",
+   "id": -8254,
+   "name": "small-vertical-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8259-pressed-small-vertical-scroll-bar-track.png",
+   "id": -8259,
+   "name": "pressed-small-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8260-small-vertical-scroll-bar-track.png",
+   "id": -8260,
+   "name": "small-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8261-small-vertical-nothing-to-scroll.png",
+   "id": -8261,
+   "name": "small-vertical-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8262-inactive-small-vertical-nothing-to-scroll.png",
+   "id": -8262,
+   "name": "inactive-small-vertical-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8267-pressed-small-horizontal-scroll-bar.png",
+   "id": -8267,
+   "name": "pressed-small-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8268-small-horizontal-scroll-bar.png",
+   "id": -8268,
+   "name": "small-horizontal-scroll-bar"
+  },
+  {
+   "file": "cicn-n8269-small-horizontal-nothing-to-scroll.png",
+   "id": -8269,
+   "name": "small-horizontal-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8270-inactive-small-horizontal-nothing-to-scroll.png",
+   "id": -8270,
+   "name": "inactive-small-horizontal-nothing-to-scroll"
+  },
+  {
+   "file": "cicn-n8271-horizontal-thumb-ghost.png",
+   "id": -8271,
+   "name": "horizontal-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8272-vertical-thumb-ghost.png",
+   "id": -8272,
+   "name": "vertical-thumb-ghost"
+  },
+  {
+   "file": "cicn-n8277-pressed-vertical-scroll-bar-track-arrows.png",
+   "id": -8277,
+   "name": "pressed-vertical-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8278-vertical-scroll-bar-track-arrows.png",
+   "id": -8278,
+   "name": "vertical-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8279-vertical-nothing-to-scroll-track.png",
+   "id": -8279,
+   "name": "vertical-nothing-to-scroll-track"
+  },
+  {
+   "file": "cicn-n8280-inactive-vertical-scroll-bar-track.png",
+   "id": -8280,
+   "name": "inactive-vertical-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n8285-pressed-horizontal-scroll-bar-track-arrows.png",
+   "id": -8285,
+   "name": "pressed-horizontal-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8286-horizontal-scroll-bar-track-arrows.png",
+   "id": -8286,
+   "name": "horizontal-scroll-bar-track-arrows"
+  },
+  {
+   "file": "cicn-n8287-horzontal-nothing-to-scroll-track.png",
+   "id": -8287,
+   "name": "horzontal-nothing-to-scroll-track"
+  },
+  {
+   "file": "cicn-n8288-inactive-horizontal-scroll-bar-track.png",
+   "id": -8288,
+   "name": "inactive-horizontal-scroll-bar-track"
+  },
+  {
+   "file": "cicn-n9484-unnamed.png",
+   "id": -9484,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9485-unnamed.png",
+   "id": -9485,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9486-unnamed.png",
+   "id": -9486,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9487-unnamed.png",
+   "id": -9487,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9488-unnamed.png",
+   "id": -9488,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9489-unnamed.png",
+   "id": -9489,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9490-unnamed.png",
+   "id": -9490,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9491-unnamed.png",
+   "id": -9491,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9492-unnamed.png",
+   "id": -9492,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9496-unnamed.png",
+   "id": -9496,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9497-unnamed.png",
+   "id": -9497,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9498-unnamed.png",
+   "id": -9498,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9499-unnamed.png",
+   "id": -9499,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9500-unnamed.png",
+   "id": -9500,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9501-unnamed.png",
+   "id": -9501,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9502-unnamed.png",
+   "id": -9502,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9503-unnamed.png",
+   "id": -9503,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9504-unnamed.png",
+   "id": -9504,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n9548-list-divider-line.png",
+   "id": -9548,
+   "name": "list-divider-line"
+  },
+  {
+   "file": "cicn-n9549-list-sort-color.png",
+   "id": -9549,
+   "name": "list-sort-color"
+  },
+  {
+   "file": "cicn-n9550-list-non-sort.png",
+   "id": -9550,
+   "name": "list-non-sort"
+  },
+  {
+   "file": "cicn-n9551-icon-background.png",
+   "id": -9551,
+   "name": "icon-background"
+  },
+  {
+   "file": "cicn-n9552-desktop-name-background.png",
+   "id": -9552,
+   "name": "desktop-name-background"
+  },
+  {
+   "file": "cicn-n9567-active-finder-header.png",
+   "id": -9567,
+   "name": "active-finder-header"
+  },
+  {
+   "file": "cicn-n9568-inactive-finder-header.png",
+   "id": -9568,
+   "name": "inactive-finder-header"
+  },
+  {
+   "file": "cicn-n9773-inactive-alert-background.png",
+   "id": -9773,
+   "name": "inactive-alert-background"
+  },
+  {
+   "file": "cicn-n9774-active-alert-background.png",
+   "id": -9774,
+   "name": "active-alert-background"
+  },
+  {
+   "file": "cicn-n9775-inactive-dialog-background.png",
+   "id": -9775,
+   "name": "inactive-dialog-background"
+  },
+  {
+   "file": "cicn-n9776-active-dialog-background.png",
+   "id": -9776,
+   "name": "active-dialog-background"
+  },
+  {
+   "file": "cicn-n9972-ssf-on-normal-tab.png",
+   "id": -9972,
+   "name": "ssf-on-normal-tab"
+  },
+  {
+   "file": "cicn-n9973-ssf-on-disabled-tab.png",
+   "id": -9973,
+   "name": "ssf-on-disabled-tab"
+  },
+  {
+   "file": "cicn-n9974-ssf-off-pressed-tab.png",
+   "id": -9974,
+   "name": "ssf-off-pressed-tab"
+  },
+  {
+   "file": "cicn-n9975-ssf-off-normal-tab.png",
+   "id": -9975,
+   "name": "ssf-off-normal-tab"
+  },
+  {
+   "file": "cicn-n9976-ssf-off-disabled-tab.png",
+   "id": -9976,
+   "name": "ssf-off-disabled-tab"
+  },
+  {
+   "file": "cicn-n9980-lsf-on-normal-tab.png",
+   "id": -9980,
+   "name": "lsf-on-normal-tab"
+  },
+  {
+   "file": "cicn-n9981-lsf-on-disabled-tab.png",
+   "id": -9981,
+   "name": "lsf-on-disabled-tab"
+  },
+  {
+   "file": "cicn-n9982-lsf-off-pressed-tab.png",
+   "id": -9982,
+   "name": "lsf-off-pressed-tab"
+  },
+  {
+   "file": "cicn-n9983-lsf-off-normal-tab.png",
+   "id": -9983,
+   "name": "lsf-off-normal-tab"
+  },
+  {
+   "file": "cicn-n9984-lsf-off-disable-tab.png",
+   "id": -9984,
+   "name": "lsf-off-disable-tab"
+  }
+ ],
+ "ppats": [
+  {
+   "file": "ppat-17-desktop-pattern.png",
+   "label": "17-desktop-pattern"
+  },
+  {
+   "file": "ppat-42-utility-pattern.png",
+   "label": "42-utility-pattern"
+  },
+  {
+   "file": "ppat-n10064-indeterminate-progress-bar.png",
+   "label": "n10064-indeterminate-progress-bar"
+  },
+  {
+   "file": "ppat-n10080-indeterminate-progress-bar.png",
+   "label": "n10080-indeterminate-progress-bar"
+  },
+  {
+   "file": "ppat-n10173-small-on-disabled-bevel-button-ppat.png",
+   "label": "n10173-small-on-disabled-bevel-button-ppat"
+  },
+  {
+   "file": "ppat-n8259-unnamed.png",
+   "label": "n8259-unnamed"
+  },
+  {
+   "file": "ppat-n8260-unnamed.png",
+   "label": "n8260-unnamed"
+  },
+  {
+   "file": "ppat-n8267-unnamed.png",
+   "label": "n8267-unnamed"
+  },
+  {
+   "file": "ppat-n8268-unnamed.png",
+   "label": "n8268-unnamed"
+  },
+  {
+   "file": "ppat-n8277-unnamed.png",
+   "label": "n8277-unnamed"
+  },
+  {
+   "file": "ppat-n8278-unnamed.png",
+   "label": "n8278-unnamed"
+  },
+  {
+   "file": "ppat-n8279-unnamed.png",
+   "label": "n8279-unnamed"
+  },
+  {
+   "file": "ppat-n8285-unnamed.png",
+   "label": "n8285-unnamed"
+  },
+  {
+   "file": "ppat-n8286-unnamed.png",
+   "label": "n8286-unnamed"
+  },
+  {
+   "file": "ppat-n8287-unnamed.png",
+   "label": "n8287-unnamed"
+  },
+  {
+   "file": "ppat-n9548-list-view-divider-line.png",
+   "label": "n9548-list-view-divider-line"
+  }
+ ]
+}

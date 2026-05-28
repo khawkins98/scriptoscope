@@ -1,0 +1,15 @@
+{
+  "name": "Crayon OS",
+  "author": {
+    "name": "Karl von Laudermann",
+    "email": "karlvonl@geocities.com",
+    "year": 2000
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "Freeware (Karl von Laudermann, ©2000). Author explicitly permits redistribution provided the ReadMe accompanies the bundle and files are unmodified.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — crayonos.sit"
+  }
+}

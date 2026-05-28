@@ -15,6 +15,14 @@
     "ref": "1990.png"
   },
   {
+    "slug": "animals",
+    "label": "Animals (Masashi Ichikawa, 1999) ✦ real scheme"
+  },
+  {
+    "slug": "apple-lisa",
+    "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans) ✦ real scheme"
+  },
+  {
     "slug": "apple-platinum-2",
     "label": "Apple Platinum 2 (Orion Dimitrakopoulos, 1999) ✦ real scheme",
     "ref": "apple-platinum-2.png"
@@ -30,9 +38,25 @@
     "ref": "black-platinum.png"
   },
   {
+    "slug": "crayon-os",
+    "label": "Crayon OS (Karl von Laudermann, 2000) ✦ real scheme"
+  },
+  {
+    "slug": "dolphin-som",
+    "label": "Dolphin SOM (dsom) (unknown) ✦ real scheme"
+  },
+  {
     "slug": "evolution",
     "label": "1991 evolution (SHIOCOP, 1999) ✦ real scheme",
     "ref": "evolution.png"
+  },
+  {
+    "slug": "floppies",
+    "label": "Floppies! (unknown) ✦ real scheme"
+  },
+  {
+    "slug": "monkey-paradise",
+    "label": "Monkey Paradise (Masashi Ichikawa, 1998) ✦ real scheme"
   },
   {
     "slug": "platinum-8",
@@ -40,8 +64,20 @@
     "ref": "platinum-8.png"
   },
   {
+    "slug": "slimes",
+    "label": "slimes 1.5 (JUN, 1998) ✦ real scheme"
+  },
+  {
     "slug": "system7-nostalgia-silver",
     "label": "System 7 Nostalgia Silver (mollusc, 1997) ✦ real scheme",
     "ref": "system7-nostalgia-silver.png"
+  },
+  {
+    "slug": "windows-31",
+    "label": "Windows 3.1 (Scott Naness) ✦ real scheme"
+  },
+  {
+    "slug": "windows-95",
+    "label": "Windows 95 (Scott Naness) ✦ real scheme"
   }
 ]

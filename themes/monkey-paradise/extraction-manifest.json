@@ -1,0 +1,5197 @@
+{
+  "source": "monkey-paradise/scheme.rsrc",
+  "extractedAt": "2026-05-28T19:41:20.388Z",
+  "counts": {
+    "total": 220,
+    "ok": 220,
+    "skipped": 0,
+    "errored": 0,
+    "raster": 148,
+    "geometry": 72
+  },
+  "assets": [
+    {
+      "type": "cicn",
+      "id": -8288,
+      "name": "Inactive Horizontal Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8288-inactive-horizontal-scroll-bar-track.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 8,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8287,
+      "name": "Horzontal Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8287-horzontal-nothing-to-scroll-track.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8280,
+      "name": "Inactive Vertical Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8280-inactive-vertical-scroll-bar-track.png",
+      "width": 16,
+      "height": 43,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8279,
+      "name": "Vertical Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8279-vertical-nothing-to-scroll-track.png",
+      "width": 16,
+      "height": 43,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14334,
+      "name": "Inactive Grow Box",
+      "status": "ok",
+      "file": "cicn-n14334-inactive-grow-box.png",
+      "width": 15,
+      "height": 15,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14326,
+      "name": "Inactive Alert",
+      "status": "ok",
+      "file": "cicn-n14326-inactive-alert.png",
+      "width": 106,
+      "height": 55,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 56,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14321,
+      "name": "Movable Alert",
+      "status": "ok",
+      "file": "cicn-n14321-movable-alert.png",
+      "width": 126,
+      "height": 67,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 17,
+        "rowBytes": 128,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9568,
+      "name": "Inactive Finder Header",
+      "status": "ok",
+      "file": "cicn-n9568-inactive-finder-header.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14322,
+      "name": "Inactive Movable Alert",
+      "status": "ok",
+      "file": "cicn-n14322-inactive-movable-alert.png",
+      "width": 126,
+      "height": 67,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 64,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8286,
+      "name": "Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8286-horizontal-scroll-bar-track-arrows.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10206,
+      "name": "Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n10206-horizontal-thumb.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8278,
+      "name": "Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8278-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 61,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9567,
+      "name": "Finder Header",
+      "status": "ok",
+      "file": "cicn-n9567-finder-header.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8285,
+      "name": "Pressed Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8285-pressed-horizontal-scroll-bar-track-arrows.png",
+      "width": 61,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 15,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8277,
+      "name": "Pressed Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8277-pressed-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 61,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8272,
+      "name": "Vertical Thumb Ghost",
+      "status": "ok",
+      "file": "cicn-n8272-vertical-thumb-ghost.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8271,
+      "name": "Horizontal Thumb Ghost",
+      "status": "ok",
+      "file": "cicn-n8271-horizontal-thumb-ghost.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10207,
+      "name": "Pressed Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n10207-pressed-vertical-thumb.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10205,
+      "name": "Pressed Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n10205-pressed-horizontal-thumb.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14333,
+      "name": "Grow Box",
+      "status": "ok",
+      "file": "cicn-n14333-grow-box.png",
+      "width": 15,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14336,
+      "name": "Inactive Document Window",
+      "status": "ok",
+      "file": "cicn-n14336-inactive-document-window.png",
+      "width": 170,
+      "height": 121,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 57,
+        "rowBytes": 172,
+        "maskRowBytes": 24,
+        "bmapRowBytes": 24
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14330,
+      "name": "Widget Down States",
+      "status": "ok",
+      "file": "cicn-n14330-widget-down-states.png",
+      "width": 45,
+      "height": 26,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12239,
+      "name": "Menu Bar Item",
+      "status": "ok",
+      "file": "cicn-n12239-menu-bar-item.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12238,
+      "name": "Selected Menu Bar Item",
+      "status": "ok",
+      "file": "cicn-n12238-selected-menu-bar-item.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12240,
+      "name": "Menu Bar",
+      "status": "ok",
+      "file": "cicn-n12240-menu-bar.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12237,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12237-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "file": "cicn-n12235-divider-line.png",
+      "width": 23,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14328,
+      "name": "Inactive Dialog",
+      "status": "ok",
+      "file": "cicn-n14328-inactive-dialog.png",
+      "width": 133,
+      "height": 57,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 15,
+        "rowBytes": 68,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12234,
+      "name": "Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n12234-solo-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10240,
+      "name": "Inactive Push Button",
+      "status": "ok",
+      "file": "cicn-n10240-inactive-push-button.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10238,
+      "name": "Pressed Push Button",
+      "status": "ok",
+      "file": "cicn-n10238-pressed-push-button.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10231,
+      "name": "Default Ring",
+      "status": "ok",
+      "file": "cicn-n10231-default-ring.png",
+      "width": 23,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9492,
+      "name": "Inactive Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9492-inactive-off-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9491,
+      "name": "Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9491-off-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9490,
+      "name": "Pressed Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9490-pressed-off-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9489,
+      "name": "Inactive On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9489-inactive-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9488,
+      "name": "On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9488-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9487,
+      "name": "Pressed On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9487-pressed-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9486,
+      "name": "Inactive Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9486-inactive-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9485,
+      "name": "Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9485-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9484,
+      "name": "Pressed Mixed Radio Button",
+      "status": "ok",
+      "file": "cicn-n9484-pressed-mixed-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9504,
+      "name": "Inactive Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9504-inactive-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9503,
+      "name": "Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9503-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9502,
+      "name": "Pressed Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9502-pressed-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9501,
+      "name": "Inactive Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9501-inactive-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9500,
+      "name": "Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9500-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9499,
+      "name": "Pressed Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9499-pressed-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9498,
+      "name": "Inactive Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9498-inactive-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9497,
+      "name": "Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9497-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9496,
+      "name": "Pressed Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9496-pressed-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9495,
+      "name": "Checked Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9495-checked-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9494,
+      "name": "Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9494-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9493,
+      "name": "Pressed Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9493-pressed-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "file": "cicn-n12320-popup-window.png",
+      "width": 135,
+      "height": 71,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 21,
+        "rowBytes": 136,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9551,
+      "name": "Icon View Background Color",
+      "status": "ok",
+      "file": "cicn-n9551-icon-view-background-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9550,
+      "name": "List View Non-Sort Color",
+      "status": "ok",
+      "file": "cicn-n9550-list-view-non-sort-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9549,
+      "name": "List View Sort Color",
+      "status": "ok",
+      "file": "cicn-n9549-list-view-sort-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9548,
+      "name": "List View Divider Line Color",
+      "status": "ok",
+      "file": "cicn-n9548-list-view-divider-line-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14287,
+      "name": "No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14287-no-title-utility-window.png",
+      "width": 50,
+      "height": 26,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14288,
+      "name": "Inactive No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14288-inactive-no-title-utility-window.png",
+      "width": 50,
+      "height": 26,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14304,
+      "name": "Inactive Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14304-inactive-titled-utility-window.png",
+      "width": 67,
+      "height": 28,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 36,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14303,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14303-titled-utility-window.png",
+      "width": 67,
+      "height": 28,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 36,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14296,
+      "name": "Inactive Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14296-inactive-side-floating-utility-window.png",
+      "width": 32,
+      "height": 38,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14295,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14295-side-floating-utility-window.png",
+      "width": 32,
+      "height": 38,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14298,
+      "name": "Pressed Utility Window Widgets",
+      "status": "ok",
+      "file": "cicn-n14298-pressed-utility-window-widgets.png",
+      "width": 38,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14290,
+      "name": "Side Floating Utility Window Down State Widgets",
+      "status": "ok",
+      "file": "cicn-n14290-side-floating-utility-window-down-state-widgets.png",
+      "width": 35,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14302,
+      "name": "Inactive Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14302-inactive-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14301,
+      "name": "Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14301-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14286,
+      "name": "Inacive Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14286-inacive-small-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14285,
+      "name": "Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14285-small-utility-window-grow-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8208,
+      "name": "Inactive Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8208-inactive-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8207,
+      "name": "Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8207-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8206,
+      "name": "Pressed Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8206-pressed-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8205,
+      "name": "Inactive Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8205-inactive-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8204,
+      "name": "Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8204-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8203,
+      "name": "Pressed Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8203-pressed-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8199,
+      "name": "Inactive Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8199-inactive-large-popup-menu-arrow.png",
+      "width": 11,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8197,
+      "name": "Pressed Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8197-pressed-large-popup-menu-arrow.png",
+      "width": 11,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8196,
+      "name": "Inactive Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8196-inactive-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8194,
+      "name": "Pressed Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8194-pressed-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8202,
+      "name": "Inactive Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8202-inactive-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8201,
+      "name": "Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8201-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8200,
+      "name": "Pressed Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8200-pressed-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8198,
+      "name": "Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8198-large-popup-menu-arrow.png",
+      "width": 11,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8195,
+      "name": "Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8195-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9984,
+      "name": "LSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9984-lsf-disabled-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9983-lsf-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9982-lsf-pressed-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9981,
+      "name": "LSF Front Disabled Tab",
+      "status": "ok",
+      "file": "cicn-n9981-lsf-front-disabled-tab.png",
+      "width": 37,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9980-lsf-front-tab.png",
+      "width": 37,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9976-ssf-disabled-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9975-ssf-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9974,
+      "name": "SSF Pressed Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9974-ssf-pressed-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9973,
+      "name": "SSF Disabled Front Tab",
+      "status": "ok",
+      "file": "cicn-n9973-ssf-disabled-front-tab.png",
+      "width": 32,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9972-ssf-front-tab.png",
+      "width": 32,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9978,
+      "name": "LSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9978-lsf-disabled-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9977,
+      "name": "LSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9977-lsf-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9970,
+      "name": "SSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9970-ssf-disabled-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9969,
+      "name": "SSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9969-ssf-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8252,
+      "name": "Small Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n8252-small-vertical-thumb.png",
+      "width": 11,
+      "height": 18,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8251,
+      "name": "Pressed Small Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n8251-pressed-small-vertical-thumb.png",
+      "width": 11,
+      "height": 18,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8250,
+      "name": "Small Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n8250-small-horizontal-thumb.png",
+      "width": 18,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8249,
+      "name": "Small Pressed Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n8249-small-pressed-horizontal-thumb.png",
+      "width": 18,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9775,
+      "name": "Inactive Alert & Dialog Background",
+      "status": "ok",
+      "file": "cicn-n9775-inactive-alert-dialog-background.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9776,
+      "name": "Alert/Dialog Background",
+      "status": "ok",
+      "file": "cicn-n9776-alert-dialog-background.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14324,
+      "name": "Inactive Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14324-inactive-movable-modal.png",
+      "width": 130,
+      "height": 58,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 15,
+        "rowBytes": 68,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10048,
+      "name": "Inactive Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10048-inactive-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10047,
+      "name": "Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10047-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10046,
+      "name": "Pressed Up Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10046-pressed-up-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10045,
+      "name": "Pressed Down Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10045-pressed-down-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10208,
+      "name": "Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n10208-vertical-thumb.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14310,
+      "name": "Inactive Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14310-inactive-movable-modal-grow-box.png",
+      "width": 26,
+      "height": 26,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 23,
+        "rowBytes": 28,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14309,
+      "name": "Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14309-movable-modal-grow-box.png",
+      "width": 26,
+      "height": 26,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 29,
+        "rowBytes": 28,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12236,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12236-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10232,
+      "name": "Inactive Default Ring",
+      "status": "ok",
+      "file": "cicn-n10232-inactive-default-ring.png",
+      "width": 23,
+      "height": 22,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10239,
+      "name": "Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n10239-solo-menu-background.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10176,
+      "name": "Inactive Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10176-inactive-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10175,
+      "name": "Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10175-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10154,
+      "name": "Large On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10154-large-on-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10153,
+      "name": "Pressed Large On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10153-pressed-large-on-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10172,
+      "name": "On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10172-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10171,
+      "name": "Pressed On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10171-pressed-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10167,
+      "name": "Inactive Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10167-inactive-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10166,
+      "name": "Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10166-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10165,
+      "name": "Pressed Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10165-pressed-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10164,
+      "name": "Inactive On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10164-inactive-on-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10163,
+      "name": "On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10163-on-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10162,
+      "name": "Pressed On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10162-pressed-on-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10158,
+      "name": "Inactive Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10158-inactive-large-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10157,
+      "name": "Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10157-large-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10156,
+      "name": "Pressed Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10156-pressed-large-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10155,
+      "name": "Inactive On Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10155-inactive-on-large-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10174,
+      "name": "Pressed Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10174-pressed-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10173,
+      "name": "Inactive On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10173-inactive-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12233,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12233-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12232,
+      "name": "Divider Line",
+      "status": "ok",
+      "file": "cicn-n12232-divider-line.png",
+      "width": 23,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14335,
+      "name": "Document Window",
+      "status": "ok",
+      "file": "cicn-n14335-document-window.png",
+      "width": 170,
+      "height": 121,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 44,
+        "rowBytes": 172,
+        "maskRowBytes": 24,
+        "bmapRowBytes": 24
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10224,
+      "name": "Temp",
+      "status": "ok",
+      "file": "cicn-n10224-temp.png",
+      "width": 12,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 6,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10223,
+      "name": "Temp P Ind",
+      "status": "ok",
+      "file": "cicn-n10223-temp-p-ind.png",
+      "width": 12,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14325,
+      "name": "Alert",
+      "status": "ok",
+      "file": "cicn-n14325-alert.png",
+      "width": 106,
+      "height": 55,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 22,
+        "rowBytes": 108,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14327,
+      "name": "Dialog",
+      "status": "ok",
+      "file": "cicn-n14327-dialog.png",
+      "width": 133,
+      "height": 57,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 25,
+        "rowBytes": 136,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14323,
+      "name": "Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14323-movable-modal.png",
+      "width": 130,
+      "height": 58,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 68,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 42,
+      "name": "Utility Pattern",
+      "status": "ok",
+      "file": "ppat-42-utility-pattern.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 128,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-128-unnamed.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-129-unnamed.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 130,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-130-unnamed.png",
+      "width": 64,
+      "height": 64,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 32
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 132,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-132-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 17,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-17-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14304,
+      "name": "Utitlity Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 19,
+              "left": 5,
+              "bottom": 21,
+              "right": 61
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 5,
+              "left": 4,
+              "bottom": 15,
+              "right": 14
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 5,
+              "left": 36,
+              "bottom": 15,
+              "right": 46
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 0,
+              "left": 47,
+              "bottom": 16,
+              "right": 64
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 2,
+              "left": 23,
+              "bottom": 15,
+              "right": 27
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 4,
+            "border": 16
+          },
+          {
+            "part": 6,
+            "border": 20
+          },
+          {
+            "part": 5,
+            "border": 30
+          },
+          {
+            "part": 6,
+            "border": 34
+          },
+          {
+            "part": 8,
+            "border": 36
+          },
+          {
+            "part": 3,
+            "border": 47
+          },
+          {
+            "part": 4,
+            "border": 67
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 20
+          },
+          {
+            "part": 8,
+            "border": 21
+          },
+          {
+            "part": 0,
+            "border": 60
+          },
+          {
+            "part": 1,
+            "border": 67
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 20
+          },
+          {
+            "part": 8,
+            "border": 21
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 19
+          },
+          {
+            "part": 1,
+            "border": 20
+          },
+          {
+            "part": 8,
+            "border": 21
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 25,
+              "left": 19,
+              "bottom": 71,
+              "right": 114
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 3,
+              "left": 58,
+              "bottom": 19,
+              "right": 67
+            }
+          },
+          {
+            "part": 5,
+            "rect": {
+              "top": 8,
+              "left": 5,
+              "bottom": 35,
+              "right": 28
+            }
+          },
+          {
+            "part": 6,
+            "rect": {
+              "top": 7,
+              "left": 104,
+              "bottom": 36,
+              "right": 130
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 34
+          },
+          {
+            "part": 8,
+            "border": 35
+          },
+          {
+            "part": 6,
+            "border": 58
+          },
+          {
+            "part": 5,
+            "border": 67
+          },
+          {
+            "part": 1,
+            "border": 87
+          },
+          {
+            "part": 0,
+            "border": 105
+          },
+          {
+            "part": 8,
+            "border": 106
+          },
+          {
+            "part": 1,
+            "border": 135
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 25
+          },
+          {
+            "part": 1,
+            "border": 47
+          },
+          {
+            "part": 8,
+            "border": 48
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 25
+          },
+          {
+            "part": 1,
+            "border": 45
+          },
+          {
+            "part": 8,
+            "border": 46
+          },
+          {
+            "part": 1,
+            "border": 71
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 5,
+              "left": 12,
+              "bottom": 33,
+              "right": 14
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 4,
+              "left": 0,
+              "bottom": 14,
+              "right": 10
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 14,
+              "left": 0,
+              "bottom": 24,
+              "right": 10
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 0,
+              "left": 19,
+              "bottom": 20,
+              "right": 32
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 12
+          },
+          {
+            "part": 8,
+            "border": 13
+          },
+          {
+            "part": 1,
+            "border": 32
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 12
+          },
+          {
+            "part": 1,
+            "border": 13
+          },
+          {
+            "part": 8,
+            "border": 14
+          },
+          {
+            "part": 1,
+            "border": 20
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 2,
+            "border": 14
+          },
+          {
+            "part": 3,
+            "border": 24
+          },
+          {
+            "part": 8,
+            "border": 25
+          },
+          {
+            "part": 0,
+            "border": 30
+          },
+          {
+            "part": 1,
+            "border": 38
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 4,
+            "border": 22
+          },
+          {
+            "part": 8,
+            "border": 23
+          },
+          {
+            "part": 0,
+            "border": 30
+          },
+          {
+            "part": 1,
+            "border": 38
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14288,
+      "name": "Utility Window (No Title)",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 19,
+              "left": 5,
+              "bottom": 21,
+              "right": 43
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 5,
+              "left": 4,
+              "bottom": 15,
+              "right": 14
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 5,
+              "left": 18,
+              "bottom": 15,
+              "right": 28
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 0,
+              "left": 29,
+              "bottom": 16,
+              "right": 46
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 4
+          },
+          {
+            "part": 2,
+            "border": 14
+          },
+          {
+            "part": 8,
+            "border": 18
+          },
+          {
+            "part": 3,
+            "border": 29
+          },
+          {
+            "part": 4,
+            "border": 49
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 15
+          },
+          {
+            "part": 8,
+            "border": 16
+          },
+          {
+            "part": 0,
+            "border": 40
+          },
+          {
+            "part": 1,
+            "border": 48
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 19
+          },
+          {
+            "part": 8,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 21
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 19
+          },
+          {
+            "part": 8,
+            "border": 20
+          },
+          {
+            "part": 1,
+            "border": 21
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 36,
+              "left": 22,
+              "bottom": 106,
+              "right": 151
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 7,
+              "left": 22,
+              "bottom": 33,
+              "right": 36
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 7,
+              "left": 124,
+              "bottom": 33,
+              "right": 138
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 7,
+              "left": 141,
+              "bottom": 33,
+              "right": 156
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 12,
+              "left": 84,
+              "bottom": 29,
+              "right": 89
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 22
+          },
+          {
+            "part": 2,
+            "border": 37
+          },
+          {
+            "part": 15,
+            "border": 52
+          },
+          {
+            "part": 8,
+            "border": 59
+          },
+          {
+            "part": 6,
+            "border": 82
+          },
+          {
+            "part": 5,
+            "border": 92
+          },
+          {
+            "part": 6,
+            "border": 116
+          },
+          {
+            "part": 8,
+            "border": 124
+          },
+          {
+            "part": 3,
+            "border": 140
+          },
+          {
+            "part": 4,
+            "border": 156
+          },
+          {
+            "part": 1,
+            "border": 170
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 38
+          },
+          {
+            "part": 12,
+            "border": 69
+          },
+          {
+            "part": 0,
+            "border": 139
+          },
+          {
+            "part": 14,
+            "border": 140
+          },
+          {
+            "part": 1,
+            "border": 170
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 36
+          },
+          {
+            "part": 1,
+            "border": 47
+          },
+          {
+            "part": 12,
+            "border": 83
+          },
+          {
+            "part": 14,
+            "border": 84
+          },
+          {
+            "part": 1,
+            "border": 121
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 36
+          },
+          {
+            "part": 1,
+            "border": 50
+          },
+          {
+            "part": 12,
+            "border": 78
+          },
+          {
+            "part": 14,
+            "border": 82
+          },
+          {
+            "part": 1,
+            "border": 121
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14328,
+      "name": "Modal Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 23,
+              "left": 9,
+              "bottom": 32,
+              "right": 118
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 25
+          },
+          {
+            "part": 8,
+            "border": 26
+          },
+          {
+            "part": 0,
+            "border": 80
+          },
+          {
+            "part": 1,
+            "border": 133
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 45
+          },
+          {
+            "part": 8,
+            "border": 46
+          },
+          {
+            "part": 0,
+            "border": 100
+          },
+          {
+            "part": 1,
+            "border": 129
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 0,
+            "border": 31
+          },
+          {
+            "part": 1,
+            "border": 32
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 24
+          },
+          {
+            "part": 0,
+            "border": 32
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 22,
+              "left": 9,
+              "bottom": 30,
+              "right": 89
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 10
+          },
+          {
+            "part": 8,
+            "border": 11
+          },
+          {
+            "part": 0,
+            "border": 35
+          },
+          {
+            "part": 1,
+            "border": 106
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 64
+          },
+          {
+            "part": 8,
+            "border": 65
+          },
+          {
+            "part": 0,
+            "border": 90
+          },
+          {
+            "part": 1,
+            "border": 100
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 22
+          },
+          {
+            "part": 8,
+            "border": 23
+          },
+          {
+            "part": 0,
+            "border": 30
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 22
+          },
+          {
+            "part": 8,
+            "border": 23
+          },
+          {
+            "part": 0,
+            "border": 30
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14324,
+      "name": "Movable Modal Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 27,
+              "left": 22,
+              "bottom": 43,
+              "right": 108
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 27,
+              "left": 0,
+              "bottom": 40,
+              "right": 13
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 0,
+              "left": 0,
+              "bottom": 0,
+              "right": 0
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 0,
+              "left": 0,
+              "bottom": 0,
+              "right": 0
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 2,
+              "left": 61,
+              "bottom": 18,
+              "right": 65
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 31
+          },
+          {
+            "part": 8,
+            "border": 32
+          },
+          {
+            "part": 1,
+            "border": 62
+          },
+          {
+            "part": 5,
+            "border": 66
+          },
+          {
+            "part": 1,
+            "border": 100
+          },
+          {
+            "part": 8,
+            "border": 101
+          },
+          {
+            "part": 1,
+            "border": 128
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 33
+          },
+          {
+            "part": 8,
+            "border": 34
+          },
+          {
+            "part": 0,
+            "border": 100
+          },
+          {
+            "part": 1,
+            "border": 130
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 27
+          },
+          {
+            "part": 2,
+            "border": 41
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 27
+          },
+          {
+            "part": 1,
+            "border": 41
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 27,
+              "left": 20,
+              "bottom": 43,
+              "right": 106
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 47,
+              "left": 56,
+              "bottom": 65,
+              "right": 71
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 0,
+              "left": 0,
+              "bottom": 0,
+              "right": 0
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 0,
+              "left": 0,
+              "bottom": 0,
+              "right": 0
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 2,
+              "left": 60,
+              "bottom": 18,
+              "right": 63
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 26
+          },
+          {
+            "part": 8,
+            "border": 27
+          },
+          {
+            "part": 1,
+            "border": 59
+          },
+          {
+            "part": 5,
+            "border": 65
+          },
+          {
+            "part": 1,
+            "border": 90
+          },
+          {
+            "part": 8,
+            "border": 91
+          },
+          {
+            "part": 0,
+            "border": 100
+          },
+          {
+            "part": 1,
+            "border": 126
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 33
+          },
+          {
+            "part": 8,
+            "border": 34
+          },
+          {
+            "part": 1,
+            "border": 55
+          },
+          {
+            "part": 2,
+            "border": 72
+          },
+          {
+            "part": 1,
+            "border": 92
+          },
+          {
+            "part": 8,
+            "border": 93
+          },
+          {
+            "part": 0,
+            "border": 105
+          },
+          {
+            "part": 1,
+            "border": 126
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 27
+          },
+          {
+            "part": 8,
+            "border": 28
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 27
+          },
+          {
+            "part": 8,
+            "border": 28
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ]
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 11,
+        "sideThickness": 11,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12236,
+      "name": "Selected Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 4,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12237,
+      "name": "Pull Down Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 5,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12239,
+      "name": "Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12238,
+      "name": "Selected Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12234,
+      "name": "Solo Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10238,
+      "name": "Pressed Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10239,
+      "name": "Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 2,
+        "resizeBehavior": "repeat-left",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10240,
+      "name": "Inactive Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10231,
+      "name": "Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 5,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10232,
+      "name": "Inactive Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 5,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9551,
+      "name": "Icon View Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 132,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 2,
+          "y": 1
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9550,
+      "name": "List View Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9549,
+      "name": "List View Sort Color",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9548,
+      "name": "List View Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9568,
+      "name": "Inactive Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9567,
+      "name": "Active Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 129,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8206,
+      "name": "Pressed Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8207,
+      "name": "Normal Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8208,
+      "name": "Disabled Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8205,
+      "name": "Disabled Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8204,
+      "name": "Normal Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8203,
+      "name": "Pressed Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8202,
+      "name": "Disabled Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8201,
+      "name": "Normal Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8200,
+      "name": "Pressed Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9978,
+      "name": "LSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9977,
+      "name": "LSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 129,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9970,
+      "name": "SSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9969,
+      "name": "SSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 129,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9981,
+      "name": "LSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 16,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 16,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9984,
+      "name": "LSF Disabled Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 18,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 18,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 19,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 18,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 18,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 19,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 18,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 18,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 19,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9973,
+      "name": "SSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9974,
+      "name": "SSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9775,
+      "name": "Inactive Dialog & Alert Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9776,
+      "name": "Active Dialog & Alert Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 127,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12240,
+      "name": "Root Menu Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 1,
+        "sideThickness": 1,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 5,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10176,
+      "name": "Small Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10175,
+      "name": "Small Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10174,
+      "name": "Small Pressed Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10173,
+      "name": "Small Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10172,
+      "name": "Small On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10171,
+      "name": "Small Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10167,
+      "name": "Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10166,
+      "name": "Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 1280,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10165,
+      "name": "Pressed Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10164,
+      "name": "Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10163,
+      "name": "On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10162,
+      "name": "Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10158,
+      "name": "Large Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10157,
+      "name": "Large Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10156,
+      "name": "Large Pressed Off Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10155,
+      "name": "Large Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10154,
+      "name": "Large On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10153,
+      "name": "Large Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12233,
+      "name": "Selected SoloMenu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 4,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12232,
+      "name": "Solomenu Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 11,
+        "sideThickness": 11,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 128,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  ]
+}

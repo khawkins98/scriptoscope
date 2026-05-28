@@ -1,0 +1,5148 @@
+{
+ "_generator": "scripts/gen-resource-roles.mjs",
+ "_note": "Per-theme resource id → DECODED role. Roles come from a rubric + the actual resource set, NOT guessed from filename slugs. The same id differs across schemes and across the cicn/ics4 dual channel. See docs/spec/kdef231-reference.md.",
+ "theme": "apple-lisa",
+ "progress": {
+  "model": "role-3-part",
+  "frame": -10080,
+  "fill": -10079,
+  "track": -10078,
+  "inactive": {
+   "frame": null,
+   "fill": null,
+   "track": null
+  }
+ },
+ "scrollArrows": null,
+ "resources": [
+  {
+   "id": -14336,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14335,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14334,
+   "type": "cicn",
+   "slug": "inactive-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-grow-box)"
+  },
+  {
+   "id": -14333,
+   "type": "cicn",
+   "slug": "active-grow-box",
+   "family": "window",
+   "role": "window chrome (active-grow-box)"
+  },
+  {
+   "id": -14332,
+   "type": "cicn",
+   "slug": "collapsed-inactive-document-window",
+   "family": "window",
+   "role": "window chrome (collapsed-inactive-document-window)"
+  },
+  {
+   "id": -14331,
+   "type": "cicn",
+   "slug": "collapsed-document-window",
+   "family": "window",
+   "role": "window chrome (collapsed-document-window)"
+  },
+  {
+   "id": -14330,
+   "type": "cicn",
+   "slug": "pressed-window-widgets",
+   "family": "window",
+   "role": "window chrome (pressed-window-widgets)"
+  },
+  {
+   "id": -14329,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14328,
+   "type": "cicn",
+   "slug": "inactive-modal-dialog",
+   "family": "window",
+   "role": "window chrome (inactive-modal-dialog)"
+  },
+  {
+   "id": -14327,
+   "type": "cicn",
+   "slug": "modal-dialog",
+   "family": "window",
+   "role": "window chrome (modal-dialog)"
+  },
+  {
+   "id": -14326,
+   "type": "cicn",
+   "slug": "inactive-modal-alert",
+   "family": "window",
+   "role": "window chrome (inactive-modal-alert)"
+  },
+  {
+   "id": -14325,
+   "type": "cicn",
+   "slug": "modal-alert",
+   "family": "window",
+   "role": "window chrome (modal-alert)"
+  },
+  {
+   "id": -14324,
+   "type": "cicn",
+   "slug": "inactive-moveable-modal",
+   "family": "window",
+   "role": "window chrome (inactive-moveable-modal)"
+  },
+  {
+   "id": -14323,
+   "type": "cicn",
+   "slug": "active-moveable-modal",
+   "family": "window",
+   "role": "window chrome (active-moveable-modal)"
+  },
+  {
+   "id": -14322,
+   "type": "cicn",
+   "slug": "inactive-moveable-alert",
+   "family": "window",
+   "role": "window chrome (inactive-moveable-alert)"
+  },
+  {
+   "id": -14321,
+   "type": "cicn",
+   "slug": "active-moveable-alert",
+   "family": "window",
+   "role": "window chrome (active-moveable-alert)"
+  },
+  {
+   "id": -14310,
+   "type": "cicn",
+   "slug": "inactive-moveable-dialog-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-moveable-dialog-grow-box)"
+  },
+  {
+   "id": -14309,
+   "type": "cicn",
+   "slug": "active-moveable-dialog-grow-box",
+   "family": "window",
+   "role": "window chrome (active-moveable-dialog-grow-box)"
+  },
+  {
+   "id": -14305,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14304,
+   "type": "cicn",
+   "slug": "inactive-titled-utility-window",
+   "family": "window",
+   "role": "window chrome (inactive-titled-utility-window)"
+  },
+  {
+   "id": -14303,
+   "type": "cicn",
+   "slug": "active-titled-utility-window",
+   "family": "window",
+   "role": "window chrome (active-titled-utility-window)"
+  },
+  {
+   "id": -14302,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14301,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -14298,
+   "type": "cicn",
+   "slug": "pressed-utility-widgets",
+   "family": "other",
+   "role": "cicn body (pressed-utility-widgets)"
+  },
+  {
+   "id": -14296,
+   "type": "cicn",
+   "slug": "inactive-side-utility-window",
+   "family": "other",
+   "role": "cicn body (inactive-side-utility-window)"
+  },
+  {
+   "id": -14295,
+   "type": "cicn",
+   "slug": "active-side-utility-window",
+   "family": "other",
+   "role": "cicn body (active-side-utility-window)"
+  },
+  {
+   "id": -14290,
+   "type": "cicn",
+   "slug": "pressed-utility-widgets",
+   "family": "other",
+   "role": "cicn body (pressed-utility-widgets)"
+  },
+  {
+   "id": -14288,
+   "type": "cicn",
+   "slug": "inactive-unitled-utility-window",
+   "family": "other",
+   "role": "cicn body (inactive-unitled-utility-window)"
+  },
+  {
+   "id": -14287,
+   "type": "cicn",
+   "slug": "active-unitled-utility-window",
+   "family": "other",
+   "role": "cicn body (active-unitled-utility-window)"
+  },
+  {
+   "id": -14286,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -14285,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -12320,
+   "type": "cicn",
+   "slug": "pop-up-window",
+   "family": "popup-menu",
+   "role": "popup-menu / tab frame"
+  },
+  {
+   "id": -12318,
+   "type": "cicn",
+   "slug": "inactive-pop-up-window",
+   "family": "popup-menu",
+   "role": "popup-menu / tab frame"
+  },
+  {
+   "id": -12288,
+   "type": "cicn",
+   "slug": "menu-bar",
+   "family": "other",
+   "role": "cicn body (menu-bar)"
+  },
+  {
+   "id": -12287,
+   "type": "cicn",
+   "slug": "menu-highlight-lavender",
+   "family": "other",
+   "role": "cicn body (menu-highlight-lavender)"
+  },
+  {
+   "id": -12272,
+   "type": "cicn",
+   "slug": "menu-colors",
+   "family": "other",
+   "role": "cicn body (menu-colors)"
+  },
+  {
+   "id": -12235,
+   "type": "cicn",
+   "slug": "divider-line",
+   "family": "other",
+   "role": "cicn body (divider-line)"
+  },
+  {
+   "id": -12231,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -12230,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10240,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10239,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10238,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10232,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10231,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10208,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10207,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10206,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10205,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10176,
+   "type": "cicn",
+   "slug": "small-off-disabled",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10175,
+   "type": "cicn",
+   "slug": "small-off-normal",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10174,
+   "type": "cicn",
+   "slug": "small-off-pressed",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10173,
+   "type": "cicn",
+   "slug": "small-on-disabled",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10172,
+   "type": "cicn",
+   "slug": "small-on-normal",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10171,
+   "type": "cicn",
+   "slug": "small-on-pressed",
+   "family": "bevel-button",
+   "role": "bevel-button face"
+  },
+  {
+   "id": -10144,
+   "type": "cicn",
+   "slug": "inactive-down-pointing-slider-track",
+   "family": "other",
+   "role": "cicn body (inactive-down-pointing-slider-track)"
+  },
+  {
+   "id": -10143,
+   "type": "cicn",
+   "slug": "down-pointing-slider-track",
+   "family": "other",
+   "role": "cicn body (down-pointing-slider-track)"
+  },
+  {
+   "id": -10141,
+   "type": "cicn",
+   "slug": "down-pointing-slider-thumbs",
+   "family": "other",
+   "role": "cicn body (down-pointing-slider-thumbs)"
+  },
+  {
+   "id": -10140,
+   "type": "cicn",
+   "slug": "inactive-horizontal-slider-tick",
+   "family": "other",
+   "role": "cicn body (inactive-horizontal-slider-tick)"
+  },
+  {
+   "id": -10139,
+   "type": "cicn",
+   "slug": "horizontal-slider-tick",
+   "family": "other",
+   "role": "cicn body (horizontal-slider-tick)"
+  },
+  {
+   "id": -10138,
+   "type": "cicn",
+   "slug": "inactive-up-pointing-slider-track",
+   "family": "other",
+   "role": "cicn body (inactive-up-pointing-slider-track)"
+  },
+  {
+   "id": -10137,
+   "type": "cicn",
+   "slug": "up-pointing-slider-track",
+   "family": "other",
+   "role": "cicn body (up-pointing-slider-track)"
+  },
+  {
+   "id": -10135,
+   "type": "cicn",
+   "slug": "up-pointing-slider-thumbs",
+   "family": "other",
+   "role": "cicn body (up-pointing-slider-thumbs)"
+  },
+  {
+   "id": -10132,
+   "type": "cicn",
+   "slug": "inactive-non-directional-horizontal-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10131,
+   "type": "cicn",
+   "slug": "non-directional-horizontal-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10129,
+   "type": "cicn",
+   "slug": "non-directional-horizontal-slider-thumbs",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10128,
+   "type": "cicn",
+   "slug": "inactive-right-pointing-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10127,
+   "type": "cicn",
+   "slug": "right-pointing-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10125,
+   "type": "cicn",
+   "slug": "right-pointing-slider-thumbs",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10124,
+   "type": "cicn",
+   "slug": "inactive-vertical-tick-mark",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10123,
+   "type": "cicn",
+   "slug": "vertical-tick-mark",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10122,
+   "type": "cicn",
+   "slug": "inactive-left-pointing-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10121,
+   "type": "cicn",
+   "slug": "left-pointing-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10119,
+   "type": "cicn",
+   "slug": "left-pointing-slider-thumbs",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10116,
+   "type": "cicn",
+   "slug": "inactive-non-directional-vertical-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10115,
+   "type": "cicn",
+   "slug": "non-directional-vertical-slider-track",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10113,
+   "type": "cicn",
+   "slug": "vertical-non-directional-slider-thumbs",
+   "family": "slider",
+   "role": "slider track/thumb cicn"
+  },
+  {
+   "id": -10112,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10111,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10110,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10104,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10103,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10102,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10096,
+   "type": "cicn",
+   "slug": "left-pointing-disclosure-disabled",
+   "family": "other",
+   "role": "cicn body (left-pointing-disclosure-disabled)"
+  },
+  {
+   "id": -10095,
+   "type": "cicn",
+   "slug": "left-pointing-disclosure-normal",
+   "family": "other",
+   "role": "cicn body (left-pointing-disclosure-normal)"
+  },
+  {
+   "id": -10094,
+   "type": "cicn",
+   "slug": "left-pointing-disclosure-pressed",
+   "family": "other",
+   "role": "cicn body (left-pointing-disclosure-pressed)"
+  },
+  {
+   "id": -10088,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10087,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10086,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -10080,
+   "type": "cicn",
+   "slug": "progress-indicator-frame",
+   "family": "progress",
+   "role": "progress FRAME"
+  },
+  {
+   "id": -10079,
+   "type": "cicn",
+   "slug": "full-progress-indicator-section",
+   "family": "progress",
+   "role": "progress FILL"
+  },
+  {
+   "id": -10078,
+   "type": "cicn",
+   "slug": "progress-indicator-track",
+   "family": "progress",
+   "role": "progress TRACK"
+  },
+  {
+   "id": -10048,
+   "type": "cicn",
+   "slug": "disabled-little-arrows",
+   "family": "other",
+   "role": "cicn body (disabled-little-arrows)"
+  },
+  {
+   "id": -10047,
+   "type": "cicn",
+   "slug": "active-little-arrows",
+   "family": "other",
+   "role": "cicn body (active-little-arrows)"
+  },
+  {
+   "id": -10046,
+   "type": "cicn",
+   "slug": "pressed-up-little-arrow",
+   "family": "other",
+   "role": "cicn body (pressed-up-little-arrow)"
+  },
+  {
+   "id": -10045,
+   "type": "cicn",
+   "slug": "pressed-down-little-arrow",
+   "family": "other",
+   "role": "cicn body (pressed-down-little-arrow)"
+  },
+  {
+   "id": -9984,
+   "type": "cicn",
+   "slug": "lsf-off-disable-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (lsf-off-disable-tab)"
+  },
+  {
+   "id": -9983,
+   "type": "cicn",
+   "slug": "lsf-off-normal-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (lsf-off-normal-tab)"
+  },
+  {
+   "id": -9982,
+   "type": "cicn",
+   "slug": "lsf-off-pressed-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (lsf-off-pressed-tab)"
+  },
+  {
+   "id": -9981,
+   "type": "cicn",
+   "slug": "lsf-on-disabled-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (lsf-on-disabled-tab)"
+  },
+  {
+   "id": -9980,
+   "type": "cicn",
+   "slug": "lsf-on-normal-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (lsf-on-normal-tab)"
+  },
+  {
+   "id": -9976,
+   "type": "cicn",
+   "slug": "ssf-off-disabled-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (ssf-off-disabled-tab)"
+  },
+  {
+   "id": -9975,
+   "type": "cicn",
+   "slug": "ssf-off-normal-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (ssf-off-normal-tab)"
+  },
+  {
+   "id": -9974,
+   "type": "cicn",
+   "slug": "ssf-off-pressed-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (ssf-off-pressed-tab)"
+  },
+  {
+   "id": -9973,
+   "type": "cicn",
+   "slug": "ssf-on-disabled-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (ssf-on-disabled-tab)"
+  },
+  {
+   "id": -9972,
+   "type": "cicn",
+   "slug": "ssf-on-normal-tab",
+   "family": "window-info",
+   "role": "cinf / window metadata (ssf-on-normal-tab)"
+  },
+  {
+   "id": -9776,
+   "type": "cicn",
+   "slug": "active-dialog-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (active-dialog-background)"
+  },
+  {
+   "id": -9775,
+   "type": "cicn",
+   "slug": "inactive-dialog-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (inactive-dialog-background)"
+  },
+  {
+   "id": -9774,
+   "type": "cicn",
+   "slug": "active-alert-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (active-alert-background)"
+  },
+  {
+   "id": -9773,
+   "type": "cicn",
+   "slug": "inactive-alert-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (inactive-alert-background)"
+  },
+  {
+   "id": -9568,
+   "type": "cicn",
+   "slug": "inactive-finder-header",
+   "family": "list-header",
+   "role": "Finder list-column header"
+  },
+  {
+   "id": -9567,
+   "type": "cicn",
+   "slug": "active-finder-header",
+   "family": "list-header",
+   "role": "Finder list-column header"
+  },
+  {
+   "id": -9552,
+   "type": "cicn",
+   "slug": "desktop-name-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (desktop-name-background)"
+  },
+  {
+   "id": -9551,
+   "type": "cicn",
+   "slug": "icon-background",
+   "family": "window-info",
+   "role": "cinf / window metadata (icon-background)"
+  },
+  {
+   "id": -9550,
+   "type": "cicn",
+   "slug": "list-non-sort",
+   "family": "window-info",
+   "role": "cinf / window metadata (list-non-sort)"
+  },
+  {
+   "id": -9549,
+   "type": "cicn",
+   "slug": "list-sort-color",
+   "family": "window-info",
+   "role": "cinf / window metadata (list-sort-color)"
+  },
+  {
+   "id": -9548,
+   "type": "cicn",
+   "slug": "list-divider-line",
+   "family": "window-info",
+   "role": "cinf / window metadata (list-divider-line)"
+  },
+  {
+   "id": -9504,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9503,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9502,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9501,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9500,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9499,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9498,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9497,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9496,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9492,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9491,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9490,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9489,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9488,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9487,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9486,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9485,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -9484,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -8288,
+   "type": "cicn",
+   "slug": "inactive-horizontal-scroll-bar-track",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8287,
+   "type": "cicn",
+   "slug": "horzontal-nothing-to-scroll-track",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8286,
+   "type": "cicn",
+   "slug": "horizontal-scroll-bar-track-arrows",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8285,
+   "type": "cicn",
+   "slug": "pressed-horizontal-scroll-bar-track-arrows",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8280,
+   "type": "cicn",
+   "slug": "inactive-vertical-scroll-bar-track",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8279,
+   "type": "cicn",
+   "slug": "vertical-nothing-to-scroll-track",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8278,
+   "type": "cicn",
+   "slug": "vertical-scroll-bar-track-arrows",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8277,
+   "type": "cicn",
+   "slug": "pressed-vertical-scroll-bar-track-arrows",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8272,
+   "type": "cicn",
+   "slug": "vertical-thumb-ghost",
+   "family": "other",
+   "role": "cicn body (vertical-thumb-ghost)"
+  },
+  {
+   "id": -8271,
+   "type": "cicn",
+   "slug": "horizontal-thumb-ghost",
+   "family": "other",
+   "role": "cicn body (horizontal-thumb-ghost)"
+  },
+  {
+   "id": -8270,
+   "type": "cicn",
+   "slug": "inactive-small-horizontal-nothing-to-scroll",
+   "family": "other",
+   "role": "cicn body (inactive-small-horizontal-nothing-to-scroll)"
+  },
+  {
+   "id": -8269,
+   "type": "cicn",
+   "slug": "small-horizontal-nothing-to-scroll",
+   "family": "other",
+   "role": "cicn body (small-horizontal-nothing-to-scroll)"
+  },
+  {
+   "id": -8268,
+   "type": "cicn",
+   "slug": "small-horizontal-scroll-bar",
+   "family": "other",
+   "role": "cicn body (small-horizontal-scroll-bar)"
+  },
+  {
+   "id": -8267,
+   "type": "cicn",
+   "slug": "pressed-small-horizontal-scroll-bar",
+   "family": "other",
+   "role": "cicn body (pressed-small-horizontal-scroll-bar)"
+  },
+  {
+   "id": -8262,
+   "type": "cicn",
+   "slug": "inactive-small-vertical-nothing-to-scroll",
+   "family": "other",
+   "role": "cicn body (inactive-small-vertical-nothing-to-scroll)"
+  },
+  {
+   "id": -8261,
+   "type": "cicn",
+   "slug": "small-vertical-nothing-to-scroll",
+   "family": "other",
+   "role": "cicn body (small-vertical-nothing-to-scroll)"
+  },
+  {
+   "id": -8260,
+   "type": "cicn",
+   "slug": "small-vertical-scroll-bar-track",
+   "family": "other",
+   "role": "cicn body (small-vertical-scroll-bar-track)"
+  },
+  {
+   "id": -8259,
+   "type": "cicn",
+   "slug": "pressed-small-vertical-scroll-bar-track",
+   "family": "other",
+   "role": "cicn body (pressed-small-vertical-scroll-bar-track)"
+  },
+  {
+   "id": -8254,
+   "type": "cicn",
+   "slug": "small-vertical-thumb-ghost",
+   "family": "other",
+   "role": "cicn body (small-vertical-thumb-ghost)"
+  },
+  {
+   "id": -8253,
+   "type": "cicn",
+   "slug": "small-horizontal-thumb-ghost",
+   "family": "other",
+   "role": "cicn body (small-horizontal-thumb-ghost)"
+  },
+  {
+   "id": -8252,
+   "type": "cicn",
+   "slug": "small-vertical-thumb",
+   "family": "other",
+   "role": "cicn body (small-vertical-thumb)"
+  },
+  {
+   "id": -8251,
+   "type": "cicn",
+   "slug": "pressed-small-vertical-thumb",
+   "family": "other",
+   "role": "cicn body (pressed-small-vertical-thumb)"
+  },
+  {
+   "id": -8250,
+   "type": "cicn",
+   "slug": "small-horizontal-thumb",
+   "family": "other",
+   "role": "cicn body (small-horizontal-thumb)"
+  },
+  {
+   "id": -8249,
+   "type": "cicn",
+   "slug": "pressed-small-horizontal-thumb",
+   "family": "other",
+   "role": "cicn body (pressed-small-horizontal-thumb)"
+  },
+  {
+   "id": -8224,
+   "type": "cicn",
+   "slug": "disabled",
+   "family": "other",
+   "role": "cicn body (disabled)"
+  },
+  {
+   "id": -8223,
+   "type": "cicn",
+   "slug": "normal",
+   "family": "other",
+   "role": "cicn body (normal)"
+  },
+  {
+   "id": -8222,
+   "type": "cicn",
+   "slug": "pressed",
+   "family": "other",
+   "role": "cicn body (pressed)"
+  },
+  {
+   "id": -8216,
+   "type": "cicn",
+   "slug": "disabled",
+   "family": "other",
+   "role": "cicn body (disabled)"
+  },
+  {
+   "id": -8215,
+   "type": "cicn",
+   "slug": "normal",
+   "family": "other",
+   "role": "cicn body (normal)"
+  },
+  {
+   "id": -8214,
+   "type": "cicn",
+   "slug": "pressed",
+   "family": "other",
+   "role": "cicn body (pressed)"
+  },
+  {
+   "id": -4000,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3999,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3998,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3997,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3995,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3993,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3992,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3987,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3972,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3970,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -3969,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": -20801,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20797,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20792,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20744,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20730,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20729,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20728,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20724,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20723,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16509,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16494,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16482,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16415,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -8000,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4007,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3997,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3996,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3995,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3994,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3993,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3992,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3991,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3988,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3987,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3984,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3983,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3982,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3981,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3980,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3979,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3978,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3977,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3976,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3975,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3974,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3973,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3972,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3971,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3970,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3969,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3968,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3967,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3965,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3964,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3963,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3962,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3961,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3960,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3959,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3958,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3957,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3956,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3955,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3954,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3953,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3952,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3951,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3950,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3949,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3948,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3947,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3946,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3945,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3944,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3943,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3942,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3851,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3850,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3832,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3831,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3828,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3824,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3822,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3821,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3820,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3817,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3812,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3811,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3810,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3809,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3808,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3807,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3806,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3805,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3804,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3803,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3802,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3801,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3800,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3774,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3773,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 12500,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14000,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14500,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14501,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14750,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15500,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15750,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 29010,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29011,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29012,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29013,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20801,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20797,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20792,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20744,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20730,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20729,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20728,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20724,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20723,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16509,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16494,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16482,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16415,
+   "type": "icl8",
+   "size": 32,
+   "slug": "generic extension",
+   "family": "finder-icon",
+   "role": "Finder/system icon (generic extension)"
+  },
+  {
+   "id": -8000,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4007,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "icl8",
+   "size": 32,
+   "slug": "generic document",
+   "family": "finder-icon",
+   "role": "Finder/system icon (generic document)"
+  },
+  {
+   "id": -3999,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder)"
+  },
+  {
+   "id": -3998,
+   "type": "icl8",
+   "size": 32,
+   "slug": "floppy disk",
+   "family": "finder-icon",
+   "role": "Finder/system icon (floppy disk)"
+  },
+  {
+   "id": -3997,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3996,
+   "type": "icl8",
+   "size": 32,
+   "slug": "generic application",
+   "family": "finder-icon",
+   "role": "Finder/system icon (generic application)"
+  },
+  {
+   "id": -3995,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3994,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, locked",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, locked)"
+  },
+  {
+   "id": -3993,
+   "type": "icl8",
+   "size": 32,
+   "slug": "wastebasket, empty",
+   "family": "finder-icon",
+   "role": "Finder/system icon (wastebasket, empty)"
+  },
+  {
+   "id": -3992,
+   "type": "icl8",
+   "size": 32,
+   "slug": "desktop",
+   "family": "finder-icon",
+   "role": "Finder/system icon (desktop)"
+  },
+  {
+   "id": -3991,
+   "type": "icl8",
+   "size": 32,
+   "slug": "DA",
+   "family": "finder-icon",
+   "role": "Finder/system icon (DA)"
+  },
+  {
+   "id": -3988,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3987,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "icl8",
+   "size": 32,
+   "slug": "stationery pad",
+   "family": "finder-icon",
+   "role": "Finder/system icon (stationery pad)"
+  },
+  {
+   "id": -3984,
+   "type": "icl8",
+   "size": 32,
+   "slug": "wastebasket, full",
+   "family": "finder-icon",
+   "role": "Finder/system icon (wastebasket, full)"
+  },
+  {
+   "id": -3983,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, System folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, System folder)"
+  },
+  {
+   "id": -3982,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Apple menu",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Apple menu)"
+  },
+  {
+   "id": -3981,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Startup folder",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Startup folder)"
+  },
+  {
+   "id": -3980,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, shareable",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, shareable)"
+  },
+  {
+   "id": -3979,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, locked, dropbox",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, locked, dropbox)"
+  },
+  {
+   "id": -3978,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, shared",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, shared)"
+  },
+  {
+   "id": -3977,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, shared, in use",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, shared, in use)"
+  },
+  {
+   "id": -3976,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Control Panels",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Control Panels)"
+  },
+  {
+   "id": -3975,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Print Spool",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Print Spool)"
+  },
+  {
+   "id": -3974,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Preferences",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Preferences)"
+  },
+  {
+   "id": -3973,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Extensions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Extensions)"
+  },
+  {
+   "id": -3972,
+   "type": "icl8",
+   "size": 32,
+   "slug": "mounted shared disk",
+   "family": "finder-icon",
+   "role": "Finder/system icon (mounted shared disk)"
+  },
+  {
+   "id": -3971,
+   "type": "icl8",
+   "size": 32,
+   "slug": "preferences file",
+   "family": "finder-icon",
+   "role": "Finder/system icon (preferences file)"
+  },
+  {
+   "id": -3970,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3969,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3968,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Fonts",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Fonts)"
+  },
+  {
+   "id": -3967,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Documents",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Documents)"
+  },
+  {
+   "id": -3965,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Applications",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Applications)"
+  },
+  {
+   "id": -3964,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3963,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, MacOS readme files",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, MacOS readme files)"
+  },
+  {
+   "id": -3962,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Control Strip Modules",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Control Strip Modules)"
+  },
+  {
+   "id": -3961,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Sounds",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Sounds)"
+  },
+  {
+   "id": -3960,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Help",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Help)"
+  },
+  {
+   "id": -3959,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Scripting Additions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Scripting Additions)"
+  },
+  {
+   "id": -3958,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Internet plug-ins",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Internet plug-ins)"
+  },
+  {
+   "id": -3957,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Language support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Language support)"
+  },
+  {
+   "id": -3956,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Shared Libraries",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Shared Libraries)"
+  },
+  {
+   "id": -3955,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Text Encodings",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Text Encodings)"
+  },
+  {
+   "id": -3954,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Chooser devices",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Chooser devices)"
+  },
+  {
+   "id": -3953,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Printer Descriptions",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Printer Descriptions)"
+  },
+  {
+   "id": -3952,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Voices",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Voices)"
+  },
+  {
+   "id": -3951,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Control Panels (disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Control Panels (disabled))"
+  },
+  {
+   "id": -3950,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Extensions (disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Extensions (disabled))"
+  },
+  {
+   "id": -3949,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Startup Items (disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Startup Items (disabled))"
+  },
+  {
+   "id": -3948,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Shutdown Items (disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Shutdown Items (disabled))"
+  },
+  {
+   "id": -3947,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, System extensions (disabled)",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, System extensions (disabled))"
+  },
+  {
+   "id": -3946,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Assistants",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Assistants)"
+  },
+  {
+   "id": -3945,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Utilities",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Utilities)"
+  },
+  {
+   "id": -3944,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Application Support",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Application Support)"
+  },
+  {
+   "id": -3943,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Apple Extras",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Apple Extras)"
+  },
+  {
+   "id": -3942,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Contextual Menu",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, Contextual Menu)"
+  },
+  {
+   "id": -3851,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3850,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3832,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3831,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3828,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3824,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3822,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Stop Alert",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Stop Alert)"
+  },
+  {
+   "id": -3821,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Caution Alert Icon",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Caution Alert Icon)"
+  },
+  {
+   "id": -3820,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Note Alert Icon",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Note Alert Icon)"
+  },
+  {
+   "id": -3817,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3812,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, multiple guests",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, multiple guests)"
+  },
+  {
+   "id": -3811,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, single guest",
+   "family": "finder-icon",
+   "role": "Finder/system icon (folder, single guest)"
+  },
+  {
+   "id": -3810,
+   "type": "icl8",
+   "size": 32,
+   "slug": "resource, sound",
+   "family": "finder-icon",
+   "role": "Finder/system icon (resource, sound)"
+  },
+  {
+   "id": -3809,
+   "type": "icl8",
+   "size": 32,
+   "slug": "resource, global",
+   "family": "finder-icon",
+   "role": "Finder/system icon (resource, global)"
+  },
+  {
+   "id": -3808,
+   "type": "icl8",
+   "size": 32,
+   "slug": "resource, font, TrueType",
+   "family": "finder-icon",
+   "role": "Finder/system icon (resource, font, TrueType)"
+  },
+  {
+   "id": -3807,
+   "type": "icl8",
+   "size": 32,
+   "slug": "resource, font, bitmap",
+   "family": "finder-icon",
+   "role": "Finder/system icon (resource, font, bitmap)"
+  },
+  {
+   "id": -3806,
+   "type": "icl8",
+   "size": 32,
+   "slug": "resource, keyboard map",
+   "family": "finder-icon",
+   "role": "Finder/system icon (resource, keyboard map)"
+  },
+  {
+   "id": -3805,
+   "type": "icl8",
+   "size": 32,
+   "slug": "suitcase, DA",
+   "family": "finder-icon",
+   "role": "Finder/system icon (suitcase, DA)"
+  },
+  {
+   "id": -3804,
+   "type": "icl8",
+   "size": 32,
+   "slug": "suitcase, font",
+   "family": "finder-icon",
+   "role": "Finder/system icon (suitcase, font)"
+  },
+  {
+   "id": -3803,
+   "type": "icl8",
+   "size": 32,
+   "slug": "clipping, sound",
+   "family": "finder-icon",
+   "role": "Finder/system icon (clipping, sound)"
+  },
+  {
+   "id": -3802,
+   "type": "icl8",
+   "size": 32,
+   "slug": "clipping, text",
+   "family": "finder-icon",
+   "role": "Finder/system icon (clipping, text)"
+  },
+  {
+   "id": -3801,
+   "type": "icl8",
+   "size": 32,
+   "slug": "clipping, picture",
+   "family": "finder-icon",
+   "role": "Finder/system icon (clipping, picture)"
+  },
+  {
+   "id": -3800,
+   "type": "icl8",
+   "size": 32,
+   "slug": "clipping, generic",
+   "family": "finder-icon",
+   "role": "Finder/system icon (clipping, generic)"
+  },
+  {
+   "id": -3774,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, System folder, locked",
+   "family": "pictogram",
+   "role": "pictogram (folder, System folder, locked)"
+  },
+  {
+   "id": -3773,
+   "type": "icl8",
+   "size": 32,
+   "slug": "folder, Applications, Locked",
+   "family": "pictogram",
+   "role": "pictogram (folder, Applications, Locked)"
+  },
+  {
+   "id": 12500,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14000,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14500,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14501,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14750,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15500,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15750,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 29010,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29011,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29012,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29013,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20801,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20797,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20792,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20791,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20790,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20744,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20730,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20729,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20728,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20724,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20723,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20271,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16509,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16494,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16490,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16482,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16415,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16386,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -8000,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4007,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3997,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3996,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3995,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3994,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3993,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3992,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3991,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3988,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3987,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3984,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3983,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3982,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3981,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3980,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3979,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3978,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3977,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3976,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3975,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3974,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3973,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3972,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3971,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3970,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3969,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3968,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3967,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3965,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3964,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3963,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3962,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3961,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3960,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3959,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3958,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3957,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3956,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3955,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3954,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3953,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3952,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3951,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3950,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3949,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3948,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3947,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3946,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3945,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3944,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3943,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3942,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3851,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3850,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3832,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3831,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3828,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3824,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3823,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3817,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3816,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3815,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3814,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3813,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3812,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3811,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3810,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3809,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3808,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3807,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3806,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3805,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3804,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3803,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3802,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3801,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3800,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3790,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3789,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3788,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3787,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3786,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3785,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3784,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3783,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3782,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3781,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3774,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3773,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 3060,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 3061,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 12500,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14000,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14500,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14501,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14750,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15500,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15750,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 20806,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 20807,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29010,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29011,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29012,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29013,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20801,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -20797,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20792,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20791,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20790,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20744,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20730,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20729,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20728,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20724,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20723,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -20271,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16509,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16494,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16490,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16482,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16415,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16386,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -8000,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4007,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3997,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3996,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3995,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3994,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3993,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3992,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3991,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3988,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3987,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3984,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3983,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3982,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3981,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3980,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3979,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3978,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3977,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3976,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3975,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3974,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3973,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3972,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3971,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3970,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3969,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3968,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3967,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3966,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3965,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3964,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3963,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3962,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3961,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3960,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3959,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3958,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3957,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3956,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3955,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3954,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3953,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3952,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3951,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3950,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3949,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3948,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3947,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3946,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3945,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3944,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3943,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3942,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3851,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3850,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3832,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3831,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3828,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3824,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3823,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3817,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3816,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3815,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3814,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3813,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3812,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3811,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3810,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3809,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3808,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3807,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3806,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3805,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3804,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3803,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3802,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3801,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3800,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3790,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3789,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3788,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3787,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3786,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3785,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3784,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3783,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3782,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3781,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3774,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": -3773,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 3060,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 3061,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 12500,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14000,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14500,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14501,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 14750,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15500,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 15750,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": 20806,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 20807,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29010,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29011,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29012,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": 29013,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "pictogram",
+   "role": "pictogram (unclassified)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "17-desktop-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "42-utility-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10064-indeterminate-progress-bar",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10080-indeterminate-progress-bar",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10173-small-on-disabled-bevel-button-ppat",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8259-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8260-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8267-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8268-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8277-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8278-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8279-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8285-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8286-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8287-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n9548-list-view-divider-line",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  }
+ ]
+}

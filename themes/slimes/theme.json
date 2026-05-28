@@ -1,0 +1,959 @@
+{
+  "version": "0.1",
+  "source": "slimes/scheme.rsrc",
+  "note": "Draft theme.json produced by scripts/extract-scheme.mjs. Schema: src/types.ts.",
+  "name": "slimes 1.5",
+  "author": {
+    "name": "JUN",
+    "email": "j-habu@air.linkclub.or.jp",
+    "year": 1998
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "No explicit license terms in the archive ReadMe (\"This is my first scheme and I am expecting to create many more\"). Distributed via the period Kaleidoscope community as freeware by convention.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — slimes.sit"
+  },
+  "windowTypes": {
+    "document-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14332-active-document.png",
+        "inactive": "cicns/cicn-n14336-inactive-document.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            19,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "growBox": "cicns/cicn-n14330-active-grow-box.png"
+      }
+    },
+    "collapsed-document-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14332-active-document.png",
+        "inactive": "cicns/cicn-n14336-inactive-document.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            19,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null
+    },
+    "dialog": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14326-active-dialog.png",
+        "inactive": "cicns/cicn-n14328-inactive-dialog.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "widgets": []
+    },
+    "alert": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14322-active-alert.png",
+        "inactive": "cicns/cicn-n14324-inactive-alert.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "widgets": []
+    },
+    "movable-modal": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14326-active-dialog.png",
+        "inactive": "cicns/cicn-n14328-inactive-dialog.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            16,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14325-dialog-racing-stripes.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "movable-alert": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14322-active-alert.png",
+        "inactive": "cicns/cicn-n14324-inactive-alert.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            16,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14321-alert-racing-stripes.png"
+      },
+      "widgets": [
+        "close"
+      ]
+    },
+    "titled-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png",
+        "growBox": "cicns/cicn-n14313-active-utility-window-grow-box.png"
+      },
+      "widgets": [
+        "close",
+        "collapse"
+      ]
+    },
+    "collapsed-titled-utility": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": [
+        "close",
+        "collapse"
+      ]
+    },
+    "side-floating-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14315-active-side-utility-window.png",
+        "inactive": "cicns/cicn-n14319-inactive-side-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": []
+    },
+    "collapsed-side-utility": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14315-active-side-utility-window.png",
+        "inactive": "cicns/cicn-n14319-inactive-side-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": []
+    },
+    "no-title-utility-window": {
+      "model": "corner-sprite",
+      "chrome": {
+        "active": "cicns/cicn-n14316-active-utility-window.png",
+        "inactive": "cicns/cicn-n14320-inactive-utility-window.png"
+      },
+      "parts": {
+        "part-0": {
+          "rect": [
+            1,
+            11,
+            1,
+            1
+          ]
+        }
+      },
+      "cinf": null,
+      "sprites": {
+        "pinstripe": "cicns/cicn-n14314-utility-racing-stripes.png"
+      },
+      "widgets": [
+        "close",
+        "collapse"
+      ]
+    }
+  },
+  "chromeElements": {
+    "finder-header": {
+      "asset": "cicns/cicn-n14311-finder-header.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14311,
+      "sourceCinfId": null
+    },
+    "cicn--10203": {
+      "asset": "cicns/cicn-n10203-unnamed.png",
+      "width": 16,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10203,
+      "sourceCinfId": null
+    },
+    "pressed": {
+      "asset": "cicns/cicn-n8222-pressed.png",
+      "width": 30,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8222,
+      "sourceCinfId": null
+    },
+    "pressed-2": {
+      "asset": "cicns/cicn-n8214-pressed.png",
+      "width": 22,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8214,
+      "sourceCinfId": null
+    },
+    "active-dialog": {
+      "asset": "cicns/cicn-n14326-active-dialog.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14326,
+      "sourceCinfId": null
+    },
+    "active-grow-box": {
+      "asset": "cicns/cicn-n14330-active-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14330,
+      "sourceCinfId": null
+    },
+    "cicn--10239": {
+      "asset": "cicns/cicn-n10239-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10239,
+      "sourceCinfId": null
+    },
+    "cicn--10231": {
+      "asset": "cicns/cicn-n10231-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10231,
+      "sourceCinfId": null
+    },
+    "normal": {
+      "asset": "cicns/cicn-n8223-normal.png",
+      "width": 30,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8223,
+      "sourceCinfId": null
+    },
+    "normal-2": {
+      "asset": "cicns/cicn-n8215-normal.png",
+      "width": 22,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8215,
+      "sourceCinfId": null
+    },
+    "utility-racing-stripes-side": {
+      "asset": "cicns/cicn-n14318-utility-racing-stripes-side.png",
+      "width": 9,
+      "height": 9,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14318,
+      "sourceCinfId": null
+    },
+    "active-utility-window": {
+      "asset": "cicns/cicn-n14316-active-utility-window.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14316,
+      "sourceCinfId": null
+    },
+    "active-side-utility-window": {
+      "asset": "cicns/cicn-n14315-active-side-utility-window.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14315,
+      "sourceCinfId": null
+    },
+    "utility-racing-stripes": {
+      "asset": "cicns/cicn-n14314-utility-racing-stripes.png",
+      "width": 9,
+      "height": 9,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14314,
+      "sourceCinfId": null
+    },
+    "active-utility-window-grow-box": {
+      "asset": "cicns/cicn-n14313-active-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14313,
+      "sourceCinfId": null
+    },
+    "inactive-utility-window": {
+      "asset": "cicns/cicn-n14320-inactive-utility-window.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14320,
+      "sourceCinfId": null
+    },
+    "inactive-side-utility-window": {
+      "asset": "cicns/cicn-n14319-inactive-side-utility-window.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14319,
+      "sourceCinfId": null
+    },
+    "inactive-utility-window-grow-box": {
+      "asset": "cicns/cicn-n14317-inactive-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14317,
+      "sourceCinfId": null
+    },
+    "inactive-document": {
+      "asset": "cicns/cicn-n14336-inactive-document.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14336,
+      "sourceCinfId": null
+    },
+    "pressed-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8285-pressed-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8285,
+      "sourceCinfId": null
+    },
+    "pressed-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8277-pressed-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8277,
+      "sourceCinfId": null
+    },
+    "vertical-ghost-thumb": {
+      "asset": "cicns/cicn-n8272-vertical-ghost-thumb.png",
+      "width": 16,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8272,
+      "sourceCinfId": null
+    },
+    "horizontal-ghost-thumb": {
+      "asset": "cicns/cicn-n8271-horizontal-ghost-thumb.png",
+      "width": 17,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8271,
+      "sourceCinfId": null
+    },
+    "cicn--14305": {
+      "asset": "cicns/cicn-n14305-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14305,
+      "sourceCinfId": null
+    },
+    "progress-bar-lavender": {
+      "asset": "cicns/cicn-n10223-progress-bar-lavender.png",
+      "width": 12,
+      "height": 14,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10223,
+      "sourceCinfId": null
+    },
+    "inactive-alert": {
+      "asset": "cicns/cicn-n14324-inactive-alert.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14324,
+      "sourceCinfId": null
+    },
+    "cicn--10232": {
+      "asset": "cicns/cicn-n10232-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10232,
+      "sourceCinfId": null
+    },
+    "cicn-1": {
+      "asset": "cicns/cicn-1-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": 1,
+      "sourceCinfId": null
+    },
+    "cicn--10207": {
+      "asset": "cicns/cicn-n10207-unnamed.png",
+      "width": 16,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10207,
+      "sourceCinfId": null
+    },
+    "cicn--10238": {
+      "asset": "cicns/cicn-n10238-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10238,
+      "sourceCinfId": null
+    },
+    "cicn--10205": {
+      "asset": "cicns/cicn-n10205-unnamed.png",
+      "width": 17,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10205,
+      "sourceCinfId": null
+    },
+    "empty-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8287-empty-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8287,
+      "sourceCinfId": null
+    },
+    "empty-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8279-empty-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8279,
+      "sourceCinfId": null
+    },
+    "dialog-racing-stripes": {
+      "asset": "cicns/cicn-n14325-dialog-racing-stripes.png",
+      "width": 32,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14325,
+      "sourceCinfId": null
+    },
+    "alert-racing-stripes": {
+      "asset": "cicns/cicn-n14321-alert-racing-stripes.png",
+      "width": 32,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14321,
+      "sourceCinfId": null
+    },
+    "menu-bar": {
+      "asset": "cicns/cicn-n12288-menu-bar.png",
+      "width": 20,
+      "height": 8,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -12288,
+      "sourceCinfId": null
+    },
+    "active-document": {
+      "asset": "cicns/cicn-n14332-active-document.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14332,
+      "sourceCinfId": null
+    },
+    "inactive-finder-header": {
+      "asset": "cicns/cicn-n14312-inactive-finder-header.png",
+      "width": 12,
+      "height": 12,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14312,
+      "sourceCinfId": null
+    },
+    "disabled-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8288-disabled-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8288,
+      "sourceCinfId": null
+    },
+    "disabled-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8280-disabled-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8280,
+      "sourceCinfId": null
+    },
+    "lavender-menu-highlight": {
+      "asset": "cicns/cicn-n12287-lavender-menu-highlight.png",
+      "width": 8,
+      "height": 4,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -12287,
+      "sourceCinfId": null
+    },
+    "inactive-dialog": {
+      "asset": "cicns/cicn-n14328-inactive-dialog.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14328,
+      "sourceCinfId": null
+    },
+    "disabled": {
+      "asset": "cicns/cicn-n8224-disabled.png",
+      "width": 30,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8224,
+      "sourceCinfId": null
+    },
+    "disabled-2": {
+      "asset": "cicns/cicn-n8216-disabled.png",
+      "width": 22,
+      "height": 15,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8216,
+      "sourceCinfId": null
+    },
+    "cicn--10240": {
+      "asset": "cicns/cicn-n10240-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10240,
+      "sourceCinfId": null
+    },
+    "pull-down-menu-colors": {
+      "asset": "cicns/cicn-n12272-pull-down-menu-colors.png",
+      "width": 8,
+      "height": 4,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -12272,
+      "sourceCinfId": null
+    },
+    "cicn--10208": {
+      "asset": "cicns/cicn-n10208-unnamed.png",
+      "width": 16,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10208,
+      "sourceCinfId": null
+    },
+    "cicn--10206": {
+      "asset": "cicns/cicn-n10206-unnamed.png",
+      "width": 17,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10206,
+      "sourceCinfId": null
+    },
+    "active-alert": {
+      "asset": "cicns/cicn-n14322-active-alert.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14322,
+      "sourceCinfId": null
+    },
+    "progress-bar-track": {
+      "asset": "cicns/cicn-n10224-progress-bar-track.png",
+      "width": 12,
+      "height": 14,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -10224,
+      "sourceCinfId": null
+    },
+    "normal-horizontal-scrollbar": {
+      "asset": "cicns/cicn-n8286-normal-horizontal-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8286,
+      "sourceCinfId": null
+    },
+    "inactive-grow-box": {
+      "asset": "cicns/cicn-n14334-inactive-grow-box.png",
+      "width": 17,
+      "height": 17,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -14334,
+      "sourceCinfId": null
+    },
+    "normal-vertical-scrollbar": {
+      "asset": "cicns/cicn-n8278-normal-vertical-scrollbar.png",
+      "width": 16,
+      "height": 16,
+      "slice": null,
+      "bgPattern": null,
+      "bgAnchor": null,
+      "textAnchor": null,
+      "embossAnchor": null,
+      "sourceCicnId": -8278,
+      "sourceCinfId": null
+    }
+  },
+  "patterns": {
+    "racing-stripes-pattern": {
+      "asset": "ppats/ppat-n12288-racing-stripes-pattern.png"
+    },
+    "racing-stripes-pattern-2": {
+      "asset": "ppats/ppat-n8287-racing-stripes-pattern.png"
+    },
+    "ppat--8286": {
+      "asset": "ppats/ppat-n8286-unnamed.png"
+    },
+    "horizontal-pattern": {
+      "asset": "ppats/ppat-n8285-horizontal-pattern.png"
+    },
+    "racing-stripes-pattern-3": {
+      "asset": "ppats/ppat-n8280-racing-stripes-pattern.png"
+    },
+    "racing-stripes-pattern-4": {
+      "asset": "ppats/ppat-n8279-racing-stripes-pattern.png"
+    },
+    "vertical-pattern": {
+      "asset": "ppats/ppat-n8278-vertical-pattern.png"
+    },
+    "vertical-pattern-2": {
+      "asset": "ppats/ppat-n8277-vertical-pattern.png"
+    },
+    "ppat--10064": {
+      "asset": "ppats/ppat-n10064-unnamed.png"
+    },
+    "racing-stripes-pattern-5": {
+      "asset": "ppats/ppat-n14331-racing-stripes-pattern.png"
+    },
+    "racing-stripes-pattern-6": {
+      "asset": "ppats/ppat-n14321-racing-stripes-pattern.png"
+    },
+    "racing-stripes-pattern-7": {
+      "asset": "ppats/ppat-n14325-racing-stripes-pattern.png"
+    }
+  },
+  "headerColors": {
+    "active": {
+      "frame": "#4276ff",
+      "fill": "#d6ff76",
+      "lightTinge": "#ffffff",
+      "darkTinge": "#76ab00",
+      "lightBevel": "#ffff76",
+      "darkBevel": "#ffffd6"
+    },
+    "inactive": {
+      "frame": "#76d6ff",
+      "fill": "#d6ffd6",
+      "lightTinge": "#e3e3e3",
+      "darkTinge": "#e3e3e3",
+      "lightBevel": "#e3e3e3",
+      "darkBevel": "#989898"
+    }
+  }
+}

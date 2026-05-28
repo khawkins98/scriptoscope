@@ -1,0 +1,15 @@
+{
+  "name": "Monkey Paradise",
+  "author": {
+    "name": "Masashi Ichikawa",
+    "email": "itikawa@rcp.co.jp",
+    "year": 1998
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "No explicit license terms in the archive ReadMe (\"Welcome Monkey Paradise! I hope you enjoy this color scheme\"). Distributed via the period Kaleidoscope community as freeware by convention.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — monkeyparadise.sit"
+  }
+}

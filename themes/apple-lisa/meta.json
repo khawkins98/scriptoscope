@@ -1,0 +1,14 @@
+{
+  "name": "Apple Lisa for K2.1",
+  "author": {
+    "name": "R. Bensam and E. Deans"
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "\"This is provided AS IS... This scheme is NOT public domain. DO NOT redistribute the icons (or other pieces) separately.\" — author-permitted whole-archive redistribution implied. **Apple Lisa is a trademark of Apple Inc.**",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — os-applelisa.sit",
+    "trademark": "Apple Lisa and \"Apple\" are trademarks of Apple Inc. This scheme is a community-authored Kaleidoscope reproduction by R. Bensam and E. Deans; Apple has not endorsed or licensed it."
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Animals",
+  "author": {
+    "name": "Masashi Ichikawa",
+    "email": "itikawa@kc4.so-net.ne.jp",
+    "year": 1999
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "\"Copyright(C)1999 Masashi Ichikawa. All Rights Reserved.\" — no explicit redistribution grant in the ReadMe. Bundled here under Mac Themes Garden's community-norm freeware-with-credit convention, with the author's reservation noted; a takedown contact path is documented.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — animals.sit"
+  }
+}

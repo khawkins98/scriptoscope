@@ -1,0 +1,319 @@
+{
+ "cicns": [
+  {
+   "file": "cicn-1-unnamed.png",
+   "id": null,
+   "name": null
+  },
+  {
+   "file": "cicn-n10203-unnamed.png",
+   "id": -10203,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10205-unnamed.png",
+   "id": -10205,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10206-unnamed.png",
+   "id": -10206,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10207-unnamed.png",
+   "id": -10207,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10208-unnamed.png",
+   "id": -10208,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10223-progress-bar-lavender.png",
+   "id": -10223,
+   "name": "progress-bar-lavender"
+  },
+  {
+   "file": "cicn-n10224-progress-bar-track.png",
+   "id": -10224,
+   "name": "progress-bar-track"
+  },
+  {
+   "file": "cicn-n10231-unnamed.png",
+   "id": -10231,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10232-unnamed.png",
+   "id": -10232,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10238-unnamed.png",
+   "id": -10238,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10239-unnamed.png",
+   "id": -10239,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n10240-unnamed.png",
+   "id": -10240,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n12272-pull-down-menu-colors.png",
+   "id": -12272,
+   "name": "pull-down-menu-colors"
+  },
+  {
+   "file": "cicn-n12287-lavender-menu-highlight.png",
+   "id": -12287,
+   "name": "lavender-menu-highlight"
+  },
+  {
+   "file": "cicn-n12288-menu-bar.png",
+   "id": -12288,
+   "name": "menu-bar"
+  },
+  {
+   "file": "cicn-n14305-unnamed.png",
+   "id": -14305,
+   "name": "unnamed"
+  },
+  {
+   "file": "cicn-n14311-finder-header.png",
+   "id": -14311,
+   "name": "finder-header"
+  },
+  {
+   "file": "cicn-n14312-inactive-finder-header.png",
+   "id": -14312,
+   "name": "inactive-finder-header"
+  },
+  {
+   "file": "cicn-n14313-active-utility-window-grow-box.png",
+   "id": -14313,
+   "name": "active-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14314-utility-racing-stripes.png",
+   "id": -14314,
+   "name": "utility-racing-stripes"
+  },
+  {
+   "file": "cicn-n14315-active-side-utility-window.png",
+   "id": -14315,
+   "name": "active-side-utility-window"
+  },
+  {
+   "file": "cicn-n14316-active-utility-window.png",
+   "id": -14316,
+   "name": "active-utility-window"
+  },
+  {
+   "file": "cicn-n14317-inactive-utility-window-grow-box.png",
+   "id": -14317,
+   "name": "inactive-utility-window-grow-box"
+  },
+  {
+   "file": "cicn-n14318-utility-racing-stripes-side.png",
+   "id": -14318,
+   "name": "utility-racing-stripes-side"
+  },
+  {
+   "file": "cicn-n14319-inactive-side-utility-window.png",
+   "id": -14319,
+   "name": "inactive-side-utility-window"
+  },
+  {
+   "file": "cicn-n14320-inactive-utility-window.png",
+   "id": -14320,
+   "name": "inactive-utility-window"
+  },
+  {
+   "file": "cicn-n14321-alert-racing-stripes.png",
+   "id": -14321,
+   "name": "alert-racing-stripes"
+  },
+  {
+   "file": "cicn-n14322-active-alert.png",
+   "id": -14322,
+   "name": "active-alert"
+  },
+  {
+   "file": "cicn-n14324-inactive-alert.png",
+   "id": -14324,
+   "name": "inactive-alert"
+  },
+  {
+   "file": "cicn-n14325-dialog-racing-stripes.png",
+   "id": -14325,
+   "name": "dialog-racing-stripes"
+  },
+  {
+   "file": "cicn-n14326-active-dialog.png",
+   "id": -14326,
+   "name": "active-dialog"
+  },
+  {
+   "file": "cicn-n14328-inactive-dialog.png",
+   "id": -14328,
+   "name": "inactive-dialog"
+  },
+  {
+   "file": "cicn-n14330-active-grow-box.png",
+   "id": -14330,
+   "name": "active-grow-box"
+  },
+  {
+   "file": "cicn-n14332-active-document.png",
+   "id": -14332,
+   "name": "active-document"
+  },
+  {
+   "file": "cicn-n14334-inactive-grow-box.png",
+   "id": -14334,
+   "name": "inactive-grow-box"
+  },
+  {
+   "file": "cicn-n14336-inactive-document.png",
+   "id": -14336,
+   "name": "inactive-document"
+  },
+  {
+   "file": "cicn-n8214-pressed.png",
+   "id": -8214,
+   "name": "pressed"
+  },
+  {
+   "file": "cicn-n8215-normal.png",
+   "id": -8215,
+   "name": "normal"
+  },
+  {
+   "file": "cicn-n8216-disabled.png",
+   "id": -8216,
+   "name": "disabled"
+  },
+  {
+   "file": "cicn-n8222-pressed.png",
+   "id": -8222,
+   "name": "pressed"
+  },
+  {
+   "file": "cicn-n8223-normal.png",
+   "id": -8223,
+   "name": "normal"
+  },
+  {
+   "file": "cicn-n8224-disabled.png",
+   "id": -8224,
+   "name": "disabled"
+  },
+  {
+   "file": "cicn-n8271-horizontal-ghost-thumb.png",
+   "id": -8271,
+   "name": "horizontal-ghost-thumb"
+  },
+  {
+   "file": "cicn-n8272-vertical-ghost-thumb.png",
+   "id": -8272,
+   "name": "vertical-ghost-thumb"
+  },
+  {
+   "file": "cicn-n8277-pressed-vertical-scrollbar.png",
+   "id": -8277,
+   "name": "pressed-vertical-scrollbar"
+  },
+  {
+   "file": "cicn-n8278-normal-vertical-scrollbar.png",
+   "id": -8278,
+   "name": "normal-vertical-scrollbar"
+  },
+  {
+   "file": "cicn-n8279-empty-vertical-scrollbar.png",
+   "id": -8279,
+   "name": "empty-vertical-scrollbar"
+  },
+  {
+   "file": "cicn-n8280-disabled-vertical-scrollbar.png",
+   "id": -8280,
+   "name": "disabled-vertical-scrollbar"
+  },
+  {
+   "file": "cicn-n8285-pressed-horizontal-scrollbar.png",
+   "id": -8285,
+   "name": "pressed-horizontal-scrollbar"
+  },
+  {
+   "file": "cicn-n8286-normal-horizontal-scrollbar.png",
+   "id": -8286,
+   "name": "normal-horizontal-scrollbar"
+  },
+  {
+   "file": "cicn-n8287-empty-horizontal-scrollbar.png",
+   "id": -8287,
+   "name": "empty-horizontal-scrollbar"
+  },
+  {
+   "file": "cicn-n8288-disabled-horizontal-scrollbar.png",
+   "id": -8288,
+   "name": "disabled-horizontal-scrollbar"
+  }
+ ],
+ "ppats": [
+  {
+   "file": "ppat-n10064-unnamed.png",
+   "label": "n10064-unnamed"
+  },
+  {
+   "file": "ppat-n12288-racing-stripes-pattern.png",
+   "label": "n12288-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n14321-racing-stripes-pattern.png",
+   "label": "n14321-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n14325-racing-stripes-pattern.png",
+   "label": "n14325-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n14331-racing-stripes-pattern.png",
+   "label": "n14331-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n8277-vertical-pattern.png",
+   "label": "n8277-vertical-pattern"
+  },
+  {
+   "file": "ppat-n8278-vertical-pattern.png",
+   "label": "n8278-vertical-pattern"
+  },
+  {
+   "file": "ppat-n8279-racing-stripes-pattern.png",
+   "label": "n8279-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n8280-racing-stripes-pattern.png",
+   "label": "n8280-racing-stripes-pattern"
+  },
+  {
+   "file": "ppat-n8285-horizontal-pattern.png",
+   "label": "n8285-horizontal-pattern"
+  },
+  {
+   "file": "ppat-n8286-unnamed.png",
+   "label": "n8286-unnamed"
+  },
+  {
+   "file": "ppat-n8287-racing-stripes-pattern.png",
+   "label": "n8287-racing-stripes-pattern"
+  }
+ ]
+}

@@ -1,0 +1,1469 @@
+{
+ "_generator": "scripts/gen-resource-roles.mjs",
+ "_note": "Per-theme resource id → DECODED role. Roles come from a rubric + the actual resource set, NOT guessed from filename slugs. The same id differs across schemes and across the cicn/ics4 dual channel. See docs/spec/kdef231-reference.md.",
+ "theme": "slimes",
+ "progress": {
+  "model": "lavender-2-part",
+  "fill": -10223,
+  "track": -10224,
+  "frame": null,
+  "alternateHues": []
+ },
+ "scrollArrows": {
+  "note": "UNIVERSAL kDEF231 CDEF mapping (asm 9f0e-9f38) — RAISED is the resting/default state",
+  "raised": {
+   "right": -10201,
+   "left": -10202,
+   "down": -10203,
+   "up": -10204
+  },
+  "pressed": {
+   "right": -10197,
+   "left": -10198,
+   "down": -10199,
+   "up": -10200
+  }
+ },
+ "resources": [
+  {
+   "id": -14336,
+   "type": "cicn",
+   "slug": "inactive-document",
+   "family": "window",
+   "role": "window chrome (inactive-document)"
+  },
+  {
+   "id": -14334,
+   "type": "cicn",
+   "slug": "inactive-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-grow-box)"
+  },
+  {
+   "id": -14332,
+   "type": "cicn",
+   "slug": "active-document",
+   "family": "window",
+   "role": "window chrome (active-document)"
+  },
+  {
+   "id": -14330,
+   "type": "cicn",
+   "slug": "active-grow-box",
+   "family": "window",
+   "role": "window chrome (active-grow-box)"
+  },
+  {
+   "id": -14328,
+   "type": "cicn",
+   "slug": "inactive-dialog",
+   "family": "window",
+   "role": "window chrome (inactive-dialog)"
+  },
+  {
+   "id": -14326,
+   "type": "cicn",
+   "slug": "active-dialog",
+   "family": "window",
+   "role": "window chrome (active-dialog)"
+  },
+  {
+   "id": -14325,
+   "type": "cicn",
+   "slug": "dialog-racing-stripes",
+   "family": "window",
+   "role": "window chrome (dialog-racing-stripes)"
+  },
+  {
+   "id": -14324,
+   "type": "cicn",
+   "slug": "inactive-alert",
+   "family": "window",
+   "role": "window chrome (inactive-alert)"
+  },
+  {
+   "id": -14322,
+   "type": "cicn",
+   "slug": "active-alert",
+   "family": "window",
+   "role": "window chrome (active-alert)"
+  },
+  {
+   "id": -14321,
+   "type": "cicn",
+   "slug": "alert-racing-stripes",
+   "family": "window",
+   "role": "window chrome (alert-racing-stripes)"
+  },
+  {
+   "id": -14320,
+   "type": "cicn",
+   "slug": "inactive-utility-window",
+   "family": "window",
+   "role": "window chrome (inactive-utility-window)"
+  },
+  {
+   "id": -14319,
+   "type": "cicn",
+   "slug": "inactive-side-utility-window",
+   "family": "window",
+   "role": "window chrome (inactive-side-utility-window)"
+  },
+  {
+   "id": -14318,
+   "type": "cicn",
+   "slug": "utility-racing-stripes-side",
+   "family": "window",
+   "role": "window chrome (utility-racing-stripes-side)"
+  },
+  {
+   "id": -14317,
+   "type": "cicn",
+   "slug": "inactive-utility-window-grow-box",
+   "family": "window",
+   "role": "window chrome (inactive-utility-window-grow-box)"
+  },
+  {
+   "id": -14316,
+   "type": "cicn",
+   "slug": "active-utility-window",
+   "family": "window",
+   "role": "window chrome (active-utility-window)"
+  },
+  {
+   "id": -14315,
+   "type": "cicn",
+   "slug": "active-side-utility-window",
+   "family": "window",
+   "role": "window chrome (active-side-utility-window)"
+  },
+  {
+   "id": -14314,
+   "type": "cicn",
+   "slug": "utility-racing-stripes",
+   "family": "window",
+   "role": "window chrome (utility-racing-stripes)"
+  },
+  {
+   "id": -14313,
+   "type": "cicn",
+   "slug": "active-utility-window-grow-box",
+   "family": "window",
+   "role": "window chrome (active-utility-window-grow-box)"
+  },
+  {
+   "id": -14312,
+   "type": "cicn",
+   "slug": "inactive-finder-header",
+   "family": "window",
+   "role": "window chrome (inactive-finder-header)"
+  },
+  {
+   "id": -14311,
+   "type": "cicn",
+   "slug": "finder-header",
+   "family": "window",
+   "role": "window chrome (finder-header)"
+  },
+  {
+   "id": -14305,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "window",
+   "role": "window chrome (unnamed)"
+  },
+  {
+   "id": -12288,
+   "type": "cicn",
+   "slug": "menu-bar",
+   "family": "other",
+   "role": "cicn body (menu-bar)"
+  },
+  {
+   "id": -12287,
+   "type": "cicn",
+   "slug": "lavender-menu-highlight",
+   "family": "other",
+   "role": "cicn body (lavender-menu-highlight)"
+  },
+  {
+   "id": -12272,
+   "type": "cicn",
+   "slug": "pull-down-menu-colors",
+   "family": "other",
+   "role": "cicn body (pull-down-menu-colors)"
+  },
+  {
+   "id": -10240,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10239,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10238,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "push-button face (normal/pressed/disabled)"
+  },
+  {
+   "id": -10232,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10231,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "button",
+   "role": "default-button ring (active/inactive/mixed)"
+  },
+  {
+   "id": -10224,
+   "type": "cicn",
+   "slug": "progress-bar-track",
+   "family": "progress",
+   "role": "progress TRACK (empty trough)"
+  },
+  {
+   "id": -10223,
+   "type": "cicn",
+   "slug": "progress-bar-lavender",
+   "family": "progress",
+   "role": "progress FILL — lavender (canonical default)"
+  },
+  {
+   "id": -10208,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10207,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10206,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10205,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -10203,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "scroll-arrow",
+   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+  },
+  {
+   "id": -8288,
+   "type": "cicn",
+   "slug": "disabled-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8287,
+   "type": "cicn",
+   "slug": "empty-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8286,
+   "type": "cicn",
+   "slug": "normal-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8285,
+   "type": "cicn",
+   "slug": "pressed-horizontal-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8280,
+   "type": "cicn",
+   "slug": "disabled-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8279,
+   "type": "cicn",
+   "slug": "empty-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8278,
+   "type": "cicn",
+   "slug": "normal-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8277,
+   "type": "cicn",
+   "slug": "pressed-vertical-scrollbar",
+   "family": "scrollbar",
+   "role": "scrollbar track cicn (h/v × active/inactive/disabled/pressed)"
+  },
+  {
+   "id": -8272,
+   "type": "cicn",
+   "slug": "vertical-ghost-thumb",
+   "family": "other",
+   "role": "cicn body (vertical-ghost-thumb)"
+  },
+  {
+   "id": -8271,
+   "type": "cicn",
+   "slug": "horizontal-ghost-thumb",
+   "family": "other",
+   "role": "cicn body (horizontal-ghost-thumb)"
+  },
+  {
+   "id": -8224,
+   "type": "cicn",
+   "slug": "disabled",
+   "family": "other",
+   "role": "cicn body (disabled)"
+  },
+  {
+   "id": -8223,
+   "type": "cicn",
+   "slug": "normal",
+   "family": "other",
+   "role": "cicn body (normal)"
+  },
+  {
+   "id": -8222,
+   "type": "cicn",
+   "slug": "pressed",
+   "family": "other",
+   "role": "cicn body (pressed)"
+  },
+  {
+   "id": -8216,
+   "type": "cicn",
+   "slug": "disabled",
+   "family": "other",
+   "role": "cicn body (disabled)"
+  },
+  {
+   "id": -8215,
+   "type": "cicn",
+   "slug": "normal",
+   "family": "other",
+   "role": "cicn body (normal)"
+  },
+  {
+   "id": -8214,
+   "type": "cicn",
+   "slug": "pressed",
+   "family": "other",
+   "role": "cicn body (pressed)"
+  },
+  {
+   "id": -16455,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3996,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3995,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3994,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3993,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3991,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3984,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3983,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3982,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3981,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3980,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3979,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3958,
+   "type": "icl4",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -4000,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Floppy Disk Icon",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Floppy Disk Icon)"
+  },
+  {
+   "id": -3995,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Hard Disk",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Hard Disk)"
+  },
+  {
+   "id": -3994,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3993,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3985,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3984,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3983,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3982,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3981,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3980,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3979,
+   "type": "icl8",
+   "size": 32,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3958,
+   "type": "icl8",
+   "size": 32,
+   "slug": "Internet Plug-ins",
+   "family": "finder-icon",
+   "role": "Finder/system icon (Internet Plug-ins)"
+  },
+  {
+   "id": -16455,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -14336,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14335,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14334,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14333,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14332,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14331,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14320,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14319,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14318,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -10240,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10239,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10238,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10237,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10236,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10235,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10234,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10233,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10232,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10231,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10230,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10229,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10224,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10223,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10222,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10220,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10219,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10218,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10216,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10215,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10214,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10208,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10207,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10206,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10205,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10204,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (RAISED)"
+  },
+  {
+   "id": -10203,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (RAISED)"
+  },
+  {
+   "id": -10202,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (RAISED)"
+  },
+  {
+   "id": -10201,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (RAISED)"
+  },
+  {
+   "id": -10200,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (PRESSED)"
+  },
+  {
+   "id": -10199,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (PRESSED)"
+  },
+  {
+   "id": -10198,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (PRESSED)"
+  },
+  {
+   "id": -10197,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (PRESSED)"
+  },
+  {
+   "id": -4000,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "ics4",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -16455,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -14336,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14335,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14334,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14333,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14332,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14331,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14320,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14319,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -14318,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "window-widget",
+   "role": "title-bar widget pictogram (close/zoom/collapse × active/pressed)"
+  },
+  {
+   "id": -10240,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10239,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10238,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10237,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10236,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10235,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10234,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10233,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10232,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10231,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10230,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10229,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "checkbox",
+   "role": "checkbox glyph (empty/check/dash/x × states)"
+  },
+  {
+   "id": -10224,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10223,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10222,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10220,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10219,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10218,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10216,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10215,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10214,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "radio",
+   "role": "radio glyph (off/on/mixed × states)"
+  },
+  {
+   "id": -10208,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10207,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10206,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10205,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "slider",
+   "role": "slider thumb pictogram (h/v × normal/pressed)"
+  },
+  {
+   "id": -10204,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (RAISED)"
+  },
+  {
+   "id": -10203,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (RAISED)"
+  },
+  {
+   "id": -10202,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (RAISED)"
+  },
+  {
+   "id": -10201,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (RAISED)"
+  },
+  {
+   "id": -10200,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow up (PRESSED)"
+  },
+  {
+   "id": -10199,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow down (PRESSED)"
+  },
+  {
+   "id": -10198,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow left (PRESSED)"
+  },
+  {
+   "id": -10197,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "scroll-arrow",
+   "role": "scroll arrow right (PRESSED)"
+  },
+  {
+   "id": -4000,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3999,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": -3998,
+   "type": "ics8",
+   "size": 16,
+   "slug": null,
+   "family": "finder-icon",
+   "role": "Apple Icon Services Finder/system icon"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n10064-unnamed",
+   "family": "pattern",
+   "role": "pattern (possible spinner/indeterminate-progress)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n12288-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n14321-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n14325-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n14331-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8277-vertical-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8278-vertical-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8279-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8280-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8285-horizontal-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8286-unnamed",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "n8287-racing-stripes-pattern",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
+  }
+ ]
+}

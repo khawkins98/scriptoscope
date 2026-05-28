@@ -1,0 +1,15 @@
+{
+  "name": "slimes 1.5",
+  "author": {
+    "name": "JUN",
+    "email": "j-habu@air.linkclub.or.jp",
+    "year": 1998
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "No explicit license terms in the archive ReadMe (\"This is my first scheme and I am expecting to create many more\"). Distributed via the period Kaleidoscope community as freeware by convention.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — slimes.sit"
+  }
+}

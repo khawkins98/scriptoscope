@@ -1,0 +1,14 @@
+{
+  "name": "Floppies!",
+  "author": {
+    "name": "unknown",
+    "note": "author not identified in the archive's text or rsrc forks; the bundle ships a SimpleText/PICT companion (\"in MY day...\") but no plaintext credit"
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "License terms not stated in the archive. Freely distributed via Mac Themes Garden; bundled here under that distribution norm with credit and a takedown contact path.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — floppies!.sit"
+  }
+}

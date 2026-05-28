@@ -1,0 +1,15 @@
+{
+  "name": "Windows 3.1",
+  "author": {
+    "name": "Scott Naness",
+    "email": "asimov@stealth.net"
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "Author-granted freeware (\"This scheme is freeware, and is a part of the official KSA OS Scheme Pack\"). The scheme reproduces Microsoft's Windows 3.1 visual style; **Microsoft, Windows, and the Windows logo are trademarks of Microsoft Corporation**.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — os-windows31.sit",
+    "trademark": "Microsoft, Windows, and the Windows logo are trademarks of Microsoft Corporation. This scheme is a community-authored Kaleidoscope reproduction; Microsoft has not endorsed or licensed it."
+  }
+}

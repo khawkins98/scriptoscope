@@ -1,0 +1,14 @@
+{
+  "name": "Dolphin SOM (dsom)",
+  "author": {
+    "name": "unknown",
+    "note": "author not identifiable from the archive content; the bundle ships 50 AppleScript-derived TEXT entries but no plaintext ReadMe"
+  },
+  "origin": {
+    "kind": "kaleidoscope-port",
+    "originalFormat": "ksc",
+    "originalLicense": "License terms not stated in the archive. Freely distributed via Mac Themes Garden; bundled here under that distribution norm with credit and a takedown contact path.",
+    "sourceUrl": "https://macthemes.garden/",
+    "sourceArchive": "Mac Themes Garden — dolphinsom.sit"
+  }
+}

@@ -1,0 +1,6764 @@
+{
+  "source": "animals/scheme.rsrc",
+  "extractedAt": "2026-05-28T19:41:19.959Z",
+  "counts": {
+    "total": 286,
+    "ok": 286,
+    "skipped": 0,
+    "errored": 0,
+    "raster": 194,
+    "geometry": 92
+  },
+  "assets": [
+    {
+      "type": "cicn",
+      "id": -8288,
+      "name": "Inactive Horizontal Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8288-inactive-horizontal-scroll-bar-track.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 8,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8287,
+      "name": "Horzontal Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8287-horzontal-nothing-to-scroll-track.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 12,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8280,
+      "name": "Inactive Vertical Scroll Bar Track",
+      "status": "ok",
+      "file": "cicn-n8280-inactive-vertical-scroll-bar-track.png",
+      "width": 16,
+      "height": 43,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8279,
+      "name": "Vertical Nothing To Scroll Track",
+      "status": "ok",
+      "file": "cicn-n8279-vertical-nothing-to-scroll-track.png",
+      "width": 16,
+      "height": 43,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14334,
+      "name": "Inactive Grow Box",
+      "status": "ok",
+      "file": "cicn-n14334-inactive-grow-box.png",
+      "width": 15,
+      "height": 15,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14321,
+      "name": "Movable Alert",
+      "status": "ok",
+      "file": "cicn-n14321-movable-alert.png",
+      "width": 111,
+      "height": 60,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 56,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9568,
+      "name": "Inactive Finder Header",
+      "status": "ok",
+      "file": "cicn-n9568-inactive-finder-header.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8286,
+      "name": "Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8286-horizontal-scroll-bar-track-arrows.png",
+      "width": 43,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 24,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10206,
+      "name": "Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n10206-horizontal-thumb.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8278,
+      "name": "Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8278-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 61,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9567,
+      "name": "Finder Header",
+      "status": "ok",
+      "file": "cicn-n9567-finder-header.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8285,
+      "name": "Pressed Horizontal Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8285-pressed-horizontal-scroll-bar-track-arrows.png",
+      "width": 61,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8277,
+      "name": "Pressed Vertical Scroll Bar Track/Arrows",
+      "status": "ok",
+      "file": "cicn-n8277-pressed-vertical-scroll-bar-track-arrows.png",
+      "width": 16,
+      "height": 61,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10205,
+      "name": "Pressed Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n10205-pressed-horizontal-thumb.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14333,
+      "name": "Grow Box",
+      "status": "ok",
+      "file": "cicn-n14333-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14330,
+      "name": "Widget Down States",
+      "status": "ok",
+      "file": "cicn-n14330-widget-down-states.png",
+      "width": 56,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 15,
+        "rowBytes": 28,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12239,
+      "name": "Menu Bar Item",
+      "status": "ok",
+      "file": "cicn-n12239-menu-bar-item.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12238,
+      "name": "Selected Menu Bar Item",
+      "status": "ok",
+      "file": "cicn-n12238-selected-menu-bar-item.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12240,
+      "name": "Menu Bar",
+      "status": "ok",
+      "file": "cicn-n12240-menu-bar.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12237,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12237-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "file": "cicn-n12235-divider-line.png",
+      "width": 23,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12234,
+      "name": "Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n12234-solo-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10240,
+      "name": "Inactive Push Button",
+      "status": "ok",
+      "file": "cicn-n10240-inactive-push-button.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10238,
+      "name": "Pressed Push Button",
+      "status": "ok",
+      "file": "cicn-n10238-pressed-push-button.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10231,
+      "name": "Default Ring",
+      "status": "ok",
+      "file": "cicn-n10231-default-ring.png",
+      "width": 23,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9492,
+      "name": "Inactive Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9492-inactive-off-radio-button.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9491,
+      "name": "Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9491-off-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9490,
+      "name": "Pressed Off Radio Button",
+      "status": "ok",
+      "file": "cicn-n9490-pressed-off-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9489,
+      "name": "Inactive On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9489-inactive-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9488,
+      "name": "On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9488-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9487,
+      "name": "Pressed On Radio Button",
+      "status": "ok",
+      "file": "cicn-n9487-pressed-on-radio-button.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9504,
+      "name": "Inactive Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9504-inactive-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9503,
+      "name": "Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9503-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9502,
+      "name": "Pressed Un-Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9502-pressed-un-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9501,
+      "name": "Inactive Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9501-inactive-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9500,
+      "name": "Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9500-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9499,
+      "name": "Pressed Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9499-pressed-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9498,
+      "name": "Inactive Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9498-inactive-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9497,
+      "name": "Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9497-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9496,
+      "name": "Pressed Mixed Check Box",
+      "status": "ok",
+      "file": "cicn-n9496-pressed-mixed-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9495,
+      "name": "Checked Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9495-checked-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9494,
+      "name": "Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9494-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9493,
+      "name": "Pressed Alternate Checked Check Box",
+      "status": "ok",
+      "file": "cicn-n9493-pressed-alternate-checked-check-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "file": "cicn-n12320-popup-window.png",
+      "width": 135,
+      "height": 71,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 44,
+        "rowBytes": 136,
+        "maskRowBytes": 20,
+        "bmapRowBytes": 20
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9551,
+      "name": "Icon View Background Color",
+      "status": "ok",
+      "file": "cicn-n9551-icon-view-background-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9550,
+      "name": "List View Non-Sort Color",
+      "status": "ok",
+      "file": "cicn-n9550-list-view-non-sort-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9549,
+      "name": "List View Sort Color",
+      "status": "ok",
+      "file": "cicn-n9549-list-view-sort-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9548,
+      "name": "List View Divider Line Color",
+      "status": "ok",
+      "file": "cicn-n9548-list-view-divider-line-color.png",
+      "width": 8,
+      "height": 8,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 1,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14287,
+      "name": "No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14287-no-title-utility-window.png",
+      "width": 240,
+      "height": 100,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 53,
+        "rowBytes": 240,
+        "maskRowBytes": 32,
+        "bmapRowBytes": 32
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14303,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14303-titled-utility-window.png",
+      "width": 240,
+      "height": 100,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 33,
+        "rowBytes": 240,
+        "maskRowBytes": 32,
+        "bmapRowBytes": 32
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14296,
+      "name": "Inactive Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14296-inactive-side-floating-utility-window.png",
+      "width": 60,
+      "height": 90,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 23,
+        "rowBytes": 60,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14295,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "file": "cicn-n14295-side-floating-utility-window.png",
+      "width": 60,
+      "height": 90,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 25,
+        "rowBytes": 60,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14298,
+      "name": "Pressed Utility Window Widgets",
+      "status": "ok",
+      "file": "cicn-n14298-pressed-utility-window-widgets.png",
+      "width": 38,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14290,
+      "name": "Side Floating Utility Window Down State Widgets",
+      "status": "ok",
+      "file": "cicn-n14290-side-floating-utility-window-down-state-widgets.png",
+      "width": 35,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14302,
+      "name": "Inactive Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14302-inactive-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14301,
+      "name": "Large Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14301-large-utility-window-grow-box.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14286,
+      "name": "Inacive Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14286-inacive-small-utility-window-grow-box.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14285,
+      "name": "Small Utility Window Grow Box",
+      "status": "ok",
+      "file": "cicn-n14285-small-utility-window-grow-box.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8208,
+      "name": "Inactive Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8208-inactive-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8207,
+      "name": "Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8207-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8206,
+      "name": "Pressed Popup Menu Text Section",
+      "status": "ok",
+      "file": "cicn-n8206-pressed-popup-menu-text-section.png",
+      "width": 15,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8205,
+      "name": "Inactive Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8205-inactive-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8204,
+      "name": "Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8204-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8203,
+      "name": "Pressed Popup Menu Arrow Section",
+      "status": "ok",
+      "file": "cicn-n8203-pressed-popup-menu-arrow-section.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8199,
+      "name": "Inactive Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8199-inactive-large-popup-menu-arrow.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8197,
+      "name": "Pressed Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8197-pressed-large-popup-menu-arrow.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8196,
+      "name": "Inactive Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8196-inactive-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8194,
+      "name": "Pressed Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8194-pressed-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8202,
+      "name": "Inactive Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8202-inactive-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8201,
+      "name": "Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8201-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8200,
+      "name": "Pressed Popup Menu Arrow Only",
+      "status": "ok",
+      "file": "cicn-n8200-pressed-popup-menu-arrow-only.png",
+      "width": 14,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8198,
+      "name": "Large Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8198-large-popup-menu-arrow.png",
+      "width": 13,
+      "height": 13,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8195,
+      "name": "Small Popup Menu Arrow",
+      "status": "ok",
+      "file": "cicn-n8195-small-popup-menu-arrow.png",
+      "width": 9,
+      "height": 10,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9984,
+      "name": "LSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9984-lsf-disabled-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9983-lsf-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9982-lsf-pressed-rear-tab.png",
+      "width": 39,
+      "height": 21,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9981,
+      "name": "LSF Front Disabled Tab",
+      "status": "ok",
+      "file": "cicn-n9981-lsf-front-disabled-tab.png",
+      "width": 37,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9980-lsf-front-tab.png",
+      "width": 37,
+      "height": 25,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 20,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9976-ssf-disabled-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9975-ssf-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9974,
+      "name": "SSF Pressed Rear Tab",
+      "status": "ok",
+      "file": "cicn-n9974-ssf-pressed-rear-tab.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9973,
+      "name": "SSF Disabled Front Tab",
+      "status": "ok",
+      "file": "cicn-n9973-ssf-disabled-front-tab.png",
+      "width": 32,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "file": "cicn-n9972-ssf-front-tab.png",
+      "width": 32,
+      "height": 20,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9978,
+      "name": "LSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9978-lsf-disabled-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9977,
+      "name": "LSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9977-lsf-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9970,
+      "name": "SSF Disabled Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9970-ssf-disabled-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9969,
+      "name": "SSF Tab Pane",
+      "status": "ok",
+      "file": "cicn-n9969-ssf-tab-pane.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9775,
+      "name": "Inactive Alert & Dialog Background",
+      "status": "ok",
+      "file": "cicn-n9775-inactive-alert-dialog-background.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -9776,
+      "name": "Alert/Dialog Background",
+      "status": "ok",
+      "file": "cicn-n9776-alert-dialog-background.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 1,
+        "colorCount": 2,
+        "rowBytes": 2,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10048,
+      "name": "Inactive Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10048-inactive-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10047,
+      "name": "Little Arrows",
+      "status": "ok",
+      "file": "cicn-n10047-little-arrows.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10046,
+      "name": "Pressed Up Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10046-pressed-up-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10045,
+      "name": "Pressed Down Little Arrow",
+      "status": "ok",
+      "file": "cicn-n10045-pressed-down-little-arrow.png",
+      "width": 13,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10208,
+      "name": "Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n10208-vertical-thumb.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14310,
+      "name": "Inactive Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14310-inactive-movable-modal-grow-box.png",
+      "width": 26,
+      "height": 26,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14309,
+      "name": "Movable Modal Grow Box",
+      "status": "ok",
+      "file": "cicn-n14309-movable-modal-grow-box.png",
+      "width": 26,
+      "height": 26,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12236,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12236-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10232,
+      "name": "Inactive Default Ring",
+      "status": "ok",
+      "file": "cicn-n10232-inactive-default-ring.png",
+      "width": 23,
+      "height": 22,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10239,
+      "name": "Solo Menu Background",
+      "status": "ok",
+      "file": "cicn-n10239-solo-menu-background.png",
+      "width": 14,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10176,
+      "name": "Inactive Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10176-inactive-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10175,
+      "name": "Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10175-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10154,
+      "name": "Large On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10154-large-on-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10153,
+      "name": "Pressed Large On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10153-pressed-large-on-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10172,
+      "name": "On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10172-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10171,
+      "name": "Pressed On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10171-pressed-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10167,
+      "name": "Inactive Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10167-inactive-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10166,
+      "name": "Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10166-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10165,
+      "name": "Pressed Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10165-pressed-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10164,
+      "name": "Inactive On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10164-inactive-on-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10163,
+      "name": "On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10163-on-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10162,
+      "name": "Pressed On Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10162-pressed-on-bevel-button.png",
+      "width": 9,
+      "height": 9,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10158,
+      "name": "Inactive Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10158-inactive-large-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10157,
+      "name": "Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10157-large-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 8,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10156,
+      "name": "Pressed Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10156-pressed-large-bevel-button.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10155,
+      "name": "Inactive On Large Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10155-inactive-on-large-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10174,
+      "name": "Pressed Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10174-pressed-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10173,
+      "name": "Inactive On Small Bevel Button",
+      "status": "ok",
+      "file": "cicn-n10173-inactive-on-small-bevel-button.png",
+      "width": 7,
+      "height": 7,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12233,
+      "name": "Pull Down Menu Background",
+      "status": "ok",
+      "file": "cicn-n12233-pull-down-menu-background.png",
+      "width": 11,
+      "height": 11,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -12232,
+      "name": "Divider Line",
+      "status": "ok",
+      "file": "cicn-n12232-divider-line.png",
+      "width": 23,
+      "height": 7,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10224,
+      "name": "Temp",
+      "status": "ok",
+      "file": "cicn-n10224-temp.png",
+      "width": 12,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 6,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10223,
+      "name": "Temp P Ind",
+      "status": "ok",
+      "file": "cicn-n10223-temp-p-ind.png",
+      "width": 12,
+      "height": 14,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14325,
+      "name": "Alert",
+      "status": "ok",
+      "file": "cicn-n14325-alert.png",
+      "width": 120,
+      "height": 65,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 60,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14323,
+      "name": "Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14323-movable-modal.png",
+      "width": 100,
+      "height": 70,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 25,
+        "rowBytes": 100,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "file": "cicn-n14322-movable-alert.png",
+      "width": 111,
+      "height": 60,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 11,
+        "rowBytes": 56,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 0,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-0-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 1,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-1-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 19,
+        "rowBytes": 32,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": 2,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-2-unnamed.png",
+      "width": 32,
+      "height": 32,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 16,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10207,
+      "name": "Pressed Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n10207-pressed-vertical-thumb.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14324,
+      "name": "Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14324-movable-modal.png",
+      "width": 100,
+      "height": 70,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 26,
+        "rowBytes": 100,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "file": "cicn-n14326-alert.png",
+      "width": 120,
+      "height": 65,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 60,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14332,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14332-unnamed.png",
+      "width": 200,
+      "height": 55,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 27,
+        "rowBytes": 200,
+        "maskRowBytes": 28,
+        "bmapRowBytes": 28
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14331,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14331-unnamed.png",
+      "width": 200,
+      "height": 55,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 43,
+        "rowBytes": 200,
+        "maskRowBytes": 28,
+        "bmapRowBytes": 28
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14299,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14299-titled-utility-window.png",
+      "width": 120,
+      "height": 40,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 24,
+        "rowBytes": 120,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14300,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14300-titled-utility-window.png",
+      "width": 120,
+      "height": 40,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 23,
+        "rowBytes": 120,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14283,
+      "name": "No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14283-no-title-utility-window.png",
+      "width": 120,
+      "height": 50,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 26,
+        "rowBytes": 120,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14327,
+      "name": "Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14327-movable-modal.png",
+      "width": 90,
+      "height": 75,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 20,
+        "rowBytes": 92,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14328,
+      "name": "Movable Modal",
+      "status": "ok",
+      "file": "cicn-n14328-movable-modal.png",
+      "width": 90,
+      "height": 75,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 19,
+        "rowBytes": 92,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14336,
+      "name": "Inactive Document Window",
+      "status": "ok",
+      "file": "cicn-n14336-inactive-document-window.png",
+      "width": 200,
+      "height": 120,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 32,
+        "rowBytes": 200,
+        "maskRowBytes": 28,
+        "bmapRowBytes": 28
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10144,
+      "name": "Inactive Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10144-inactive-down-pointing-slider-track.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10143,
+      "name": "Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10143-down-pointing-slider-track.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10142,
+      "name": "Pressed Down Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10142-pressed-down-pointing-slider-track.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10141,
+      "name": "Down Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10141-down-pointing-slider-thumbs.png",
+      "width": 19,
+      "height": 64,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10140,
+      "name": "Inactive Down Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10140-inactive-down-pointing-slider-tick-mark.png",
+      "width": 6,
+      "height": 8,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10139,
+      "name": "Down Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10139-down-pointing-slider-tick-mark.png",
+      "width": 6,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10138,
+      "name": "Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10138-up-pointing-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10137,
+      "name": "Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10137-up-pointing-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10136,
+      "name": "Pressed Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10136-pressed-up-pointing-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10135,
+      "name": "Up Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10135-up-pointing-slider-thumbs.png",
+      "width": 19,
+      "height": 65,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10134,
+      "name": "Inactive Up Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10134-inactive-up-pointing-slider-tick-mark.png",
+      "width": 6,
+      "height": 8,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10133,
+      "name": "Up Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10133-up-pointing-slider-tick-mark.png",
+      "width": 6,
+      "height": 8,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10132,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10132-non-directional-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 8,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10131,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10131-non-directional-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10130,
+      "name": "Pressed Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "file": "cicn-n10130-pressed-non-directional-horizontal-slider-track.png",
+      "width": 22,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10129,
+      "name": "Non-Directional Horizontal Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10129-non-directional-horizontal-slider-thumbs.png",
+      "width": 17,
+      "height": 64,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 10,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10128,
+      "name": "Inactive Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10128-inactive-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10127,
+      "name": "Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10127-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10126,
+      "name": "Pressed Right Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10126-pressed-right-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10125,
+      "name": "Right Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10125-right-pointing-slider-thumbs.png",
+      "width": 64,
+      "height": 19,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10124,
+      "name": "Inactive Right Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10124-inactive-right-pointing-slider-tick-mark.png",
+      "width": 8,
+      "height": 6,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10123,
+      "name": "Right Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10123-right-pointing-slider-tick-mark.png",
+      "width": 8,
+      "height": 6,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10122,
+      "name": "Inactive Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10122-inactive-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10121,
+      "name": "Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10121-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10120,
+      "name": "Pressed Left Pointing Slider Track",
+      "status": "ok",
+      "file": "cicn-n10120-pressed-left-pointing-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10119,
+      "name": "Left Pointing Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10119-left-pointing-slider-thumbs.png",
+      "width": 65,
+      "height": 19,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 12,
+        "rowBytes": 36,
+        "maskRowBytes": 12,
+        "bmapRowBytes": 12
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10118,
+      "name": "Inactive Left Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10118-inactive-left-pointing-slider-tick-mark.png",
+      "width": 8,
+      "height": 6,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 3,
+        "rowBytes": 2,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10117,
+      "name": "Left Pointing Slider Tick Mark",
+      "status": "ok",
+      "file": "cicn-n10117-left-pointing-slider-tick-mark.png",
+      "width": 8,
+      "height": 6,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 5,
+        "rowBytes": 4,
+        "maskRowBytes": 1,
+        "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10116,
+      "name": "Inactive Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10116-inactive-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10115,
+      "name": "Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10115-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10114,
+      "name": "Pressed Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "file": "cicn-n10114-pressed-non-directional-vertical-slider-track.png",
+      "width": 16,
+      "height": 22,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10113,
+      "name": "Vertical Non-Directional Slider Thumbs",
+      "status": "ok",
+      "file": "cicn-n10113-vertical-non-directional-slider-thumbs.png",
+      "width": 64,
+      "height": 17,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 13,
+        "rowBytes": 32,
+        "maskRowBytes": 8,
+        "bmapRowBytes": 8
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10112,
+      "name": "Inactive Right Pointing Disclosure Tringle",
+      "status": "ok",
+      "file": "cicn-n10112-inactive-right-pointing-disclosure-tringle.png",
+      "width": 11,
+      "height": 12,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10111,
+      "name": "Right Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10111-right-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10110,
+      "name": "Pressed Right Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10110-pressed-right-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10109,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10109-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10108,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10108-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10107,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10107-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10104,
+      "name": "Inactive Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10104-inactive-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 11,
+      "debug": {
+        "pixelSize": 2,
+        "colorCount": 4,
+        "rowBytes": 4,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10103,
+      "name": "Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10103-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10102,
+      "name": "Pressed Down Pointing Disclosure Triangle",
+      "status": "ok",
+      "file": "cicn-n10102-pressed-down-pointing-disclosure-triangle.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10101,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10101-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10100,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10100-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -10099,
+      "name": "Disclosure Triangle Animation",
+      "status": "ok",
+      "file": "cicn-n10099-disclosure-triangle-animation.png",
+      "width": 12,
+      "height": 12,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 7,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14288,
+      "name": "No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14288-no-title-utility-window.png",
+      "width": 240,
+      "height": 100,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 53,
+        "rowBytes": 240,
+        "maskRowBytes": 32,
+        "bmapRowBytes": 32
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14304,
+      "name": "Titled Utility Window",
+      "status": "ok",
+      "file": "cicn-n14304-titled-utility-window.png",
+      "width": 240,
+      "height": 100,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 33,
+        "rowBytes": 240,
+        "maskRowBytes": 32,
+        "bmapRowBytes": 32
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14284,
+      "name": "No-Title Utility Window",
+      "status": "ok",
+      "file": "cicn-n14284-no-title-utility-window.png",
+      "width": 120,
+      "height": 50,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 24,
+        "rowBytes": 120,
+        "maskRowBytes": 16,
+        "bmapRowBytes": 16
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -14335,
+      "name": null,
+      "status": "ok",
+      "file": "cicn-n14335-unnamed.png",
+      "width": 200,
+      "height": 120,
+      "debug": {
+        "pixelSize": 8,
+        "colorCount": 67,
+        "rowBytes": 200,
+        "maskRowBytes": 28,
+        "bmapRowBytes": 28
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8271,
+      "name": "Horizontal Thumb",
+      "status": "ok",
+      "file": "cicn-n8271-horizontal-thumb.png",
+      "width": 23,
+      "height": 16,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 9,
+        "rowBytes": 12,
+        "maskRowBytes": 4,
+        "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "cicn",
+      "id": -8272,
+      "name": "Vertical Thumb",
+      "status": "ok",
+      "file": "cicn-n8272-vertical-thumb.png",
+      "width": 16,
+      "height": 23,
+      "debug": {
+        "pixelSize": 4,
+        "colorCount": 6,
+        "rowBytes": 8,
+        "maskRowBytes": 2,
+        "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12235,
+      "name": "Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 11,
+        "sideThickness": 11,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12236,
+      "name": "Selected Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 4,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12237,
+      "name": "Pull Down Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 5,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12239,
+      "name": "Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12238,
+      "name": "Selected Root Menu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 6,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12234,
+      "name": "Solo Menu",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10238,
+      "name": "Pressed Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10239,
+      "name": "Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 2,
+        "resizeBehavior": "repeat-left",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10240,
+      "name": "Inactive Push Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10231,
+      "name": "Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 5,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10232,
+      "name": "Inactive Default Ring",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 5,
+        "tileSides": 1,
+        "patternAnchor": 0,
+        "resizeBehavior": "repeat-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9551,
+      "name": "Icon View Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -9551,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 4,
+          "y": 3
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9550,
+      "name": "List View Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9549,
+      "name": "List View Sort Color",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9548,
+      "name": "List View Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 0,
+        "sideThickness": 0,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 1,
+          "y": 1
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9568,
+      "name": "Inactive Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9567,
+      "name": "Active Header",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -9567,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8206,
+      "name": "Pressed Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8207,
+      "name": "Normal Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8208,
+      "name": "Disabled Popup Button Text",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 7,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 8,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8205,
+      "name": "Disabled Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8204,
+      "name": "Normal Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8203,
+      "name": "Pressed Popup Button Arrow",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 6,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8202,
+      "name": "Disabled Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8201,
+      "name": "Normal Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -8200,
+      "name": "Pressed Arrow Only Popup",
+      "status": "ok",
+      "data": {
+        "cornerSize": 6,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9978,
+      "name": "LSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9977,
+      "name": "LSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 129,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9970,
+      "name": "SSF Inactive Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9969,
+      "name": "SSF Active Tab Pane",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": 129,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9981,
+      "name": "LSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 16,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9980,
+      "name": "LSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 16,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9982,
+      "name": "LSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 18,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 18,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 19,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9983,
+      "name": "LSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 18,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 15,
+          "y": 15
+        },
+        "textPixel": {
+          "x": 18,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 19,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9973,
+      "name": "SSF Disabled Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9975,
+      "name": "SSF Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9972,
+      "name": "SSF Front Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 12,
+        "sideThickness": 5,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9974,
+      "name": "SSF Pressed Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9976,
+      "name": "SSF Disabled Rear Tab",
+      "status": "ok",
+      "data": {
+        "cornerSize": 14,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 12,
+          "y": 12
+        },
+        "textPixel": {
+          "x": 15,
+          "y": 8
+        },
+        "embossPixel": {
+          "x": 16,
+          "y": 8
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9775,
+      "name": "Inactive Dialog & Alert Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -9776,
+      "name": "Active Dialog & Alert Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10176,
+      "name": "Small Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10175,
+      "name": "Small Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -9567,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10174,
+      "name": "Small Pressed Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10173,
+      "name": "Small Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10172,
+      "name": "Small On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10171,
+      "name": "Small Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10167,
+      "name": "Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10166,
+      "name": "Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -9567,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10165,
+      "name": "Pressed Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10164,
+      "name": "Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10163,
+      "name": "On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10162,
+      "name": "Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "textPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10158,
+      "name": "Large Disabled Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10157,
+      "name": "Large Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -9567,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10156,
+      "name": "Large Pressed Off Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10155,
+      "name": "Large Disabled On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 2,
+          "y": 2
+        },
+        "textPixel": {
+          "x": 3,
+          "y": 3
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10154,
+      "name": "Large On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10153,
+      "name": "Large Pressed On Bevel Button",
+      "status": "ok",
+      "data": {
+        "cornerSize": 4,
+        "sideThickness": 4,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12233,
+      "name": "Selected SoloMenu Item",
+      "status": "ok",
+      "data": {
+        "cornerSize": 3,
+        "sideThickness": 3,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 4,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 5,
+          "y": 5
+        },
+        "embossPixel": {
+          "x": 4,
+          "y": 5
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12232,
+      "name": "Solomenu Divider Line",
+      "status": "ok",
+      "data": {
+        "cornerSize": 11,
+        "sideThickness": 11,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -12240,
+      "name": "Root Menu Background",
+      "status": "ok",
+      "data": {
+        "cornerSize": 2,
+        "sideThickness": 2,
+        "tileSides": 1,
+        "patternAnchor": 1,
+        "resizeBehavior": "repeat-top",
+        "bgPatternId": -12239,
+        "bgPixel": {
+          "x": 7,
+          "y": 4
+        },
+        "textPixel": {
+          "x": 6,
+          "y": 6
+        },
+        "embossPixel": {
+          "x": 7,
+          "y": 6
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10144,
+      "name": "Inactive Down Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10143,
+      "name": "Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10142,
+      "name": "Pressed Down Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10138,
+      "name": "Inactive Up Pointing Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10137,
+      "name": "Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10136,
+      "name": "Pressed Up Pointing Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10132,
+      "name": "Inactive Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10131,
+      "name": "Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10130,
+      "name": "Pressed Non-Directional Horizontal Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10128,
+      "name": "Inactive Right Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10127,
+      "name": "Right Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10126,
+      "name": "Pressed Right Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10122,
+      "name": "Pressed Left Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10121,
+      "name": "Left Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10120,
+      "name": "Inactive Left Pointing Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10116,
+      "name": "Inactive Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10115,
+      "name": "Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "cinf",
+      "id": -10114,
+      "name": "Pressed Non-Directional Vertical Slider Track",
+      "status": "ok",
+      "data": {
+        "cornerSize": 10,
+        "sideThickness": 16,
+        "tileSides": 0,
+        "patternAnchor": 0,
+        "resizeBehavior": "stretch-whole",
+        "bgPatternId": 0,
+        "bgPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "textPixel": {
+          "x": 0,
+          "y": 0
+        },
+        "embossPixel": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 42,
+      "name": "Utility Pattern",
+      "status": "ok",
+      "file": "ppat-42-utility-pattern.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 1,
+        "colorCount": 1,
+        "rowBytes": 2
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -10064,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-n10064-unnamed.png",
+      "width": 16,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 8,
+        "colorCount": 40,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "ppat",
+      "id": 17,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-17-unnamed.png",
+      "width": 64,
+      "height": 64,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 8,
+        "colorCount": 18,
+        "rowBytes": 64
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -12239,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-n12239-unnamed.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 14,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -9567,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-n9567-unnamed.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "ppat",
+      "id": -9551,
+      "name": null,
+      "status": "ok",
+      "file": "ppat-n9551-unnamed.png",
+      "width": 32,
+      "height": 16,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 4,
+        "colorCount": 16,
+        "rowBytes": 16
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -12320,
+      "name": "Popup Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 36,
+              "left": 15,
+              "bottom": 63,
+              "right": 108
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 2,
+              "left": 54,
+              "bottom": 19,
+              "right": 57
+            }
+          },
+          {
+            "part": 5,
+            "rect": {
+              "top": 5,
+              "left": 4,
+              "bottom": 24,
+              "right": 19
+            }
+          },
+          {
+            "part": 6,
+            "rect": {
+              "top": 0,
+              "left": 104,
+              "bottom": 14,
+              "right": 124
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 20
+          },
+          {
+            "part": 8,
+            "border": 37
+          },
+          {
+            "part": 6,
+            "border": 50
+          },
+          {
+            "part": 5,
+            "border": 61
+          },
+          {
+            "part": 6,
+            "border": 73
+          },
+          {
+            "part": 8,
+            "border": 82
+          },
+          {
+            "part": 1,
+            "border": 134
+          }
+        ],
+        "bottomSide": [],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 36
+          },
+          {
+            "part": 1,
+            "border": 40
+          },
+          {
+            "part": 8,
+            "border": 55
+          },
+          {
+            "part": 1,
+            "border": 63
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 36
+          },
+          {
+            "part": 1,
+            "border": 45
+          },
+          {
+            "part": 8,
+            "border": 51
+          },
+          {
+            "part": 1,
+            "border": 63
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14322,
+      "name": "Movable Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 29,
+              "left": 14,
+              "bottom": 42,
+              "right": 97
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 1,
+              "left": 64,
+              "bottom": 16,
+              "right": 67
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 13
+          },
+          {
+            "part": 12,
+            "border": 31
+          },
+          {
+            "part": 13,
+            "border": 32
+          },
+          {
+            "part": 1,
+            "border": 63
+          },
+          {
+            "part": 5,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 78
+          },
+          {
+            "part": 13,
+            "border": 80
+          },
+          {
+            "part": 12,
+            "border": 98
+          },
+          {
+            "part": 1,
+            "border": 111
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 18
+          },
+          {
+            "part": 8,
+            "border": 19
+          },
+          {
+            "part": 0,
+            "border": 95
+          },
+          {
+            "part": 1,
+            "border": 111
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 29
+          },
+          {
+            "part": 8,
+            "border": 42
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 28
+          },
+          {
+            "part": 8,
+            "border": 43
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14296,
+      "name": "Side Floating Utility Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 33,
+              "left": 17,
+              "bottom": 81,
+              "right": 37
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 34,
+              "left": 4,
+              "bottom": 45,
+              "right": 15
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 46,
+              "left": 4,
+              "bottom": 57,
+              "right": 15
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 58,
+              "left": 4,
+              "bottom": 69,
+              "right": 15
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 26,
+              "left": 25,
+              "bottom": 33,
+              "right": 26
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 17
+          },
+          {
+            "part": 1,
+            "border": 22
+          },
+          {
+            "part": 8,
+            "border": 32
+          },
+          {
+            "part": 1,
+            "border": 37
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 17
+          },
+          {
+            "part": 8,
+            "border": 28
+          },
+          {
+            "part": 1,
+            "border": 37
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 34
+          },
+          {
+            "part": 2,
+            "border": 46
+          },
+          {
+            "part": 3,
+            "border": 58
+          },
+          {
+            "part": 4,
+            "border": 70
+          },
+          {
+            "part": 8,
+            "border": 78
+          },
+          {
+            "part": 1,
+            "border": 86
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 60
+          },
+          {
+            "part": 11,
+            "border": 75
+          },
+          {
+            "part": 1,
+            "border": 86
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14324,
+      "name": "Movable Modal Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 23,
+              "left": 23,
+              "bottom": 42,
+              "right": 74
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 4,
+              "left": 27,
+              "bottom": 20,
+              "right": 29
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 26
+          },
+          {
+            "part": 5,
+            "border": 29
+          },
+          {
+            "part": 1,
+            "border": 55
+          },
+          {
+            "part": 8,
+            "border": 76
+          },
+          {
+            "part": 1,
+            "border": 100
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 30
+          },
+          {
+            "part": 8,
+            "border": 67
+          },
+          {
+            "part": 1,
+            "border": 95
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 0,
+            "border": 43
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14284,
+      "name": "Utility Window (No Title)",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 33,
+              "left": 20,
+              "bottom": 34,
+              "right": 104
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 21,
+              "left": 22,
+              "bottom": 32,
+              "right": 33
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 21,
+              "left": 79,
+              "bottom": 32,
+              "right": 90
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 21,
+              "left": 91,
+              "bottom": 32,
+              "right": 102
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 22
+          },
+          {
+            "part": 2,
+            "border": 34
+          },
+          {
+            "part": 8,
+            "border": 38
+          },
+          {
+            "part": 1,
+            "border": 71
+          },
+          {
+            "part": 8,
+            "border": 79
+          },
+          {
+            "part": 3,
+            "border": 91
+          },
+          {
+            "part": 4,
+            "border": 102
+          },
+          {
+            "part": 1,
+            "border": 110
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 36
+          },
+          {
+            "part": 0,
+            "border": 83
+          },
+          {
+            "part": 1,
+            "border": 120
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 1,
+            "border": 38
+          },
+          {
+            "part": 11,
+            "border": 41
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 1,
+            "border": 39
+          },
+          {
+            "part": 12,
+            "border": 41
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14300,
+      "name": "Utitlity Window Collapsed",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 18,
+              "left": 20,
+              "bottom": 19,
+              "right": 104
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 5,
+              "left": 22,
+              "bottom": 16,
+              "right": 33
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 5,
+              "left": 79,
+              "bottom": 16,
+              "right": 90
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 5,
+              "left": 91,
+              "bottom": 16,
+              "right": 102
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 5,
+              "left": 35,
+              "bottom": 18,
+              "right": 38
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 22
+          },
+          {
+            "part": 2,
+            "border": 34
+          },
+          {
+            "part": 5,
+            "border": 40
+          },
+          {
+            "part": 8,
+            "border": 54
+          },
+          {
+            "part": 0,
+            "border": 79
+          },
+          {
+            "part": 3,
+            "border": 91
+          },
+          {
+            "part": 4,
+            "border": 102
+          },
+          {
+            "part": 1,
+            "border": 120
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 42
+          },
+          {
+            "part": 8,
+            "border": 51
+          },
+          {
+            "part": 0,
+            "border": 79
+          },
+          {
+            "part": 1,
+            "border": 110
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 1,
+            "border": 39
+          },
+          {
+            "part": 8,
+            "border": 41
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 18
+          },
+          {
+            "part": 1,
+            "border": 40
+          },
+          {
+            "part": 8,
+            "border": 41
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14328,
+      "name": "Modal Dialog",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 23,
+              "left": 23,
+              "bottom": 50,
+              "right": 63
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 43
+          },
+          {
+            "part": 8,
+            "border": 64
+          },
+          {
+            "part": 1,
+            "border": 89
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 23
+          },
+          {
+            "part": 13,
+            "border": 24
+          },
+          {
+            "part": 12,
+            "border": 60
+          },
+          {
+            "part": 13,
+            "border": 61
+          },
+          {
+            "part": 1,
+            "border": 86
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 50
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 42
+          },
+          {
+            "part": 1,
+            "border": 50
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14336,
+      "name": "Document Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 33,
+              "left": 30,
+              "bottom": 101,
+              "right": 173
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 0,
+              "left": 39,
+              "bottom": 31,
+              "right": 54
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 0,
+              "left": 123,
+              "bottom": 31,
+              "right": 148
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 0,
+              "left": 148,
+              "bottom": 31,
+              "right": 163
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 7,
+              "left": 89,
+              "bottom": 25,
+              "right": 92
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 39
+          },
+          {
+            "part": 2,
+            "border": 57
+          },
+          {
+            "part": 13,
+            "border": 58
+          },
+          {
+            "part": 12,
+            "border": 75
+          },
+          {
+            "part": 6,
+            "border": 86
+          },
+          {
+            "part": 5,
+            "border": 94
+          },
+          {
+            "part": 6,
+            "border": 105
+          },
+          {
+            "part": 12,
+            "border": 122
+          },
+          {
+            "part": 13,
+            "border": 123
+          },
+          {
+            "part": 3,
+            "border": 148
+          },
+          {
+            "part": 4,
+            "border": 164
+          },
+          {
+            "part": 1,
+            "border": 200
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 31
+          },
+          {
+            "part": 10,
+            "border": 44
+          },
+          {
+            "part": 1,
+            "border": 71
+          },
+          {
+            "part": 12,
+            "border": 86
+          },
+          {
+            "part": 1,
+            "border": 140
+          },
+          {
+            "part": 12,
+            "border": 154
+          },
+          {
+            "part": 14,
+            "border": 160
+          },
+          {
+            "part": 1,
+            "border": 200
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 33
+          },
+          {
+            "part": 12,
+            "border": 47
+          },
+          {
+            "part": 1,
+            "border": 65
+          },
+          {
+            "part": 12,
+            "border": 78
+          },
+          {
+            "part": 14,
+            "border": 79
+          },
+          {
+            "part": 1,
+            "border": 101
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 33
+          },
+          {
+            "part": 1,
+            "border": 40
+          },
+          {
+            "part": 12,
+            "border": 41
+          },
+          {
+            "part": 1,
+            "border": 57
+          },
+          {
+            "part": 12,
+            "border": 74
+          },
+          {
+            "part": 13,
+            "border": 75
+          },
+          {
+            "part": 1,
+            "border": 101
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14332,
+      "name": "Document Window shade",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 33,
+              "left": 30,
+              "bottom": 34,
+              "right": 173
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 0,
+              "left": 39,
+              "bottom": 31,
+              "right": 54
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 0,
+              "left": 123,
+              "bottom": 31,
+              "right": 148
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 0,
+              "left": 148,
+              "bottom": 31,
+              "right": 163
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 7,
+              "left": 89,
+              "bottom": 25,
+              "right": 92
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 39
+          },
+          {
+            "part": 2,
+            "border": 57
+          },
+          {
+            "part": 13,
+            "border": 58
+          },
+          {
+            "part": 12,
+            "border": 75
+          },
+          {
+            "part": 6,
+            "border": 86
+          },
+          {
+            "part": 5,
+            "border": 94
+          },
+          {
+            "part": 6,
+            "border": 105
+          },
+          {
+            "part": 12,
+            "border": 122
+          },
+          {
+            "part": 13,
+            "border": 123
+          },
+          {
+            "part": 3,
+            "border": 148
+          },
+          {
+            "part": 4,
+            "border": 164
+          },
+          {
+            "part": 1,
+            "border": 200
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 31
+          },
+          {
+            "part": 10,
+            "border": 44
+          },
+          {
+            "part": 1,
+            "border": 71
+          },
+          {
+            "part": 12,
+            "border": 86
+          },
+          {
+            "part": 1,
+            "border": 140
+          },
+          {
+            "part": 12,
+            "border": 154
+          },
+          {
+            "part": 14,
+            "border": 160
+          },
+          {
+            "part": 1,
+            "border": 200
+          }
+        ],
+        "leftSide": [],
+        "rightSide": []
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14326,
+      "name": "Alert",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 29,
+              "left": 18,
+              "bottom": 42,
+              "right": 101
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 16
+          },
+          {
+            "part": 12,
+            "border": 35
+          },
+          {
+            "part": 13,
+            "border": 37
+          },
+          {
+            "part": 1,
+            "border": 80
+          },
+          {
+            "part": 13,
+            "border": 82
+          },
+          {
+            "part": 12,
+            "border": 101
+          },
+          {
+            "part": 1,
+            "border": 120
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 19
+          },
+          {
+            "part": 13,
+            "border": 20
+          },
+          {
+            "part": 0,
+            "border": 43
+          },
+          {
+            "part": 12,
+            "border": 80
+          },
+          {
+            "part": 13,
+            "border": 81
+          },
+          {
+            "part": 0,
+            "border": 97
+          },
+          {
+            "part": 1,
+            "border": 120
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 29
+          },
+          {
+            "part": 8,
+            "border": 33
+          },
+          {
+            "part": 1,
+            "border": 42
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 29
+          },
+          {
+            "part": 8,
+            "border": 32
+          },
+          {
+            "part": 1,
+            "border": 42
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14304,
+      "name": "Utitlity Window",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 68,
+              "left": 19,
+              "bottom": 91,
+              "right": 222
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 55,
+              "left": 21,
+              "bottom": 66,
+              "right": 32
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 55,
+              "left": 197,
+              "bottom": 66,
+              "right": 208
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 55,
+              "left": 209,
+              "bottom": 66,
+              "right": 220
+            }
+          },
+          {
+            "part": 4,
+            "rect": {
+              "top": 55,
+              "left": 35,
+              "bottom": 68,
+              "right": 37
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 21
+          },
+          {
+            "part": 2,
+            "border": 33
+          },
+          {
+            "part": 5,
+            "border": 38
+          },
+          {
+            "part": 13,
+            "border": 43
+          },
+          {
+            "part": 12,
+            "border": 197
+          },
+          {
+            "part": 3,
+            "border": 209
+          },
+          {
+            "part": 10,
+            "border": 220
+          },
+          {
+            "part": 1,
+            "border": 238
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 22
+          },
+          {
+            "part": 8,
+            "border": 35
+          },
+          {
+            "part": 0,
+            "border": 220
+          },
+          {
+            "part": 1,
+            "border": 240
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 89
+          },
+          {
+            "part": 8,
+            "border": 91
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 90
+          },
+          {
+            "part": 8,
+            "border": 91
+          }
+        ]
+      }
+    },
+    {
+      "type": "wnd#",
+      "id": -14288,
+      "name": "Utility Window (No Title)",
+      "status": "ok",
+      "data": {
+        "rectangles": [
+          {
+            "part": 0,
+            "rect": {
+              "top": 68,
+              "left": 19,
+              "bottom": 91,
+              "right": 222
+            }
+          },
+          {
+            "part": 1,
+            "rect": {
+              "top": 55,
+              "left": 21,
+              "bottom": 66,
+              "right": 32
+            }
+          },
+          {
+            "part": 2,
+            "rect": {
+              "top": 55,
+              "left": 197,
+              "bottom": 66,
+              "right": 208
+            }
+          },
+          {
+            "part": 3,
+            "rect": {
+              "top": 55,
+              "left": 209,
+              "bottom": 66,
+              "right": 220
+            }
+          }
+        ],
+        "topSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 21
+          },
+          {
+            "part": 2,
+            "border": 33
+          },
+          {
+            "part": 13,
+            "border": 42
+          },
+          {
+            "part": 12,
+            "border": 197
+          },
+          {
+            "part": 3,
+            "border": 209
+          },
+          {
+            "part": 4,
+            "border": 221
+          },
+          {
+            "part": 1,
+            "border": 238
+          }
+        ],
+        "bottomSide": [
+          {
+            "part": 0,
+            "border": 0
+          },
+          {
+            "part": 1,
+            "border": 23
+          },
+          {
+            "part": 8,
+            "border": 36
+          },
+          {
+            "part": 0,
+            "border": 215
+          },
+          {
+            "part": 1,
+            "border": 238
+          }
+        ],
+        "leftSide": [
+          {
+            "part": 0,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 89
+          },
+          {
+            "part": 11,
+            "border": 91
+          }
+        ],
+        "rightSide": [
+          {
+            "part": 0,
+            "border": 68
+          },
+          {
+            "part": 1,
+            "border": 90
+          },
+          {
+            "part": 12,
+            "border": 91
+          }
+        ]
+      }
+    }
+  ]
+}
