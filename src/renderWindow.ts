@@ -202,10 +202,15 @@ export async function renderWindow(
 
   const cicn = await loadCicnBuffer(assetUrl(owner, cicnPath));
 
-  // Utility / mini / floating windows carry NO visible title in a modern
-  // context — the label is screen-reader-only (set as aria-label below).
+  // Utility / mini / floating / palette windows usually carry NO visible title — the label is
+  // screen-reader-only via aria-label. EXCEPT `titled-utility-window` (literally named for having
+  // one): classic Mac apps put a short title in its small horizontal bar — Inspector / Tool /
+  // Options windows all had labels. side-floating-utility / no-title-utility / mini / palette
+  // types stay headless (they either have a vertical side strip with no room for horizontal text,
+  // or are named "no-title" for a reason).
   const isUtility = /utility|mini|floating|palette/.test(slug);
-  const showTitle = !!title && !isUtility;
+  const isTitledUtility = /^titled-utility-window/.test(slug);
+  const showTitle = !!title && (!isUtility || isTitledUtility);
 
   // ── title geometry: the title TEXT is a CENTRED part (kDEF placement mode 0).
   // We rasterize it (width pass) BEFORE composing so the compositor can reserve
