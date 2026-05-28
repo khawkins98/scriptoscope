@@ -8,6 +8,7 @@ import { AaronWindow } from './AaronWindow.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
+import { promoteTabs } from './tabs.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
@@ -38,6 +39,10 @@ const BUTTON_SEL = '[data-aaron-button], .aaron-button';
 // composable, but a CMS may already paint inputs distinctively. Opt-in keeps the
 // surprise surface small. See src/declarative/field.ts for the bevel rationale.
 const FIELD_SEL = '[data-aaron-field], .aaron-field-attr';
+// Themed tab strip wrapper. The interior structure (children with [data-aaron-tab] +
+// [data-aaron-panel]) is parsed by promoteTabs itself. Wrapper-level scan keeps the selector
+// list flat + lets us re-skin tabs on retheme without re-querying the panels each time.
+const TABS_SEL = '[data-aaron-tabs]';
 // Themed checkbox / radio / slider / select. Auto-promoted page-wide so existing markup picks up
 // themes without retrofitting every input; opt-out per-control with `data-aaron-control="off"` if
 // a consumer wants the native chrome. Selects use a transparent-overlay strategy (themed button +
@@ -60,6 +65,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
+  const skinnedTabs: HTMLElement[] = []; // tablist wrappers (re-promoted on retheme to swap faces)
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -187,6 +193,19 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
   };
 
+  const promoteTabsEl = async (el: HTMLElement): Promise<void> => {
+    if (el.dataset.aaronTabsPromoted != null) return;
+    inFlight.add(el);
+    try {
+      await promoteTabs(el, await resolver.load(refForEl(el)));
+      skinnedTabs.push(el);
+    } catch (err) {
+      console.error('[aaron] tabs promote failed:', err);
+    } finally {
+      inFlight.delete(el);
+    }
+  };
+
   const promoteFld = async (el: HTMLInputElement | HTMLTextAreaElement): Promise<void> => {
     if (el.dataset.aaronFieldPromoted != null) return;
     inFlight.add(el);
@@ -233,6 +252,26 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
         b.skinned = fresh;
       } catch (err) { console.error('[aaron] button re-skin failed:', err); }
     }
+    // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
+    // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
+    // <button>s and panels stay put — only the skinned spans + ARIA + tabindex are rewritten.
+    const liveTabs = skinnedTabs.filter((el) => el.isConnected);
+    skinnedTabs.length = 0; skinnedTabs.push(...liveTabs);
+    for (const tabsEl of skinnedTabs) {
+      try {
+        // Strip the old skinned siblings before re-promoting so we don't accumulate them.
+        for (const old of Array.from(tabsEl.querySelectorAll(':scope > [data-aaron-tab-skinned]'))) old.remove();
+        // Restore the native buttons' visibility + clear promoted flag so promoteTabs sees them
+        // again and can re-decide skinned vs CSS fallback under the new theme.
+        for (const btn of Array.from(tabsEl.querySelectorAll<HTMLElement>(':scope > [data-aaron-tab]'))) {
+          btn.style.display = '';
+          delete btn.dataset.aaronPromoted;
+          delete btn.dataset.aaronTabFallback;
+        }
+        delete tabsEl.dataset.aaronTabsPromoted;
+        await promoteTabs(tabsEl, theme, { forceRescan: true });
+      } catch (err) { console.error('[aaron] tabs re-skin failed:', err); }
+    }
     // Same dance for promoted checkbox/radio/slider controls: drop orphans, then re-skin each in
     // place. clear the promoted stamp first so promoteControl will re-promote (it self-guards).
     const liveCtls = skinnedControls.filter((c) => c.skinned.isConnected); // same isConnected fix as buttons
@@ -252,6 +291,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
     for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
+    // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
+    // <button> because promoteTabs stamps them with data-aaron-promoted.
+    for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);
     await Promise.all([
       ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
       ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),

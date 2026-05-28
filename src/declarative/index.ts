@@ -7,6 +7,7 @@ export { AaronWindow, type AaronWindowDeps } from './AaronWindow.js';
 export { createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 export { promoteButton } from './button.js';
 export { promoteField, isFieldEligible } from './field.js';
+export { promoteTabs } from './tabs.js';
 export {
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton, type SizeMode,

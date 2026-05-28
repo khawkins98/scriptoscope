@@ -127,14 +127,27 @@
       </ul>
     </nav>
 
-    <!-- An image gallery (real <img>s — the bundled theme reference screenshots). Declared + scroll. -->
+    <!-- An image gallery (real <img>s — the bundled theme reference screenshots). Tabs inside!
+         Demonstrates [data-aaron-tabs]: native <button data-aaron-tab="…"> elements stay native
+         (form/keyboard/AT) while a themed canvas face sits on top; panels show/hide on selection. -->
     <div class="card" data-aaron-window data-aaron-title="Gallery" data-aaron-x="372" data-aaron-y="372"
-         data-aaron-width="300" data-aaron-height="220">
+         data-aaron-width="320" data-aaron-height="260">
       <h2>Schemes in the wild</h2>
-      <div class="gallery">
-        <figure><img src="assets/references/1138.png" alt="1138 scheme" width="120" /><figcaption>1138</figcaption></figure>
-        <figure><img src="assets/references/beos-r503.png" alt="BeOS R5 scheme" width="120" /><figcaption>BeOS R5</figcaption></figure>
-        <figure><img src="assets/references/apple-platinum-2.png" alt="Apple Platinum scheme" width="120" /><figcaption>Platinum</figcaption></figure>
+      <div data-aaron-tabs>
+        <button data-aaron-tab="screens" data-aaron-selected>Screens</button>
+        <button data-aaron-tab="credits">Credits</button>
+        <div data-aaron-panel="screens">
+          <div class="gallery">
+            <figure><img src="assets/references/1138.png" alt="1138 scheme" width="120" /><figcaption>1138</figcaption></figure>
+            <figure><img src="assets/references/beos-r503.png" alt="BeOS R5 scheme" width="120" /><figcaption>BeOS R5</figcaption></figure>
+            <figure><img src="assets/references/apple-platinum-2.png" alt="Apple Platinum scheme" width="120" /><figcaption>Platinum</figcaption></figure>
+          </div>
+        </div>
+        <div data-aaron-panel="credits">
+          <p style="font-size:13px">Each <code>themes/&lt;slug&gt;/</code> bundle carries the
+            original author's terms in <code>meta.json</code>. Provenance lives in
+            <code>PROVENANCE.md</code>; the runtime never relicenses.</p>
+        </div>
       </div>
     </div>
 

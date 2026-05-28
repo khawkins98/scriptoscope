@@ -190,6 +190,7 @@
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
       interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
+      promoteField,
       setDebug,
     } from '../src/index.ts';
 
@@ -1590,7 +1591,23 @@
           await interactiveScrollbar(theme, { orientation: 'vertical', length: 96, value: 0.3, onChange: (v) => say('v-scroll → ' + Math.round(v * 100) + '%') }),
         );
 
-        ctrls.append(btns, toggles, discWrap, drag);
+        // Text fields — themed via promoteField() (the imperative path the declarative
+        // [data-aaron-field] scanner ultimately calls). Demonstrates the Mac OS 8 sunken-bevel
+        // chrome over native <input> + <textarea>: native selection/IME/autofill/a11y stays,
+        // only the box gets period-correct (#888 top/left + #fff bottom/right + inset shadow).
+        const fields = document.createElement('div');
+        fields.style.cssText = 'display:flex;flex-direction:column;gap:6px;min-width:160px';
+        const fieldLabel = (txt) => { const l = document.createElement('label'); l.textContent = txt; l.style.cssText = 'font:11px Charcoal,Geneva,sans-serif;display:block'; return l; };
+        const textIn = document.createElement('input'); textIn.type = 'text'; textIn.placeholder = 'Type here…'; textIn.value = 'Hello, world';
+        const emailIn = document.createElement('input'); emailIn.type = 'email'; emailIn.placeholder = 'you@example.com';
+        const ta = document.createElement('textarea'); ta.rows = 2; ta.placeholder = 'Multiline…';
+        const disIn = document.createElement('input'); disIn.type = 'text'; disIn.value = 'disabled'; disIn.disabled = true;
+        const wrap = (lblTxt, el) => { const w = document.createElement('div'); w.append(fieldLabel(lblTxt), el); return w; };
+        fields.append(wrap('Name', textIn), wrap('Email', emailIn), wrap('Notes', ta), wrap('Disabled', disIn));
+        // Promote each — opt-in, mirrors the declarative [data-aaron-field] path.
+        for (const el of [textIn, emailIn, ta, disIn]) promoteField(el, theme);
+
+        ctrls.append(btns, toggles, discWrap, drag, fields);
         host.appendChild(ctrls);
 
         const deskLabel = document.createElement('div');
