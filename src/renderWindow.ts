@@ -140,11 +140,13 @@ export function resolveTitleWidgetRects(
   const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
   const righties = placed.filter((p) => p.right).sort((a, b) => a.x - b.x);
   if (lefties[0]) out.push({ role: 'close', rect: { x: lefties[0].x, y: lefties[0].y, w: lefties[0].w, h: lefties[0].h } });
-  // Right-side roles: the OUTER (rightmost) box is the windowshade/COLLAPSE, the inner one is ZOOM —
-  // the order the corpus's native schemes actually bake (verified against evolution). The wnd# parts
-  // carry NO role labels, so this is a positional heuristic; revisit here if a scheme proves to be
-  // zoom-outermost. (Corner-sprite schemes don't use this path — their roles come from the glyphs.)
-  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'collapse' : 'zoom', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
+  // Right-side roles, per Mac OS 8.5+ Platinum convention: the OUTER (rightmost) box is ZOOM, the
+  // inner one is the windowshade/COLLAPSE. The wnd# parts carry NO role labels, so this is a
+  // positional heuristic — the icon ART in Platinum-replica/1138 confirms it: zoom-square outer,
+  // collapse-lines inner. (Was earlier "outer=collapse" verified against evolution only, which is
+  // non-classic and mislabeled every other scheme. Corner-sprite themes don't use this path — their
+  // roles come from the glyph names.)
+  righties.forEach((p, i) => out.push({ role: i === righties.length - 1 ? 'zoom' : 'collapse', rect: { x: p.x, y: p.y, w: p.w, h: p.h } }));
   return out;
 }
 
