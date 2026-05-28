@@ -417,6 +417,10 @@ interface ManagedWindow {
   /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content). */
   zoomed?: boolean;
   userSize?: { width?: number; height?: number };
+  /** Aborts the previous render's scrollbar listeners. The wheel listener lives on the PERSISTENT
+   *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
+   *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
+  scrollAbort?: AbortController;
   /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
    *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
@@ -556,6 +560,10 @@ export class WindowManager {
    */
   private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
     if (entry.host.firstChild !== win) return;           // a newer render already replaced this subtree
+    // Tear down the previous render's scrollbar listeners (esp. the wheel listener on the persistent
+    // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes. (Leaving the field
+    // pointing at the now-aborted controller during early returns is harmless — re-abort is a no-op.)
+    entry.scrollAbort?.abort();
     if (entry.collapsed) return;                          // shaded: no body to scroll
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
     const content = win.querySelector('.aw-content') as HTMLElement | null;
@@ -583,6 +591,9 @@ export class WindowManager {
     // Leave the bottom-right grow box clear: stop the track above it.
     const barLenCss = Math.max(32, ch - (composed.growBox ? (composed.growBox.h + 1) * scale : 0));
     let value = maxScroll > 0 ? clamp01(scrollEl.scrollTop / maxScroll) : 0;
+    const ac = new AbortController();
+    const signal = ac.signal;
+    entry.scrollAbort = ac;
 
     const bar = document.createElement('div');
     bar.className = 'aw-window-scrollbar';
@@ -604,9 +615,9 @@ export class WindowManager {
     const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
     const setValue = (v: number): void => { value = clamp01(v); scrollEl.scrollTop = value * maxScroll; scheduleRepaint(); };
 
-    await repaint();
     win.appendChild(bar);
-
+    // Attach listeners SYNCHRONOUSLY (before the async initial paint) so a concurrent re-render that
+    // aborts `ac` can't race a half-wired bar — the listeners are either fully present or fully removed.
     // Drag the thumb (pointer = touch + mouse).
     const valueAtPointer = (e: PointerEvent): number => { const r = bar.getBoundingClientRect(); return clamp01((e.clientY - r.top) / r.height); };
     bar.addEventListener('pointerdown', (e) => {
@@ -614,10 +625,11 @@ export class WindowManager {
       setValue(valueAtPointer(e));
       const mv = (ev: PointerEvent): void => setValue(valueAtPointer(ev));
       const up = (): void => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
-      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
-    });
-    // Wheel/trackpad over the content drives the same value (two-way).
-    scrollEl.addEventListener('wheel', (e) => { e.preventDefault(); setValue((scrollEl.scrollTop + e.deltaY) / maxScroll); }, { passive: false });
+      window.addEventListener('pointermove', mv, { signal }); window.addEventListener('pointerup', up, { signal });
+    }, { signal });
+    // Wheel/trackpad over the content drives the same value (two-way). On the PERSISTENT slot — scoped
+    // to `signal` so the next render's abort removes it (else it would accumulate + multiply deltas).
+    scrollEl.addEventListener('wheel', (e) => { e.preventDefault(); setValue((scrollEl.scrollTop + e.deltaY) / maxScroll); }, { passive: false, signal });
     // Arrow keys / page keys on the bar.
     bar.addEventListener('keydown', (e) => {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
@@ -627,7 +639,8 @@ export class WindowManager {
       else if (e.key === 'PageDown') next = value + page; else if (e.key === 'PageUp') next = value - page;
       else if (e.key === 'Home') next = 0; else if (e.key === 'End') next = 1; else return;
       e.preventDefault(); setValue(next);
-    });
+    }, { signal });
+    await repaint(); // initial thumb paint (guarded against a stale win inside repaint)
   }
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
