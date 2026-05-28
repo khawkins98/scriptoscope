@@ -296,6 +296,11 @@ async function buildDraggable(
   Object.assign(el.style, {
     display: 'inline-block', lineHeight: '0', userSelect: 'none',
     touchAction: 'none', cursor: 'pointer', outlineOffset: '2px',
+    // Opt out of any flex parent's align-items:stretch — otherwise the element grows wider than the
+    // canvas inside it, and the hit-test rect no longer matches what the user sees (clicking the
+    // visible thumb lands somewhere far off the actual value). Slider lived in the Inspector's
+    // `.row.col` (flex column, stretch) which made the element 220px wide around a 120px canvas.
+    alignSelf: 'start', verticalAlign: 'middle',
   } satisfies Partial<CSSStyleDeclaration>);
 
   const repaint = async (): Promise<void> => {
@@ -305,8 +310,11 @@ async function buildDraggable(
   };
   await repaint();
 
+  // Map pointer→value against the CANVAS rect (the actual visual surface), not the element rect.
+  // The element can be stretched by a parent layout; the canvas always reflects what the user sees.
   const valueAt = (e: PointerEvent): number => {
-    const r = el.getBoundingClientRect();
+    const canvas = el.querySelector('canvas');
+    const r = (canvas ?? el).getBoundingClientRect();
     const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
     return clamp01(t);
   };
