@@ -1932,3 +1932,68 @@ tight-loop-PR; both keep the no-Co-Authored-By rule).
 update the ADR the same day — not when the next cut-through finds it. When
 a memory's "BUILT (commitsha) then REVERTED (commitsha)" framing buries the
 revert, lead with the revert.
+
+## 2026-05-28 — Topology vs fidelity: don't approve your own work on a faithful-to-decode project
+
+Spent half a session running the ADR-0001 §Gating spike (a throwaway CSS
+`border-image` emitter to validate or kill the CSS-first hybrid rendering
+decision). Wrote up a "PASSED" verdict — committed the writeup, updated the
+ADR's status to `Partially Accepted (Decision 1 PASSED 2026-05-28)`. **The
+verdict was wrong.**
+
+What I'd compared: my CSS rendition had the same *parts* as the canvas runtime
+(border, title bar, widgets, grow box, in the right positions). I called that
+"trivially expressible." The owner opened the spike, looked at the side-by-side,
+and pointed out the gap I'd glossed over: the canvas renders a **3px beveled
+panel** (`headerColors.lightBevel` highlight + `darkBevel` shadow per
+`composeCornerSprite §0x434`), and my CSS rendered a flat 1px border. The
+widgets had the same gap. **The topology matched, the pixels didn't.**
+
+I'd self-approved a comparison that the project's faithful-to-the-decode posture
+should never have let through. The `[[feedback_reference_image_first]]` memory
+warns against exactly this; my comparison checked "do the same things appear"
+but not "do they look the same."
+
+**Two passes after the catch — Path 1 (pure-CSS-with-box-shadow-bevels) and
+Path 2 (synthesized PNG source images used via `border-image`)** — landed at:
+Path 1 gets ~95% but has a sharper/harder feel than the canvas's softer
+rendering; Path 2 is pixel-faithful because the source image IS the pixels.
+The architectural call: Path 2. The CSS emitter generates a small PNG per
+(scheme, role) at theme-load time — synthesized from `headerColors` for
+corner-sprite schemes, cropped from the chrome cicn for recipe schemes — and
+uses it via `border-image`. Same mechanism for both compositor paths; emitter
+is uniform.
+
+**Lessons:**
+
+1. **Topology ≠ fidelity. Pixel-by-pixel side-by-side IS the comparison.**
+   "Same parts, same positions" is a structural check, not a faithfulness
+   check. On a project whose central commitment is replaying a decoded
+   binary 1:1, "approximately Mac" loses the brand. Match pixels or document
+   the gap.
+
+2. **Don't approve your own work on a fidelity-driven project.** I wrote the
+   spike, wrote the verdict, updated the ADR — all without surfacing the
+   side-by-side to a second pair of eyes. The owner caught it in 30 seconds.
+   Build the surface, then *ask*; don't ship "PASSED" without independent
+   review.
+
+3. **Withdraw verdicts when they're wrong; don't paper over.** When the gap
+   came out, the right move was to update the ADR back to "in iteration" the
+   same minute — not patch over with a clarification. A doc that records its
+   own wrong moves and corrections is more trustworthy than one that quietly
+   rewrites history.
+
+4. **When you find a project memory says exactly the thing you're about to
+   miss, you're missing it.** [[feedback_reference_image_first]] was loaded
+   in this very session. I read it, nodded, then walked into the trap it
+   describes. Memories cost nothing to write — but they only protect against
+   the next mistake if you LOOK at the reference image before claiming the
+   thing renders right. Make that the first step.
+
+**Application:** for any "does our X faithfully render Y" question, the
+canonical comparison is a screenshot side-by-side with no third option. If the
+two images differ at any pixel that wouldn't be lost in display compression,
+the answer is no, not yet. Run the test before writing the verdict, not after.
+For spike work specifically: surface the side-by-side to the owner BEFORE
+updating any decision doc.

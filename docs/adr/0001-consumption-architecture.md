@@ -1,13 +1,35 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
-- **Status:** Partially Accepted — Decision 3 (front door) and parts of Decision 2 (encapsulation, less Shadow DOM) shipped 2026-05-28; Decision 1 (CSS-first hybrid) **spike PASSED 2026-05-28** ([`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md)); Decision 4 (ingestion) shipped 2026-05-27. PC implementation now unblocked.
+- **Status:** Partially Accepted — Decision 3 (front door) and parts of Decision 2 (encapsulation, less Shadow DOM) shipped 2026-05-28; Decision 1 (CSS-first hybrid) **spike PASSED via Path 2** ([`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md)) — both compositor paths converge on `border-image` with a per-(scheme, role) generated source image (synthesized from `headerColors` for corner-sprite; cropped from the chrome cicn for recipe); Decision 4 (ingestion) shipped 2026-05-27. PC unblocked.
 - **Date:** 2026-05-25 (reviewed 2026-05-26, 2026-05-27, 2026-05-28 — see §Update + §Spike result)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
 
-## Spike result — 2026-05-28 (Decision 1 PASSED — CSS-first hybrid validated)
+## Spike result — 2026-05-28 (Decision 1 PASSED via Path 2)
 
-The §Gating spike ran and resolved. Full writeup:
+The §Gating spike ran three iterations and resolved. The headline:
+
+> **Both compositor paths converge on the same mechanism — `border-image` with
+> a per-(scheme, role) source image generated at theme-load time.** What differs
+> is the GENERATOR: synthesized from `headerColors` for the corner-sprite path
+> (no source cicn exists — frame is procedural in the WDEF-125 model); cropped
+> from the chrome cicn for the recipe path. Title bar stays canvas in both, per
+> Decision 1.
+
+This is **NOT** the "trivially expressible in plain CSS" claim an earlier
+iteration of this section made. That claim matched topology, not fidelity —
+the canvas reference renders a 3px beveled panel (`lightBevel`/`darkBevel`) and
+beveled widgets that pure CSS box-shadows approximate but don't pixel-match.
+Path 2 (generated source images) gets fidelity because the source IS the pixels.
+The earlier "PASSED" verdict was withdrawn after side-by-side review caught the
+gap; the iteration that landed here matches pixel-by-pixel.
+
+The classifier rules + corpus survey are in the writeup. By inspection, no
+window-type in the current corpus needs the canvas fallback path, but the
+classifier still ships (as `scripts/lint-css-emit.mjs`) to flag any future
+scheme that does.
+
+Full writeup:
 [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md).
 TL;DR:
 
@@ -110,11 +132,11 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 - **Native host form controls (`<input>`, `<select>`, scrollbars) are NOT themed in v1.** Faithful cross-browser control reskinning via CSS is a tar pit. v1 themes window **chrome** + **opt-in** controls the consumer explicitly wraps.
 - **Ingestion v1 = curated bundles + a bare resource fork** dropped in (the decode core is already portable; needs a drop zone + an `assetUrl` blob-URL passthrough in `src/loadTheme.ts`). **Archive unpacking** (`.sit`/`.hqx`/MacBinary off Macintosh Garden) is a **separable later track** — StuffIt in particular has no clean JS decompressor; don't promise "drop any download" in v1. **→ SUPERSEDED (2026-05-27, see the update note above): archive unpacking SHIPPED — the drop zone, the `assetUrl` passthrough, and `.sit`/`.hqx`/MacBinary decoding (StuffIt via the `tools/sit-wasm` WASM build) are all live. "Drop any download" is now largely true (caveat: `.sitx` unsupported).**
 
-## Gating spike — ✅ PASSED 2026-05-28
+## Gating spike — ✅ PASSED 2026-05-28 via Path 2 (synthesized source images)
 
 Build a **throwaway** `border-image` emitter for ONE window frame straight from the slice recipe and compare against the canvas render. **Cover one scheme per compositor** (see §Update): a recipe scheme (`1138` / `beos-r503`, via `composeWindowChrome`) and a corner-sprite scheme (`apple-platinum-2` / `platinum-8`, via `composeCornerSprite` — likely the easier win). Acceptance: the body frame (corners + L/R/bottom) is faithful at integer scale across ≥3 corpus schemes spanning both paths; document which edges/schemes need the canvas fallback. Output: confirm/deny Decision 1, and the rules for the representability classifier. **No production code until the spike resolves.**
 
-**Resolved 2026-05-28:** spike PASSED across both paths. See §Spike result above and the full writeup at [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md). Spike file at `demo/_spike-css-emitter.html` (delete with PC PR).
+**Resolved 2026-05-28 (Path 2):** spike PASSED with the synthesized-source-image approach. Both compositor paths use `border-image` with a generated per-(scheme, role) source PNG — synthesized from `headerColors` for the corner-sprite path, cropped from the chrome cicn for the recipe path. Pixel-faithful at integer scale (1× and 2× verified). The earlier "PASSED via Path 1" claim was withdrawn after review caught the topology-vs-fidelity gap; the lesson is captured in `LEARNINGS.md` as the 2026-05-28 entry. See §Spike result above and the full writeup at [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md). Spike file at `demo/_spike-css-emitter.html` (delete with PC PR).
 
 ## Consequences
 
