@@ -517,6 +517,13 @@ interface ManagedWindow {
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
   scrollAbort?: AbortController;
+  /** Pooled chrome canvas — kept across renders so we don't allocate a fresh RGBA buffer on every
+   *  state change (closes #171; see the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
+   *  entry pattern #5). The same canvas element is moved into each new .aw-window via renderWindow's
+   *  reuseCanvas option; setting width/height resets the pixels (re-painted via putImageData). At 50
+   *  windows × theme switch, this eliminates ~3.2 MB of transient allocations + the GC pause they
+   *  trigger. */
+  chromeCanvas?: HTMLCanvasElement;
   /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
    *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
@@ -686,13 +693,19 @@ export class WindowManager {
     const slug = this.effectiveSlug(entry);
     debug('render', `${entry.opts.title ?? '(untitled)'} → ${slug}`, {
       w: entry.opts.width, h: entry.opts.height, active: entry.active, collapsed, zoomed: entry.zoomed, z: entry.z,
+      pooledCanvas: !!entry.chromeCanvas,
     });
     const win = await renderWindow(entry.theme, {
       ...entry.opts,
       windowType: slug,
       ...(collapsed ? { height: 0 } : {}),
       state: entry.active ? 'active' : 'inactive',
+      ...(entry.chromeCanvas ? { reuseCanvas: entry.chromeCanvas } : {}),
     });
+    // Capture the canvas from the freshly-rendered win for next time. On first render this stores
+    // a brand-new canvas; on subsequent renders, renderWindow reused entry.chromeCanvas (which is
+    // now inside the new win — append-from-old-parent semantics handle the move automatically).
+    entry.chromeCanvas = win.querySelector('canvas.aw-chrome') as HTMLCanvasElement ?? undefined;
     entry.host.style.zIndex = this.zIndexFor(entry);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);

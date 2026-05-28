@@ -88,6 +88,15 @@ export interface RenderWindowOptions {
    *  Corner-sprite schemes swap to the widget's pressed glyph (-14333/-14332/-14331);
    *  native-recipe schemes (widget baked into the title cicn) darken its rect. */
   pressedWidget?: TitleWidgetRole;
+  /** Optional canvas element to REUSE for the chrome painting (saves a per-render
+   *  allocation). Width and height are reset to the new chrome size, which clears
+   *  the buffer; we then putImageData the new pixels. WindowManager passes this
+   *  from `ManagedWindow.chromeCanvas` to avoid allocating a fresh canvas on
+   *  every focus / theme / size change. Demos calling renderWindow directly
+   *  (no reuse) omit it and get a fresh canvas as before. (See issue #171, the
+   *  2026-05-28 perf review, and the LEARNINGS "Classic Mac OS lessons" entry —
+   *  pattern #5: persistent off-screen buffer.) */
+  reuseCanvas?: HTMLCanvasElement;
 }
 
 /** A title-bar widget role, left→right: close · collapse(windowshade) · zoom. */
@@ -371,7 +380,13 @@ export async function renderWindow(
   } satisfies Partial<CSSStyleDeclaration>);
 
   // ── chrome canvas: native-res buffer, CSS-scaled, behind content ──
-  const canvas = document.createElement('canvas');
+  // Pool the canvas if the caller passed one (WindowManager does this on every
+  // re-render; see RenderWindowOptions.reuseCanvas). Setting width/height
+  // resets the buffer to transparent black — desired, since we paint the whole
+  // chrome via putImageData on the next line. Width-reset is also necessary
+  // because the new chrome may have different dimensions than the previous
+  // render (e.g. resize, shade/zoom).
+  const canvas = opts.reuseCanvas ?? document.createElement('canvas');
   canvas.className = 'aw-chrome';
   canvas.width = fullWidth;
   canvas.height = fullHeight;
