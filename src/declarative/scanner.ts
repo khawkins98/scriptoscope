@@ -19,10 +19,17 @@ export interface MountOptions extends ThemeBootstrapOpts {
 
 const WINDOW_SEL = '[data-aaron-window], .aaron-window';
 const BUTTON_SEL = '[data-aaron-button], .aaron-button';
-// Themed checkbox / radio / slider. Auto-promoted page-wide so existing markup picks up themes
-// without retrofitting every input; opt-out with data-aaron-control="off" if a consumer wants
-// the native control.
-const CONTROL_SEL = 'input[type=checkbox]:not([data-aaron-control=off]), input[type=radio]:not([data-aaron-control=off]), input[type=range]:not([data-aaron-control=off])';
+// Themed checkbox / radio / slider / select. Auto-promoted page-wide so existing markup picks up
+// themes without retrofitting every input; opt-out per-control with `data-aaron-control="off"` if
+// a consumer wants the native chrome. Selects use a transparent-overlay strategy (themed button +
+// native `<select>` invisible on top) — the dropdown menu itself stays browser-native for now;
+// fully themed via `popup-window` chrome is a follow-up.
+const CONTROL_SEL = [
+  'input[type=checkbox]:not([data-aaron-control=off])',
+  'input[type=radio]:not([data-aaron-control=off])',
+  'input[type=range]:not([data-aaron-control=off])',
+  'select:not([data-aaron-control=off])',
+].join(', ');
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
 export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void; retheme(ref: string): Promise<void> }> {
@@ -33,7 +40,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const inFlight = new Set<Element>();
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
-  const skinnedControls: { el: HTMLInputElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider
+  const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -85,7 +92,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
   };
 
-  const promoteCtl = async (el: HTMLInputElement): Promise<void> => {
+  const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
     if (isPromoted(el)) return;
     inFlight.add(el);
     try {
@@ -139,7 +146,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
     await Promise.all([
       ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
-      ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement)),
+      ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),
     ]);
   };
 

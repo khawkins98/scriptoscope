@@ -8,89 +8,139 @@
 // their `_awSetChecked` setter so they all show the right state without us rebuilding them.
 
 import type { LoadedTheme } from '../types.js';
-import { interactiveCheckbox, interactiveRadio, interactiveSlider } from '../interactive.js';
+import { interactiveCheckbox, interactiveRadio, interactiveSlider, interactiveButton } from '../interactive.js';
 
-type Promotable = HTMLInputElement;
-type Kind = 'checkbox' | 'radio' | 'range';
+type Promotable = HTMLInputElement | HTMLSelectElement;
+type Kind = 'checkbox' | 'radio' | 'range' | 'select';
 
-const KIND_RE = /^(checkbox|radio|range)$/;
+const INPUT_KIND_RE = /^(checkbox|radio|range)$/;
 const SETTER = '_awSetChecked'; // see interactive.ts buildToggle — exposes the visual state setter
 
-/** Promote one input. Returns the themed element, or null if the input type isn't one we handle. */
+/** Promote one form control. Returns the themed element / wrapper, or null if the type isn't one we handle. */
 export async function promoteControl(el: Promotable, theme: LoadedTheme): Promise<HTMLElement | null> {
   if (el.dataset.aaronPromoted != null) return null;
-  const kind = el.type as Kind;
-  if (!KIND_RE.test(kind)) return null;
+  const kind: Kind | undefined =
+    el.tagName === 'SELECT' ? 'select'
+    : INPUT_KIND_RE.test((el as HTMLInputElement).type) ? (el as HTMLInputElement).type as Kind
+    : undefined;
+  if (!kind) return null;
+  // Selects take a different shape (wrap + transparent overlay), handled in their own branch below.
+  if (kind === 'select') return promoteSelect(el as HTMLSelectElement, theme);
   el.dataset.aaronPromoted = '';
-  const label = labelTextFor(el);
+  const input = el as HTMLInputElement;
+  const label = labelTextFor(input);
   let skinned: HTMLElement;
 
   if (kind === 'checkbox') {
     skinned = await interactiveCheckbox(theme, {
-      checked: el.checked,
-      disabled: el.disabled,
+      checked: input.checked,
+      disabled: input.disabled,
       ...(label ? { label } : {}),
       onChange: (checked) => {
-        el.checked = checked;
-        el.dispatchEvent(new Event('change', { bubbles: true }));
+        input.checked = checked;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
       },
     });
   } else if (kind === 'radio') {
     skinned = await interactiveRadio(theme, {
-      checked: el.checked,
-      disabled: el.disabled,
+      checked: input.checked,
+      disabled: input.disabled,
       ...(label ? { label } : {}),
       onChange: () => {
-        // .click() flips this radio AND tells the browser to un-check same-name siblings; that's the
-        // path that fires the native input's `change` event for each affected sibling. We then walk
-        // the promoted radios in this group and re-sync their themed visual to match `.checked`.
-        if (!el.checked) el.click();
-        syncRadioGroup(el.name);
+        if (!input.checked) input.click();
+        syncRadioGroup(input.name);
       },
     });
-    if (el.name) skinned.dataset.aaronRadioGroup = el.name;
-    (skinned as unknown as { _awNative: HTMLInputElement })._awNative = el;
+    if (input.name) skinned.dataset.aaronRadioGroup = input.name;
+    (skinned as unknown as { _awNative: HTMLInputElement })._awNative = input;
   } else {
-    const min = numOr(el.min, 0), max = numOr(el.max, 100);
+    const min = numOr(input.min, 0), max = numOr(input.max, 100);
     const range = max - min;
-    const initial = range > 0 ? clamp01((numOr(el.value, min) - min) / range) : 0;
+    const initial = range > 0 ? clamp01((numOr(input.value, min) - min) / range) : 0;
     skinned = await interactiveSlider(theme, {
       orientation: 'horizontal',
       length: 120,
       value: initial,
       onChange: (v) => {
-        // Zero-range sliders (min===max) clamp to min — without the guard, range=0 would yield NaN,
-        // and the older `range || 1` fallback let values drift past max.
         const out = range > 0 ? Math.round(min + v * range) : min;
-        el.value = String(out);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
+        input.value = String(out);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
       },
     });
   }
 
-  // Skin-don't-steal: hide the native input in place + insert the themed face.
-  // BUT — for a WRAPPING <label><input>…</label>, inserting via `el.after(skinned)` puts the themed
-  // face INSIDE the label; then hiding the label (to suppress its duplicate caption) would hide the
-  // themed face too, leaving the control invisible. Detect that case (`lbl.contains(el)`) and place
-  // the face AFTER the wrapping label instead, then hide the label cleanly. (Sibling `<label for=…>`
-  // is the existing happy path.)
-  el.style.display = 'none';
-  const lbl = kind !== 'range' ? associatedLabel(el) : null;
-  const wrapping = lbl?.contains(el) ?? false;
+  input.style.display = 'none';
+  const lbl = kind !== 'range' ? associatedLabel(input) : null;
+  const wrapping = lbl?.contains(input) ?? false;
   if (wrapping && lbl) {
-    lbl.after(skinned);                  // skinned outside the label …
-    if (label) lbl.style.display = 'none'; // … so hiding the label can't hide it
+    lbl.after(skinned);
+    if (label) lbl.style.display = 'none';
   } else {
-    el.after(skinned);
+    input.after(skinned);
     if (lbl && label) lbl.style.display = 'none';
   }
   skinned.dataset.aaronPromoted = '';
-  // Normalize at-rest radio-group state: if multiple radios in a group are pre-checked (invalid HTML
-  // but possible), the browser shows only the LAST as actually checked. Re-paint the themed siblings
-  // to match `.checked` so the at-rest visual matches the native state.
-  if (kind === 'radio' && el.name) syncRadioGroup(el.name);
+  if (kind === 'radio' && input.name) syncRadioGroup(input.name);
   return skinned;
+}
+
+/**
+ * Themed `<select>` via the transparent-overlay trick: wrap the select; render a themed button
+ * (label + chevron) behind it; overlay the native select on top at opacity 0. The user SEES the
+ * themed button; clicks land on the invisible native select, opening the browser's native dropdown
+ * menu (cross-browser, keyboard-navigable, screen-reader-accessible — for free). On change we
+ * re-render the button label. Theme switching re-wraps from scratch.
+ *
+ * A fully themed popup-menu via the `popup-window` chrome is a follow-up — this iteration gives
+ * the closed-state fidelity without the keyboard/a11y reimplementation cost.
+ */
+async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise<HTMLElement> {
+  // Unwrap a prior promotion (retheme path) so we always rebuild cleanly.
+  const existingWrap = el.closest('.aw-select') as HTMLElement | null;
+  if (existingWrap && existingWrap.parentNode) {
+    existingWrap.parentNode.insertBefore(el, existingWrap);
+    existingWrap.remove();
+    el.style.cssText = '';
+  }
+  el.dataset.aaronPromoted = '';
+
+  const wrap = document.createElement('span');
+  wrap.className = 'aw-select';
+  Object.assign(wrap.style, {
+    position: 'relative', display: 'inline-block', verticalAlign: 'middle',
+    cursor: el.disabled ? 'default' : 'pointer',
+  } satisfies Partial<CSSStyleDeclaration>);
+
+  const renderBtn = async (): Promise<HTMLElement> => {
+    const text = (el.selectedOptions[0]?.textContent ?? '').trim();
+    // The chevron `▾` (U+25BE) signals "this is a dropdown" — universally understood, available in
+    // every font we ship; cheaper than a custom cicn for the corner indicator.
+    const b = await interactiveButton(theme, { label: `${text}  ▾`, disabled: el.disabled });
+    // Pointer-events:none so clicks fall THROUGH to the native select underneath (the real handler).
+    Object.assign(b.style, { pointerEvents: 'none' } satisfies Partial<CSSStyleDeclaration>);
+    return b;
+  };
+
+  // Insert wrap where el was, move el INTO wrap as the click target on top.
+  el.parentNode?.insertBefore(wrap, el);
+  wrap.appendChild(el);
+  const btn = await renderBtn();
+  wrap.appendChild(btn);
+  Object.assign(el.style, {
+    position: 'absolute', inset: '0', opacity: '0', cursor: el.disabled ? 'default' : 'pointer',
+    zIndex: '2', width: '100%', height: '100%', font: 'inherit', margin: '0', padding: '0',
+    border: '0', appearance: 'none',
+  } satisfies Partial<CSSStyleDeclaration>);
+
+  el.addEventListener('change', async () => {
+    const fresh = await renderBtn();
+    const cur = wrap.querySelector(':scope > .aw-button');
+    cur?.replaceWith(fresh);
+  });
+
+  wrap.dataset.aaronPromoted = '';
+  return wrap;
 }
 
 function labelTextFor(el: Promotable): string | undefined {

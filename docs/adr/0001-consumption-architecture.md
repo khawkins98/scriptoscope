@@ -1,13 +1,34 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
-- **Status:** Proposed (spike-gated — see §Decision 1 and §Gating spike)
-- **Date:** 2026-05-25 (reviewed 2026-05-26 — see §Update)
+- **Status:** Partially Accepted — Decision 3 (front door) and parts of Decision 2 (encapsulation, less Shadow DOM) shipped 2026-05-28; Decision 1 (CSS-first hybrid) still spike-gated; Decision 4 (ingestion) shipped 2026-05-27.
+- **Date:** 2026-05-25 (reviewed 2026-05-26, 2026-05-27, 2026-05-28 — see §Update)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
 
-## Update — 2026-05-26 (engine deepened; decisions unchanged)
+## Update — 2026-05-28 (consumption-layer FRONT DOOR shipped — Decision 3 LIVE)
 
-A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. Confirmed still absent: any `data-aaron-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `AaronWindow`, `ResizeObserver`, or emitted CSS. (Ingestion note now stale — see the 2026-05-27 update below: the blob-URL passthrough Decision 4 needs HAS landed.)
+Decision 3 (imperative + declarative front door) shipped on `main` (commits `2e22d48` … `beec030`, 2026-05-27/28). The "Confirmed still absent" list in the 2026-05-26 update below has flipped almost entirely — what's now in `src/declarative/` + `src/interactive.ts`:
+
+- `data-aaron-*` scanner with `MutationObserver` (`src/declarative/scanner.ts`)
+- `AaronWindow` class (`src/declarative/AaronWindow.ts`)
+- A real WindowManager: drag from any edge, grow-box resize, z-order, window-shade (collapse), zoom-to-fit, themed scrollbars on overflow, runtime theme switching (`src/interactive.ts`)
+- `ResizeObserver`-driven content-fit re-render
+- Themed `data-aaron-control` promotion (checkbox / radio / slider) over native form widgets (`src/declarative/control.ts`) — a partial relaxation of Decision 4's "native controls NOT themed" scope guard, scoped to controls the consumer explicitly opts into via attribute (the spirit of "opt-in" Decision 4 reserves)
+- Two validation demos: `demo/declarative.html` (OS 8.6 desktop) and `demo/declarative-site.html` ("skin an existing site")
+- Public re-exports from `src/index.ts` (`mountDeclarative`, `AaronWindow`, `promoteButton`, etc.)
+
+Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-design.md`.
+
+**Still NOT shipped** (this ADR's open work):
+- Decision 1 — CSS `border-image` emitter + representability classifier. Still spike-gated; the gating spike has not been run. **This is the next gate.** All chrome rendering today goes through the canvas compositor (per-window canvas; no SSR; canvas is invisible to AT — the accessibility motivation for Decision 1 stands).
+- Decision 2 — Shadow DOM around chrome. Not yet wrapped; chrome currently renders into the same DOM tree as host content. The case still holds for hostile third-party CSS environments; the demos so far run on clean pages.
+- Phase map items PC (CSS emitter), PE (broader control decoration) — open. PD (ingestion) shipped 2026-05-27 (see below).
+
+**The ADR's central decision (CSS-first hybrid) is therefore still unproven.** Production chrome is canvas-only. The front door was built without prejudicing that decision: the renderer plumbing in `src/renderWindow.ts` is the canvas path; a future CSS emitter can be slotted behind the same `composeWindowChrome` recipe (see §1).
+
+## Update — 2026-05-26 (engine deepened; decisions unchanged) — ⚠️ "still absent" list now SUPERSEDED by the 2026-05-28 update above
+
+A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. ~~Confirmed still absent: any `data-aaron-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `AaronWindow`, `ResizeObserver`, or emitted CSS.~~ (Ingestion note now stale — see the 2026-05-27 update below: the blob-URL passthrough Decision 4 needs HAS landed.)
 
 **Ingestion is now LIVE (update 2026-05-27):** the whole in-browser drag-drop conversion path shipped — drop a Kaleidoscope theme (`.sit` via a munbox→WASM decoder in `tools/sit-wasm/`, or `.hqx`/MacBinary/AppleDouble/raw `.rsrc`) and `loadKaleidoscopeScheme` → `convertScheme` produces a render-ready in-memory `LoadedTheme` with `OffscreenCanvas` blob-URL assets, which `renderWindow` paints — no build, no server. The `assetUrl` blob-URL passthrough Decision 4 calls for HAS landed (5afd70b). See `docs/superpowers/specs/2026-05-27-browser-conversion-design.md`. **Consequence for this ADR:** the consumer can now receive a translated theme two ways, and the choice is a consumption-layer decision to make at the §Gating spike — (a) an **in-page handoff** (pass the in-memory `LoadedTheme` straight to the consumer, no disk round-trip) or (b) a **saved/exported bundle** (`theme.json` + PNG assets, zipped) the consumer re-loads. "Save/export the translated output" is therefore deliberately deferred until this ADR's spike picks the consumption shape, so we don't build a save format the consumer can't use.
 
