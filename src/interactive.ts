@@ -989,6 +989,44 @@ export class WindowManager {
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
 
+    // KEYBOARD MOVE HANDLE — focusable transparent button overlaying the title region. Closes the
+    // a11y gap from the 2026-05-28 DOM-twin audit: pointer-drag was the only way to move a window
+    // before this. Mirrors the grow box's arrow-key resize pattern (8px steps, Shift × 4). CSS-only
+    // updates to host.style.left/top — no render, preserving the render-frequency contract. We place
+    // the handle at the top frame strip; for side-titled palettes that have left-side titles, the
+    // top strip is usually 1-2px (still reachable but visually subtle) and tab-discoverability still
+    // works. A11y purists may want a side variant for those palettes later; first alpha consumer can
+    // tell us if it matters. (closes #169)
+    const moveBtn = document.createElement('button');
+    moveBtn.type = 'button';
+    moveBtn.className = 'aw-movehandle';
+    moveBtn.setAttribute('aria-label', 'Move window');
+    Object.assign(moveBtn.style, {
+      position: 'absolute', left: '0', top: '0',
+      width: '100%', height: `${Math.max(1, composed.frame.top * scale)}px`,
+      padding: '0', margin: '0', border: '0', background: 'transparent',
+      cursor: 'inherit', zIndex: '1',
+      pointerEvents: 'none',                 // pointer drag stays on the win listener above
+      outlineOffset: '2px',
+    } satisfies Partial<CSSStyleDeclaration>);
+    moveBtn.tabIndex = 0;                    // Tab-reachable even with pointer-events:none
+    moveBtn.addEventListener('keydown', (e) => {
+      const step = (e.shiftKey ? 32 : 8);
+      let dx = 0, dy = 0;
+      if (e.key === 'ArrowRight')      dx =  step;
+      else if (e.key === 'ArrowLeft')  dx = -step;
+      else if (e.key === 'ArrowDown')  dy =  step;
+      else if (e.key === 'ArrowUp')    dy = -step;
+      else return;
+      e.preventDefault();
+      void this.focus(entry);
+      const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
+      host.style.left = `${x0 + dx}px`;
+      host.style.top = `${Math.max(0, y0 + dy)}px`;
+      debug('drag', `keyboard move ${entry.opts.title ?? ''}`, { dx, dy, x: x0 + dx, y: y0 + dy });
+    });
+    win.appendChild(moveBtn);
+
     // Double-click any frame edge to window-shade (the classic Mac WindowShade gesture, side palettes
     // included — the side title strip is the natural target for a vertical title bar). Ignores
     // double-clicks on the widgets, the scrollbar, and the grow-box corner.
