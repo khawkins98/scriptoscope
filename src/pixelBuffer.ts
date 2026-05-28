@@ -4,7 +4,7 @@
 // pixel is under our control. No canvas-2D shortcuts — canvas is used
 // only to load source bitmaps and to blit the finished buffer.
 //
-// Reference: docs/tracking/kdef231-recipe-walk.md Q5 — kDEF renders via
+// Reference: docs/spec/kdef231-recipe-walk.md Q5 — kDEF renders via
 // CopyBits/CopyMask; the default blit (0xfeae) tiles the source cell and
 // code 18 (0x10320) does a single scaled CopyBits. `copyBits` below is the
 // primitive both build on (nearest-neighbour sample-and-hold scaling).
@@ -81,7 +81,7 @@ export class PixelBuffer {
    * 9-slice blit `src` (region `sr`) into dest rect `dr`: the four
    * corners (inset `ins` px) copy 1:1, the four edges stretch along one
    * axis, the center stretches both. This is how the kDEF scales control
-   * cicns — buttons, progress frames (kdef-layout-recipes §0).
+   * cicns — buttons, progress frames (docs/spec/kdef231-reference.md §5).
    */
   nineSlice(
     src: PixelBuffer,

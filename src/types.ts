@@ -21,7 +21,7 @@ export interface WindowPart {
  * pieces, not widget refs). Association is END-BASED (kDEF `0x5356`): the entry
  * describes the cell that ENDS at `at`, spanning from the PREVIOUS border —
  * segment i is `[border[i-1], border[i])` tagged `part[i]`. See
- * docs/tracking/kdef231-recipe-walk.md Q2 and `recipeCells` in composeChrome.ts.
+ * docs/spec/kdef231-recipe-walk.md Q2 and `recipeCells` in composeChrome.ts.
  */
 export interface EdgeStep {
   at: number;

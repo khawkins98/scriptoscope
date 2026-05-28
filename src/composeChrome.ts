@@ -5,8 +5,8 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 // Window-chrome compositor — the Kaleidoscope 2.3.1 kDEF window-frame model.
 //
 // A faithful replay of the 2.3.1 kDEF (a compact 68k WDEF). Canonical model:
-// docs/tracking/compositor-spec.md; instruction-level decode + addresses:
-// docs/tracking/kdef231-recipe-walk.md. Per window edge:
+// docs/spec/compositor-spec.md; instruction-level decode + addresses:
+// docs/spec/kdef231-recipe-walk.md. Per window edge:
 //
 //   1. WALK the wnd# side-list into cells. Association is END-BASED (kdef
 //      §0x5356): segment i is `[border[i-1], border[i])` tagged `part[i]`. The

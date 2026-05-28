@@ -6,10 +6,13 @@
 // images. Key artifacts (see docs/ — don't re-derive):
 //   themes/<slug>/                       extracted bundles (theme.json + cicns/*.png)
 //   tools/theme-loader/                  .rsrc → theme.json decoder
-//   docs/tracking/compositor-spec.md     the window-chrome model
-//   docs/tracking/kdef231-recipe-walk.md the 2.3.1 kDEF decode (truth)
+//   docs/spec/compositor-spec.md         the window-chrome model
+//   docs/spec/kdef231-recipe-walk.md     the 2.3.1 kDEF decode (truth)
 
-export const VERSION = '2.0.0-dev';
+// Pre-1.0 — release version is tracked in package.json (currently 0.0.0). "v2/v3"
+// internal references denote architecture eras (post-Phase 2 / post-Phase 3), not
+// shipped versions. Keep this aligned with package.json.
+export const VERSION = '0.0.0';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 

@@ -9,8 +9,8 @@
 // Usage:  node scripts/lint-themes.mjs [slug]
 //
 // Each rule maps to a real bug class we hit reactively. The cited kDEF routines
-// are the source of the assumption (see docs/tracking/kdef-faithfulness-ledger.md
-// and compositor-spec.md).
+// are the source of the assumption (see docs/spec/kdef-faithfulness-ledger.md
+// and docs/spec/compositor-spec.md).
 //
 //   tail   — the cicn carries opaque art only up to col/row C, but the resource
 //            is wider/taller. The kDEF blits with the mask and walks the recipe

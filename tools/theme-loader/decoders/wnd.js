@@ -19,7 +19,7 @@
 //   "Right Side"  — same structure
 //
 // The recipe-walking rules + rendering model (how these side-lists are drawn)
-// are in docs/tracking/kdef231-recipe-walk.md + compositor-spec.md.
+// are in docs/spec/kdef231-recipe-walk.md + docs/spec/compositor-spec.md.
 
 import { Reader } from './shared.js';
 

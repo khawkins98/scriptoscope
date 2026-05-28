@@ -1017,7 +1017,7 @@
         `source:  cicn rect ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`,
         `output:  ${s.rects.map((r) => `${r.x},${r.y} ${r.w}×${r.h}`).join(' | ')}`,
         'legend:  edge=window side · part=wnd# part code (role) · render: fixed/stretch/tile/gradient/clean(bg under widget)/plate(title)/stamp(widget) · source=cicn pixels sampled · output=pixels drawn (one per tile).',
-        'docs:    docs/diagnostic-tooling.md (the inspector) · docs/kdef-layout-recipes.md §0–1 (the slice/grow model) · docs/aaron-ui-architecture-spec.md §3–4 (part codes).',
+        'docs:    docs/diagnostic-tooling.md (the inspector) · docs/spec/kdef-architecture.md (the slice/grow model) · docs/spec/kdef231-reference.md §4 (part codes).',
       ].join('\n');
       const doCopy = async (s) => {
         try { await navigator.clipboard.writeText(infoBlock(s)); readout.style.color = '#0a7d2c'; readout.textContent = '✓ copied diagnostic: ' + shortInfo(s); }

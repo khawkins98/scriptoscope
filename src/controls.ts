@@ -215,7 +215,7 @@ function thumbGrip(thumb: PixelBuffer, horiz: boolean): { start: number; len: nu
 }
 
 /**
- * Compose a scrollbar into a pixel buffer (kdef-layout-recipes §3):
+ * Compose a scrollbar into a pixel buffer (docs/spec/kdef231-reference.md §1.3 / §2.6):
  * stretch the track cicn along the axis, stamp the thumb at the
  * value-proportional position. 7 Le ships an empty (white) track + a
  * blue striped thumb; arrows are OS-baseline (not in the bundle).
@@ -454,7 +454,7 @@ export interface SliderOptions {
 }
 
 /**
- * Compose a slider (kdef-layout-recipes §8): stretch the groove track
+ * Compose a slider (docs/spec/kdef231-reference.md §2.4 / §2.6): stretch the groove track
  * along the axis, stamp the thumb at the value position. 7 Le's thumb
  * cicns are 15×64 sprite sheets — 4 stacked 15×16 states
  * (blank / normal / pressed / disabled).
@@ -597,7 +597,7 @@ export interface TabOptions {
  *
  * NB: this is NOT the popup-menu tab `-12319` (a different control that no
  * corpus scheme ships) — the segmented tab control is the `-998x` family
- * (SSF/LSF front/rear tabs + tab pane). See docs/tracking/kdef231-reference.md.
+ * (SSF/LSF front/rear tabs + tab pane). See docs/spec/kdef231-reference.md.
  */
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
   const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
@@ -663,7 +663,7 @@ export interface ProgressOptions {
 }
 
 /**
- * Compose a determinate progress bar (kdef-layout-recipes §4): stretch
+ * Compose a determinate progress bar (docs/spec/kdef231-reference.md §2.6): stretch
  * the unfilled track across the bar, overlay the fill cicn across the
  * 0..value portion (inset to the interior), cap with the frame ends.
  */
@@ -838,7 +838,8 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
 }
 
 /**
- * Compose a THEMED push button (kdef-layout-recipes §2, FUN_30a8): 9-slice the
+ * Compose a THEMED push button (docs/spec/kdef231-reference.md §1.2 / §2.2,
+ * FUN_30a8 — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): 9-slice the
  * push-button face (-10239 active / -10238 pressed / -10240 inactive) into the
  * button rect; for the default button wrap the shipped ring (-10231/-10232) around
  * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
