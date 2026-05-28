@@ -58,7 +58,7 @@
     "dev": "vite",
     "build": "vite build && tsc -p tsconfig.build.json && node scripts/copy-css-to-dist.mjs",
     "prepublishOnly": "npm run build",
-    "build:demo": "vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
+    "build:demo": "npm run build && vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:themes": "node scripts/extract-scheme.mjs --all && node scripts/extract-icons.mjs --all && node scripts/index-rasters.mjs && node scripts/gen-resource-roles.mjs && node scripts/gen-themes-manifest.mjs",

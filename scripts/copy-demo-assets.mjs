@@ -51,4 +51,52 @@ for (const slug of await readdir(themesDir)) {
   await copy(resolve(themesDir, slug), resolve(outThemes, slug));
 }
 
+// ── Library files for integrators ──────────────────────────────────────
+// The published GH Pages deploy doubles as a stable URL host for the
+// runtime itself — consumers who want to integrate Scriptoscope into
+// their own page can `<script type="module">import from "https://
+// khawkins98.github.io/aaron-ui/scriptoscope.js"</script>` without
+// installing from npm. Copy the built library + CSS + the in-browser
+// theme decoder (for BYO theme uploads) so all the integration paths
+// the README documents resolve to real files.
+//
+// Pre-req: `npm run build` must have produced dist/scriptoscope.{js,css}
+// before this script runs. The build:demo npm script handles that ordering.
+const libFiles = [
+  ['dist/scriptoscope.js', 'dist/demo/scriptoscope.js'],
+  ['dist/scriptoscope.js.map', 'dist/demo/scriptoscope.js.map'],
+  ['dist/scriptoscope.css', 'dist/demo/scriptoscope.css'],
+];
+for (const [src, dst] of libFiles) {
+  if (await exists(resolve(root, src))) {
+    await copy(resolve(root, src), resolve(root, dst));
+  } else {
+    console.warn(`  ⚠  ${src} not found — run \`npm run build\` first to populate dist/`);
+  }
+}
+
+// The in-browser theme decoder (StuffIt WASM + the pure-JS theme-loader).
+// Lets a consumer wire their own drop-zone using `attachThemeDropZone` +
+// `loadKaleidoscopeScheme`, served from the same CDN as the runtime.
+//
+// theme-loader: the whole directory minus tests (browser doesn't need them).
+// sit-wasm: index.mjs (the JS wrapper) + dist/munbox.{mjs,wasm} (the WASM).
+//          loadKaleidoscopeScheme imports '../sit-wasm/index.mjs', which then
+//          imports './dist/munbox.mjs' — so we need both paths populated.
+const decoderDirs = [
+  ['tools/theme-loader', 'dist/demo/theme-loader'],
+];
+for (const [src, dst] of decoderDirs) {
+  if (await exists(resolve(root, src))) {
+    await copy(resolve(root, src), resolve(root, dst));
+  }
+}
+// sit-wasm — copy the JS wrapper + the dist/ artefacts (the WASM blob).
+// We DON'T copy the munbox/ source directory (C code, MIT/PATCHES.md) — those
+// are repo-only, not needed at runtime.
+if (await exists(resolve(root, 'tools/sit-wasm/index.mjs'))) {
+  await copy(resolve(root, 'tools/sit-wasm/index.mjs'), resolve(root, 'dist/demo/sit-wasm/index.mjs'));
+  await copy(resolve(root, 'tools/sit-wasm/dist'), resolve(root, 'dist/demo/sit-wasm/dist'));
+}
+
 console.log('Demo assets copied.');

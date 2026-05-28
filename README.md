@@ -32,6 +32,170 @@ CDN / unpkg:
 
 Themes are loaded from a base URL you serve — they're not bundled in the npm tarball (so you can host the corpus once and use it from many projects, and so the npm package stays small). See `themes/` in this repo for the bundle format and the corpus we ship for the demos.
 
+## Integration guide — drop Scriptoscope on any page
+
+The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the demo, so you can integrate without installing from npm. Five-minute setup:
+
+```html
+<!doctype html>
+<html>
+<head>
+  <!-- 1. Optional outer-shell stylesheet (drop shadow, focus ring, desktop background).
+       Without this, chrome still renders faithfully — this just adds polish. -->
+  <link rel="stylesheet" href="https://khawkins98.github.io/aaron-ui/scriptoscope.css">
+</head>
+<body>
+
+  <!-- 2. Tag any element to become a Mac window. The children stay live HTML
+       (selectable, accessible, real form values) — only the chrome is canvas. -->
+  <div data-aaron-window
+       data-aaron-title="Welcome"
+       data-aaron-x="100" data-aaron-y="80"
+       data-aaron-width="380" data-aaron-height="240">
+    <p>Anything in here is the window's body. <a href="#">Real links</a> work.</p>
+    <button data-aaron-button data-aaron-default>OK</button>
+  </div>
+
+  <!-- 3. Bootstrap. mountDeclarative() scans the page once, then watches
+       MutationObserver-style for new data-aaron-* elements. -->
+  <script type="module">
+    import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+    await mountDeclarative({
+      themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+      pageThemeDefault: '1138',
+    });
+  </script>
+
+</body>
+</html>
+```
+
+That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
+
+### The full `data-aaron-*` vocabulary
+
+| Attribute | Where | What it does |
+|---|---|---|
+| `data-aaron-window` | any element | Promote into a Mac window. Children become the window body. |
+| `data-aaron-title="…"` | a window | Title-bar text. Optional. |
+| `data-aaron-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
+| `data-aaron-x="…"` / `data-aaron-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. Omit both to fall back to a default position. |
+| `data-aaron-width="…"` / `data-aaron-height="…"` | a window | Declared size. **Omit both** for content-fit (a `ResizeObserver` re-renders the chrome to fit content reflow). |
+| `data-aaron-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
+| `data-aaron-z="…"` | a window | Initial stacking order. Higher = on top. |
+| `data-aaron-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
+| `data-aaron-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
+| `data-aaron-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
+| `data-aaron-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |
+| `data-aaron-default` | a `<button data-aaron-button>` | Adds the "OK ring" (the period-correct default-button outline). |
+| `data-aaron-disabled` | a `<button data-aaron-button>` | Disabled state — flatten + grey. |
+| `data-aaron-control` | `<input type=checkbox\|radio\|range>` or `<select>` | **Auto-applied** to every matching input — themed chrome over the native control. Opt out per-input with `data-aaron-control="off"`. |
+| `data-aaron-field` | `<input type=text\|email\|password\|…>` or `<textarea>` | Mac OS 8 sunken-bevel chrome over a native text input. Opt-in (consumer CSS can conflict). |
+| `data-aaron-tabs` | a `<div>` containing `data-aaron-tab` buttons + `data-aaron-panel` siblings | Tab strip. Click cycles panels; ARIA + roving tabindex + keyboard nav wired. |
+| `data-aaron-tab="<panel-id>"` | a `<button>` inside `data-aaron-tabs` | One tab. Value references the panel id. |
+| `data-aaron-panel="<id>"` | a `<div>` inside `data-aaron-tabs` | A panel. Hidden unless its id matches the selected tab. |
+| `data-aaron-selected` | a `<button data-aaron-tab>` | Initial selected tab. Default: first tab. |
+| `data-aaron-window-id="…"` | a window | Stable identity for layout persistence (see `persistKey` below). Without it, DOM ordinal is used. |
+
+### `mountDeclarative()` options
+
+```ts
+await mountDeclarative({
+  themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes', // where bundles live
+  pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-aaron-theme
+  persistKey: 'my-app-layout',      // optional: save window positions to localStorage.aaron:layout:<key>
+  baseSlug: 'apple-platinum-replica', // optional: universal-base scheme to inherit from
+  root: document,                   // optional: scan a subtree instead of the whole page
+});
+```
+
+The call returns `{ disconnect, retheme, registerTheme }` — `retheme(slug)` to switch programmatically, `registerTheme(ref, loadedTheme)` to register a runtime-decoded theme (used by drop-zones).
+
+### CSS classes (fallback if `data-aaron-*` isn't an option)
+
+For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.aaron-window`, `.aaron-button` — the scanner picks both. The data-attribute path is preferred.
+
+### Theme switching at runtime
+
+```html
+<select data-aaron-theme-switcher>
+  <option value="1138">1138</option>
+  <option value="beos-r503">BeOS R5</option>
+  <option value="crayon-os">Crayon OS</option>
+  <option value="https://example.com/themes/your-own/">A theme from somewhere else</option>
+</select>
+```
+
+Selecting an option fires the existing `retheme()` flow; every promoted window flips chrome live.
+
+### Bring your own theme — drop a `.sit` / `.rsrc` and see it render
+
+For a consumer-side "drop your Kaleidoscope scheme here" affordance, two extra modules ride on the same CDN URL:
+
+```html
+<button id="byo">📂 Drop or pick a theme</button>
+<span id="byo-status" aria-live="polite"></span>
+
+<script type="module">
+  import { mountDeclarative, attachThemeDropZone } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+  import { loadKaleidoscopeScheme } from 'https://khawkins98.github.io/aaron-ui/theme-loader/loadKaleidoscopeScheme.js';
+
+  const handle = await mountDeclarative({
+    themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+    pageThemeDefault: '1138',
+  });
+
+  attachThemeDropZone(document.getElementById('byo'), {
+    onFile: async (file) => {
+      const status = document.getElementById('byo-status');
+      status.textContent = `Decoding ${file.name}…`;
+      try {
+        // Decode the .sit / .rsrc / .hqx / .bin / .as / .adf / .cpt entirely in the browser.
+        // StuffIt unpack uses a 70 KB WASM blob loaded lazily from the same CDN.
+        const theme = await loadKaleidoscopeScheme(file, { source: file.name });
+        const ref = `dropped:${file.name}`;
+        handle.registerTheme(ref, theme);
+        await handle.retheme(ref); // applies to every promoted window on the page
+        status.textContent = `✓ ${file.name} loaded`;
+      } catch (err) {
+        status.textContent = `Couldn't read ${file.name}: ${err?.message ?? err}`;
+      }
+    },
+  });
+</script>
+```
+
+That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [Mac Themes Garden](https://macthemes.garden/) and [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/) archives ship (`.sit`, `.hqx`, `.bin`, AppleSingle/Double, raw `.rsrc`); the decode runs entirely client-side via the bundled StuffIt WASM. The dropped theme persists for the session; reload restores the default.
+
+For a richer "add the dropped theme to the switcher + remember across reload" wiring, see the demo source at [`demo/_theme-drop.mjs`](./demo/_theme-drop.mjs).
+
+### CDN paths reference
+
+| URL | What |
+|---|---|
+| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~134 KB / ~40 KB gzip) |
+| `https://khawkins98.github.io/aaron-ui/scriptoscope.css` | Optional outer-shell stylesheet (~6 KB) |
+| `https://khawkins98.github.io/aaron-ui/themes/<slug>/` | Bundled themes (18 slugs at time of writing) |
+| `https://khawkins98.github.io/aaron-ui/theme-loader/loadKaleidoscopeScheme.js` | In-browser `.sit`/`.rsrc` decoder |
+| `https://khawkins98.github.io/aaron-ui/sit-wasm/` | StuffIt WASM decoder (loaded lazily by `loadKaleidoscopeScheme`) |
+
+For a versioned URL (locks to a specific release), use **unpkg** once the package is published: `https://unpkg.com/scriptoscope@0.0.1/dist/scriptoscope.js`. Until then, GH Pages tracks `main`.
+
+### npm install (for build pipelines)
+
+If you want to bundle Scriptoscope into your own build artifact instead of loading from CDN:
+
+```sh
+npm install scriptoscope
+```
+
+```js
+import { mountDeclarative } from 'scriptoscope';
+import 'scriptoscope/scriptoscope.css'; // optional
+```
+
+Subpath available: `scriptoscope/declarative` exposes the focused declarative entry (`createThemeResolver`, `ThemeResolver`, `AaronWindowDeps`, `SizeMode`, `ThemeBootstrapOpts` — not re-exported from the root).
+
 ## Trying it locally
 
 Two demo pages sit on the same runtime, each showing a different integration path. Run them together:
