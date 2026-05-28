@@ -622,7 +622,17 @@ export class WindowManager {
    * the host isn't in the document yet so nothing has layout.
    */
   private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
-    if (entry.host.firstChild !== win) return;           // a newer render already replaced this subtree
+    // Staleness check: is `win` still the current chrome? Pre-Shadow this was
+    // `host.firstChild !== win`. Now the host's shadowRoot is where `win` lives
+    // (light-DOM firstChild is the slotted .aw-slot, not win). The check below
+    // resolves to whichever tree the chrome lives in. NB: we deliberately do NOT
+    // use `win.isConnected` — for declarative windows, AaronWindow.promote
+    // inserts the host into the document AFTER manager.add returns, so the
+    // initial wireScrollbars fires while host is still detached. The ch===0
+    // retry below catches that pre-layout case; staleness is a different
+    // concern (a NEWER render replaced win) and is what this check covers.
+    const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
+    if (currentChrome !== win) return;
     // Tear down the previous render's scrollbar listeners (esp. the wheel listener on the persistent
     // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes. (Leaving the field
     // pointing at the now-aborted controller during early returns is harmless — re-abort is a no-op.)
@@ -683,7 +693,8 @@ export class WindowManager {
     const repaint = async (): Promise<void> => {
       const opts = { orientation: 'vertical' as const, length: Math.round(barLenCss / scale), value, thumbExtent };
       const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar(opts);
-      if (buf && entry.host.firstChild === win) bar.replaceChildren(bufferToCanvas(buf, scale));
+      // Same staleness logic as at the top — bail if a newer render already replaced win.
+      if (buf && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win) bar.replaceChildren(bufferToCanvas(buf, scale));
       bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
     };
     const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
