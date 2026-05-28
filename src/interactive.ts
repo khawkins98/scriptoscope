@@ -540,6 +540,94 @@ export class WindowManager {
       if (hole) hole.style.display = 'none';
     }
     entry.host.replaceChildren(win);
+    // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
+    // is in the DOM — overflow can only be measured once the content is laid out.
+    void this.wireScrollbars(entry, win, 0);
+  }
+
+  /**
+   * Replace the native browser scrollbar with the scheme's own scrollbar art when declared-size
+   * content overflows (content-fit windows grow to fit, so they never reach here). We own the scroll:
+   * `.aw-content` goes `overflow:hidden`, a gutter is reserved on the right, and a themed vertical
+   * scrollbar is overlaid in it — dragging the thumb, the wheel, and the arrow keys all set
+   * `scrollTop` and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
+   * guarded against stale wins. `attempt` retries across a couple of frames for the first render, when
+   * the host isn't in the document yet so nothing has layout.
+   */
+  private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
+    if (entry.host.firstChild !== win) return;           // a newer render already replaced this subtree
+    if (entry.collapsed) return;                          // shaded: no body to scroll
+    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const content = win.querySelector('.aw-content') as HTMLElement | null;
+    if (!composed || !content) return;
+    // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
+    // .aw-content) when present, else .aw-content itself for plain WindowManager windows.
+    const scrollEl = entry.contentEl ?? content;
+    scrollEl.style.paddingRight = '';                     // measure at natural width (drop any prior gutter)
+    const ch = scrollEl.clientHeight;
+    if (ch === 0) {                                       // not laid out yet (first render, pre-insert)
+      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1); });
+      return;
+    }
+    if (scrollEl.scrollHeight <= ch + 1) {                // no vertical overflow → leave native behavior alone
+      scrollEl.style.overflowY = '';                      // restore renderWindow/slot's own overflow:auto
+      return;
+    }
+    scrollEl.style.overflowY = 'hidden';                  // overflow confirmed: we drive scrollTop ourselves
+    const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    const gutter = 15 * scale;
+    scrollEl.style.paddingRight = `${gutter}px`;          // reserve room so the bar doesn't cover content
+    const sh = scrollEl.scrollHeight;                     // re-measure after the reflow
+    const maxScroll = sh - ch;
+    const thumbExtent = Math.max(0.08, ch / sh);
+    // Leave the bottom-right grow box clear: stop the track above it.
+    const barLenCss = Math.max(32, ch - (composed.growBox ? (composed.growBox.h + 1) * scale : 0));
+    let value = maxScroll > 0 ? clamp01(scrollEl.scrollTop / maxScroll) : 0;
+
+    const bar = document.createElement('div');
+    bar.className = 'aw-window-scrollbar';
+    Object.assign(bar.style, {
+      position: 'absolute', zIndex: '3', lineHeight: '0', touchAction: 'none', cursor: 'default',
+      right: `${composed.frame.right * scale}px`, top: `${composed.frame.top * scale}px`,
+    } satisfies Partial<CSSStyleDeclaration>);
+    bar.setAttribute('role', 'scrollbar');
+    bar.setAttribute('aria-orientation', 'vertical');
+    bar.tabIndex = 0;
+
+    let raf = 0;
+    const repaint = async (): Promise<void> => {
+      const opts = { orientation: 'vertical' as const, length: Math.round(barLenCss / scale), value, thumbExtent };
+      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar(opts);
+      if (buf && entry.host.firstChild === win) bar.replaceChildren(bufferToCanvas(buf, scale));
+      bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+    };
+    const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+    const setValue = (v: number): void => { value = clamp01(v); scrollEl.scrollTop = value * maxScroll; scheduleRepaint(); };
+
+    await repaint();
+    win.appendChild(bar);
+
+    // Drag the thumb (pointer = touch + mouse).
+    const valueAtPointer = (e: PointerEvent): number => { const r = bar.getBoundingClientRect(); return clamp01((e.clientY - r.top) / r.height); };
+    bar.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      setValue(valueAtPointer(e));
+      const mv = (ev: PointerEvent): void => setValue(valueAtPointer(ev));
+      const up = (): void => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    });
+    // Wheel/trackpad over the content drives the same value (two-way).
+    scrollEl.addEventListener('wheel', (e) => { e.preventDefault(); setValue((scrollEl.scrollTop + e.deltaY) / maxScroll); }, { passive: false });
+    // Arrow keys / page keys on the bar.
+    bar.addEventListener('keydown', (e) => {
+      const line = maxScroll > 0 ? 24 / maxScroll : 0;
+      const page = ch / maxScroll;
+      let next = value;
+      if (e.key === 'ArrowDown') next = value + line; else if (e.key === 'ArrowUp') next = value - line;
+      else if (e.key === 'PageDown') next = value + page; else if (e.key === 'PageUp') next = value - page;
+      else if (e.key === 'Home') next = 0; else if (e.key === 'End') next = 1; else return;
+      e.preventDefault(); setValue(next);
+    });
   }
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
