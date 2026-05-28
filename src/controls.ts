@@ -849,17 +849,25 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239));
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(theme, face, faceId, opts);
+  // Probe the active ring REGARDLESS of `opts.default` so plain buttons reserve the same outer
+  // footprint as defaults would. Classic Mac convention: all buttons in a dialog row share an outer
+  // rect — the default's ring is drawn at those outer bounds; a plain button leaves the same area as
+  // transparent margin around its face. Without this, default + plain buttons in the same row
+  // misalign vertically (the default's canvas grows by 2*outset, the plain's doesn't).
+  const ringActive = await loadById(theme, 10231);
+  if (!ringActive) return faceBuf; // theme ships no ring at all — preserve face-only output
   const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
-  if (!ring) return faceBuf;
   // The ring cicn is a 9-slice default-button OUTLINE template (a rounded gray/black
   // ring, or apple-platinum-2's indigo frame — both shipped art). The face fills its
   // centre; the ring wraps it by an OUTSET ≈ ¼ the template (NOT ring.width -
   // face.width, which is 0 for the shared 16px template → a squashed 2px band).
-  const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
-  const outset = Math.max(3, Math.round(ring.width / 4));
+  const outset = Math.max(3, Math.round(ringActive.width / 4));
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
-  const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
-  out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
+  if (ring) {
+    const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
+    const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
+    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
+  }
   out.drawOver(faceBuf, outset, outset);
   return out;
 }
