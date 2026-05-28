@@ -11,7 +11,10 @@ is untouched — `git checkout main` walks away from the entire experiment if yo
 
 **Try it:**
 ```
-npm run dev    # then open  http://localhost:5173/declarative.html
+npm run dev    # then open:
+#   http://localhost:5173/declarative.html        — mechanics litmus (4 window cases)
+#   http://localhost:5173/declarative-site.html   — the data-attribute hooks applied to a REALISTIC
+#                                                    vanilla page (article + native form + links + gallery)
 ```
 You should see four Mac windows, each just a `<div data-aaron-window>` with live HTML inside:
 1. **"Read Me"** — declared size; scrollable content; drag the title to move, the gripper to resize, click to focus. Selectable text. Should start ACTIVE.
