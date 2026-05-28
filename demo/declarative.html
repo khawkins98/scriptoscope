@@ -118,6 +118,53 @@
       </div>
     </div>
 
+    <!-- 5) Preferences — a richer dialog with a mix of NATIVE controls (checkbox/radio/select/range/text).
+         Themed checkbox/radio compositors exist in the runtime but the declarative layer only promotes
+         `data-aaron-button` today; a `data-aaron-control` family is the natural next step. For now,
+         native controls live inside the themed window — accessible, focusable, real form values. -->
+    <div data-aaron-window data-aaron-title="Preferences" data-aaron-x="620" data-aaron-y="28"
+         data-aaron-width="260" data-aaron-height="280">
+      <form class="doc pad" onsubmit="event.preventDefault(); alert('Preferences saved.');"
+            style="font:13px system-ui">
+        <fieldset style="border:1px solid #999; padding:6px 8px 4px; margin:0 0 8px">
+          <legend style="padding:0 4px">General</legend>
+          <label style="display:block; margin-bottom:2px"><input type="checkbox" checked /> Show ruler</label>
+          <label style="display:block; margin-bottom:2px"><input type="checkbox" /> Show invisibles</label>
+          <label style="display:block"><input type="checkbox" checked /> Auto-save every 5 min</label>
+        </fieldset>
+        <fieldset style="border:1px solid #999; padding:6px 8px 4px; margin:0 0 8px">
+          <legend style="padding:0 4px">Font size</legend>
+          <label style="margin-right:8px"><input type="radio" name="fs" /> Small</label>
+          <label style="margin-right:8px"><input type="radio" name="fs" checked /> Medium</label>
+          <label><input type="radio" name="fs" /> Large</label>
+        </fieldset>
+        <p style="margin:0 0 6px">Default scheme:
+          <select style="margin-left:2px">
+            <option>Apple Platinum</option><option>1138</option><option>BeOS R5</option>
+          </select>
+        </p>
+        <p style="margin:0 0 8px">Volume <input type="range" min="0" max="100" value="60" style="vertical-align:middle; width:120px" /></p>
+        <p style="text-align:right; margin:0">
+          <button type="button" data-aaron-button onclick="this.closest('form').reset()">Cancel</button>
+          <button type="submit" data-aaron-button data-aaron-default>Save</button>
+        </p>
+      </form>
+    </div>
+
+    <!-- 6) A mini floating PALETTE — `titled-utility-window` gives the short title bar + thin frame
+         the classic Mac Tools/Inspector palettes used. Sits next to the main window like a real app. -->
+    <div data-aaron-window data-aaron-window-type="titled-utility-window" data-aaron-title="Tools"
+         data-aaron-x="620" data-aaron-y="330" data-aaron-width="150" data-aaron-height="80">
+      <div class="doc pad" style="font:12px system-ui">
+        <p style="text-align:center; margin:0 0 4px"><strong>Edit</strong></p>
+        <p style="display:flex; gap:4px; justify-content:center; margin:0">
+          <button data-aaron-button onclick="document.execCommand?.('cut')">Cut</button>
+          <button data-aaron-button onclick="document.execCommand?.('copy')">Copy</button>
+          <button data-aaron-button onclick="document.execCommand?.('paste')">Paste</button>
+        </p>
+      </div>
+    </div>
+
   </div>
 
   <script type="module">
