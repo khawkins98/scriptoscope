@@ -1,35 +1,48 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
-- **Status:** Partially Accepted — Decision 3 (front door) and parts of Decision 2 (encapsulation, less Shadow DOM) shipped 2026-05-28; Decision 1 (CSS-first hybrid) **spike PASSED via Path 2** ([`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md)) — both compositor paths converge on `border-image` with a per-(scheme, role) generated source image (synthesized from `headerColors` for corner-sprite; cropped from the chrome cicn for recipe); Decision 4 (ingestion) shipped 2026-05-27. PC unblocked.
+- **Status:** Partially Accepted — Decision 3 (front door) shipped 2026-05-28; Decision 4 (ingestion) shipped 2026-05-27; Decision 2 (Shadow DOM) still open; **Decision 1 REVISED 2026-05-28** — the CSS `border-image` emitter is retired after three rounds of spike couldn't reach fidelity for the exotic schemes ([`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md)). The architecture is now explicitly "DOM structure + canvas decoration" — what the existing implementation already does. See §Spike result and the revised §Decision 1 below.
 - **Date:** 2026-05-25 (reviewed 2026-05-26, 2026-05-27, 2026-05-28 — see §Update + §Spike result)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
 
-## Spike result — 2026-05-28 (Decision 1 PASSED via Path 2)
+## Spike result — 2026-05-28 (Decision 1 RETIRED — adopt explicit hybrid)
 
-The §Gating spike ran three iterations and resolved. The headline:
+The §Gating spike ran three iterations and concluded **differently** than the
+original Decision 1 anticipated. Each round produced a verdict the next round
+disproved:
 
-> **Both compositor paths converge on the same mechanism — `border-image` with
-> a per-(scheme, role) source image generated at theme-load time.** What differs
-> is the GENERATOR: synthesized from `headerColors` for the corner-sprite path
-> (no source cicn exists — frame is procedural in the WDEF-125 model); cropped
-> from the chrome cicn for the recipe path. Title bar stays canvas in both, per
-> Decision 1.
+1. **Round 1** — "trivially expressible in plain CSS" (`border` + `box-shadow`
+   + positioned widgets). **Caught** by owner side-by-side: matched topology,
+   missed the 3px beveled panel + widget bevels. Withdrawn.
+2. **Round 2** — "Path 2 passed: synthesized PNG sources for both compositor
+   paths, pixel-faithful." Verified only on apple-platinum-2; the exotic
+   schemes weren't tested. **Caught** by owner request to test 1138, evolution,
+   BeOS. Withdrawn.
+3. **Round 3** — fixed two bugs (canvas-title-bar overlay; DOM-measured frame
+   thickness). 1138 + evolution body frames passed; **BeOS exposed asymmetric
+   title bar that the clip-path simplification can't preserve, and
+   apple-platinum-2's synthesizer doesn't match its measured frame thickness**.
+   The pattern of "another iteration" producing another gap was the signal to
+   stop iterating.
 
-This is **NOT** the "trivially expressible in plain CSS" claim an earlier
-iteration of this section made. That claim matched topology, not fidelity —
-the canvas reference renders a 3px beveled panel (`lightBevel`/`darkBevel`) and
-beveled widgets that pure CSS box-shadows approximate but don't pixel-match.
-Path 2 (generated source images) gets fidelity because the source IS the pixels.
-The earlier "PASSED" verdict was withdrawn after side-by-side review caught the
-gap; the iteration that landed here matches pixel-by-pixel.
+The headline architectural insight:
 
-The classifier rules + corpus survey are in the writeup. By inspection, no
-window-type in the current corpus needs the canvas fallback path, but the
-classifier still ships (as `scripts/lint-css-emit.mjs`) to flag any future
-scheme that does.
+> **The existing implementation IS the hybrid the ADR was searching for.**
+> DOM owns the window container (position, size, drag, resize, z-order, focus),
+> the body content (real DOM, host-CSS-reachable), and the widget hit targets
+> (focusable buttons over the canvas). Canvas owns the chrome pixels (always
+> faithful, sourced from the runtime compositor). The spike kept trying to
+> push chrome into CSS too — at cost: per-scheme tuning, fidelity loss, two
+> rendering paths, classifier complexity. The wins (SSR, native resize, scale
+> efficiency) are real but small for the actual consumer profile.
 
-Full writeup:
+**Decision 1 is therefore RETIRED in its CSS-first-hybrid form** and replaced
+with an explicit framing of the architecture that already ships — see the
+revised §Decision 1 below. The CSS emitter (`src/cssEmitter.ts`), the
+representability classifier (`scripts/lint-css-emit.mjs`), and the PC phase as
+originally defined are dropped from the phase map. The spike file is deleted.
+
+Full retrospective writeup:
 [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md).
 TL;DR:
 
@@ -108,13 +121,28 @@ The load-bearing realization: the chrome is **already modeled internally as a 9-
 
 ## Decision
 
-### 1. Rendering: CSS-first hybrid, gated by a spike
+### 1. Rendering: DOM structure + canvas decoration (revised 2026-05-28)
 
-Emit the **body frame** (4 corners + left/right/bottom edges) as CSS `border-image` generated from the `composeChrome` slice recipe — it scales with the box natively, is accessible, SSR-able, and cheap at scale. Keep the **canvas compositor** for the **title bar** (close/zoom/shade widgets, the measured-width title plate, `collapse`-to-0 cells, asymmetric title pinning — none expressible as a border) and as a **whole-frame fallback** for edges the CSS path can't represent.
+**Chrome stays canvas — that's where pixel-faithful Kaleidoscope rendering lives. Everything around the chrome is DOM.** Each window is:
 
-`border-image` has a hard ceiling: **one source image, four preserved corners, only two repeat values** (one horizontal pair, one vertical pair). Our recipe is richer (per-edge `tile` vs `stretch` vs `scale`, asymmetric titles). Therefore this decision is **gated by a throwaway spike** (see §Gating spike). If the spike shows a class of edges/schemes can't be faithfully expressed, those fall back to canvas, selected **deterministically by a representability classifier** — a static check (in the spirit of `lint:themes`: detect divergence by rule, not by eyeballing renders) that decides per-edge which emitter to use.
+```
+<div class="aw-window">                    ← DOM container — CSS-positioned (drag, resize, z-order, focus)
+  <canvas class="aw-chrome" />             ← Canvas overlay — chrome pixels, transparent body hole
+  <div class="aw-content"> <slot> </div>   ← Real DOM body — selectable, scrollable, host-CSS-reachable
+  <button class="aw-titlewidget close"/>   ← Focusable DOM twin for close (a11y)
+  <button class="aw-titlewidget zoom"/>    ← …for zoom
+  <button class="aw-titlewidget collapse"/>← …for collapse
+  <div class="aw-growbox" />               ← DOM grow box for resize handle
+</div>
+```
 
-Both emitters consume the **same** `composeChrome` recipe, so fidelity stays single-sourced; the only per-scheme/per-edge question is which emitter can render it faithfully.
+Per-window canvas chrome is acceptable cost for pixel fidelity. Where DOM/CSS naturally helps — outer drop shadow, focus ring, theme cascade, content background, host-page CSS reach — DOM/CSS does it. Where chrome pixels need to be faithful to an arbitrary decoded Kaleidoscope scheme, canvas does it. **No CSS emitter, no representability classifier, no per-scheme tuning of CSS source images.**
+
+The earlier CSS-first hybrid spec (emit the body frame as `border-image` from the slice recipe) was retired 2026-05-28 after three rounds of spike couldn't reach fidelity for the exotic schemes (evolution, BeOS) without per-scheme tuning that the architecture wasn't designed for. The wins it sought (SSR-able first paint, native CSS scaling on resize, cheap at scale) are real but small for the actual consumer profile (SPA-driven pages with a handful of windows, not server-rendered sites with hundreds). The faithful-to-the-decode brand commitment beats those wins.
+
+This decision **matches what already ships** in `src/renderWindow.ts` + `src/interactive.ts` + `src/declarative/`. PC's role shrinks from "build the CSS emitter" to "finish the hybrid": DOM-twin coverage audit + Shadow DOM wrapping (Decision 2) + canvas-repaint efficiency pass + a small consumer-facing `aaron-ui.css` for the outer-shell affordances.
+
+The slice recipe in `composeChrome.ts` keeps its current role — it's how the canvas chrome is composed; the same recipe is no longer a candidate for CSS emission.
 
 ### 2. Encapsulation: Shadow DOM around the chrome only
 
@@ -132,39 +160,55 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 - **Native host form controls (`<input>`, `<select>`, scrollbars) are NOT themed in v1.** Faithful cross-browser control reskinning via CSS is a tar pit. v1 themes window **chrome** + **opt-in** controls the consumer explicitly wraps.
 - **Ingestion v1 = curated bundles + a bare resource fork** dropped in (the decode core is already portable; needs a drop zone + an `assetUrl` blob-URL passthrough in `src/loadTheme.ts`). **Archive unpacking** (`.sit`/`.hqx`/MacBinary off Macintosh Garden) is a **separable later track** — StuffIt in particular has no clean JS decompressor; don't promise "drop any download" in v1. **→ SUPERSEDED (2026-05-27, see the update note above): archive unpacking SHIPPED — the drop zone, the `assetUrl` passthrough, and `.sit`/`.hqx`/MacBinary decoding (StuffIt via the `tools/sit-wasm` WASM build) are all live. "Drop any download" is now largely true (caveat: `.sitx` unsupported).**
 
-## Gating spike — ✅ PASSED 2026-05-28 via Path 2 (synthesized source images)
+## Gating spike — 🛑 CONCLUDED DIFFERENTLY 2026-05-28 (Decision 1 retired, not "passed/failed")
 
-Build a **throwaway** `border-image` emitter for ONE window frame straight from the slice recipe and compare against the canvas render. **Cover one scheme per compositor** (see §Update): a recipe scheme (`1138` / `beos-r503`, via `composeWindowChrome`) and a corner-sprite scheme (`apple-platinum-2` / `platinum-8`, via `composeCornerSprite` — likely the easier win). Acceptance: the body frame (corners + L/R/bottom) is faithful at integer scale across ≥3 corpus schemes spanning both paths; document which edges/schemes need the canvas fallback. Output: confirm/deny Decision 1, and the rules for the representability classifier. **No production code until the spike resolves.**
+Originally framed as a binary pass/fail on the CSS `border-image` emitter. After three iterations (Round 1: pure CSS; Round 2: synthesized source images; Round 3: DOM-measured frame + canvas-title overlay), the spike **concluded that the question itself was wrong**. The actual architecture — DOM structure + canvas decoration — was already shipping and was the right answer all along; the spike was repeatedly trying to push chrome rendering into CSS at cost the project's faithful-to-the-decode posture wouldn't accept.
 
-**Resolved 2026-05-28 (Path 2):** spike PASSED with the synthesized-source-image approach. Both compositor paths use `border-image` with a generated per-(scheme, role) source PNG — synthesized from `headerColors` for the corner-sprite path, cropped from the chrome cicn for the recipe path. Pixel-faithful at integer scale (1× and 2× verified). The earlier "PASSED via Path 1" claim was withdrawn after review caught the topology-vs-fidelity gap; the lesson is captured in `LEARNINGS.md` as the 2026-05-28 entry. See §Spike result above and the full writeup at [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md). Spike file at `demo/_spike-css-emitter.html` (delete with PC PR).
+Retrospective + per-round findings: [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md). Two associated LEARNINGS entries (the 2026-05-28 "topology vs fidelity" entry from Round 1 + the "three rounds of premature verdicts" entry from the conclusion).
 
-## Consequences
+Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 
-**Positive:** accessibility (real DOM frame), SSR/first-paint without JS (no FOUC), native scaling on resize/zoom (no per-window `ResizeObserver` re-blit), cheap at scale (many decorated regions), single-sourced fidelity (one recipe, two emitters), and a clean "skin an existing site" ergonomic via data-attributes.
+## Consequences (revised 2026-05-28)
 
-**Negative / costs:** two emitters to maintain (canvas + CSS) plus a representability classifier; the title bar remains raster (still needs the canvas path + DOM a11y twins for its widgets); Shadow DOM constrains how host content composites over the hole; high-DPI/fractional-zoom shimmer is inherited equally by both paths (intentional retro trade-off, no regression).
+**Positive:**
+- **Pixel-faithful chrome** for any Kaleidoscope scheme, including the visually distinctive ones (evolution, BeOS) — the canvas compositor already proved this.
+- **Real DOM body** that's selectable, scrollable, accessible, and reachable by host-page CSS.
+- **DOM twins for widgets + grow box** give a11y a clean target (already partially built; finish in PC).
+- **Drop-in via `data-aaron-*`** — the data-attribute scanner + WindowManager already shipped (Decision 3).
+- **Simple emitter mental model** — one rendering path, not two. No CSS emitter, no representability classifier to maintain.
 
-**Follow-ons unlocked:** a CSS emitter + a shipped `aaron-ui.css`; a real WM (drag/resize/z/persistence); in-browser ingestion; theme-schema versioning.
+**Negative / costs:**
+- **Per-window canvas allocation** — small per-window cost (~1 chrome canvas per window). Acceptable for typical consumer profiles (handful of windows per page).
+- **No SSR-able first paint without JS** — chrome only renders after JS executes. Consumers who need pre-paint can ship a static thumbnail; the canvas appears on hydrate. Real but bounded.
+- **Resize re-paint** — ResizeObserver triggers a chrome re-render on window resize (~1ms per window, in a typical case). Mitigatable with debouncing if a real perf problem appears.
+- **Title bar widgets' canvas pixels need DOM-twin focus** — already done partially in `src/interactive.ts`; finish the audit in PC.
+
+**Follow-ons unlocked:**
+- **Shadow DOM around the chrome** (Decision 2) — still highly valuable for hostile-host-CSS environments.
+- **A shipped `aaron-ui.css`** — a small consumer-facing stylesheet for the outer-shell affordances (drop shadow, focus ring, default desktop background).
+- **a11y audit** — close the DOM-twin gaps; verify keyboard nav + screen reader coverage.
+- **Repaint efficiency audit** — ensure chrome only re-renders on size/theme/state change.
 
 ## Alternatives considered
 
-- **Canvas-only** (extend the current renderer with `ResizeObserver` re-compose + focusable DOM a11y twins). Rejected as the *default*: worst accessibility, no SSR, per-window observer fan-out at scale. Retained as the title-bar renderer + fallback.
-- **CSS-custom-property reskin** (the old PRD model: `--aaron-titlebar-bg`, `chrome.css`/`controls.css`). Rejected: superseded by the faithful canvas compositor; hand-tuned CSS variables can't be pixel-faithful to an arbitrary decoded scheme.
+- **CSS-first hybrid** (the original Decision 1 — emit body frame as `border-image`, keep title bar canvas). **Tried 2026-05-28, retired.** Three iterations couldn't reach fidelity for the exotic schemes without per-scheme tuning the architecture wasn't designed for. The wins (SSR, native scaling) are real but small for the actual consumer profile; the costs (CSS emitter complexity, classifier, fidelity loss on exotic schemes) are too large. See §Spike result.
+- **CSS-custom-property reskin** (the old PRD model: `--aaron-titlebar-bg`, `chrome.css`/`controls.css`). Rejected: hand-tuned CSS variables can't be pixel-faithful to an arbitrary decoded scheme.
 - **Full web-component authoring kit** (React95-style `<Window>`/`<Button>` tree). Rejected: that's "author the markup," not "skin an existing site"; framework-leaning; wrong model for the North Star.
 
-## Phase map (issues cut AFTER the spike resolves)
+## Phase map (revised 2026-05-28)
 
-- **P0 — Reconcile + decide:** PRD refresh (done alongside this ADR); run the gating spike; finalize Decision 1.
-- **PA — One front door:** `AaronWindow` + `data-aaron-window` scanner over the *existing* renderer, validated on a sample third-party page (validates the decoration model, no new look-work).
-- **PB — WM behaviors:** drag / resize / z-order / persistence.
-- **PC — CSS/`border-image` emitter** (if spike passes) + shipped `aaron-ui.css` + representability classifier.
-- **PD — In-browser ingestion:** drop zone + `assetUrl` passthrough; archive unpacking as a separable sub-track.
-- **PE — Opt-in control decoration** (explicitly *not* native form-control reskin).
-- **Cross-cutting:** a11y audit (axe + keyboard), Shadow-DOM encapsulation, npm/packaging, theme-schema versioning, consumption test harness.
+- **P0 — Reconcile + decide:** PRD refresh (done alongside this ADR); spike concluded; Decision 1 revised. ✅
+- **PA — One front door:** `AaronWindow` + `data-aaron-window` scanner over the existing renderer. **SHIPPED 2026-05-28.**
+- **PB — WM behaviors:** drag / resize / z-order / shade / zoom / themed scrollbars / runtime theme switch. **SHIPPED 2026-05-28.** Persistence remains open.
+- **PC — Finish the hybrid (revised):** ~~CSS emitter / classifier~~ retired. New scope: (1) DOM-twin coverage audit (widgets, scrollbars, slider); (2) Shadow DOM wrapping (Decision 2); (3) canvas repaint efficiency audit; (4) shipped `aaron-ui.css` for outer-shell affordances; (5) a11y audit (axe + keyboard + screen reader).
+- **PD — In-browser ingestion:** drop zone + `assetUrl` passthrough + archive unpacking (`.sit`/`.hqx`/MacBinary). **SHIPPED 2026-05-27.** `.sitx` unsupported (unrelated).
+- **PE — Opt-in control decoration** (explicitly *not* native form-control reskin). **Partially shipped** via `data-aaron-control` 2026-05-28; broader widget surfaces (menu, popup, list-header) remain open.
+- **Cross-cutting:** npm/packaging, theme-schema versioning, consumption test harness, persistence story.
 
 ## References
 
-- Engine: `src/composeChrome.ts` (the slice recipe — the thing to emit as `border-image`), `src/renderWindow.ts` (canvas + inset model + a11y wiring to preserve), `src/interactive.ts` (where focusable DOM twins live).
+- Engine: `src/composeChrome.ts` (the slice recipe that drives the canvas compositor), `src/renderWindow.ts` (canvas + inset model + a11y wiring), `src/interactive.ts` (WindowManager + focusable DOM twins for widgets), `src/declarative/` (the `data-aaron-*` scanner + AaronWindow).
 - Ingestion: `tools/theme-loader/loadKaleidoscopeScheme.js`, `tools/theme-loader/resource-fork.js`, `src/cicnImage.ts`, `src/loadTheme.ts` (the `assetUrl` blob passthrough).
 - Spec: `docs/spec/compositor-spec.md`; bundle: `docs/theme-bundle-layout.md`.
-- External precedent: jQuery UI ThemeRoller (downloadable theme bundle + class/state framework — the closest analog to "decode a theme → apply live via classes"); 98.css/XP.css (CSS-class fidelity floor); React95 (theme-as-data swapping, rejected authoring model).
+- Spike retrospective: `docs/superpowers/specs/2026-05-28-css-emitter-spike.md` (three rounds + conclusion).
+- External precedent: jQuery UI ThemeRoller (downloadable theme bundle + class/state framework); 98.css/XP.css (CSS-class fidelity floor — the look without the runtime); React95 (theme-as-data swapping, rejected authoring model).

@@ -1997,3 +1997,78 @@ two images differ at any pixel that wouldn't be lost in display compression,
 the answer is no, not yet. Run the test before writing the verdict, not after.
 For spike work specifically: surface the side-by-side to the owner BEFORE
 updating any decision doc.
+
+## 2026-05-28 — Three rounds of premature verdicts: the existing architecture was the answer
+
+Same session as the topology-vs-fidelity entry above. After Round 1's verdict
+was caught and withdrawn, two more iterations followed — each producing a
+verdict the next iteration disproved:
+
+- **Round 1:** "trivially expressible in plain CSS." Withdrawn — topology vs
+  fidelity.
+- **Round 2:** "Path 2 passes — synthesized PNG sources for both compositor
+  paths, pixel-faithful." Verified only on the simplest scheme
+  (apple-platinum-2) plus one moderate scheme (1138). Withdrawn when the owner
+  asked "what about the visually distinctive schemes — evolution, 1138, BeOS?"
+- **Round 3:** added a scheme switcher, tested 4 schemes, fixed two more
+  bugs (canvas-title-bar overlay; DOM-measured frame thickness). 1138 +
+  evolution body frames passed; BeOS exposed an asymmetric title bar the
+  clip-path simplification couldn't preserve; apple-platinum-2's synthesizer
+  produced a thinner body frame than canvas. **Two distinct fidelity failures,
+  both fixable with more per-scheme tuning.**
+
+The owner reframed the question instead of asking me to iterate again: *"If we
+use canvas everywhere, is there a way to do more of a hybrid — have the basic
+window frames managed by HTML, but use canvas for the decoration?"* The answer:
+**that's what already ships.** `renderWindow` returns a DOM container with a
+canvas overlay for chrome and real DOM body content. The data-attribute
+scanner + WindowManager (shipped 2026-05-27/28) already drive this hybrid.
+Three rounds of spike were trying to push chrome rendering INTO CSS at cost
+the corpus wouldn't accept — when the architecture for "skin an existing site"
+was DOM-structure-canvas-decoration all along.
+
+ADR-0001 §Decision 1 retired in its CSS-first-hybrid form, replaced with the
+explicit hybrid framing. The CSS emitter + representability classifier + PC's
+border-image work are dropped from the phase map. Full retrospective:
+`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`.
+
+**Lessons:**
+
+1. **Iteration's own pattern is signal.** When round N+1 reveals a gap round N
+   missed, fine. When round N+2 reveals a gap round N+1 missed, the iteration
+   itself is the message. The architecture under test is signaling something —
+   probably that the problem framing is wrong, not that I need to try harder.
+   Three rounds is enough; if you can't see your way to the answer at that
+   point, the question itself probably needs to change.
+
+2. **The existing code is often the spec.** I was building a CSS emitter to
+   express what the canvas chrome already expressed. Every iteration added
+   "cleverness" (synthesizer recipe, title-height heuristic, frame measurement,
+   clip-path) that the existing `composeChrome.ts` already computed correctly.
+   Before iterating a third time, ask: *is the runtime already doing this
+   correctly, and am I reinventing it badly?* If yes, the work isn't iteration
+   — it's delegation.
+
+3. **The owner reframing is the fastest path through a stuck spike.** I had
+   been about to start Round 4 (delegate to the runtime, use composeChrome's
+   pixels directly). The owner's question — "could we keep canvas and just be
+   HTML-around-it?" — cut to the architectural reality in one sentence. That
+   reframe was the actual answer; my next iteration would have been more work
+   to arrive at the same place. **Spike fatigue is itself information.** When
+   the agent is about to "just one more iteration," that's a moment to surface
+   the broader question, not to push through.
+
+4. **Approximately-faithful is unbranded.** This project's commitments — the
+   feedback memories about reference-image-first, faithful-to-the-decode, the
+   clean-room replay of the kDEF — all add up to: pixel-faithful or it doesn't
+   count. "Close enough" is a different product. If the architecture being
+   tested only achieves "close enough," the architecture is wrong for THIS
+   project even if it'd be fine elsewhere.
+
+**Application:** before starting a third iteration of any spike, write down
+what the second iteration's failure tells you about the question framing. If
+you can't articulate what changed, the iteration is probably wrong. If you can,
+the next move is often to reframe with the owner, not to iterate. And for
+spike work on a fidelity-driven project: when the existing implementation
+already does it, the spike's job is usually to KILL the alternative, not to
+build it. Three rounds is a credible kill.
