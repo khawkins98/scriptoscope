@@ -35,7 +35,7 @@ const CONTROL_SEL = [
 export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void; retheme(ref: string): Promise<void> }> {
   const manager = new WindowManager();
   const resolver = createThemeResolver(opts);
-  const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? 'apple-platinum-replica';
+  const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
   const root: Document | Element = opts.root ?? document;
   const inFlight = new Set<Element>();
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
@@ -152,12 +152,14 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
 
   // Wire `[data-aaron-theme-switcher]` controls (the PRD's named front door for runtime themes). A
   // <select> switches on change (option values = theme refs); any other element switches on click
-  // using its own data-aaron-theme. Stamped so re-scans don't double-bind.
+  // using its own data-aaron-theme. Uses a DEDICATED stamp (`aaronSwitcherWired`) — the generic
+  // `aaronPromoted` stamp is set by control-promotion on every <select>, which would otherwise
+  // skip this wiring (the two concerns are orthogonal: themed appearance vs. event binding).
   const wireThemeSwitchers = (within: Document | Element): void => {
     for (const node of Array.from(within.querySelectorAll('[data-aaron-theme-switcher]'))) {
       const sw = node as HTMLElement;
-      if (sw.dataset.aaronPromoted != null) continue;
-      sw.dataset.aaronPromoted = '';
+      if (sw.dataset.aaronSwitcherWired != null) continue;
+      sw.dataset.aaronSwitcherWired = '';
       if (sw instanceof HTMLSelectElement) {
         sw.addEventListener('change', () => { void retheme(sw.value); });
       } else {
