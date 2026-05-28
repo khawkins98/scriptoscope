@@ -3,173 +3,284 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aaron UI — declarative (data-attribute) windows</title>
+  <title>Aaron 1.0 — A Window Manager for the World Wide Web</title>
   <style>
-    /* Charcoal faces — same as the runtime demo (Apple's is proprietary; Virtue/Charcoal-12 are
-       free recreations). See demo/index.html for credits. */
+    /* Charcoal recreations — Virtue (Scooter Graphics, free w/ credit) + Charcoal-12 (Jeremy
+       Sachs, CC BY-SA). Apple's Charcoal is proprietary and not shipped. */
     @font-face { font-family: 'Charcoal'; src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff'); font-display: swap; }
     @font-face { font-family: 'Charcoal 12'; src: url('assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
 
-    body { margin: 0; font: 14px/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
-    header { padding: 18px 24px 10px; border-bottom: 1px solid #ddd; }
-    header h1 { font-size: 20px; margin: 0 0 4px; }
-    header p { margin: 4px 0; color: #555; max-width: 70ch; }
-    header code { background: #0001; padding: 0 4px; border-radius: 4px; font-size: 13px; }
-    header .controls { font-size: 13px; color: #333; }
-    header .controls select { font: 13px system-ui; padding: 2px 4px; }
-
-    /* The "desktop" — a positioned region the absolute window hosts float within. */
-    #desktop {
-      position: relative; min-height: 620px; margin: 0; overflow: hidden;
-      background: #8e8e8e
-        repeating-linear-gradient(0deg, #00000008 0 1px, transparent 1px 3px);
+    /* The whole page IS the screen. No site chrome, no header, no margin. */
+    html, body { height: 100%; }
+    body {
+      margin: 0; overflow: hidden;
+      font: 12px/1.4 'Charcoal', 'Geneva', system-ui, sans-serif;
+      color: #1a1a1a;
+      /* Classic Platinum desktop: 50%-grey with a 2-px stipple suggesting a ppat. */
+      background:
+        repeating-conic-gradient(#8b8b8b 0% 25%, #919191 0% 50%) 0 0 / 2px 2px,
+        #8e8e8e;
+      cursor: default;
     }
 
-    /* Content INSIDE windows — plain page CSS, proving the slotted content is live light DOM. */
-    .doc h2 { font: 600 14px 'Charcoal', system-ui; margin: 0 0 6px; }
-    .doc p { margin: 0 0 8px; }
-    .doc ul { margin: 6px 0; padding-left: 20px; }
-    .doc a { color: #2b5070; }
-    .pad { padding: 10px 12px; }
+    /* ── Menu bar — pinned to the top, full-width, NOT a window (it's the screen edge). ── */
+    #menubar {
+      position: fixed; inset: 0 0 auto 0; height: 20px; z-index: 1000;
+      display: flex; align-items: center; gap: 14px; padding: 0 8px;
+      background: #ffffff;
+      border-bottom: 1px solid #000;
+      font: 12px 'Charcoal', 'Geneva', system-ui;
+      user-select: none;
+    }
+    #menubar .apple { font-size: 14px; padding: 0 6px; }
+    #menubar .menu  { padding: 1px 8px; border-radius: 1px; cursor: default; }
+    #menubar .menu:hover { background: #000; color: #fff; }
+    #menubar .spacer { flex: 1; }
+    #menubar .clock { font-variant-numeric: tabular-nums; padding: 0 6px; }
 
-    /* Before the scanner runs (or if JS is off), the raw divs still show their content in flow —
-       progressive enhancement. Once promoted they become floating windows. */
+    /* ── Desktop — everything below the menu bar. Windows float here. ── */
+    #desktop {
+      position: absolute; inset: 20px 0 0 0;
+      overflow: hidden;
+    }
+
+    /* ── Trash, lower-right. Real desktop icon, not a window. ── */
+    .trash {
+      position: absolute; right: 24px; bottom: 24px;
+      width: 36px; text-align: center;
+      cursor: default; user-select: none;
+      background: none; border: 0; padding: 0;
+      color: #fff; text-shadow: 1px 1px 0 #000;
+      font: 9pt 'Charcoal', 'Geneva', system-ui;
+    }
+    .trash svg { display: block; margin: 0 auto 1px; image-rendering: pixelated; }
+    .trash:focus { outline: 1px dotted #fff; outline-offset: 2px; }
+
+    /* ── In-window content — plain page CSS. The chrome is canvas; this is the slot. ── */
+    .doc            { padding: 8px 12px; }
+    .doc h2         { font: 600 14px 'Charcoal', system-ui; margin: 0 0 6px; }
+    .doc h3         { font: 600 12px 'Charcoal', system-ui; margin: 10px 0 4px; }
+    .doc p          { margin: 0 0 6px; }
+    .doc ul         { margin: 4px 0 8px; padding-left: 18px; }
+    .doc a          { color: #2b5070; }
+    .doc kbd, .doc code { font: 11px ui-monospace, Menlo, monospace; background: #00000010; padding: 0 3px; }
+
+    /* The Tools palette — 2-column grid of glyph buttons. */
+    .palette { padding: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .palette button { font: 14px 'Charcoal', system-ui; min-width: 38px; padding: 2px 0; }
+    .palette hr { grid-column: 1 / -1; border: 0; border-top: 1px solid #00000040; margin: 2px 0; }
+
+    /* Inspector form rows. */
+    .insp           { padding: 8px 10px; font: 12px 'Charcoal', 'Geneva', system-ui; }
+    .insp .row      { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .insp .row.col  { flex-direction: column; align-items: stretch; gap: 2px; }
+    .insp label     { user-select: none; }
+    .insp select, .insp input[type=range] { font: 12px 'Charcoal', system-ui; }
+    .insp hr        { border: 0; border-top: 1px solid #00000040; margin: 8px 0; }
+    .insp .grouplabel { font-weight: 600; }
+
+    /* Dialog action row — buttons right-aligned, Mac convention. */
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+    /* Pre-promotion fallback: tagged divs are visible cards on the grey desktop (no JS / pre-scan). */
     #desktop > [data-aaron-window]:not([data-aaron-promoted]) {
       display: inline-block; vertical-align: top; margin: 12px; max-width: 320px;
-      background: #fff; border: 1px solid #999;
+      background: #ddd; border: 1px solid #555; box-shadow: 1px 1px 0 #0006;
     }
   </style>
 </head>
-<!-- The whole page declares its theme once; individual windows can override with data-aaron-theme. -->
-<body data-aaron-theme="apple-platinum-replica">
-  <header>
-    <h1>Aaron UI — declarative windows</h1>
-    <p>Every window below is a plain <code>&lt;div data-aaron-window&gt;</code> with content inside it.
-      There is <strong>no per-window JavaScript</strong> — one bootstrap line scans the page and promotes
-      each tagged element into a faithful classic-Mac window wrapping the live, selectable, reflowing HTML.
-      Drag a title bar to move; drag the bottom-right gripper to resize; click to focus.</p>
-    <p class="controls">
-      <label>Theme:
-        <select data-aaron-theme-switcher>
-          <option value="apple-platinum-replica">Apple Platinum (replica)</option>
-          <option value="1138">1138</option>
-          <option value="beos-r503">BeOS R5</option>
-          <option value="black-platinum">Black Platinum</option>
-          <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
-          <option value="platinum-8">Platinum 8</option>
-          <option value="apple-platinum-2">Apple Platinum 2</option>
-          <option value="evolution">Evolution</option>
-        </select>
-      </label>
-      — re-skins every window live. Click a window's <strong>collapse</strong>/<strong>zoom</strong>
-      box, or <strong>double-click a title bar</strong> to window-shade.</p>
-  </header>
 
+<!-- The page declares its scheme once. Individual windows override with data-aaron-theme. -->
+<body data-aaron-theme="apple-platinum-replica">
+
+  <!-- ────────────────────────────── Menu bar ────────────────────────────── -->
+  <!-- This is the SCREEN edge, not a window. Plain CSS. Items fire alert() for now;
+       a themed `data-aaron-menu` family is the natural follow-up (popup-window chrome ready). -->
+  <div id="menubar" role="menubar" aria-label="Aaron menu bar">
+    <span class="apple menu" onclick="alert('About Aaron\n\nAaron 1.0\nA window manager for the World Wide Web.\n\nClean-room reproduction of the Mac OS 8.5 Platinum look.\nCharcoal recreation by Jeremy Sachs.')">&#63743;</span><!-- U+F8FF Apple -->
+    <span class="menu" onclick="alert('The File menu is not available in this demo.')">File</span>
+    <span class="menu" onclick="alert('The Edit menu is not available in this demo.')">Edit</span>
+    <span class="menu" onclick="alert('The View menu is not available in this demo.')">View</span>
+    <span class="menu" onclick="alert('The Special menu is not available in this demo.')">Special</span>
+    <span class="menu" onclick="alert('Aaron Help\n\nDrag a title bar to move a window.\nDouble-click a title bar to roll it up.\nClick the zoom box to fit to content.\nUse the Inspector to change themes.')">Help</span>
+    <span class="spacer"></span>
+    <span class="menu">&#x1F4CB; Aaron</span>
+    <span class="clock" id="clock">3:14 PM</span>
+  </div>
+
+  <!-- ────────────────────────────── Desktop ────────────────────────────── -->
   <div id="desktop">
 
-    <!-- 1) Declared-size document window: scrollable content (paragraphs + a list). -->
-    <div data-aaron-window data-aaron-title="Read Me" data-aaron-x="28" data-aaron-y="28"
-         data-aaron-width="260" data-aaron-height="180">
-      <div class="doc pad">
-        <h2>It's just a div</h2>
-        <p>This window is a <code>&lt;div data-aaron-window&gt;</code>. Its children — this text and the
-          list below — are the window's content, still real selectable HTML.</p>
+    <!-- 1) Read Me — main document window. Scrollable (declared size, content overflows). -->
+    <div data-aaron-window
+         data-aaron-title="Read Me — Aaron 1.0"
+         data-aaron-x="32" data-aaron-y="28"
+         data-aaron-width="360" data-aaron-height="280">
+      <div class="doc">
+        <h2>About Aaron</h2>
+        <p>Aaron is a window manager for the World Wide Web. It draws faithful Mac&nbsp;OS&nbsp;8.5
+          windows around ordinary HTML &mdash; text, forms, images, and links &mdash; without
+          modifying that content. Everything inside this window is real, selectable DOM.</p>
+
+        <h3>What's new in this version</h3>
         <ul>
-          <li>Drag the title bar to move it.</li>
-          <li>Drag the bottom-right gripper to resize.</li>
-          <li>Click to focus (active vs. inactive chrome).</li>
-          <li>Scroll — this content overflows its declared size.</li>
-          <li>Try selecting this text. It's live DOM.</li>
+          <li>Window-shade by double-clicking a title bar.</li>
+          <li>Click the zoom box to grow a window to fit its content.</li>
+          <li>Themed scrollbars on windows whose content overflows.</li>
+          <li>The Inspector re-skins every window live.</li>
         </ul>
-        <p>See the <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a> story.</p>
+
+        <h3>Getting started</h3>
+        <p>Drag the title bar of any window to move it. Drag the gripper at the bottom-right to
+          resize. Click a window to bring it forward; the chrome switches from inactive to active.</p>
+
+        <h3>Credits</h3>
+        <p>Charcoal recreation by Jeremy Sachs (CC BY-SA). Virtue by Scooter Graphics. Built
+          clean-room from the decoded WDEF&nbsp;125 algorithm &mdash; no Apple bitmaps shipped.
+          See <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a>
+          for the story this project descends from.</p>
       </div>
     </div>
 
-    <!-- 2) Content-fit window (no width/height): grows to its content; the button reflows it. -->
-    <div data-aaron-window data-aaron-title="Notes" data-aaron-x="330" data-aaron-y="40">
-      <div id="fit-body" class="doc pad">
-        <p>No declared size — this window fits its content.</p>
-        <p>Click the button: it adds a line and the <em>chrome re-renders to fit</em> (a ResizeObserver).</p>
-        <button data-aaron-button
-                onclick="var b=document.getElementById('fit-body');var p=document.createElement('p');p.textContent='Added line '+(window.__n=(window.__n||0)+1)+' — the window grew.';b.insertBefore(p, b.lastElementChild);">
-          Add a line
-        </button>
+    <!-- 2) Welcome — small movable modal overlapping the Read Me. Default-OK ring. -->
+    <div data-aaron-window data-aaron-window-type="movable-modal"
+         data-aaron-title="Welcome"
+         data-aaron-x="120" data-aaron-y="220"
+         data-aaron-width="300" data-aaron-height="140">
+      <div class="doc">
+        <p>Welcome to Aaron.</p>
+        <p>Drag any window's title bar to move it. Double-click a title bar to roll it up.
+           Click the zoom box to fit-to-content.</p>
+        <p style="color:#555"><em>Tip:</em> use the Inspector to change schemes.</p>
+        <div class="actions">
+          <!-- After promotion the original data-aaron-window attribute is gone (it lived on the now-
+               removed source div); `.aw-window` is the chrome wrapper still in the DOM. Remove it to
+               dismiss visually. The manager entry lingers (pre-existing) — fine for a demo dismiss. -->
+          <button data-aaron-button onclick="this.closest('.aw-window')?.remove()">Don't show again</button>
+          <button data-aaron-button data-aaron-default
+                  onclick="this.closest('.aw-window')?.remove()">OK</button>
+        </div>
       </div>
     </div>
 
-    <!-- 3) A dialog with a DEFAULT button (the OK ring) — themed per-window via data-aaron-theme. -->
-    <div data-aaron-window data-aaron-theme="1138" data-aaron-window-type="movable-modal"
-         data-aaron-title="Save changes?" data-aaron-x="330" data-aaron-y="300"
-         data-aaron-width="250" data-aaron-height="128">
-      <div class="doc pad">
-        <p>Save changes before closing? This window uses the <code>1138</code> scheme.</p>
-        <p style="text-align:right; margin:0;">
-          <button data-aaron-button onclick="alert('Don’t Save')">Don't Save</button>
-          <button data-aaron-button data-aaron-default onclick="alert('Saved!')">OK</button>
-        </p>
+    <!-- 3) Tools — a vertical floating palette. Real Mac apps put a tool strip on the right. -->
+    <div data-aaron-window data-aaron-window-type="side-floating-utility-window"
+         data-aaron-title="Tools"
+         data-aaron-x="720" data-aaron-y="28"
+         data-aaron-width="116" data-aaron-height="220">
+      <div class="palette" role="toolbar" aria-label="Tools">
+        <button data-aaron-button title="Pointer">&#x25A4;</button>
+        <button data-aaron-button title="Move">&#x2725;</button>
+        <button data-aaron-button title="Resize">&#x2194;</button>
+        <button data-aaron-button title="Zoom">&#x2922;</button>
+        <hr />
+        <button data-aaron-button title="Grid">&#x25A6;</button>
+        <button data-aaron-button title="Snap">&#x2327;</button>
+        <hr />
+        <button data-aaron-button title="Help" onclick="alert('Aaron Help — drag the title bar, double-click to shade.')">?</button>
       </div>
     </div>
 
-    <!-- 4) An inactive window, to show the inactive chrome state. -->
-    <div data-aaron-window data-aaron-state="inactive" data-aaron-title="Background"
-         data-aaron-x="40" data-aaron-y="320" data-aaron-width="220" data-aaron-height="110">
-      <div class="doc pad">
-        <p>Rendered inactive (greyed title). Click it to focus — the chrome switches to active.</p>
-      </div>
-    </div>
-
-    <!-- 5) Preferences — a richer dialog with a mix of NATIVE controls (checkbox/radio/select/range/text).
-         Themed checkbox/radio compositors exist in the runtime but the declarative layer only promotes
-         `data-aaron-button` today; a `data-aaron-control` family is the natural next step. For now,
-         native controls live inside the themed window — accessible, focusable, real form values. -->
-    <div data-aaron-window data-aaron-title="Preferences" data-aaron-x="620" data-aaron-y="28"
-         data-aaron-width="260" data-aaron-height="280">
-      <form class="doc pad" onsubmit="event.preventDefault(); alert('Preferences saved.');"
-            style="font:13px system-ui">
-        <fieldset style="border:1px solid #999; padding:6px 8px 4px; margin:0 0 8px">
-          <legend style="padding:0 4px">General</legend>
-          <label style="display:block; margin-bottom:2px"><input type="checkbox" checked /> Show ruler</label>
-          <label style="display:block; margin-bottom:2px"><input type="checkbox" /> Show invisibles</label>
-          <label style="display:block"><input type="checkbox" checked /> Auto-save every 5 min</label>
-        </fieldset>
-        <fieldset style="border:1px solid #999; padding:6px 8px 4px; margin:0 0 8px">
-          <legend style="padding:0 4px">Font size</legend>
-          <label style="margin-right:8px"><input type="radio" name="fs" /> Small</label>
-          <label style="margin-right:8px"><input type="radio" name="fs" checked /> Medium</label>
-          <label><input type="radio" name="fs" /> Large</label>
-        </fieldset>
-        <p style="margin:0 0 6px">Default scheme:
-          <select style="margin-left:2px">
-            <option>Apple Platinum</option><option>1138</option><option>BeOS R5</option>
+    <!-- 4) Inspector — doubles as the Appearance control panel. Houses the theme switcher.
+         Controls inside are NATIVE today; tagged with TODOs for the data-aaron-control pass. -->
+    <div data-aaron-window data-aaron-window-type="titled-utility-window"
+         data-aaron-title="Inspector"
+         data-aaron-x="660" data-aaron-y="276"
+         data-aaron-width="240" data-aaron-height="240">
+      <div class="insp">
+        <div class="row col">
+          <label class="grouplabel" for="insp-theme">Theme</label>
+          <!-- The theme switcher lives HERE now, not in a page header. -->
+          <select id="insp-theme" data-aaron-theme-switcher>
+            <option value="apple-platinum-replica">Apple Platinum (replica)</option>
+            <option value="1138">1138</option>
+            <option value="beos-r503">BeOS R5</option>
+            <option value="black-platinum">Black Platinum</option>
+            <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
+            <option value="platinum-8">Platinum 8</option>
+            <option value="apple-platinum-2">Apple Platinum 2</option>
+            <option value="evolution">Evolution</option>
           </select>
-        </p>
-        <p style="margin:0 0 8px">Volume <input type="range" min="0" max="100" value="60" style="vertical-align:middle; width:120px" /></p>
-        <p style="text-align:right; margin:0">
-          <button type="button" data-aaron-button onclick="this.closest('form').reset()">Cancel</button>
-          <button type="submit" data-aaron-button data-aaron-default>Save</button>
-        </p>
-      </form>
-    </div>
+        </div>
 
-    <!-- 6) A mini floating PALETTE — `titled-utility-window` gives the short title bar + thin frame
-         the classic Mac Tools/Inspector palettes used. Sits next to the main window like a real app. -->
-    <div data-aaron-window data-aaron-window-type="titled-utility-window" data-aaron-title="Tools"
-         data-aaron-x="620" data-aaron-y="330" data-aaron-width="150" data-aaron-height="80">
-      <div class="doc pad" style="font:12px system-ui">
-        <p style="text-align:center; margin:0 0 4px"><strong>Edit</strong></p>
-        <p style="display:flex; gap:4px; justify-content:center; margin:0">
-          <button data-aaron-button onclick="document.execCommand?.('cut')">Cut</button>
-          <button data-aaron-button onclick="document.execCommand?.('copy')">Copy</button>
-          <button data-aaron-button onclick="document.execCommand?.('paste')">Paste</button>
-        </p>
+        <hr />
+
+        <!-- TODO: when data-aaron-control lands, add data-aaron-control="checkbox" to each. -->
+        <div class="row"><input type="checkbox" id="o-drag" checked /><label for="o-drag">Show window contents while dragging</label></div>
+        <div class="row"><input type="checkbox" id="o-snd"  /><label for="o-snd">Play system sounds</label></div>
+        <div class="row"><input type="checkbox" id="o-grid" /><label for="o-grid">Snap to grid</label></div>
+
+        <hr />
+
+        <div class="row col">
+          <label class="grouplabel" for="o-anim">Animation speed</label>
+          <!-- TODO: data-aaron-control="slider" -->
+          <input type="range" id="o-anim" min="0" max="100" value="40" />
+        </div>
+
+        <hr />
+
+        <!-- TODO: data-aaron-control="radio" -->
+        <div class="row"><input type="radio" id="r-act" name="cstate" checked /><label for="r-act">Active windows have colour</label></div>
+        <div class="row"><input type="radio" id="r-ina" name="cstate"          /><label for="r-ina">Inactive windows have colour</label></div>
       </div>
     </div>
+
+    <!-- 5) Notepad — a quietly themed-different document window, demoing per-window theming.
+         Starts inactive so the inactive chrome state is visible at rest. (Ideally ships
+         window-shaded — see follow-ups: needs a data-aaron-collapsed attribute.) -->
+    <div data-aaron-window data-aaron-state="inactive"
+         data-aaron-theme="1138"
+         data-aaron-title="Notepad"
+         data-aaron-x="40" data-aaron-y="430"
+         data-aaron-width="280" data-aaron-height="80">
+      <div class="doc">
+        <p style="font-family:'Charcoal',Geneva,system-ui">Remember to feed the cat. &mdash; A.</p>
+      </div>
+    </div>
+
+    <!-- 6) Trash icon — desktop denizen, not a window. Opens a fresh themed dialog on each click. -->
+    <button class="trash" aria-label="Trash" id="trash-btn">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="6" y="9" width="20" height="2" fill="#000"/>
+        <path d="M8 11 L10 28 L22 28 L24 11 Z" fill="#cdcdcd" stroke="#000" stroke-width="1"/>
+        <path d="M12 14 L13 25 M16 14 L16 25 M20 14 L19 25" stroke="#666" stroke-width="1" fill="none"/>
+        <rect x="12" y="7" width="8" height="2" fill="#cdcdcd" stroke="#000"/>
+      </svg>
+      Trash
+    </button>
 
   </div>
 
+  <script>
+    // Live clock in the menu bar. Tiny, dependency-free, on-brand (the menubar always had one).
+    (function tick() {
+      var d = new Date();
+      var h = d.getHours(), m = d.getMinutes();
+      var am = h < 12 ? 'AM' : 'PM'; h = ((h + 11) % 12) + 1;
+      document.getElementById('clock').textContent = h + ':' + (m < 10 ? '0' + m : m) + ' ' + am;
+      setTimeout(tick, 30000);
+    })();
+
+    // Trash → open a fresh themed Aaron dialog on each click. We APPEND a data-aaron-window
+    // element and let the scanner's MutationObserver promote it (rather than ship one hidden,
+    // which would be promoted-but-invisible at load). OK removes the dialog.
+    document.getElementById('trash-btn').addEventListener('click', function () {
+      var dlg = document.createElement('div');
+      dlg.dataset.aaronWindow = '';
+      dlg.dataset.aaronWindowType = 'dialog';
+      dlg.dataset.aaronTitle = 'Trash';
+      dlg.dataset.aaronX = '380'; dlg.dataset.aaronY = '220';
+      dlg.dataset.aaronWidth = '260'; dlg.dataset.aaronHeight = '110';
+      dlg.innerHTML = '<div class="doc"><p>The Trash is empty.</p>'
+        + '<div class="actions"><button data-aaron-button data-aaron-default'
+        + ' onclick="this.closest(\'.aw-window\')?.remove()">OK</button></div></div>';
+      document.getElementById('desktop').appendChild(dlg);
+    });
+  </script>
+
   <script type="module">
     import { mountDeclarative } from '../src/declarative/index.ts';
-    // One call. themeBaseUrl matches the demo's deploy base ('/' in dev, '/aaron-ui/' on Pages).
     await mountDeclarative({
       themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
       baseSlug: 'apple-platinum-replica',
