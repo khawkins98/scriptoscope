@@ -1206,6 +1206,27 @@
    "role": "cicn body (pop-up-menu-small-glyph-active)"
   },
   {
+   "id": 0,
+   "type": "cicn",
+   "slug": "stop-icon",
+   "family": "other",
+   "role": "cicn body (stop-icon)"
+  },
+  {
+   "id": 1,
+   "type": "cicn",
+   "slug": "note-icon",
+   "family": "other",
+   "role": "cicn body (note-icon)"
+  },
+  {
+   "id": 2,
+   "type": "cicn",
+   "slug": "caution-icon",
+   "family": "other",
+   "role": "cicn body (caution-icon)"
+  },
+  {
    "id": -16455,
    "type": "icl4",
    "size": 32,

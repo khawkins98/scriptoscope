@@ -1,15 +1,41 @@
 {
   "source": "apple-lisa/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:19.993Z",
+  "extractedAt": "2026-05-28T20:28:01.638Z",
   "counts": {
-    "total": 253,
-    "ok": 253,
+    "total": 254,
+    "ok": 254,
     "skipped": 0,
     "errored": 0,
     "raster": 197,
-    "geometry": 56
+    "geometry": 57
   },
   "assets": [
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 33,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
     {
       "type": "cicn",
       "id": -14322,

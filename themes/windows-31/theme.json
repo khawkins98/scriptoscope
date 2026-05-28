@@ -12,8 +12,13 @@
     "originalFormat": "ksc",
     "originalLicense": "Author-granted freeware (\"This scheme is freeware, and is a part of the official KSA OS Scheme Pack\"). The scheme reproduces Microsoft's Windows 3.1 visual style; **Microsoft, Windows, and the Windows logo are trademarks of Microsoft Corporation**.",
     "sourceUrl": "https://macthemes.garden/",
-    "sourceArchive": "Mac Themes Garden — os-windows31.sit",
-    "trademark": "Microsoft, Windows, and the Windows logo are trademarks of Microsoft Corporation. This scheme is a community-authored Kaleidoscope reproduction; Microsoft has not endorsed or licensed it."
+    "sourceArchive": "https://macthemes.garden/themes/attachments/os-windows31.gif",
+    "trademark": "Microsoft, Windows, and the Windows logo are trademarks of Microsoft Corporation. This scheme is a community-authored Kaleidoscope reproduction; Microsoft has not endorsed or licensed it.",
+    "sourcePage": "https://macthemes.garden/themes/4bbd8a599497-Windows-31",
+    "minimumKaleidoscopeVersion": 32
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "titled-utility-window": {

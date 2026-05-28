@@ -1,13 +1,13 @@
 {
   "source": "1138/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:19.817Z",
+  "extractedAt": "2026-05-28T20:28:01.445Z",
   "counts": {
-    "total": 316,
-    "ok": 316,
+    "total": 317,
+    "ok": 317,
     "skipped": 0,
     "errored": 0,
     "raster": 234,
-    "geometry": 82
+    "geometry": 83
   },
   "assets": [
     {
@@ -3576,6 +3576,32 @@
         "rowBytes": 12,
         "maskRowBytes": 4,
         "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

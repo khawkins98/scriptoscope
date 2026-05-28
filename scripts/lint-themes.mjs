@@ -170,9 +170,21 @@ for (const slug of slugs) {
     // bounds were off). LEFT/RIGHT recipes are NOT checked for span: they cover
     // only the content-height middle (the corners belong to top/bottom), so they
     // legitimately stop well short of the cicn height.
+    //
+    // SIDE-TITLED EXCEPTION (animals/windows-31 side-floating-utility-window):
+    // when the title bar is on the LEFT (not top), the TOP/BOTTOM recipes legitimately
+    // cap at the body's right edge — the remaining drawable width is the side title
+    // strip, drawn by the LEFT recipe instead. Demote the span check to a NOTE for
+    // these cases. Detection: body.left > body.top (the title strip is on the side
+    // of the chrome, not the top), or the window-type slug explicitly says so.
+    const sideTitled = key === 'side-floating-utility-window' || key === 'collapsed-side-utility'
+      || (body != null && Array.isArray(body) && body[0] > body[1]);
     if (wRecipe != null) {
       if (wRecipe > raw.w + 1) NOTE(`recipe: top/bottom ends at ${wRecipe}, past cicn ${raw.w} (samples a transparent corner — benign)`);
-      else if (draw.w - wRecipe > 2) WARN(`recipe: top/bottom ends at ${wRecipe} but frame art reaches ${draw.w} (${draw.w - wRecipe}px of width undrawn)`);
+      else if (draw.w - wRecipe > 2) {
+        if (sideTitled) NOTE(`recipe: top/bottom ends at ${wRecipe} (body right edge); the ${draw.w - wRecipe}px tail is the side title strip — drawn by the LEFT recipe, not a bug`);
+        else WARN(`recipe: top/bottom ends at ${wRecipe} but frame art reaches ${draw.w} (${draw.w - wRecipe}px of width undrawn)`);
+      }
     }
     if (hRecipe != null && hRecipe > raw.h + 1)
       NOTE(`recipe: left/right ends at ${hRecipe}, past cicn ${raw.h} (samples a transparent corner — benign)`);

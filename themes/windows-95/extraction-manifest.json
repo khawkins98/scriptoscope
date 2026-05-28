@@ -1,13 +1,13 @@
 {
   "source": "windows-95/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.519Z",
+  "extractedAt": "2026-05-28T20:28:02.276Z",
   "counts": {
-    "total": 379,
-    "ok": 379,
+    "total": 380,
+    "ok": 380,
     "skipped": 0,
     "errored": 0,
     "raster": 271,
-    "geometry": 108
+    "geometry": 109
   },
   "assets": [
     {
@@ -3928,6 +3928,32 @@
         "rowBytes": 8,
         "maskRowBytes": 2,
         "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

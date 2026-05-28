@@ -194,12 +194,13 @@ export function buildThemeJson(manifest, options = {}) {
     const cicnFile = (id) => byTypeAndId[`cicn:${id}`]?.file ?? null;
     // Side-utility ships no own pinstripe (-14318 is absent in the corpus); it
     // reuses the utility racing-stripes (-14314). The table notes the fallback.
-    // Pinstripe resolver: cicn preferred (pre-rendered title-bar strip),
-    // ppat fallback (tile pattern, e.g. slimes ships -14331 as a ppat not a cicn —
-    // some schemes pre-render the strip; others ship just the source tile and
-    // expect the compositor to tile it across the bar). The runtime compositor
-    // tiles either kind, so both kinds wire up the same way at theme.json level.
-    const pinstripeOrPpatFile = (id) =>
+    // Sprite resolver: cicn preferred (pre-rendered raster), ppat fallback (tile
+    // pattern, e.g. slimes ships -14331 as a ppat not a cicn — some schemes
+    // pre-render; others ship the source tile and expect the compositor to tile).
+    // The runtime compositor tiles either kind, so both wire up the same way at
+    // theme.json level. Used for ALL sprite roles (pinstripe, growBox, …) so future
+    // ppat-shipped scheme variants don't silently lose their sprites.
+    const cicnOrPpatFile = (id) =>
       cicnFile(id) ?? byTypeAndId[`ppat:${id}`]?.file ?? null;
     for (const row of CORNER_SPRITE_WINDOWS) {
       const rec = WINDOW_RECIPES[row.slug]; // titleH / widgets / collapsed (shared)
@@ -211,8 +212,8 @@ export function buildThemeJson(manifest, options = {}) {
       // Title-less frames carry NO pinstripe. Titled types need their stripe
       // sprite present; if the stripe is missing we still draw a plain bar
       // (the header fill) rather than dropping the type, but record null.
-      const pinstripeFile = row.pinstripe != null ? pinstripeOrPpatFile(row.pinstripe) : null;
-      const growFile = row.growBox != null ? cicnFile(row.growBox) : null;
+      const pinstripeFile = row.pinstripe != null ? cicnOrPpatFile(row.pinstripe) : null;
+      const growFile = row.growBox != null ? cicnOrPpatFile(row.growBox) : null;
 
       const sprites = {};
       if (pinstripeFile) sprites.pinstripe = pinstripeFile;

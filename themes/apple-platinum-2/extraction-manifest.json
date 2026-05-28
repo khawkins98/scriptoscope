@@ -1,13 +1,13 @@
 {
   "source": "apple-platinum-2/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.030Z",
+  "extractedAt": "2026-05-28T20:28:01.677Z",
   "counts": {
-    "total": 238,
-    "ok": 238,
+    "total": 240,
+    "ok": 240,
     "skipped": 0,
     "errored": 0,
     "raster": 223,
-    "geometry": 15
+    "geometry": 17
   },
   "assets": [
     {
@@ -3288,6 +3288,58 @@
         "rowBytes": 4,
         "maskRowBytes": 1,
         "bmapRowBytes": 1
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 21,
+        "hasAccentColors": true,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 128,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 0,
+        "minimumKVersion": 0,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

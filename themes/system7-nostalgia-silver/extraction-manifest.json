@@ -1,13 +1,13 @@
 {
   "source": "system7-nostalgia-silver/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.446Z",
+  "extractedAt": "2026-05-28T20:28:02.175Z",
   "counts": {
-    "total": 193,
-    "ok": 193,
+    "total": 195,
+    "ok": 195,
     "skipped": 0,
     "errored": 0,
     "raster": 193,
-    "geometry": 0
+    "geometry": 2
   },
   "assets": [
     {
@@ -2744,6 +2744,58 @@
         "rowBytes": 2,
         "maskRowBytes": 2,
         "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 128,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 0,
+        "minimumKVersion": 0,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 21,
+        "hasAccentColors": true,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

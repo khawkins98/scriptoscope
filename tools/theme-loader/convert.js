@@ -16,6 +16,7 @@ import { decodePpat } from './decoders/ppat.js';
 import { decodeCinf } from './decoders/cinf.js';
 import { decodeWnd } from './decoders/wnd.js';
 import { decodeClut, headerColorsFromClut } from './decoders/clut.js';
+import { decodeColr } from './decoders/colr.js';
 import { buildThemeJson } from './buildThemeJson.js';
 import { validateTheme } from './validateTheme.js';
 import { gammaCorrectRgba, gammaCorrectHex, macRgbToSrgb } from './mac-gamma.js';
@@ -79,7 +80,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
   const counts = { total: 0, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0 };
 
   for (const e of entries) {
-    if (!['cicn', 'ppat', 'cinf', 'wnd#'].includes(e.type)) continue;
+    if (!['cicn', 'ppat', 'cinf', 'wnd#', 'Colr'].includes(e.type)) continue;
     counts.total++;
     const base = { type: e.type, id: e.id, name: e.name || null };
     let payload = null, error = null;
@@ -88,6 +89,12 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
       else if (e.type === 'ppat') payload = decodePpat(e.data);
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
+      // Colr: scheme-global flags (stretchScrollbarThumbFromCenter,
+      // minimumKVersion, hasAccentColors, …). Downstream `buildThemeJson` reads
+      // `manifest.assets.find(a => a.type === 'Colr' && a.status === 'ok')` and
+      // wires the result into `theme.options` + `theme.origin`, so just decoding
+      // here is enough to unlock the schema slots that were already reserved.
+      else if (e.type === 'Colr') payload = decodeColr(e.data);
     } catch (err) { error = err instanceof Error ? err.message : String(err); }
 
     if (error) {
@@ -145,10 +152,16 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
     return 0;
   })();
   if (viewBg) {
-    const abs = Math.abs(viewBg);
+    // Compare SIGNED ids — matches how buildThemeJson wires patterns via the
+    // `ppatSlugById` map. A +N and a -N ppat are distinct resources; collapsing
+    // via Math.abs() risks a false match if a scheme ships both (no corpus
+    // collision today, but the convention is the same everywhere else).
     for (const v of Object.values(theme.patterns ?? {})) {
-      const m = /ppat-n?-?(\d+)/.exec(v.asset ?? '');
-      if (m && parseInt(m[1], 10) === abs) { theme.bodyBackground = { pattern: v.asset }; break; }
+      const m = /ppat-(n?)(\d+)/.exec(v.asset ?? '');
+      if (!m) continue;
+      const sign = m[1] === 'n' ? -1 : 1;
+      const id = sign * parseInt(m[2], 10);
+      if (id === viewBg) { theme.bodyBackground = { pattern: v.asset }; break; }
     }
   }
 

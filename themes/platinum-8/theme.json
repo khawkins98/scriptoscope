@@ -12,7 +12,11 @@
     "kind": "kaleidoscope-port",
     "originalFormat": "ksc",
     "originalLicense": "Platinum 8 1.0 by Russell Silver Jr. / Newgallus Software, April 1998. Freeware Kaleidoscope scheme (per its bundled scheme.txt readme).",
-    "sourceUrl": "local: Downloads/platinum8.sit"
+    "sourceUrl": "local: Downloads/platinum8.sit",
+    "minimumKaleidoscopeVersion": 21
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "document-window": {

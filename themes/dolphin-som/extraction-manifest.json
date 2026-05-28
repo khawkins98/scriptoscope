@@ -1,13 +1,13 @@
 {
   "source": "dolphin-som/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.239Z",
+  "extractedAt": "2026-05-28T20:28:01.939Z",
   "counts": {
-    "total": 293,
-    "ok": 293,
+    "total": 294,
+    "ok": 294,
     "skipped": 0,
     "errored": 0,
     "raster": 192,
-    "geometry": 101
+    "geometry": 102
   },
   "assets": [
     {
@@ -6889,6 +6889,34 @@
         "pixelSize": 1,
         "colorCount": 1,
         "rowBytes": 1
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": "Scheme Resource Info",
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     }
   ]

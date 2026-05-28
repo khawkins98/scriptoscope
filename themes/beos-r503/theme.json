@@ -13,7 +13,11 @@
     "originalFormat": "ksc",
     "originalLicense": "Freeware Kaleidoscope scheme. BeOS r5.0.3 ©2002 Jon Alexander. Distributed via the Kaleidoscope community circa 1999-2003.",
     "sourceUrl": "https://kaleidoscope.hryjksn.com/",
-    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/beos-r503-beosr503sit-hbst.png"
+    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/beos-r503-beosr503sit-hbst.png",
+    "minimumKaleidoscopeVersion": 35
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "document-window": {

@@ -1,13 +1,13 @@
 {
   "source": "animals/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:19.959Z",
+  "extractedAt": "2026-05-28T20:28:01.594Z",
   "counts": {
-    "total": 286,
-    "ok": 286,
+    "total": 287,
+    "ok": 287,
     "skipped": 0,
     "errored": 0,
     "raster": 194,
-    "geometry": 92
+    "geometry": 93
   },
   "assets": [
     {
@@ -5096,6 +5096,32 @@
           "x": 0,
           "y": 0
         }
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": "Kaleidoscope Scheme Information",
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          247,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ]
       }
     },
     {

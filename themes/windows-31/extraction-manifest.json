@@ -1,13 +1,13 @@
 {
   "source": "windows-31/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.485Z",
+  "extractedAt": "2026-05-28T20:28:02.220Z",
   "counts": {
-    "total": 345,
-    "ok": 345,
+    "total": 346,
+    "ok": 346,
     "skipped": 0,
     "errored": 0,
     "raster": 240,
-    "geometry": 105
+    "geometry": 106
   },
   "assets": [
     {
@@ -3672,6 +3672,32 @@
         "rowBytes": 8,
         "maskRowBytes": 2,
         "bmapRowBytes": 2
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 0,
+        "fileFormatVersion": 0,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

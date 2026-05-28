@@ -1307,6 +1307,27 @@
    "role": "cicn body (pressed-small-popup-menu-arrow)"
   },
   {
+   "id": 0,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": 1,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": 2,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
    "id": -20797,
    "type": "icl4",
    "size": 32,

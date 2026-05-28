@@ -1699,6 +1699,48 @@
    "role": "cicn body (unnamed)"
   },
   {
+   "id": 0,
+   "type": "cicn",
+   "slug": "alert",
+   "family": "other",
+   "role": "cicn body (alert)"
+  },
+  {
+   "id": 1,
+   "type": "cicn",
+   "slug": "info",
+   "family": "other",
+   "role": "cicn body (info)"
+  },
+  {
+   "id": 2,
+   "type": "cicn",
+   "slug": "caution",
+   "family": "other",
+   "role": "cicn body (caution)"
+  },
+  {
+   "id": 3000,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": 3001,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
+   "id": 3002,
+   "type": "cicn",
+   "slug": "unnamed",
+   "family": "other",
+   "role": "cicn body (unnamed)"
+  },
+  {
    "id": -20805,
    "type": "icl4",
    "size": 32,

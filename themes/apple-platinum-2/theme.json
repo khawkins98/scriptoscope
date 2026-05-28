@@ -13,7 +13,11 @@
     "originalFormat": "ksc",
     "originalLicense": "©1999 Orion Dimitrakopoulos - All Rights Reserved. Distributed via the Kaleidoscope community circa 1999-2003.",
     "sourceUrl": "https://kaleidoscope.hryjksn.com/",
-    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/apple-platinum-2-appleplatinum2sit-fl5d.png"
+    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/apple-platinum-2-appleplatinum2sit-fl5d.png",
+    "minimumKaleidoscopeVersion": 21
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "document-window": {

@@ -1,13 +1,13 @@
 {
   "source": "1984/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:19.854Z",
+  "extractedAt": "2026-05-28T20:28:01.486Z",
   "counts": {
-    "total": 292,
-    "ok": 292,
+    "total": 293,
+    "ok": 293,
     "skipped": 0,
     "errored": 0,
     "raster": 216,
-    "geometry": 76
+    "geometry": 77
   },
   "assets": [
     {
@@ -6418,6 +6418,34 @@
             "part": 1,
             "border": 31
           }
+        ]
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": "Scheme Resource Info",
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 32,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
         ]
       }
     }

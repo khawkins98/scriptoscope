@@ -118,7 +118,11 @@ for (const slug of slugs) {
   const iconIds = new Set();
 
   for (const f of listPng(resolve(dir, 'cicns'))) {
-    const m = /^cicn-([np])(\d+)(?:-(.*))?\.png$/.exec(f);
+    // Sign prefix is optional — the extractor writes positive ids without a prefix
+    // (e.g. `cicn-0-…` / `cicn-128-…` / `cicn-3000-…`), so requiring `n`|`p` would
+    // silently drop every positive-id cicn (incl. 1138's id=128 "Pressed Window
+    // Widgets", beos's id=0 "alert" dialog icon, etc.). Absent prefix = positive.
+    const m = /^cicn-([np]?)(\d+)(?:-(.*))?\.png$/.exec(f);
     if (!m) continue;
     const id = num(m[1], m[2]); const sl = m[3] || null;
     cicnIds.add(id); if (sl) cicnSlug.set(id, sl);

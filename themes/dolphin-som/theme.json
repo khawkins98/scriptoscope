@@ -12,7 +12,12 @@
     "originalFormat": "ksc",
     "originalLicense": "License terms not stated in the archive. Freely distributed via Mac Themes Garden; bundled here under that distribution norm with credit and a takedown contact path.",
     "sourceUrl": "https://macthemes.garden/",
-    "sourceArchive": "Mac Themes Garden — dolphinsom.sit"
+    "sourceArchive": "https://macthemes.garden/themes/attachments/ksa-sampler-attqr5zk6stqow8k8-image.png",
+    "sourcePage": "https://macthemes.garden/themes/e847fef8c624-Dolphin-SOM",
+    "minimumKaleidoscopeVersion": 32
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "dialog": {

@@ -13,7 +13,11 @@
     "originalSchemeId": 1984,
     "originalLicense": "Charitable Donation-Ware. 1984 color scheme and associated icons copyright 1999 Geoffrey Hamilton. Distributed freely via the Kaleidoscope community circa 1999-2003.",
     "sourceUrl": "https://kaleidoscope.hryjksn.com/",
-    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/1984-1984sit-uu3d.png"
+    "sourceArchive": "https://kaleidoscope.hryjksn.com/images/1984-1984sit-uu3d.png",
+    "minimumKaleidoscopeVersion": 32
+  },
+  "options": {
+    "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
     "dialog": {

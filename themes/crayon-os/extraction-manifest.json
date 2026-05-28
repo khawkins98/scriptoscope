@@ -1,13 +1,13 @@
 {
   "source": "crayon-os/scheme.rsrc",
-  "extractedAt": "2026-05-28T19:41:20.202Z",
+  "extractedAt": "2026-05-28T20:28:01.899Z",
   "counts": {
-    "total": 270,
-    "ok": 270,
+    "total": 271,
+    "ok": 271,
     "skipped": 0,
     "errored": 0,
     "raster": 192,
-    "geometry": 78
+    "geometry": 79
   },
   "assets": [
     {
@@ -2776,6 +2776,32 @@
         "rowBytes": 32,
         "maskRowBytes": 4,
         "bmapRowBytes": 4
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 34,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          1,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
       }
     },
     {

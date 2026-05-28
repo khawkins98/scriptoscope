@@ -1,15 +1,67 @@
 {
   "source": "slimes/scheme.rsrc",
-  "extractedAt": "2026-05-28T20:00:51.823Z",
+  "extractedAt": "2026-05-28T20:28:02.146Z",
   "counts": {
-    "total": 65,
-    "ok": 65,
+    "total": 67,
+    "ok": 67,
     "skipped": 0,
     "errored": 0,
     "raster": 65,
-    "geometry": 0
+    "geometry": 2
   },
   "assets": [
+    {
+      "type": "Colr",
+      "id": 128,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 0,
+        "minimumKVersion": 0,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "type": "Colr",
+      "id": 129,
+      "name": null,
+      "status": "ok",
+      "data": {
+        "schemeVersion": 1,
+        "fileFormatVersion": 1,
+        "minimumKVersion": 21,
+        "hasAccentColors": false,
+        "stretchScrollbarThumbFromCenter": false,
+        "extraBytes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
     {
       "type": "cicn",
       "id": -14311,

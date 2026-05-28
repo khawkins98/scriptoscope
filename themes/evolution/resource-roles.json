@@ -1325,6 +1325,27 @@
    "role": "cicn body (popup-pressed-small-arrow-glyph)"
   },
   {
+   "id": 0,
+   "type": "cicn",
+   "slug": "alert-icons-stop",
+   "family": "other",
+   "role": "cicn body (alert-icons-stop)"
+  },
+  {
+   "id": 1,
+   "type": "cicn",
+   "slug": "alert-icons-note",
+   "family": "other",
+   "role": "cicn body (alert-icons-note)"
+  },
+  {
+   "id": 2,
+   "type": "cicn",
+   "slug": "alert-icons-warning",
+   "family": "other",
+   "role": "cicn body (alert-icons-warning)"
+  },
+  {
    "id": -16509,
    "type": "icl4",
    "size": 32,
