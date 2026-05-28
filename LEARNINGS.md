@@ -2184,3 +2184,100 @@ clickable thing, check for DOM target / role / tabindex / aria-label /
 keyboard activation / state ARIA. If a category is missing, fix it
 before shipping — easier than retrofitting later, and the audit itself
 takes ~30 minutes.
+
+## 2026-05-28 — Classic Mac OS lessons for expensive chrome paint (the things our renderer doesn't yet do)
+
+A consequence of the architecture review (the 2026-05-28 three-agent sweep)
+identifying canvas allocation as the headline cost at 50+ windows: how would
+classic Mac OS have handled expensive window paints? It ran on 8 MHz 68000s
+with megabytes of RAM. It HAD to be aggressive about not repainting. The
+patterns it used translate directly to optimizations our pixel-faithful
+runtime hasn't picked up yet — captured here so the next agent doesn't
+re-derive them from scratch.
+
+We've already nailed the render-FREQUENCY axis (the 2026-05-28 audit locked
+in the contract: focus = 2 renders, theme switch = N renders, no per-mousemove
+canvas repaints). What classic Mac would push next is render COST: every one
+of our renders repaints the WHOLE chrome canvas. Classic Mac would have
+repainted only the changed region.
+
+**The six patterns + Aaron mappings:**
+
+1. **Update events with dirty regions (`InvalRect`/`BeginUpdate`).** The OS
+   maintained per-window dirty regions and clipped the WDEF's drawing to just
+   that region. Multiple `InvalRect` calls in one event cycle coalesced into
+   a single `update` event. **Aaron does the opposite:** every state mutation
+   synchronously triggers a full chrome re-render. → translate to `invalidate(entry)`
+   that sets a dirty flag and rAF-schedules render(); coalesces cascading
+   mutations. ~30 LOC. Modest impact; mutations are mostly isolated in
+   practice today.
+
+2. **Active/inactive flip only repainted the title bar.** This is the
+   headline classic-Mac optimization for focus changes. The body frame +
+   sides + bottom — none of those pixels changed when you clicked window B;
+   only the title-bar tinting did. So the WDEF was called with a clipped
+   region that was just the title bar. **Aaron repaints the entire canvas**
+   on focus change. → at first render, pre-compose BOTH active and inactive
+   title-bar strips. On focus change, `putImageData` the new strip into the
+   existing canvas — no full recomposition, no widget overlay rebuild, no
+   scrollbar re-wire. **THE BIGGEST AVAILABLE WIN.** Generalizes the existing
+   `pressedCanvas` pattern (interactive.ts:1023-1038) which already does this
+   for title-widget pressed state. Filed as a tracker.
+
+3. **Resize was "redraw the exposed strip, not the whole window."** When
+   the user grew a window by 10px, classic Mac knew which 10px were newly
+   exposed; the previously-covered area was untouched. **Aaron rebuilds the
+   whole chrome** on every size change. → low priority for us: resize is
+   rare (drag uses the ghost-outline pattern; the keyboard fallback nudges
+   8px/step). Worth knowing the pattern; not worth implementing.
+
+4. **Window-shade and zoom were essentially free.** Shade hid the body by
+   clipping; the title bar stayed exactly as it was. Zoom restored from
+   saved geometry. **Aaron re-renders the chrome** on both. → falls out
+   naturally from #2: if active/inactive title strips are cached, shade and
+   zoom can use the cached strip and skip the recomposition.
+
+5. **Off-screen `GWorld` pre-rendering.** Performance-sensitive Mac apps
+   drew complex content into an off-screen `GWorld` once, then `CopyBits`'d
+   it to screen on each refresh. **The on-screen `<canvas>` is essentially a
+   `GWorld` already — but we throw it away every render.** → canvas pooling
+   (issue #171). Classic Mac's contract is: keep the canvas; rewrite pixels
+   in place via `putImageData`. Combined with #2, the per-render allocation
+   cost for focus-flip vanishes.
+
+6. **Occluded windows didn't repaint.** If window A was fully covered by
+   window B, A's pixels stayed unchanged; the OS knew A was invisible and
+   skipped its update events. **Aaron has no occlusion model** — a theme
+   switch repaints all 50 windows even if 45 are scrolled off-page. →
+   `IntersectionObserver` signals visibility; mark off-screen windows as
+   "lazy"; defer their next render until they re-enter the viewport.
+   Significant win for many-window pages; nothing at low counts.
+
+**Pattern that classic Mac did NOT need that we DO:** none. Region calculus
+for non-rect windows (rounded-corner alerts), CopyBits modes (XOR ghost
+dragging), scroll via `CopyBits` of the visible strip — all map cleanly to
+modern primitives we already use (or correctly don't need).
+
+**Pattern that exists in our codebase already as a microcosm:** the
+`pressedCanvas` in `interactive.ts:1023-1038`. When a title widget is
+press-rendered for the first time, we cache the alternate canvas and swap
+on pointerdown/pointerup. This is EXACTLY pattern #2 at a smaller scope.
+Generalizing it from "press state for widgets" to "active state for chrome"
+is the natural extension.
+
+**Lesson worth internalizing for the next renderer-touching agent:** when
+considering an expensive operation, the classic-Mac question is "can we just
+not do the operation?" before it's "can we do the operation faster?" Our
+render() audit already verified frequency is bounded. The remaining cost is
+the operation itself — and the operation is "compose chrome, allocate canvas,
+overlay widgets, wire scrollbars." Each step has a "could we cache this
+specific subresult?" answer. The pre-cached title-strip is the highest-value
+of these. Canvas pooling is the second.
+
+**Application:** before adding a new optimization in the renderer, ask: (1)
+does it ACTUALLY change pixels (or is it a no-op masquerading as work)? (2)
+do we already have the result cached from a prior render? (3) is the changed
+region a proper subset of the canvas? If (3), don't repaint the whole canvas
+— `putImageData` the changed strip. Classic Mac's WDEF model treated chrome
+as a composable strip-machine; ours treats it as a monolithic recipe. The
+gap between the two is where the wins live.
