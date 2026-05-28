@@ -79,9 +79,11 @@ export async function interactiveButton(
     el.replaceChildren(normal);
     if (fire && onClick) onClick();
   };
-  el.addEventListener('mousedown', (e) => { e.preventDefault(); press(); });
-  el.addEventListener('mouseup', () => release(true));
-  el.addEventListener('mouseleave', () => release(false));
+  // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
+  // click (canceled drag-away); pointerup fires it.
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); });
+  el.addEventListener('pointerup', () => release(true));
+  el.addEventListener('pointerleave', () => release(false));
   el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
   el.addEventListener('keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
   return el;
@@ -509,7 +511,7 @@ export class WindowManager {
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
-    host.addEventListener('mousedown', () => { void this.focus(entry); });
+    host.addEventListener('pointerdown', () => { void this.focus(entry); });
     await this.render(entry);
     return host;
   }
@@ -753,15 +755,16 @@ export class WindowManager {
       const ch = r.height - (composed.frame.top + composed.frame.bottom) * scale;
       return !(dx >= cx && dx < cx + cw && dy >= cy && dy < cy + ch);
     };
-    win.addEventListener('mousedown', (e) => {
+    win.addEventListener('pointerdown', (e) => {
       if (!inFrame(e)) return; // inside the content body — not a drag handle
+      if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
       e.preventDefault();
       void this.focus(entry);
       const sx = e.clientX, sy = e.clientY;
       const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
-      const mv = (ev: MouseEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
-      const up = (): void => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
-      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+      const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
+      const up = (): void => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
 
     // Double-click any frame edge to window-shade (the classic Mac WindowShade gesture, side palettes
@@ -788,11 +791,12 @@ export class WindowManager {
     const corner = document.createElement('div');
     Object.assign(corner.style, {
       position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
-      cursor: 'nwse-resize', zIndex: '4',
+      cursor: 'nwse-resize', zIndex: '4', touchAction: 'none', // touch-drag must not page-scroll
     } satisfies Partial<CSSStyleDeclaration>);
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
-    corner.addEventListener('mousedown', (e) => {
+    corner.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
       const sx = e.clientX, sy = e.clientY;
@@ -805,19 +809,19 @@ export class WindowManager {
       } satisfies Partial<CSSStyleDeclaration>);
       host.appendChild(outline);
       let nw = w0, nh = h0;
-      const mv = (ev: MouseEvent): void => {
+      const mv = (ev: PointerEvent): void => {
         nw = Math.max(minContentW, w0 + Math.round((ev.clientX - sx) / scale));
         nh = Math.max(40, h0 + Math.round((ev.clientY - sy) / scale));
         outline.style.width = `${hw0 + (nw - w0) * scale}px`;
         outline.style.height = `${hh0 + (nh - h0) * scale}px`;
       };
       const up = (): void => {
-        document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up);
+        document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up);
         outline.remove();
         entry.opts = { ...entry.opts, width: nw, height: nh };
         void this.render(entry);
       };
-      document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
     win.appendChild(corner);
   }
@@ -880,9 +884,9 @@ export class WindowManager {
         const release = (): void => { if (normalSnap) cctx.drawImage(normalSnap, 0, 0); };
         // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
         // destroy this button mid-press); a widget press shouldn't require focusing the window first.
-        btn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });
-        btn.addEventListener('mouseup', release);
-        btn.addEventListener('mouseleave', release);
+        btn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });
+        btn.addEventListener('pointerup', release);
+        btn.addEventListener('pointerleave', release);
       }
       win.appendChild(btn);
     }
