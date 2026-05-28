@@ -84,7 +84,7 @@ This is both an ethical/legal stance *and* a design discipline. It forces every 
 
 **Application:** when implementing, every PR touching the default Platinum theme should cite the relevant HIG section in the commit message. Every theme port from a period source should document its provenance. If someone proposes shortcuts ("just grep through this Mac OS source dump for the answer"), this entry is the reason to say no.
 
-### 2026-05-16 — license deliberately left open
+### 2026-05-16 — license deliberately left open  *(superseded 2026-05-28 — see below)*
 
 The temptation is to match the upstream cv-mac / wasm-retro-cc family (GPL-3.0-or-later). The honest reason to defer: this is a library *meant to be embedded in other projects*, and the right license depends on a question we can't yet answer — how much do we want it used by closed-source projects?
 
@@ -95,6 +95,18 @@ The temptation is to match the upstream cv-mac / wasm-retro-cc family (GPL-3.0-o
 The decision is deferred until after Phase 1 ships and we have a sense of who's actually picking it up. Until then `package.json` says `UNLICENSED` and the README is explicit that the project is pre-license.
 
 **Application:** do not pick a license on someone's reflexive "all repos should have a LICENSE" instinct. The deferral is deliberate. Open an issue to discuss before merging any LICENSE file.
+
+### 2026-05-28 — license decided: MIT (first-party code), themes scoped out
+
+Resolved the deferred decision from 2026-05-16. The library is **MIT** for first-party code (`src/`, `tools/` first-party files, `scripts/`, `demo/` code); bundled third-party material keeps its own terms.
+
+The reasoning that broke the tie: Aaron UI's value is being *embedded* in other people's projects (the declarative `data-aaron-*` front door + the cv-mac integration target both ask for this). MIT is the dominant choice for UI libraries that want broad adoption (Bootstrap, Tailwind, Headless UI, MUI), and the "share-back-to-cv-mac" argument is weaker once we recognize that the value flowing *to* cv-mac is the runtime running their app, not the runtime being modified. LGPL would add real friction for the typical consumer who'd vendor or bundle Aaron UI into a bundle (their build tool effectively static-links). GPL would make Aaron UI a tool that consumers route around.
+
+Scope: the LICENSE file is explicit that it covers code only. Themes carry per-scheme freeware-with-redistribution terms in `themes/<slug>/meta.json` (`origin.originalLicense`, `sourceUrl`) — these are NOT relicensed. The vendored munbox subset (`tools/sit-wasm/munbox/`) keeps its own MIT (already MIT-compatible). Demo fonts (Charcoal 12 / Virtue) keep their own terms (CC BY-SA / free-with-credit).
+
+Shipped: `LICENSE` (b7ceb4a), `package.json` `"license": "MIT"`, README "License" section breaking out themes / munbox / fonts. This entry is the rationale companion to #26.
+
+**Application:** don't second-guess the MIT call without a concrete reason — the deferral was real, and so was the resolution. If a future scheme imports a non-MIT-compatible chunk (an asset under stricter terms), handle it in `themes/<slug>/meta.json` per-bundle, not by relicensing the runtime.
 
 ---
 
