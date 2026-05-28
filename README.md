@@ -6,18 +6,28 @@ Load any freeware-licensed Kaleidoscope scheme and Aaron UI draws its windows �
 
 The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `evolution`, `platinum-8`, `system7-nostalgia-silver`, plus the generated `apple-platinum-replica` universal base.
 
-> **Status (v3, 2026-05-23):** the project went through a v2 clean-break and is now on the **v3 part-code-compositor reset** — the chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the 2.3.1 binary. ("v1/v2/v3" are *architecture* generations — internal resets — not release versions; the package itself is pre-1.0.) The codebase is in prototype mode: the public surface is the `loadTheme()` / `renderWindow()` runtime in [`src/index.ts`](./src/index.ts), exercised by the demo. See [`docs/history.md`](./docs/history.md) for the full arc (and the "Dead ends — don't relitigate these" list — read it first). Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status (v3, 2026-05-28):** the project went through a v2 clean-break and is now on the **v3 part-code-compositor reset** — the chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the 2.3.1 binary. ("v1/v2/v3" are *architecture* generations — internal resets — not release versions; the package itself is pre-1.0.) The codebase is in prototype mode. Two public surfaces are now in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-aaron-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. See [`docs/history.md`](./docs/history.md) for the full arc (and the "Dead ends — don't relitigate these" list — read it first); see [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design + feature-rich pass. Live demo: <https://khawkins98.github.io/aaron-ui/>.
 
 ## Trying it
 
-The runtime is exercised through the demo page, which loads bundles from `themes/<slug>/` and renders windows from them:
+Three demo pages sit on the same runtime, each showing a different integration path. Run them all together:
 
 ```sh
 npm install
-npm run dev        # http://localhost:5173 — opens demo/index.html
+npm run dev        # http://localhost:5173/
 ```
 
-The core API is small. A scheme bundle is a directory (`theme.json` + decoded `cicns/`, `ppats/` PNGs); `loadTheme()` fetches it and `renderWindow()` composites a window from it:
+- **[`demo/index.html`](./demo/index.html)** — the **runtime debugger**. Every control type, the full raster foldout (every `cicn`/`ics4`/`ppat` per scheme), and a drop-zone where a `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive decodes and renders entirely in the browser. The page to open when you're working on the renderer itself or porting a scheme.
+- **[`demo/declarative.html`](./demo/declarative.html)** — a **Mac OS 8.6 desktop simulation built entirely from `data-aaron-*` markup**: menu bar, Welcome modal, Read Me window, Tools palette, Inspector (with live theme switching across native-recipe AND corner-sprite schemes), shaded Notepad, Trash icon that spawns themed dialogs. Window-shade (collapse box / double-click), zoom-to-fit, themed scrollbars on overflow, themed checkbox/radio/slider — all wired declaratively. The "what could you build with this" answer.
+- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar**: an ordinary article/form/list/gallery page with `data-aaron-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-aaron-button` / `data-aaron-control` elements are skinned.
+
+## The runtime API
+
+Two surfaces, same engine.
+
+### Imperative — `loadTheme()` + `renderWindow()`
+
+A scheme bundle is a directory (`theme.json` + decoded `cicns/`, `ppats/` PNGs); `loadTheme()` fetches it and `renderWindow()` composites a window from it:
 
 ```ts
 import { loadTheme, renderWindow } from 'aaron-ui';
@@ -31,7 +41,39 @@ const win = await renderWindow(theme, {
 document.body.appendChild(win);
 ```
 
-See [`demo/index.html`](./demo/index.html) for the live integration and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model.
+See [`demo/index.html`](./demo/index.html) for the full integration and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model.
+
+### Declarative — `mountDeclarative()` + `data-aaron-*`
+
+The same runtime exposed as markup. Put `data-aaron-window` on a plain `<div>` and one bootstrap line promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:
+
+```html
+<body>
+  <div id="desktop">
+    <div data-aaron-window data-aaron-title="Read Me" data-aaron-x="32" data-aaron-y="28"
+         data-aaron-width="360" data-aaron-height="280">
+      <h2>About</h2>
+      <p>This is real HTML. Selectable, focusable, accessible. The chrome is canvas behind it.</p>
+      <button data-aaron-button data-aaron-default onclick="alert('OK')">OK</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { mountDeclarative } from 'aaron-ui';
+    await mountDeclarative({ themeBaseUrl: '/themes', baseSlug: 'apple-platinum-replica' });
+  </script>
+</body>
+```
+
+**Window attributes** (all `data-aaron-*`): `window`, `title`, `window-type` (`document-window` / `movable-modal` / `dialog` / `titled-utility-window` / `side-floating-utility-window` / …), `x` / `y`, `width` / `height` (omit both → content-fit with a `ResizeObserver`), `state` (`active`/`inactive`), `z` (initial stacking order), `collapsed` (boot pre-shaded), `theme` (per-window scheme override, nearest-ancestor wins).
+
+**Promoted children**: `<button data-aaron-button>` (with `data-aaron-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-aaron-control="off"`). The native input is hidden in place — form values, events, accessibility all preserved.
+
+**Runtime theme switching**: any `<select data-aaron-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
+
+**Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
+
+Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/declarative.html>.
 
 ### Bring your own theme (in-browser conversion)
 
@@ -43,6 +85,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
 - **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — the current window-chrome model (the implemented spec).
 - **[`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for **"where is X?"**; it indexes the architecture tour, the compositor spec, the recipe-walk, and the faithfulness ledger.
+- **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-aaron-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
 - **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
 - **[`LEARNINGS.md`](./LEARNINGS.md)** — running log of gotchas and decisions, populated as we build.
@@ -51,24 +94,11 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships a **Kaleidoscope-style theme engine** capable of loading freeware-licensed period theme bundles and rendering them faithfully on the modern web.
 
-Three principles do the load-bearing work:
+The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-aaron-*` contract, with two demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
 
 1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Aaron UI is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 
-2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-aaron-window` (with `data-aaron-title`, `data-aaron-x`, etc.) to any element and Aaron UI promotes it into a draggable window on load. An imperative class-based API is available for dynamic cases, but no one should *need* to write JS to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward.
-
-   ```html
-   <!-- This is the entire integration. -->
-   <link rel="stylesheet" href="aaron-ui.css">
-   <script type="module" src="aaron-ui.js"></script>
-
-   <div data-aaron-window
-        data-aaron-title="Welcome"
-        data-aaron-x="100" data-aaron-y="80"
-        data-aaron-width="380" data-aaron-height="240">
-     <p>Drop this on any page and it becomes a Platinum window.</p>
-   </div>
-   ```
+2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-aaron-window` (with `data-aaron-title`, `data-aaron-x`, etc.) to any element and Aaron UI promotes it into a draggable window on load. Native form controls inside (`<button data-aaron-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
 
 3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Aaron UI is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Aaron UI does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Aaron UI produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 

@@ -81,3 +81,15 @@ export {
   composeCornerSpriteChrome,
   type CornerSpriteOptions,
 } from './composeCornerSprite.js';
+
+// ── Declarative front door (data-aaron-*) ──────────────────────────────────
+// Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from
+// 'aaron-ui'` rather than reach into a subpath. The declarative entry (`src/declarative/index.ts`)
+// remains the canonical place to import from for tree-shakers and library authors; this just keeps
+// the bare-package import path covering the public surface.
+export {
+  mountDeclarative, type MountOptions,
+  AaronWindow,
+  parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
+  type ParsedWindow, type ParsedButton,
+} from './declarative/index.js';
