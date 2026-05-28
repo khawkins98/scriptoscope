@@ -534,6 +534,10 @@ export class WindowManager {
    *  content survives, exactly as on a focus re-render). Drives the declarative theme-switcher — the
    *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers. */
   async retheme(theme: LoadedTheme): Promise<void> {
+    // Drop entries whose host is no longer in the document (e.g. a demo dismissed the window via
+    // `.aw-window.remove()` without going through manager.remove). Without this, retheme would
+    // render-into-detached-DOM for every dismissed window on every theme switch.
+    this.windows = this.windows.filter((w) => w.host.isConnected);
     for (const w of this.windows) { w.theme = theme; await this.render(w); }
   }
 

@@ -81,6 +81,20 @@ handlers) is unchanged. Close has no built-in (the manager doesn't own "close").
 A second review agent audited the new code; its findings are tracked below (the wheel-listener leak it
 predicted was real and is fixed in `f0b2ba2`).
 
+**Night-3 design review (background agent, 2026-05-28) — top deferred polish:**
+- Themed `<select>`: the Inspector's theme dropdown is still native. Needs a `data-aaron-menu`/
+  `data-aaron-control="select"` family on top of the existing `popup-window` chrome.
+- `titled-utility-window` + `side-floating-utility-window` title text isn't showing (Tools palette
+  + Inspector both anonymous). Likely a title-color or title-bar-fill bug in those window types.
+- Notepad's title bar in 1138 (corner-sprite, inactive state) doesn't paint — title text floats
+  over desktop grey instead of an inactive title fill.
+- Black Platinum visually indistinguishable from Apple Platinum — chroma from cinf isn't applying.
+- Scrollbar thumb renders lilac on Apple Platinum (looks like highlight-color clut leakage; should
+  be the Platinum greyscale thumb with grip dots).
+- Trash SVG looks Material-Design-modern; should be a Susan-Kare-lineage ribbed pail.
+- `data-aaron-z` (initial z-order from the page) + `data-aaron-collapsed` (Notepad pre-shaded) +
+  `data-aaron-zoom-target` (sticky zoom size) — small additions to the parser that pay off big.
+
 **Known follow-ups (deliberately deferred):**
 - **Close re-opens (needs a product decision).** The close box calls `unmount()`, which RESTORES the
   original element; the MutationObserver then sees it and re-promotes it, so the window flickers back.

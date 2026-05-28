@@ -861,7 +861,10 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // ring, or apple-platinum-2's indigo frame — both shipped art). The face fills its
   // centre; the ring wraps it by an OUTSET ≈ ¼ the template (NOT ring.width -
   // face.width, which is 0 for the shared 16px template → a squashed 2px band).
-  const outset = Math.max(3, Math.round(ringActive.width / 4));
+  // Outset from the ACTUALLY-DRAWN ring's width when there is one (default-button path) so a
+  // disabled-default isn't mis-outset if the theme ships -10231 / -10232 at different sizes; fall
+  // back to the active probe for the plain-button reservation.
+  const outset = Math.max(3, Math.round((ring?.width ?? ringActive.width) / 4));
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);

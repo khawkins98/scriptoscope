@@ -107,7 +107,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     await manager.retheme(theme);
     // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
     // out of any .aw-window, so re-skinning them would re-inject a face into the restored consumer DOM.
-    const live = skinnedButtons.filter((b) => b.skinned.closest('.aw-window') != null);
+    // `isConnected` (not `.closest('.aw-window')`) is the load-bearing filter: `closest` walks even
+    // detached subtrees and would keep entries whose window was removed via `.aw-window.remove()`.
+    const live = skinnedButtons.filter((b) => b.skinned.isConnected);
     skinnedButtons.length = 0; skinnedButtons.push(...live);
     for (const b of skinnedButtons) {
       try {
@@ -118,7 +120,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
     // Same dance for promoted checkbox/radio/slider controls: drop orphans, then re-skin each in
     // place. clear the promoted stamp first so promoteControl will re-promote (it self-guards).
-    const liveCtls = skinnedControls.filter((c) => c.skinned.closest('.aw-window') != null);
+    const liveCtls = skinnedControls.filter((c) => c.skinned.isConnected); // same isConnected fix as buttons
     skinnedControls.length = 0; skinnedControls.push(...liveCtls);
     for (const c of skinnedControls) {
       try {

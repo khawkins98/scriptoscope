@@ -52,30 +52,44 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
     (skinned as unknown as { _awNative: HTMLInputElement })._awNative = el;
   } else {
     const min = numOr(el.min, 0), max = numOr(el.max, 100);
-    const range = max - min || 1;
-    const initial = clamp01((numOr(el.value, min) - min) / range);
+    const range = max - min;
+    const initial = range > 0 ? clamp01((numOr(el.value, min) - min) / range) : 0;
     skinned = await interactiveSlider(theme, {
       orientation: 'horizontal',
       length: 120,
       value: initial,
       onChange: (v) => {
-        el.value = String(Math.round(min + v * range));
+        // Zero-range sliders (min===max) clamp to min — without the guard, range=0 would yield NaN,
+        // and the older `range || 1` fallback let values drift past max.
+        const out = range > 0 ? Math.round(min + v * range) : min;
+        el.value = String(out);
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
       },
     });
   }
 
-  // Skin-don't-steal: hide the native input in place + insert the themed face right after it.
+  // Skin-don't-steal: hide the native input in place + insert the themed face.
+  // BUT — for a WRAPPING <label><input>…</label>, inserting via `el.after(skinned)` puts the themed
+  // face INSIDE the label; then hiding the label (to suppress its duplicate caption) would hide the
+  // themed face too, leaving the control invisible. Detect that case (`lbl.contains(el)`) and place
+  // the face AFTER the wrapping label instead, then hide the label cleanly. (Sibling `<label for=…>`
+  // is the existing happy path.)
   el.style.display = 'none';
-  el.after(skinned);
-  // The themed checkable bakes its own label into the cicn (we passed `label`), so an associated
-  // <label for=...> or wrapping <label> would duplicate the text. Hide it. Slider has no inline label.
-  if (kind !== 'range' && label) {
-    const lbl = associatedLabel(el);
-    if (lbl) lbl.style.display = 'none';
+  const lbl = kind !== 'range' ? associatedLabel(el) : null;
+  const wrapping = lbl?.contains(el) ?? false;
+  if (wrapping && lbl) {
+    lbl.after(skinned);                  // skinned outside the label …
+    if (label) lbl.style.display = 'none'; // … so hiding the label can't hide it
+  } else {
+    el.after(skinned);
+    if (lbl && label) lbl.style.display = 'none';
   }
   skinned.dataset.aaronPromoted = '';
+  // Normalize at-rest radio-group state: if multiple radios in a group are pre-checked (invalid HTML
+  // but possible), the browser shows only the LAST as actually checked. Re-paint the themed siblings
+  // to match `.checked` so the at-rest visual matches the native state.
+  if (kind === 'radio' && el.name) syncRadioGroup(el.name);
   return skinned;
 }
 

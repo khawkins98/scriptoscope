@@ -111,7 +111,32 @@
   <!-- ────────────────────────────── Desktop ────────────────────────────── -->
   <div id="desktop">
 
-    <!-- 1) Read Me — main document window. Scrollable (declared size, content overflows). -->
+    <!-- 1) Welcome — movable modal. Declared FIRST in document order so the scanner promotes it
+         first → it becomes the active window with the highest z, sitting ON TOP of the Read Me at
+         boot (which is exactly what a Welcome dialog should do). Move/dismiss it and the Read Me
+         takes focus on the next click. -->
+    <div data-aaron-window data-aaron-window-type="movable-modal"
+         data-aaron-title="Welcome"
+         data-aaron-x="380" data-aaron-y="130"
+         data-aaron-width="320" data-aaron-height="140">
+      <div class="doc">
+        <p>Welcome to Aaron.</p>
+        <p>Drag any window's title bar to move it. Double-click a title bar to roll it up.
+           Click the zoom box to fit-to-content.</p>
+        <p style="color:#555"><em>Tip:</em> use the Inspector to change themes.</p>
+        <div class="actions">
+          <!-- After promotion the original data-aaron-window attribute is gone (it lived on the now-
+               removed source div); `.aw-window` is the chrome wrapper still in the DOM. Removing its
+               parent (the host) drops both the chrome AND prunes the manager entry on next retheme. -->
+          <button data-aaron-button onclick="this.closest('.aw-window')?.parentElement?.remove()">Don't show again</button>
+          <button data-aaron-button data-aaron-default
+                  onclick="this.closest('.aw-window')?.parentElement?.remove()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2) Read Me — main document window. Scrollable (declared size, content overflows). Sits
+         BEHIND Welcome at boot; click to focus, or wait until Welcome is dismissed. -->
     <div data-aaron-window
          data-aaron-title="Read Me — Aaron 1.0"
          data-aaron-x="32" data-aaron-y="28"
@@ -139,27 +164,6 @@
           clean-room from the decoded WDEF&nbsp;125 algorithm &mdash; no Apple bitmaps shipped.
           See <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a>
           for the story this project descends from.</p>
-      </div>
-    </div>
-
-    <!-- 2) Welcome — small movable modal overlapping the Read Me. Default-OK ring. -->
-    <div data-aaron-window data-aaron-window-type="movable-modal"
-         data-aaron-title="Welcome"
-         data-aaron-x="120" data-aaron-y="220"
-         data-aaron-width="300" data-aaron-height="140">
-      <div class="doc">
-        <p>Welcome to Aaron.</p>
-        <p>Drag any window's title bar to move it. Double-click a title bar to roll it up.
-           Click the zoom box to fit-to-content.</p>
-        <p style="color:#555"><em>Tip:</em> use the Inspector to change schemes.</p>
-        <div class="actions">
-          <!-- After promotion the original data-aaron-window attribute is gone (it lived on the now-
-               removed source div); `.aw-window` is the chrome wrapper still in the DOM. Remove it to
-               dismiss visually. The manager entry lingers (pre-existing) — fine for a demo dismiss. -->
-          <button data-aaron-button onclick="this.closest('.aw-window')?.remove()">Don't show again</button>
-          <button data-aaron-button data-aaron-default
-                  onclick="this.closest('.aw-window')?.remove()">OK</button>
-        </div>
       </div>
     </div>
 
@@ -259,7 +263,7 @@
       var h = d.getHours(), m = d.getMinutes();
       var am = h < 12 ? 'AM' : 'PM'; h = ((h + 11) % 12) + 1;
       document.getElementById('clock').textContent = h + ':' + (m < 10 ? '0' + m : m) + ' ' + am;
-      setTimeout(tick, 30000);
+      setTimeout(tick, 1000);
     })();
 
     // Trash → open a fresh themed Aaron dialog on each click. We APPEND a data-aaron-window
