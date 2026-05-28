@@ -154,6 +154,9 @@ async function buildToggle(
     el.addEventListener('click', toggle);
     el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
   }
+  // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
+  // drive the visual state from the outside without an internal-API leak.
+  (el as unknown as { _awSetChecked: (v: boolean) => void })._awSetChecked = set;
   return { el, get: () => checked, set };
 }
 
@@ -163,6 +166,15 @@ export async function interactiveCheckbox(
   opts: InteractiveCheckableOptions = {},
 ): Promise<HTMLElement> {
   return (await buildToggle(theme, 'checkbox', opts)).el;
+}
+
+/** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
+ *  inputs, the browser handles it via shared `name`; the visual sync is via `_awSetChecked`). */
+export async function interactiveRadio(
+  theme: LoadedTheme,
+  opts: InteractiveCheckableOptions = {},
+): Promise<HTMLElement> {
+  return (await buildToggle(theme, 'radio', opts)).el;
 }
 
 export interface RadioGroupOptions {
@@ -284,6 +296,11 @@ async function buildDraggable(
   Object.assign(el.style, {
     display: 'inline-block', lineHeight: '0', userSelect: 'none',
     touchAction: 'none', cursor: 'pointer', outlineOffset: '2px',
+    // Opt out of any flex parent's align-items:stretch — otherwise the element grows wider than the
+    // canvas inside it, and the hit-test rect no longer matches what the user sees (clicking the
+    // visible thumb lands somewhere far off the actual value). Slider lived in the Inspector's
+    // `.row.col` (flex column, stretch) which made the element 220px wide around a 120px canvas.
+    alignSelf: 'start', verticalAlign: 'middle',
   } satisfies Partial<CSSStyleDeclaration>);
 
   const repaint = async (): Promise<void> => {
@@ -293,8 +310,11 @@ async function buildDraggable(
   };
   await repaint();
 
+  // Map pointer→value against the CANVAS rect (the actual visual surface), not the element rect.
+  // The element can be stretched by a parent layout; the canvas always reflects what the user sees.
   const valueAt = (e: PointerEvent): number => {
-    const r = el.getBoundingClientRect();
+    const canvas = el.querySelector('canvas');
+    const r = (canvas ?? el).getBoundingClientRect();
     const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
     return clamp01(t);
   };
@@ -406,6 +426,45 @@ interface ManagedWindow {
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
   active: boolean;
+  /** Stacking order. Bumped to the top each focus; render() maps it to z-index (active windows sit
+   *  above inactive ones at the same recency). Generalizes the old two-level (1/2) z so 3+ windows
+   *  and modals stack correctly. */
+  z: number;
+  /** Window-shade (classic Mac "collapse"): when true, render() rolls the window up to its title bar
+   *  (collapsed window-type slug + zero-height body, content hidden). `opts.height` is left at the
+   *  EXPANDED height, so un-shading just renders again — no separate stash needed. */
+  collapsed?: boolean;
+  /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content).
+   *  Captures width/height INCLUDING undefined, so un-zooming a size-less window correctly restores it
+   *  to size-less (not stuck at the zoomed size). */
+  zoomed?: boolean;
+  userSize?: { width: number | undefined; height: number | undefined };
+  /** Aborts the previous render's scrollbar listeners. The wheel listener lives on the PERSISTENT
+   *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
+   *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
+  scrollAbort?: AbortController;
+  /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
+   *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
+   *  subtree, so without this the slotted content would be destroyed on focus/resize. */
+  contentEl?: HTMLElement;
+}
+
+/** Find a theme's window-shade (collapsed) variant slug for a base window type, if it ships one.
+ *  Returned slug is passed to renderWindow EXPLICITLY — `resolveWindowType` exact-matches it before
+ *  the utility scan that deliberately skips `/collapsed/` keys, so the shade chrome resolves. */
+function collapsedSlugFor(theme: LoadedTheme, baseSlug: string): string | undefined {
+  const wts = theme.manifest.windowTypes ?? {};
+  // Only accept a candidate that resolveWindowType would actually render as a window (top edge recipe
+  // + a part-0 body rect) — otherwise return undefined so effectiveSlug's `?? base` fallback (same type
+  // at zero body height) kicks in, instead of renderWindow dropping to the procedural baseline.
+  const ok = (k: string): string | undefined => {
+    const v = wts[k];
+    return v && v.edges?.top?.length && v.parts?.['part-0']?.rect ? k : undefined;
+  };
+  const noun = baseSlug.replace(/-window$/, '');
+  for (const c of [`collapsed-${baseSlug}`, `collapsed-${noun}`]) { const r = ok(c); if (r) return r; }
+  for (const k of Object.keys(wts)) if (k.startsWith('collapsed') && k.includes(noun)) { const r = ok(k); if (r) return r; }
+  return undefined;
 }
 
 /**
@@ -417,6 +476,10 @@ interface ManagedWindow {
  */
 export class WindowManager {
   private windows: ManagedWindow[] = [];
+  /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
+   *  window is frontmost. render() adds a large offset for the active window so it sits above all
+   *  inactive ones (classic "active window on top", with inactive windows in recency order beneath). */
+  private zClock = 0;
 
   /**
    * Add a window. Returns a positioned host element (caller places it). The
@@ -428,10 +491,18 @@ export class WindowManager {
     theme: LoadedTheme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
+    extra: { contentEl?: HTMLElement } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
-    const entry: ManagedWindow = { theme, opts, handlers, host, active: this.windows.length === 0 };
+    // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
+    // (so a declarative `data-aaron-state="inactive"` is honored; then no window starts focused).
+    const entry: ManagedWindow = {
+      theme, opts, handlers, host,
+      active: this.windows.length === 0 && opts.state !== 'inactive',
+      z: ++this.zClock,
+      ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
+    };
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('mousedown', () => { void this.focus(entry); });
@@ -439,24 +510,218 @@ export class WindowManager {
     return host;
   }
 
+  /** Stop managing a window (its host was/will be removed by the caller). Aborts its scrollbar
+   *  listeners and drops the entry so it's not re-rendered/re-themed later. Idempotent. */
+  remove(host: HTMLElement): void {
+    const i = this.windows.findIndex((w) => w.host === host);
+    if (i < 0) return;
+    this.windows[i]?.scrollAbort?.abort();
+    this.windows.splice(i, 1);
+  }
+
+  /** Re-render an already-added window at a new CONTENT size (used by the declarative content-fit
+   *  path). No-op if the host isn't managed or the size is unchanged. Public so the declarative
+   *  layer can drive resize without reaching into private state. */
+  async setContentSize(host: HTMLElement, width: number, height: number): Promise<void> {
+    const entry = this.windows.find((w) => w.host === host);
+    if (!entry) return;
+    if (entry.opts.width === width && entry.opts.height === height) return;
+    entry.opts = { ...entry.opts, width, height };
+    await this.render(entry);
+  }
+
+  /** Re-skin every managed window with a new theme and re-render in place (the persistent slotted
+   *  content survives, exactly as on a focus re-render). Drives the declarative theme-switcher — the
+   *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers. */
+  async retheme(theme: LoadedTheme): Promise<void> {
+    // Drop entries whose host is no longer in the document (e.g. a demo dismissed the window via
+    // `.aw-window.remove()` without going through manager.remove). Without this, retheme would
+    // render-into-detached-DOM for every dismissed window on every theme switch.
+    this.windows = this.windows.filter((w) => w.host.isConnected);
+    for (const w of this.windows) { w.theme = theme; await this.render(w); }
+  }
+
   private async focus(entry: ManagedWindow): Promise<void> {
-    if (entry.active) return;
+    entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
+    if (entry.active) { entry.host.style.zIndex = this.zIndexFor(entry); return; }
     for (const w of this.windows) {
       const was = w.active;
       w.active = w === entry;
       if (w.active !== was) await this.render(w);
+      else w.host.style.zIndex = this.zIndexFor(w); // refresh the loser's z without a full re-render
     }
   }
 
+  /** Active windows float above inactive ones; within each group, higher zClock (more recent) wins. */
+  private zIndexFor(entry: ManagedWindow): string {
+    return String((entry.active ? 100_000 : 0) + entry.z);
+  }
+
+  /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
+  private effectiveSlug(entry: ManagedWindow): string {
+    const base = entry.opts.windowType ?? 'document-window';
+    // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
+    // else fall back to the same type at zero body height — both roll the window up to the title bar.
+    return entry.collapsed ? (collapsedSlugFor(entry.theme, base) ?? base) : base;
+  }
+
   private async render(entry: ManagedWindow): Promise<void> {
+    const collapsed = entry.collapsed === true;
+    const slug = this.effectiveSlug(entry);
     const win = await renderWindow(entry.theme, {
       ...entry.opts,
+      windowType: slug,
+      ...(collapsed ? { height: 0 } : {}),
       state: entry.active ? 'active' : 'inactive',
     });
-    entry.host.style.zIndex = entry.active ? '2' : '1';
+    entry.host.style.zIndex = this.zIndexFor(entry);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
+    // Re-slot the persistent consumer content into the freshly-built content hole (the SAME node,
+    // so listeners/selection survive) before the window goes into the DOM. See ManagedWindow.contentEl.
+    if (entry.contentEl) win.querySelector('.aw-content')?.replaceChildren(entry.contentEl);
+    // When shaded, keep the content node attached (preserves scroll position + listeners) but hidden.
+    if (collapsed) {
+      const hole = win.querySelector('.aw-content') as HTMLElement | null;
+      if (hole) hole.style.display = 'none';
+    }
     entry.host.replaceChildren(win);
+    // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
+    // is in the DOM — overflow can only be measured once the content is laid out.
+    void this.wireScrollbars(entry, win, 0);
+  }
+
+  /**
+   * Replace the native browser scrollbar with the scheme's own scrollbar art when declared-size
+   * content overflows (content-fit windows grow to fit, so they never reach here). We own the scroll:
+   * `.aw-content` goes `overflow:hidden`, a gutter is reserved on the right, and a themed vertical
+   * scrollbar is overlaid in it — dragging the thumb, the wheel, and the arrow keys all set
+   * `scrollTop` and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
+   * guarded against stale wins. `attempt` retries across a couple of frames for the first render, when
+   * the host isn't in the document yet so nothing has layout.
+   */
+  private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
+    if (entry.host.firstChild !== win) return;           // a newer render already replaced this subtree
+    // Tear down the previous render's scrollbar listeners (esp. the wheel listener on the persistent
+    // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes. (Leaving the field
+    // pointing at the now-aborted controller during early returns is harmless — re-abort is a no-op.)
+    entry.scrollAbort?.abort();
+    if (entry.collapsed) return;                          // shaded: no body to scroll
+    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const content = win.querySelector('.aw-content') as HTMLElement | null;
+    if (!composed || !content) return;
+    // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
+    // their content. Hard-clip them so neither a native nor a themed scrollbar can appear; if content
+    // overflows the declared size, that's a sizing bug for the consumer to fix.
+    const type = entry.opts.windowType ?? '';
+    if (/utility|palette|floating|modal|dialog/.test(type)) {
+      (entry.contentEl ?? content).style.overflow = 'hidden';
+      return;
+    }
+    // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
+    // .aw-content) when present, else .aw-content itself for plain WindowManager windows.
+    const scrollEl = entry.contentEl ?? content;
+    scrollEl.style.paddingRight = '';                     // measure at natural width (drop any prior gutter)
+    const ch = scrollEl.clientHeight;
+    if (ch === 0) {                                       // not laid out yet (first render, pre-insert)
+      if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1); });
+      return;
+    }
+    if (scrollEl.scrollHeight <= ch + 1) {                // no vertical overflow → leave native behavior alone
+      scrollEl.style.overflowY = '';                      // restore renderWindow/slot's own overflow:auto
+      return;
+    }
+    scrollEl.style.overflowY = 'hidden';                  // overflow confirmed: we drive scrollTop ourselves
+    const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    const gutter = 15 * scale;
+    scrollEl.style.paddingRight = `${gutter}px`;          // reserve room so the bar doesn't cover content
+    const sh = scrollEl.scrollHeight;                     // re-measure after the reflow
+    const maxScroll = sh - ch;
+    const thumbExtent = Math.max(0.08, ch / sh);
+    // Leave the bottom-right grow box clear: stop the track above it.
+    const barLenCss = Math.max(32, ch - (composed.growBox ? (composed.growBox.h + 1) * scale : 0));
+    let value = maxScroll > 0 ? clamp01(scrollEl.scrollTop / maxScroll) : 0;
+    const ac = new AbortController();
+    const signal = ac.signal;
+    entry.scrollAbort = ac;
+
+    const bar = document.createElement('div');
+    bar.className = 'aw-window-scrollbar';
+    Object.assign(bar.style, {
+      position: 'absolute', zIndex: '3', lineHeight: '0', touchAction: 'none', cursor: 'default',
+      right: `${composed.frame.right * scale}px`, top: `${composed.frame.top * scale}px`,
+    } satisfies Partial<CSSStyleDeclaration>);
+    bar.setAttribute('role', 'scrollbar');
+    bar.setAttribute('aria-orientation', 'vertical');
+    bar.tabIndex = 0;
+
+    let raf = 0;
+    const repaint = async (): Promise<void> => {
+      const opts = { orientation: 'vertical' as const, length: Math.round(barLenCss / scale), value, thumbExtent };
+      const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar(opts);
+      if (buf && entry.host.firstChild === win) bar.replaceChildren(bufferToCanvas(buf, scale));
+      bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+    };
+    const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+    const setValue = (v: number): void => { value = clamp01(v); scrollEl.scrollTop = value * maxScroll; scheduleRepaint(); };
+
+    win.appendChild(bar);
+    // Attach listeners SYNCHRONOUSLY (before the async initial paint) so a concurrent re-render that
+    // aborts `ac` can't race a half-wired bar — the listeners are either fully present or fully removed.
+    // Drag the thumb (pointer = touch + mouse).
+    const valueAtPointer = (e: PointerEvent): number => { const r = bar.getBoundingClientRect(); return clamp01((e.clientY - r.top) / r.height); };
+    bar.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      setValue(valueAtPointer(e));
+      const mv = (ev: PointerEvent): void => setValue(valueAtPointer(ev));
+      const up = (): void => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', mv, { signal }); window.addEventListener('pointerup', up, { signal });
+    }, { signal });
+    // Wheel/trackpad over the content drives the same value (two-way). On the PERSISTENT slot — scoped
+    // to `signal` so the next render's abort removes it (else it would accumulate + multiply deltas).
+    scrollEl.addEventListener('wheel', (e) => { e.preventDefault(); setValue((scrollEl.scrollTop + e.deltaY) / maxScroll); }, { passive: false, signal });
+    // Arrow keys / page keys on the bar.
+    bar.addEventListener('keydown', (e) => {
+      const line = maxScroll > 0 ? 24 / maxScroll : 0;
+      const page = ch / maxScroll;
+      let next = value;
+      if (e.key === 'ArrowDown') next = value + line; else if (e.key === 'ArrowUp') next = value - line;
+      else if (e.key === 'PageDown') next = value + page; else if (e.key === 'PageUp') next = value - page;
+      else if (e.key === 'Home') next = 0; else if (e.key === 'End') next = 1; else return;
+      e.preventDefault(); setValue(next);
+    }, { signal });
+    await repaint(); // initial thumb paint (guarded against a stale win inside repaint)
+  }
+
+  /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
+  private async toggleCollapse(entry: ManagedWindow): Promise<void> {
+    entry.collapsed = !entry.collapsed;
+    await this.render(entry);
+    entry.handlers.onCollapse?.();
+  }
+
+  /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size. */
+  private async toggleZoom(entry: ManagedWindow): Promise<void> {
+    if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
+    if (!entry.zoomed) {
+      entry.userSize = { width: entry.opts.width, height: entry.opts.height }; // may be undefined — preserved
+      const c = entry.contentEl;
+      // Zoom-to-fit: show all content (classic "ideal size"), capped so it can't swallow the screen.
+      const w = c ? Math.min(Math.max(c.scrollWidth, entry.opts.width ?? 0), 760) : Math.round((entry.opts.width ?? 240) * 1.5);
+      const h = c ? Math.min(Math.max(c.scrollHeight, entry.opts.height ?? 0), 560) : Math.round((entry.opts.height ?? 120) * 1.5);
+      entry.opts = { ...entry.opts, width: w, height: h };
+      entry.zoomed = true;
+    } else {
+      // Restore the pre-zoom size, honoring undefined (delete the key) so a size-less window goes back
+      // to size-less rather than sticking at the zoomed dimensions.
+      const opts = { ...entry.opts };
+      if (entry.userSize?.width != null) opts.width = entry.userSize.width; else delete opts.width;
+      if (entry.userSize?.height != null) opts.height = entry.userSize.height; else delete opts.height;
+      entry.opts = opts;
+      entry.zoomed = false;
+    }
+    await this.render(entry);
+    entry.handlers.onZoom?.();
   }
 
   /**
@@ -471,10 +736,21 @@ export class WindowManager {
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     const host = entry.host;
 
-    // MOVE — mousedown on the title bar (top frame, not a widget: widgets stopPropagation).
-    const frameTop = composed.frame.top * scale;
+    // MOVE — mousedown anywhere on the FRAME (any inset edge), not just the top. Side-titled palette
+    // windows (`side-floating-utility-window`) put their title strip on the LEFT, not the top, so a
+    // top-only check would leave them un-draggable. "Frame" = the window rect minus the content rect.
+    // Widgets (title boxes) and the grow-box corner stopPropagation, so they don't trigger drag; the
+    // themed scrollbar (when present) also stopPropagation on pointerdown for the same reason.
+    const inFrame = (e: MouseEvent): boolean => {
+      const r = win.getBoundingClientRect();
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const cx = composed.frame.left * scale, cy = composed.frame.top * scale;
+      const cw = r.width - (composed.frame.left + composed.frame.right) * scale;
+      const ch = r.height - (composed.frame.top + composed.frame.bottom) * scale;
+      return !(dx >= cx && dx < cx + cw && dy >= cy && dy < cy + ch);
+    };
     win.addEventListener('mousedown', (e) => {
-      if (e.clientY - win.getBoundingClientRect().top > frameTop) return; // below the title bar
+      if (!inFrame(e)) return; // inside the content body — not a drag handle
       e.preventDefault();
       void this.focus(entry);
       const sx = e.clientX, sy = e.clientY;
@@ -482,6 +758,17 @@ export class WindowManager {
       const mv = (ev: MouseEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
       const up = (): void => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    });
+
+    // Double-click any frame edge to window-shade (the classic Mac WindowShade gesture, side palettes
+    // included — the side title strip is the natural target for a vertical title bar). Ignores
+    // double-clicks on the widgets, the scrollbar, and the grow-box corner.
+    win.addEventListener('dblclick', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('.aw-titlewidget') || t.closest('.aw-window-scrollbar')) return;
+      if (!inFrame(e)) return;
+      e.preventDefault();
+      void this.toggleCollapse(entry);
     });
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
@@ -499,6 +786,8 @@ export class WindowManager {
       position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
       cursor: 'nwse-resize', zIndex: '4',
     } satisfies Partial<CSSStyleDeclaration>);
+    // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
+    corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
     corner.addEventListener('mousedown', (e) => {
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
@@ -533,10 +822,20 @@ export class WindowManager {
   private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
     if (!composed) return; // baseline (procedural) window — no cicn widget rects
-    const slug = entry.opts.windowType ?? 'document-window';
+    const slug = this.effectiveSlug(entry);
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    // Per-widget action: an explicit handler wins; otherwise collapse/zoom get a built-in (window-shade
+    // / zoom-to-fit) so the widgets work out of the box. Close has no built-in (the manager doesn't own
+    // what "close" means — the declarative layer wires onClose=unmount), so a close widget without a
+    // handler stays inert. Existing callers that pass handlers (demo/index.html) keep their behavior.
+    const builtin: Partial<Record<TitleWidget, () => void>> = {
+      collapse: () => { void this.toggleCollapse(entry); },
+      zoom: () => { void this.toggleZoom(entry); },
+    };
     const cb: Record<TitleWidget, (() => void) | undefined> = {
-      close: entry.handlers.onClose, zoom: entry.handlers.onZoom, collapse: entry.handlers.onCollapse,
+      close: entry.handlers.onClose,
+      zoom: entry.handlers.onZoom ?? builtin.zoom,
+      collapse: entry.handlers.onCollapse ?? builtin.collapse,
     };
     // To show the PRESSED state on mousedown we repaint the live chrome canvas with a pre-rendered
     // pressed variant (renderWindow's pressedWidget), then restore a snapshot of the normal chrome

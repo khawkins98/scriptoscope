@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Kaleidoscope Corner — a vanilla page, windowed</title>
+  <style>
+    /* Charcoal faces (free recreations — see demo/index.html for credits). */
+    @font-face { font-family: 'Charcoal'; src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'Charcoal 12'; src: url('assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
+
+    /* ── This is a perfectly ORDINARY web page. Nothing below is Aaron-specific styling; it's the
+       kind of vanilla HTML/CSS you'd already have. The ONLY Aaron touch is the data-aaron-* hooks
+       sprinkled on existing content divs (search "data-aaron") + the one bootstrap <script>. ── */
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.55 Georgia, 'Times New Roman', serif; color: #1c1c1c; }
+    header.site { padding: 22px 24px 8px; }
+    header.site h1 { margin: 0; font: 700 26px/1.1 'Charcoal', system-ui; letter-spacing: .2px; }
+    header.site p { margin: 6px 0 0; color: #444; font-size: 14px; }
+    .note { font: 12px/1.5 system-ui; color: #555; max-width: 72ch; }
+    .note code { background: #00000010; padding: 0 4px; border-radius: 4px; }
+
+    /* The "desktop" the windows float on — a positioned region so absolute window hosts resolve here. */
+    #screen {
+      position: relative; min-height: 760px; margin-top: 10px; overflow: hidden;
+      background: #5a6b8c repeating-linear-gradient(0deg, #ffffff0a 0 1px, transparent 1px 4px);
+    }
+
+    /* Plain content styling for what lives INSIDE the windows — normal article/form/list CSS. */
+    .card { padding: 12px 14px; }
+    .card h2 { font: 600 15px 'Charcoal', system-ui; margin: 0 0 8px; }
+    .card h3 { font: 600 13px 'Charcoal', system-ui; margin: 12px 0 4px; }
+    .card p { margin: 0 0 10px; }
+    .card blockquote { margin: 10px 0; padding: 4px 0 4px 12px; border-left: 3px solid #b9a; color: #555; font-style: italic; }
+    .card ul { margin: 6px 0; padding-left: 20px; }
+    .card a { color: #2b5070; }
+    .card img { display: block; image-rendering: pixelated; border: 1px solid #888; margin: 6px 0; }
+    .field { margin: 0 0 9px; font: 13px system-ui; }
+    .field label { display: block; margin-bottom: 2px; font-weight: 600; }
+    .field input[type=text], .field input[type=email], .field textarea, .field select {
+      width: 100%; font: 13px system-ui; padding: 3px 5px; border: 1px solid #888; border-radius: 3px;
+    }
+    .field.inline { display: flex; align-items: center; gap: 6px; }
+    .field.inline input { width: auto; }
+    .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+    .gallery { display: flex; gap: 8px; flex-wrap: wrap; }
+    .gallery figure { margin: 0; font: 11px system-ui; text-align: center; }
+
+    /* Progressive enhancement: before the scanner runs, the tagged content still shows as plain
+       in-flow cards (visible without JS). Once promoted, they pop into floating windows. */
+    #screen > [data-aaron-window]:not([data-aaron-promoted]) {
+      display: inline-block; vertical-align: top; width: 300px; margin: 12px; background: #efeae0;
+      border: 1px solid #998; box-shadow: 0 1px 3px #0003;
+    }
+  </style>
+</head>
+<!-- Whole site uses one scheme (1138). A real site picks a look; per-window data-aaron-theme can override. -->
+<body data-aaron-theme="1138">
+  <header class="site">
+    <h1>🌈 The Kaleidoscope Corner</h1>
+    <p>A fan page for classic Mac OS theming.</p>
+    <p class="note">Everything below is <strong>ordinary HTML</strong> — an article, a form, a list,
+      an image gallery. The only change is a few <code>data-aaron-window</code> attributes on the
+      existing content divs and one bootstrap line, which promote them into real Mac windows. Drag,
+      resize, focus; the form's inputs stay native and accessible. (Mechanics demo:
+      <a href="./declarative.html">declarative.html</a>.)</p>
+    <p class="note">Reskin the whole page:
+      <select data-aaron-theme-switcher style="font:12px system-ui">
+        <option value="1138">1138</option>
+        <option value="apple-platinum-replica">Apple Platinum (replica)</option>
+        <option value="beos-r503">BeOS R5</option>
+        <option value="black-platinum">Black Platinum</option>
+        <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
+        <option value="platinum-8">Platinum 8</option>
+      </select>
+      — or double-click any title bar to window-shade.</p>
+  </header>
+
+  <div id="screen">
+
+    <!-- An ordinary <article>, tagged. Real reflowing prose, content-fit (no declared size). -->
+    <article class="card" data-aaron-window data-aaron-title="Welcome.txt" data-aaron-x="26" data-aaron-y="24"
+             data-aaron-width="320" data-aaron-height="240">
+      <h2>What was Kaleidoscope?</h2>
+      <p><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a>
+        (1997–2003) let Mac OS 8/9 users reskin the entire system from community-made <em>schemes</em> —
+        title bars, scrollbars, buttons, the works — long before "themes" were mainstream.</p>
+      <blockquote>"A scheme is just a resource file. The OS drew it. We're doing the same on the web."</blockquote>
+      <h3>Why it still matters</h3>
+      <p>Thousands of schemes were made and freely shared. This page renders them faithfully from
+        their original binary resources — no hand-authored CSS chrome.</p>
+      <ul>
+        <li>Try selecting this text — it's live, accessible DOM.</li>
+        <li>Drag the title bar; resize from the bottom-right gripper.</li>
+        <li>Click another window, then back, to see active vs. inactive chrome.</li>
+      </ul>
+    </article>
+
+    <!-- A normal <form> with NATIVE controls. The scanner leaves inputs/selects native (a11y-preserved)
+         and only skins the data-aaron-button submit. Declared size so it doesn't jump while typing. -->
+    <form class="card" data-aaron-window data-aaron-title="Sign the guestbook"
+          data-aaron-x="372" data-aaron-y="40" data-aaron-width="280" data-aaron-height="300"
+          onsubmit="event.preventDefault(); alert('Thanks, ' + (this.elements.gb_name.value || 'friend') + '!');">
+      <div class="field"><label for="gb_name">Name</label><input id="gb_name" name="gb_name" type="text" placeholder="Your name" /></div>
+      <div class="field"><label for="gb_mail">Email</label><input id="gb_mail" name="gb_mail" type="email" placeholder="you@example.com" /></div>
+      <div class="field"><label for="gb_fav">Favourite scheme</label>
+        <select id="gb_fav" name="gb_fav">
+          <option>1138</option><option>BeOS R5</option><option>Apple Platinum</option><option>Aqua-ish</option>
+        </select>
+      </div>
+      <div class="field"><label for="gb_msg">Message</label><textarea id="gb_msg" name="gb_msg" rows="3" placeholder="Say hi…"></textarea></div>
+      <div class="field inline"><input id="gb_notify" name="gb_notify" type="checkbox" /><label for="gb_notify">Email me new schemes</label></div>
+      <div class="actions">
+        <button type="reset" data-aaron-button>Clear</button>
+        <button type="submit" data-aaron-button data-aaron-default>Sign</button>
+      </div>
+    </form>
+
+    <!-- An ordinary links list. Content-fit (grows to the list). -->
+    <nav class="card" data-aaron-window data-aaron-title="Cool Links" data-aaron-x="26" data-aaron-y="300">
+      <h2>Around the web</h2>
+      <ul>
+        <li><a href="https://macintoshgarden.org/apps/kaleidoscope" target="_blank" rel="noopener">Macintosh Garden — Kaleidoscope</a></li>
+        <li><a href="https://macthemes.garden/" target="_blank" rel="noopener">Mac Themes Garden</a></li>
+        <li><a href="https://infinitemac.org/" target="_blank" rel="noopener">Infinite Mac (run it in a tab)</a></li>
+        <li><a href="./declarative.html">← back to the mechanics demo</a></li>
+      </ul>
+    </nav>
+
+    <!-- An image gallery (real <img>s — the bundled theme reference screenshots). Declared + scroll. -->
+    <div class="card" data-aaron-window data-aaron-title="Gallery" data-aaron-x="372" data-aaron-y="372"
+         data-aaron-width="300" data-aaron-height="220">
+      <h2>Schemes in the wild</h2>
+      <div class="gallery">
+        <figure><img src="assets/references/1138.png" alt="1138 scheme" width="120" /><figcaption>1138</figcaption></figure>
+        <figure><img src="assets/references/beos-r503.png" alt="BeOS R5 scheme" width="120" /><figcaption>BeOS R5</figcaption></figure>
+        <figure><img src="assets/references/apple-platinum-2.png" alt="Apple Platinum scheme" width="120" /><figcaption>Platinum</figcaption></figure>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { mountDeclarative } from '../src/declarative/index.ts';
+    await mountDeclarative({
+      themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
+      baseSlug: 'apple-platinum-replica',
+      pageThemeDefault: '1138',
+    });
+  </script>
+</body>
+</html>

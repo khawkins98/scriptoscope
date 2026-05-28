@@ -24,6 +24,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(import.meta.dirname, 'demo/index.html'),
+        // The declarative (data-attribute) window front door — its own page (feat/declarative-windows).
+        declarative: resolve(import.meta.dirname, 'demo/declarative.html'),
+        // A realistic vanilla page (article/form/list/gallery) with data-aaron-* hooks on real content.
+        'declarative-site': resolve(import.meta.dirname, 'demo/declarative-site.html'),
       },
     },
   },
