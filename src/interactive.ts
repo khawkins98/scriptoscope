@@ -704,10 +704,21 @@ export class WindowManager {
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     const host = entry.host;
 
-    // MOVE — mousedown on the title bar (top frame, not a widget: widgets stopPropagation).
-    const frameTop = composed.frame.top * scale;
+    // MOVE — mousedown anywhere on the FRAME (any inset edge), not just the top. Side-titled palette
+    // windows (`side-floating-utility-window`) put their title strip on the LEFT, not the top, so a
+    // top-only check would leave them un-draggable. "Frame" = the window rect minus the content rect.
+    // Widgets (title boxes) and the grow-box corner stopPropagation, so they don't trigger drag; the
+    // themed scrollbar (when present) also stopPropagation on pointerdown for the same reason.
+    const inFrame = (e: MouseEvent): boolean => {
+      const r = win.getBoundingClientRect();
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      const cx = composed.frame.left * scale, cy = composed.frame.top * scale;
+      const cw = r.width - (composed.frame.left + composed.frame.right) * scale;
+      const ch = r.height - (composed.frame.top + composed.frame.bottom) * scale;
+      return !(dx >= cx && dx < cx + cw && dy >= cy && dy < cy + ch);
+    };
     win.addEventListener('mousedown', (e) => {
-      if (e.clientY - win.getBoundingClientRect().top > frameTop) return; // below the title bar
+      if (!inFrame(e)) return; // inside the content body — not a drag handle
       e.preventDefault();
       void this.focus(entry);
       const sx = e.clientX, sy = e.clientY;
@@ -717,12 +728,13 @@ export class WindowManager {
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
     });
 
-    // Double-click the title bar to window-shade (the classic Mac WindowShade gesture) — and the
-    // reliable way to un-shade if a collapsed chrome happens to drop its collapse widget. Ignores
-    // double-clicks on the widgets themselves (those toggle via their own hit button).
+    // Double-click any frame edge to window-shade (the classic Mac WindowShade gesture, side palettes
+    // included — the side title strip is the natural target for a vertical title bar). Ignores
+    // double-clicks on the widgets, the scrollbar, and the grow-box corner.
     win.addEventListener('dblclick', (e) => {
-      if ((e.target as HTMLElement).closest('.aw-titlewidget')) return;
-      if (e.clientY - win.getBoundingClientRect().top > frameTop) return; // below the title bar
+      const t = e.target as HTMLElement;
+      if (t.closest('.aw-titlewidget') || t.closest('.aw-window-scrollbar')) return;
+      if (!inFrame(e)) return;
       e.preventDefault();
       void this.toggleCollapse(entry);
     });
@@ -742,6 +754,8 @@ export class WindowManager {
       position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
       cursor: 'nwse-resize', zIndex: '4',
     } satisfies Partial<CSSStyleDeclaration>);
+    // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
+    corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
     corner.addEventListener('mousedown', (e) => {
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
