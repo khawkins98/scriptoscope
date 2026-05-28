@@ -1,6 +1,15 @@
 # Declarative window management via `data-aaron-*` — design (litmus-test build)
 
-**Date:** 2026-05-27 · **Branch:** `feat/declarative-windows` (isolated; abandonable) · **Status:** BUILT overnight
+**Date:** 2026-05-27 · **Branch:** `feat/declarative-windows` (merged) · **Status:** BUILT + shipped to `main` 2026-05-27/28
+
+> **Historical note (2026-05-28):** this doc describes the design + multi-night build of the
+> declarative front door as it was being constructed. Two of the demo pages referenced below have
+> since been consolidated: `demo/declarative.html` (the OS 8.6 desktop mechanics litmus) was
+> retired once `demo/index.html` absorbed the window-type + control-variety coverage via its
+> playgrounds. The remaining `demo/declarative-site.html` continues to exercise the data-attribute
+> scanner on realistic vanilla content. Where this doc mentions `declarative.html`, read it as
+> "the desktop showcase that drove the early validation" — the mechanics it exercised are now
+> covered by `demo/index.html`'s window playground + interactive playground.
 
 ---
 

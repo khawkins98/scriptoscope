@@ -23,11 +23,14 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       input: {
+        // The runtime showcase (also serves as the contributor debugger via `?dev=1`).
         index: resolve(import.meta.dirname, 'demo/index.html'),
-        // The declarative (data-attribute) window front door — its own page (feat/declarative-windows).
-        declarative: resolve(import.meta.dirname, 'demo/declarative.html'),
-        // A realistic vanilla page (article/form/list/gallery) with data-aaron-* hooks on real content.
+        // A realistic vanilla page (article/form/list/gallery) with data-aaron-* hooks on real
+        // content — the North Star "skin an existing site" demo.
         'declarative-site': resolve(import.meta.dirname, 'demo/declarative-site.html'),
+        // Hostile-CSS regression page: aggressive host rules that would wreck light-DOM chrome.
+        // Confirms ADR-0001 Decision 2 (Shadow DOM around the chrome) keeps doing its job.
+        'declarative-hostile-css': resolve(import.meta.dirname, 'demo/declarative-hostile-css.html'),
       },
     },
   },

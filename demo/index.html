@@ -36,7 +36,18 @@
     }
     header { padding: 20px 24px 4px; }
     header h1 { font-size: 18px; margin: 0; }
-    header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; }
+    header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; max-width: 76ch; }
+    header p a { color: inherit; }
+    header p a.cta { color: #1a5fbf; opacity: 1; font-weight: 500; white-space: nowrap; }
+    header p a.cta:hover { text-decoration: underline; }
+
+    /* Developer tools disclosure — the dev-facing inspectors (geometry, slices,
+       icons, rasters, roles) fold behind this so the page leads with showcase. */
+    details.dev-tools { margin-top: 24px; padding: 0 24px; }
+    details.dev-tools > summary { cursor: pointer; padding: 10px 14px; background: #999; border-radius: 4px; font-weight: 600; font-size: 13px; opacity: 0.8; user-select: none; }
+    details.dev-tools > summary:hover { opacity: 1; }
+    details.dev-tools[open] > summary { margin-bottom: 8px; }
+    details.dev-tools .dsection { margin: 0; }
 
     .theme-row { border-top: 1px solid #999; padding: 8px 24px 20px; }
     .theme-row > h2 { font-size: 15px; margin: 8px 0 2px; }
@@ -146,8 +157,8 @@
 </head>
 <body>
   <header>
-    <h1>Aaron UI <span id="ver"></span> — runtime debugger</h1>
-    <p>Pick a scheme from the ribbon; every diagnostic for it renders below at <strong>native pixel size</strong>.</p>
+    <h1>Aaron UI <span id="ver"></span> — Mac OS Appearance for the web</h1>
+    <p>Render any classic-Mac <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a> theme pixel-faithfully in the browser — 1138, BeOS R5, evolution, Apple Platinum 2, more. Pick a scheme from the ribbon to explore: scene + live controls + window playground. <a href="./declarative-site.html" class="cta">Try it on a real page →</a></p>
   </header>
   <section id="byo" aria-label="Bring your own theme">
     <div id="byo-drop" tabindex="0" role="button" aria-label="Bring your own theme — drop a Kaleidoscope theme file, or click to choose one">
@@ -1358,10 +1369,21 @@
       const subnav = document.createElement('nav'); subnav.className = 'subnav';
       frag.appendChild(subnav);
       const navItems = [];
-      const dsection = (id, label) => {
+      // The dev inspectors (geometry, slices, icons, rasters, roles) live inside a
+      // disclosure so the page leads with the showcase. Open by default when the URL
+      // carries `?dev=1` so a contributor's workflow isn't a click slower.
+      const devDetails = document.createElement('details'); devDetails.className = 'dev-tools';
+      if (new URLSearchParams(location.search).get('dev') === '1') devDetails.open = true;
+      const devSummary = document.createElement('summary');
+      devSummary.textContent = 'Developer tools — geometry · slice inspector · icon inventory · all rasters · resource roles';
+      devDetails.appendChild(devSummary);
+      const dsection = (id, label, opts = {}) => {
         const s = document.createElement('section'); s.className = 'dsection'; s.id = 'd-' + id;
         const h = document.createElement('h3'); h.textContent = label; s.appendChild(h);
-        navItems.push([id, label]); frag.appendChild(s); return s;
+        navItems.push([id, label]);
+        if (opts.dev) devDetails.appendChild(s);
+        else frag.appendChild(s);
+        return s;
       };
 
       // 1. scene + reference (the key comparison)
@@ -1415,11 +1437,12 @@
       }
 
       // 3–7. window geometry, slice inspector, icons, rasters, resource-roles
-      dsection('geometry', 'Window geometry').appendChild(await diagnosticStrip(theme));
-      dsection('slices', 'Slice inspector').appendChild(await sliceInspector(theme));
-      dsection('icons', 'Icon inventory').appendChild(await iconInventory(theme));
-      dsection('rasters', 'All rasters').appendChild(await rasterInventory(theme));
-      dsection('roles', 'Resource roles').appendChild(await resourceRoles(theme));
+      dsection('geometry', 'Window geometry', { dev: true }).appendChild(await diagnosticStrip(theme));
+      dsection('slices', 'Slice inspector', { dev: true }).appendChild(await sliceInspector(theme));
+      dsection('icons', 'Icon inventory', { dev: true }).appendChild(await iconInventory(theme));
+      dsection('rasters', 'All rasters', { dev: true }).appendChild(await rasterInventory(theme));
+      dsection('roles', 'Resource roles', { dev: true }).appendChild(await resourceRoles(theme));
+      frag.appendChild(devDetails);
 
       for (const [id, label] of navItems) { const a = document.createElement('a'); a.href = '#d-' + id; a.textContent = label; subnav.appendChild(a); }
       return frag;

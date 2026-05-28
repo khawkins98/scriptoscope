@@ -10,16 +10,15 @@ The current corpus of extracted bundles lives under [`themes/`](./themes/): `113
 
 ## Trying it
 
-Three demo pages sit on the same runtime, each showing a different integration path. Run them all together:
+Two demo pages sit on the same runtime, each showing a different integration path. Run them together:
 
 ```sh
 npm install
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **runtime debugger**. Every control type, the full raster foldout (every `cicn`/`ics4`/`ppat` per scheme), and a drop-zone where a `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive decodes and renders entirely in the browser. The page to open when you're working on the renderer itself or porting a scheme.
-- **[`demo/declarative.html`](./demo/declarative.html)** — a **Mac OS 8.6 desktop simulation built entirely from `data-aaron-*` markup**: menu bar, Welcome modal, Read Me window, Tools palette, Inspector (with live theme switching across native-recipe AND corner-sprite schemes), shaded Notepad, Trash icon that spawns themed dialogs. Window-shade (collapse box / double-click), zoom-to-fit, themed scrollbars on overflow, themed checkbox/radio/slider — all wired declaratively. The "what could you build with this" answer.
-- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar**: an ordinary article/form/list/gallery page with `data-aaron-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-aaron-button` / `data-aaron-control` elements are skinned.
+- **[`demo/index.html`](./demo/index.html)** — the **runtime showcase**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
+- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar** and North Star integration story: an ordinary article/form/list/gallery page with `data-aaron-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-aaron-button` / `data-aaron-control` elements are skinned. Includes a page-level theme switcher that re-skins every promoted window live.
 
 ## The runtime API
 
@@ -73,7 +72,7 @@ The same runtime exposed as markup. Put `data-aaron-window` on a plain `<div>` a
 
 **Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
 
-Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/declarative.html>.
+Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/declarative-site.html>.
 
 ### Bring your own theme (in-browser conversion)
 
@@ -94,7 +93,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships a **Kaleidoscope-style theme engine** capable of loading freeware-licensed period theme bundles and rendering them faithfully on the modern web.
 
-The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-aaron-*` contract, with two demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
+The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-aaron-*` contract, with the demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
 
 1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Aaron UI is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 

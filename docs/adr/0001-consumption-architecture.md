@@ -75,7 +75,7 @@ Decision 3 (imperative + declarative front door) shipped on `main` (commits `2e2
 - A real WindowManager: drag from any edge, grow-box resize, z-order, window-shade (collapse), zoom-to-fit, themed scrollbars on overflow, runtime theme switching (`src/interactive.ts`)
 - `ResizeObserver`-driven content-fit re-render
 - Themed `data-aaron-control` promotion (checkbox / radio / slider) over native form widgets (`src/declarative/control.ts`) — a partial relaxation of Decision 4's "native controls NOT themed" scope guard, scoped to controls the consumer explicitly opts into via attribute (the spirit of "opt-in" Decision 4 reserves)
-- Two validation demos: `demo/declarative.html` (OS 8.6 desktop) and `demo/declarative-site.html` ("skin an existing site")
+- Validation demo: `demo/declarative-site.html` ("skin an existing site") — exercises the data-attribute scanner, themed controls, runtime theme switch, scroll/shade/zoom. (An earlier OS 8.6 desktop demo at `demo/declarative.html` was retired 2026-05-28 once the main showcase at `demo/index.html` absorbed its window-type + control-variety coverage via the playgrounds.)
 - Public re-exports from `src/index.ts` (`mountDeclarative`, `AaronWindow`, `promoteButton`, etc.)
 
 Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-design.md`.
