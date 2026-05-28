@@ -50,6 +50,52 @@ morning handoff `5f95dc0` · disconnect teardown (P2) `ec7ce86`. Two subagent re
 
 ---
 
+## ☀️☀️ NIGHT 2 — feature-rich pass (it's a window manager now)
+
+Per "feature rich with scrollbars and… shade windows or resize windows with the UI toolbar… try
+different themes." All four shipped and **browser-verified** (Playwright, real chromium, zero console
+errors throughout). `main` still untouched; `demo/index.html` byte-unchanged in behavior.
+
+1. **Window-shade (collapse).** Click a window's **collapse box** — or **double-click its title bar**
+   (the classic Mac WindowShade gesture) — to roll it up to just the title bar and back. Uses the
+   theme's real `collapsed-*` window-type art when it ships one (Platinum/1138 do). Content stays
+   attached (display:none) so scroll + listeners survive. Commit `f3f3a1a`.
+2. **Zoom-to-fit.** Click the **zoom box** to grow the window to fit all its content (capped), click
+   again to restore. Commit `f3f3a1a`.
+3. **Generalized z-order.** Was a two-level 1/2 that buried the active window under later ones; now a
+   monotonic clock + active-on-top offset, correct for N windows + modals. Commit `f3f3a1a`.
+4. **Runtime theme switching** — the PRD's `data-aaron-theme-switcher`. The dropdown in each demo
+   page's header re-skins the WHOLE desktop live (windows + buttons), the Kaleidoscope way. Verified
+   across native-recipe (1138, BeOS) AND corner-sprite (Black Platinum, System 7) schemes. New API:
+   `mountDeclarative()` returns `{ disconnect, retheme(ref) }`. Commit `62264d5`.
+5. **Themed scrollbars.** Declared-size content that overflows now gets the scheme's OWN scrollbar art
+   (not the native browser bar): clip the slot, reserve a right gutter, overlay a themed vertical bar.
+   Two-way: thumb drag (pointer), wheel/trackpad, arrow/Page/Home/End keys. Re-themes for free.
+   Commits `6b13312` + leak fix `f0b2ba2` (Abort07-scoped listeners so they don't accumulate per render).
+
+**Built-in vs handler:** collapse/zoom built-ins fire only when no `onCollapse`/`onZoom` handler was
+passed, so the declarative layer gets the real gestures while `demo/index.html` (which passes message
+handlers) is unchanged. Close has no built-in (the manager doesn't own "close").
+
+**Verification:** `npm run typecheck` clean · `npm test` 46/46 · `npm run build` + `build:demo` green.
+A second review agent audited the new code; its findings are tracked below (the wheel-listener leak it
+predicted was real and is fixed in `f0b2ba2`).
+
+**Known follow-ups (deliberately deferred):**
+- **Close re-opens (needs a product decision).** The close box calls `unmount()`, which RESTORES the
+  original element; the MutationObserver then sees it and re-promotes it, so the window flickers back.
+  This is pre-existing (close was never wired to "dismiss"). The real question is what close MEANS for
+  a window wrapping a consumer's live content — dismiss the content too, or hand back the plain div?
+  Decide, then either remove the element on close or stamp it so the observer skips it.
+- Horizontal scrollbar (vertical only so far).
+- Modals are collapsible/scrollable — no per-window widget toggles yet (that's the review's P0-1
+  `data-aaron-closable/zoomable/collapsible` contract work, the recommended next step).
+- The review's other strategic recs: opt-in `data-aaron-windows` scope, `data-aaron-modal` focus trap,
+  touch (Pointer Events for drag/resize — currently mouse-only), and pressure-testing on a real
+  third-party page before investing in the ADR's border-image/CSS chrome path.
+
+---
+
 **One line:** put `data-aaron-window` on a plain `<div>` and the library promotes it into a faithful
 classic-Mac window — no JS required for the common case — over the EXISTING canvas runtime.
 
