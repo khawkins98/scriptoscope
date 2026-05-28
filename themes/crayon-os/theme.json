@@ -441,7 +441,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "movable-dialog": {
+    "movable-modal": {
       "chrome": {
         "active": "cicns/cicn-n14323-movable-dialog-active.png",
         "inactive": "cicns/cicn-n14324-movable-dialog-inactive.png"
@@ -565,7 +565,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "collapsed-utility-window": {
+    "collapsed-titled-utility": {
       "chrome": {
         "active": "cicns/cicn-n14299-titled-utility-window-collapsed-active.png",
         "inactive": "cicns/cicn-n14300-titled-utility-window-collapsed-inactive.png"
@@ -689,7 +689,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utility-window": {
+    "titled-utility-window": {
       "chrome": {
         "active": "cicns/cicn-n14303-titled-utility-window-active.png",
         "inactive": "cicns/cicn-n14304-titled-utility-window-inactive.png"
@@ -841,7 +841,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "collapsed-side-floating-utility-window": {
+    "collapsed-side-utility": {
       "chrome": {
         "active": "cicns/cicn-n14291-side-utility-window-collapsed-active.png",
         "inactive": "cicns/cicn-n14292-side-utility-window-collapsed-inactive.png"

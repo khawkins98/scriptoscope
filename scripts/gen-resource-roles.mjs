@@ -64,7 +64,13 @@ function classify(id, type, slug) {
     return { family: 'progress', role: `progress FILL hue (${s || 'alt'})` };
   }
   if (a >= 8277 && a <= 8288) return { family: 'scrollbar', role: 'scrollbar track cicn (h/v × active/inactive/disabled/pressed)' };
-  if (a >= 10197 && a <= 10208) return { family: 'scroll-arrow', role: 'scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)' };
+  if (a >= 10197 && a <= 10208) {
+    // Tiebreaker: monkey-paradise ships slider thumbs at -10205..-10208 with names like
+    // 'vertical-thumb'/'pressed-vertical-thumb'/etc. — same id range as scroll-arrows.
+    // When the slug carries thumb-like vocabulary, classify as slider rather than scroll-arrow.
+    if (/thumb/.test(s)) return { family: 'slider', role: `slider thumb cicn (${s})` };
+    return { family: 'scroll-arrow', role: 'scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)' };
+  }
   if (a === 10230 || a === 10231 || a === 10232) return { family: 'button', role: 'default-button ring (active/inactive/mixed)' };
   if (a >= 10238 && a <= 10240) return { family: 'button', role: 'push-button face (normal/pressed/disabled)' };
   if (a >= 10162 && a <= 10176) return { family: 'bevel-button', role: 'bevel-button face' };
@@ -72,7 +78,27 @@ function classify(id, type, slug) {
   if (a === 9567 || a === 9568) return { family: 'list-header', role: 'Finder list-column header' };
   if (a >= 14301 && a <= 14336) return { family: 'window', role: s ? `window chrome (${s})` : 'window frame proxy / grow box / racing-stripe / widget cicn' };
   if (a >= 9548 && a <= 9984) return { family: 'window-info', role: s ? `cinf / window metadata (${s})` : 'cinf / window metadata' };
-  if (a >= 12303 && a <= 12320) return { family: 'popup-menu', role: 'popup-menu / tab frame' };
+  // ── Spec-documented cicn families that previously fell into 'other' ──
+  // Per docs/spec/kdef231-reference.md §2.4 + docs/kaleidoscope-asset-catalog.md §3.5–§3.8.
+  if (a >= 8194 && a <= 8205) return { family: 'popup-menu', role: 'popup-menu arrow cicn' };
+  if (a >= 8249 && a <= 8252) return { family: 'slider', role: 'slider thumb cicn (-8249..-8252)' };
+  if (a === 8271 || a === 8272) return { family: 'slider', role: 'slider thumb cicn (-8271/-8272)' };
+  if (a >= 10045 && a <= 10048) return { family: 'little-arrow', role: 'little-arrow cicn (date/number stepper)' };
+  // Checkbox / radio derived ids (CICN channel — per controls.ts:573 note).
+  if (a >= 9485 && a <= 9504) return { family: 'checkbox', role: s ? `checkbox/radio cicn (${s})` : 'checkbox/radio cicn' };
+  // Segmented tab control family (SSF/LSF front/rear + pane). Per docs/spec/kdef231-reference.md §2.4.
+  if (a === 9969 || a === 9972 || a === 9975 || a === 9977 || a === 9980 || a === 9983) {
+    return { family: 'tab', role: 'segmented tab cicn (SSF/LSF front/rear/pane)' };
+  }
+  // Popup-menu / tab frame family.
+  if (a >= 12303 && a <= 12320) {
+    if (a === 12317 || a === 12318) return { family: 'popup-menu', role: 'popup-menu disabled frame/tab' };
+    if (a === 12319) return { family: 'popup-menu', role: 'popup-menu tab face' };
+    return { family: 'popup-menu', role: 'popup-menu / tab frame' };
+  }
+  // Menubar + accent-menu families. Per docs/kaleidoscope-asset-catalog.md §3.6.
+  if (a === 12272 || a === 12287 || a === 12288) return { family: 'menubar', role: 'menubar background/highlight cicn' };
+  if (a >= 12256 && a <= 12271) return { family: 'accent-menu', role: 'accent menu-highlight cicn' };
   // (Finder/system icons live in the ics/icl channel, not cicn — so unmatched cicns
   // are control/chrome bodies, NOT Finder icons.)
   return { family: 'other', role: s ? `cicn body (${s})` : 'unclassified cicn body' };

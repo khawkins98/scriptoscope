@@ -1076,7 +1076,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "collapsed-titled-utility-window": {
+    "collapsed-titled-utility": {
       "chrome": {
         "active": "cicns/cicn-n14299-collapsed-titled-utility-window.png",
         "inactive": "cicns/cicn-n14300-inactive-collapsed-titled-utility-window.png"
@@ -1189,7 +1189,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "collapsed-side-floating-utility-window": {
+    "collapsed-side-utility": {
       "chrome": {
         "active": "cicns/cicn-n14291-side-floating-utility-window.png",
         "inactive": "cicns/cicn-n14292-inactive-collapsed-side-floating-utility-window.png"
@@ -1278,7 +1278,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "collapsed-no-title-utility-window": {
+    "collapsed-no-title-utility": {
       "chrome": {
         "active": "cicns/cicn-n14283-collapsed-no-title-utility-window.png",
         "inactive": "cicns/cicn-n14284-inactive-collapsed-no-title-utility-window.png"

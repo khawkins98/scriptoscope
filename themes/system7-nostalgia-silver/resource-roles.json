@@ -205,28 +205,28 @@
    "type": "cicn",
    "slug": "active",
    "family": "popup-menu",
-   "role": "popup-menu / tab frame"
+   "role": "popup-menu tab face"
   },
   {
    "id": -12317,
    "type": "cicn",
    "slug": "inactive",
    "family": "popup-menu",
-   "role": "popup-menu / tab frame"
+   "role": "popup-menu disabled frame/tab"
   },
   {
    "id": -12288,
    "type": "cicn",
    "slug": "menus",
-   "family": "other",
-   "role": "cicn body (menus)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12287,
    "type": "cicn",
    "slug": "menu-highlight-lavender",
-   "family": "other",
-   "role": "cicn body (menu-highlight-lavender)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12286,
@@ -281,8 +281,8 @@
    "id": -12256,
    "type": "cicn",
    "slug": "menu-highlight-aquamarine",
-   "family": "other",
-   "role": "cicn body (menu-highlight-aquamarine)"
+   "family": "accent-menu",
+   "role": "accent menu-highlight cicn"
   },
   {
    "id": -12255,
@@ -449,29 +449,29 @@
    "id": -10208,
    "type": "cicn",
    "slug": "normal-vertical-thumb",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (normal-vertical-thumb)"
   },
   {
    "id": -10207,
    "type": "cicn",
    "slug": "pressed-vertical-thumb",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (pressed-vertical-thumb)"
   },
   {
    "id": -10206,
    "type": "cicn",
    "slug": "normal-horizontal-thumb",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (normal-horizontal-thumb)"
   },
   {
    "id": -10205,
    "type": "cicn",
    "slug": "pressed-horizontal-thumb",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (pressed-horizontal-thumb)"
   },
   {
    "id": -10204,
@@ -1163,15 +1163,15 @@
    "id": -8272,
    "type": "cicn",
    "slug": "vertical-ghost-thumb",
-   "family": "other",
-   "role": "cicn body (vertical-ghost-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8271,
    "type": "cicn",
    "slug": "horizontal-ghost-thumb",
-   "family": "other",
-   "role": "cicn body (horizontal-ghost-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8224,

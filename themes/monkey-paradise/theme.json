@@ -21,7 +21,7 @@
     "stretchScrollbarThumbFromCenter": false
   },
   "windowTypes": {
-    "utitlity-window": {
+    "titled-utility-window": {
       "chrome": {
         "active": "cicns/cicn-n14303-titled-utility-window.png",
         "inactive": "cicns/cicn-n14304-inactive-titled-utility-window.png"
@@ -408,7 +408,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utility-window-no-title": {
+    "no-title-utility-window": {
       "chrome": {
         "active": "cicns/cicn-n14287-no-title-utility-window.png",
         "inactive": "cicns/cicn-n14288-inactive-no-title-utility-window.png"
@@ -700,7 +700,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "modal-dialog": {
+    "dialog": {
       "chrome": {
         "active": "cicns/cicn-n14327-dialog.png",
         "inactive": "cicns/cicn-n14328-inactive-dialog.png"
@@ -888,7 +888,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "movable-modal-dialog": {
+    "movable-modal": {
       "chrome": {
         "active": "cicns/cicn-n14323-movable-modal.png",
         "inactive": "cicns/cicn-n14324-inactive-movable-modal.png"

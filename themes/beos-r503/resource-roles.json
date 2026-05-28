@@ -289,7 +289,7 @@
    "type": "cicn",
    "slug": "unnamed",
    "family": "popup-menu",
-   "role": "popup-menu / tab frame"
+   "role": "popup-menu disabled frame/tab"
   },
   {
    "id": -12240,
@@ -442,29 +442,29 @@
    "id": -10208,
    "type": "cicn",
    "slug": "scroll-thumb-v",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (scroll-thumb-v)"
   },
   {
    "id": -10207,
    "type": "cicn",
    "slug": "scrool-thumb-v",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (scrool-thumb-v)"
   },
   {
    "id": -10206,
    "type": "cicn",
    "slug": "scroll-thumb-h",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (scroll-thumb-h)"
   },
   {
    "id": -10205,
    "type": "cicn",
    "slug": "scroll-thumb-h",
-   "family": "scroll-arrow",
-   "role": "scroll/slider arrow button FACE (cicn body; dual-channel with the same-id ics4 arrow pictogram)"
+   "family": "slider",
+   "role": "slider thumb cicn (scroll-thumb-h)"
   },
   {
    "id": -10176,
@@ -904,29 +904,29 @@
    "id": -10048,
    "type": "cicn",
    "slug": "inactive-little-arrows",
-   "family": "other",
-   "role": "cicn body (inactive-little-arrows)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10047,
    "type": "cicn",
    "slug": "little-arrows",
-   "family": "other",
-   "role": "cicn body (little-arrows)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10046,
    "type": "cicn",
    "slug": "pressed-up-little-arrow",
-   "family": "other",
-   "role": "cicn body (pressed-up-little-arrow)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10045,
    "type": "cicn",
    "slug": "pressed-down-little-arrow",
-   "family": "other",
-   "role": "cicn body (pressed-down-little-arrow)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -9984,
@@ -1128,141 +1128,141 @@
    "id": -9504,
    "type": "cicn",
    "slug": "inactive-empty-checkbox",
-   "family": "other",
-   "role": "cicn body (inactive-empty-checkbox)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (inactive-empty-checkbox)"
   },
   {
    "id": -9503,
    "type": "cicn",
    "slug": "active-empty-checkbox",
-   "family": "other",
-   "role": "cicn body (active-empty-checkbox)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (active-empty-checkbox)"
   },
   {
    "id": -9502,
    "type": "cicn",
    "slug": "pressed-empty-checkbox",
-   "family": "other",
-   "role": "cicn body (pressed-empty-checkbox)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (pressed-empty-checkbox)"
   },
   {
    "id": -9501,
    "type": "cicn",
    "slug": "inactive-checked",
-   "family": "other",
-   "role": "cicn body (inactive-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (inactive-checked)"
   },
   {
    "id": -9500,
    "type": "cicn",
    "slug": "active-checked",
-   "family": "other",
-   "role": "cicn body (active-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (active-checked)"
   },
   {
    "id": -9499,
    "type": "cicn",
    "slug": "pressed-checked",
-   "family": "other",
-   "role": "cicn body (pressed-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (pressed-checked)"
   },
   {
    "id": -9498,
    "type": "cicn",
    "slug": "inactive-divided",
-   "family": "other",
-   "role": "cicn body (inactive-divided)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (inactive-divided)"
   },
   {
    "id": -9497,
    "type": "cicn",
    "slug": "active-divided",
-   "family": "other",
-   "role": "cicn body (active-divided)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (active-divided)"
   },
   {
    "id": -9496,
    "type": "cicn",
    "slug": "pressed-divided",
-   "family": "other",
-   "role": "cicn body (pressed-divided)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (pressed-divided)"
   },
   {
    "id": -9495,
    "type": "cicn",
    "slug": "inactive-checked",
-   "family": "other",
-   "role": "cicn body (inactive-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (inactive-checked)"
   },
   {
    "id": -9494,
    "type": "cicn",
    "slug": "active-checked",
-   "family": "other",
-   "role": "cicn body (active-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (active-checked)"
   },
   {
    "id": -9493,
    "type": "cicn",
    "slug": "pressed-checked",
-   "family": "other",
-   "role": "cicn body (pressed-checked)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (pressed-checked)"
   },
   {
    "id": -9492,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9491,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9490,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9489,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9488,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9487,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9486,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9485,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9484,
@@ -1387,15 +1387,15 @@
    "id": -8272,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8271,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8270,
@@ -1471,29 +1471,29 @@
    "id": -8252,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8251,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8250,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8249,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8224,
@@ -1562,64 +1562,64 @@
    "id": -8205,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8204,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8203,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8199,
    "type": "cicn",
    "slug": "inactive-large-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (inactive-large-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8198,
    "type": "cicn",
    "slug": "active-large-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (active-large-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8197,
    "type": "cicn",
    "slug": "pressed-large-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (pressed-large-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8196,
    "type": "cicn",
    "slug": "inactive-small-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (inactive-small-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8195,
    "type": "cicn",
    "slug": "active-small-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (active-small-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -8194,
    "type": "cicn",
    "slug": "pressed-small-popup-arrow-glyph",
-   "family": "other",
-   "role": "cicn body (pressed-small-popup-arrow-glyph)"
+   "family": "popup-menu",
+   "role": "popup-menu arrow cicn"
   },
   {
    "id": -4000,
@@ -6187,6 +6187,13 @@
    "slug": null,
    "family": "pictogram",
    "role": "pictogram (unclassified)"
+  },
+  {
+   "id": null,
+   "type": "ppat",
+   "slug": "128-alert-backround",
+   "family": "pattern",
+   "role": "fill pattern (ppat)"
   },
   {
    "id": null,

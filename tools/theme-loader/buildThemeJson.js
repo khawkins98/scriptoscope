@@ -126,9 +126,16 @@ export function buildThemeJson(manifest, options = {}) {
     // in — SHIOCOP's schemes are the canonical example). Without this,
     // such schemes would expose "wnd--14336" instead of "document-window"
     // and break runtime lookups by slug.
+    // Prefer the CANONICAL slug when this wnd# id is in the canonical map: the
+    // 13 standard types should always key on the canonical name so declarative
+    // consumers writing `data-aaron-window-type="titled-utility-window"` land on
+    // the right window regardless of whether the scheme author's `wnd.name`
+    // carried a typo (e.g. animals/monkey-paradise both ship "utitlity-window").
+    // Only fall through to the author's name when the id isn't a known canonical
+    // type (custom wnd ids = author intent, preserve as-is).
     const named = slugify(wnd.name);
-    const canonical = CANONICAL_WNDTYPE_SLUGS[String(wnd.id)] || `wnd-${wnd.id}`;
-    const slug = uniqueElementSlug(windowTypes, named || canonical);
+    const canonical = CANONICAL_WNDTYPE_SLUGS[String(wnd.id)];
+    const slug = uniqueElementSlug(windowTypes, canonical || named || `wnd-${wnd.id}`);
 
     const chrome = pairChromeStates(wnd.id, byTypeAndId);
     if (Object.keys(chrome).length === 0) continue; // skip if no cicn pairs found

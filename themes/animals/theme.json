@@ -380,7 +380,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "movable-modal-dialog": {
+    "movable-modal": {
       "chrome": {
         "active": "cicns/cicn-n14323-movable-modal.png",
         "inactive": "cicns/cicn-n14324-movable-modal.png"
@@ -480,7 +480,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utility-window-no-title": {
+    "collapsed-no-title-utility": {
       "chrome": {
         "active": "cicns/cicn-n14283-no-title-utility-window.png",
         "inactive": "cicns/cicn-n14284-no-title-utility-window.png"
@@ -612,7 +612,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utitlity-window-collapsed": {
+    "collapsed-titled-utility": {
       "chrome": {
         "active": "cicns/cicn-n14299-titled-utility-window.png",
         "inactive": "cicns/cicn-n14300-titled-utility-window.png"
@@ -752,7 +752,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "modal-dialog": {
+    "dialog": {
       "chrome": {
         "active": "cicns/cicn-n14327-movable-modal.png",
         "inactive": "cicns/cicn-n14328-movable-modal.png"
@@ -1044,7 +1044,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "document-window-shade": {
+    "collapsed-document-window": {
       "chrome": {
         "active": "cicns/cicn-n14331-unnamed.png",
         "inactive": "cicns/cicn-n14332-unnamed.png"
@@ -1306,7 +1306,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utitlity-window": {
+    "titled-utility-window": {
       "chrome": {
         "active": "cicns/cicn-n14303-titled-utility-window.png",
         "inactive": "cicns/cicn-n14304-titled-utility-window.png"
@@ -1446,7 +1446,7 @@
       "cinf": null,
       "bodyPattern": null
     },
-    "utility-window-no-title-2": {
+    "no-title-utility-window": {
       "chrome": {
         "active": "cicns/cicn-n14287-no-title-utility-window.png",
         "inactive": "cicns/cicn-n14288-no-title-utility-window.png"

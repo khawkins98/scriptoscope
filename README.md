@@ -167,6 +167,43 @@ Scriptoscope loads what Kaleidoscope schemes actually shipped: **chrome + contro
 
 If a consumer wants period sounds or a desktop picture alongside a loaded scheme, that's a host-page concern: drop in your own `<audio>` and CSS `background-image`. Scriptoscope may eventually add an opt-in `extras/` sidecar concept for bundling sounds with a scheme bundle, but it's not a runtime built-in — and there is no "first-party preset theme that ships sounds." Every theme Scriptoscope ships is a port of an existing Kaleidoscope scheme with the original author's attribution.
 
+## Roadmap — ideas if this project gets traction
+
+A non-binding "things that would be cool to build next" list, organized by theme. Each item links to an existing tracker if one is open. If you want to push any of these forward, open an issue or PR.
+
+### Themes — bring more in, surface what they ship
+
+- **Mac OS Appearance Manager theme import (.afm / kTHM)** — currently out of scope by deliberate decision ([#174](https://github.com/khawkins98/aaron-ui/issues/174) closed `wontfix`; the user-side `.afm` → `.rsrc` conversion path is documented at [`docs/converting-from-afm.md`](./docs/converting-from-afm.md)). If trademark posture changes, [#176](https://github.com/khawkins98/aaron-ui/issues/176) tracks the positive-side conversion-tooling roadmap (Tier 1: worked docs; Tier 2: Node CLI converter; Tier 3: standalone npm package; Tier 4: drop-zone integration).
+- **Theme variants / accents** — some Kaleidoscope schemes ship multiple palettes in one `.ksc` (day/night, gold/silver/copper, B/W vs colour). Currently we extract one variant deterministically. Whether they become theme **siblings** (separate slugs) or a runtime **knob** (`LoadedTheme.variant`) is an open design call. Tracked in [#177](https://github.com/khawkins98/aaron-ui/issues/177).
+- **Bonus assets in scheme bundles** — schemes routinely ship more than chrome: desktop patterns (`crayon-os`'s "Crayon OS Desktop"), bitmap fonts (`apple-lisa`'s Lisa Classic 12 / Icon Names 10), custom cursors (`slimes`' Slime cursor), zip icon overlays, HTML readmes with embedded GIFs, custom Finder icons. Currently silently discarded. [#177](https://github.com/khawkins98/aaron-ui/issues/177) tracks per-asset-type wiring.
+
+### Renderer — richer chrome + state coverage
+
+- **Better icon coverage** — `icl`/`ics` icon families (Finder/system icons) extract cleanly today (4-bit + 8-bit), but the runtime renders only what a window needs. A page-level "show me every icon the loaded scheme ships" view would let consumers browse and pick by name. Also: small `icm#` mini-icons (`apple-lisa` ships 33 of them) and `cicn` icons in id ranges -3800..-20800 aren't wired everywhere they could be.
+- **Better body backgrounds** — `bodyBackground` ppat tiling is shipped per-scheme (some ship one, some don't). Per-window-type backgrounds work in principle (the `cinf.bgPatternId` decode is wired) but no corpus scheme exercises them yet. Worth surfacing as a configurable knob: "use the scheme's background everywhere / only in document windows / override with a CSS value."
+- **Navigation bars + menu bar chrome** — Kaleidoscope schemes ship menubar background + highlight cicns at `-12272/-12287/-12288` and accent-menu families at `-12256+`. The corpus has these but the runtime doesn't compose them yet ([#166](https://github.com/khawkins98/aaron-ui/issues/166) tracks the menu/popup API design — alpha-deferred).
+- **Sound packs** — schemes occasionally ship `snd ` (system-7 sound) resources. Out of corpus norm but interesting if a consumer wanted period-correct beep/click/drag audio.
+- **State-rich slot vocabulary** — current schema knows `active|inactive|collapsed-active|collapsed-inactive`. The catalog defines additional states (pressed/disabled/normal/empty/small × N) that schemes ship for richer control vocabularies. [#178](https://github.com/khawkins98/aaron-ui/issues/178) item 12.
+
+### Discovery — find themes without leaving the project
+
+- **In-browser theme browsing + remix** — pair the existing drop-zone with a curated gallery sourced from the community archives (see the "Want more?" block above). Drag any `.sit` from a Mac Themes Garden listing into Scriptoscope's demo and see it render live; save a favorites set; flip between them with the existing theme switcher.
+- **A Kaleidoscope-like configuration panel** — Scriptoscope's drop-zone is a thin echo of Kaleidoscope's own control panel. A consumer-side config UI that lets the user toggle desktop pattern / sounds / extras / accent variant per-scheme (the same checkboxes Kaleidoscope's CP shipped) is the natural next step.
+- **CDN-delivered sprites** — for the published npm package, themes are loaded from a base URL the consumer hosts. A community-run sprite CDN (`https://themes.scriptoscope.dev/<slug>/`) would let consumers point at it without hosting the bundles themselves. Per-bundle sprites could be served as compact atlas PNGs to cut round-trips.
+- **Theme curator / submission flow** — once the corpus grows beyond what we want to bundle in-repo, a community submission flow (`scriptoscope-themes` repo + a contributor guide) would scale better than hand-curated additions.
+
+### Adopter-facing extras
+
+- **`<aaron-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/aaron-ui/issues/29) — open decision).
+- **CSS `border-image` emitter** for the body-frame chrome — gated by a representability spike (ADR-0001 Decision 1, still open).
+- **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/aaron-ui/issues/79) closed but the framework would live here.
+- **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
+- **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.
+- **Period-correct animation polish** — zoom-to-icon close, windowshade collapse, sheet slide-in. Tracked under [#25](https://github.com/khawkins98/aaron-ui/issues/25) Phase 6.
+- **cv-mac integration** — the upstream project this was extracted from. WinBox swap one PR away once the API stabilizes; [#27](https://github.com/khawkins98/aaron-ui/issues/27).
+
+Tracker issues for new ideas: <https://github.com/khawkins98/aaron-ui/issues/new>.
+
 ## License
 
 **Scriptoscope's own code is [MIT](./LICENSE)** (best for adoption — the library is meant to be embedded in other projects). The bundled third-party material keeps its own terms and is **not** relicensed:

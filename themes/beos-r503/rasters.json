@@ -1238,6 +1238,10 @@
  ],
  "ppats": [
   {
+   "file": "ppat-128-alert-backround.png",
+   "label": "128-alert-backround"
+  },
+  {
    "file": "ppat-17-desktop-background.png",
    "label": "17-desktop-background"
   },

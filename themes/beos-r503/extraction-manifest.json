@@ -1,12 +1,12 @@
 {
   "source": "beos-r503/scheme.rsrc",
-  "extractedAt": "2026-05-28T20:28:01.724Z",
+  "extractedAt": "2026-05-28T20:43:18.784Z",
   "counts": {
     "total": 351,
-    "ok": 350,
+    "ok": 351,
     "skipped": 0,
-    "errored": 1,
-    "raster": 250,
+    "errored": 0,
+    "raster": 251,
     "geometry": 100
   },
   "assets": [
@@ -6275,8 +6275,16 @@
       "type": "ppat",
       "id": 128,
       "name": "Alert Backround",
-      "status": "error",
-      "error": "Unsupported pixelSize: 32"
+      "status": "ok",
+      "file": "ppat-128-alert-backround.png",
+      "width": 512,
+      "height": 8,
+      "debug": {
+        "patType": 1,
+        "pixelSize": 32,
+        "direct": true,
+        "rowBytes": 2064
+      }
     },
     {
       "type": "wnd#",

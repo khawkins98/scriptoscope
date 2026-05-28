@@ -244,28 +244,28 @@
    "type": "cicn",
    "slug": "inactive-pop-up-window",
    "family": "popup-menu",
-   "role": "popup-menu / tab frame"
+   "role": "popup-menu disabled frame/tab"
   },
   {
    "id": -12288,
    "type": "cicn",
    "slug": "menu-bar",
-   "family": "other",
-   "role": "cicn body (menu-bar)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12287,
    "type": "cicn",
    "slug": "menu-highlight-lavender",
-   "family": "other",
-   "role": "cicn body (menu-highlight-lavender)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12272,
    "type": "cicn",
    "slug": "menu-colors",
-   "family": "other",
-   "role": "cicn body (menu-colors)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12235,
@@ -656,29 +656,29 @@
    "id": -10048,
    "type": "cicn",
    "slug": "disabled-little-arrows",
-   "family": "other",
-   "role": "cicn body (disabled-little-arrows)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10047,
    "type": "cicn",
    "slug": "active-little-arrows",
-   "family": "other",
-   "role": "cicn body (active-little-arrows)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10046,
    "type": "cicn",
    "slug": "pressed-up-little-arrow",
-   "family": "other",
-   "role": "cicn body (pressed-up-little-arrow)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -10045,
    "type": "cicn",
    "slug": "pressed-down-little-arrow",
-   "family": "other",
-   "role": "cicn body (pressed-down-little-arrow)"
+   "family": "little-arrow",
+   "role": "little-arrow cicn (date/number stepper)"
   },
   {
    "id": -9984,
@@ -831,120 +831,120 @@
    "id": -9504,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9503,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9502,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9501,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9500,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9499,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9498,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9497,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9496,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9492,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9491,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9490,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9489,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9488,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9487,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9486,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9485,
    "type": "cicn",
    "slug": "unnamed",
-   "family": "other",
-   "role": "cicn body (unnamed)"
+   "family": "checkbox",
+   "role": "checkbox/radio cicn (unnamed)"
   },
   {
    "id": -9484,
@@ -1013,15 +1013,15 @@
    "id": -8272,
    "type": "cicn",
    "slug": "vertical-thumb-ghost",
-   "family": "other",
-   "role": "cicn body (vertical-thumb-ghost)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8271,
    "type": "cicn",
    "slug": "horizontal-thumb-ghost",
-   "family": "other",
-   "role": "cicn body (horizontal-thumb-ghost)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8270,
@@ -1097,29 +1097,29 @@
    "id": -8252,
    "type": "cicn",
    "slug": "small-vertical-thumb",
-   "family": "other",
-   "role": "cicn body (small-vertical-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8251,
    "type": "cicn",
    "slug": "pressed-small-vertical-thumb",
-   "family": "other",
-   "role": "cicn body (pressed-small-vertical-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8250,
    "type": "cicn",
    "slug": "small-horizontal-thumb",
-   "family": "other",
-   "role": "cicn body (small-horizontal-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8249,
    "type": "cicn",
    "slug": "pressed-small-horizontal-thumb",
-   "family": "other",
-   "role": "cicn body (pressed-small-horizontal-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8249..-8252)"
   },
   {
    "id": -8224,

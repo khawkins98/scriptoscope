@@ -5748,6 +5748,9 @@
     },
     "desktop-background": {
       "asset": "ppats/ppat-17-desktop-background.png"
+    },
+    "alert-backround": {
+      "asset": "ppats/ppat-128-alert-backround.png"
     }
   },
   "headerColors": {

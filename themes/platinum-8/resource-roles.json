@@ -196,21 +196,21 @@
    "type": "cicn",
    "slug": "unnamed",
    "family": "popup-menu",
-   "role": "popup-menu / tab frame"
+   "role": "popup-menu tab face"
   },
   {
    "id": -12288,
    "type": "cicn",
    "slug": "menu-bar",
-   "family": "other",
-   "role": "cicn body (menu-bar)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12287,
    "type": "cicn",
    "slug": "menu-highlight-lavender",
-   "family": "other",
-   "role": "cicn body (menu-highlight-lavender)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12286,
@@ -265,15 +265,15 @@
    "id": -12272,
    "type": "cicn",
    "slug": "menu-colors",
-   "family": "other",
-   "role": "cicn body (menu-colors)"
+   "family": "menubar",
+   "role": "menubar background/highlight cicn"
   },
   {
    "id": -12256,
    "type": "cicn",
    "slug": "menu-highlight-aquamarine",
-   "family": "other",
-   "role": "cicn body (menu-highlight-aquamarine)"
+   "family": "accent-menu",
+   "role": "accent menu-highlight cicn"
   },
   {
    "id": -12255,
@@ -657,15 +657,15 @@
    "id": -8272,
    "type": "cicn",
    "slug": "vertical-ghost-thumb",
-   "family": "other",
-   "role": "cicn body (vertical-ghost-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8271,
    "type": "cicn",
    "slug": "horizontal-ghost-thumb",
-   "family": "other",
-   "role": "cicn body (horizontal-ghost-thumb)"
+   "family": "slider",
+   "role": "slider thumb cicn (-8271/-8272)"
   },
   {
    "id": -8224,
