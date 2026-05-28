@@ -2072,3 +2072,115 @@ the next move is often to reframe with the owner, not to iterate. And for
 spike work on a fidelity-driven project: when the existing implementation
 already does it, the spike's job is usually to KILL the alternative, not to
 build it. Three rounds is a credible kill.
+
+## 2026-05-28 — Shadow DOM gotchas: host.firstChild semantics, mount timing, slot geometry
+
+Wrapped `WindowManager`'s window chrome in a shadow root per ADR-0001
+Decision 2. The architectural change is small; the integration gotchas were
+the interesting part. Three caught here as future-protection:
+
+**1. `host.firstChild` no longer points at the chrome.** WindowManager had a
+staleness check `if (entry.host.firstChild !== win) return` — pre-Shadow this
+read as "did a newer render replace the chrome subtree?". Post-Shadow,
+`host.firstChild` is the slotted `.aw-slot` (light-DOM consumer content),
+NOT `win` (which lives in `host.shadowRoot`). So the check always failed →
+`wireScrollbars` bailed → no themed scrollbar attached → native browser
+scrollbar bled through. The right check post-Shadow is:
+
+  ```ts
+  const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
+  if (currentChrome !== win) return;
+  ```
+
+This passes pre-mount (shadow has win) and fails after a re-render replaced
+win — preserving the original semantic across both compositor configurations.
+(The intermediate "fix" via `win.isConnected` was wrong too — see #2.)
+
+**2. `win.isConnected` is FALSE at first render for the declarative path.**
+Subtle. `AaronWindow.promote` inserts the host into the document AFTER
+`manager.add` returns. Inside `add`, `render()` runs synchronously then
+fires `wireScrollbars` (fire-and-forget). At that moment, the host (and
+therefore win, via the shadow) is NOT YET in the document. `isConnected`
+returns false. A "bail if disconnected" guard would short-circuit the
+intended retry path (the existing `ch === 0` rAF retry catches the
+not-yet-laid-out case). The host gets inserted into the document a few
+lines later in `AaronWindow.promote`, and by the rAF callback layout
+has happened, ch > 0, scrollbar attaches. Don't conflate "not yet in
+document (will be soon)" with "stale (was replaced)" — they need
+different guards.
+
+**3. Slotted content's CSS sizing computes against its light-DOM ancestor,
+not its visual rendering box.** `.aw-slot` has `width: 100%; height: 100%`.
+Its light-DOM ancestor is the host (which sizes to its shadow's intrinsic
+content — the `.aw-window`, e.g. 320×240). So `.aw-slot` resolves to
+320×240 in CSS, but is visually rendered inside the shadow's smaller
+`.aw-content` (e.g. 314×175). The slot's CSS dimensions don't match its
+visual container. For `wireScrollbars` this works out because it measures
+`scrollEl.scrollHeight` vs `scrollEl.clientHeight` on `.aw-slot` itself,
+and both are computed in the slot's CSS frame of reference. Just don't
+assume slotted-element dimensions match their visual rendering — that's
+not how slots work.
+
+**Application:**
+- Slot model is genuinely two-DOMs-talking. Any code that crosses the
+  boundary (queries across, assumes parent-child by visual nesting, checks
+  `firstChild`) is a bug waiting to manifest.
+- Add a hostile-CSS regression page (we shipped `demo/declarative-hostile-css.html`)
+  the day you wrap things in shadow. It catches both the protective wins
+  (host CSS doesn't leak in) AND the integration breakage you didn't
+  expect (CSS resets on common selectors that USED to apply now don't —
+  inline styles inside the shadow had better cover what the host CSS
+  previously did).
+- The render-frequency contract on `WindowManager.render()` (audited the
+  same day, comment block now lives above the method) was confirmed
+  unchanged by the Shadow DOM wrap: click-same-window-twice = 0 renders;
+  click-different-window = 2 renders (old + new active state); theme switch
+  = N renders. Shadow added zero overhead.
+
+## 2026-05-28 — DOM-twin a11y audit: friendly labels, the host double-labeling near-miss, keyboard parity
+
+Audited every focusable element in `src/interactive.ts` + `src/declarative/`
+for proper DOM target / focus / ARIA. Most was already good (button /
+checkbox / radio / disclosure / slider all had role + tabIndex + aria-state +
+keyboard handlers). The gaps were specific:
+
+**Friendly aria-label text matters more than I expected.** The title
+widgets had `aria-label={hit.role}` — literally `"close"`, `"zoom"`,
+`"collapse"`. Technically correct (those ARE the roles). But screen
+readers would announce just the word. Changed to `"Close window"`,
+`"Zoom window"`, `"Collapse window"`. Same edit for the grow box
+(`"Resize window"`) and the themed scrollbar (`"Scroll content"`).
+This is unglamorous but it's the difference between AT users hearing
+"close, button" and "close window, button" — semantic vs descriptive.
+
+**The host double-labeling near-miss.** When adding `role` + `aria-label`
+to the WindowManager's outer host element (initial first-pass), I thought
+I was filling a gap. Then verified `renderWindow.ts` already emits
+`role={dialog|group}` + `aria-label={title}` on the INNER `.aw-window`.
+Double-labeling would have made screen readers announce the window twice
+("Welcome group, Welcome group"). Reverted with an explanatory comment so
+the next agent doesn't re-add it. **Always check what the runtime already
+emits before adding new ARIA at a different layer.**
+
+**Keyboard parity for pointer-only interactions is a real gap class.** The
+grow box was `<div>` with pointer-only resize handlers — no role, no
+tabindex, no keyboard alternative. Promoted to `<button class="aw-growbox"
+aria-label="Resize window">` with arrow-key resize (Shift × 4 for bigger
+steps). Production WMs do this; demo WMs often don't. The pattern is:
+every pointer-only interaction (drag, resize, pinch) needs a keyboard
+sibling for AT users. The grow box was caught; window-drag itself is
+still pointer-only (move-via-arrow-keys is an outstanding follow-up).
+
+**`<button>` vs `<span role="button">` is fine in both directions, but
+buttons give you keyboard activation for free.** `interactiveButton` uses
+`<span role="button" tabindex="0">` and wires its own Enter/Space keyboard
+handlers. Works, but native `<button>` gets activation + form-submit
+semantics + focus-ring CSS for free. The grow box swap from div to button
+turned out to be cleaner than expected — same trick where we can.
+
+**Application:** the audit script for the next consumer-facing surface
+that ships (menu, popup, list-header, …) should be: enumerate every
+clickable thing, check for DOM target / role / tabindex / aria-label /
+keyboard activation / state ARIA. If a category is missing, fix it
+before shipping — easier than retrofitting later, and the audit itself
+takes ~30 minutes.
