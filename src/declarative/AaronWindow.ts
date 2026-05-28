@@ -8,6 +8,7 @@ import type { LoadedTheme } from '../types.js';
 import type { WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
+import { sharedRO } from './sharedResizeObserver.js';
 
 export interface AaronWindowDeps {
   manager: WindowManager;
@@ -24,7 +25,10 @@ export class AaronWindow {
   private readonly fit: HTMLElement; // max-content wrapper inside the slot; the resize-observe target
   private readonly deps: AaronWindowDeps;
   private readonly restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement };
-  private ro: ResizeObserver | undefined;
+  /** True once this window is registered with the shared ResizeObserver. We track this rather
+   *  than holding a per-window ResizeObserver — sharedRO handles a single browser-side observer
+   *  for all windows (closes #170). */
+  private observing = false;
   private rafId = 0;
   private rendering = false;
   private last = { w: 0, h: 0 };
@@ -97,9 +101,9 @@ export class AaronWindow {
     this.last = { w, h };
     await this.deps.manager.setContentSize(this.host, w, h);
     this.rendering = false;
-    if (startObserving && typeof ResizeObserver !== 'undefined' && !this.ro) {
-      this.ro = new ResizeObserver(() => this.scheduleFit());
-      this.ro.observe(this.fit);
+    if (startObserving && !this.observing) {
+      sharedRO.observe(this.fit, () => this.scheduleFit());
+      this.observing = true;
     }
   }
 
@@ -111,14 +115,17 @@ export class AaronWindow {
     this.rafId = requestAnimationFrame(() => {
       void (async () => {
         this.rafId = 0;
+        if (this.unmounted) return;
         const w = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
         const h = Math.max(MIN_H, this.fit.scrollHeight);
         if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) return;
         this.rendering = true;
-        this.ro?.disconnect();
+        // Unobserve ONLY this window's fit (not the whole shared observer) so OUR own
+        // size-change can't re-trigger fitToContent. Other windows' observations continue.
+        if (this.observing) sharedRO.unobserve(this.fit);
         this.last = { w, h };
         await this.deps.manager.setContentSize(this.host, w, h);
-        if (this.ro) this.ro.observe(this.fit); // the SAME fit node survives the re-slot
+        if (this.observing) sharedRO.observe(this.fit, () => this.scheduleFit());
         this.rendering = false;
       })();
     });
@@ -130,7 +137,7 @@ export class AaronWindow {
     debug('unmount', `AaronWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
-    this.ro?.disconnect();
+    if (this.observing) { sharedRO.unobserve(this.fit); this.observing = false; }
     this.deps.manager.remove(this.host); // stop the manager re-rendering/re-theming a closed window
     const { el, parent, next } = this.restore;
     el.append(...Array.from(this.fit.childNodes));
