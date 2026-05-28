@@ -84,11 +84,17 @@ decoded rather than discarding them, so a trailing over-run is harmless.
 
 ## Rebuild
 
-Requires the Emscripten SDK:
+Either with a local Emscripten SDK:
 
 ```sh
 source ~/emsdk/emsdk_env.sh   # install: https://emscripten.org/docs/getting_started/downloads.html
 ./build.sh                    # → dist/munbox.mjs + dist/munbox.wasm  (~70 KB wasm)
+```
+
+Or via docker, with no local emsdk install required:
+
+```sh
+docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh
 ```
 
 `build.sh` invokes `emcc -O2` over the vendored `munbox/lib/**` + `shim.c`. Key flags (see
@@ -100,10 +106,18 @@ factory that runs in both the browser and Node — the latter is what the test u
 
 ## What's vendored, and our patches
 
-`munbox/` holds the minimal buildable subset of upstream munbox plus two small,
-upstream-able patches (a spurious `<threads.h>` include; a classic-SIT folder-counting bug that
-made single-file-in-a-folder archives extract nothing). See [`munbox/PATCHES.md`](munbox/PATCHES.md)
-for the diffs and provenance. munbox is MIT — see [`munbox/LICENSE`](munbox/LICENSE).
+`munbox/` holds the minimal buildable subset of upstream munbox plus three small,
+upstream-able patches:
+1. a spurious `<threads.h>` include that broke Apple-clang builds,
+2. classic-SIT folder markers wrongly counting against `num_files` (single-file-in-a-folder
+   archives extracted nothing),
+3. classic-SIT folder SUB-ENTRIES wrongly counting against `num_files` (multi-file-in-a-folder
+   archives — typical for Kaleidoscope schemes wrapped with ReadMe / Icon / sidecars — only
+   extracted the first nested file).
+
+See [`munbox/PATCHES.md`](munbox/PATCHES.md) for the diffs, provenance, and meta-lesson on what
+`num_files` actually counts in classic SIT! (root entries, not files-in-tree). munbox is MIT —
+see [`munbox/LICENSE`](munbox/LICENSE).
 
 ## Layout
 

@@ -91,13 +91,31 @@ single file wrapped in a folder.
    keeping `convert.js` pure.
 
 ## Open items / next checks
-- **emsdk install** is the gate for steps 2–4 (owner authorization — heavy env change).
-- **Method 15 (SIT5 Arsenic/BWT)** not yet exercised — our fixture is classic method 13. Validate
-  against a SIT5 sample (the more common 1997–2001 format) before declaring full coverage.
-- **Nested wrappers** (`.sit.hqx`, `.sit.bin`) — munbox auto-chains; or feed it the already-de-hqx'd
-  bytes from `containers.js`. Confirm on a real nested file.
-- **method-13 symbol-320 edge** (munbox treats it as fatal where some notes call it an end marker) —
-  didn't trigger on our file; watch for it on others.
+*(updated 2026-05-28 — most checks now resolved; see status in each bullet)*
+
+- ~~**emsdk install** is the gate for steps 2–4~~ **RESOLVED.** Docker image
+  `emscripten/emsdk:latest` rebuilds the WASM with one command, no local emsdk required:
+  `docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh`.
+  Recipe added to `tools/sit-wasm/munbox/PATCHES.md`. Original spike noted ~1 GB emsdk install +
+  owner authorization; that posture is no longer needed for rebuild.
+- ~~**Method 15 (SIT5 Arsenic/BWT)**~~ **VALIDATED** (commit `abcb0e8`, 2026-05-27): real
+  `masswerk7le.sit` (SIT5, method 15, foldered) decodes to a byte-correct 119772 B scheme fork.
+  Two upstreamable findings — SIT5 iterator over-runs the last entry (shim keeps prior entries
+  on trailing error); `stuffItResourceFork` picks largest non-`Icon\r` rsrc (was first = the
+  folder-icon).
+- ~~**Nested wrappers** (`.sit.hqx`, `.sit.bin`)~~ **WIRED** via `tools/theme-loader/containers.js`
+  which auto-unwraps MacBinary / AppleSingle/Double / BinHex before handing to the StuffIt
+  decoder. Not yet exercised on a real-world nested file — opportunistic.
+- **method-13 symbol-320 edge** — still untested. No corpus file triggered it.
+- **Folder-wrapped multi-file archives** (added 2026-05-28): every Kaleidoscope `.sit` puts the
+  scheme inside a folder alongside ReadMe / custom Icon / desktop-pattern sidecars. Original
+  spike's patch #2 (folder MARKERS don't count against `num_files`) was incomplete — sub-FILES
+  inside the folder still counted, so the iterator exited after the first one, missing the
+  scheme. Patch #3 (commit `a01dd7a`) makes the count consistent: only root-level entries count.
+  Verified on four real Mac Themes Garden archives: `duplex.sit`, `fantasia.sit`, `falloutiv.sit`,
+  `dtunderfloatsnow.sit`. See PATCHES.md `## 3.` for the diff + the meta-lesson on classic SIT!'s
+  `num_files` field meaning ROOT entries, not files-in-tree. Also LEARNINGS.md 2026-05-28
+  ("`num_files` in classic SIT! counts ROOT entries…") for the reusable rule.
 
 ### Sources
 munbox repo + `docs/internals/{sit,sit13,sit15,architecture}.md`; XADMaster `StuffIt5Format` wiki

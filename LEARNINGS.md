@@ -2310,3 +2310,23 @@ Two prior naming decisions had explicitly KEPT "Aaron UI" despite the loose etym
 - Logged in `docs/history.md` (the canonical archeology record), with the prior PRD §285 and the 2026-05-16 LEARNINGS entry marked superseded. PRD §285's `[Name] UI`-family rationale no longer applies but stays as the recorded reasoning of its time.
 
 **Application:** when the brand pops up in future writing, default to Scriptoscope. The `data-aaron-*`/`AaronWindow`/`.aw-*` identifiers in code are deliberate stable surface — don't "fix" them to match the brand. If a future API break IS appropriate (e.g., for a 1.0 stabilization), bundle that decision separately, not as a casual rename.
+
+### 2026-05-28 — `num_files` in classic SIT! counts ROOT entries, not files-in-tree (decoder patch #3)
+
+Owner dropped four real-world Kaleidoscope `.sit` archives on the demo (`duplex.sit`, `fantasia.sit`, `falloutiv.sit`, `dtunderfloatsnow.sit` — all from Mac Themes Garden). None loaded a usable scheme. My first hypothesis was "the picker is choosing the wrong fork." It wasn't — the picker's `largest non-Icon resource fork` heuristic was fine. The decoder was MISSING FILES. Native munbox CLI, run on `duplex.sit` (which Finder shows containing 4 items), extracts 1. Same story on the other three.
+
+Root cause: classic `SIT!` format's `num_files` field at offset 4 counts **root archive entries**, not total files. A folder IS one root entry that contains N sub-entries. Patch #2 from the original spike (2026-05-27) correctly stopped folder MARKER bytes (methods 32/33) from counting against `num_files` — but sub-FILES inside a folder still incremented `files_processed`, so the iterator hit `1 >= 1` and exited after the first nested file. Every Kaleidoscope `.sit` is shaped this way (scheme wrapped in a named folder alongside ReadMe / custom folder Icon / desktop-pattern sidecar), so this silently broke virtually everything.
+
+Patch #3 (a01dd7a) makes the accounting consistent: only ROOT-level entries count against `num_files`. Three sites in `tools/sit-wasm/munbox/lib/layers/sit.c`:
+
+1. Termination check + while-loop condition stay in the loop when `folder_depth > 0`, regardless of the root budget — keep reading sub-entries until the root folder closes.
+2. Folder END (method 33) increments `files_processed` when depth returns to 0 (the root folder is one finished root entry).
+3. Regular file entry only increments `files_processed` when `folder_depth == 0` (root-level files); files inside a folder are sub-entries of their parent.
+
+Verified post-patch: all four user files decode every fork; the picker correctly lands on each scheme (type='Colr' creator='Acid', 152–696 KB). Browser E2E on the declarative demo's drop-zone: `duplex.sit` and `fantasia.sit` re-theme all four promoted windows live.
+
+**Side effect: the emsdk gate is gone for rebuilds.** Originally the spike noted "~1 GB emsdk install (owner authorization, heavy env change)" as a blocker. Docker has an `emscripten/emsdk:latest` image — `docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh` rebuilds the WASM in under a minute on a cold image pull. Recipe added to `tools/sit-wasm/munbox/PATCHES.md`'s Rebuild section.
+
+**Test fixture nuance.** `tools/sit-wasm/sit-wasm.test.mjs` test #8 had `assert.equal(rsrcEntries.length, 1, 'exactly one resource fork')` — that assertion was hard-coded to the buggy pre-patch behavior (the `system7nostalgiasilver.sit` fixture genuinely has scheme + ReadMe = 2 entries). Relaxed to `>= 1`; the byte-for-byte equality of the **picked** fork against the corpus is unchanged and still holds.
+
+**Application — meta-lesson:** when a binary-format integer field is named ambiguously (`num_files`, `num_entries`, `count`), verify what it actually counts: top-level entries, total leaves, immediate children? The choice matters most when the format supports nesting. Don't treat the field as authoritative without tracing through a real multi-entry, nested example. Classic SIT!'s `num_files` looks like "files" but means "root entries"; folder trees decompose it the way the iterator state machine has to model. Same trap likely exists in adjacent classic-Mac formats (Compact Pro, DiskDoubler) and possibly in modern formats too — verify before assuming.
