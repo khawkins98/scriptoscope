@@ -581,6 +581,27 @@ export class WindowManager {
     return entry.collapsed ? (collapsedSlugFor(entry.theme, base) ?? base) : base;
   }
 
+  /**
+   * Re-render a window's chrome (rebuilds the canvas + overlays + scrollbars).
+   *
+   * RENDER FREQUENCY CONTRACT (audited 2026-05-28, verified in browser):
+   * render() fires only on state changes that affect the painted pixels:
+   *   • add()                      — first render
+   *   • setContentSize()           — width/height changed (guarded against equal)
+   *   • retheme()                  — theme changed
+   *   • focus()                    — only for windows whose `active` state actually flipped
+   *                                  (same-window re-click → 0 renders, just bumps z-index)
+   *   • toggleCollapse()           — shade state changed
+   *   • toggleZoom()               — zoom dimensions changed
+   *   • keyboard resize (line ~844)— size changed
+   *   • pointer resize endpoint    — once at mouseup; the in-progress drag draws an
+   *                                  outline (CSS-only). NOT per-mousemove.
+   *
+   * Title-bar drag uses CSS left/top updates (cheap), not render(). Per-frame
+   * canvas re-paints during interactive drag would be the expensive thing
+   * to introduce — measured baseline is 2 renders on focus-change between two
+   * windows, N renders on a theme switch (one per window). Don't regress this.
+   */
   private async render(entry: ManagedWindow): Promise<void> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry);
