@@ -36,7 +36,7 @@
        --aaron-desktop: url('/desktop-pattern.png'); */
   --aaron-desktop: transparent;
 
-  /* Focus-ring color for keyboard navigation. Aaron UI's interactive widgets
+  /* Focus-ring color for keyboard navigation. Scriptoscope's interactive widgets
      are inside Shadow DOM and use their own outline-offset; this applies to
      the OUTER host element when it receives focus. Defaults to the standard
      browser blue. */
@@ -108,7 +108,7 @@
 }
 
 /* ─── Reduced motion preference ────────────────────────────────────────── */
-/* Aaron UI's runtime currently has no animated transitions (windowshade is
+/* Scriptoscope's runtime currently has no animated transitions (windowshade is
    instant; theme switch is instant; drag is direct). This media query is
    forward-looking: if future versions add an animation (CSS transitions on
    window-shade collapse, say), they should be gated on this preference.

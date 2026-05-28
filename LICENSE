@@ -22,7 +22,7 @@ SOFTWARE.
 
 ---
 
-The MIT license above covers Aaron UI's own first-party source code (e.g. `src/`,
+The MIT license above covers Scriptoscope's own first-party source code (e.g. `src/`,
 `tools/` first-party files, `scripts/`, `demo/` code). It does NOT relicense the
 third-party material bundled in this repository, which keeps its own terms:
 

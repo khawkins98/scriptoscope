@@ -37,14 +37,18 @@ consumers can `npm install scriptoscope` and start integrating.
 
 ### Tarball scope
 
-- Slim: `dist/` + `README.md` + `LICENSE`. **NOT** included: `src/`, `themes/`, `PRD.md`,
-  `LEARNINGS.md`, `docs/`. Consumers use the built `dist/scriptoscope.js` and fetch themes
-  from a base URL they host. Drops the tarball from ~1.4 MB unpacked to ~150 KB.
+- Slim: `dist/` + `README.md` + `LICENSE` + `CHANGELOG.md`. **NOT** included: `src/`,
+  `themes/`, `PRD.md`, `LEARNINGS.md`, `docs/`, `tools/`. Consumers use the built
+  `dist/scriptoscope.js` and fetch themes from a base URL they host. Packaged size:
+  ~239 KB; unpacked ~782 KB (sourcemaps + .d.ts.map files account for the bulk of the
+  unpacked footprint — kept for IDE jump-to-definition).
 
 ### License
 
-- MIT (decided in #26; first-party code only — `themes/` keeps per-scheme freeware terms,
-  `tools/sit-wasm/munbox/` keeps its own MIT, demo fonts keep CC BY-SA / free-with-credit).
+- MIT (decided in #26; first-party code only). The slim tarball ships only `dist/` + the
+  three top-level docs, so per-scheme freeware terms (themes), munbox MIT (sit-wasm),
+  and demo-font terms (CC BY-SA / free-with-credit) are repo-level concerns — relevant
+  for source-tree contributors, not consumers of the published package.
 
 ### Status
 

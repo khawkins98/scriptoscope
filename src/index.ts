@@ -99,6 +99,7 @@ export {
 export {
   mountDeclarative, type MountOptions,
   AaronWindow,
+  promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
