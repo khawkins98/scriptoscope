@@ -154,6 +154,9 @@ async function buildToggle(
     el.addEventListener('click', toggle);
     el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
   }
+  // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
+  // drive the visual state from the outside without an internal-API leak.
+  (el as unknown as { _awSetChecked: (v: boolean) => void })._awSetChecked = set;
   return { el, get: () => checked, set };
 }
 
@@ -163,6 +166,15 @@ export async function interactiveCheckbox(
   opts: InteractiveCheckableOptions = {},
 ): Promise<HTMLElement> {
   return (await buildToggle(theme, 'checkbox', opts)).el;
+}
+
+/** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
+ *  inputs, the browser handles it via shared `name`; the visual sync is via `_awSetChecked`). */
+export async function interactiveRadio(
+  theme: LoadedTheme,
+  opts: InteractiveCheckableOptions = {},
+): Promise<HTMLElement> {
+  return (await buildToggle(theme, 'radio', opts)).el;
 }
 
 export interface RadioGroupOptions {

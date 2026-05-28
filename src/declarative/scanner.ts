@@ -6,6 +6,7 @@
 import { WindowManager } from '../interactive.js';
 import { AaronWindow } from './AaronWindow.js';
 import { promoteButton } from './button.js';
+import { promoteControl } from './control.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 
@@ -18,6 +19,10 @@ export interface MountOptions extends ThemeBootstrapOpts {
 
 const WINDOW_SEL = '[data-aaron-window], .aaron-window';
 const BUTTON_SEL = '[data-aaron-button], .aaron-button';
+// Themed checkbox / radio / slider. Auto-promoted page-wide so existing markup picks up themes
+// without retrofitting every input; opt-out with data-aaron-control="off" if a consumer wants
+// the native control.
+const CONTROL_SEL = 'input[type=checkbox]:not([data-aaron-control=off]), input[type=radio]:not([data-aaron-control=off]), input[type=range]:not([data-aaron-control=off])';
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
 export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void; retheme(ref: string): Promise<void> }> {
@@ -28,6 +33,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const inFlight = new Set<Element>();
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
+  const skinnedControls: { el: HTMLInputElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -79,6 +85,19 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
   };
 
+  const promoteCtl = async (el: HTMLInputElement): Promise<void> => {
+    if (isPromoted(el)) return;
+    inFlight.add(el);
+    try {
+      const skinned = await promoteControl(el, await resolver.load(refForEl(el)));
+      if (skinned) skinnedControls.push({ el, skinned });
+    } catch (err) {
+      console.error('[aaron] control promote failed:', err);
+    } finally {
+      inFlight.delete(el);
+    }
+  };
+
   // Runtime theme switch: re-skin the whole desktop AND every promoted button with one scheme — a
   // system-wide Kaleidoscope theme change overrides per-window themes. The persistent window content
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
@@ -97,6 +116,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
         b.skinned = fresh;
       } catch (err) { console.error('[aaron] button re-skin failed:', err); }
     }
+    // Same dance for promoted checkbox/radio/slider controls: drop orphans, then re-skin each in
+    // place. clear the promoted stamp first so promoteControl will re-promote (it self-guards).
+    const liveCtls = skinnedControls.filter((c) => c.skinned.closest('.aw-window') != null);
+    skinnedControls.length = 0; skinnedControls.push(...liveCtls);
+    for (const c of skinnedControls) {
+      try {
+        delete c.el.dataset.aaronPromoted;
+        const fresh = await promoteControl(c.el, theme);
+        if (fresh) { c.skinned.remove(); c.skinned = fresh; }
+      } catch (err) { console.error('[aaron] control re-skin failed:', err); }
+    }
   };
 
   // Windows in DOCUMENT ORDER, sequentially, so the first declared window becomes the active one
@@ -105,7 +135,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
     for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
-    await Promise.all(Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)));
+    await Promise.all([
+      ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
+      ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement)),
+    ]);
   };
 
   // Wire `[data-aaron-theme-switcher]` controls (the PRD's named front door for runtime themes). A
