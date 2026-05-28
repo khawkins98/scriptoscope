@@ -15,20 +15,25 @@ const FIXTURE = resolve(root, '.scratch', 'system7nostalgiasilver.sit');
 const CORPUS = resolve(root, 'themes', 'system7-nostalgia-silver', 'scheme.rsrc');
 const SIT5 = resolve(root, '.scratch', 'masswerk7le.sit'); // a multi-file SIT5 / method-15 archive
 
-test('decodes a real Kaleidoscope .sit → resource fork byte-identical to the corpus', {
+test('decodes a real Kaleidoscope .sit → picked resource fork byte-identical to the corpus', {
   skip: existsSync(FIXTURE) ? false : 'fixture .scratch/system7nostalgiasilver.sit absent',
 }, async () => {
   const sit = new Uint8Array(readFileSync(FIXTURE));
 
-  // The full fork list: a single file with a resource fork (Kaleidoscope schemes).
+  // A Kaleidoscope .sit typically wraps the scheme alongside a ReadMe (and sometimes a folder
+  // icon file). Post-patch (spike fix #3 to lib/layers/sit.c — folder sub-entries no longer
+  // count against num_files), decodeArchive returns every fork in the archive — the assertion
+  // here is "at least the scheme fork is present," not "exactly one."
   const entries = await decodeArchive(sit);
   const rsrcEntries = entries.filter((e) => e.forkType === 1 && e.bytes.length > 0);
-  assert.equal(rsrcEntries.length, 1, 'exactly one resource fork');
+  assert.ok(rsrcEntries.length >= 1, 'at least one resource fork');
 
+  // stuffItResourceFork picks the LARGEST non-Icon resource fork — that's the scheme. It must
+  // equal the corpus bytes exactly (the corpus was produced by the same pipeline).
   const fork = await stuffItResourceFork(sit);
   const corpus = new Uint8Array(readFileSync(CORPUS));
-  assert.equal(fork.length, corpus.length, 'resource-fork length matches the corpus');
-  assert.deepEqual(fork, corpus, 'resource-fork bytes match the corpus exactly');
+  assert.equal(fork.length, corpus.length, 'picked resource-fork length matches the corpus');
+  assert.deepEqual(fork, corpus, 'picked resource-fork bytes match the corpus exactly');
 });
 
 test('multi-file SIT5 (method 15): picks the scheme fork, tolerates munbox’s trailing over-run', {

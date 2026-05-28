@@ -477,14 +477,20 @@ found:;
 
 // Read the next file entry sequentially from classic SIT archive
 static int sit_read_next_entry(sit_layer_state_t *st) {
-    if (st->format_state.classic.files_processed >= st->format_state.classic.num_files) {
+    // spike fix #3: num_files counts ROOT-level entries only. A folder is one root entry that
+    // contains N sub-entries; the sub-entries must NOT count against the root budget, or we'd
+    // exit after the first nested file. Stay in the loop while EITHER root work remains OR
+    // we're inside a folder we haven't finished walking.
+    if (st->format_state.classic.folder_depth == 0 &&
+        st->format_state.classic.files_processed >= st->format_state.classic.num_files) {
         return 0; // No more files
     }
 
     uint8_t *data = st->archive_data;
     uint8_t *current = data + st->format_state.classic.current_offset;
 
-    while (st->format_state.classic.files_processed < st->format_state.classic.num_files) {
+    while (st->format_state.classic.folder_depth > 0 ||
+           st->format_state.classic.files_processed < st->format_state.classic.num_files) {
         // Check if we have enough space for a header
         if ((size_t)(current - data) + 112 > st->archive_size) {
             // If we're at or near the end of the archive, this might be normal
@@ -512,10 +518,15 @@ static int sit_read_next_entry(sit_layer_state_t *st) {
         if (res_method == 33 || data_method == 33) {
             if (st->format_state.classic.folder_depth > 0) {
                 st->format_state.classic.folder_depth--;
+                // spike fix #3: a root-level folder is ONE entry in num_files. When the root
+                // folder closes (depth returns to 0), that entry is finished — count it.
+                if (st->format_state.classic.folder_depth == 0) {
+                    st->format_state.classic.files_processed++;
+                }
             }
             current = header + 112;
             st->format_state.classic.current_offset = current - data;
-            continue; // spike fix: folder markers must NOT count against num_files
+            continue; // spike fix: folder markers themselves must NOT count (folder close handles it)
         }
 
         if ((res_method & 0xE0) || (data_method & 0xE0)) {
@@ -606,8 +617,12 @@ static int sit_read_next_entry(sit_layer_state_t *st) {
         // Update position for next call
         current = comp_data + data_comp_len;
         st->format_state.classic.current_offset = current - data;
-        st->format_state.classic.files_processed++;
-        
+        // spike fix #3: only ROOT-level files count toward num_files. Files nested inside a
+        // folder are sub-entries of the folder (which is the root entry counted at folder-close).
+        if (st->format_state.classic.folder_depth == 0) {
+            st->format_state.classic.files_processed++;
+        }
+
         return 1; // Found a file
     }
     
