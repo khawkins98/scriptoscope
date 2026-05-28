@@ -406,10 +406,32 @@ interface ManagedWindow {
   handlers: TitleWidgetHandlers;
   host: HTMLElement;
   active: boolean;
+  /** Stacking order. Bumped to the top each focus; render() maps it to z-index (active windows sit
+   *  above inactive ones at the same recency). Generalizes the old two-level (1/2) z so 3+ windows
+   *  and modals stack correctly. */
+  z: number;
+  /** Window-shade (classic Mac "collapse"): when true, render() rolls the window up to its title bar
+   *  (collapsed window-type slug + zero-height body, content hidden). `opts.height` is left at the
+   *  EXPANDED height, so un-shading just renders again — no separate stash needed. */
+  collapsed?: boolean;
+  /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content). */
+  zoomed?: boolean;
+  userSize?: { width?: number; height?: number };
   /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
    *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
   contentEl?: HTMLElement;
+}
+
+/** Find a theme's window-shade (collapsed) variant slug for a base window type, if it ships one.
+ *  Returned slug is passed to renderWindow EXPLICITLY — `resolveWindowType` exact-matches it before
+ *  the utility scan that deliberately skips `/collapsed/` keys, so the shade chrome resolves. */
+function collapsedSlugFor(theme: LoadedTheme, baseSlug: string): string | undefined {
+  const wts = theme.manifest.windowTypes ?? {};
+  const noun = baseSlug.replace(/-window$/, '');
+  for (const c of [`collapsed-${baseSlug}`, `collapsed-${noun}`]) if (wts[c]) return c;
+  for (const k of Object.keys(wts)) if (k.startsWith('collapsed') && k.includes(noun)) return k;
+  return undefined;
 }
 
 /**
@@ -421,6 +443,10 @@ interface ManagedWindow {
  */
 export class WindowManager {
   private windows: ManagedWindow[] = [];
+  /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
+   *  window is frontmost. render() adds a large offset for the active window so it sits above all
+   *  inactive ones (classic "active window on top", with inactive windows in recency order beneath). */
+  private zClock = 0;
 
   /**
    * Add a window. Returns a positioned host element (caller places it). The
@@ -441,6 +467,7 @@ export class WindowManager {
     const entry: ManagedWindow = {
       theme, opts, handlers, host,
       active: this.windows.length === 0 && opts.state !== 'inactive',
+      z: ++this.zClock,
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
     };
     this.windows.push(entry);
@@ -462,26 +489,76 @@ export class WindowManager {
   }
 
   private async focus(entry: ManagedWindow): Promise<void> {
-    if (entry.active) return;
+    entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
+    if (entry.active) { entry.host.style.zIndex = this.zIndexFor(entry); return; }
     for (const w of this.windows) {
       const was = w.active;
       w.active = w === entry;
       if (w.active !== was) await this.render(w);
+      else w.host.style.zIndex = this.zIndexFor(w); // refresh the loser's z without a full re-render
     }
   }
 
+  /** Active windows float above inactive ones; within each group, higher zClock (more recent) wins. */
+  private zIndexFor(entry: ManagedWindow): string {
+    return String((entry.active ? 100_000 : 0) + entry.z);
+  }
+
+  /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
+  private effectiveSlug(entry: ManagedWindow): string {
+    const base = entry.opts.windowType ?? 'document-window';
+    // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
+    // else fall back to the same type at zero body height — both roll the window up to the title bar.
+    return entry.collapsed ? (collapsedSlugFor(entry.theme, base) ?? base) : base;
+  }
+
   private async render(entry: ManagedWindow): Promise<void> {
+    const collapsed = entry.collapsed === true;
+    const slug = this.effectiveSlug(entry);
     const win = await renderWindow(entry.theme, {
       ...entry.opts,
+      windowType: slug,
+      ...(collapsed ? { height: 0 } : {}),
       state: entry.active ? 'active' : 'inactive',
     });
-    entry.host.style.zIndex = entry.active ? '2' : '1';
+    entry.host.style.zIndex = this.zIndexFor(entry);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
     // Re-slot the persistent consumer content into the freshly-built content hole (the SAME node,
     // so listeners/selection survive) before the window goes into the DOM. See ManagedWindow.contentEl.
     if (entry.contentEl) win.querySelector('.aw-content')?.replaceChildren(entry.contentEl);
+    // When shaded, keep the content node attached (preserves scroll position + listeners) but hidden.
+    if (collapsed) {
+      const hole = win.querySelector('.aw-content') as HTMLElement | null;
+      if (hole) hole.style.display = 'none';
+    }
     entry.host.replaceChildren(win);
+  }
+
+  /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
+  private async toggleCollapse(entry: ManagedWindow): Promise<void> {
+    entry.collapsed = !entry.collapsed;
+    await this.render(entry);
+    entry.handlers.onCollapse?.();
+  }
+
+  /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size. */
+  private async toggleZoom(entry: ManagedWindow): Promise<void> {
+    if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
+    if (!entry.zoomed) {
+      entry.userSize = { ...(entry.opts.width != null ? { width: entry.opts.width } : {}), ...(entry.opts.height != null ? { height: entry.opts.height } : {}) };
+      const c = entry.contentEl;
+      // Zoom-to-fit: show all content (classic "ideal size"), capped so it can't swallow the screen.
+      const w = c ? Math.min(Math.max(c.scrollWidth, entry.opts.width ?? 0), 760) : Math.round((entry.opts.width ?? 240) * 1.5);
+      const h = c ? Math.min(Math.max(c.scrollHeight, entry.opts.height ?? 0), 560) : Math.round((entry.opts.height ?? 120) * 1.5);
+      entry.opts = { ...entry.opts, width: w, height: h };
+      entry.zoomed = true;
+    } else {
+      entry.opts = { ...entry.opts, ...entry.userSize };
+      entry.zoomed = false;
+    }
+    await this.render(entry);
+    entry.handlers.onZoom?.();
   }
 
   /**
@@ -507,6 +584,16 @@ export class WindowManager {
       const mv = (ev: MouseEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
       const up = (): void => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
       document.addEventListener('mousemove', mv); document.addEventListener('mouseup', up);
+    });
+
+    // Double-click the title bar to window-shade (the classic Mac WindowShade gesture) — and the
+    // reliable way to un-shade if a collapsed chrome happens to drop its collapse widget. Ignores
+    // double-clicks on the widgets themselves (those toggle via their own hit button).
+    win.addEventListener('dblclick', (e) => {
+      if ((e.target as HTMLElement).closest('.aw-titlewidget')) return;
+      if (e.clientY - win.getBoundingClientRect().top > frameTop) return; // below the title bar
+      e.preventDefault();
+      void this.toggleCollapse(entry);
     });
 
     // RESIZE — drag ONLY the bottom-right corner (the grow-box gripper), like classic Mac. NOT the
@@ -558,10 +645,20 @@ export class WindowManager {
   private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
     if (!composed) return; // baseline (procedural) window — no cicn widget rects
-    const slug = entry.opts.windowType ?? 'document-window';
+    const slug = this.effectiveSlug(entry);
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
+    // Per-widget action: an explicit handler wins; otherwise collapse/zoom get a built-in (window-shade
+    // / zoom-to-fit) so the widgets work out of the box. Close has no built-in (the manager doesn't own
+    // what "close" means — the declarative layer wires onClose=unmount), so a close widget without a
+    // handler stays inert. Existing callers that pass handlers (demo/index.html) keep their behavior.
+    const builtin: Partial<Record<TitleWidget, () => void>> = {
+      collapse: () => { void this.toggleCollapse(entry); },
+      zoom: () => { void this.toggleZoom(entry); },
+    };
     const cb: Record<TitleWidget, (() => void) | undefined> = {
-      close: entry.handlers.onClose, zoom: entry.handlers.onZoom, collapse: entry.handlers.onCollapse,
+      close: entry.handlers.onClose,
+      zoom: entry.handlers.onZoom ?? builtin.zoom,
+      collapse: entry.handlers.onCollapse ?? builtin.collapse,
     };
     // To show the PRESSED state on mousedown we repaint the live chrome canvas with a pre-rendered
     // pressed variant (renderWindow's pressedWidget), then restore a snapshot of the normal chrome
