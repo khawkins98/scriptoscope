@@ -32,7 +32,8 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/aaron-ui.js"
-    }
+    },
+    "./aaron-ui.css": "./src/aaron-ui.css"
   },
   "files": [
     "dist",

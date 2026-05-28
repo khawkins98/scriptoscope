@@ -1,0 +1,118 @@
+/*
+ * aaron-ui.css — optional consumer-side stylesheet for outer-shell affordances.
+ *
+ * The Aaron UI runtime renders pixel-faithful chrome inside Shadow DOM. This
+ * stylesheet covers the things AROUND the chrome that consumers commonly want
+ * but the runtime can't legitimately impose: drop shadow, focus ring on widgets
+ * that escape the shadow boundary (the host element itself), and an optional
+ * desktop background.
+ *
+ * USAGE:
+ *
+ *   <link rel="stylesheet" href="/aaron-ui.css">
+ *
+ * Without this file, Aaron UI still works — chrome renders faithfully, windows
+ * drag and resize, themed controls work. This file just adds polish.
+ *
+ * EVERYTHING IS THEMABLE via CSS custom properties (see the :root block below).
+ * Override at any scope: globally on :root, on a desktop container, or per-window
+ * via the host element. The runtime never reads these properties — they're
+ * purely for the host page's visual integration.
+ *
+ * The runtime's role is the CHROME (canvas, decoration, widgets). This file's
+ * role is the SHELL (what the chrome sits in / on / next to).
+ */
+
+/* ─── CSS custom-property API — override at :root or any scope ─────────── */
+:root {
+  /* Outer drop shadow on windows. Mac OS 8.5 used a subtle offset shadow; this
+     matches that aesthetic. Set --aaron-window-shadow: none to disable. */
+  --aaron-window-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.35);
+
+  /* Optional desktop background. Default: none (transparent). Set this to a
+     color, a gradient, or a url() to give Aaron windows a backdrop. Example:
+       --aaron-desktop: #5d6c83;
+       --aaron-desktop: linear-gradient(140deg, #45526a, #5d6c83);
+       --aaron-desktop: url('/desktop-pattern.png'); */
+  --aaron-desktop: transparent;
+
+  /* Focus-ring color for keyboard navigation. Aaron UI's interactive widgets
+     are inside Shadow DOM and use their own outline-offset; this applies to
+     the OUTER host element when it receives focus. Defaults to the standard
+     browser blue. */
+  --aaron-focus-color: rgb(0 95 204);
+  --aaron-focus-width: 2px;
+}
+
+/* ─── Drop shadow on window hosts ──────────────────────────────────────── */
+/* Every promoted window's outermost element is the host div (the one with a
+   shadow root attached). The runtime stamps it `data-aaron-promoted="";` after
+   promotion. We match on that to scope the shadow purely to Aaron windows
+   without touching the consumer's other absolute-positioned divs. */
+[data-aaron-promoted] {
+  /* box-shadow on the host is safe: it's outside the shadow boundary, applies
+     to the host element itself, matches the position/size of whatever the
+     shadow renders inside. */
+  box-shadow: var(--aaron-window-shadow);
+}
+
+/* ─── Optional desktop wrapper ─────────────────────────────────────────── */
+/* Consumers who want the classic Mac "windows on a desktop" feel can wrap
+   their windows in a container with class .aaron-desktop. Most pages won't
+   need this — windows over normal page content is fine — but for "Mac OS
+   in a tab" style demos, this turns the background on. */
+.aaron-desktop {
+  position: relative;
+  background: var(--aaron-desktop);
+  min-height: 100vh;
+}
+
+/* ─── Keyboard focus visibility on the window host ─────────────────────── */
+/* When a user tabs through and reaches a window host (or its growbox, title
+   widgets, etc. — all DOM-twins inside the shadow), browsers render a focus
+   ring. Inside the shadow root, the runtime uses outline-offset:2px and
+   relies on the browser default outline color. The HOST element itself
+   gets focus when the user clicks empty content area; this rule makes
+   that focus visible without overriding consumer styles for non-Aaron
+   focusable elements. */
+[data-aaron-promoted]:focus-visible {
+  outline: var(--aaron-focus-width) solid var(--aaron-focus-color);
+  outline-offset: 2px;
+}
+
+/* ─── Pointer cursor over drag targets ─────────────────────────────────── */
+/* The runtime sets cursor:default on the chrome canvas (faithful Mac behavior
+   — the chrome doesn't beg to be clicked). On the title-bar drag area though,
+   consumers expect a move cursor when hovering. The chrome doesn't expose
+   distinct hit zones via DOM, so this is best-effort on the host: when the
+   pointer is over the host but NOT over a promoted .aw-content (i.e. NOT
+   over the body), the cursor reads as draggable. The runtime owns
+   pointer-events on .aw-chrome and overlay elements; this only affects
+   the host's default cursor when hovering empty chrome zones. */
+[data-aaron-promoted] {
+  cursor: default;
+}
+
+/* ─── Print: chrome doesn't print ──────────────────────────────────────── */
+/* The canvas chrome is decorative. When a user prints the page, they
+   probably want the consumer's content — not the Mac frame. Hide the
+   chrome but leave the body content (slotted, in light DOM) visible. */
+@media print {
+  [data-aaron-promoted] {
+    box-shadow: none;
+  }
+  [data-aaron-promoted]::part(aw-chrome),
+  [data-aaron-promoted] canvas.aw-chrome {
+    display: none;
+  }
+}
+
+/* ─── Reduced motion preference ────────────────────────────────────────── */
+/* Aaron UI's runtime currently has no animated transitions (windowshade is
+   instant; theme switch is instant; drag is direct). This media query is
+   forward-looking: if future versions add an animation (CSS transitions on
+   window-shade collapse, say), they should be gated on this preference.
+   Reserved here so consumers know we honor it. */
+@media (prefers-reduced-motion: reduce) {
+  /* (No animations to disable yet — reserved for future use.) */
+}
