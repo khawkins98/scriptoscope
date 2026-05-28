@@ -145,6 +145,9 @@
     await mountDeclarative({
       themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
       pageThemeDefault: '1138',
+      // Persistence: opt-in via persistKey. Layouts save to localStorage.aaron:layout:kaleidoscope-corner
+      // on every state change (debounced). Reload → windows reappear where you left them.
+      persistKey: 'kaleidoscope-corner',
     });
   </script>
 </body>

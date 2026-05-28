@@ -10,12 +10,23 @@ import { promoteControl } from './control.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
+import {
+  readLayout, createDebouncedWriter, onCrossTabUpdate, windowIdFor,
+  readHostPosition, type PersistedLayout,
+} from './persistence.js';
 
 export interface MountOptions extends ThemeBootstrapOpts {
   /** Where to scan (default `document`). */
   root?: Document | Element;
   /** Theme ref used when no ancestor carries `data-aaron-theme` (default = `baseSlug`). */
   pageThemeDefault?: string;
+  /** Opt-in to localStorage layout persistence (closes #165). When set, this mount restores
+   *  window positions/sizes/collapsed state from `localStorage.aaron:layout:<persistKey>` on
+   *  promotion, then saves on every state change. Cross-tab sync via the `storage` event.
+   *  Window identity comes from `data-aaron-window-id` (stable) or DOM ordinal (fallback).
+   *  Default `undefined` = persistence disabled (current behavior). Schema details:
+   *  `docs/superpowers/specs/2026-05-28-persistence-design.md`. */
+  persistKey?: string;
 }
 
 const WINDOW_SEL = '[data-aaron-window], .aaron-window';
@@ -45,6 +56,60 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
+  // Persistence (opt-in via opts.persistKey). Load the snapshot now so promoteWindow can apply
+  // restored geometry before WindowManager sees the window. Map<aaron-id, PersistedWindow>.
+  const persistKey = opts.persistKey;
+  const persistedLayout: PersistedLayout | null = persistKey ? readLayout(persistKey) : null;
+  const persistedWindows = persistedLayout?.windows ?? {};
+  let promoteOrdinal = 0; // for DOM-ordinal fallback identity
+  const writeNow = persistKey ? createDebouncedWriter(persistKey) : null;
+  const idForHost = new WeakMap<HTMLElement, string>();
+  // Build a serializable layout from the current managed-window state. Called on every change.
+  const snapshot = (): PersistedLayout => {
+    const windows: Record<string, { x?: number; y?: number; w?: number; h?: number; collapsed?: boolean; z?: number }> = {};
+    for (const aw of mounted) {
+      const id = idForHost.get(aw.host);
+      if (!id) continue;
+      const desc = manager.describe(aw.host);
+      const pos = readHostPosition(aw.host);
+      const entry: { x?: number; y?: number; w?: number; h?: number; collapsed?: boolean; z?: number } = { x: pos.x, y: pos.y };
+      if (desc?.width != null) entry.w = desc.width;
+      if (desc?.height != null) entry.h = desc.height;
+      if (desc?.collapsed) entry.collapsed = true;
+      if (desc?.z != null) entry.z = desc.z;
+      windows[id] = entry;
+    }
+    const layout: PersistedLayout = { version: 1, windows };
+    if (lastThemeRef) layout.activeTheme = lastThemeRef;
+    return layout;
+  };
+  // WindowManager fires onChange after every render() + after title-drag mouseup. We snapshot
+  // and write (debounced). Without persistKey, no listener attached → zero cost.
+  let unsubCrossTab: (() => void) | null = null;
+  if (persistKey) {
+    manager.setChangeListener(() => { if (writeNow) writeNow(snapshot()); });
+    // Cross-tab sync: when another tab writes the same persistKey, re-apply each window's
+    // saved geometry. Position is set directly on host.style; size is applied via
+    // manager.setContentSize (which renders); collapsed via the runtime's collapse handler
+    // is harder to drive from outside, so we just update size+position cross-tab and leave
+    // collapse alone (rare enough that the consumer can re-collapse manually).
+    unsubCrossTab = onCrossTabUpdate(persistKey, (layout) => {
+      for (const aw of mounted) {
+        const id = idForHost.get(aw.host);
+        if (!id) continue;
+        const w = layout.windows[id];
+        if (!w) continue;
+        if (w.x != null && w.y != null) {
+          aw.host.style.left = `${w.x}px`;
+          aw.host.style.top = `${w.y}px`;
+        }
+        if (w.w != null && w.h != null) {
+          void manager.setContentSize(aw.host, w.w, w.h);
+        }
+      }
+    });
+  }
+
   await resolver.preloadFonts();
 
   const isPromoted = (el: Element): boolean =>
@@ -66,14 +131,34 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     try {
       const ref = refForEl(el);
       const theme = await resolver.load(ref);
-      const pos = { x: 24 + cascade * 26, y: 24 + cascade * 26 };
-      cascade += 1;
+      // Resolve persistence identity + restored geometry BEFORE promotion. If persistedWindows has
+      // an entry for this id, apply the saved x/y/w/h/collapsed via temporary data attrs so
+      // AaronWindow.promote's existing parseWindowAttrs picks them up. Original attrs are restored
+      // on unmount via AaronWindow.restore (no change there).
+      const ord = promoteOrdinal++;
+      const id = persistKey ? windowIdFor(el, ord) : '';
+      const persisted = persistKey && id ? persistedWindows[id] : undefined;
+      const pos = persisted && persisted.x != null && persisted.y != null
+        ? { x: persisted.x, y: persisted.y }
+        : { x: 24 + cascade * 26, y: 24 + cascade * 26 };
+      if (!persisted) cascade += 1; // only consume cascade for non-restored windows
+      // Apply saved geometry via data attrs so AaronWindow's parseWindowAttrs picks them up.
+      // PERSISTED state takes precedence over declared data-aaron-* (the consumer's declared
+      // values are the BOOT defaults; persisted state is "where the user last left it"). This
+      // intentionally overrides the consumer's declared x/y/w/h. Document this in the persistence
+      // proposal: declared attrs = first-boot defaults; persisted state = the user's last layout.
+      if (persisted) {
+        if (persisted.x != null) el.dataset.aaronX = String(persisted.x);
+        if (persisted.y != null) el.dataset.aaronY = String(persisted.y);
+        if (persisted.w != null) el.dataset.aaronWidth = String(persisted.w);
+        if (persisted.h != null) el.dataset.aaronHeight = String(persisted.h);
+        if (persisted.collapsed) el.dataset.aaronCollapsed = '';
+      }
       const aw = await AaronWindow.promote(el, { manager, theme }, pos);
-      // Stamp the resolved ref on the host: the original element that carried data-aaron-theme is
-      // now removed, so descendant buttons inherit the window's theme via this stamp (not the body).
       aw.host.dataset.aaronTheme = ref;
+      if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
-      debug('promote', `window: ${el.dataset.aaronTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y });
+      debug('promote', `window: ${el.dataset.aaronTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
     } catch (err) {
       console.error('[aaron] window promote failed:', err);
     } finally {
@@ -200,8 +285,14 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   // original elements (the window's content, incl. the skinned button, is moved back as-is). v1.
   // Also note: declarative elements added INSIDE an already-promoted window's content are not
   // promoted (the observer ignores `.aw-window` subtrees) — a documented v1 limitation.
+  const teardownPersistence = (): void => {
+    unsubCrossTab?.();
+    manager.setChangeListener(undefined);
+  };
+
   return {
     disconnect: () => {
+      teardownPersistence();
       obs.disconnect();
       for (const w of mounted.splice(0)) w.unmount();
     },

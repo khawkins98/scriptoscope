@@ -448,6 +448,17 @@ export async function interactiveScrollbar(theme: LoadedTheme, opts: Interactive
 
 // ── Title-bar widget hit-testing ──────────────────────────────────────────────
 export type TitleWidget = 'close' | 'zoom' | 'collapse';
+/**
+ * Optional state-change hook invoked AFTER every WindowManager.render() (and after the
+ * title-drag mouseup commits a position move). Used by the persistence layer (issue #165)
+ * to serialize the post-mutation state to storage. The runtime never reads its return.
+ *
+ * Argument: the entry's host element (consumer-facing reference) — callers can derive
+ * identity (data-aaron-window-id), read position (host.style.left/top), and call the
+ * manager's public API for size if needed.
+ */
+export type WindowChangeListener = (host: HTMLElement) => void;
+
 export interface TitleWidgetHandlers {
   onClose?: () => void;
   onZoom?: () => void;
@@ -561,6 +572,27 @@ export class WindowManager {
    *  window is frontmost. render() adds a large offset for the active window so it sits above all
    *  inactive ones (classic "active window on top", with inactive windows in recency order beneath). */
   private zClock = 0;
+  /** Optional listener fired post-render() + post-title-drag-mouseup. Persistence layer hooks here. */
+  private onChange?: WindowChangeListener;
+
+  /** Subscribe to render-affecting state changes. Used by the persistence layer (#165) to serialize. */
+  setChangeListener(cb: WindowChangeListener | undefined): void {
+    if (cb) this.onChange = cb; else delete this.onChange;
+  }
+
+  /** Public read access to a managed window's current state (size, collapsed, z). Used by the
+   *  persistence layer to snapshot. Returns null if the host isn't managed. */
+  describe(host: HTMLElement): { width?: number; height?: number; collapsed: boolean; z: number; theme: LoadedTheme } | null {
+    const entry = this.windows.find((w) => w.host === host);
+    if (!entry) return null;
+    return {
+      ...(entry.opts.width != null ? { width: entry.opts.width } : {}),
+      ...(entry.opts.height != null ? { height: entry.opts.height } : {}),
+      collapsed: entry.collapsed === true,
+      z: entry.z,
+      theme: entry.theme,
+    };
+  }
 
   /**
    * Add a window. Returns a positioned host element (caller places it). The
@@ -726,6 +758,10 @@ export class WindowManager {
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);
+    // Notify the persistence layer (or any other state-change consumer) that this window's
+    // render-affecting state is now committed. Fired after the DOM is updated so callers see the
+    // final state. Cheap branch if no listener is registered.
+    if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[aaron] onChange threw:', err); }
   }
 
   /**
@@ -998,7 +1034,13 @@ export class WindowManager {
       const sx = e.clientX, sy = e.clientY;
       const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
       const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
-      const up = (): void => { document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); };
+      const up = (): void => {
+        document.removeEventListener('pointermove', mv);
+        document.removeEventListener('pointerup', up);
+        // Fire the change listener after the drag commits — persistence saves the new position.
+        // (Drag itself is CSS-only and doesn't trigger render(); this is the dedicated commit point.)
+        if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[aaron] onChange threw:', err); }
+      };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
 
@@ -1037,6 +1079,10 @@ export class WindowManager {
       host.style.left = `${x0 + dx}px`;
       host.style.top = `${Math.max(0, y0 + dy)}px`;
       debug('drag', `keyboard move ${entry.opts.title ?? ''}`, { dx, dy, x: x0 + dx, y: y0 + dy });
+      // Notify the change listener so persistence (and any other consumer) sees the new position.
+      // Same contract as the pointer-drag mouseup — CSS-only update, no render, but the position
+      // is committed.
+      if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[aaron] onChange threw:', err); }
     });
     win.appendChild(moveBtn);
 
