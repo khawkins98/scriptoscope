@@ -69,7 +69,11 @@ export class AaronWindow {
         ...(parsed.title != null ? { title: parsed.title } : {}),
       },
       { onClose: () => inst?.unmount() },
-      { contentEl: slot },
+      {
+        contentEl: slot,
+        ...(parsed.z != null ? { z: parsed.z } : {}),
+        ...(parsed.collapsed ? { collapsed: true } : {}),
+      },
     );
     inst = new AaronWindow(host, fit, deps, restore);
 

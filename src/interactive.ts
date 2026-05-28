@@ -491,7 +491,7 @@ export class WindowManager {
     theme: LoadedTheme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
-    extra: { contentEl?: HTMLElement } = {},
+    extra: { contentEl?: HTMLElement; z?: number; collapsed?: boolean } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
@@ -500,9 +500,13 @@ export class WindowManager {
     const entry: ManagedWindow = {
       theme, opts, handlers, host,
       active: this.windows.length === 0 && opts.state !== 'inactive',
-      z: ++this.zClock,
+      // Declared z (data-aaron-z) wins; else take the next stacking-clock tick. We still bump the
+      // clock either way so subsequent focus events stay monotonic relative to any declared values.
+      z: extra.z ?? ++this.zClock,
+      ...(extra.collapsed ? { collapsed: true } : {}),
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
     };
+    if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('mousedown', () => { void this.focus(entry); });

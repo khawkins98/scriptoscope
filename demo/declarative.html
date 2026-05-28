@@ -111,12 +111,11 @@
   <!-- ────────────────────────────── Desktop ────────────────────────────── -->
   <div id="desktop">
 
-    <!-- 1) Welcome — movable modal. Declared FIRST in document order so the scanner promotes it
-         first → it becomes the active window with the highest z, sitting ON TOP of the Read Me at
-         boot (which is exactly what a Welcome dialog should do). Move/dismiss it and the Read Me
-         takes focus on the next click. -->
+    <!-- 1) Welcome — movable modal. `data-aaron-z="1000"` declares its initial stacking order so
+         it boots ON TOP of every other window (a Welcome dialog should be the focus). DOM order
+         no longer determines the answer. Move / dismiss it and Read Me takes focus on the next click. -->
     <div data-aaron-window data-aaron-window-type="movable-modal"
-         data-aaron-title="Welcome"
+         data-aaron-title="Welcome" data-aaron-z="1000"
          data-aaron-x="380" data-aaron-y="130"
          data-aaron-width="320" data-aaron-height="140">
       <div class="doc">
@@ -231,9 +230,10 @@
     </div>
 
     <!-- 5) Notepad — a quietly themed-different document window, demoing per-window theming.
-         Starts inactive so the inactive chrome state is visible at rest. (Ideally ships
-         window-shaded — see follow-ups: needs a data-aaron-collapsed attribute.) -->
-    <div data-aaron-window data-aaron-state="inactive"
+         Ships pre-SHADED via `data-aaron-collapsed` (classic Mac users left scratchpads rolled
+         up at startup) AND inactive — double-click its title bar or click its collapse box to
+         un-shade and read the note. -->
+    <div data-aaron-window data-aaron-state="inactive" data-aaron-collapsed
          data-aaron-theme="1138"
          data-aaron-title="Notepad"
          data-aaron-x="40" data-aaron-y="430"

@@ -15,6 +15,12 @@ export interface ParsedWindow {
   height?: number; // CONTENT height (px)
   /** 'fit' when BOTH width and height are omitted → size to the content; else 'declared'. */
   sizeMode: SizeMode;
+  /** Initial z-order — `data-aaron-z`. Higher = closer to the front. Lets the page DECLARE which
+   *  window should boot on top (without it the scanner falls back to document order). Optional. */
+  z?: number;
+  /** Boot the window already window-shaded — `data-aaron-collapsed`. Classic Mac users left
+   *  Notepad / palettes rolled-up at startup; this restores that. Default false. */
+  collapsed: boolean;
 }
 
 /** A button's options parsed from `data-aaron-button` + neighbours. */
@@ -40,15 +46,18 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
   const height = num(d.aaronHeight);
   const x = num(d.aaronX);
   const y = num(d.aaronY);
+  const z = num(d.aaronZ);
   return {
     windowType: d.aaronWindowType?.trim() || 'document-window',
     state: d.aaronState === 'inactive' ? 'inactive' : 'active',
     sizeMode: width === undefined && height === undefined ? 'fit' : 'declared',
+    collapsed: present(d.aaronCollapsed),
     ...(d.aaronTitle != null ? { title: d.aaronTitle } : {}),
     ...(x !== undefined ? { x } : {}),
     ...(y !== undefined ? { y } : {}),
     ...(width !== undefined ? { width } : {}),
     ...(height !== undefined ? { height } : {}),
+    ...(z !== undefined ? { z } : {}),
   };
 }
 
