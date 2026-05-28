@@ -9,6 +9,39 @@ to 2026-05-23.
 > If you read one section, read **[Dead ends — don't relitigate](#dead-ends--dont-relitigate-these)**. Most of the
 > hard-won progress was *deleting* a plausible-but-wrong idea.
 
+## Pre-history — why this exists at all
+
+The proximate trigger was the [classic-vibe-mac](https://github.com/khawkins98/classic-vibe-mac)
+Mac OS 8 Platinum chrome layer hitting a structural ceiling against WinBox: ~70% of the gap was
+CSS work in cv-mac's own court, ~15% a thin shell layer, but ~30% of the remaining authenticity
+was the window manager itself (fixed DOM hierarchy, scrollbars-inside-body geometry, no slot for
+the windowshade arrow, drag with web-style acceleration). The honest move was to own one.
+
+But the *deeper* origin is a recurring frustration across earlier "modern web utility, classic-OS
+look-and-feel" experiments — each of which arrived at the same lesson from a slightly different
+angle, then walked away because the cost-benefit didn't justify finishing the chrome by hand:
+
+- **[PDF-A-go-actionable](https://github.com/khawkins98/PDF-A-go-actionable#visual-design)** — a
+  NeXTSTEP-styled PDF utility. The "Visual design" notes catalogue the by-hand CSS grind to
+  *approximate* NeXT chrome and how quickly the result diverges from the real thing the moment
+  you zoom in. You can fake the buttons; the *system* of buttons-radios-scrollbars-windows is
+  another order of work.
+- **[PDF-A-go-slim](https://github.com/khawkins98/PDF-A-go-slim#why-it-looks-like-that)** — same
+  impulse, classic-Mac flavour. The "Why it looks like that" section says the same thing from a
+  different angle: hand-authored chrome is tedious to build, never quite right, and rots the
+  moment you reach for a control you haven't drawn yet — there's always one more thing.
+- **["The 90s desktop paradigm for browser utilities"](https://www.allaboutken.com/posts/20260216-90s-desktop-paradigm-browser-utilities/)**
+  — the longer essay that pulls those experiments together. A web utility *as a windowed desktop
+  app* is a richer, more legible UX than a single-flow page (the desktop metaphor still organises
+  thought better than scroll-and-tab does), but only if the chrome is authentic — and authentic
+  chrome is something you **render from the original art**, not redraw in CSS.
+
+That synthesis — *render from the original art* — is what made this project tractable where the
+predecessors stalled. Read the OS's own resource files (`cicn`, `ppat`, `wnd#`, `cinf`) once,
+faithfully replay the engine that drew them, and every utility downstream gets the look for free.
+No per-project CSS Platinum. No per-project drift. The rest of this document is the saga of
+getting that "replay the engine" part right.
+
 ## What we're trying to do
 
 Render classic **Kaleidoscope** schemes 1:1 in the browser — windows, controls,
