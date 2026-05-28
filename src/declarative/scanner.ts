@@ -7,6 +7,7 @@ import { WindowManager } from '../interactive.js';
 import { AaronWindow } from './AaronWindow.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
+import { promoteField } from './field.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
@@ -31,6 +32,12 @@ export interface MountOptions extends ThemeBootstrapOpts {
 
 const WINDOW_SEL = '[data-aaron-window], .aaron-window';
 const BUTTON_SEL = '[data-aaron-button], .aaron-button';
+// Themed text fields: native <input type=text|email|...> and <textarea>. OPT-IN via
+// [data-aaron-field] (not auto-scan over every text input) because field styling can
+// VISUALLY conflict with a consumer's existing stylesheet — checkbox/radio overlays are
+// composable, but a CMS may already paint inputs distinctively. Opt-in keeps the
+// surprise surface small. See src/declarative/field.ts for the bevel rationale.
+const FIELD_SEL = '[data-aaron-field], .aaron-field-attr';
 // Themed checkbox / radio / slider / select. Auto-promoted page-wide so existing markup picks up
 // themes without retrofitting every input; opt-out per-control with `data-aaron-control="off"` if
 // a consumer wants the native chrome. Selects use a transparent-overlay strategy (themed button +
@@ -180,6 +187,18 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     }
   };
 
+  const promoteFld = async (el: HTMLInputElement | HTMLTextAreaElement): Promise<void> => {
+    if (el.dataset.aaronFieldPromoted != null) return;
+    inFlight.add(el);
+    try {
+      promoteField(el, await resolver.load(refForEl(el)));
+    } catch (err) {
+      console.error('[aaron] field promote failed:', err);
+    } finally {
+      inFlight.delete(el);
+    }
+  };
+
   const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
     if (isPromoted(el)) return;
     inFlight.add(el);
@@ -236,6 +255,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     await Promise.all([
       ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
       ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),
+      ...Array.from(within.querySelectorAll(FIELD_SEL), (el) => promoteFld(el as HTMLInputElement | HTMLTextAreaElement)),
     ]);
   };
 

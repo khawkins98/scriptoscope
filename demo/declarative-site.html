@@ -101,14 +101,14 @@
     <form class="card" data-aaron-window data-aaron-title="Sign the guestbook"
           data-aaron-x="372" data-aaron-y="40" data-aaron-width="280" data-aaron-height="300"
           onsubmit="event.preventDefault(); alert('Thanks, ' + (this.elements.gb_name.value || 'friend') + '!');">
-      <div class="field"><label for="gb_name">Name</label><input id="gb_name" name="gb_name" type="text" placeholder="Your name" /></div>
-      <div class="field"><label for="gb_mail">Email</label><input id="gb_mail" name="gb_mail" type="email" placeholder="you@example.com" /></div>
+      <div class="field"><label for="gb_name">Name</label><input id="gb_name" name="gb_name" type="text" placeholder="Your name" data-aaron-field /></div>
+      <div class="field"><label for="gb_mail">Email</label><input id="gb_mail" name="gb_mail" type="email" placeholder="you@example.com" data-aaron-field /></div>
       <div class="field"><label for="gb_fav">Favourite scheme</label>
         <select id="gb_fav" name="gb_fav">
           <option>1138</option><option>BeOS R5</option><option>Apple Platinum</option><option>Aqua-ish</option>
         </select>
       </div>
-      <div class="field"><label for="gb_msg">Message</label><textarea id="gb_msg" name="gb_msg" rows="3" placeholder="Say hi…"></textarea></div>
+      <div class="field"><label for="gb_msg">Message</label><textarea id="gb_msg" name="gb_msg" rows="3" placeholder="Say hi…" data-aaron-field></textarea></div>
       <div class="field inline"><input id="gb_notify" name="gb_notify" type="checkbox" /><label for="gb_notify">Email me new schemes</label></div>
       <div class="actions">
         <button type="reset" data-aaron-button>Clear</button>

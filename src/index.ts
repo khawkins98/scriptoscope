@@ -95,6 +95,7 @@ export {
 export {
   mountDeclarative, type MountOptions,
   AaronWindow,
+  promoteField, isFieldEligible,
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton,
 } from './declarative/index.js';
