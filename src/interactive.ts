@@ -8,9 +8,80 @@
 // a non-semantic cicn canvas, so we wrap it in a FOCUSABLE element carrying the
 // ARIA role + keyboard handlers.
 //
-// Phase 1: button press · checkbox · radio group · disclosure · window focus.
-// Phase 2: slider/scrollbar drag · title-bar widget hit-testing (close/zoom/
-// collapse). See docs/tracking/interactivity-plan.md.
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION MAP
+// ─────────────────────────────────────────────────────────────────────────────
+// This file ships TWO related layers in one module:
+//
+//   1) INTERACTIVE CONTROL PRIMITIVES — buttons, checkboxes, radio groups,
+//      disclosure triangles, sliders, scrollbars. Pure DOM widgets that wrap a
+//      composed cicn canvas with role/tabIndex/aria + keyboard handlers. Used
+//      both by the WindowManager (for its internal controls) and by consumer
+//      code (via the public exports). See sections marked `// ── <name> ──`.
+//
+//      KEY PRIMITIVES:
+//        interactiveButton              — focusable cicn-faced button
+//        interactiveCheckbox / radioGroup — toggle widgets with aria-checked
+//        interactiveDisclosure          — twisty widget with aria-expanded
+//        interactiveSlider              — role=slider with arrow-key support
+//        interactiveScrollbar           — role=scrollbar (used by WindowManager
+//                                         internally for the themed window
+//                                         scrollbars)
+//        titleWidgetHits                — title-bar hit-test rect resolver
+//
+//   2) WINDOW MANAGER — class `WindowManager`. Owns per-window state (active,
+//      collapsed, zoomed, theme, opts) and rebuilds the chrome on state changes.
+//      All chrome lives inside the host's shadow root (per ADR-0001 Decision 2);
+//      consumer content lives in light DOM and is rendered via <slot> inside
+//      .aw-content. See LEARNINGS 2026-05-28 "Shadow DOM gotchas" for the
+//      staleness-check semantics that changed when chrome moved to shadow.
+//
+//      KEY ENTRY POINTS:
+//        WindowManager.add(theme, opts, handlers, extra)   create + render
+//        WindowManager.render(entry)                       rebuild chrome
+//                                                          (frequency contract
+//                                                          documented above the
+//                                                          method)
+//        WindowManager.focus(entry)                        active-state flip
+//                                                          (renders only the
+//                                                          windows whose active
+//                                                          state actually changed)
+//        WindowManager.retheme(theme)                      reskin every window
+//        WindowManager.setContentSize(host, w, h)          content-fit resize
+//        WindowManager.toggleCollapse/Zoom(entry)          shade / fit-to-content
+//        WindowManager.remove(host)                        drop a window
+//
+//      INTERNAL HELPERS:
+//        render(entry)                  → calls renderWindow() + overlayWidgets()
+//                                         + wireMoveResize() + wireScrollbars()
+//        overlayWidgets(entry, win)     → transparent <button>s over the title
+//                                         widgets (close/zoom/collapse + DOM
+//                                         twins for a11y)
+//        wireMoveResize(entry, win)     → title-bar drag (CSS-only, no render)
+//                                         + grow-box resize (ghost outline during
+//                                         drag; render on mouseup)
+//        wireScrollbars(entry, win)     → themed scrollbar wiring per axis (see
+//                                         wireScrollbarAxis)
+//        wireScrollbarAxis(...)         → per-axis bar element + listeners
+//
+// CROSS-FILE RELATIONSHIPS:
+//   composeChrome.ts                     → static chrome geometry (the pixel
+//                                          recipe Aaron walks); produces a
+//                                          ComposedChrome attached to the
+//                                          rendered win as _awComposed
+//   renderWindow.ts                      → wraps the composed chrome in a DOM
+//                                          subtree (.aw-window > canvas + slot)
+//   declarative/AaronWindow.ts           → the consumer-facing wrapper that
+//                                          calls manager.add() with light-DOM
+//                                          slotted content
+//   declarative/scanner.ts               → mountDeclarative() — promotes
+//                                          [data-aaron-window] / -button /
+//                                          -control + drives retheme()
+//
+// RENDER FREQUENCY CONTRACT: see the comment block above WindowManager.render().
+// Locked in 2026-05-28 audit (commit 6f9b285); don't introduce per-mousemove
+// repaints.
+// ─────────────────────────────────────────────────────────────────────────────
 
 import {
   composeButton, composeCheckable, composeDisclosure, composeSlider, composeScrollbar,

@@ -23,7 +23,71 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 // the FIXED title-bar cells, so step 4 draws them 1:1, anchored — no separate
 // widget pass. TITLE TEXT is drawn in renderWindow.ts (centred on the content
 // centre, in the header text colour) — not here.
-// ───────────────────────────────────────────────────────────────────────────
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION MAP
+// ─────────────────────────────────────────────────────────────────────────────
+// This file is the static-chrome composition engine. It does NOT touch the DOM;
+// it produces pixel buffers and a placement map. renderWindow.ts wraps the
+// output in DOM; interactive.ts wires events on that DOM.
+//
+// PUBLIC SURFACE:
+//   composeWindowChrome(theme, opts) → ComposedChrome
+//                              The one entry point. Loads the chrome cicn, walks
+//                              the recipe, blits each cell, returns the rendered
+//                              PixelBuffer + a placement map + the resolved frame
+//                              dimensions. Used by renderWindow.ts.
+//
+//   ComposedChrome             The return shape — buffer, frame, placement
+//                              (the per-cell slice records used by the slice
+//                              inspector in the demo), growBox (optional sprite),
+//                              titleRegion, fullWidth/Height.
+//
+//   PlacementSlice             One drawn cell's record (mode/dst rect/part/edge).
+//                              Used by the demo's slice inspector for debug
+//                              visualization.
+//
+//   SliceMode                  'fixed' | 'stretch' | 'tile' | 'scale' | 'collapse'
+//                              | 'stamp'. The classifier's output enum.
+//
+//   Frame, frameFromBody       Frame thickness from the cicn's drawable extent
+//                              vs the body rect. Used by renderWindow.ts to
+//                              inset the content area.
+//
+//   partRole(code)             Human-readable label for a part code. Used by
+//                              the demo's slice inspector + the diagnostic CLI.
+//
+// INTERNAL MACHINERY (in order top-to-bottom in the file):
+//   partCode(slug)             Parse a `part-N` slug to integer N.
+//   classify(code, …)          Map part code → CellClass via the kDEF jump table.
+//   walkSide(edge, side, …)    End-based cell walk (kdef §0x5356).
+//   distributeSlack(cells, …)  Symmetric slack distribution about title centre.
+//   blitCell(cell, …)          Per-cell blit dispatch by SliceMode.
+//   composeWindowChrome(…)     The orchestrator that calls walkSide → distribute
+//                              → blitCell for each of {top, right, bottom, left}.
+//
+// CROSS-FILE RELATIONSHIPS:
+//   composeCornerSprite.ts     The ALTERNATIVE compositor for "look-only"
+//                              schemes that ship corner cicns + sprites but no
+//                              wnd# recipe (apple-platinum-2, platinum-8,
+//                              system7-nostalgia-silver, black-platinum).
+//                              renderWindow.ts picks one based on windowType.model.
+//   renderWindow.ts            Wraps composeWindowChrome's output in DOM
+//                              (.aw-window > canvas + .aw-content + grow box).
+//   types.ts                   ThemeManifest + Rect + EdgeStep + WindowType
+//                              shapes consumed here.
+//
+// SPEC REFERENCES:
+//   docs/spec/compositor-spec.md       The implemented model (the spec).
+//   docs/spec/kdef231-recipe-walk.md   Decoded recipe walk (truth from binary).
+//   docs/spec/kdef231-reference.md     Routine/address lookup table.
+//   docs/spec/kdef-faithfulness-ledger.md  Every deliberate divergence.
+//
+// IMPLEMENTATION DISCIPLINE:
+//   No per-theme branches (the kDEF didn't have any; we shouldn't either).
+//   Verify against the 2.3.1 binary at /tmp/kaleido-trace/kdef231_decomp.c
+//   when changing the part-code classifier or the cell-walk logic.
+// ─────────────────────────────────────────────────────────────────────────────
 
 /** Extract the integer part code from a `part-N` slug (−1 if malformed). */
 function partCode(slug: string): number {
