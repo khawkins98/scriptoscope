@@ -390,6 +390,13 @@ export async function renderWindow(
   } satisfies Partial<CSSStyleDeclaration>);
 
   // ── content body, inset by the frame so it sits over the chrome's hole ──
+  // The inner <slot> is the Shadow-DOM seam: when the WindowManager mounts this
+  // window into a shadow root, the consumer's content lives in the HOST's light
+  // DOM and is rendered HERE via the slot. Host CSS still reaches the consumer's
+  // content (slotted children stay light-DOM-styled); the chrome is shielded
+  // from host CSS by the shadow boundary. When this window is used WITHOUT a
+  // shadow root (the demo's direct renderWindow path), the slot is a no-op and
+  // .aw-content can still receive direct children — no behavioural change.
   const content = document.createElement('div');
   content.className = 'aw-content';
   Object.assign(content.style, {
@@ -404,6 +411,7 @@ export async function renderWindow(
     ...bodyBackgroundStyle(owner),
   } satisfies Partial<CSSStyleDeclaration>);
   scaleBodyPattern(content, owner, scale);
+  content.appendChild(document.createElement('slot'));
 
   win.append(canvas, content);
 
@@ -534,6 +542,7 @@ function buildBaselineWindow(
     ...bodyBackgroundStyle(theme),
   } satisfies Partial<CSSStyleDeclaration>);
   scaleBodyPattern(content, theme, scale);
+  content.appendChild(document.createElement('slot'));
   win.appendChild(content);
   return win;
 }

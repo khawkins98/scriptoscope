@@ -497,6 +497,13 @@ export class WindowManager {
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
+    // SHADOW DOM (ADR-0001 Decision 2): attach a shadow root to the host. The window's chrome
+    // canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root —
+    // shielded from host-page CSS that targets div/canvas/button universally or via resets. The
+    // consumer's content lives in the host's LIGHT DOM (set below if extra.contentEl), where
+    // host CSS still reaches it; renderWindow's <slot> inside .aw-content auto-renders it.
+    host.attachShadow({ mode: 'open' });
+    if (extra.contentEl) host.appendChild(extra.contentEl);  // light-DOM child → slotted into shadow
     // NB: role + aria-label live on the INNER `.aw-window` element built by renderWindow.ts (which
     // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
     // them on the host — double-labelling makes screen readers announce the window twice.
@@ -586,15 +593,20 @@ export class WindowManager {
     entry.host.style.zIndex = this.zIndexFor(entry);
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
-    // Re-slot the persistent consumer content into the freshly-built content hole (the SAME node,
-    // so listeners/selection survive) before the window goes into the DOM. See ManagedWindow.contentEl.
-    if (entry.contentEl) win.querySelector('.aw-content')?.replaceChildren(entry.contentEl);
-    // When shaded, keep the content node attached (preserves scroll position + listeners) but hidden.
+    // Consumer content lives in the host's LIGHT DOM (placed there once in add()); renderWindow's
+    // <slot> inside .aw-content auto-renders it. No per-render re-slotting needed — the slot
+    // shows whatever's in light DOM, and the same DOM node persists across re-renders so
+    // listeners + selection + scroll position survive.
+    // When shaded, hide the content area (preserves the content node, just visually collapsed).
     if (collapsed) {
       const hole = win.querySelector('.aw-content') as HTMLElement | null;
       if (hole) hole.style.display = 'none';
     }
-    entry.host.replaceChildren(win);
+    // Mount the chrome into the SHADOW ROOT (attached in add()). Host CSS can't reach in;
+    // light-DOM children (consumer content) are slotted via renderWindow's <slot>.
+    const shadow = entry.host.shadowRoot;
+    if (shadow) shadow.replaceChildren(win);
+    else entry.host.replaceChildren(win);  // defensive fallback (host without shadow — shouldn't happen)
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);

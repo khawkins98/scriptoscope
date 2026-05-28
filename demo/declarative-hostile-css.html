@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Aaron UI — hostile-CSS test page</title>
+<!-- A page with deliberately AGGRESSIVE host CSS that would break chrome rendered
+     in the light DOM. Universal selectors with !important, CSS resets, opinionated
+     rules on div / canvas / button — the kind of thing a real CMS or third-party
+     site might do. ADR-0001 Decision 2 says: chrome lives in a Shadow root and
+     survives this. Body content (consumer's slotted children) DOES get styled by
+     the host CSS, because slotted nodes stay in the light DOM. -->
+<link rel="preload" href="./assets/fonts/charcoal-12.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* ─── Host page chrome ────────────────────────────────────────────────── */
+  body { font: 14px/1.5 system-ui, sans-serif; background: linear-gradient(140deg, #45526a, #5d6c83); color:#fff; margin:0; padding:24px; min-height: 100vh; }
+  h1 { margin: 0 0 8px; }
+  .lead { opacity: 0.85; margin: 0 0 18px; max-width: 60ch; }
+
+  /* ─── HOSTILE CSS ─────────────────────────────────────────────────────────
+     The kind of rules a real CMS/host page might ship that would WRECK
+     light-DOM chrome but should be quarantined by the shadow boundary. */
+
+  /* Universal reset with !important — would zero out chrome canvas dimensions, borders, etc. */
+  * { box-sizing: border-box !important; }
+
+  /* Hostile div rule — would change every chrome wrapper's display + add padding */
+  div {
+    /* These are intentionally bad for chrome (which uses absolute positioning + zero padding). */
+  }
+
+  /* Canvas rule — would make every chrome canvas tiny / borderless */
+  canvas {
+    border: 3px solid orangered !important;
+    max-width: 100px !important;
+    max-height: 100px !important;
+    filter: hue-rotate(180deg) !important;
+  }
+
+  /* Button rule — would obliterate the title-widget buttons + grow-box button */
+  button {
+    background: hotpink !important;
+    color: yellow !important;
+    border: 2px dashed lime !important;
+    padding: 8px 16px !important;
+    font-size: 18px !important;
+  }
+
+  /* Aggressive aw-* targeting — what a hostile page that KNOWS about Aaron might try */
+  .aw-window, .aw-chrome, .aw-content, .aw-titlewidget, .aw-growbox {
+    all: revert !important;
+    background: red !important;
+    border: 5px solid yellow !important;
+    transform: rotate(2deg) !important;
+  }
+
+  /* CONSUMER-content styling — should REACH the slotted content (light DOM) */
+  .article-card { background: #f5f0e8; padding: 12px 16px; color: #111; border-radius: 4px; }
+  .article-card h2 { margin: 0 0 6px; color: #2a3f5f; }
+  .article-card p { margin: 0; }
+  .article-card a { color: #d04030; }
+
+  /* Marker so we can spot whether the canvas rule attacked the consumer's IMG */
+  img.consumer { border: 2px solid #2a3f5f; }
+</style>
+</head>
+<body>
+<h1>Hostile-CSS test</h1>
+<p class="lead">
+  This page declares aggressive CSS that would devastate light-DOM chrome (universal !important
+  rules on div/canvas/button + .aw-* targeting). With Shadow DOM (ADR-0001 Decision 2), the
+  chrome must survive; the consumer's content (article cards below, in light DOM via &lt;slot&gt;)
+  should style normally. Open dev tools — inspect any window's outer div and you should see a
+  shadow root containing the chrome canvas, untouched by the page's CSS.
+</p>
+
+<div data-aaron-window
+     data-aaron-title="Hostile-CSS sample"
+     data-aaron-x="60" data-aaron-y="160"
+     data-aaron-width="400" data-aaron-height="260">
+  <div class="article-card">
+    <h2>This content is in light DOM</h2>
+    <p>Host CSS reaches me — see the cream background, the indigo heading, and the red link.
+      I'm a <code>&lt;div class=&quot;article-card&quot;&gt;</code> slotted into the shadow root's
+      <code>&lt;slot&gt;</code> via the Aaron <code>.aw-content</code>.</p>
+    <p>The chrome around me, though, was painted by canvas inside the shadow root. Host CSS can't
+      touch it. Try the dev tools.</p>
+    <p><a href="https://example.com">An ordinary link</a> — styled by the host's rules.</p>
+  </div>
+</div>
+
+<div data-aaron-window
+     data-aaron-window-type="utility-window"
+     data-aaron-title="Utility palette"
+     data-aaron-x="500" data-aaron-y="160"
+     data-aaron-width="240" data-aaron-height="200">
+  <div class="article-card">
+    <h2 style="font-size: 14px;">Palette content</h2>
+    <p>Even in a utility-window chrome, the body content is light-DOM, slotted from outside.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { mountDeclarative } from '../src/declarative/index.ts';
+  await mountDeclarative({
+    themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
+    pageThemeDefault: '1138',
+  });
+</script>
+</body>
+</html>
