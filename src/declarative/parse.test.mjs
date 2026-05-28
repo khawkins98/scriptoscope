@@ -51,7 +51,7 @@ test('parseButtonAttrs: presence flags + label trim', () => {
 test('resolveThemeRef: nearest-ancestor (innermost) wins, else pageDefault', () => {
   assert.equal(resolveThemeRef(['1138', null, 'beos-r503']), 'beos-r503');
   assert.equal(resolveThemeRef([null, undefined, '']), undefined);
-  assert.equal(resolveThemeRef([null], 'apple-platinum-replica'), 'apple-platinum-replica');
+  assert.equal(resolveThemeRef([null], 'apple-platinum-2'), 'apple-platinum-2');
   assert.equal(resolveThemeRef(['a'], 'def'), 'a');
   assert.equal(resolveThemeRef(['  outer  ', '  inner  ']), 'inner'); // trims
 });

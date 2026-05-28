@@ -95,17 +95,16 @@ async function loadGlyphById(theme: LoadedTheme, id: number): Promise<PixelBuffe
 /**
  * SELF-ONLY variants of {@link loadById} / {@link loadGlyphById}: resolve a
  * control resource on the scheme ITSELF, never walking the base chain. Used for
- * controls whose art a scheme must own to render (checkbox/radio) — so a scheme
- * that ships none falls to the PROCEDURAL Platinum glyph rather than silently
- * BORROWING the base bundle's (the demo wires `apple-platinum-replica` as every
- * scheme's base, whose sliced Platinum checkbox/radio would otherwise leak in
- * via the chain). The corner-sprite schemes — apple-platinum-2 / platinum-8 /
- * system7-nostalgia-silver — ship a control-glyph ics4 family (-10197..-10240:
- * scroll arrows, slider/indicator thumb orbs, push-button faces, window-widget
- * boxes) but NO checkbox/radio art in it (verified by pixel-decode; the kDEF
- * 2.3.1 has no -9488..-9504 immediate either — see docs/spec/kdef231-reference.md
- * §2.4), so self-resolution misses → procedural Platinum, which is the faithful
- * look for these Platinum-family schemes. */
+ * controls whose art a scheme must OWN to render faithfully (checkbox/radio) —
+ * a scheme that ships none falls to the PROCEDURAL Platinum glyph rather than
+ * inheriting from an unrelated base bundle. The corner-sprite schemes —
+ * apple-platinum-2 / platinum-8 / system7-nostalgia-silver — ship a control-
+ * glyph ics4 family (-10197..-10240: scroll arrows, slider/indicator thumb orbs,
+ * push-button faces, window-widget boxes) but NO checkbox/radio art in it
+ * (verified by pixel-decode; the kDEF 2.3.1 has no -9488..-9504 immediate either
+ * — see docs/spec/kdef231-reference.md §2.4), so self-resolution misses →
+ * procedural Platinum, which is the faithful look for these Platinum-family
+ * schemes. */
 async function loadByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
   return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
@@ -933,12 +932,10 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
  *
  * Resolution is deliberately SELF-ONLY (no base-chain walk): a scheme renders
  * its OWN checkbox/radio art, and one that ships none returns null so the caller
- * draws the procedural Platinum glyph — rather than inheriting the base bundle's
- * (the demo wires `apple-platinum-replica` as every scheme's base; without this
- * scoping its sliced Platinum checkbox/radio cicns leak into the corner-sprite
- * schemes via the chain). Every texture/cicn scheme (1138/1984/beos/evolution),
- * 1990, and the replica itself ship -9488..-9504 as cicns in their OWN bundle,
- * so they resolve on the first hop unchanged.
+ * draws the procedural Platinum glyph — rather than inheriting from an unrelated
+ * base bundle. Every texture/cicn scheme (1138/1984/beos/evolution) and 1990 ship
+ * -9488..-9504 as cicns in their OWN bundle, so they resolve on the first hop
+ * unchanged.
  *
  * The corner-sprite Platinum-family schemes — apple-platinum-2 / platinum-8 /
  * system7-nostalgia-silver — ship NO checkbox/radio CICN, but they DO author the

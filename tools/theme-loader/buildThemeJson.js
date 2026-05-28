@@ -169,11 +169,11 @@ export function buildThemeJson(manifest, options = {}) {
   // ─── Corner-sprite windows (look-only Platinum schemes) ───────────────
   // Some schemes ship the window CORNER cicns + the per-type racing-stripe /
   // grow-box sprites but NO wnd# side-recipe (apple-platinum-2, platinum-8,
-  // system7-nostalgia-silver) — so the loop above emitted zero windowTypes and
-  // the runtime falls back to the apple-platinum-replica base. These windows are
-  // the classic Platinum WDEF corner-sprite + procedural model (the frame is
-  // code-driven, not sliced — see docs/spec/platinum-wdef125-decode.md), so we
-  // synthesize them from the scheme's OWN sprites instead.
+  // system7-nostalgia-silver) — so the loop above emitted zero windowTypes.
+  // These windows are the classic Platinum WDEF corner-sprite + procedural
+  // model (the frame is code-driven, not sliced — see
+  // docs/spec/platinum-wdef125-decode.md), so we synthesize them from the
+  // scheme's OWN sprites instead.
   //
   // CORNER_SPRITE_WINDOWS is the per-type recipe table (the generalization of
   // the original single hardcoded document-window). Each row maps a canonical
@@ -415,8 +415,7 @@ function uniquePatternSlug(existing, slug) {
  *   (null ⇒ the compositor default [close,collapse,zoom]; [] ⇒ none).
  *   collapsed = title-bar-only (no body).
  *
- * Title heights track the apple-platinum-replica geometry per slug
- * (scripts/generate-platinum/window-types.mjs titleBarHeight): document 19/20,
+ * Title heights are scheme-relative defaults: document 19/20,
  * movable-modal/alert 16, utility 11.
  *
  * MAPPING NOTES (apple-platinum-2's inventory; see the task brief):
@@ -440,9 +439,10 @@ function uniquePatternSlug(existing, slug) {
 //     reuses the utility racing-stripes (-14314).
 //   • no-title-utility is a tool-palette DRAG BAR (dotted -14314 + close/collapse) —
 //     its titleH/widgets live in WINDOW_RECIPES (the references show the dotted bar).
-//   • NOT wired here (fall back to the apple-platinum-replica base): popup-window
-//     (-12320/-12319 are popup-MENU art, not a window corner) and the title-LESS
-//     collapsed-no-title-utility (an empty 1px frame — nothing to draw).
+//   • NOT wired here (fall back to procedural Platinum in src/platinum.ts):
+//     popup-window (-12320/-12319 are popup-MENU art, not a window corner) and
+//     the title-LESS collapsed-no-title-utility (an empty 1px frame — nothing to
+//     draw).
 const CORNER_SPRITE_WINDOWS = [
   { slug: 'document-window',              active: -14332, inactive: -14336, pinstripe: -14331, growBox: -14330 },
   { slug: 'collapsed-document-window',    active: -14332, inactive: -14336, pinstripe: -14331, growBox: null   },

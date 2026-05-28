@@ -201,19 +201,16 @@
     // fetches resolve in either — a bare `/themes/…` 404s on Pages.
     const themeUrl = (slug) => `${import.meta.env.BASE_URL}themes/${slug}`;
 
-    // The universal BASE theme: every scheme defers to it for any chrome/control
-    // it doesn't ship itself (lightly-skinned schemes inherit the real Platinum
-    // baseline). One slug, one place. loadWithBase wires it as the base for any
-    // OTHER theme (and never as its own base), cached so the shared base bundle
-    // is fetched exactly once across the whole page.
-    const BASE_SLUG = 'apple-platinum-replica';
+    // Themes load standalone — no universal base. Any chrome/control a scheme
+    // doesn't ship falls through to the procedural Platinum fallback in
+    // src/platinum.ts. (The earlier `apple-platinum-replica` base was retired
+    // 2026-05-28: its sliced Apple-screenshot art carried a redistribution
+    // concern its theme.json origin string didn't reflect, and `platinum.ts`
+    // already covered every control kind procedurally.)
     const themeCache = new Map();
     const loadWithBase = (slug) => {
       if (!themeCache.has(slug)) {
-        themeCache.set(slug, (async () => {
-          const base = slug === BASE_SLUG ? undefined : await loadWithBase(BASE_SLUG);
-          return loadTheme(themeUrl(slug), { base });
-        })());
+        themeCache.set(slug, loadTheme(themeUrl(slug)));
       }
       return themeCache.get(slug);
     };
@@ -1598,10 +1595,9 @@
         let loaded;
         try {
           // The whole conversion runs HERE in the browser (OffscreenCanvas encodes the
-          // RGBA assets to blob: URLs); base = the universal Platinum baseline so a
-          // sparse scheme still renders anything it doesn't ship.
+          // RGBA assets to blob: URLs); anything the scheme doesn't ship falls through
+          // to the procedural Platinum fallback in src/platinum.ts.
           loaded = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
-          loaded.base = await loadWithBase(BASE_SLUG);
         } catch (err) {
           if (my !== token) return;
           zone.removeAttribute('aria-busy');

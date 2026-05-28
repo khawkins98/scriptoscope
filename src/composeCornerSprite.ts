@@ -12,9 +12,8 @@ import {
 // for look-only schemes that ship the document corner cicns + the pinstripe /
 // grow-box sprites but NO wnd#/cinf recipe (apple-platinum-2, platinum-8,
 // system7-nostalgia-silver). composeWindowChrome (the kDEF cicn 9-walk) can't
-// render these — there is no `edges` recipe — so they would otherwise fall back
-// to the apple-platinum-replica base. This draws their OWN window from their
-// OWN sprites instead.
+// render these — there is no `edges` recipe — so this path draws their OWN
+// window from their OWN sprites instead.
 //
 // Faithful to docs/spec/platinum-wdef125-decode.md (the WDEF 125 decode) and
 // /tmp/kaleido-trace/kdef231_decomp.c. The Platinum frame is PROCEDURAL, not

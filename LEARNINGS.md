@@ -1794,3 +1794,141 @@ byte-identity diff. After shipping a feature you spec'd earlier the same day, gr
 you wrote for now-false claims. When you want a fresh-eyes audit, a few role-specific review passes
 (adopter / reader / end-user) surface non-overlapping issues; treat the points where they agree as
 the priorities.
+
+## 2026-05-28 — Consumption-layer front door SHIPPED: `data-aaron-*` from spec to live demos in two nights
+
+ADR-0001 Decision 3 (imperative + declarative front door) shipped to `main` in
+commits `2e22d48` … `bca005e` (2026-05-27/28). The North Star "drop a data-
+attribute on a div → it becomes a Mac window" is now real and validated on
+realistic third-party pages. Two demos exercise it: `demo/declarative.html`
+(Mac OS 8.6 desktop — menu bar, Welcome modal, Read Me, Inspector with theme-
+switcher, Tools palette, Notepad, Trash) and `demo/declarative-site.html` (a
+"Kaleidoscope fan page" — article, guestbook form, link list, image gallery —
+where the only addition to the HTML is a few `data-aaron-window` attributes
+and one bootstrap line).
+
+**Framework-agnostic-via-data-attributes is a real architecture.** No React
+peer dep, no Vue plugin, no Solid wrapper. A single `mountDeclarative({})` call
+drives a `MutationObserver`-backed scanner that promotes `[data-aaron-window]`,
+`[data-aaron-button]`, and `[data-aaron-control]` (the opt-in `<input
+type=checkbox|radio|range>` skinner). Window children move into `.aw-content >
+.aw-slot > .aw-fit` as live LIGHT-DOM children (kept light-DOM deliberately —
+host CSS still reaches its own content; the chrome is canvas in the same tree).
+Lesson confirmed: the data-attribute surface is enough for the canonical use
+case ("skin an existing site"), and it kept the runtime + the declarative layer
+cleanly separable — `src/declarative/` imports the runtime; the runtime knows
+nothing about it.
+
+**Scope-guard the OPT-IN, not the surface.** ADR-0001 Decision 4 ruled out
+native form-control reskinning. The shipped reality is more nuanced: native
+`<input type=checkbox|radio|range>` IS themed, but only when the consumer adds
+`data-aaron-control` (or the page-wide `mountDeclarative` includes them by
+default). The native input stays in the DOM (a11y, screen readers, keyboard);
+a `<span class="aw-button">` overlay paints the chrome and forwards events.
+That's a faithful read of "themes window CHROME + OPT-IN controls" — the scope
+guard moved from "no native form-control theming at all" to "no IMPLICIT
+theming," which is the spirit of the rule with the right ergonomic.
+
+**Defensive guards against your own inheritance chain are a smell.** The
+runtime had explicit `loadByIdSelf` / `loadGlyphByIdSelf` /
+`composeCheckable`-self-only variants in `src/controls.ts` whose entire job was
+to PREVENT the universal base (`apple-platinum-replica`) from polluting corner-
+sprite schemes via the base chain. When you have to write code to stop your
+inheritance from working, your inheritance is fighting you. That signal —
+combined with the replica's `PROVENANCE.md` explicitly flagging its sliced real-
+Mac-OS-8-screenshot pixels for "revisit before any redistribution" — was the
+prompt to retire it (see next entry).
+
+**Working-tree commit sweep beat the "auto-commit my changes" surprise.** A
+concurrent session committed my doc edits along with its feature commit
+(`bca005e`), which was helpful but caught me off guard. Lesson: when working
+on a fast-moving prototype-mode branch, `git status` is a SNAPSHOT, not a
+contract — re-check before claiming "the working tree is clean / dirty."
+
+**Application:** when shipping a North-Star-defining feature, write its
+architectural decisions back into the ADR the same day, not when you remember
+to. When two sources of truth disagree about a bundle's licensing posture
+(`theme.json` origin string vs `PROVENANCE.md`), trust the PROVENANCE prose and
+fix the JSON. When designing a scope guard, attach it to the OPT-IN surface
+(an attribute), not a blanket prohibition.
+
+## 2026-05-28 — `apple-platinum-replica` retired: the universal base was carrying real Apple bitmaps
+
+The generated "universal base" theme `apple-platinum-replica` is retired. Why:
+its `PROVENANCE.md` was unambiguous (the cicns "embed real Mac OS 8 screenshot
+pixels … revisit before any redistribution"), its `theme.json` origin string
+disagreed ("no Apple bitmaps shipped" — wrong), and the recent declarative
+layer was using it as the DEFAULT base for `mountDeclarative()` — meaning every
+consumer of Aaron UI's primary integration surface was inheriting it by
+default. Post-ics4-wiring (2026-05-26), the corner-sprite schemes ship their
+own checkbox/radio/widget glyphs; `src/platinum.ts` already had procedural
+fallbacks for every control kind; the replica's unique remaining supply was a
+slider cicn fallback and `wnd#` recipes for unmapped window types — none of
+which justified the licensing exposure.
+
+**The cleanup:** 118 files changed, **8922 deletions / 53 insertions**. Deleted
+`themes/apple-platinum-replica/` (~1MB of sliced Apple bitmaps + sources), the
+whole `scripts/generate-platinum/` toolchain (the slicer + 6 test files),
+`scripts/generate-platinum.mjs`. Dropped the base-chain wiring from
+`src/declarative/theme.ts` + `scanner.ts` (default `baseSlug` now undefined —
+themes load standalone, missing chrome falls through to procedural Platinum in
+`platinum.ts`). Updated `demo/index.html` (`loadWithBase` rewired to call
+`loadTheme` without a base), `demo/declarative.html` (page-theme default
+swapped to `apple-platinum-2`), `demo/declarative-site.html` (replica dropped
+from the theme-switcher), `demo/themes-manifest.json` (regenerated). All 9
+remaining themes render correctly post-removal; `npm run typecheck` clean, `npm
+test` 20/20 (was 46 — the 26 deleted tests covered the deleted generator),
+`npm run lint:themes` 100 windows / 0 errors / 0 warnings.
+
+**The architectural lesson is bigger than the licensing one.** A "universal
+base" that has to be opted OUT of (via `loadByIdSelf` style guards) is
+upside-down inheritance. The cleaner pattern: themes are self-sufficient or
+explicitly declare a base; the runtime has procedural fallbacks for the cases
+no theme handles. After this change there is no shared "Platinum baseline" any
+scheme inherits silently — and the corpus still renders identically.
+
+**The two-sources-of-truth disagreement is its own bug class.** A `PROVENANCE.md`
+saying "real Apple pixels, revisit before redistribution" and a `theme.json`
+saying "clean-room reproduction, no Apple bitmaps" had coexisted for weeks. The
+runtime reads the JSON; the human reads the markdown. Anyone checking
+distribution rights via the JSON would get the wrong answer. Lesson: when human-
+readable and machine-readable provenance disagree, the human one is almost
+always right (it's harder to copy-paste and forget to update); fix the JSON, do
+not "reconcile" by softening the prose.
+
+**Application:** before defaulting a downstream consumer to inherit from a
+bundled artifact, audit that artifact's `PROVENANCE.md` not just its `meta.json`
+or `theme.json`. When you find yourself writing code to defend against your own
+inheritance chain, treat that as evidence the inheritance is wrong-shaped — fix
+the architecture, not the symptom. Universal-base inheritance is a Norman-door
+in disguise: cheap to add, expensive to take back.
+
+## 2026-05-28 — Docs/memory cut-through: ADR-0001 + PRD + 8 memories reconciled
+
+A focused review pass + cut-through covering the post-declarative-ship state.
+
+**ADR-0001** went `Proposed` → `Partially Accepted`. The 2026-05-26 update's
+"Confirmed still absent: any `data-aaron-*` scanner, MutationObserver,
+customElements, AaronWindow, ResizeObserver, or emitted CSS" was flipped
+overnight by the declarative ship; left in place with a strikethrough +
+supersession note so the historical record survives. A new 2026-05-28 update
+section enumerates what shipped (Decision 3 + the partial Decision-4 relaxation
+above) and what's still spike-gated (Decision 1 CSS `border-image` emitter,
+Decision 2 Shadow DOM — both still the next gates).
+
+**PRD.md line 7** reconciliation note updated: "consumption layer is not built
+yet (`WindowManager` today does focus/z-index only)" was already wrong by the
+time my review agent finished reading. New text records both what shipped and
+what's still open in one sentence — preserves the original v3-vs-CSS-custom-
+property reconciliation context.
+
+**Memory store** (32 → 31 after pruning): 6 memories updated,
+`project_extractor_regeneration.md` deleted (superseded by
+`project_import_pipeline.md`'s one-command `npm run import` path), and 1 split
+into two modes (`feedback_ship_cadence.md` — prototype-direct-to-branch vs
+tight-loop-PR; both keep the no-Co-Authored-By rule).
+
+**Application:** when shipping a feature that contradicts an ADR Update note,
+update the ADR the same day — not when the next cut-through finds it. When
+a memory's "BUILT (commitsha) then REVERTED (commitsha)" framing buries the
+revert, lead with the revert.

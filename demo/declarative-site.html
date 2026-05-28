@@ -67,7 +67,7 @@
     <p class="note">Reskin the whole page:
       <select data-aaron-theme-switcher style="font:12px system-ui">
         <option value="1138">1138</option>
-        <option value="apple-platinum-replica">Apple Platinum (replica)</option>
+        <option value="apple-platinum-2">Apple Platinum 2</option>
         <option value="beos-r503">BeOS R5</option>
         <option value="black-platinum">Black Platinum</option>
         <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
@@ -144,7 +144,6 @@
     import { mountDeclarative } from '../src/declarative/index.ts';
     await mountDeclarative({
       themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
-      baseSlug: 'apple-platinum-replica',
       pageThemeDefault: '1138',
     });
   </script>

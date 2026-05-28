@@ -91,7 +91,7 @@
 </head>
 
 <!-- The page declares its scheme once. Individual windows override with data-aaron-theme. -->
-<body data-aaron-theme="apple-platinum-replica">
+<body data-aaron-theme="apple-platinum-2">
 
   <!-- ────────────────────────────── Menu bar ────────────────────────────── -->
   <!-- This is the SCREEN edge, not a window. Plain CSS. Items fire alert() for now;
@@ -195,13 +195,12 @@
           <label class="grouplabel" for="insp-theme">Theme</label>
           <!-- The theme switcher lives HERE now, not in a page header. -->
           <select id="insp-theme" data-aaron-theme-switcher>
-            <option value="apple-platinum-replica">Apple Platinum (replica)</option>
+            <option value="apple-platinum-2">Apple Platinum 2</option>
             <option value="1138">1138</option>
             <option value="beos-r503">BeOS R5</option>
             <option value="black-platinum">Black Platinum</option>
             <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
             <option value="platinum-8">Platinum 8</option>
-            <option value="apple-platinum-2">Apple Platinum 2</option>
             <option value="evolution">Evolution</option>
           </select>
         </div>
@@ -287,8 +286,7 @@
     import { mountDeclarative } from '../src/declarative/index.ts';
     await mountDeclarative({
       themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
-      baseSlug: 'apple-platinum-replica',
-      pageThemeDefault: 'apple-platinum-replica',
+      pageThemeDefault: 'apple-platinum-2',
     });
   </script>
 </body>
