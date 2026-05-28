@@ -95,6 +95,11 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
  * A fully themed popup-menu via the `popup-window` chrome is a follow-up — this iteration gives
  * the closed-state fidelity without the keyboard/a11y reimplementation cost.
  */
+// Track AbortControllers for each promoted <select>'s change listener so retheme can dispose the
+// previous one and attach fresh. WeakMap so a select being removed from the document also drops
+// its controller (no manual cleanup needed in that case).
+const selectChangeAborts = new WeakMap<HTMLSelectElement, AbortController>();
+
 async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise<HTMLElement> {
   // Unwrap a prior promotion (retheme path) so we always rebuild cleanly.
   const existingWrap = el.closest('.aw-select') as HTMLElement | null;
@@ -104,6 +109,10 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
     el.style.cssText = '';
   }
   el.dataset.aaronPromoted = '';
+  // Abort the PREVIOUS promotion's change listener (every retheme reaches this path; without the
+  // abort the change-listener count would grow by one per retheme on every themed select — caught
+  // by the 2026-05-28 review).
+  selectChangeAborts.get(el)?.abort();
 
   const wrap = document.createElement('span');
   wrap.className = 'aw-select';
@@ -133,11 +142,14 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
     border: '0', appearance: 'none',
   } satisfies Partial<CSSStyleDeclaration>);
 
+  // Scope the change listener to a fresh AbortController so the next retheme can abort it cleanly.
+  const ac = new AbortController();
+  selectChangeAborts.set(el, ac);
   el.addEventListener('change', async () => {
     const fresh = await renderBtn();
     const cur = wrap.querySelector(':scope > .aw-button');
     cur?.replaceWith(fresh);
-  });
+  }, { signal: ac.signal });
 
   wrap.dataset.aaronPromoted = '';
   return wrap;

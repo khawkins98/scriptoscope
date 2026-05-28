@@ -18,6 +18,7 @@ import {
   type ButtonOptions, type ControlState,
 } from './controls.js';
 import { platinumSlider, platinumScrollbar } from './platinum.js';
+import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { ComposedChrome } from './composeChrome.js';
@@ -503,6 +504,7 @@ export class WindowManager {
     // consumer's content lives in the host's LIGHT DOM (set below if extra.contentEl), where
     // host CSS still reaches it; renderWindow's <slot> inside .aw-content auto-renders it.
     host.attachShadow({ mode: 'open' });
+    debug('shadow', `attached for ${opts.title ?? '(untitled)'}`, { hasContent: !!extra.contentEl });
     if (extra.contentEl) host.appendChild(extra.contentEl);  // light-DOM child → slotted into shadow
     // NB: role + aria-label live on the INNER `.aw-window` element built by renderWindow.ts (which
     // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
@@ -554,12 +556,18 @@ export class WindowManager {
     // `.aw-window.remove()` without going through manager.remove). Without this, retheme would
     // render-into-detached-DOM for every dismissed window on every theme switch.
     this.windows = this.windows.filter((w) => w.host.isConnected);
+    debug('theme', `retheme → ${theme.manifest.name ?? '(unnamed)'}`, { windows: this.windows.length });
     for (const w of this.windows) { w.theme = theme; await this.render(w); }
   }
 
   private async focus(entry: ManagedWindow): Promise<void> {
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
-    if (entry.active) { entry.host.style.zIndex = this.zIndexFor(entry); return; }
+    if (entry.active) {
+      debug('focus', `${entry.opts.title ?? '(untitled)'} — already active, z=${entry.z}`);
+      entry.host.style.zIndex = this.zIndexFor(entry);
+      return;
+    }
+    debug('focus', `${entry.opts.title ?? '(untitled)'} — gaining active`, { z: entry.z, total: this.windows.length });
     for (const w of this.windows) {
       const was = w.active;
       w.active = w === entry;
@@ -605,6 +613,9 @@ export class WindowManager {
   private async render(entry: ManagedWindow): Promise<void> {
     const collapsed = entry.collapsed === true;
     const slug = this.effectiveSlug(entry);
+    debug('render', `${entry.opts.title ?? '(untitled)'} → ${slug}`, {
+      w: entry.opts.width, h: entry.opts.height, active: entry.active, collapsed, zoomed: entry.zoomed, z: entry.z,
+    });
     const win = await renderWindow(entry.theme, {
       ...entry.opts,
       windowType: slug,
@@ -651,9 +662,13 @@ export class WindowManager {
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
     // this check covers (a NEWER render replaced win).
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
-    if (currentChrome !== win) return;
+    if (currentChrome !== win) {
+      debug('scrollbar', `${entry.opts.title ?? ''} — stale win, bailing`);
+      return;
+    }
     // Tear down the previous render's scrollbar listeners (esp. the wheel listener on the persistent
     // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes.
+    if (entry.scrollAbort) debug('scrollbar', `${entry.opts.title ?? ''} — tearing down previous bars`);
     entry.scrollAbort?.abort();
     if (entry.collapsed) return;                          // shaded: no body to scroll
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
@@ -683,6 +698,7 @@ export class WindowManager {
     if (!needV && !needH) {
       scrollEl.style.overflowY = '';
       scrollEl.style.overflowX = '';
+      debug('scrollbar', `${entry.opts.title ?? ''} — no overflow, native behavior`);
       return;
     }
     // Reserve the gutters BEFORE creating the bars so post-gutter scrollHeight/scrollWidth are correct.
@@ -700,6 +716,10 @@ export class WindowManager {
     // the scroll element (wheel listener attached by whichever fires first; the other axis still
     // gets shift+wheel and its own thumb drag). Bottom-right corner left blank so the grow box
     // sits clear — vertical bar stops above the H gutter, horizontal bar stops before the V gutter.
+    debug('scrollbar', `${entry.opts.title ?? ''} — wiring`, {
+      vertical: needV, horizontal: needH,
+      content: `${cw}×${ch}`, scroll: `${scrollEl.scrollWidth}×${scrollEl.scrollHeight}`,
+    });
     if (needV) this.wireScrollbarAxis('vertical', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
     if (needH) this.wireScrollbarAxis('horizontal', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
   }
@@ -826,13 +846,17 @@ export class WindowManager {
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
   private async toggleCollapse(entry: ManagedWindow): Promise<void> {
     entry.collapsed = !entry.collapsed;
+    debug('drag', `toggleCollapse ${entry.opts.title ?? ''} → collapsed=${entry.collapsed}`);
     await this.render(entry);
     entry.handlers.onCollapse?.();
   }
 
-  /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size. */
+  /** Toggle zoom: grow to fit the content (capped), or restore the user/declared size.
+   *  Bumps z-order so a background window zoomed-to-fit comes to the front (otherwise it'd
+   *  re-render at the new size but stay buried — UX bug surfaced by 2026-05-28 review). */
   private async toggleZoom(entry: ManagedWindow): Promise<void> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
+    entry.z = ++this.zClock;                       // raise to front (fix from 2026-05-28 review)
     if (!entry.zoomed) {
       entry.userSize = { width: entry.opts.width, height: entry.opts.height }; // may be undefined — preserved
       const c = entry.contentEl;
@@ -850,6 +874,9 @@ export class WindowManager {
       entry.opts = opts;
       entry.zoomed = false;
     }
+    debug('drag', `toggleZoom ${entry.opts.title ?? ''} → zoomed=${entry.zoomed}`, {
+      w: entry.opts.width, h: entry.opts.height,
+    });
     await this.render(entry);
     entry.handlers.onZoom?.();
   }

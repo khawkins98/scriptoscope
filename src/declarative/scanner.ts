@@ -9,6 +9,7 @@ import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
+import { debug } from '../debug.js';
 
 export interface MountOptions extends ThemeBootstrapOpts {
   /** Where to scan (default `document`). */
@@ -72,6 +73,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
       // now removed, so descendant buttons inherit the window's theme via this stamp (not the body).
       aw.host.dataset.aaronTheme = ref;
       mounted.push(aw);
+      debug('promote', `window: ${el.dataset.aaronTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y });
     } catch (err) {
       console.error('[aaron] window promote failed:', err);
     } finally {
@@ -85,6 +87,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     try {
       const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
       skinnedButtons.push({ el, skinned });
+      debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
     } catch (err) {
       console.error('[aaron] button promote failed:', err);
     } finally {
@@ -98,6 +101,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     try {
       const skinned = await promoteControl(el, await resolver.load(refForEl(el)));
       if (skinned) skinnedControls.push({ el, skinned });
+      debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
     } catch (err) {
       console.error('[aaron] control promote failed:', err);
     } finally {
@@ -172,7 +176,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   wireThemeSwitchers(root);
 
   // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
-  // idempotent (stamps), so we don't need to diff records precisely.
+  // idempotent (stamps), so we don't need to diff records precisely. Reset `scheduled` in a
+  // .finally() so an unexpected throw from scanAndPromote/wireThemeSwitchers doesn't permanently
+  // freeze the observer (fix from 2026-05-28 review — defensive against future regressions).
   let scheduled = false;
   const obs = new MutationObserver((records) => {
     if (scheduled) return;
@@ -180,7 +186,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
       Array.from(r.addedNodes).some((n) => n instanceof Element && !n.closest('.aw-window')));
     if (!relevant) return; // ignore our own churn inside the chrome
     scheduled = true;
-    queueMicrotask(() => { scheduled = false; void scanAndPromote(root).then(() => wireThemeSwitchers(root)); });
+    queueMicrotask(() => {
+      void scanAndPromote(root)
+        .then(() => wireThemeSwitchers(root))
+        .finally(() => { scheduled = false; });
+    });
   });
   const target = root instanceof Document ? (root.body ?? root.documentElement) : root;
   if (target) obs.observe(target, { childList: true, subtree: true });

@@ -11,6 +11,8 @@
 
 export const VERSION = '2.0.0-dev';
 
+export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
+
 export type {
   WindowState,
   Rect,

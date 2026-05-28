@@ -7,6 +7,7 @@
 import type { LoadedTheme } from '../types.js';
 import type { WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
+import { debug } from '../debug.js';
 
 export interface AaronWindowDeps {
   manager: WindowManager;
@@ -126,6 +127,7 @@ export class AaronWindow {
   /** Restore the original DOM: move the content back into the original element and remove the window. */
   unmount(): void {
     if (this.unmounted) return; // idempotent: onClose AND disconnect() may both call this
+    debug('unmount', `AaronWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.ro?.disconnect();

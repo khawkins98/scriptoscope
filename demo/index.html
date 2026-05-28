@@ -159,6 +159,13 @@
   <header>
     <h1>Aaron UI <span id="ver"></span> — Mac OS Appearance for the web</h1>
     <p>Render any classic-Mac <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a> theme pixel-faithfully in the browser — 1138, BeOS R5, evolution, Apple Platinum 2, more. Pick a scheme from the ribbon to explore: scene + live controls + window playground. <a href="./declarative-site.html" class="cta">Try it on a real page →</a></p>
+    <p style="margin: 6px 0 0; opacity: 0.55; font-size: 12px;">
+      <label style="cursor: pointer; user-select: none;">
+        <input type="checkbox" id="debug-toggle" style="vertical-align: middle; margin-right: 4px;">
+        Debug logging (console)
+      </label>
+      <span style="margin-left: 8px; opacity: 0.7;">— or visit with <code>?aaron-debug=1</code> for all, or <code>?aaron-debug=render,scrollbar,drag</code> to filter</span>
+    </p>
   </header>
   <section id="byo" aria-label="Bring your own theme">
     <div id="byo-drop" tabindex="0" role="button" aria-label="Bring your own theme — drop a Kaleidoscope theme file, or click to choose one">
@@ -183,7 +190,37 @@
       platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
       interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
       interactiveSlider, interactiveScrollbar, WindowManager,
+      setDebug,
     } from '../src/index.ts';
+
+    // ── Debug logging — URL ?aaron-debug=1 (or =category,category) flips the runtime's
+    //    setDebug(); a checkbox in the header keeps the UI honest. Persists in localStorage
+    //    so the next page load remembers. Off by default.
+    {
+      const stored = localStorage.getItem('aaron-debug') || '';
+      const urlParam = new URLSearchParams(location.search).get('aaron-debug');
+      const initial = urlParam ?? stored;
+      const isOn = initial && initial !== '0' && initial !== 'false' && initial !== 'off';
+      if (initial === '1' || initial === 'true' || initial === 'on') setDebug(true);
+      else if (isOn) setDebug({ categories: initial.split(',').map((s) => s.trim()).filter(Boolean) });
+      // Wire the header checkbox (deferred to next tick so the DOM is parsed).
+      queueMicrotask(() => {
+        const cb = document.getElementById('debug-toggle');
+        if (!cb) return;
+        cb.checked = !!isOn;
+        cb.addEventListener('change', () => {
+          if (cb.checked) {
+            setDebug(true);
+            localStorage.setItem('aaron-debug', '1');
+            console.log('[aaron] debug logging ENABLED — interact with the playgrounds + scheme switcher to see events');
+          } else {
+            setDebug(false);
+            localStorage.removeItem('aaron-debug');
+            console.log('[aaron] debug logging disabled');
+          }
+        });
+      });
+    }
     import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
     // The BROWSER conversion shell over the portable core: a dropped resource fork →
     // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
