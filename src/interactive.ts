@@ -414,9 +414,11 @@ interface ManagedWindow {
    *  (collapsed window-type slug + zero-height body, content hidden). `opts.height` is left at the
    *  EXPANDED height, so un-shading just renders again — no separate stash needed. */
   collapsed?: boolean;
-  /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content). */
+  /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content).
+   *  Captures width/height INCLUDING undefined, so un-zooming a size-less window correctly restores it
+   *  to size-less (not stuck at the zoomed size). */
   zoomed?: boolean;
-  userSize?: { width?: number; height?: number };
+  userSize?: { width: number | undefined; height: number | undefined };
   /** Aborts the previous render's scrollbar listeners. The wheel listener lives on the PERSISTENT
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
@@ -432,9 +434,16 @@ interface ManagedWindow {
  *  the utility scan that deliberately skips `/collapsed/` keys, so the shade chrome resolves. */
 function collapsedSlugFor(theme: LoadedTheme, baseSlug: string): string | undefined {
   const wts = theme.manifest.windowTypes ?? {};
+  // Only accept a candidate that resolveWindowType would actually render as a window (top edge recipe
+  // + a part-0 body rect) — otherwise return undefined so effectiveSlug's `?? base` fallback (same type
+  // at zero body height) kicks in, instead of renderWindow dropping to the procedural baseline.
+  const ok = (k: string): string | undefined => {
+    const v = wts[k];
+    return v && v.edges?.top?.length && v.parts?.['part-0']?.rect ? k : undefined;
+  };
   const noun = baseSlug.replace(/-window$/, '');
-  for (const c of [`collapsed-${baseSlug}`, `collapsed-${noun}`]) if (wts[c]) return c;
-  for (const k of Object.keys(wts)) if (k.startsWith('collapsed') && k.includes(noun)) return k;
+  for (const c of [`collapsed-${baseSlug}`, `collapsed-${noun}`]) { const r = ok(c); if (r) return r; }
+  for (const k of Object.keys(wts)) if (k.startsWith('collapsed') && k.includes(noun)) { const r = ok(k); if (r) return r; }
   return undefined;
 }
 
@@ -479,6 +488,15 @@ export class WindowManager {
     host.addEventListener('mousedown', () => { void this.focus(entry); });
     await this.render(entry);
     return host;
+  }
+
+  /** Stop managing a window (its host was/will be removed by the caller). Aborts its scrollbar
+   *  listeners and drops the entry so it's not re-rendered/re-themed later. Idempotent. */
+  remove(host: HTMLElement): void {
+    const i = this.windows.findIndex((w) => w.host === host);
+    if (i < 0) return;
+    this.windows[i]?.scrollAbort?.abort();
+    this.windows.splice(i, 1);
   }
 
   /** Re-render an already-added window at a new CONTENT size (used by the declarative content-fit
@@ -654,7 +672,7 @@ export class WindowManager {
   private async toggleZoom(entry: ManagedWindow): Promise<void> {
     if (entry.collapsed) entry.collapsed = false; // zooming an un-shades first
     if (!entry.zoomed) {
-      entry.userSize = { ...(entry.opts.width != null ? { width: entry.opts.width } : {}), ...(entry.opts.height != null ? { height: entry.opts.height } : {}) };
+      entry.userSize = { width: entry.opts.width, height: entry.opts.height }; // may be undefined — preserved
       const c = entry.contentEl;
       // Zoom-to-fit: show all content (classic "ideal size"), capped so it can't swallow the screen.
       const w = c ? Math.min(Math.max(c.scrollWidth, entry.opts.width ?? 0), 760) : Math.round((entry.opts.width ?? 240) * 1.5);
@@ -662,7 +680,12 @@ export class WindowManager {
       entry.opts = { ...entry.opts, width: w, height: h };
       entry.zoomed = true;
     } else {
-      entry.opts = { ...entry.opts, ...entry.userSize };
+      // Restore the pre-zoom size, honoring undefined (delete the key) so a size-less window goes back
+      // to size-less rather than sticking at the zoomed dimensions.
+      const opts = { ...entry.opts };
+      if (entry.userSize?.width != null) opts.width = entry.userSize.width; else delete opts.width;
+      if (entry.userSize?.height != null) opts.height = entry.userSize.height; else delete opts.height;
+      entry.opts = opts;
       entry.zoomed = false;
     }
     await this.render(entry);

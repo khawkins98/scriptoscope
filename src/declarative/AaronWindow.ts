@@ -27,6 +27,7 @@ export class AaronWindow {
   private rafId = 0;
   private rendering = false;
   private last = { w: 0, h: 0 };
+  private unmounted = false;
 
   private constructor(
     host: HTMLElement, fit: HTMLElement, deps: AaronWindowDeps,
@@ -120,8 +121,11 @@ export class AaronWindow {
 
   /** Restore the original DOM: move the content back into the original element and remove the window. */
   unmount(): void {
+    if (this.unmounted) return; // idempotent: onClose AND disconnect() may both call this
+    this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.ro?.disconnect();
+    this.deps.manager.remove(this.host); // stop the manager re-rendering/re-theming a closed window
     const { el, parent, next } = this.restore;
     el.append(...Array.from(this.fit.childNodes));
     delete el.dataset.aaronPromoted;

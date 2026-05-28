@@ -29,6 +29,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   let cascade = 0;
+  let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
   await resolver.preloadFonts();
 
@@ -39,7 +40,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   const refForEl = (el: Element): string => {
     const chain: (string | null)[] = [];
     for (let n: Element | null = el; n; n = n.parentElement) chain.unshift(n.getAttribute('data-aaron-theme'));
-    return resolveThemeRef(chain, pageDefault) ?? pageDefault;
+    // After a runtime theme switch, windows added later with no explicit data-aaron-theme follow the
+    // live theme (lastThemeRef), so the desktop stays consistent; before any switch, the page default.
+    const fallback = lastThemeRef ?? pageDefault;
+    return resolveThemeRef(chain, fallback) ?? fallback;
   };
 
   const promoteWindow = async (el: HTMLElement): Promise<void> => {
@@ -79,8 +83,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
   // system-wide Kaleidoscope theme change overrides per-window themes. The persistent window content
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
   const retheme = async (ref: string): Promise<void> => {
+    lastThemeRef = ref;
     const theme = await resolver.load(ref);
     await manager.retheme(theme);
+    // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
+    // out of any .aw-window, so re-skinning them would re-inject a face into the restored consumer DOM.
+    const live = skinnedButtons.filter((b) => b.skinned.closest('.aw-window') != null);
+    skinnedButtons.length = 0; skinnedButtons.push(...live);
     for (const b of skinnedButtons) {
       try {
         const fresh = await promoteButton(b.el, theme); // inserts the new face right after el…
