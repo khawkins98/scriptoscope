@@ -488,6 +488,13 @@ export class WindowManager {
     await this.render(entry);
   }
 
+  /** Re-skin every managed window with a new theme and re-render in place (the persistent slotted
+   *  content survives, exactly as on a focus re-render). Drives the declarative theme-switcher — the
+   *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers. */
+  async retheme(theme: LoadedTheme): Promise<void> {
+    for (const w of this.windows) { w.theme = theme; await this.render(w); }
+  }
+
   private async focus(entry: ManagedWindow): Promise<void> {
     entry.z = ++this.zClock; // raise above all (even if already active — re-clicking a window fronts it)
     if (entry.active) { entry.host.style.zIndex = this.zIndexFor(entry); return; }

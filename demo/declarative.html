@@ -15,6 +15,8 @@
     header h1 { font-size: 20px; margin: 0 0 4px; }
     header p { margin: 4px 0; color: #555; max-width: 70ch; }
     header code { background: #0001; padding: 0 4px; border-radius: 4px; font-size: 13px; }
+    header .controls { font-size: 13px; color: #333; }
+    header .controls select { font: 13px system-ui; padding: 2px 4px; }
 
     /* The "desktop" — a positioned region the absolute window hosts float within. */
     #desktop {
@@ -46,6 +48,21 @@
       There is <strong>no per-window JavaScript</strong> — one bootstrap line scans the page and promotes
       each tagged element into a faithful classic-Mac window wrapping the live, selectable, reflowing HTML.
       Drag a title bar to move; drag the bottom-right gripper to resize; click to focus.</p>
+    <p class="controls">
+      <label>Theme:
+        <select data-aaron-theme-switcher>
+          <option value="apple-platinum-replica">Apple Platinum (replica)</option>
+          <option value="1138">1138</option>
+          <option value="beos-r503">BeOS R5</option>
+          <option value="black-platinum">Black Platinum</option>
+          <option value="system7-nostalgia-silver">System 7 Nostalgia Silver</option>
+          <option value="platinum-8">Platinum 8</option>
+          <option value="apple-platinum-2">Apple Platinum 2</option>
+          <option value="evolution">Evolution</option>
+        </select>
+      </label>
+      — re-skins every window live. Click a window's <strong>collapse</strong>/<strong>zoom</strong>
+      box, or <strong>double-click a title bar</strong> to window-shade.</p>
   </header>
 
   <div id="desktop">

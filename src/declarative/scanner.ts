@@ -20,13 +20,14 @@ const WINDOW_SEL = '[data-aaron-window], .aaron-window';
 const BUTTON_SEL = '[data-aaron-button], .aaron-button';
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
-export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void }> {
+export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void; retheme(ref: string): Promise<void> }> {
   const manager = new WindowManager();
   const resolver = createThemeResolver(opts);
   const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? 'apple-platinum-replica';
   const root: Document | Element = opts.root ?? document;
   const inFlight = new Set<Element>();
   const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
+  const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   let cascade = 0;
 
   await resolver.preloadFonts();
@@ -65,11 +66,27 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .aw-window
     inFlight.add(el);
     try {
-      await promoteButton(el, await resolver.load(refForEl(el)));
+      const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
+      skinnedButtons.push({ el, skinned });
     } catch (err) {
       console.error('[aaron] button promote failed:', err);
     } finally {
       inFlight.delete(el);
+    }
+  };
+
+  // Runtime theme switch: re-skin the whole desktop AND every promoted button with one scheme — a
+  // system-wide Kaleidoscope theme change overrides per-window themes. The persistent window content
+  // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
+  const retheme = async (ref: string): Promise<void> => {
+    const theme = await resolver.load(ref);
+    await manager.retheme(theme);
+    for (const b of skinnedButtons) {
+      try {
+        const fresh = await promoteButton(b.el, theme); // inserts the new face right after el…
+        b.skinned.remove();                              // …then drop the previous one
+        b.skinned = fresh;
+      } catch (err) { console.error('[aaron] button re-skin failed:', err); }
     }
   };
 
@@ -82,7 +99,24 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     await Promise.all(Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)));
   };
 
+  // Wire `[data-aaron-theme-switcher]` controls (the PRD's named front door for runtime themes). A
+  // <select> switches on change (option values = theme refs); any other element switches on click
+  // using its own data-aaron-theme. Stamped so re-scans don't double-bind.
+  const wireThemeSwitchers = (within: Document | Element): void => {
+    for (const node of Array.from(within.querySelectorAll('[data-aaron-theme-switcher]'))) {
+      const sw = node as HTMLElement;
+      if (sw.dataset.aaronPromoted != null) continue;
+      sw.dataset.aaronPromoted = '';
+      if (sw instanceof HTMLSelectElement) {
+        sw.addEventListener('change', () => { void retheme(sw.value); });
+      } else {
+        sw.addEventListener('click', () => { const ref = sw.getAttribute('data-aaron-theme'); if (ref) void retheme(ref); });
+      }
+    }
+  };
+
   await scanAndPromote(root);
+  wireThemeSwitchers(root);
 
   // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
   // idempotent (stamps), so we don't need to diff records precisely.
@@ -93,7 +127,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
       Array.from(r.addedNodes).some((n) => n instanceof Element && !n.closest('.aw-window')));
     if (!relevant) return; // ignore our own churn inside the chrome
     scheduled = true;
-    queueMicrotask(() => { scheduled = false; void scanAndPromote(root); });
+    queueMicrotask(() => { scheduled = false; void scanAndPromote(root).then(() => wireThemeSwitchers(root)); });
   });
   const target = root instanceof Document ? (root.body ?? root.documentElement) : root;
   if (target) obs.observe(target, { childList: true, subtree: true });
@@ -108,5 +142,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
       obs.disconnect();
       for (const w of mounted.splice(0)) w.unmount();
     },
+    /** Switch the whole desktop (all windows + skinned buttons) to a theme ref at runtime. */
+    retheme,
   };
 }
