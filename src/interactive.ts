@@ -586,6 +586,14 @@ export class WindowManager {
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
     const content = win.querySelector('.aw-content') as HTMLElement | null;
     if (!composed || !content) return;
+    // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
+    // their content. Hard-clip them so neither a native nor a themed scrollbar can appear; if content
+    // overflows the declared size, that's a sizing bug for the consumer to fix.
+    const type = entry.opts.windowType ?? '';
+    if (/utility|palette|floating|modal|dialog/.test(type)) {
+      (entry.contentEl ?? content).style.overflow = 'hidden';
+      return;
+    }
     // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
     // .aw-content) when present, else .aw-content itself for plain WindowManager windows.
     const scrollEl = entry.contentEl ?? content;
