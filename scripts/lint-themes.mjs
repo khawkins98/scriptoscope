@@ -97,12 +97,21 @@ for (const slug of slugs) {
         catch (e) { ERR(`sprite ${label}: cannot load ${rel} (${e.message})`); }
       };
       // A TITLED corner-sprite type (part-0 top inset > 1 ⇒ a real title bar)
-      // must ship a pinstripe to fill that bar. A title-LESS frame (top inset 1:
-      // alert/dialog/no-title utility) legitimately omits it — it draws only the
-      // 1px ring. Flag a missing stripe only when the bar is real.
+      // typically ships a pinstripe to fill that bar. Some schemes (e.g. slimes)
+      // deliberately use a SOLID fill from `headerColors.active.fill` instead of
+      // a striped pattern — that's still a valid corner-sprite presentation,
+      // so flag missing-pinstripe as a NOTE rather than an ERROR when
+      // headerColors are present (the compositor falls back cleanly). Only ERROR
+      // when neither pinstripe nor headerColors.active.fill is available.
+      // A title-LESS frame (top inset 1: alert/dialog/no-title utility) legitimately
+      // omits the pinstripe — it draws only the 1px ring.
       const topInset = Array.isArray(wt.parts?.['part-0']?.rect) ? wt.parts['part-0'].rect[1] : 0;
       const titled = topInset > 1;
-      if (titled && !wt.sprites?.pinstripe) ERR('corner-sprite: titled type missing sprites.pinstripe');
+      const hasHeaderFill = !!manifest.headerColors?.active?.fill;
+      if (titled && !wt.sprites?.pinstripe) {
+        if (hasHeaderFill) NOTE2('corner-sprite: titled type uses solid headerColors fill (no striped sprite)');
+        else ERR('corner-sprite: titled type missing sprites.pinstripe and no headerColors.active.fill fallback');
+      }
       else if (!titled && !wt.sprites?.pinstripe) NOTE2('corner-sprite: title-less frame (no pinstripe — frame-only, expected)');
       checkSprite('pinstripe', wt.sprites?.pinstripe);
       checkSprite('growBox', wt.sprites?.growBox);

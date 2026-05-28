@@ -15,8 +15,11 @@ From the bundle's HTML ReadMe: *"I wanted to make Animals a fun scheme. Many ani
 
 This bundle was ported from a `.sit` archive distributed via the **Mac Themes Garden** community archive:
 
-- **Mac Themes Garden:** [macthemes.garden](https://macthemes.garden/) — a community-maintained gallery + archive of Kaleidoscope schemes from the 1997–2003 era, with reference renders and links to the original `.sit` downloads.
+- **Theme page:** <https://macthemes.garden/themes/5c76b773f3d6-animals/> — the canonical landing page on Mac Themes Garden with author, year, and uploader notes.
+- **Reference render:** <https://macthemes.garden/themes/attachments/ksa-sampler-att61uow4iibazzo9-image.png> — the archive's preview image (also saved locally at [`demo/assets/references/animals.png`](../../demo/assets/references/animals.png) for the demo gallery).
+- **Mac Themes Garden:** <https://macthemes.garden/> — a community-maintained gallery + archive of Kaleidoscope schemes from the 1997–2003 era.
 - **Source `.sit`:** `animals.sit` (StuffIt), resource fork extracted to `scheme.rsrc` via Scriptoscope's in-browser StuffIt decoder ([`tools/sit-wasm/`](../../tools/sit-wasm/)).
+
 
 ## Takedown / contact
 

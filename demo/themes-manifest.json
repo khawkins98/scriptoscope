@@ -16,11 +16,13 @@
   },
   {
     "slug": "animals",
-    "label": "Animals (Masashi Ichikawa, 1999) ✦ real scheme"
+    "label": "Animals (Masashi Ichikawa, 1999) ✦ real scheme",
+    "ref": "animals.png"
   },
   {
     "slug": "apple-lisa",
-    "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans) ✦ real scheme"
+    "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans) ✦ real scheme",
+    "ref": "apple-lisa.png"
   },
   {
     "slug": "apple-platinum-2",
@@ -39,11 +41,13 @@
   },
   {
     "slug": "crayon-os",
-    "label": "Crayon OS (Karl von Laudermann, 2000) ✦ real scheme"
+    "label": "Crayon OS (Karl von Laudermann, 2000) ✦ real scheme",
+    "ref": "crayon-os.png"
   },
   {
     "slug": "dolphin-som",
-    "label": "Dolphin SOM (dsom) (unknown) ✦ real scheme"
+    "label": "Dolphin SOM (dsom) (unknown) ✦ real scheme",
+    "ref": "dolphin-som.png"
   },
   {
     "slug": "evolution",
@@ -52,11 +56,13 @@
   },
   {
     "slug": "floppies",
-    "label": "Floppies! (unknown) ✦ real scheme"
+    "label": "Floppies! (unknown) ✦ real scheme",
+    "ref": "floppies.png"
   },
   {
     "slug": "monkey-paradise",
-    "label": "Monkey Paradise (Masashi Ichikawa, 1998) ✦ real scheme"
+    "label": "Monkey Paradise (Masashi Ichikawa, 1998) ✦ real scheme",
+    "ref": "monkey-paradise.png"
   },
   {
     "slug": "platinum-8",
@@ -65,7 +71,8 @@
   },
   {
     "slug": "slimes",
-    "label": "slimes 1.5 (JUN, 1998) ✦ real scheme"
+    "label": "slimes 1.5 (JUN, 1998) ✦ real scheme",
+    "ref": "slimes.png"
   },
   {
     "slug": "system7-nostalgia-silver",
@@ -74,10 +81,12 @@
   },
   {
     "slug": "windows-31",
-    "label": "Windows 3.1 (Scott Naness) ✦ real scheme"
+    "label": "Windows 3.1 (Scott Naness) ✦ real scheme",
+    "ref": "windows-31.png"
   },
   {
     "slug": "windows-95",
-    "label": "Windows 95 (Scott Naness) ✦ real scheme"
+    "label": "Windows 95 (Scott Naness) ✦ real scheme",
+    "ref": "windows-95.png"
   }
 ]
