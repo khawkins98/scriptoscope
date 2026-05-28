@@ -61,6 +61,20 @@
 
   /* Marker so we can spot whether the canvas rule attacked the consumer's IMG */
   img.consumer { border: 2px solid #2a3f5f; }
+
+  /* Drop affordance — a small button at the top of the page. Drop a Kaleidoscope theme onto it,
+     the chrome retheme runs. This survives the hostile CSS because the chrome itself is in the
+     Shadow DOM (the drop button itself is page-level UI — it gets the host's hostile button
+     styling, which is the whole point of this demo, and that's fine). */
+  #scheme-drop {
+    font: 12px system-ui; padding: 4px 10px; border: 1px solid #888; background: #f5f3ee;
+    color: #111; border-radius: 4px; cursor: pointer; margin: 0 0 12px;
+  }
+  #scheme-drop.aaron-drop-active { background: #dbe7f5; border-color: #2b5070; }
+  #scheme-drop-status { font: 11.5px system-ui; margin-left: 8px; }
+  #scheme-drop-status[data-kind="busy"] { color: #cfd9ee; }
+  #scheme-drop-status[data-kind="ok"]   { color: #b0e2c2; }
+  #scheme-drop-status[data-kind="err"]  { color: #f0a8a8; }
 </style>
 </head>
 <body>
@@ -72,6 +86,12 @@
   should style normally. Open dev tools — inspect any window's outer div and you should see a
   shadow root containing the chrome canvas, untouched by the page's CSS.
 </p>
+
+<!-- Drop affordance. Page-level button (host CSS reaches it — looks hostile, which is the point);
+     the chrome it re-themes is in the Shadow DOM and stays clean. -->
+<button type="button" id="scheme-drop"
+        title="Drop a Kaleidoscope theme file (.sit / .hqx / .rsrc) or click to pick one">📂 Drop or pick a theme</button>
+<span id="scheme-drop-status" aria-live="polite"></span>
 
 <div data-aaron-window
      data-aaron-title="Hostile-CSS sample"
@@ -101,9 +121,16 @@
 
 <script type="module">
   import { mountDeclarative } from '../src/declarative/index.ts';
-  await mountDeclarative({
+  import { wireSchemeDrop } from './_theme-drop.mjs';
+  const handle = await mountDeclarative({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     pageThemeDefault: '1138',
+  });
+  // No theme switcher in this demo — wireSchemeDrop falls back to handle.retheme(ref) directly.
+  wireSchemeDrop({
+    handle,
+    dropTarget: document.getElementById('scheme-drop'),
+    statusEl:   document.getElementById('scheme-drop-status'),
   });
 </script>
 </body>

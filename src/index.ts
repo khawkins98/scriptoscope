@@ -110,6 +110,8 @@ export {
   promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,
+  attachThemeDropZone,
+  type ThemeDropZoneOptions, type ThemeDropZoneHandle,
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton,
 } from './declarative/index.js';

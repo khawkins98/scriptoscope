@@ -4,6 +4,7 @@
 // firing on our OWN DOM moves) skip them and settle.
 
 import { WindowManager } from '../interactive.js';
+import type { LoadedTheme } from '../types.js';
 import { AaronWindow } from './AaronWindow.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
@@ -56,7 +57,11 @@ const CONTROL_SEL = [
 ].join(', ');
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
-export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disconnect(): void; retheme(ref: string): Promise<void> }> {
+export async function mountDeclarative(opts: MountOptions = {}): Promise<{
+  disconnect(): void;
+  retheme(ref: string): Promise<void>;
+  registerTheme(ref: string, theme: LoadedTheme): void;
+}> {
   const manager = new WindowManager();
   const resolver = createThemeResolver(opts);
   const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
@@ -360,5 +365,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
     },
     /** Switch the whole desktop (all windows + skinned buttons) to a theme ref at runtime. */
     retheme,
+    /** Pre-seed the resolver cache so a subsequent `retheme(ref)` (incl. via
+     *  `<select data-aaron-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
+     *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
+    registerTheme: (ref, theme) => resolver.register(ref, theme),
   };
 }

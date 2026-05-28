@@ -9,6 +9,10 @@ export { promoteButton } from './button.js';
 export { promoteField, isFieldEligible } from './field.js';
 export { promoteTabs } from './tabs.js';
 export {
+  attachThemeDropZone,
+  type ThemeDropZoneOptions, type ThemeDropZoneHandle,
+} from './themeDropZone.js';
+export {
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton, type SizeMode,
 } from './parse.js';

@@ -18,6 +18,11 @@ export interface ThemeBootstrapOpts {
 export interface ThemeResolver {
   /** Load a theme by ref (slug or url), with the universal base wired in if configured (cached). */
   load(ref: string): Promise<LoadedTheme>;
+  /** Pre-seed the cache with an already-loaded theme under a synthetic ref. Used by drop-zones:
+   *  decode a `.sit`/`.rsrc` in the browser → call `register(ref, theme)` → subsequent `load(ref)`
+   *  hits the cache without ever fetching. The ref doesn't need to correspond to a real URL.
+   *  An existing entry under the same key is overwritten (drop-newer-wins). */
+  register(ref: string, theme: LoadedTheme): void;
   /** Preload the bundled Charcoal faces so the first window paint doesn't flash a fallback font. */
   preloadFonts(): Promise<void>;
 }
@@ -41,6 +46,7 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
 
   return {
     load: (ref) => loadByUrl(themeRefToUrl(ref, themeBaseUrl)),
+    register: (ref, theme) => { cache.set(themeRefToUrl(ref, themeBaseUrl), Promise.resolve(theme)); },
     preloadFonts,
   };
 }
