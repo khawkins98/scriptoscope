@@ -2296,6 +2296,8 @@ gap between the two is where the wins live.
 
 ### 2026-05-28 — Scriptoscope pivot (project rename + npm publish prep)
 
+*Tracker companion: [#175](https://github.com/khawkins98/aaron-ui/issues/175) (closed `wontfix` — "decision recorded"). Same shape as #174's Appearance-themes confirmed-no, so the question "why is this called Scriptoscope?" has a tracker to point at, not just prose.*
+
 Two prior naming decisions had explicitly KEPT "Aaron UI" despite the loose etymology (the original was Apple's Copland-era Appearance Manager codename, and the project no longer matches that scope after the "Apple themes dropped" pivot). The npm-publish work for #28 was the forcing function — `aaron-ui` is taken on npm by an unrelated Vue avatar component, so scoping under `@khawkins98/aaron-ui` was the easy path and a real-name pivot was the harder path. The maintainer chose the harder path.
 
 **Chosen: Scriptoscope.** Per the research recorded in commit `352ad93` (on `origin/platinum-fidelity`'s `blog-post-outline.md`) — npm + GitHub + most TLDs free; the JS pun ("Script") + instrument-suffix homage ("-oscope") fit the project's character; runner-up "Schemeoscope" was cleaner-slate but lost the JavaScript signal. The `.com` is taken (2024) but the project doesn't need a vanity domain yet — `.dev`/`.app` are options when the time comes. Avoided "Kaleido-*" names because Kaleidoscope.app (a commercial macOS diff tool, very much in this project's audience) creates real confusion + trademark exposure.
