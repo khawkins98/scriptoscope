@@ -636,35 +636,31 @@ export class WindowManager {
   /**
    * Replace the native browser scrollbar with the scheme's own scrollbar art when declared-size
    * content overflows (content-fit windows grow to fit, so they never reach here). We own the scroll:
-   * `.aw-content` goes `overflow:hidden`, a gutter is reserved on the right, and a themed vertical
-   * scrollbar is overlaid in it — dragging the thumb, the wheel, and the arrow keys all set
-   * `scrollTop` and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
+   * `.aw-content` goes `overflow:hidden`, a gutter is reserved on the relevant side(s), and themed
+   * scrollbar(s) are overlaid — dragging the thumb, the wheel, and arrow keys all set scrollTop /
+   * scrollLeft and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
    * guarded against stale wins. `attempt` retries across a couple of frames for the first render, when
-   * the host isn't in the document yet so nothing has layout.
+   * the host isn't in the document yet so nothing has layout. Detects + wires BOTH axes — vertical and
+   * horizontal — independently, so a long-and-wide content gets both bars + a clear bottom-right corner.
    */
   private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
-    // Staleness check: is `win` still the current chrome? Pre-Shadow this was
-    // `host.firstChild !== win`. Now the host's shadowRoot is where `win` lives
-    // (light-DOM firstChild is the slotted .aw-slot, not win). The check below
-    // resolves to whichever tree the chrome lives in. NB: we deliberately do NOT
-    // use `win.isConnected` — for declarative windows, AaronWindow.promote
-    // inserts the host into the document AFTER manager.add returns, so the
-    // initial wireScrollbars fires while host is still detached. The ch===0
-    // retry below catches that pre-layout case; staleness is a different
-    // concern (a NEWER render replaced win) and is what this check covers.
+    // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
+    // gotchas" — host.firstChild is the slotted .aw-slot now, not win. We resolve via shadowRoot.
+    // We deliberately do NOT use win.isConnected: AaronWindow.promote inserts the host into the
+    // document AFTER manager.add returns, so the initial wireScrollbars fires while host is
+    // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
+    // this check covers (a NEWER render replaced win).
     const currentChrome = entry.host.shadowRoot?.firstChild ?? entry.host.firstChild;
     if (currentChrome !== win) return;
     // Tear down the previous render's scrollbar listeners (esp. the wheel listener on the persistent
-    // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes. (Leaving the field
-    // pointing at the now-aborted controller during early returns is harmless — re-abort is a no-op.)
+    // slot) BEFORE re-wiring, so they can't accumulate across renders/re-themes.
     entry.scrollAbort?.abort();
     if (entry.collapsed) return;                          // shaded: no body to scroll
     const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
     const content = win.querySelector('.aw-content') as HTMLElement | null;
     if (!composed || !content) return;
     // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
-    // their content. Hard-clip them so neither a native nor a themed scrollbar can appear; if content
-    // overflows the declared size, that's a sizing bug for the consumer to fix.
+    // their content. Hard-clip them so neither a native nor a themed scrollbar can appear.
     const type = entry.opts.windowType ?? '';
     if (/utility|palette|floating|modal|dialog/.test(type)) {
       (entry.contentEl ?? content).style.overflow = 'hidden';
@@ -673,59 +669,108 @@ export class WindowManager {
     // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
     // .aw-content) when present, else .aw-content itself for plain WindowManager windows.
     const scrollEl = entry.contentEl ?? content;
-    scrollEl.style.paddingRight = '';                     // measure at natural width (drop any prior gutter)
+    // Reset gutters from a previous wire so the natural-size measurement isn't inflated.
+    scrollEl.style.paddingRight = '';
+    scrollEl.style.paddingBottom = '';
     const ch = scrollEl.clientHeight;
-    if (ch === 0) {                                       // not laid out yet (first render, pre-insert)
+    const cw = scrollEl.clientWidth;
+    if (ch === 0 || cw === 0) {                           // not laid out yet (first render, pre-insert)
       if (attempt < 4) requestAnimationFrame(() => { void this.wireScrollbars(entry, win, attempt + 1); });
       return;
     }
-    if (scrollEl.scrollHeight <= ch + 1) {                // no vertical overflow → leave native behavior alone
-      scrollEl.style.overflowY = '';                      // restore renderWindow/slot's own overflow:auto
+    const needV = scrollEl.scrollHeight > ch + 1;
+    const needH = scrollEl.scrollWidth > cw + 1;
+    if (!needV && !needH) {
+      scrollEl.style.overflowY = '';
+      scrollEl.style.overflowX = '';
       return;
     }
-    scrollEl.style.overflowY = 'hidden';                  // overflow confirmed: we drive scrollTop ourselves
+    // Reserve the gutters BEFORE creating the bars so post-gutter scrollHeight/scrollWidth are correct.
+    scrollEl.style.overflowY = needV ? 'hidden' : '';
+    scrollEl.style.overflowX = needH ? 'hidden' : '';
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     const gutter = 15 * scale;
-    scrollEl.style.paddingRight = `${gutter}px`;          // reserve room so the bar doesn't cover content
-    const sh = scrollEl.scrollHeight;                     // re-measure after the reflow
-    const maxScroll = sh - ch;
-    const thumbExtent = Math.max(0.08, ch / sh);
-    // Leave the bottom-right grow box clear: stop the track above it.
-    const barLenCss = Math.max(32, ch - (composed.growBox ? (composed.growBox.h + 1) * scale : 0));
-    let value = maxScroll > 0 ? clamp01(scrollEl.scrollTop / maxScroll) : 0;
+    if (needV) scrollEl.style.paddingRight = `${gutter}px`;
+    if (needH) scrollEl.style.paddingBottom = `${gutter}px`;
+
     const ac = new AbortController();
-    const signal = ac.signal;
     entry.scrollAbort = ac;
 
+    // Wire each axis independently. The two bars share the abort signal (re-render aborts both) +
+    // the scroll element (wheel listener attached by whichever fires first; the other axis still
+    // gets shift+wheel and its own thumb drag). Bottom-right corner left blank so the grow box
+    // sits clear — vertical bar stops above the H gutter, horizontal bar stops before the V gutter.
+    if (needV) this.wireScrollbarAxis('vertical', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
+    if (needH) this.wireScrollbarAxis('horizontal', entry, win, scrollEl, composed, scale, ac.signal, { needV, needH });
+  }
+
+  /**
+   * Per-axis scrollbar wiring (vertical OR horizontal). The two axes share an AbortController so a
+   * re-render aborts both; the bars are independent DOM elements with their own listeners.
+   */
+  private wireScrollbarAxis(
+    axis: 'vertical' | 'horizontal',
+    entry: ManagedWindow,
+    win: HTMLElement,
+    scrollEl: HTMLElement,
+    composed: ComposedChrome,
+    scale: number,
+    signal: AbortSignal,
+    flags: { needV: boolean; needH: boolean },
+  ): void {
+    const vertical = axis === 'vertical';
+    // Per-axis dimensions (against the layout-complete scrollEl after gutter applied).
+    const trackLen = vertical ? scrollEl.clientHeight : scrollEl.clientWidth;
+    const contentLen = vertical ? scrollEl.scrollHeight : scrollEl.scrollWidth;
+    const maxScroll = contentLen - trackLen;
+    const thumbExtent = Math.max(0.08, trackLen / contentLen);
+    // The OPPOSITE axis's gutter (when both bars present) eats into our track length so the bars
+    // don't visually meet at a corner. ~15px reserved gives the grow box room too.
+    const oppositeGutter = (vertical ? flags.needH : flags.needV) ? 15 * scale : 0;
+    const growBoxClearance = composed.growBox && vertical ? (composed.growBox.h + 1) * scale : 0;
+    const barLenCss = Math.max(32, trackLen - oppositeGutter - growBoxClearance);
+
+    let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
+
     const bar = document.createElement('div');
-    bar.className = 'aw-window-scrollbar';
+    bar.className = `aw-window-scrollbar aw-window-scrollbar-${axis}`;
     Object.assign(bar.style, {
       position: 'absolute', zIndex: '3', lineHeight: '0', touchAction: 'none', cursor: 'default',
-      right: `${composed.frame.right * scale}px`, top: `${composed.frame.top * scale}px`,
+      ...(vertical
+        ? { right: `${composed.frame.right * scale}px`, top: `${composed.frame.top * scale}px` }
+        : { bottom: `${composed.frame.bottom * scale}px`, left: `${composed.frame.left * scale}px` }
+      ),
     } satisfies Partial<CSSStyleDeclaration>);
     bar.setAttribute('role', 'scrollbar');
-    bar.setAttribute('aria-orientation', 'vertical');
+    bar.setAttribute('aria-orientation', axis);
     bar.setAttribute('aria-valuemin', '0');
     bar.setAttribute('aria-valuemax', '100');
-    bar.setAttribute('aria-label', 'Scroll content');
+    bar.setAttribute('aria-label', vertical ? 'Scroll content vertically' : 'Scroll content horizontally');
     bar.tabIndex = 0;
 
     let raf = 0;
     const repaint = async (): Promise<void> => {
-      const opts = { orientation: 'vertical' as const, length: Math.round(barLenCss / scale), value, thumbExtent };
+      const opts = { orientation: axis, length: Math.round(barLenCss / scale), value, thumbExtent };
       const buf = (await composeScrollbar(entry.theme, opts)) ?? platinumScrollbar(opts);
-      // Same staleness logic as at the top — bail if a newer render already replaced win.
+      // Staleness check (see LEARNINGS 2026-05-28 — shadowRoot.firstChild not host.firstChild).
       if (buf && (entry.host.shadowRoot?.firstChild ?? entry.host.firstChild) === win) bar.replaceChildren(bufferToCanvas(buf, scale));
       bar.setAttribute('aria-valuenow', String(Math.round(value * 100)));
     };
     const scheduleRepaint = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
-    const setValue = (v: number): void => { value = clamp01(v); scrollEl.scrollTop = value * maxScroll; scheduleRepaint(); };
+    const setValue = (v: number): void => {
+      value = clamp01(v);
+      if (vertical) scrollEl.scrollTop = value * maxScroll;
+      else scrollEl.scrollLeft = value * maxScroll;
+      scheduleRepaint();
+    };
 
     win.appendChild(bar);
-    // Attach listeners SYNCHRONOUSLY (before the async initial paint) so a concurrent re-render that
-    // aborts `ac` can't race a half-wired bar — the listeners are either fully present or fully removed.
-    // Drag the thumb (pointer = touch + mouse).
-    const valueAtPointer = (e: PointerEvent): number => { const r = bar.getBoundingClientRect(); return clamp01((e.clientY - r.top) / r.height); };
+
+    // Drag the thumb (pointer = touch + mouse + pen).
+    const valueAtPointer = (e: PointerEvent): number => {
+      const r = bar.getBoundingClientRect();
+      return clamp01(vertical ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width);
+    };
     bar.addEventListener('pointerdown', (e) => {
       e.preventDefault(); e.stopPropagation();
       setValue(valueAtPointer(e));
@@ -733,20 +778,49 @@ export class WindowManager {
       const up = (): void => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
       window.addEventListener('pointermove', mv, { signal }); window.addEventListener('pointerup', up, { signal });
     }, { signal });
-    // Wheel/trackpad over the content drives the same value (two-way). On the PERSISTENT slot — scoped
-    // to `signal` so the next render's abort removes it (else it would accumulate + multiply deltas).
-    scrollEl.addEventListener('wheel', (e) => { e.preventDefault(); setValue((scrollEl.scrollTop + e.deltaY) / maxScroll); }, { passive: false, signal });
+
+    // Wheel: vertical bar handles deltaY (the dominant axis for mouse wheels); horizontal bar handles
+    // deltaX (trackpad horizontal swipe) AND shift+deltaY (the convention for "wheel to scroll
+    // horizontally"). Attach to the SAME scroll element — both listeners fire; each takes its axis.
+    scrollEl.addEventListener('wheel', (e) => {
+      if (vertical) {
+        if (Math.abs(e.deltaY) < 0.5) return;
+        e.preventDefault();
+        setValue((scrollEl.scrollTop + e.deltaY) / maxScroll);
+      } else {
+        const dx = e.shiftKey ? e.deltaY : e.deltaX;
+        if (Math.abs(dx) < 0.5) return;
+        e.preventDefault();
+        setValue((scrollEl.scrollLeft + dx) / maxScroll);
+      }
+    }, { passive: false, signal });
+
     // Arrow keys / page keys on the bar.
     bar.addEventListener('keydown', (e) => {
       const line = maxScroll > 0 ? 24 / maxScroll : 0;
-      const page = ch / maxScroll;
+      const page = trackLen / maxScroll;
       let next = value;
-      if (e.key === 'ArrowDown') next = value + line; else if (e.key === 'ArrowUp') next = value - line;
-      else if (e.key === 'PageDown') next = value + page; else if (e.key === 'PageUp') next = value - page;
-      else if (e.key === 'Home') next = 0; else if (e.key === 'End') next = 1; else return;
+      if (vertical) {
+        if (e.key === 'ArrowDown') next = value + line;
+        else if (e.key === 'ArrowUp') next = value - line;
+        else if (e.key === 'PageDown') next = value + page;
+        else if (e.key === 'PageUp') next = value - page;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = 1;
+        else return;
+      } else {
+        if (e.key === 'ArrowRight') next = value + line;
+        else if (e.key === 'ArrowLeft') next = value - line;
+        else if (e.key === 'PageDown') next = value + page;
+        else if (e.key === 'PageUp') next = value - page;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = 1;
+        else return;
+      }
       e.preventDefault(); setValue(next);
     }, { signal });
-    await repaint(); // initial thumb paint (guarded against a stale win inside repaint)
+
+    void repaint(); // initial thumb paint (staleness-guarded inside)
   }
 
   /** Toggle window-shade. Built-in for windows whose collapse widget has no explicit handler. */
