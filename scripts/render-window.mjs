@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { composeWindowChrome, composeCornerSpriteChrome } from '../dist/aaron-ui.js';
+import { composeWindowChrome, composeCornerSpriteChrome } from '../dist/scriptoscope.js';
 import { encodePng, loadCicn, resolveWindow } from './diag-lib.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');

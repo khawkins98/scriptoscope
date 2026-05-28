@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { inflateSync, deflateSync } from 'node:zlib';
-import { PixelBuffer } from '../dist/aaron-ui.js';
+import { PixelBuffer } from '../dist/scriptoscope.js';
 
 function paeth(a, b, c) { const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c); return pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
 

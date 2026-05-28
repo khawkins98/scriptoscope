@@ -1,5 +1,5 @@
 // tools/theme-loader/convert.js
-// THE portable Kaleidoscope→Aaron-UI conversion core. Pure: no fs, no zlib, no
+// THE portable Kaleidoscope→Scriptoscope conversion core. Pure: no fs, no zlib, no
 // canvas — takes raw resource-fork bytes, returns the theme.json object + decoded
 // RGBA assets (each tagged with its canonical bundle path). The same conversion the
 // Node CLIs ran inline now lives here ONCE, so both `extract-scheme.mjs`/`extract-icons.mjs`

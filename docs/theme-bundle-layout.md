@@ -1,6 +1,6 @@
 # Theme bundle layout
 
-How an Aaron UI theme bundle is organized on disk. The `theme.json` schema is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a bundle is the kDEF model in [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).
+How an Scriptoscope theme bundle is organized on disk. The `theme.json` schema is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a bundle is the kDEF model in [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).
 
 ## Directory tree
 
@@ -112,13 +112,13 @@ The full porting flow is in [`docs/porting-a-kaleidoscope-scheme.md`](./porting-
 1. Verify the scheme's readme grants redistribution rights.
 2. Drop the resource fork at `themes/<slug>/scheme.rsrc` and author `meta.json` + `PROVENANCE.md` beside it.
 3. Run `node scripts/extract-scheme.mjs <slug>` — extracts the PNGs and emits the validated `theme.json` in place.
-4. Open a PR with a side-by-side screenshot of Aaron UI's render vs. the scheme's own preview thumbnail.
+4. Open a PR with a side-by-side screenshot of Scriptoscope's render vs. the scheme's own preview thumbnail.
 
 ## What's *not* in a bundle
 
 Per LEARNINGS 2026-05-16 "Themes don't bring sounds or desktop backgrounds":
 
-- No `sounds/` — Kaleidoscope schemes in practice didn't carry them; Aaron UI doesn't fabricate them.
+- No `sounds/` — Kaleidoscope schemes in practice didn't carry them; Scriptoscope doesn't fabricate them.
 - No `desktop.png` — same reason.
 - No `fonts/` — Mac OS supplied system fonts; the corpus assumes them present.
 

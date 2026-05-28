@@ -30,7 +30,7 @@ Non-negotiable, inherited from the WDEF decode plan and the project's clean-room
 
 Regenerate the CDEF disassembly if missing:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 m68k-elf-objdump -D -b binary -m m68k:68030 CDEF-n63.bin > CDEF-n63.asm
 ```
 
@@ -107,7 +107,7 @@ Mirror `kdef-faithfulness-ledger.md`'s table shape:
 - [ ] **Step 3: Verify skeleton + commit**
 
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 grep -c '## ' docs/spec/platinum-controls-decode.md   # expect >= 10
 mkdir -p .scratch/iso-recon/findings && git check-ignore .scratch/iso-recon/findings || echo "WARN: findings not git-ignored"
 git add docs/spec/platinum-controls-decode.md docs/spec/platinum-controls-faithfulness-ledger.md
@@ -132,7 +132,7 @@ assembled in the cross-check task. Clean-room: cites offsets, no Apple listing."
 
 The entry unpacks the CDEF args (`varCode`/`d5`-style, `theControl`, `message`, `param`) then dispatches on `message`. Find the range-check + jump table (idiom: `cmp` against a small constant, then `movew %pc@(<tbl>,%d0:w:2),%d0` + `jmp`):
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'cmpiw|cmpw|%pc@\(0x[0-9a-f]+,%d[0-9]:w' CDEF-n63.asm | head -30
 ```
 Map indices to standard CDEF messages: `0 drawCntl · 1 testCntl · 2 calcCRgns · 3 initCntl · 4 dispCntl · 5 posCntl · 6 thumbCntl · 7 dragCntl · 8 autoTrack · 10 calcCntlRgn · 11 calcThumbRgn` (Inside Macintosh: Controls). Record the table base `0xTBL` + each target in the findings file.
@@ -181,7 +181,7 @@ Emit: `{ accents: { "<name>": [[r,g,b],...] }, controlColors: { "<slotName>": [r
 
 Assert grays are a coherent neutral ramp (R≈G≈B, monotonic) and a sample accent matches its name (e.g. "Bondi" ≈ teal-blue, "Sapphire" ≈ blue). Render a labelled swatch PNG (`src/pixelBuffer.ts` or `sharp`). Verify:
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 node -e "const p=require('./themes/apple-platinum-replica/sources/platinum-palette.json'); console.log('accents',Object.keys(p.accents).length,'controlColors',Object.keys(p.controlColors).length)"
 # expect: accents 21 (20 + B&W), controlColors > 0
 ```
@@ -264,7 +264,7 @@ Summarize the extracted accents + grays in "Color data", linking to `platinum-pa
 
 For each `0xADDR`/offset cited, confirm it resolves to a plausible instruction in the corresponding `.asm`:
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 grep -oE '0x[0-9a-f]{2,6}' docs/spec/platinum-controls-decode.md | sort -u > /tmp/cited-controls.txt
 wc -l /tmp/cited-controls.txt   # spot-check ~5 against CDEF-n63.asm
 ```
@@ -278,7 +278,7 @@ One row per control kind × feature → source (CDEF `0xADDR` / AppearanceLib of
 
 In the decode doc's footer, state the next plan to write per the gate outcome (scale: `…-platinum-controls-appearancelib-decode.md`; fallback: `…-platinum-controls-generate.md`). Then:
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 git add docs/spec/platinum-controls-decode.md docs/spec/platinum-controls-faithfulness-ledger.md themes/apple-platinum-replica/sources/platinum-palette.json themes/apple-platinum-replica/sources/platinum-palette-preview.png
 git commit -m "docs(platinum): controls decode complete — geometry, spike, palette
 

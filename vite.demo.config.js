@@ -9,7 +9,10 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   root: 'demo',
-  base: process.env.AARON_UI_BASE_PATH ?? '/aaron-ui/',
+  // GitHub Pages still serves at /aaron-ui/ (the repo slug); override via the env var if/when
+  // the repo is renamed. Package name on npm is scriptoscope; the repo + Pages URL are
+  // separate concerns and can pivot independently.
+  base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/aaron-ui/',
   publicDir: false,
   build: {
     outDir: '../dist/demo',

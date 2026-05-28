@@ -41,7 +41,7 @@ window cicn**. There is no per-scheme title-colour clut / `wctb` (the schemes
 ship no `wctb`; the `Colr` resource is just metadata — "Scheme Resource Info":
 format version + scroll-bar flags).
 
-## Runtime-fix plan (Aaron UI is runtime-compute-from-resources)
+## Runtime-fix plan (Scriptoscope is runtime-compute-from-resources)
 Compute the title colour at **render time by sampling the loaded cicn** — do NOT
 pre-bake it. In `renderWindow.ts`:
 - Drop the `headerColors.text` priority (it's a frame tint).
@@ -51,7 +51,7 @@ pre-bake it. In `renderWindow.ts`:
   the CSS title bar) — only `.text` is bogus.
 
 ## Why it must be derived, not pre-baked or hardcoded
-Aaron UI's whole premise is: load a Kaleidoscope scheme and **compute the
+Scriptoscope's whole premise is: load a Kaleidoscope scheme and **compute the
 appearance from its resources at runtime**. So the title colour has to be
 DERIVED from the loaded scheme — it must work for a scheme nobody has tested,
 including one whose title colour we've never seen. That rules out hardcoding

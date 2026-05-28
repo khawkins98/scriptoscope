@@ -26,7 +26,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { composeWindowChrome } from '../dist/aaron-ui.js';
+import { composeWindowChrome } from '../dist/scriptoscope.js';
 import { loadCicn, resolveWindow } from './diag-lib.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');

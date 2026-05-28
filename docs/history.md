@@ -1,6 +1,8 @@
-# Aaron UI — project history
+# Scriptoscope (formerly Aaron UI) — project history
 
 *Project arc + dead-ends. This records how the runtime got here and what NOT to relitigate — it is **not** the authority on how the runtime works today. For that, see [`spec/kdef-architecture.md`](./spec/kdef-architecture.md) (design) and the code + [`spec/compositor-spec.md`](./spec/compositor-spec.md) (model).*
+
+> **2026-05-28 pivot logged: project renamed Aaron UI → Scriptoscope** for the first npm publish (the `aaron-ui` package name was already taken on npm by an unrelated Vue avatar component, which became the forcing function for the rename two prior decisions had explicitly deferred). The narrative below uses "Aaron UI" because that's what the project was called when each event happened — preserved as the historical record. Internal API surface (`data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class) stays stable across the rebrand on the Lodash-kept-`_` model. Full rationale: `LEARNINGS.md` 2026-05-28 "Scriptoscope pivot" entry. The original 2026-05-16 "Aaron UI" naming entry there is marked superseded.
 
 How the window-chrome renderer got to where it is. Written for the next person
 (or the next us) so the dead ends don't get re-walked. ~274 commits, 2026-05-16

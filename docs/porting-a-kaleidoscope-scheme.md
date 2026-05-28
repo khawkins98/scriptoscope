@@ -1,8 +1,8 @@
-# Porting a Kaleidoscope scheme into Aaron UI
+# Porting a Kaleidoscope scheme into Scriptoscope
 
-Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By the end you have a bundle under `themes/<your-slug>/` that loads via `loadTheme()` and renders chrome end-to-end.
+Walk-through for adding a new Kaleidoscope scheme to Scriptoscope's theme corpus. By the end you have a bundle under `themes/<your-slug>/` that loads via `loadTheme()` and renders chrome end-to-end.
 
-**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Aaron UI to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver`).
+**Audience:** anyone porting a freeware Kaleidoscope `.ksc` scheme — typically because you want Scriptoscope to load a scheme beyond the bundled corpus (`1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver`).
 
 **Companion reading:** [`docs/theme-bundle-layout.md`](./theme-bundle-layout.md) (the directory shape), `src/types.ts` (the theme.json schema), [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) (how the kDEF compositor draws a scheme), and `tools/theme-loader/` (the `.rsrc` decoders). The condensed version of this same flow lives in [`CONTRIBUTING.md` § Adding a theme](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme); this doc is the *long-form, troubleshooting* version.
 
@@ -10,7 +10,7 @@ Walk-through for adding a new Kaleidoscope scheme to Aaron UI's theme corpus. By
 
 ## 0. Before you start
 
-**Verify the scheme's license permits redistribution.** Check the scheme's original readme. Mass:werk's schemes are explicit: "freeware, redistribute as long as with this readme file." When a scheme lacks an explicit license, study it privately but **do not port until rights are confirmed**. Aaron UI's clean-room boundary is from Kaleidoscope's source code; the assets we ship come *only* from schemes whose authors granted redistribution.
+**Verify the scheme's license permits redistribution.** Check the scheme's original readme. Mass:werk's schemes are explicit: "freeware, redistribute as long as with this readme file." When a scheme lacks an explicit license, study it privately but **do not port until rights are confirmed**. Scriptoscope's clean-room boundary is from Kaleidoscope's source code; the assets we ship come *only* from schemes whose authors granted redistribution.
 
 **Tools you need:**
 
@@ -92,7 +92,7 @@ under `themes/<your-slug>/`:
 - `cicns/cicn-n<id>-<slug>.png` — one PNG per chrome cicn
 - `ppats/ppat-n<id>-<slug>.png` — one PNG per tile pattern
 - `extraction-manifest.json` — diagnostic record of every decoded resource
-- `theme.json` — the schema-validated Aaron UI bundle manifest (header text
+- `theme.json` — the schema-validated Scriptoscope bundle manifest (header text
   colours decoded from the `-14335`/`-14336` cluts are folded in automatically)
 
 There is no separate "build the bundle" step — `extract-scheme.mjs` builds and
@@ -225,7 +225,7 @@ npm run diag:audit             # placement audit vs. the reference images
 
 Put a reference preview at `demo/assets/references/<your-slug>.png` (the corpus
 uses PNGs — `1138.png`, `beos-r503.png`, …). The demo and the `diag:audit` pass
-compare Aaron UI's render against it.
+compare Scriptoscope's render against it.
 
 If the scheme shipped a thumbnail (often `Scheme Settings.jpg` or similar in the
 original archive), convert it to PNG and use that. Otherwise take a screenshot of
@@ -253,7 +253,7 @@ PR body checklist:
 
 - [ ] License: quote the verbatim license string from the readme
 - [ ] Author: name + email/URL preserved in `meta.json` and `PROVENANCE.md`
-- [ ] Side-by-side screenshot: Aaron UI render next to the scheme's preview thumbnail
+- [ ] Side-by-side screenshot: Scriptoscope render next to the scheme's preview thumbnail
 - [ ] Smoke tested locally: window renders (browser or `npm run diag:render`)
 - [ ] `node scripts/extract-scheme.mjs <your-slug>` validates clean
 
@@ -295,8 +295,8 @@ tools. Re-download the `.sit` and use `unar` on the original, then re-copy the
 ## What you don't need to do
 
 - **Don't hand-edit `theme.json`** — it's generated. Edit `meta.json` and re-run `extract-scheme.mjs`. Hand edits get clobbered on the next extract.
-- **Don't author CSS, SVG, or any chrome assets from scratch.** The 2026-05-17 Kaleidoscope-runtime pivot establishes that Aaron UI doesn't hand-author chrome — it renders what Kaleidoscope schemes provide. If you want new chrome, use Kaleidoscope's own authoring tools (ResEdit + Kaleidoscope SDK under SheepShaver) to produce a `.ksc` and port it through this flow.
-- **Don't worry about sounds or desktop backgrounds.** Kaleidoscope schemes in practice didn't carry them; Aaron UI doesn't fabricate them. The `chromeElements`, `windowTypes`, `patterns`, and `headerColors` sections are the full bundle surface.
+- **Don't author CSS, SVG, or any chrome assets from scratch.** The 2026-05-17 Kaleidoscope-runtime pivot establishes that Scriptoscope doesn't hand-author chrome — it renders what Kaleidoscope schemes provide. If you want new chrome, use Kaleidoscope's own authoring tools (ResEdit + Kaleidoscope SDK under SheepShaver) to produce a `.ksc` and port it through this flow.
+- **Don't worry about sounds or desktop backgrounds.** Kaleidoscope schemes in practice didn't carry them; Scriptoscope doesn't fabricate them. The `chromeElements`, `windowTypes`, `patterns`, and `headerColors` sections are the full bundle surface.
 
 ---
 

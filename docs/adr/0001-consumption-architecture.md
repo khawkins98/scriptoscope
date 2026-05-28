@@ -140,7 +140,7 @@ Per-window canvas chrome is acceptable cost for pixel fidelity. Where DOM/CSS na
 
 The earlier CSS-first hybrid spec (emit the body frame as `border-image` from the slice recipe) was retired 2026-05-28 after three rounds of spike couldn't reach fidelity for the exotic schemes (evolution, BeOS) without per-scheme tuning that the architecture wasn't designed for. The wins it sought (SSR-able first paint, native CSS scaling on resize, cheap at scale) are real but small for the actual consumer profile (SPA-driven pages with a handful of windows, not server-rendered sites with hundreds). The faithful-to-the-decode brand commitment beats those wins.
 
-This decision **matches what already ships** in `src/renderWindow.ts` + `src/interactive.ts` + `src/declarative/`. PC's role shrinks from "build the CSS emitter" to "finish the hybrid": DOM-twin coverage audit + Shadow DOM wrapping (Decision 2) + canvas-repaint efficiency pass + a small consumer-facing `aaron-ui.css` for the outer-shell affordances.
+This decision **matches what already ships** in `src/renderWindow.ts` + `src/interactive.ts` + `src/declarative/`. PC's role shrinks from "build the CSS emitter" to "finish the hybrid": DOM-twin coverage audit + Shadow DOM wrapping (Decision 2) + canvas-repaint efficiency pass + a small consumer-facing `scriptoscope.css` for the outer-shell affordances.
 
 The slice recipe in `composeChrome.ts` keeps its current role — it's how the canvas chrome is composed; the same recipe is no longer a candidate for CSS emission.
 
@@ -185,7 +185,7 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 
 **Follow-ons unlocked:**
 - **Shadow DOM around the chrome** (Decision 2) — still highly valuable for hostile-host-CSS environments.
-- **A shipped `aaron-ui.css`** — a small consumer-facing stylesheet for the outer-shell affordances (drop shadow, focus ring, default desktop background).
+- **A shipped `scriptoscope.css`** — a small consumer-facing stylesheet for the outer-shell affordances (drop shadow, focus ring, default desktop background).
 - **a11y audit** — close the DOM-twin gaps; verify keyboard nav + screen reader coverage.
 - **Repaint efficiency audit** — ensure chrome only re-renders on size/theme/state change.
 
@@ -200,7 +200,7 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 - **P0 — Reconcile + decide:** PRD refresh (done alongside this ADR); spike concluded; Decision 1 revised. ✅
 - **PA — One front door:** `AaronWindow` + `data-aaron-window` scanner over the existing renderer. **SHIPPED 2026-05-28.**
 - **PB — WM behaviors:** drag / resize / z-order / shade / zoom / themed scrollbars / runtime theme switch. **SHIPPED 2026-05-28.** Persistence remains open.
-- **PC — Finish the hybrid (revised):** ~~CSS emitter / classifier~~ retired. New scope: (1) DOM-twin coverage audit (widgets, scrollbars, slider); (2) Shadow DOM wrapping (Decision 2); (3) canvas repaint efficiency audit; (4) shipped `aaron-ui.css` for outer-shell affordances; (5) a11y audit (axe + keyboard + screen reader).
+- **PC — Finish the hybrid (revised):** ~~CSS emitter / classifier~~ retired. New scope: (1) DOM-twin coverage audit (widgets, scrollbars, slider); (2) Shadow DOM wrapping (Decision 2); (3) canvas repaint efficiency audit; (4) shipped `scriptoscope.css` for outer-shell affordances; (5) a11y audit (axe + keyboard + screen reader).
 - **PD — In-browser ingestion:** drop zone + `assetUrl` passthrough + archive unpacking (`.sit`/`.hqx`/MacBinary). **SHIPPED 2026-05-27.** `.sitx` unsupported (unrelated).
 - **PE — Opt-in control decoration** (explicitly *not* native form-control reskin). **Partially shipped** via `data-aaron-control` 2026-05-28; broader widget surfaces (menu, popup, list-header) remain open.
 - **Cross-cutting:** npm/packaging, theme-schema versioning, consumption test harness, persistence story.

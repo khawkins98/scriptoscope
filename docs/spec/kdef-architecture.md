@@ -1,4 +1,4 @@
-# Aaron UI — the kDEF runtime architecture (the tour)
+# Scriptoscope — the kDEF runtime architecture (the tour)
 
 *This is the "how does the whole thing work?" tour — read it before you need to
 look anything up. For a routine address /
@@ -11,7 +11,7 @@ by their `0xADDR` routine address.*
 
 ## 1. The big picture
 
-Aaron UI renders a classic Kaleidoscope theme **1:1 from the theme's own binary
+Scriptoscope renders a classic Kaleidoscope theme **1:1 from the theme's own binary
 resources** — it never hand-authors chrome. It does this by clean-room
 reimplementing the decompiled Kaleidoscope **2.3.1** `kDEF` (a 68k `WDEF`): get
 that one engine right and every freeware scheme renders for free.
@@ -109,7 +109,7 @@ cell). The four window types (document / utility / modal / popup) all run this
 
 ## 4. The clean-room discipline
 
-Aaron UI **mimics, never executes.** The decompiled binary is for
+Scriptoscope **mimics, never executes.** The decompiled binary is for
 *understanding* — we never ship or run the original 68k (no emulator-as-oracle).
 Every behaviour is a clean-room reimplementation in our own TypeScript. Two
 consequences shape day-to-day work:

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aaron UI v2 — runtime</title>
+  <title>Scriptoscope — runtime</title>
   <style>
     /* The window/control text stacks ask for "Charcoal" (the Mac OS 8.5/8.6 system
        font) for period-accurate text. Apple's Charcoal is proprietary, so this
@@ -157,7 +157,7 @@
 </head>
 <body>
   <header>
-    <h1>Aaron UI <span id="ver"></span> — Mac OS Appearance for the web</h1>
+    <h1>Scriptoscope <span id="ver"></span> — Mac OS Appearance for the web</h1>
     <p>Render any classic-Mac <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a> theme pixel-faithfully in the browser — 1138, BeOS R5, evolution, Apple Platinum 2, more. Pick a scheme from the ribbon to explore: scene + live controls + window playground. <a href="./declarative-site.html" class="cta">Try it on a real page →</a></p>
     <p style="margin: 6px 0 0; opacity: 0.55; font-size: 12px;">
       <label style="cursor: pointer; user-select: none;">
@@ -245,7 +245,7 @@
     const SCROLL_PROPORTIONAL = !/fixed-?thumbs?/i.test(location.search);
 
     // Theme bundles live under the deploy base: `/` in dev (vite middleware
-    // serves repo-root themes/ at /themes/) but `/aaron-ui/` on GitHub Pages.
+    // serves repo-root themes/ at /themes/) but `/scriptoscope/` on GitHub Pages.
     // BASE_URL carries that prefix (and a trailing slash) in both, so theme
     // fetches resolve in either — a bare `/themes/…` 404s on Pages.
     const themeUrl = (slug) => `${import.meta.env.BASE_URL}themes/${slug}`;
@@ -1011,7 +1011,7 @@
       const usageOf = (s) => (s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode);
       const shortInfo = (s) => `${s.edge} p${s.code} (${s.role}) · ${usageOf(s)} · src ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`;
       const infoBlock = (s) => [
-        'Aaron UI — window-chrome slice diagnostic',
+        'Scriptoscope — window-chrome slice diagnostic',
         `theme:   ${ctx.themeName ?? '?'} (${ctx.slug ?? '?'})`,
         `window:  ${ctx.windowType ?? '?'} · ${ctx.w ?? '?'}×${ctx.h ?? '?'} content @${ctx.scale ?? 1}× · ${ctx.state ?? 'active'}`,
         `slice:   ${s.edge} edge · part ${s.code} "${s.role}" · render=${usageOf(s)}`,

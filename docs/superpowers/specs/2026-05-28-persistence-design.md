@@ -29,7 +29,7 @@ What we'd want to persist, by importance:
 
 Quick reads:
 - **`localStorage`** is the obvious primary for "remember my layout across reloads." Synchronous, simple, fits in budget, has the `storage` event for multi-tab sync.
-- **URL `#hash`** is the obvious primary for "share my layout as a link." Aaron UI's index.html demo already uses this pattern (window playground state in the hash, see `demo/index.html:1252-1294`). Worth supporting as an additive case, not a replacement.
+- **URL `#hash`** is the obvious primary for "share my layout as a link." Scriptoscope's index.html demo already uses this pattern (window playground state in the hash, see `demo/index.html:1252-1294`). Worth supporting as an additive case, not a replacement.
 - **`sessionStorage`** has a narrow but real use case: "remember my layout WHILE the tab is open, but a fresh tab starts fresh." Probably not v1; could land later as `persistTo: 'session'`.
 - **`IndexedDB`** is overkill for ~1 KB of layout state.
 - **Cookie** would silently inflate every request to the host. No.
@@ -121,7 +121,7 @@ Estimated diff: ~150–200 LOC across `src/interactive.ts` + `src/declarative/sc
 - **Storage quota exceeded:** wrap `setItem` in try/catch; on `QuotaExceededError`, drop the oldest window's state. Log a warning to console. Should be vanishingly rare for ~1 KB of layout state.
 - **Private browsing / storage disabled:** `localStorage.setItem` may throw `SecurityError`. Wrap in try/catch; the feature degrades to "session-only" (in-memory snapshot, no persistence) without breaking the app.
 - **DOM-ordinal stability:** if the consumer reorders or removes windows in their HTML, the ordinals shift, and the persisted state attaches to the wrong windows. Document this explicitly: **use `data-aaron-window-id` for any window you actually want to persist.** Ordinal is the convenience fallback for "I don't care."
-- **URL sharing:** the imperative `handle.layout.snapshot()` can emit a compact `#hash` value the consumer can route to a "Copy shareable link" UI. Aaron UI itself wouldn't auto-write to URL by default; the consumer chooses.
+- **URL sharing:** the imperative `handle.layout.snapshot()` can emit a compact `#hash` value the consumer can route to a "Copy shareable link" UI. Scriptoscope itself wouldn't auto-write to URL by default; the consumer chooses.
 
 ## What I'd NOT do in v1
 

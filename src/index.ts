@@ -1,4 +1,4 @@
-// Aaron UI — a web-native runtime for classic-Mac Kaleidoscope schemes.
+// Scriptoscope — a web-native runtime for classic-Mac Kaleidoscope schemes.
 //
 // Renders a scheme's window chrome 1:1 from its original binary resources by
 // replaying the Kaleidoscope 2.3.1 kDEF (a 68k WDEF) on a pixel buffer; CSS does
@@ -9,10 +9,9 @@
 //   docs/spec/compositor-spec.md         the window-chrome model
 //   docs/spec/kdef231-recipe-walk.md     the 2.3.1 kDEF decode (truth)
 
-// Pre-1.0 — release version is tracked in package.json (currently 0.0.0). "v2/v3"
-// internal references denote architecture eras (post-Phase 2 / post-Phase 3), not
-// shipped versions. Keep this aligned with package.json.
-export const VERSION = '0.0.0';
+// Pre-1.0 — release version is tracked in package.json. Keep this constant aligned
+// with the package.json `version` field.
+export const VERSION = '0.0.1';
 
 export { setDebug, isDebug, debug, type DebugOpts } from './debug.js';
 
@@ -89,9 +88,14 @@ export {
 
 // ── Declarative front door (data-aaron-*) ──────────────────────────────────
 // Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from
-// 'aaron-ui'` rather than reach into a subpath. The declarative entry (`src/declarative/index.ts`)
+// 'scriptoscope'` rather than reach into a subpath. The declarative entry (`src/declarative/index.ts`)
 // remains the canonical place to import from for tree-shakers and library authors; this just keeps
 // the bare-package import path covering the public surface.
+//
+// Note: the consumer attribute namespace stays `data-aaron-*` (and the CSS class prefix `.aw-*`
+// and the `AaronWindow` class name) even though the package name pivoted to scriptoscope — these
+// are the stable internal API surface, treated like Lodash's `_` namespace. Renaming them is a
+// future API-break-eligible change tracked separately, not coupled to the package rebrand.
 export {
   mountDeclarative, type MountOptions,
   AaronWindow,

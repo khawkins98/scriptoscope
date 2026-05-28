@@ -41,7 +41,7 @@ These are non-negotiable and inherited from `kdef-architecture.md §4` and the p
 
 If `WDEF-125.asm` is missing, regenerate:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 m68k-elf-objdump -D -b binary -m m68k:68030 WDEF-125.bin > WDEF-125.asm
 ```
 
@@ -119,7 +119,7 @@ _(Task 7)_
 
 Run:
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 test -f docs/spec/platinum-wdef125-decode.md && grep -c '## ' docs/spec/platinum-wdef125-decode.md
 ls docs/spec/kdef231-recipe-walk.md docs/spec/kdef-faithfulness-ledger.md
 ```
@@ -150,7 +150,7 @@ The entry loads `message` into `d4` (`movew %fp@(12),%d4` at `0x0c`). Find where
 
 Run:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'cmpiw|cmpw .*%d4|%pc@\(0x[0-9a-f]+,%d[0-9]:w' WDEF-125.asm | head -30
 ```
 
@@ -197,7 +197,7 @@ fingerprint. Routine map extended. (replace 0xTBL with the decoded address)"
 
 Inside the `wDraw` target (from Task 2), the title bar is filled by a loop. Find the densest `LineTo` (0xa891) cluster and the `RGBForeColor` (0xaa14) calls bracketing it:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'a891|a893|aa14|aa15|a89b' WDEF-125.asm | sed -n '1,60p'
 ```
 
@@ -238,7 +238,7 @@ Color values deferred to the color-sourcing task."
 
 The window's outer frame + 3D bevel uses `FrameRect` (0xa8a1), `InsetRect` (0xa8d5 / inline `addq` on a Rect), and edge `LineTo`s. Locate them in the wDraw target:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'a8a1|a8d5|a891|a893' WDEF-125.asm | sed -n '1,50p'
 ```
 
@@ -275,7 +275,7 @@ to FrameRect/LineTo sites at 0xADDR."
 
 The trap-scan showed `PaintOval ×8` / `FrameOval ×3` — the widget glyphs. Locate them and the rect math that positions each box:
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'a8a8|a8a7|a8a1|a8a5|aa11' WDEF-125.asm | sed -n '1,50p'
 ```
 
@@ -314,7 +314,7 @@ For each `RGBForeColor` (0xaa14) / `RGBBackColor` (0xaa15), read backward to whe
 - **Hardcoded:** `movew #0xRRRR / #0xGGGG / #0xBBBB` immediates → record the literal RGB.
 - **Fetched:** a call into the system (e.g. a `GetGray`-style trap, or reading an Appearance brush) → record the *source*, not a guessed value.
 ```bash
-cd ~/Documents/git/aaron-ui/.scratch/iso-recon/code-out
+cd ~/Documents/git/scriptoscope/.scratch/iso-recon/code-out
 grep -nE 'aa14|aa15|movew #0x|movel #0x' WDEF-125.asm | sed -n '1,80p'
 ```
 
@@ -369,7 +369,7 @@ Re-read the doc with fresh eyes: every Constants row must cite an address that e
 
 Run:
 ```bash
-cd ~/Documents/git/aaron-ui
+cd ~/Documents/git/scriptoscope
 # every 0xADDR cited in the constants table should be a real offset in the asm
 grep -oE '0x[0-9a-f]{2,5}' docs/spec/platinum-wdef125-decode.md | sort -u > /tmp/cited.txt
 wc -l /tmp/cited.txt

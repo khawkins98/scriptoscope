@@ -45,7 +45,7 @@ The themes angle was the third. Once we were owning the WM anyway, building it a
 
 **Application:** when picking up Phase 1, design the WM around the eventual theme engine — even though Phase 4 is the engine itself, Phase 1's data structures should leave the seam clean. Don't bake the Platinum look into the WM core.
 
-### 2026-05-16 — naming (Aaron UI, after considering nine others)
+### 2026-05-16 — naming (Aaron UI, after considering nine others)  *(superseded 2026-05-28 — see "Scriptoscope pivot" below)*
 
 The name comes from Apple's internal codename for the Copland-era demo that previewed both the Appearance Manager and the Platinum default theme. The `UI` suffix sits in the established `[Name] UI` family (Material UI, Chakra UI, Shadcn UI) and is self-describing for newcomers who don't know the Aaron reference.
 
@@ -2293,3 +2293,18 @@ region a proper subset of the canvas? If (3), don't repaint the whole canvas
 — `putImageData` the changed strip. Classic Mac's WDEF model treated chrome
 as a composable strip-machine; ours treats it as a monolithic recipe. The
 gap between the two is where the wins live.
+
+### 2026-05-28 — Scriptoscope pivot (project rename + npm publish prep)
+
+Two prior naming decisions had explicitly KEPT "Aaron UI" despite the loose etymology (the original was Apple's Copland-era Appearance Manager codename, and the project no longer matches that scope after the "Apple themes dropped" pivot). The npm-publish work for #28 was the forcing function — `aaron-ui` is taken on npm by an unrelated Vue avatar component, so scoping under `@khawkins98/aaron-ui` was the easy path and a real-name pivot was the harder path. The maintainer chose the harder path.
+
+**Chosen: Scriptoscope.** Per the research recorded in commit `352ad93` (on `origin/platinum-fidelity`'s `blog-post-outline.md`) — npm + GitHub + most TLDs free; the JS pun ("Script") + instrument-suffix homage ("-oscope") fit the project's character; runner-up "Schemeoscope" was cleaner-slate but lost the JavaScript signal. The `.com` is taken (2024) but the project doesn't need a vanity domain yet — `.dev`/`.app` are options when the time comes. Avoided "Kaleido-*" names because Kaleidoscope.app (a commercial macOS diff tool, very much in this project's audience) creates real confusion + trademark exposure.
+
+**Scope of the rebrand:**
+- Package name on npm + brand-name occurrences across docs/code/README/PRD/CLAUDE/comments → `Scriptoscope`.
+- `dist/aaron-ui.js` → `dist/scriptoscope.js`; `src/aaron-ui.css` → `src/scriptoscope.css`; exports map + vite entry name follow.
+- The `aaron-ui` GitHub repo + the GH Pages URL `/aaron-ui/` stay for now (independent pivot; not coupled to the publish).
+- **The consumer-facing internal API namespace stays stable** — `data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class name. Lodash kept `_` after the underscore.js → Lodash rebrand for the same reason: renaming every consumer touchpoint creates a real API break with marginal brand value. This is documented in `src/index.ts`'s declarative front-door comment so future contributors don't relitigate.
+- Logged in `docs/history.md` (the canonical archeology record), with the prior PRD §285 and the 2026-05-16 LEARNINGS entry marked superseded. PRD §285's `[Name] UI`-family rationale no longer applies but stays as the recorded reasoning of its time.
+
+**Application:** when the brand pops up in future writing, default to Scriptoscope. The `data-aaron-*`/`AaronWindow`/`.aw-*` identifiers in code are deliberate stable surface — don't "fix" them to match the brand. If a future API break IS appropriate (e.g., for a 1.0 stabilization), bundle that decision separately, not as a casual rename.

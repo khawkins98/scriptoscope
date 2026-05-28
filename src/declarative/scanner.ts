@@ -344,9 +344,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{ disco
 
   // Full teardown: stop watching AND unmount every promoted window (restores its content + the
   // original element, disconnects its ResizeObserver). NB: skinned buttons aren't restored to their
-  // original elements (the window's content, incl. the skinned button, is moved back as-is). v1.
+  // original elements (the window's content, incl. the skinned button, is moved back as-is).
   // Also note: declarative elements added INSIDE an already-promoted window's content are not
-  // promoted (the observer ignores `.aw-window` subtrees) — a documented v1 limitation.
+  // promoted (the observer ignores `.aw-window` subtrees) — a documented current-shape limitation.
   const teardownPersistence = (): void => {
     unsubCrossTab?.();
     manager.setChangeListener(undefined);

@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Aaron UI is a web-native runtime that renders classic Mac **Kaleidoscope** themes 1:1 from their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Aaron UI does **not** hand-author chrome — it replays the binary's rendering model.
+Scriptoscope is a web-native runtime that renders classic Mac **Kaleidoscope** themes 1:1 from their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Scriptoscope does **not** hand-author chrome — it replays the binary's rendering model.
 
-Status: prototype mode, v3 part-code-compositor reset. Pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`.
+Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Internal API surface — `data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class — is intentionally stable across the package rebrand from Aaron UI; see `LEARNINGS.md` 2026-05-28 Scriptoscope pivot.)
 
 ## Commands
 

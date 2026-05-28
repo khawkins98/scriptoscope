@@ -87,7 +87,7 @@ single file wrapped in a folder.
 4. JS wrapper: copy `.sit` bytes into the heap → run the chain → copy resource-fork bytes out →
    hand to `loadKaleidoscopeScheme` (which already unwraps the other containers). Detection routing
    is in place: `containers.js detectContainer()` already returns `'stuffit'` for `SIT!`/`StuffIt`.
-5. Ship as a standalone MIT module ("decode-stuffit-wasm"); aaron-ui consumes it as a dependency,
+5. Ship as a standalone MIT module ("decode-stuffit-wasm"); scriptoscope consumes it as a dependency,
    keeping `convert.js` pure.
 
 ## Open items / next checks

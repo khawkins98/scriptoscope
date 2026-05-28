@@ -1,14 +1,32 @@
-# Aaron UI
+# Scriptoscope
 
 A web-native runtime that renders classic [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) themes 1:1 from their own binary resources.
 
-Load any freeware-licensed Kaleidoscope scheme and Aaron UI draws its windows — chrome, controls, and colors — pixel-faithfully in the browser. Aaron UI doesn't hand-author a "Platinum theme" (or any theme). It reads each scheme's `cicn` artwork, `wnd#` layout recipe, and `cinf`/`Colr` metadata and replays the rendering itself: the window-chrome compositor (`src/composeChrome.ts`) is a clean-room reimplementation of the decompiled Kaleidoscope **2.3.1** kDEF (a 68k `WDEF`), driven by a part-code jump table. Get the engine right once and every scheme renders for free.
+Load any freeware-licensed Kaleidoscope scheme and Scriptoscope draws its windows — chrome, controls, and colors — pixel-faithfully in the browser. Scriptoscope doesn't hand-author a "Platinum theme" (or any theme). It reads each scheme's `cicn` artwork, `wnd#` layout recipe, and `cinf`/`Colr` metadata and replays the rendering itself: the window-chrome compositor (`src/composeChrome.ts`) is a clean-room reimplementation of the decompiled Kaleidoscope **2.3.1** kDEF (a 68k `WDEF`), driven by a part-code jump table. Get the engine right once and every scheme renders for free.
 
 The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `evolution`, `platinum-8`, `system7-nostalgia-silver`, plus the generated `apple-platinum-replica` universal base.
 
-> **Status (v3, 2026-05-28):** the project went through a v2 clean-break and is now on the **v3 part-code-compositor reset** — the chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the 2.3.1 binary. ("v1/v2/v3" are *architecture* generations — internal resets — not release versions; the package itself is pre-1.0.) The codebase is in prototype mode. Two public surfaces are now in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-aaron-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. See [`docs/history.md`](./docs/history.md) for the full arc (and the "Dead ends — don't relitigate these" list — read it first); see [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design + feature-rich pass. Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status (pre-1.0, 2026-05-28):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-aaron-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) 2026-05-28 for the Aaron UI → Scriptoscope rename rationale (npm package: scriptoscope; consumer-facing internal API surface — `data-aaron-*` attributes, `.aw-*` classes, `AaronWindow` class — stays stable on the Lodash-kept-`_` model). Live demo: <https://khawkins98.github.io/aaron-ui/>.
 
-## Trying it
+## Install
+
+```sh
+npm install scriptoscope     # not yet on npm — first publish gated on #28 prep
+```
+
+CDN / unpkg:
+
+```html
+<script type="module">
+  import { mountDeclarative } from 'https://unpkg.com/scriptoscope/dist/scriptoscope.js';
+  await mountDeclarative({ themeBaseUrl: '/path/to/your/themes' });
+</script>
+<link rel="stylesheet" href="https://unpkg.com/scriptoscope/dist/scriptoscope.css">
+```
+
+Themes are loaded from a base URL you serve — they're not bundled in the npm tarball (so you can host the corpus once and use it from many projects, and so the npm package stays small). See `themes/` in this repo for the bundle format and the corpus we ship for the demos.
+
+## Trying it locally
 
 Two demo pages sit on the same runtime, each showing a different integration path. Run them together:
 
@@ -29,7 +47,7 @@ Two surfaces, same engine.
 A scheme bundle is a directory (`theme.json` + decoded `cicns/`, `ppats/` PNGs); `loadTheme()` fetches it and `renderWindow()` composites a window from it:
 
 ```ts
-import { loadTheme, renderWindow } from 'aaron-ui';
+import { loadTheme, renderWindow } from 'scriptoscope';
 
 const theme = await loadTheme('/themes/beos-r503');
 const win = await renderWindow(theme, {
@@ -58,7 +76,7 @@ The same runtime exposed as markup. Put `data-aaron-window` on a plain `<div>` a
   </div>
 
   <script type="module">
-    import { mountDeclarative } from 'aaron-ui';
+    import { mountDeclarative } from 'scriptoscope';
     await mountDeclarative({ themeBaseUrl: '/themes', baseSlug: 'apple-platinum-replica' });
   </script>
 </body>
@@ -95,13 +113,13 @@ A web window manager that **any** project — built with any framework, or no fr
 
 The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-aaron-*` contract, with the demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
 
-1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Aaron UI is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
+1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Scriptoscope is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 
-2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-aaron-window` (with `data-aaron-title`, `data-aaron-x`, etc.) to any element and Aaron UI promotes it into a draggable window on load. Native form controls inside (`<button data-aaron-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
+2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-aaron-window` (with `data-aaron-title`, `data-aaron-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-aaron-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
 
-3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Aaron UI is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Aaron UI never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Aaron UI does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Aaron UI produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
+3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
-> The name "Aaron" comes from Apple's internal codename for the Copland-era demo that previewed the Appearance Manager and Platinum default theme. With the project now scoped as a *Kaleidoscope-compatibility runtime* (not Appearance Manager re-implementation, not Platinum re-author), the etymology is poetic origin rather than tight description — and that's fine.
+> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing internal API namespace stays stable — `data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class — same Lodash-kept-`_` model.
 
 ## Where the idea came from
 
@@ -113,13 +131,13 @@ The deeper origin is a recurring frustration across earlier "give a modern web u
 - [**PDF-A-go-slim**](https://github.com/khawkins98/PDF-A-go-slim#why-it-looks-like-that) — same impulse, classic-Mac flavour, same conclusion in its "why it looks like that" section: hand-authored chrome is tedious to build, never quite right, and rots whenever you reach for a control you haven't yet drawn.
 - [**The 90s desktop paradigm for browser utilities**](https://www.allaboutken.com/posts/20260216-90s-desktop-paradigm-browser-utilities/) — the longer essay that pulls those experiments together: a web utility *as a windowed desktop app* is a richer, more legible UX than a single-flow webpage, but only if the chrome is authentic — and authentic chrome is something you *render from the original art*, not something you re-draw in CSS.
 
-Aaron UI is the answer to that recurring frustration. Read the OS's own resource files, render them faithfully once, and every utility downstream gets the look for free — no per-project CSS Platinum, no per-project drift.
+Scriptoscope is the answer to that recurring frustration. Read the OS's own resource files, render them faithfully once, and every utility downstream gets the look for free — no per-project CSS Platinum, no per-project drift.
 
 The full extraction context, decision trail, and naming rationale for the cv-mac side are in the upstream charter ticket:
 
-- **[classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246)** — PRD: Aaron UI — Mac OS Appearance-style window manager + theme engine for the web
+- **[classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246)** — PRD: Scriptoscope — Mac OS Appearance-style window manager + theme engine for the web
 
-For the visual specification Aaron UI's default Platinum theme must achieve, see:
+For the visual specification Scriptoscope's default Platinum theme must achieve, see:
 
 - **[classic-vibe-mac #229](https://github.com/khawkins98/classic-vibe-mac/issues/229)** — Platinum chrome accuracy pass with concrete Mac OS 8 references
 
@@ -135,17 +153,17 @@ The primary reference for any visual question is Apple's own Mac OS 8 Human Inte
 
 ## A heads-up on hover
 
-Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Kaleidoscope schemes ship `cicn` artwork only for those three states, so Aaron UI renders them faithfully: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
+Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Kaleidoscope schemes ship `cicn` artwork only for those three states, so Scriptoscope renders them faithfully: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
 
 ## What loaded themes carry (and don't)
 
-Aaron UI loads what Kaleidoscope schemes actually shipped: **chrome + controls + colors.** Empirically, after deconstructing the corpus, almost no Kaleidoscope scheme carried sounds, desktop backgrounds, or fonts — the OS supplied those. Aaron UI doesn't fabricate them. (The one font the OS *would* have supplied — Charcoal, for window titles — the demo provides as a license-clean stand-in: Jeremy Sachs' CC BY-SA "Charcoal 12" bitmap, with Marty Pfeiffer's free "Virtue" as fallback, and `local('Charcoal')` preferred when installed. Schemes still bring no fonts of their own.)
+Scriptoscope loads what Kaleidoscope schemes actually shipped: **chrome + controls + colors.** Empirically, after deconstructing the corpus, almost no Kaleidoscope scheme carried sounds, desktop backgrounds, or fonts — the OS supplied those. Scriptoscope doesn't fabricate them. (The one font the OS *would* have supplied — Charcoal, for window titles — the demo provides as a license-clean stand-in: Jeremy Sachs' CC BY-SA "Charcoal 12" bitmap, with Marty Pfeiffer's free "Virtue" as fallback, and `local('Charcoal')` preferred when installed. Schemes still bring no fonts of their own.)
 
-If a consumer wants period sounds or a desktop picture alongside a loaded scheme, that's a host-page concern: drop in your own `<audio>` and CSS `background-image`. Aaron UI may eventually add an opt-in `extras/` sidecar concept for bundling sounds with a scheme bundle, but it's not a runtime built-in — and there is no "first-party preset theme that ships sounds." Every theme Aaron UI ships is a port of an existing Kaleidoscope scheme with the original author's attribution.
+If a consumer wants period sounds or a desktop picture alongside a loaded scheme, that's a host-page concern: drop in your own `<audio>` and CSS `background-image`. Scriptoscope may eventually add an opt-in `extras/` sidecar concept for bundling sounds with a scheme bundle, but it's not a runtime built-in — and there is no "first-party preset theme that ships sounds." Every theme Scriptoscope ships is a port of an existing Kaleidoscope scheme with the original author's attribution.
 
 ## License
 
-**Aaron UI's own code is [MIT](./LICENSE)** (best for adoption — the library is meant to be embedded in other projects). The bundled third-party material keeps its own terms and is **not** relicensed:
+**Scriptoscope's own code is [MIT](./LICENSE)** (best for adoption — the library is meant to be embedded in other projects). The bundled third-party material keeps its own terms and is **not** relicensed:
 
 - **`themes/<slug>/`** — assets extracted from community-authored Kaleidoscope schemes, redistributed under each original author's freeware-with-redistribution terms. Provenance is in every bundle's `meta.json` (`origin.originalLicense`, `sourceUrl`) and `PROVENANCE.md`.
 - **`tools/sit-wasm/munbox/`** — a vendored subset of [munbox](https://github.com/idolpx/munbox) (MIT); see `tools/sit-wasm/munbox/LICENSE` and `PATCHES.md`.

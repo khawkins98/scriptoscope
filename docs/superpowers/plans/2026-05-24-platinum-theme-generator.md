@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Generate the Apple Platinum document window as a normal Aaron UI theme bundle (`themes/apple-platinum-replica/`), drawn clean-room from the WDEF decode, validated and rendered through the unmodified pipeline.
+**Goal:** Generate the Apple Platinum document window as a normal Scriptoscope theme bundle (`themes/apple-platinum-replica/`), drawn clean-room from the WDEF decode, validated and rendered through the unmodified pipeline.
 
 **Architecture:** An offline `.mjs` generator synthesizes the same manifest the extractor produces (`{source,extractedAt,counts,assets:[…]}`), draws the min-size window cicn + stipple ppat into RGBA buffers, then calls the real `buildThemeJson` + `validateTheme` and writes a standard bundle. Decode constants and the gray palette live in dedicated modules so the drawing/manifest code references named values, never magic numbers.
 
@@ -581,7 +581,7 @@ git commit -m "feat(platinum-gen): synthesize document-window cicn/ppat/wnd#/cin
 // themes/apple-platinum-replica/meta.json
 {
   "name": "Apple Platinum (replica)",
-  "author": { "name": "Aaron UI (generated)", "year": 2026 },
+  "author": { "name": "Scriptoscope (generated)", "year": 2026 },
   "origin": {
     "kind": "first-party-generated",
     "originalFormat": "generated",

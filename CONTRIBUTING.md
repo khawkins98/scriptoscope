@@ -1,18 +1,18 @@
 # Contributing
 
-Thanks for your interest in contributing to Aaron UI.
+Thanks for your interest in contributing to Scriptoscope.
 
 > **Status:** the project is on the **v3 part-code-compositor reset** ("v3" = an architecture generation, not a release version — the package is pre-1.0) — the chrome renderer (`src/composeChrome.ts`) is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. It's in prototype mode: the maintainer commits directly to the working branch, and the focus is rendering fidelity, not API stability. Read [`docs/history.md`](./docs/history.md) first (especially its "Dead ends — don't relitigate these" list), then [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the current model. For any binary-level question — a routine address, a resource id, a struct offset, a coordinate mapping — the standing lookup reference is [`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md).
 
 ## Your first code contribution
 
-Aaron UI is plain TypeScript with no framework dependency.
+Scriptoscope is plain TypeScript with no framework dependency.
 
 1. **Fork and clone.**
    ```sh
    # Fork on GitHub first, then:
-   git clone https://github.com/<your-handle>/aaron-ui.git
-   cd aaron-ui
+   git clone https://github.com/<your-handle>/scriptoscope.git
+   cd scriptoscope
    npm install
    ```
 
@@ -152,7 +152,7 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 ## Adding a theme (porting a Kaleidoscope scheme)
 
-Aaron UI is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
+Scriptoscope is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
 The porting flow as currently implemented (the corpus today is `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver` — use one of the full schemes, e.g. `beos-r503`, as a worked example; note `platinum-8` and `system7-nostalgia-silver` are controls-only, with no window recipes, so they're atypical examples):
 
@@ -163,11 +163,11 @@ The porting flow as currently implemented (the corpus today is `1138`, `1984`, `
    - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/beos-r503/PROVENANCE.md` as a canonical example.
 3. **Run the importer.** `npm run import -- <slug>` runs the whole pipeline scoped to your scheme (chrome + icons + rasters + roles + lint), scaffolds a `meta.json` stub if you skipped step 2's metadata, and prints a report card (scheme type, window types, header colours, control/icon/glyph coverage, lint verdict). Under the hood that's `extract-scheme.mjs` (decodes `cicn`/`ppat`/`cinf`/`wnd#`/`clut` → PNGs + a schema-validated `theme.json`) + `extract-icons.mjs` (glyphs) — you can run those individually too. (Re-extract every bundle with `npm run build:themes`.)
 4. **Smoke test locally.** `npm run dev`, then open the demo and switch to your slug — or load it from the JS console: `await loadTheme('/themes/<your-slug>')`. For a quick headless check, `npm run diag:render` renders a window off a bundle to a PNG, and `npm run lint:themes` validates the bundle.
-5. **PR with a side-by-side screenshot** — Aaron UI rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
+5. **PR with a side-by-side screenshot** — Scriptoscope rendering vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or the period screenshot the original author shipped).
 
 The complete step-by-step walk-through (with troubleshooting for common pitfalls) is in [`docs/porting-a-kaleidoscope-scheme.md`](./docs/porting-a-kaleidoscope-scheme.md).
 
-Hand-authoring CSS or SVG chrome as a "first-party Aaron UI theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Aaron UI is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
+Hand-authoring CSS or SVG chrome as a "first-party Scriptoscope theme" is **out of scope** — the 2026-05-17 LEARNINGS entry "Scriptoscope is a Kaleidoscope-compatibility runtime, not a Platinum re-author" records why. If you want to author a new look, the recommended path is ResEdit + Kaleidoscope SDK on classic Mac OS / SheepShaver, then port the resulting `.ksc` through this flow.
 
 ## Reporting bugs
 
@@ -176,13 +176,13 @@ Open an issue with:
 - What you tried (the smallest reproducing example, please).
 - What you expected.
 - What you got.
-- Browser + OS + Aaron UI version.
+- Browser + OS + Scriptoscope version.
 - Screenshot if visual.
 
 For accessibility issues, please flag explicitly — those jump the queue.
 
 ## Reporting scheme-fidelity issues
 
-If Aaron UI is rendering a loaded Kaleidoscope scheme *differently from how Kaleidoscope itself renders that scheme*, that's a runtime bug — open an issue with a side-by-side screenshot of Aaron UI's render vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or a period screenshot if the scheme shipped one). Scheme fidelity is the project's central commitment.
+If Scriptoscope is rendering a loaded Kaleidoscope scheme *differently from how Kaleidoscope itself renders that scheme*, that's a runtime bug — open an issue with a side-by-side screenshot of Scriptoscope's render vs. the scheme's own preview thumbnail (Kaleidoscope's Scheme Settings preview, or a period screenshot if the scheme shipped one). Scheme fidelity is the project's central commitment.
 
-Issues of the form "this scheme doesn't look like the Mac OS 8 HIG" are a separate category — they're authorial choices of the *scheme*, not bugs in Aaron UI. If you want HIG-faithful chrome, load a HIG-faithful scheme (`apple-platinum-2` in the current corpus is a good one).
+Issues of the form "this scheme doesn't look like the Mac OS 8 HIG" are a separate category — they're authorial choices of the *scheme*, not bugs in Scriptoscope. If you want HIG-faithful chrome, load a HIG-faithful scheme (`apple-platinum-2` in the current corpus is a good one).

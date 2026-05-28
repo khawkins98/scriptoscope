@@ -147,7 +147,7 @@ table bytes). Standard CDEF message numbers in parens:
 > So a scheme encodes its title colour as a small marker SWATCH baked into the
 > window cicn — there is NO per-scheme title-colour clut/`wctb` (verified: the
 > `-14335`/`-14336` cluts are frame/bevel appearance only, and the `Colr`
-> resource is scheme metadata). **Aaron UI shipped decision:** the exact marker
+> resource is scheme metadata). **Scriptoscope shipped decision:** the exact marker
 > coordinate isn't reliably pinnable (the `0x6582(0)` body-rect corners don't
 > yield it; the decompile is truncated through `0x6582`/`0xfc5c`), AND every
 > corpus scheme draws the classic-Mac default anyway, so `renderWindow.ts` uses

@@ -75,7 +75,7 @@ Every scheme audited contains some subset of these control families. A conformin
 | `finder-header` | active, inactive | Finder-style list-view header |
 | `grow-box` | active, inactive, pressed, various sizes per window type | Resize handle (sometimes per-window-type variants) |
 
-This corresponds 1:1 to Kaleidoscope's `wnd#` window-type list. Aaron UI's compositor (`src/composeChrome.ts`) is window-type-generic — it composes every type the scheme's `wnd#` defines (document-window, collapsed, dialog, alert, movable variants, the utility-window family, popup-window). `npm run diag:render` exercises all of them per scheme.
+This corresponds 1:1 to Kaleidoscope's `wnd#` window-type list. Scriptoscope's compositor (`src/composeChrome.ts`) is window-type-generic — it composes every type the scheme's `wnd#` defines (document-window, collapsed, dialog, alert, movable variants, the utility-window family, popup-window). `npm run diag:render` exercises all of them per scheme.
 
 ### 3.2 Scrollbars (scroll family)
 
@@ -222,7 +222,7 @@ This is roughly the minimum that produces a visually-themed window.
 
 ### Level 2 — Full window-type chrome
 
-Renders chrome for **every window type** the scheme defines in its `wnd#` resource (dialog, alert, movable-dialog, utility-window, side-floating-utility-window, popup-window, etc.). Aaron UI's compositor is at roughly this level — it is window-type-generic over the `wnd#` list (`npm run diag:render` renders all of them).
+Renders chrome for **every window type** the scheme defines in its `wnd#` resource (dialog, alert, movable-dialog, utility-window, side-floating-utility-window, popup-window, etc.). Scriptoscope's compositor is at roughly this level — it is window-type-generic over the `wnd#` list (`npm run diag:render` renders all of them).
 
 **Required:** Level 1 + every `chrome.*` slot listed in §3.1, including collapsed and per-window-type grow-box variants where present.
 
@@ -249,11 +249,11 @@ Implementations SHOULD ship a conformance report listing, per scheme:
 - Cicns the renderer actually consumes at runtime
 - Unclassified residue (the gap that motivates catalog updates)
 
-Aaron UI surfaces this kind of coverage/anomaly reporting through `npm run lint:themes` (static input-data checks, `scripts/lint-themes.mjs`) and `npm run diag:audit` (render-vs-reference placement audit, `scripts/audit-placement.mjs`). Other renderers are encouraged to ship something similar.
+Scriptoscope surfaces this kind of coverage/anomaly reporting through `npm run lint:themes` (static input-data checks, `scripts/lint-themes.mjs`) and `npm run diag:audit` (render-vs-reference placement audit, `scripts/audit-placement.mjs`). Other renderers are encouraged to ship something similar.
 
 ---
 
-## 6. Implications for Aaron UI's roadmap
+## 6. Implications for Scriptoscope's roadmap
 
 Window chrome (Level 1–2) is implemented: the compositor composes every window type the scheme's `wnd#` defines (~190–250 cicns are extracted per scheme; the chrome subset the recipe walks is the part currently drawn). The standard in-window controls (Level 3+) are extracted and classified but not yet wired into a control renderer.
 
@@ -268,7 +268,7 @@ Concrete consequences:
 
 *(Folded in from the retired `kdef-layout-recipes.md §11` — this is the spec for the first-party fallback geometry, not a Kaleidoscope decode.)*
 
-The genuine Mac OS 8 "Platinum" chrome is **not** shippable as Kaleidoscope `cicn`/`ppat`: the 8.5/8.6 System files draw it with `WDEF`/`CDEF` *code* (no `wnd#`, no `thme`, no window-range cicns), and every "Platinum" Kaleidoscope scheme (Apple Platinum 2, Black/Carl's/Chiper's Platinum) ships only a partial set that *defers* windows + standard controls to the OS. So when a scheme omits a control's cicn, Aaron UI falls back to a procedural gray-Platinum reimplementation. This is the **only** first-party chrome Aaron UI authors, and only to fill gaps — controls the scheme *does* ship still resolve by id from its cicns.
+The genuine Mac OS 8 "Platinum" chrome is **not** shippable as Kaleidoscope `cicn`/`ppat`: the 8.5/8.6 System files draw it with `WDEF`/`CDEF` *code* (no `wnd#`, no `thme`, no window-range cicns), and every "Platinum" Kaleidoscope scheme (Apple Platinum 2, Black/Carl's/Chiper's Platinum) ships only a partial set that *defers* windows + standard controls to the OS. So when a scheme omits a control's cicn, Scriptoscope falls back to a procedural gray-Platinum reimplementation. This is the **only** first-party chrome Scriptoscope authors, and only to fill gaps — controls the scheme *does* ship still resolve by id from its cicns.
 
 Geometry (native px, classic Appearance):
 

@@ -56,12 +56,12 @@ When the owner reframed the question — "could we have a hybrid where the basic
 
 The DOM owns: positioning, drag, resize, z-order, focus, body content, widget hit targets, scrollbars, theme switching. The canvas owns: chrome pixels (always faithful, sourced from the runtime compositor).
 
-Decision 1's original CSS-first pitch was to replace the chrome canvas with `border-image` to get SSR, native CSS scaling, and "cheap at scale." Those wins are real but small for Aaron UI's actual consumer profile (SPA-driven pages with a handful of windows per page). The costs the spike surfaced — CSS emitter complexity, per-scheme tuning, classifier rules, two rendering paths to maintain, fidelity loss on exotic schemes — are not justified.
+Decision 1's original CSS-first pitch was to replace the chrome canvas with `border-image` to get SSR, native CSS scaling, and "cheap at scale." Those wins are real but small for Scriptoscope's actual consumer profile (SPA-driven pages with a handful of windows per page). The costs the spike surfaced — CSS emitter complexity, per-scheme tuning, classifier rules, two rendering paths to maintain, fidelity loss on exotic schemes — are not justified.
 
 ## What changes (vs the original plan)
 
 - **Decision 1 retired in CSS-first-hybrid form.** Revised to "DOM structure + canvas decoration" — explicit framing of the existing architecture. See ADR-0001 §Decision 1.
-- **PC phase scope shrunk.** No CSS emitter, no representability classifier, no `border-image` source generators. Instead: DOM-twin coverage audit + Shadow DOM (Decision 2) + canvas-repaint efficiency pass + a small shipped `aaron-ui.css` for outer-shell affordances.
+- **PC phase scope shrunk.** No CSS emitter, no representability classifier, no `border-image` source generators. Instead: DOM-twin coverage audit + Shadow DOM (Decision 2) + canvas-repaint efficiency pass + a small shipped `scriptoscope.css` for outer-shell affordances.
 - **`demo/_spike-css-emitter.html` deleted.** This writeup replaces it as the record.
 
 ## What doesn't change

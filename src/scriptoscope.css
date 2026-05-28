@@ -1,7 +1,7 @@
 /*
- * aaron-ui.css — optional consumer-side stylesheet for outer-shell affordances.
+ * scriptoscope.css — optional consumer-side stylesheet for outer-shell affordances.
  *
- * The Aaron UI runtime renders pixel-faithful chrome inside Shadow DOM. This
+ * The Scriptoscope runtime renders pixel-faithful chrome inside Shadow DOM. This
  * stylesheet covers the things AROUND the chrome that consumers commonly want
  * but the runtime can't legitimately impose: drop shadow, focus ring on widgets
  * that escape the shadow boundary (the host element itself), and an optional
@@ -9,9 +9,9 @@
  *
  * USAGE:
  *
- *   <link rel="stylesheet" href="/aaron-ui.css">
+ *   <link rel="stylesheet" href="/scriptoscope.css">
  *
- * Without this file, Aaron UI still works — chrome renders faithfully, windows
+ * Without this file, Scriptoscope still works — chrome renders faithfully, windows
  * drag and resize, themed controls work. This file just adds polish.
  *
  * EVERYTHING IS THEMABLE via CSS custom properties (see the :root block below).

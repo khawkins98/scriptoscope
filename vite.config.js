@@ -1,7 +1,7 @@
 // Vite handles two distinct jobs in this repo:
 //
 //   1. `npm run dev`   — serve the demo from demo/ on port 5173, with HMR.
-//   2. `npm run build` — build the Aaron UI library bundle from src/index.ts
+//   2. `npm run build` — build the Scriptoscope library bundle from src/index.ts
 //                        as an ESM module with type declarations.
 //
 // Switched by Vite's `command` argument: 'serve' = dev, 'build' = library bundle.
@@ -55,7 +55,7 @@ export default defineConfig(({ command }) => {
       sourcemap: true,
       lib: {
         entry: {
-          'aaron-ui': resolve(import.meta.dirname, 'src/index.ts'),
+          'scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
         },
         formats: ['es'],
         fileName: (_format, entryName) => `${entryName}.js`,

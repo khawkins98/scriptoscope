@@ -15,7 +15,7 @@
 //   shadow      — shadow root attach + light-DOM slot operations
 //
 // USAGE FROM A DEMO/CONSUMER:
-//   import { setDebug } from 'aaron-ui';
+//   import { setDebug } from 'scriptoscope';
 //   setDebug(true);                                 // all categories
 //   setDebug({ categories: ['scrollbar','drag'] });  // filtered
 //   setDebug(false);                                 // off

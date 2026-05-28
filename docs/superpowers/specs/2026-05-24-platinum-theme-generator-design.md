@@ -4,11 +4,11 @@
 
 ## Goal
 
-Produce a complete **Apple Platinum** appearance as a *normal Aaron UI theme bundle* — generated clean-room from the decoded Platinum window proc — so it renders 1:1 through the unmodified `theme.json` → compositor pipeline, like any ported Kaleidoscope scheme. This sub-project delivers the **generator framework + the document-window chrome (L1)**; all other window types (L2), controls (L3), menus (L4), and the base-layer inheritance mechanism are separate follow-on sub-projects.
+Produce a complete **Apple Platinum** appearance as a *normal Scriptoscope theme bundle* — generated clean-room from the decoded Platinum window proc — so it renders 1:1 through the unmodified `theme.json` → compositor pipeline, like any ported Kaleidoscope scheme. This sub-project delivers the **generator framework + the document-window chrome (L1)**; all other window types (L2), controls (L3), menus (L4), and the base-layer inheritance mechanism are separate follow-on sub-projects.
 
 ## Why (the bigger picture)
 
-Lightly-skinned Kaleidoscope schemes defer their window/control chrome to the OS base look; Aaron UI has no faithful base Platinum, so it renders those gaps as flat geometry (today's procedural `src/platinum.ts` fallback). Expressing Platinum **as a theme** (rather than a bespoke runtime engine) means:
+Lightly-skinned Kaleidoscope schemes defer their window/control chrome to the OS base look; Scriptoscope has no faithful base Platinum, so it renders those gaps as flat geometry (today's procedural `src/platinum.ts` fallback). Expressing Platinum **as a theme** (rather than a bespoke runtime engine) means:
 
 - **No runtime special-case** — Platinum flows through the single, unmodified compositor; the `platinum.ts` exception to "never hand-author chrome" can retire. Honors the kaleidoscope-runtime pivot.
 - **It is the prerequisite for the base-layer fallback** (sub-project ④): a partial scheme can inherit a *bundle's* missing slot; it can't inherit a procedural engine.
