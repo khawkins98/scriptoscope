@@ -104,6 +104,17 @@ Each entry below tags its divergence direction explicitly:
   light-pressed convention), which is the per-theme branch we reject by policy.
   (Owner decision 2026-05-29.)
 
+- **Document proxy icon + modified-document marker (2.3.1 only).** The 2.3.1 kDEF
+  imports `WindowsLib::GetWindowProxyIcon` + `IsWindowModified` and pairs them with
+  `IconServicesLib::PlotIconRef` to draw a 16x16 document icon at the leading edge
+  of the title bar (call sites: `0x22c08`/`0x22c18` and `0x2312c`/`0x2313c`; full
+  decode in `docs/spec/proxy-icon-modified-dot.md`). The kDEF gates the path on the
+  scheme shipping a `wind` resource for the current window kind. **Zero of 18 corpus
+  bundles ship a `wind` resource**, so the gate is closed for every scheme we host.
+  We do not implement the proxy icon, the modified-document dot, or the
+  `kThemeWidgetDirtyCloseBox = 6` close-box variant. 1.8.2 doesn't import either
+  symbol — this is a strict 2.3.1 addition. (Owner decision 2026-05-29.)
+
 ### manifest→decode
 
 - **Push-button face resolves by manifest role name first, then by id.** The 2.3.1

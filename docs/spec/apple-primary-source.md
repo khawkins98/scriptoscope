@@ -62,19 +62,29 @@ The canonical "what colour is the title bar text" answer. Per window type.
 
 The pre-Appearance (Sys 7) path is documented in `ctm/executor` `windDocdef.c:201-245`: title colour = `wctb[wTextColor]` (index 2). Default `wctb` 0 ships `wTextColor = BLACK_RGB` (`windColor.c:55`); inactive computes gray. **Our classic-Mac default is independently sourced from this primary source** — black active / gray inactive.
 
-## ThemeWidget — title-bar widget role pegs (`Appearance.h:600-612`)
+## ThemeWidget — title-bar widget role pegs (`Appearance.h:618-623`)
 
-The canonical "what is close vs zoom vs collapse" enum.
+The canonical "what is close vs zoom vs collapse" enum. Verified against Universal Interfaces 3.4 `Appearance.h` — the enum has exactly **four** values; 3/4/5 are NOT defined.
 
 | Value | Constant | Kaleidoscope correlate |
 |---:|---|---|
 | 0 | `kThemeWidgetCloseBox` | left widget; document family `-14336`, utility family `-14320` |
 | 1 | `kThemeWidgetZoomBox` | right outer (doc only) |
 | 2 | `kThemeWidgetCollapseBox` | right inner |
-| 3 | `kThemeWidgetABox` / Apple-internal |  |
-| 4 | `kThemeWidgetBBox` |  |
-| 5 | `kThemeWidgetBOffBox` |  |
-| 6 | `kThemeWidgetDirtyCloseBox` |  |
+| 6 | `kThemeWidgetDirtyCloseBox` | "modified document" variant of close — Mac OS 8.5+; **not exercised by any corpus scheme**, see `docs/spec/proxy-icon-modified-dot.md` |
+
+```c
+/* Appearance.h, exact: */
+enum {
+  kThemeWidgetCloseBox          = 0,
+  kThemeWidgetZoomBox           = 1,
+  kThemeWidgetCollapseBox       = 2,
+  kThemeWidgetDirtyCloseBox     = 6
+};
+typedef UInt16 ThemeTitleBarWidget;
+```
+
+**Note: there is NO `kThemeWidgetProxyIcon`.** The document proxy icon is not a `ThemeTitleBarWidget` — it is rendered by the WDEF itself via `WindowsLib::GetWindowProxyIcon` + `IconServicesLib::PlotIconRef`. The 2.3.1 kDEF imports both calls (1.8.2 imports neither). See `docs/spec/proxy-icon-modified-dot.md` for the decoded call sites and the corpus survey (no shipped scheme exercises the proxy-icon path).
 
 **The Kaleidoscope `-14336` / `-14335` / `-14334` ids store the widget BITMAPS keyed by the chrome model (corner-sprite ics4/8 family for the procedural-frame schemes; baked into the cicn for the native-recipe schemes).** Apple's enum tells you the role; the Kaleidoscope id tells you which bitmap slot.
 
