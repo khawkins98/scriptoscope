@@ -18,7 +18,7 @@ import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeSc
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme } = {},
+  opts: { base?: LoadedTheme; source?: string } = {},
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
@@ -27,9 +27,14 @@ export async function loadTheme(
   // the raw resource fork (the unwrapped form some bundles ship when the upstream
   // .sit is no longer reachable, e.g. wayback-recovered schemes). loadKaleidoscopeScheme
   // unwraps both — `.sit` lazy-loads the WASM decoder, `.rsrc` skips it.
-  const fileBytes = await fetchFirst(baseUrl, ['scheme.sit', 'scheme.rsrc']);
+  //
+  // `opts.source` is a hint from the consumer (e.g. the demo reads it off
+  // themes-manifest.json) — when present, we skip the cascade and fetch that file
+  // directly. Avoids the dev-console 404 noise on bundles whose first-try is missing.
+  const candidates = opts.source ? [opts.source] : ['scheme.sit', 'scheme.rsrc'];
+  const fileBytes = await fetchFirst(baseUrl, candidates);
   if (!fileBytes) {
-    throw new Error(`loadTheme: ${baseUrl} — no scheme.sit or scheme.rsrc found`);
+    throw new Error(`loadTheme: ${baseUrl} — no ${candidates.join(' or ')} found`);
   }
 
   // Fetch meta.json if present (author/license/provenance — merged into the

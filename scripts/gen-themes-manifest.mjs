@@ -13,7 +13,7 @@
 // Order: real schemes first (alphabetical by slug), generated bundles last — so a new
 // import slots in deterministically and THEMES[0] (the ribbon's no-hash default) is stable.
 
-import { readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,8 +39,16 @@ for (const slug of readdirSync(themesDir).sort()) {
   const badge = ported ? ' ✦ real scheme' : generated ? ' ✦ generated' : '';
   const label = `${name}${credit}${badge}`;
   const ref = existsSync(resolve(refsDir, `${slug}.png`)) ? `${slug}.png` : null;
+  // Source-of-truth hint: which file the runtime should fetch (scheme.sit > scheme.rsrc).
+  // Lets `loadTheme` skip the .sit → .rsrc cascade for .rsrc-only bundles (avoids the
+  // dev-console 404 noise on the 5 wayback-recovered ones), and gives the demo a way to
+  // surface "via .sit" vs "via .rsrc" if it ever wants to.
+  const source = existsSync(resolve(dir, 'scheme.sit')) ? 'scheme.sit'
+    : existsSync(resolve(dir, 'scheme.rsrc')) ? 'scheme.rsrc' : null;
+  if (!source) continue;
+  const sourceBytes = statSync(resolve(dir, source)).size;
 
-  entries.push({ slug, label, generated, ...(ref ? { ref } : {}) });
+  entries.push({ slug, label, generated, source, sourceBytes, ...(ref ? { ref } : {}) });
 }
 
 // Real schemes first (already alpha from the sorted readdir), generated last.

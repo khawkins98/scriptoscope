@@ -124,6 +124,15 @@ export interface ChromeElement {
    * cicn is the authored text color. Null when the scheme ships no cinf.
    */
   textAnchor?: [number, number] | null;
+  /**
+   * The original Kaleidoscope cicn RESOURCE ID this element decoded from (signed —
+   * a negative id like -10239 is the push-button face, positive like 128 is the
+   * pressed-window-widgets cicn). Written by the decoder on every chromeElement;
+   * the runtime's `elementById` / `loadById` resolve controls against this rather
+   * than parsing the asset path string (which becomes a `blob:` URL under the
+   * in-memory load path; see controls.ts:elementById).
+   */
+  sourceCicnId?: number;
 }
 
 export interface Palette {

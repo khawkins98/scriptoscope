@@ -257,9 +257,15 @@
     // concern its theme.json origin string didn't reflect, and `platinum.ts`
     // already covered every control kind procedurally.)
     const themeCache = new Map();
+    // themesBySlug carries the catalog metadata (source filename, label, ref image…).
+    // We pass `source` into loadTheme so the runtime can skip the .sit ↔ .rsrc cascade
+    // and avoid the dev-console 404 noise on bundles whose first-try is missing.
+    const themesBySlugForLoad = new Map(THEMES.map((t) => [t.slug, t]));
     const loadWithBase = (slug) => {
       if (!themeCache.has(slug)) {
-        themeCache.set(slug, loadTheme(themeUrl(slug)));
+        const meta = themesBySlugForLoad.get(slug);
+        const opts = meta?.source ? { source: meta.source } : undefined;
+        themeCache.set(slug, loadTheme(themeUrl(slug), opts));
       }
       return themeCache.get(slug);
     };

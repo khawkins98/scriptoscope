@@ -122,12 +122,19 @@ async function loadByKeySelf(theme: LoadedTheme, key: string): Promise<PixelBuff
   return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
 }
 
-/** The chromeElement whose asset encodes resource `id` (for textAnchor etc). */
+/** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
+ *  Uses the explicit `sourceCicnId` field the decoder writes on every chromeElement
+ *  (matched against |id| — the same id can appear with either sign in different
+ *  schemes). Previously parsed the resource id out of the `asset` PATH STRING; that
+ *  broke under Option A's in-memory load path, where `rewriteAssetRefs` replaces
+ *  paths with `blob:` URLs (the regex `/cicn-n?-?(\d+)/` finds no match against a
+ *  blob URL → every elementById call returned null → buttons / default-rings /
+ *  textAnchors silently un-themed). `sourceCicnId` is the decoder's own field, lives
+ *  in `theme.json`, survives the URL rewrite, and is what `lint-themes` reads too. */
 function elementById(theme: LoadedTheme, id: number) {
   const abs = Math.abs(id);
   for (const v of Object.values(theme.manifest.chromeElements ?? {})) {
-    const m = /cicn-n?-?(\d+)/.exec(v.asset ?? '');
-    if (m && parseInt(m[1]!, 10) === abs) return v;
+    if (typeof v.sourceCicnId === 'number' && Math.abs(v.sourceCicnId) === abs) return v;
   }
   return null;
 }
