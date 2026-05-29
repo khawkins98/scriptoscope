@@ -26,6 +26,8 @@ export type {
   ThemeManifest,
   LoadedTheme,
   ThemeInspector,
+  ThemeProgressModel,
+  ThemeScrollArrowMap,
 } from './types.js';
 export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
 // In-browser .sit/.rsrc decoder — exposed so consumers can decode a dropped File / fetched

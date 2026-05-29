@@ -1,11 +1,12 @@
 {
   "_generator": "scripts/lint-themes.mjs --update",
   "_note": "Fingerprint baseline for `npm run lint:themes`: sha256 of each bundle's source archive + the lint outcome from the maintainer's last full run. Default `npm run lint:themes` is a fast verify pass (hash + report stored result); the slow decode-and-rule-walk only runs on `--update` or when the hash drifts. Keep this file in git; let CI run `--strict` to fail on drift.",
-  "ranAt": "2026-05-29T06:02:33.282Z",
+  "ranAt": "2026-05-29T06:34:19.909Z",
   "themes": {
     "1138": {
       "source": "scheme.rsrc",
       "sha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "decodedSha256": "69e806ac4d8816e316cc0cd10df24cf0429cb743863adfb9e67f50305fe49915",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -14,6 +15,7 @@
     "1984": {
       "source": "scheme.sit",
       "sha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "decodedSha256": "71fe45cb3847dffdc47feee3f18469d8e8974118e96470eddc4ecaf18179cfbe",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -22,6 +24,7 @@
     "1990": {
       "source": "scheme.rsrc",
       "sha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "decodedSha256": "d3f534200996f7d9f442b4edb41ea1abe945eb2acdf80b15265c3bc7961b96fe",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -30,6 +33,7 @@
     "animals": {
       "source": "scheme.sit",
       "sha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "decodedSha256": "8a8823bbcf1c5dddea0f4b465846c1015464e1a5397cdd812e41fd3a8d488ea4",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -38,6 +42,7 @@
     "apple-lisa": {
       "source": "scheme.sit",
       "sha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "decodedSha256": "56072ab20680ac999847359b618b57b4d871ed3321c8c25ac69f178f7d3d6e45",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -46,6 +51,7 @@
     "apple-platinum-2": {
       "source": "scheme.sit",
       "sha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "decodedSha256": "270af16c4f78aac98af44a7b0186fb26d9a2d029ec6ec1b076d9dd7b3aaceb38",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -54,6 +60,7 @@
     "beos-r503": {
       "source": "scheme.sit",
       "sha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "decodedSha256": "52fcc731db7713c35980b8d832aef7d434565ea4f25796f5f1f8f86c4d27eb80",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -62,6 +69,7 @@
     "black-platinum": {
       "source": "scheme.rsrc",
       "sha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "decodedSha256": "71ce38fd40526452c167f9e0911b55d7fe309ec7c4e08571b311fc41a47cea77",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -70,6 +78,7 @@
     "crayon-os": {
       "source": "scheme.sit",
       "sha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "decodedSha256": "4eb7f9c7a76b80608dc03fca0934f0eb559672ddcaf4a70225b1c9cef66160f9",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -78,6 +87,7 @@
     "dolphin-som": {
       "source": "scheme.sit",
       "sha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "decodedSha256": "4c1f83af8ff9a46692ba38f9eb936ece560559113ddd3f54d52f902c99b7873c",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -86,6 +96,7 @@
     "evolution": {
       "source": "scheme.rsrc",
       "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "decodedSha256": "8103d2ac4f77893b0792d3e1cb4f5c29d645c63124e32dba3eb74d68c0a42105",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -94,6 +105,7 @@
     "floppies": {
       "source": "scheme.sit",
       "sha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "decodedSha256": "f759813d77c7a3531f59434ad08f52714209ea6ec25c7cd13494fe89e5803d8f",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -102,6 +114,7 @@
     "monkey-paradise": {
       "source": "scheme.sit",
       "sha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "decodedSha256": "de7d32412eed3dff19445ca49769e95c5b126db148d72141a6cef8ad9f8f8cf9",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -110,6 +123,7 @@
     "platinum-8": {
       "source": "scheme.sit",
       "sha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "decodedSha256": "04205457c6f643e7b5654afdc376d97703578e6c0e0c142b1c2a16110b1bcb7f",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -118,6 +132,7 @@
     "slimes": {
       "source": "scheme.sit",
       "sha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "decodedSha256": "883dc6deb15d70776a806e28334722f27126412bbee3245d511dacb096df37bc",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -126,6 +141,7 @@
     "system7-nostalgia-silver": {
       "source": "scheme.rsrc",
       "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "decodedSha256": "22153fa506ff5a9d15d542d83649c181e621e9684be28df5c4e394d85122574a",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -134,6 +150,7 @@
     "windows-31": {
       "source": "scheme.sit",
       "sha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "decodedSha256": "f6c4dc454e8b9808bbdbb1c4381271c15f2e45270026553560de0c5f9ae62bad",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -142,6 +159,7 @@
     "windows-95": {
       "source": "scheme.sit",
       "sha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+      "decodedSha256": "2c83a6ac5f4ff869610068c84338f8e4333e1472d271ad4c9d3a4dada271c353",
       "status": "ok",
       "errors": 0,
       "warnings": 0,

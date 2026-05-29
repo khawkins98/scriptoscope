@@ -208,7 +208,10 @@ export interface LoadedTheme {
 }
 
 /** Inspector catalog returned by an in-memory decode — the source of truth for the demo's
- *  diagnostic panels now that bundles ship only the original archive. */
+ *  diagnostic panels now that bundles ship only the original archive. Public surface:
+ *  consumers building a theme picker / browser can enumerate every icon + cicn + ppat
+ *  off `theme.inspector` without re-fetching the bundle. URLs are pre-baked (blob: in a
+ *  browser; pass-through in Node when an `assetUrlFactory` was set). */
 export interface ThemeInspector {
   iconIndex: Array<{
     id: number;
@@ -219,18 +222,40 @@ export interface ThemeInspector {
     name?: string | null;
     /** Asset URL (blob: in a browser; pass-through in Node when assetUrlFactory was set). */
     url?: string;
-    /** Optional decoder-side coverage metric (fraction of opaque pixels). */
+    /** True iff the icon's matching mask resource (ics#/icl#) is present + non-empty. */
+    masked?: boolean;
+    /** Decoder-side coverage metric (fraction of opaque pixels). */
     coverage?: number;
   }>;
   cicns: Array<{ file: string; id: number | null; name: string | null; url?: string }>;
   ppats: Array<{ file: string; label: string; url?: string }>;
   resourceRoles: {
     theme: string;
-    progress: Record<string, unknown>;
-    scrollArrows: Record<string, unknown> | null;
+    progress: ThemeProgressModel;
+    scrollArrows: ThemeScrollArrowMap | null;
     resources: Array<{
       id: number | null; type: string; size?: number;
       slug: string | null; family: string; role: string;
     }>;
   };
+}
+
+/** The per-scheme progress-bar model `buildResourceRoles` resolves from the cicns present.
+ *  Two known shapes plus `'none'`; see `tools/theme-loader/classifyResources.js`. */
+export type ThemeProgressModel =
+  | { model: 'none' }
+  | { model: 'lavender-2-part'; fill: number; track: number | null; frame: null; alternateHues: number[] }
+  | {
+      model: 'role-3-part';
+      frame: number | null;
+      fill: number | null;
+      track: number | null;
+      inactive: { frame: number | null; fill: number | null; track: number | null };
+    };
+
+/** The universal kDEF231 CDEF scroll-arrow mapping (per the asm 9f0e-9f38 decode). */
+export interface ThemeScrollArrowMap {
+  note: string;
+  raised: { right: number | null; left: number | null; down: number | null; up: number | null };
+  pressed: { right: number | null; left: number | null; down: number | null; up: number | null };
 }

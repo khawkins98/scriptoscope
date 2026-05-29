@@ -22,7 +22,7 @@ giving it standalone windows is a separate windowType-authoring task.
 
 ## Why it's here
 
-It's a widely-used, real-world Platinum scheme — the kind of artifact Aaron UI exists
+It's a widely-used, real-world Platinum scheme — the kind of artifact Scriptoscope exists
 to render 1:1. The owner has chosen to **defer to this scheme** as the practical
 authority for the recognizable Platinum look (over the hand-built
 `apple-platinum-replica`), on the reasoning that a scheme thousands of people actually

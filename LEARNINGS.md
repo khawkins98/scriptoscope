@@ -2358,3 +2358,39 @@ Roughly 60 files touched across `src/`, `demo/`, `docs/`, `README.md`, `CLAUDE.m
 **Application:** the new public API surface is `data-scriptoscope-*` and `.scriptoscope-*`. Any documentation, error message, or consumer-facing string going forward uses these. The prior Lodash-style argument is recorded but doesn't hold — the threshold was lower than the entry estimated.
 
 **Meta-lesson on rebrands:** when "rename costs are real" is the argument for keeping legacy identifiers in a brand-fresh package, validate the cost against a concrete consumer-integration scenario before committing. Yesterday I imagined a cv-mac consumer who'd already typed `data-aaron-window` everywhere; today's reality is that no such consumer existed, so the rename cost was zero. Estimate carefully when the cost-to-defer math is symmetric to the cost-to-execute math.
+
+---
+
+### 2026-05-29 — Option A: source-only bundles + the elementById path-parse trap
+
+**Context.** The repo's `themes/<slug>/` directories carried both the original Kaleidoscope archive (`scheme.rsrc`) AND a full bake of derivative artifacts (`theme.json` + `cicns/*.png` + `ppats/*.png` + `icons/*.png` + `resource-roles.json` + `rasters.json` + `extraction-manifest.json`). ~55 MB across 18 bundles. The runtime read `theme.json` + the PNGs at runtime; the bake pipeline wrote them at port time.
+
+**The change.** Bundles now ship only the source-of-truth files: `scheme.sit` (preferred — the original StuffIt archive the author published) or `scheme.rsrc` (fallback for wayback-recovered schemes whose `.sit` is no longer reachable), plus `meta.json` + `PROVENANCE.md`. Three files per bundle. The runtime decodes the archive in-browser via `loadKaleidoscopeScheme` — same code path the demo's drop-zone has used since 2026-05-27.
+
+**Why it works.** The browser decoder (`tools/theme-loader/loadKaleidoscopeScheme.js`) already produces a render-ready `LoadedTheme`: bytes → resource fork → cicns + ppats + icons + windowTypes; every decoded asset gets PNG-encoded to a `blob:` URL via `OffscreenCanvas`; manifest asset paths get rewritten to those URLs. Per-load decode lands at ~234 ms on a fast machine after `Promise.all`-parallelising the asset encoding (was ~19.7s serial — single biggest perf cliff in the migration). Repo dropped to 6.3 MB; bundle weight halved.
+
+**The gotcha that almost shipped silently.** `src/controls.ts:elementById` resolved a chromeElement for a given resource id by **regex'ing the id out of the `asset` path string** (`/cicn-n?-?(\d+)/`). Pre-Option-A asset strings were `cicns/cicn-n10239-pushbutton.png` and the regex worked. Under the in-memory load path the asset string IS a `blob:` URL with no id in it. Every `elementById` call silently returned null. Buttons, default rings, scrollbar arrows, textAnchors — all silently un-themed. The lint pass missed it entirely (lints `theme.json` shape, not the in-memory wiring). The eyeballed render caught it first.
+
+**The fix that didn't survive review:** patching the regex to also match blob URLs. There's no id in a blob URL — it's an opaque content-handle.
+
+**The actual fix:** the decoder already writes a `sourceCicnId` numeric field on every chromeElement (`tools/theme-loader/buildThemeJson.js` writes it; `lint-themes.mjs`'s control-coverage rule already reads it). `elementById` now resolves against `|sourceCicnId|` directly. Survives URL rewrite. Single source of truth for "what id is this element," shared with the lint pass.
+
+**Sibling gotcha — `theme.baseUrl=''`.** The browser decoder's default `baseUrl` is `''` (asset refs are already absolute blob URLs; `assetUrl()` passes them through; no `baseUrl` fetch is needed). `loadTheme` returned the decoded theme verbatim, so EVERY theme had `baseUrl=''`. Demo + interactive.ts cache by `theme.baseUrl` as the per-theme identity — the empty key collapsed every theme into the first-loaded theme's slot. 1138's folder icons leaked into 1984's Scene preview, etc. Fix: `loadTheme` now sets `baseUrl` to the consumer-passed URL.
+
+**Application.** Whenever a runtime path *parses information out of a string that the loader also writes as structured data*, prefer the structured field. Path-parsing under in-memory load paths is a recurring footgun. Three callers were fixed in this migration window:
+
+1. `controls.ts:elementById` — was the prompting case, switched to `sourceCicnId`.
+2. `demo/index.html:930` (Geometry Inspector raster preview) — was concatenating `${theme.baseUrl}/${ce.asset}` where both are now blob URLs, routed through `assetUrl()` instead.
+3. `demo/index.html:973` (loadImgSafe) — same pattern, same fix.
+
+Visual baselines (`tests/visual-baselines/scenes/<slug>.png`) are now the eyeball net for this regression class — the lint pass alone won't catch "ran the path but it produced empty output." Capture script lives at `scripts/capture-visual-baselines.mjs`; runs against `npm run dev`; uses Playwright transitively (gstack browse skill). Fingerprint-based lint baseline (`themes/lint-baseline.json`) handles "the source bytes didn't change → trust the stored result" so CI doesn't need to re-decode 18 bundles per run.
+
+**Files that are now load-bearing for source-only bundles:**
+
+- `src/loadTheme.ts` — fetches `scheme.sit` or `scheme.rsrc`, sniffs the bytes (rejects 200 + HTML SPA fallback), decodes, returns `LoadedTheme` with `baseUrl` preserved.
+- `tools/theme-loader/loadKaleidoscopeScheme.js` — bytes → `LoadedTheme`, with the `inspector` catalog the demo's diagnostic panels read.
+- `tools/theme-loader/classifyResources.js` — portable id → role rubric, shared between bake (`gen-resource-roles.mjs`) and runtime (`buildInspector`).
+- `src/types.ts:LoadedTheme.inspector` + `ThemeInspector` — type surface for the catalog.
+- `.gitignore` — derivative-dir block (`cicns/`, `ppats/`, `icons/`, …) so `npm run build:themes` writes locally without polluting git.
+- `themes/lint-baseline.json` — sha256 + status per slug from the maintainer's last full lint run.
+- `tests/visual-baselines/scenes/*.png` — Scene panel per theme for eyeball regression.

@@ -39,35 +39,72 @@ unar your-scheme.sit
 
 ---
 
-## 2. Extract the resource fork as `scheme.rsrc`
+## 2. Place the bundle source — `.sit` preferred, `.rsrc` as fallback
 
-The extractor wants the **raw resource fork** bytes — not a DeRez `.r` text dump. On macOS the resource fork lives in the file's `..namedfork/rsrc` stream; copy it out:
+Option A (2026-05-29) ships only the **source archive** in git: the runtime decodes it
+in-browser on every load. Two acceptable forms — pick the cleanest available:
+
+### Preferred — drop the original `.sit` directly
+
+The cleanest redistribution form is the StuffIt archive the author published,
+untouched. Drop it at `themes/<your-slug>/scheme.sit`:
 
 ```sh
-# From the scheme directory unar created — copy the resource fork to scheme.rsrc:
-mkdir -p ../../../themes/<your-slug>
-cp "your-scheme-file/..namedfork/rsrc" ../../../themes/<your-slug>/scheme.rsrc
-
-# Quick sanity check — a real scheme fork is hundreds of KB.
-ls -l ../../../themes/<your-slug>/scheme.rsrc
+mkdir -p themes/<your-slug>
+cp ~/Downloads/<original>.sit themes/<your-slug>/scheme.sit
 ```
 
-If the copied file is tiny (a few hundred bytes or empty), the resource fork was stripped during transit — usually because the archive passed through a non-Mac filesystem. Re-download the `.sit` and `unar` it again. (Some `unar` builds emit the fork as a sibling `._name` AppleDouble file or a `rsrc` data file; whichever carries the resource-fork bytes is what you copy to `scheme.rsrc`.)
+`loadKaleidoscopeScheme` unwraps the `.sit` lazily via the bundled munbox WASM
+(~70 KB, only loaded when a `.sit` is actually decoded). This is the form we
+ship for 13 of the 18 corpus bundles.
+
+### Fallback — unwrap to `scheme.rsrc`
+
+When the original `.sit` is no longer reachable (wayback-recovered schemes, or
+`unar`-extracted `.sit`s where the StuffIt magic was stripped during transit),
+commit the unwrapped resource fork instead. On macOS the resource fork lives in
+the file's `..namedfork/rsrc` stream:
+
+```sh
+mkdir -p themes/<your-slug>
+cp "your-scheme-file/..namedfork/rsrc" themes/<your-slug>/scheme.rsrc
+
+# Quick sanity check — a real scheme fork is hundreds of KB.
+ls -l themes/<your-slug>/scheme.rsrc
+```
+
+If the copied file is tiny (a few hundred bytes or empty), the fork was stripped
+in transit. Re-download and try again. (Some `unar` builds emit the fork as a
+sibling `._name` AppleDouble file or a `rsrc` data file; whichever carries the
+resource-fork bytes is what you copy to `scheme.rsrc`.)
+
+Either form works at runtime — `loadTheme` races them. The five `.rsrc`-only
+bundles in the current corpus (1138, 1990, evolution, black-platinum,
+system7-nostalgia-silver) are wayback-recovered.
 
 ---
 
-## 3. Run the extractor
+## 3. Run the (local) extractor
 
-**Quick path (recommended):** once `themes/<your-slug>/scheme.rsrc` is in place,
-one command runs the WHOLE pipeline (chrome + icons + rasters + roles + lint),
-scaffolds a `meta.json` stub if missing, and prints a report card of what it
-figured out (scheme type, window types, header colours, control/icon/glyph
-coverage, lint verdict):
+The bake pipeline (`extract-scheme`, `extract-icons`, `index-rasters`,
+`gen-resource-roles`) writes derivatives into `themes/<your-slug>/` that the
+runtime **doesn't read** under Option A. They're still useful for **local
+diagnostic work** — `lint:themes --update`, `audit-placement`, `render-window`,
+the demo inspector's local fallback path — so we keep the pipeline; we just
+don't commit its output. Everything written under
+`themes/<your-slug>/{theme.json,extraction-manifest.json,cicns/,ppats/,icons/,rasters.json,resource-roles.json}`
+is gitignored.
+
+**Quick path (recommended):** once `themes/<your-slug>/scheme.sit` (or `.rsrc`)
+is in place, one command runs the WHOLE pipeline (chrome + icons + rasters +
+roles + lint), scaffolds a `meta.json` stub if missing, and prints a report
+card of what it figured out (scheme type, window types, header colours,
+control/icon/glyph coverage, lint verdict):
 
 ```sh
 npm run import -- <your-slug>
-# or, to copy the fork in at the same time:
-node scripts/import-scheme.mjs <your-slug> path/to/scheme.rsrc
+# or, to copy the source in at the same time:
+node scripts/import-scheme.mjs <your-slug> path/to/scheme.sit   # or .rsrc
 ```
 
 If the report is clean, skip to step 4 (provenance) and step 6 (reference image).
@@ -236,26 +273,43 @@ period screenshot from Macintosh Garden) and crop it to the relevant window.
 
 ## 7. Open the PR
 
+Before opening the PR, refresh the two committed fixtures so CI / future
+maintainers can verify nothing regressed against your port:
+
+```sh
+npm run lint:themes -- --update <your-slug>     # adds your bundle's row to themes/lint-baseline.json
+npm run baseline:scenes -- <your-slug>          # captures tests/visual-baselines/scenes/<your-slug>.png
+```
+
+Then commit and push:
+
 ```sh
 git checkout -b port/<your-slug>
-git add themes/<your-slug>/ demo/assets/references/<your-slug>.png
+git add themes/<your-slug>/ themes/lint-baseline.json \
+        tests/visual-baselines/scenes/<your-slug>.png \
+        demo/assets/references/<your-slug>.png
 git commit -m "themes: port <Your Scheme Name> by <Author>"
 git push -u origin port/<your-slug>
 ```
 
-The whole bundle (PNGs, `theme.json`, `meta.json`, `PROVENANCE.md`,
-`extraction-manifest.json`, and the source `scheme.rsrc`) lives under
-`themes/<your-slug>/` and is committed together. To pick the new bundle up in
-the all-themes re-extract, no registry edit is needed — `npm run build:themes`
-runs `extract-scheme.mjs --all`, which discovers every `themes/*/scheme.rsrc`.
+**Only three files** from `themes/<your-slug>/` actually get committed: the
+source archive (`scheme.sit` or `.rsrc`), `meta.json`, and `PROVENANCE.md`.
+Every other path the extract pipeline wrote (`theme.json`, `cicns/`, `ppats/`,
+`icons/`, `extraction-manifest.json`, `rasters.json`, `resource-roles.json`,
+`diag/`) is gitignored — `git add themes/<your-slug>/` quietly skips them.
+That's intentional: the runtime decodes the bundle in-browser on every load;
+nothing else needs to live in git. To pick the new bundle up in the all-themes
+re-extract, no registry edit is needed — `npm run build:themes` discovers
+every `themes/*/{scheme.sit,scheme.rsrc}`.
 
 PR body checklist:
 
 - [ ] License: quote the verbatim license string from the readme
 - [ ] Author: name + email/URL preserved in `meta.json` and `PROVENANCE.md`
 - [ ] Side-by-side screenshot: Scriptoscope render next to the scheme's preview thumbnail
-- [ ] Smoke tested locally: window renders (browser or `npm run diag:render`)
-- [ ] `node scripts/extract-scheme.mjs <your-slug>` validates clean
+- [ ] Smoke tested locally: window renders in `npm run dev`
+- [ ] `npm run lint:themes -- --update <your-slug>` clean
+- [ ] `themes/lint-baseline.json` + `tests/visual-baselines/scenes/<your-slug>.png` committed
 
 ---
 

@@ -1,50 +1,60 @@
 # Theme bundle layout
 
-How an Scriptoscope theme bundle is organized on disk. The `theme.json` schema is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a bundle is the kDEF model in [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).
+How an Scriptoscope theme bundle is organized on disk after the **Option A migration (2026-05-29)**: bundles ship only the original archive, the runtime decodes it in-browser. The in-memory `ThemeManifest` shape that used to serialise to `theme.json` is codified in [`src/types.ts`](../src/types.ts). How the runtime composites a decoded bundle is the kDEF model in [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md).
 
-## Directory tree
+## What's actually shipped (in git)
 
 A canonical bundle lives at `themes/<scheme-slug>/`:
 
 ```
 themes/<scheme-slug>/
-├── scheme.rsrc                # the source resource fork (committed; the extractor's input)
-├── meta.json                  # hand-authored provenance sidecar (extractor input)
-├── PROVENANCE.md              # human-readable origin + license record
-├── theme.json                 # schema-conformant bundle manifest (generated)
-├── extraction-manifest.json   # generated: diagnostic record of every decoded resource
-├── cicns/                     # chrome bitmaps (color icon resources)
-│   ├── cicn-n14335-active-document-window.png
-│   ├── cicn-n14336-inactive-document-window.png
-│   └── ... (one PNG per cicn resource in the source scheme)
-├── ppats/                     # tile patterns (pixel pattern resources)
-│   ├── ppat-17-desktop-background.png
-│   └── ... (one PNG per ppat resource)
-├── icons/                     # generated: extracted icon-suite PNGs (icl4/ics8/…), via scripts/extract-icons.mjs
-└── diag/                      # generated, gitignored: per-window-type render PNGs from `npm run diag:render`
+├── scheme.sit                 # preferred: original StuffIt archive the author published
+│                              # — or —
+├── scheme.rsrc                # fallback: unwrapped resource fork (wayback-recovered schemes
+│                              #   where the .sit is no longer reachable)
+├── meta.json                  # hand-authored provenance sidecar (author/origin/license)
+└── PROVENANCE.md              # human-readable origin + license record
 ```
 
-Everything generated (`theme.json`, `extraction-manifest.json`, `cicns/`, `ppats/`, `icons/`) is rebuilt from `scheme.rsrc` + `meta.json`; `diag/` is gitignored build output. The hand-authored inputs are `scheme.rsrc`, `meta.json`, and `PROVENANCE.md`.
+That's it. Three files (sometimes two — bundles with `.sit` don't keep the `.rsrc`). The repo went from ~55 MB to 6.3 MB across 18 bundles when this layout shipped.
+
+## What `npm run build:themes` produces locally (gitignored)
+
+The bake pipeline is still useful for **local diagnostics** (lint-themes' `--update` mode, audit-placement, render-window, the inspector's reference data). It writes into the same `themes/<slug>/` directory but every output path below is `.gitignore`'d:
+
+```
+themes/<scheme-slug>/
+├── theme.json                 # schema-conformant bundle manifest (generated, gitignored)
+├── extraction-manifest.json   # generated diagnostic record of every decoded resource
+├── rasters.json               # cicn + ppat catalog (used by demo inspector)
+├── resource-roles.json        # per-id role classification (used by lint + demo inspector)
+├── cicns/                     # chrome bitmaps decoded to PNG
+│   ├── cicn-n14335-active-document-window.png
+│   ├── cicn-n14336-inactive-document-window.png
+│   └── …
+├── ppats/                     # tile patterns
+│   ├── ppat-17-desktop-background.png
+│   └── …
+├── icons/                     # icon-suite PNGs (icl4/icl8/ics4/ics8)
+└── diag/                      # per-window-type render PNGs from `npm run diag:render`
+```
+
+Everything in this block is rebuilt from `scheme.sit`/`scheme.rsrc` + `meta.json`. The hand-authored inputs are only `scheme.sit` (or `.rsrc`), `meta.json`, and `PROVENANCE.md`.
 
 ## Files
 
-### `scheme.rsrc`
+### `scheme.sit` / `scheme.rsrc`
 
-The source scheme's raw resource fork, committed alongside the bundle. This is the extractor's input — every generated file in the bundle is derived from it (+ `meta.json`). On macOS it's the `..namedfork/rsrc` stream of the original scheme file (see the porting guide step 2).
+The source archive, committed alongside the bundle. The runtime's decoder (`loadKaleidoscopeScheme` in `tools/theme-loader/`) accepts both forms:
 
-### `theme.json`
+- **`scheme.sit`** is the preferred form — the original StuffIt archive the author published, redistribution-friendly (we ship the bits the author shipped, not a derivative). Decoded via the bundled `tools/sit-wasm/` munbox WASM (lazy-loaded on first `.sit` access).
+- **`scheme.rsrc`** is the fallback — the unwrapped resource fork. Used when the upstream `.sit` is no longer reachable (e.g. wayback-recovered schemes like 1138, 1990, evolution, black-platinum, system7-nostalgia-silver).
 
-Generated by `node scripts/extract-scheme.mjs <slug>` (which calls `buildThemeJson` and validates via `validateTheme` in the same pass — there is no separate build step). Always conformant to the schema in [`src/types.ts`](../src/types.ts). Top-level keys today: `version`, `source`, `generatedAt`, `note`, `name`, `author`, `origin`, `windowTypes`, `chromeElements`, `patterns`, and (when the scheme ships the cluts) `headerColors`. **Never hand-edit** — regenerate from `scheme.rsrc` (+ optional `meta.json`).
-
-Asset paths inside `theme.json` are bundle-relative — e.g. `chromeElements[*].asset = "cicns/cicn-n14335-active-document-window.png"`. The runtime resolves them against the bundle's served URL.
-
-### `extraction-manifest.json`
-
-Generated diagnostic record: for each decoded resource, its type/id/name, status (`ok`/`skipped`/`error`), and the emitted PNG path or decoded geometry. Useful for auditing what the extractor saw; not consumed by the runtime.
+`loadTheme(bundleUrl)` races them (`scheme.sit` first, then `scheme.rsrc`); the catalog's `themes-manifest.json` carries a `source` field per-bundle so consumers can skip the cascade.
 
 ### `meta.json`
 
-Hand-authored sidecar carrying everything the binary `.ksc` doesn't: bundle name, author, license, source URL. `extract-scheme.mjs` reads it automatically if it sits beside `scheme.rsrc` (no flag needed) and `buildThemeJson` merges it into `theme.json`. Shape (from `themes/beos-r503/meta.json`):
+Hand-authored sidecar carrying everything the binary archive doesn't: bundle name, author, license, source URL. `loadKaleidoscopeScheme` reads it via the consumer's options (passed by `loadTheme` after fetching the bundle's `meta.json`) and merges it into the in-memory `ThemeManifest`. Shape (from `themes/beos-r503/meta.json`):
 
 ```json
 {
@@ -63,56 +73,49 @@ Hand-authored sidecar carrying everything the binary `.ksc` doesn't: bundle name
 }
 ```
 
-`originalLicense` should be the verbatim license string from the scheme's own readme — not a SPDX identifier or our paraphrase. Keep the source's words intact. (`buildThemeJson` also accepts an optional `meta.palette` override block, but no current corpus bundle uses it — header text colours are decoded from the window cluts into `theme.json.headerColors` instead.)
+`originalLicense` should be the verbatim license string from the scheme's own readme — not a SPDX identifier or our paraphrase. Keep the source's words intact.
 
 ### `PROVENANCE.md`
 
 Human-readable companion: original author, source URL, readme excerpt, our license interpretation, and why this scheme is in the corpus. Markdown so it renders on GitHub. See `themes/beos-r503/PROVENANCE.md` (or any current corpus bundle's) as the canonical example.
 
-The `PROVENANCE.md` and `meta.json` carry the same factual info in different forms — markdown for humans, JSON for the runtime. They must agree. If they ever drift, `PROVENANCE.md` is authoritative (it's the human-curated record) and `meta.json` should be corrected to match.
+The `PROVENANCE.md` and `meta.json` carry the same factual info in different forms — markdown for humans, JSON for the runtime. They must agree. If they ever drift, `PROVENANCE.md` is authoritative (human-curated) and `meta.json` should be corrected to match.
 
-### `cicns/*.png` and `ppats/*.png`
-
-Extracted by `scripts/extract-scheme.mjs`. PNG filenames preserve the `cicn-<id>-<slug>.png` and `ppat-<id>-<slug>.png` convention so the resource ID is recoverable from the filename. Negative (chrome) IDs render with an `n` prefix — `cicn-n14335-…` for resource `-14335`; positive IDs render bare — `ppat-17-…`, `cicn-0-alert`.
-
-PNGs are 32-bit RGBA; `cicns` carry alpha-channel transparency, `ppats` are tiles.
-
-### `icons/*.png`
-
-Generated by `node scripts/extract-icons.mjs` — the scheme's icon suites (`icl4`/`icl8`/`ics8`/…) decoded to PNG. Tracked in git but not part of the chrome-rendering surface; useful for completeness and future icon work.
-
-## URL conventions at runtime
+## URL convention at runtime
 
 When the runtime loads a bundle via `loadTheme("/themes/beos-r503/")`:
 
-1. Fetches `/themes/beos-r503/theme.json`
-2. For each `asset:` field in the JSON, resolves against the bundle URL — e.g. `cicns/cicn-n14335-active-document-window.png` becomes `/themes/beos-r503/cicns/cicn-n14335-active-document-window.png`
-3. PNGs stream as the runtime references them — no pre-fetch of every asset
+1. **Race** `/themes/beos-r503/scheme.sit` and `/themes/beos-r503/scheme.rsrc` (sit first; rsrc fallback). With an `opts.source` hint from `themes-manifest.json`, the runtime fetches the right one directly.
+2. **Fetch** `/themes/beos-r503/meta.json` (optional — silently absent → use defaults).
+3. **Decode in-browser** via `loadKaleidoscopeScheme`: containers → resource fork → cicns + ppats + icons + windowTypes. StuffIt unpacking lazy-loads the ~70 KB munbox WASM only when a `.sit` is encountered.
+4. **Encode** every decoded RGBA asset to a `blob:` URL via `OffscreenCanvas` (parallelised — `Promise.all` over ~500 assets per scheme; ~234 ms total on a fast machine).
+5. **Rewrite** every asset path in the manifest to its blob URL. The returned `LoadedTheme` carries `manifest.chromeElements[*].asset = "blob:…"`; callers route through `assetUrl()` which passes blob URLs through unchanged.
 
-This URL-relative scheme means a bundle works identically from any path: served by Vite at `http://localhost:5173/themes/...`, deployed to GitHub Pages at `https://owner.github.io/repo/themes/...`, or shipped inlined inside the npm package.
+No PNG file fetches happen after step 4 — the entire bundle is in-memory. A `LoadedTheme` works identically from any bundle URL: Vite dev server, GH Pages CDN, inlined inside an npm package, or in-memory from a dropped `.sit` (the BYO path).
 
-## Regenerating a bundle
+## Regenerating local derivatives
 
 ```sh
-# Regenerate one bundle (after updating its meta.json):
+# Re-bake one bundle (after updating its meta.json or to chase a renderer change):
 node scripts/extract-scheme.mjs beos-r503
+node scripts/extract-icons.mjs beos-r503
 
-# Regenerate every bundle (discovers all themes/*/scheme.rsrc):
-npm run build:themes        # === node scripts/extract-scheme.mjs --all
+# Re-bake every bundle + regenerate the demo's themes-manifest.json:
+npm run build:themes
 ```
 
-`extract-scheme.mjs` reads `themes/<slug>/scheme.rsrc` (+ `meta.json` if present), decodes the resources, writes the PNGs into `cicns/`/`ppats/`, runs `buildThemeJson` with the `meta.json` merged in plus the decoded header cluts, validates via `validateTheme`, and writes both `theme.json` and `extraction-manifest.json` — all in one pass, in place.
-
-If validation fails the script aborts non-zero and names the offending field — it does not write a partial `theme.json`.
+`extract-scheme.mjs` reads `themes/<slug>/scheme.sit`/`scheme.rsrc` + `meta.json`, decodes the resources, writes the PNGs into `cicns/`/`ppats/`, runs `buildThemeJson` with `meta.json` merged in plus the decoded header cluts, validates via `validateTheme`, and writes `theme.json` + `extraction-manifest.json`. All of these outputs are gitignored — the runtime doesn't read them; only the on-disk diagnostic scripts (`diag:render`, `diag:audit`, `lint:themes --update`) do.
 
 ## Porting a new scheme
 
 The full porting flow is in [`docs/porting-a-kaleidoscope-scheme.md`](./porting-a-kaleidoscope-scheme.md) (condensed in [`CONTRIBUTING.md`](../CONTRIBUTING.md#adding-a-theme-porting-a-kaleidoscope-scheme)). Short version:
 
 1. Verify the scheme's readme grants redistribution rights.
-2. Drop the resource fork at `themes/<slug>/scheme.rsrc` and author `meta.json` + `PROVENANCE.md` beside it.
-3. Run `node scripts/extract-scheme.mjs <slug>` — extracts the PNGs and emits the validated `theme.json` in place.
-4. Open a PR with a side-by-side screenshot of Scriptoscope's render vs. the scheme's own preview thumbnail.
+2. Drop the original `.sit` (preferred) at `themes/<slug>/scheme.sit` — or unwrapped `.rsrc` if no `.sit` is reachable — and author `meta.json` + `PROVENANCE.md` beside it.
+3. Run `npm run import -- <slug>` for a guided one-command flow, or `node scripts/extract-scheme.mjs <slug>` for the bare bake.
+4. Run `npm run lint:themes -- --update <slug>` to lint + refresh the baseline.
+5. Run `npm run baseline:scenes -- <slug>` to capture the Scene panel for visual regression.
+6. Open a PR with the bundle, the updated `themes/lint-baseline.json`, and the captured scene baseline.
 
 ## What's *not* in a bundle
 
@@ -122,16 +125,20 @@ Per LEARNINGS 2026-05-16 "Themes don't bring sounds or desktop backgrounds":
 - No `desktop.png` — same reason.
 - No `fonts/` — Mac OS supplied system fonts; the corpus assumes them present.
 
-A future `extras/` sidecar concept may permit opt-in sounds/desktop/fonts for first-party preset bundles (see PRD §What ported themes carry), but it's not a runtime built-in for Phase 4.
+A future `extras/` sidecar concept may permit opt-in sounds/desktop/fonts for first-party preset bundles (see PRD §What ported themes carry), but it's not a runtime built-in.
 
 ## Source-of-truth pairing
 
 | Concern | Where |
 |---|---|
-| `.ksc`/`.rsrc` resource-fork decode | [`tools/theme-loader/`](../tools/theme-loader/) (resource-fork.js + decoders/) |
-| `theme.json` schema | [`src/types.ts`](../src/types.ts) |
-| theme.json validator | [`tools/theme-loader/validateTheme.js`](../tools/theme-loader/validateTheme.js) |
-| Extractor → theme.json builder | [`tools/theme-loader/buildThemeJson.js`](../tools/theme-loader/buildThemeJson.js) |
+| `.sit`/`.rsrc` decode (runtime + Node) | [`tools/theme-loader/`](../tools/theme-loader/) (loadKaleidoscopeScheme.js + convert.js + resource-fork.js + decoders/) |
+| StuffIt unpack | [`tools/sit-wasm/`](../tools/sit-wasm/) (munbox C library compiled to WASM) |
+| `ThemeManifest` shape | [`src/types.ts`](../src/types.ts) |
+| `ThemeManifest` validator | [`tools/theme-loader/validateTheme.js`](../tools/theme-loader/validateTheme.js) |
+| Decoder → ThemeManifest builder | [`tools/theme-loader/buildThemeJson.js`](../tools/theme-loader/buildThemeJson.js) |
+| Resource role classifier (browser + Node) | [`tools/theme-loader/classifyResources.js`](../tools/theme-loader/classifyResources.js) |
 | How the compositor draws a bundle | [`docs/spec/compositor-spec.md`](./spec/compositor-spec.md) + [`docs/spec/kdef231-recipe-walk.md`](./spec/kdef231-recipe-walk.md) (model); [`src/composeChrome.ts`](../src/composeChrome.ts) + [`src/renderWindow.ts`](../src/renderWindow.ts) (impl) |
+| Local-only bake pipeline | [`scripts/extract-scheme.mjs`](../scripts/extract-scheme.mjs) + [`scripts/extract-icons.mjs`](../scripts/extract-icons.mjs) |
+| Fingerprint lint baseline | [`themes/lint-baseline.json`](../themes/lint-baseline.json) + [`scripts/lint-themes.mjs`](../scripts/lint-themes.mjs) |
+| Visual regression fixtures | [`tests/visual-baselines/`](../tests/visual-baselines/) + [`scripts/capture-visual-baselines.mjs`](../scripts/capture-visual-baselines.mjs) |
 | Canonical bundle layout *(this doc)* | `docs/theme-bundle-layout.md` |
-| Reproducible bundle builder | [`scripts/extract-scheme.mjs`](../scripts/extract-scheme.mjs) |

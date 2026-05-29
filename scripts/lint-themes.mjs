@@ -124,6 +124,15 @@ async function decodeBundle(slug, themeDir) {
 async function lintBundle(slug) {
   const themeDir = resolve(themesRoot, slug);
   const { manifest, iconIndex, loadCicn, fingerprint } = await decodeBundle(slug, themeDir);
+  // Compute a stable fingerprint of the DECODED manifest + iconIndex, so the baseline
+  // catches decoder/rule regressions that change the output without changing the source
+  // bytes (a `tools/theme-loader/convert.js` change is the canonical case). Asset paths
+  // get blob: URLs at runtime but encodeAssets:false here keeps them as relative paths;
+  // however a Set of asset PATHS would still drift under any decoder change that
+  // renames/reorders cicns. Stringify with sorted keys to keep the hash deterministic.
+  const decodedSha256 = createHash('sha256').update(stableJSON({
+    manifest, iconIndex,
+  })).digest('hex');
   const wts = manifest.windowTypes || {};
   const keys = Object.keys(wts).filter((k) => wts[k]?.chrome?.active);
   const lines = [];
@@ -304,7 +313,22 @@ async function lintBundle(slug) {
   }
 
   const status = errors ? 'error' : warns ? 'warn' : 'ok';
-  return { status, errors, warnings: warns, notes, lines, fingerprint };
+  return { status, errors, warnings: warns, notes, lines, fingerprint, decodedSha256 };
+}
+
+/** JSON.stringify with object keys sorted at every level — gives a deterministic byte
+ *  stream from the manifest so its sha256 doesn't flap on insertion-order changes. */
+function stableJSON(value) {
+  const replace = (v) => {
+    if (Array.isArray(v)) return v.map(replace);
+    if (v && typeof v === 'object' && !ArrayBuffer.isView(v)) {
+      const out = {};
+      for (const k of Object.keys(v).sort()) out[k] = replace(v[k]);
+      return out;
+    }
+    return v;
+  };
+  return JSON.stringify(replace(value));
 }
 
 // ── main ────────────────────────────────────────────────────────────────
@@ -339,6 +363,7 @@ if (only) {
     out.themes[slug] = {
       source: r.fingerprint.source,
       sha256: r.fingerprint.sha256,
+      decodedSha256: r.decodedSha256,
       status: r.status,
       errors: r.errors,
       warnings: r.warnings,
@@ -358,10 +383,14 @@ if (only) {
   }
   const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
   const baselineThemes = baseline.themes ?? {};
-  let drift = 0, missing = 0, extra = 0;
+  let drift = 0, missing = 0, extra = 0, decoderDrift = 0;
   const baselineSlugs = Object.keys(baselineThemes);
   const liveSlugs = new Set(slugs);
-  console.log(`-- verify against ${baselinePath.replace(repoRoot + '/', '')} (ranAt ${baseline.ranAt ?? '?'}) --`);
+  // Strict mode (or any time we want to catch a `tools/theme-loader/convert.js` regression
+  // that DIDN'T change the source bytes) re-decodes every bundle and recomputes the manifest
+  // fingerprint. Plain verify mode trusts the source hash — it's the fast path.
+  const recheckDecoded = MODE_STRICT;
+  console.log(`-- verify against ${baselinePath.replace(repoRoot + '/', '')} (ranAt ${baseline.ranAt ?? '?'}${recheckDecoded ? ', re-decode' : ''}) --`);
   for (const slug of slugs) {
     const themeDir = resolve(themesRoot, slug);
     const fp = sourceFingerprint(themeDir);
@@ -372,11 +401,28 @@ if (only) {
       extra++; continue;
     }
     if (stored.sha256 !== fp.sha256) {
-      console.log(`  ${slug.padEnd(28)} ✗ DRIFT (source sha256 changed: ${stored.sha256.slice(0, 12)} → ${fp.sha256.slice(0, 12)}) — re-lint via --update`);
+      console.log(`  ${slug.padEnd(28)} ✗ DRIFT (source sha256: ${stored.sha256.slice(0, 12)} → ${fp.sha256.slice(0, 12)}) — re-lint via --update`);
       drift++; continue;
     }
+    // Decoder-output check (slow). Recomputes the manifest hash against what the live
+    // decoder produces from the same source bytes. Catches decoder/rule regressions
+    // that ship green when only the SOURCE hash is checked — the parity-gate hole the
+    // retired convert.test.mjs deepEqual test used to plug.
+    if (recheckDecoded && stored.decodedSha256) {
+      try {
+        const r = await lintBundle(slug);
+        if (r.decodedSha256 !== stored.decodedSha256) {
+          console.log(`  ${slug.padEnd(28)} ✗ DECODER DRIFT (manifest sha256: ${stored.decodedSha256.slice(0, 12)} → ${r.decodedSha256.slice(0, 12)}) — decoder produced different output from the SAME source bytes; re-lint via --update`);
+          decoderDrift++; continue;
+        }
+      } catch (e) {
+        console.log(`  ${slug.padEnd(28)} ✗ DECODE FAILED (${e.message}) — re-lint via --update`);
+        drift++; continue;
+      }
+    }
     const counts = `${stored.errors}E ${stored.warnings}W ${stored.notes}N`;
-    console.log(`  ${slug.padEnd(28)} ${stored.status.padEnd(5)} ${counts}  · via ${stored.source} sha:${stored.sha256.slice(0, 8)}`);
+    const decBadge = stored.decodedSha256 ? ` · dec:${stored.decodedSha256.slice(0, 8)}` : '';
+    console.log(`  ${slug.padEnd(28)} ${stored.status.padEnd(5)} ${counts}  · via ${stored.source} src:${stored.sha256.slice(0, 8)}${decBadge}`);
   }
   for (const slug of baselineSlugs) {
     if (!liveSlugs.has(slug)) {
@@ -384,9 +430,10 @@ if (only) {
       missing++;
     }
   }
-  const exitNonZero = MODE_STRICT && (drift || missing || extra);
-  console.log(`\n-- verify: ${slugs.length} bundle(s), drift=${drift}, new=${extra}, removed=${missing}${MODE_STRICT ? ' (strict)' : ''} --`);
+  const exitNonZero = MODE_STRICT && (drift || missing || extra || decoderDrift);
+  const driftBadge = decoderDrift ? `, decoder-drift=${decoderDrift}` : '';
+  console.log(`\n-- verify: ${slugs.length} bundle(s), drift=${drift}, new=${extra}, removed=${missing}${driftBadge}${MODE_STRICT ? ' (strict, re-decoded)' : ''} --`);
   if (exitNonZero) process.exit(1);
-  if (drift || extra) console.log('   (run `npm run lint:themes -- --update` to refresh the baseline)');
+  if (drift || extra || decoderDrift) console.log('   (run `npm run lint:themes -- --update` to refresh the baseline)');
   process.exit(0);
 }

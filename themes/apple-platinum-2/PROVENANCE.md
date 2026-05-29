@@ -18,6 +18,6 @@ The original kaleidoscope.net site is no longer reachable. This bundle was porte
 
 ## Acknowledgements
 
-Aaron UI gratefully acknowledges:
+Scriptoscope gratefully acknowledges:
 - **Orion Dimitrakopoulos** for creating this scheme.
 - **[Hannes Jürgens (hryjksn)](https://kaleidoscope.hryjksn.com/)** for archiving the Kaleidoscope scheme community's work.

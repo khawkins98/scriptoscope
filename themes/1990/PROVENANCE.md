@@ -14,19 +14,17 @@ The original kaleidoscope.net site is no longer reachable. This bundle was porte
 
 ## Acknowledgements
 
-Aaron UI gratefully acknowledges:
+Scriptoscope gratefully acknowledges:
 - **SHIOCOP** for creating this scheme.
 - **[Hannes Jürgens (hryjksn)](https://kaleidoscope.hryjksn.com/)** for archiving the Kaleidoscope scheme community's work — an invaluable resource for porting and preservation.
 
 ## How the bundle was produced
 
-1. Downloaded `1990.sit` from the Wayback Machine snapshot above.
-2. Unpacked with `unar` (the StuffIt archive format).
-3. The resource fork was read directly (`<file>/..namedfork/rsrc`) and decompiled to text via `DeRez`.
-4. Run through `scripts/extract-scheme.mjs` (decoders in `tools/theme-loader/`) to decode `cicn`, `ppat`, `cinf`, `wnd#` resources into PNGs + `theme.json`.
+1. Downloaded the original Kaleidoscope archive (.sit) from the source cited above.
+2. Committed the archive verbatim at `themes/<slug>/scheme.sit` — or, when the upstream .sit was no longer reachable, the unwrapped resource fork as `scheme.rsrc`. Authored `meta.json` + this `PROVENANCE.md` alongside it.
+3. The runtime decodes the bundle in-browser via `loadKaleidoscopeScheme` (in `tools/theme-loader/`) on every load. Per-bundle PNG / theme.json derivatives are NOT committed — they are produced on-demand by `npm run build:themes` for local lint / diag work and are gitignored.
 
-See `extraction-manifest.json` for the per-resource extraction record.
 
 ## License note
 
-If you are the author of this scheme and would like it removed from this repository, please open an issue at the Aaron UI repository.
+If you are the author of this scheme and would like it removed from this repository, please open an issue at the Scriptoscope repository.

@@ -14,16 +14,20 @@ Status: prototype mode, pre-1.0. The maintainer commits directly to the working 
 npm install
 npm run dev          # vite, http://localhost:5173 — opens demo/index.html
 npm run typecheck    # tsc --noEmit (the primary correctness gate in prototype mode)
-npm test             # node --test on scripts/generate-platinum/*.test.mjs, tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs
+npm test             # node --test on tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs
 npm run build        # vite build + tsc -p tsconfig.build.json (library output to dist/)
 npm run build:demo   # builds the GitHub Pages demo
 
-# Theme pipeline
-npm run import -- <slug>   # one-command port for a single scheme in themes/<slug>/ (extract chrome + icons + rasters + roles + lint + report card)
-npm run build:themes       # re-extract every theme bundle (extract-scheme --all + extract-icons --all + index-rasters + gen-resource-roles + gen-themes-manifest)
-npm run lint:themes        # validate every theme bundle (proactive divergence detection — preferred over eyeballing renders)
+# Theme pipeline (Option A — bundles ship source-of-truth only; the bake commands below
+# write into gitignored themes/<slug>/ paths for LOCAL diag, never committed)
+npm run import -- <slug>   # one-command port: places a fresh scheme.sit/.rsrc + scaffolds meta.json + locally re-bakes for diag
+npm run build:themes       # locally re-bake every bundle (extract-scheme + extract-icons + index-rasters + gen-resource-roles + gen-themes-manifest)
+npm run lint:themes        # default: VERIFY each source archive's sha256 against themes/lint-baseline.json (fast)
+npm run lint:themes -- --update   # re-lint in-memory + refresh the baseline (slow path — after a renderer or rule change)
+npm run lint:themes -- --strict   # verify-mode, exits 1 on any drift (CI signal)
+npm run baseline:scenes    # re-capture per-theme Scene panel into tests/visual-baselines/scenes/<slug>.png (eyeball regression check)
 
-# Diagnostics
+# Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)
 npm run diag:render        # render a window off a bundle to a PNG for eyeballing
 npm run diag:audit         # audit part placement against the recipe
 ```
@@ -36,13 +40,13 @@ The runtime is a short pipeline: theme bundle → loader → compositor → pixe
 
 ### The five layers (kept separable for a possible future repo split)
 
-1. **Conversion** — `tools/theme-loader/` (`.rsrc` → `theme.json`, pure/portable, no fs/zlib/canvas/src deps), plus `tools/sit-wasm/` (StuffIt decoder for the in-browser drop-zone).
+1. **Conversion** — `tools/theme-loader/` (`.sit`/`.rsrc` → in-memory `LoadedTheme`, pure/portable, no fs/zlib/canvas/src deps), plus `tools/sit-wasm/` (StuffIt decoder used by both the drop-zone and the runtime `.sit` path; lazy-loaded — `.rsrc` skips it). **Runtime dependency, not just a build-time tool**: `src/loadTheme.ts` calls `loadKaleidoscopeScheme` on every bundle load.
 2. **Asset I/O shells** — PNG encode / OffscreenCanvas wrappers.
 3. **Runtime** — `src/` (the published library).
 4. **Visualization / controls** — themed (`src/controls.ts`, cicn-rendered) + procedural Platinum fallback (`src/platinum.ts`) for widgets a scheme omits.
 5. **Debug UI** — `demo/`.
 
-Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing app-specific. The seam between layers is the `theme.json` contract in `src/types.ts` (`ThemeManifest`).
+Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing app-specific. The seam between layers is the in-memory `LoadedTheme` / `ThemeManifest` shape in `src/types.ts` (the same shape the retired `theme.json` used to serialise — bundles no longer ship it on disk, but the contract is unchanged).
 
 ### Key files in `src/`
 
@@ -51,9 +55,9 @@ Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing
 - `composeCornerSprite.ts` — alternative chrome path for the 4 corner-sprite schemes (`apple-platinum-2`, `platinum-8`, `system7-nostalgia-silver`, `black-platinum`) that draw the frame procedurally coloured by `headerColors` rather than 9-slicing a cicn template.
 - `renderWindow.ts` — composes chrome + title text + body into a `<canvas>`.
 - `controls.ts` — themed (cicn-rendered) widgets: buttons, scrollbars, sliders, progress, tabs, list headers.
-- `platinum.ts` — procedural gray-Platinum fallback for the controls a scheme *omits* and defers to the OS. The discriminator is empirical: **grep `chromeElements` in `theme.json` before wiring a control** — themed chrome is cicn-rendered, plain form widgets are CSS/procedurally drawn.
-- `loadTheme.ts` — fetches a bundle directory and indexes every chrome element by **resource id**. Controls resolve by id, never by bundle slug.
-- `baseChain.ts` — `LoadedTheme.base` inheritance walker (`resolveInChain`). `apple-platinum-replica` is the generated universal base; sparse bundles like `apple-platinum-2` defer to it.
+- `platinum.ts` — procedural gray-Platinum fallback for the controls a scheme *omits* and defers to the OS. The discriminator is empirical: load the bundle and **inspect `theme.manifest.chromeElements`** (or re-bake with `npm run build:themes` and grep the local-only `themes/<slug>/theme.json`) before wiring a control — themed chrome is cicn-rendered, plain form widgets are CSS/procedurally drawn.
+- `loadTheme.ts` — fetches a bundle directory (races `scheme.sit` → `scheme.rsrc`), decodes the resource fork in-browser via `loadKaleidoscopeScheme`, and returns a `LoadedTheme` whose `chromeElements` assets are `blob:` URLs over OffscreenCanvases. **Controls resolve by `sourceCicnId` (a numeric field on each `chromeElement`), never by parsing the asset path** — paths become blob URLs that don't carry the id (see `src/controls.ts:elementById`; full story in LEARNINGS.md's 2026-05-29 entry).
+- `baseChain.ts` — `LoadedTheme.base` inheritance walker (`resolveInChain`). Sparse bundles like `apple-platinum-2` defer to a base scheme (the consumer picks via `mountDeclarative({ baseSlug })`).
 - `pixelBuffer.ts` — the offscreen QuickDraw-style buffer everything draws into.
 - `textRaster.ts` — Charcoal 12 / Virtue bitmap title rasterizer (uses an ink-tight buffer; the compositor centres it).
 - `declarative/` — the `data-scriptoscope-*` consumption layer (separate public entry — `mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, `parseWindowAttrs`). Does **not** modify the runtime; imports it directly.
@@ -61,9 +65,9 @@ Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing
 
 ### Theme bundles (`themes/<slug>/`)
 
-Each bundle is a directory containing the original `scheme.rsrc`, a decoded `theme.json`, decoded PNGs (`cicns/`, `ppats/`, `icons/`), `meta.json` (author/origin/license — `origin.originalLicense` is the readme-stated terms verbatim), `PROVENANCE.md`, `resource-roles.json`, and `rasters.json`. **Never infer a resource's role from its filename slug or id** — read `resource-roles.json` (the same id has different roles per scheme and per cicn/ics4 channel).
+Each bundle is a directory containing the original archive (`scheme.sit` preferred — the upstream StuffIt the author published; `scheme.rsrc` fallback for wayback-recovered schemes whose `.sit` is no longer reachable), `meta.json` (author/origin/license — `origin.originalLicense` is the readme-stated terms verbatim), and `PROVENANCE.md`. The runtime decodes the archive in-browser via `loadKaleidoscopeScheme` (the same path the demo drop-zone uses). Pre-extracted artifacts (`theme.json`, `cicns/`, `ppats/`, `icons/`, `resource-roles.json`, `rasters.json`, `extraction-manifest.json`) are produced on-demand by `npm run build:themes` for local lint / diag / audit work but are gitignored — see `.gitignore`'s "Option A (2026-05-29)" block. **Never infer a resource's role from its filename slug or id** — re-bake locally and read the generated `resource-roles.json` (the same id has different roles per scheme and per cicn/ics4 channel).
 
-The corpus: `1138`, `1984`, `1990`, `apple-platinum-2`, `apple-platinum-replica` (generated universal base), `beos-r503`, `black-platinum`, `evolution`, `platinum-8`, `system7-nostalgia-silver`. `platinum-8` and `system7-nostalgia-silver` are controls-only (no window recipes).
+The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. `platinum-8` and `system7-nostalgia-silver` are controls-only (no window recipes).
 
 ## Working norms (project-specific — these override common reflexes)
 
