@@ -158,9 +158,99 @@
     #byo-out .byo-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
     #byo-out .byo-cell .lbl { font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; }
     #byo-out .byo-sw { display: inline-block; width: 13px; height: 13px; border: 1px solid #0003; border-radius: 2px; }
+
+    /* ── "The powers behind Scriptoscope" — 1999-Apple-page-style intro ────
+       Inspiration: web.archive.org/19991002122808/apple.com/macos/technologies.html
+       (the "Powers behind Mac OS" page). Times-set body, two-column feature
+       cards, marketing voice, mauve-blue link colour, modest leading. This is
+       the BARE look — when the skinning toggle is OFF, the page looks like a
+       1999 Apple marketing page. When ON (default), mountDeclarative skins the
+       intro's interactive widgets (button, checkboxes) with whatever
+       Kaleidoscope theme the ribbon shows. */
+    #powers { background: #ffffff; color: #2a2a2a; padding: 40px 24px 48px; border-bottom: 1px solid #d0d0d0; }
+    #powers .powers-inner { max-width: 920px; margin: 0 auto; font: 14px/1.55 Georgia, "Times New Roman", Times, serif; }
+    #powers h2 { font: 34px/1.1 Georgia, "Times New Roman", Times, serif; margin: 0 0 14px; font-weight: 400; letter-spacing: -0.01em; }
+    #powers > .powers-inner > p { font-size: 15px; line-height: 1.5; margin: 0 0 28px; max-width: 64ch; }
+    #powers .powers-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; margin: 0 0 30px; background: #f3f3f3; border: 1px solid #c0c0c0; border-radius: 3px; font: 12px/1.2 Georgia, "Times New Roman", Times, serif; cursor: pointer; user-select: none; }
+    #powers .powers-toggle:hover { background: #ececec; }
+    #powers .powers-toggle input { margin: 0; }
+    #powers .powers-toggle strong { font-weight: 700; color: #3859b3; }
+    #powers .powers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 36px; margin: 0; }
+    #powers .powers-card { display: grid; grid-template-columns: 56px 1fr; gap: 16px; }
+    #powers .powers-card .powers-glyph { width: 48px; height: 48px; border: 1px solid #c0c0c0; background: #fafafa; display: grid; place-items: center; font: 28px/1 Georgia, serif; color: #888; image-rendering: pixelated; }
+    #powers .powers-card h3 { margin: 0 0 4px; font: 14px/1.2 Georgia, "Times New Roman", Times, serif; font-weight: 700; }
+    #powers .powers-card h3 a, #powers a { color: #3859b3; text-decoration: underline; }
+    #powers .powers-card h3 a:hover, #powers a:hover { color: #1a3580; }
+    #powers .powers-card p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+    #powers .powers-card .powers-widget-row { margin: 8px 0 0; display: flex; gap: 8px; align-items: center; }
+    /* Buttons in the cards. When skinning is OFF this is what users see — a plain
+       1999-style flat button. When ON, mountDeclarative replaces with themed chrome. */
+    #powers button.powers-demo-btn {
+      font: 12px Georgia, "Times New Roman", Times, serif; padding: 4px 14px;
+      background: linear-gradient(#fefefe, #d8d8d8); border: 1px solid #888;
+      border-radius: 3px; cursor: pointer; color: #2a2a2a;
+    }
+    #powers button.powers-demo-btn:hover { background: linear-gradient(#fefefe, #c8c8c8); }
+    #powers .powers-divider { margin-top: 28px; padding-top: 18px; border-top: 1px solid #d0d0d0; font-size: 12px; color: #666; }
+    #powers .powers-divider a { color: #3859b3; }
+    @media (max-width: 720px) {
+      #powers .powers-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
+  <!-- ── "The powers behind Scriptoscope" intro section ────────────────────
+       Designed after Apple's "Powers behind Mac OS" page from 1999. Uses serif
+       typography + 2-column feature grid as the BARE look. Each card has a
+       small demo widget (button) carrying `data-scriptoscope-button` — when
+       the skinning toggle is ON (default), mountDeclarative themes those
+       widgets to whatever ribbon scheme is active. Toggle OFF reveals the
+       underlying serif HTML. Reference image:
+       https://web.archive.org/web/19991002122808/http://apple.com/macos/technologies.html -->
+  <section id="powers" aria-label="What is Scriptoscope">
+    <div class="powers-inner">
+      <h2>The powers behind Scriptoscope</h2>
+      <p>A web-native runtime for classic Mac <em>Kaleidoscope</em> themes — Sherlock-shaped File menus, BeOS pinstripes, the unmistakable Apple Platinum bevel — rendered pixel-faithfully in your browser from their original binary resources.</p>
+      <label class="powers-toggle" for="powers-skin-toggle" title="Toggle the Kaleidoscope chrome on the demo widgets below. Off = bare 1999 HTML; on = themed.">
+        <input type="checkbox" id="powers-skin-toggle" checked />
+        <span><strong>Skin this page</strong> with the active scheme</span>
+      </label>
+      <div class="powers-grid">
+        <article class="powers-card">
+          <div class="powers-glyph" aria-hidden="true">⌘</div>
+          <div>
+            <h3><a href="#detail">Pixel-perfect Kaleidoscope.</a></h3>
+            <p>Every <code>cicn</code> nine-sliced and every <code>wnd#</code> recipe replayed from the binary the Mac OS ran. The compositor mimics the 2.3.1 kDEF's part-code jump table verbatim. Your favourite 1999 scheme looks exactly as it did in 1999.</p>
+            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></div>
+          </div>
+        </article>
+        <article class="powers-card">
+          <div class="powers-glyph" aria-hidden="true">↘</div>
+          <div>
+            <h3><a href="#byo">Bring your own theme.</a></h3>
+            <p>Drop a <code>.sit</code> file. Decoded in your browser — nothing uploaded, nothing stored. The same StuffIt + resource-fork pipeline classic Mac OS used, transliterated to WebAssembly + JavaScript.</p>
+            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>Choose…</button></div>
+          </div>
+        </article>
+        <article class="powers-card">
+          <div class="powers-glyph" aria-hidden="true">✎</div>
+          <div>
+            <h3><a href="./declarative-site.html">Skin any HTML.</a></h3>
+            <p>Add one attribute and your page wears a Kaleidoscope title bar. Buttons, scrollbars, dropdowns — all dressed without rewriting them. Try it: <code>&lt;button data-scriptoscope-button&gt;</code> on the demo widgets here, toggled by the box above.</p>
+            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>Open</button><button class="powers-demo-btn" data-scriptoscope-button>Save</button></div>
+          </div>
+        </article>
+        <article class="powers-card">
+          <div class="powers-glyph" aria-hidden="true">✦</div>
+          <div>
+            <h3><a href="#ribbon">Eighteen schemes ready.</a></h3>
+            <p>From System 7's <em>1138</em> through Mac OS 8.5 Apple Platinum to <em>BeOS R5.0.3</em>, <em>Crayon OS</em>, and <em>Monkey Paradise</em> — every popular scheme of the era, rendered to the pixel. Pick one from the ribbon below and watch every widget on this page re-skin.</p>
+          </div>
+        </article>
+      </div>
+      <p class="powers-divider">Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no Apple code embedded. The deliberate divergences are catalogued in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>.</p>
+    </div>
+  </section>
   <header>
     <h1>Scriptoscope <span id="ver"></span> — Mac OS Appearance for the web</h1>
     <p>Render any classic-Mac <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a> theme pixel-faithfully in the browser — 1138, BeOS R5, evolution, Apple Platinum 2, more. Pick a scheme from the ribbon to explore: scene + live controls + window playground. <a href="./declarative-site.html" class="cta">Try it on a real page →</a></p>
@@ -1928,6 +2018,40 @@
       }
     }
     setupByo();
+
+    // ── "Powers" intro: declarative skinning toggle ─────────────────────────
+    // The intro section above the ribbon shows feature cards with demo buttons
+    // marked `data-scriptoscope-button`. By default we mount the declarative
+    // skinner scoped to the #powers section so those buttons render in the
+    // currently-active Kaleidoscope chrome. Toggling the checkbox unmounts to
+    // reveal the bare 1999-Apple-page-style serif HTML underneath — that's the
+    // demonstration: same DOM, opt-in skinning. Theme follows the ribbon.
+    {
+      const { mountDeclarative } = await import('../src/declarative/index.ts');
+      const powersSection = document.getElementById('powers');
+      const toggle = document.getElementById('powers-skin-toggle');
+      let powersHandle = null;
+      const mountPowers = async () => {
+        if (powersHandle) return;
+        powersHandle = await mountDeclarative({
+          root: powersSection,
+          themeBaseUrl: `${import.meta.env.BASE_URL ?? '/'}themes`.replace(/\/+$/, ''),
+          pageThemeDefault: activeSlug ?? '1138',
+        });
+      };
+      const unmountPowers = () => {
+        if (!powersHandle) return;
+        try { powersHandle.disconnect(); } catch { /* tolerate */ }
+        powersHandle = null;
+      };
+      toggle.addEventListener('change', () => { toggle.checked ? mountPowers() : unmountPowers(); });
+      // Follow the ribbon's active theme — when the user picks a new scheme,
+      // retheme the intro too if it's currently skinned.
+      syncHooks.push(async (slug) => { if (powersHandle) { try { await powersHandle.retheme(slug); } catch { /* */ } } });
+      // Mount once on boot (default = checked). Defer to next tick so the
+      // ribbon's first `activate(slug)` has set `activeSlug` first.
+      queueMicrotask(() => { if (toggle.checked) mountPowers(); });
+    }
 
     // ── boot: build the ribbon, then activate the theme from ?theme= (or the first).
     await buildRibbon();
