@@ -102,9 +102,9 @@ The content area behind the Options dialog (`no-title-utility-window`).
 
 | Tier | Source field | Why |
 |---|---|---|
-| T1 | `patterns['utility-pattern']` | The bundle author's explicit utility-window interior. monkey-paradise / animals / crayon-os ship `ppat-42-utility-pattern.png` here. Reading this slot is the codex move: the manifest carries the structured answer, the runtime was returning flat white instead. |
-| T2 | `patterns['ppat--9568']` | Canonical kDEF utility-window cinf slot — schemes that don't use the friendly `utility-pattern` key still ship the pattern under the raw negative-id key (1990 + others). |
-| T3 | `flat #ffffff` | Period default for schemes that ship no utility pattern at all (1984, the corner-sprite Platinums, the Windows ports). |
+| T1 | `ppat-42` (resolved by canonical resource id) | The kDEF utility-window pattern slot. Each bundle author chose a different friendly key — monkey-paradise / animals / crayon-os ship "utility-pattern", 1984 ships "blue-utility", others ship under their own name. All decode to `ppat-42-*.png`. Reading by resource id (the asset-path id), not the friendly key, is the codex move: the resource id is the structured truth, the key is decorative. |
+| T2 | `ppat--9568` (resolved by canonical resource id) | Canonical kDEF utility-window cinf slot — schemes that don't ship `ppat-42` may carry the utility pattern under cinf -9568 instead (1990 lands here). |
+| T3 | `flat #ffffff` | Period default for schemes that ship no utility pattern at all (the corner-sprite Platinums, the Windows ports, dolphin-som, etc.). |
 
 The Finder Icon-View ppat (`bodyBackground.pattern`, cinf -9551) is **never** reused for utility bodies — that's the army-camo-wrapping-the-Options-dialog regression class (the document-window's body texture isn't meant for modal interiors).
 

@@ -66,7 +66,12 @@ export function buildThemeJson(manifest, options = {}) {
   const ppatSlugById = {};
   for (const ppat of ppats) {
     const slug = uniquePatternSlug(patterns, slugify(ppat.name) || `ppat-${ppat.id}`);
-    patterns[slug] = { asset: ppat.file };
+    // `sourcePpatId` mirrors `sourceCicnId` on chromeElements — it survives the
+    // Option A blob-URL rewrite in loadKaleidoscopeScheme. Without it, runtime
+    // resolution by canonical resource id (`ppat-42` = the kDEF utility-window
+    // pattern slot, regardless of the bundle author's friendly name) breaks
+    // because `asset` becomes a `blob:...` URL that no longer contains the id.
+    patterns[slug] = { asset: ppat.file, sourcePpatId: ppat.id };
     ppatSlugById[ppat.id] = slug;
   }
 

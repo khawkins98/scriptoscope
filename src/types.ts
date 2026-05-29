@@ -208,7 +208,7 @@ export interface ThemeManifest {
    * `bgPattern` field references these keys; the demo + future per-slot lookups
    * resolve through this map. Always present (may be empty for slim schemes).
    */
-  patterns?: Record<string, { asset: string }>;
+  patterns?: Record<string, { asset: string; sourcePpatId?: number }>;
 }
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */

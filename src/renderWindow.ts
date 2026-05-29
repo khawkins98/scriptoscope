@@ -669,12 +669,32 @@ const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/
  * army-camo-wrapping-the-Options-dialog regression class; document-window
  * texture was never meant for utility interiors.
  */
+/** Find a pattern by canonical RESOURCE ID rather than friendly key — the decoder
+ *  assigns friendly keys from the `ppat`'s resource name (1984's `ppat-42` ships
+ *  named "blue utility"; monkey-paradise's same-id ppat ships named "utility
+ *  pattern"). Both are the canonical utility-window slot; both decode to the
+ *  same `ppat-42` id. Reading `sourcePpatId` is the same trick `elementById`
+ *  uses for chromeElements — it survives the Option-A blob-URL rewrite that
+ *  replaces `asset` paths with `blob:` URLs at runtime (the alternative,
+ *  parsing the id out of the asset path, breaks once `asset` becomes a blob URL). */
+function patternByResourceId(theme: LoadedTheme, id: number): string | null {
+  const patterns = theme.manifest.patterns ?? {};
+  const abs = Math.abs(id);
+  for (const v of Object.values(patterns)) {
+    if (typeof v?.sourcePpatId === 'number' && Math.abs(v.sourcePpatId) === abs) return v.asset;
+  }
+  return null;
+}
+
 function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
   const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
   if (isUtility) {
-    const patterns = theme.manifest.patterns ?? {};
-    const utilPat = patterns['utility-pattern']?.asset
-      ?? patterns['ppat--9568']?.asset
+    // Walk by canonical resource id rather than friendly key — `ppat-42` is the
+    // kDEF's utility-window pattern slot, but each bundle author picked a
+    // different friendly name (1984="blue utility", monkey-paradise="utility
+    // pattern", crayon-os="utility pattern"). The id is the structured truth.
+    const utilPat = patternByResourceId(theme, 42)
+      ?? patternByResourceId(theme, -9568) // canonical kDEF cinf slot for utility-window
       ?? null;
     if (!utilPat) return { background: '#ffffff' };
     return {
@@ -708,9 +728,8 @@ function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number, sl
   // (utility-pattern → -9568) so the scale-fix tracks the resolved asset, not
   // the document-window default.
   const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  const patterns = theme.manifest.patterns ?? {};
   const pat = isUtility
-    ? (patterns['utility-pattern']?.asset ?? patterns['ppat--9568']?.asset ?? null)
+    ? (patternByResourceId(theme, 42) ?? patternByResourceId(theme, -9568) ?? null)
     : (theme.manifest.bodyBackground?.pattern ?? null);
   if (!pat || scale <= 1 || typeof Image === 'undefined') return;
   const img = new Image();

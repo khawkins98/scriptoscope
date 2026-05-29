@@ -148,14 +148,20 @@ const SLOTS = [
       // bodies — that's the army-camo-wrapping-the-Options-dialog regression
       // class; the document-window's body texture isn't meant for modal interiors.
       {
-        name: 'patterns.utility-pattern',
-        why: 'author-declared utility-window interior (the structured answer the manifest carries)',
-        resolve: (m) => m.patterns?.['utility-pattern']?.asset ? 'utility-pattern (author-declared)' : null,
+        name: 'ppat-42 (utility-window canonical)',
+        why: 'kDEF utility-window pattern slot; each bundle named it differently in the friendly key (1984 "blue-utility", monkey-paradise "utility-pattern", crayon-os "utility-pattern") — resolved by `sourcePpatId` which survives Option-A blob-URL rewriting',
+        resolve: (m) => {
+          const hit = Object.values(m.patterns ?? {}).find((v) => Math.abs(v?.sourcePpatId ?? 0) === 42);
+          return hit ? `ppat-42 (canonical utility slot)` : null;
+        },
       },
       {
-        name: 'patterns.ppat--9568',
-        why: 'canonical kDEF utility-window cinf slot — shipped under the negative-id key',
-        resolve: (m) => m.patterns?.['ppat--9568']?.asset ? 'ppat--9568 (canonical utility slot)' : null,
+        name: 'ppat--9568 (utility cinf)',
+        why: 'canonical kDEF utility-window cinf slot — shipped when the bundle doesnt ship ppat-42',
+        resolve: (m) => {
+          const hit = Object.values(m.patterns ?? {}).find((v) => Math.abs(v?.sourcePpatId ?? 0) === 9568);
+          return hit ? `ppat--9568 (utility cinf)` : null;
+        },
       },
       { name: 'flat #ffffff', why: 'period default for schemes that ship no utility pattern', resolve: () => 'flat #ffffff' },
     ],
