@@ -69,3 +69,6 @@ themes/*/icl4/
 themes/*/icl8/
 themes/*/ics4/
 themes/*/ics8/
+
+# verify-scenes scratch directory
+.tmp/
