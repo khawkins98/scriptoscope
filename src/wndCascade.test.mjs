@@ -31,12 +31,12 @@ test('cascadeFallbackIds: -14322 (movable-alert) walks 3 ids before terminal', (
   assert.deepEqual(cascadeFallbackIds(-14322), [-14324, -14326, -14336]);
 });
 
-test('cascadeFallbackIds: -14292 (collapsed-side-utility) → side-utility → titled-utility', () => {
+test('cascadeFallbackIds: -14292 (collapsed-side-floating-utility-window) → side-floating-utility-window → titled-utility-window', () => {
   // 0xC82C: & -5 → 0xC828 = -14296; & -15 → 0xC820 = -14304.
   assert.deepEqual(cascadeFallbackIds(-14292), [-14296, -14304]);
 });
 
-test('cascadeFallbackIds: -14284 (collapsed-no-title-utility) walks 3 ids', () => {
+test('cascadeFallbackIds: -14284 (collapsed-no-title-utility-window) walks 3 ids', () => {
   // 0xC834: & -5 → 0xC830 = -14288; & -17 → 0xC824 = -14300; & -21 → 0xC820 = -14304.
   assert.deepEqual(cascadeFallbackIds(-14284), [-14288, -14300, -14304]);
 });

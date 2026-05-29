@@ -44,11 +44,11 @@
 //   -14324  movable-modal                     → -14328 → -14336
 //   -14322  movable-alert                     → -14324 → -14326 → -14336
 //   -14304  titled-utility-window             (terminal — utility family)
-//   -14300  collapsed-titled-utility          → -14304
+//   -14300  collapsed-titled-utility-window   → -14304
 //   -14296  side-floating-utility-window      → -14304
-//   -14292  collapsed-side-utility            → -14296 → -14304
+//   -14292  collapsed-side-floating-utility-window → -14296 → -14304
 //   -14288  no-title-utility-window           → -14304
-//   -14284  collapsed-no-title-utility        → -14288 → -14300 → -14304
+//   -14284  collapsed-no-title-utility-window → -14288 → -14300 → -14304
 //   -12320  popup-window                      (terminal — no fallback in mask grid)
 //
 // CORPUS IMPACT (audited 2026-05-29 across all 18 bundles): every bundle except
@@ -140,7 +140,7 @@ export function cascadeFallbackIds(rawId: number): number[] {
  * the cascade only operates on the canonical id grid.
  *
  * @example
- *   cascadeFallbackSlugs('collapsed-side-utility')
+ *   cascadeFallbackSlugs('collapsed-side-floating-utility-window')
  *     → ['side-floating-utility-window', 'titled-utility-window']
  */
 export function cascadeFallbackSlugs(slug: string): string[] {

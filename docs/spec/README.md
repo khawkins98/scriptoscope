@@ -49,6 +49,7 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 |---|---|---|
 | **`kdef231-reference.md`** | THE standing reference. Every routine address, every resource id, every struct offset, every coordinate mapping for the 2.3.1 binary. First stop for "where is X?". | `/tmp/kaleido-trace/kDEF231_0.bin` (re-extractable via `.scratch/dump-kaleido-cdev.mjs`) |
 | `kdef-binary-inventory.md` | The extraction recipe + 2.3.1 architectural findings (35-entry message dispatch, wnd# fallback ladder at 0x356c..0x367e, FourCC vocabulary, 17 new AppearanceLib calls in 2.3.1). | `.scratch/k{182,231}-kdef/` |
+| `kdef-service-handlers.md` | Per-slot decode of the 9-entry master service-handler table at `0x1c7c`. Pins slot 3 = `0x118b8` wnd# gate (NOT cinf — corrects an earlier inventory note); cinf consumer is `0x116f8`. | `.scratch/k231-kdef/kDEF/k231-kdef0.asm` |
 | `kdef182-disassembly-findings.md` | May 2026 1.8.2 binary archaeology pass. Structural facts (QuickDraw + CopyBits, kDEF themes surroundings + Appearance Mgr draws controls, 4 hardcoded `_GetResource` calls). | Same |
 | `kdef-architecture.md` | The "how does it work?" tour for new contributors. | Synthesis |
 | `kdef231-recipe-walk.md` | The decoded recipe walk — the TRUTH source for part-code edges. | Same as kdef231-reference.md |
@@ -68,6 +69,8 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | `compositor-spec.md` | The runtime model the kDEF replays. The consumer of `kdef231-reference.md` §4. |
 | `glitch-punchlist.md` | A standing list of visual glitches per theme. |
 | `golden-reference-todo.md` | TODO items against the reference images. |
+| `scheme-factory-vs-corpus.md` | Cross-correlation of the 127-entry Scheme Factory `STR# 128` role catalogue against the 6,842 corpus author labels: 12 canonical / 94 paraphrase / 15 weak / 12 invented; 52 of 120 SF slots are dead. |
+| `codebase-vs-primary-sources-audit.md` | 2026-05-29 holistic sweep of `src/` + scripts against the primary-source corpus. 12 findings (documentation, authorLabel adoption, unread decoded fields); nothing landed — gaps surfaced. |
 
 ---
 

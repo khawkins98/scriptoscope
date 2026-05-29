@@ -773,9 +773,9 @@ function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undef
   if (wts[slug] && looksLikeWindow(wts[slug])) return wts[slug];
 
   // kDEF 2.3.1 fallback ladder (the binary's wnd# id-degradation cascade).
-  // For canonical slugs (`collapsed-side-utility` etc.), this walks the
-  // structurally compatible ids the kDEF would try next. Example impact:
-  //   collapsed-side-utility → side-floating-utility-window → titled-utility-window
+  // For canonical slugs (`collapsed-side-floating-utility-window` etc.), this
+  // walks the structurally compatible ids the kDEF would try next. Example impact:
+  //   collapsed-side-floating-utility-window → side-floating-utility-window → titled-utility-window
   // This catches 16 of 18 corpus bundles' missing collapsed-* variants
   // (see docs/spec/kdef231-reference.md §3.4 cascade table).
   for (const fallback of cascadeFallbackSlugs(slug)) {

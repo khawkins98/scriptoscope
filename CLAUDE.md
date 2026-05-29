@@ -88,6 +88,7 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 
 ## Pointers into `docs/`
 
+- `docs/spec/README.md` — index of every primary-source decode under `docs/spec/` (citation chain: corpus → Scheme Factory → Apple → kDEF231 → kDEF182). Start there when chasing "what does id/field/address X mean?".
 - `docs/history.md` — full project arc (v1 → v2 clean-break → v3) and the **"Dead ends — don't relitigate these"** list. Read first.
 - `docs/spec/kdef-architecture.md` — the "how does it work?" tour.
 - `docs/spec/compositor-spec.md` — the authoritative window-chrome model (the implemented spec).
