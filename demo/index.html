@@ -1658,7 +1658,12 @@
           const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
           bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
           const cols = [{ label: 'Name', width: 96 }, { label: 'Size', width: 44 }, { label: 'Kind', width: 56 }];
-          const listHdr = (await composeListHeader(theme, { columns: cols })) ?? platinumListHeader({ columns: cols });
+          // height: 22 cap — crayon-os ships its finder-header cicn (-9567) at
+          // 70×70, blowing up the list header to ~70 px tall without an explicit
+          // cap (vs Math.max(16, cell.height) which would just expand to 70).
+          // Matches the bevel + Cancel/OK/Help row's 22 px cap so the Controls
+          // panel reads as a coherent UI strip across themes.
+          const listHdr = (await composeListHeader(theme, { columns: cols, height: 22 })) ?? platinumListHeader({ columns: cols });
           stack.append(brow, bevelRow, bufferToCanvas(listHdr, 1), await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
           frame.appendChild(stack); row.appendChild(c);
         }

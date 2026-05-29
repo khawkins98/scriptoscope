@@ -122,6 +122,33 @@ async function loadByKeySelf(theme: LoadedTheme, key: string): Promise<PixelBuff
   return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
 }
 
+/** Apple's documented push-button standard height. Per `docs/spec/apple-primary-source.md`
+ *  Control metrics (Inside Macintosh: Mac OS 8 Appearance, `kThemeMetricPushButtonHeight`).
+ *  The kDEF / Appearance Manager renders push-button faces at this height regardless
+ *  of the cicn's native dimensions — the artist authors a face cicn at WHATEVER size
+ *  fits their tile pattern, and the OS 9-slices it down to the standard control height.
+ *  Used as the upper bound when `opts.height` isn't specified: small (≤28 px) cicns
+ *  pass through unchanged; oversized (>28 px) cicns clamp to this metric so themes
+ *  like `crayon-os` (74×74 face, 80×80 ring, 70×70 bevel + finder-header) don't blow
+ *  buttons up to ~80 px in any UI context expecting a normal-height control. */
+const APPLE_PUSH_BUTTON_HEIGHT = 20;
+
+/** Maximum cicn height before the clamp kicks in (≈1.4× Apple's 20-px metric).
+ *  Below this, we trust the artist's authored dimensions; above this, the cicn
+ *  is clearly meant to be 9-sliced to the standard control height. */
+const APPLE_REASONABLE_FACE_MAX = 28;
+
+/** Standard control-height resolver. Caller-specified `height` always wins
+ *  (context-specific sizing: the demo's Options dialog passes 22 to match the
+ *  segmented On/Off tab height). Otherwise: pass through small cicns; clamp
+ *  oversized ones to Apple's metric. Citation: `docs/spec/apple-primary-source.md`
+ *  "Control metrics" + the discussion in `docs/spec/apple-cdef-button-vs-our-compose.md`
+ *  about per-scheme face-height variance. */
+function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
+  if (optsHeight != null) return optsHeight;
+  return face.height <= APPLE_REASONABLE_FACE_MAX ? face.height : APPLE_PUSH_BUTTON_HEIGHT;
+}
+
 /** Canonical bundle-author role names for the push-button face, by state. The
  *  list captures the synonyms different Kaleidoscope authoring tools emitted
  *  (`push-button-active` / `active-push-button` / `active-button` / bare
@@ -946,6 +973,15 @@ export interface BevelButtonOptions {
   disabled?: boolean;
   small?: boolean;
   minWidth?: number;
+  /** Force the bevel-button face height. Same rationale as `ButtonOptions.height`:
+   *  crayon-os ships its bevel cicns at 70×70 (small) / matching large size; the
+   *  cicn's native height blows up the rendered button to ~70 px in any UI
+   *  context expecting a normal ~22 px control. Demo passes this to keep the
+   *  Aa / Off / On / disabled-Off row in the Controls panel at consistent
+   *  height across themes (16×16 platinum-family → 70×70 crayon-os). Same
+   *  9-slice + `slice.tile: true` preserves the artist's pixel pattern at the
+   *  shrunken size. */
+  height?: number;
   fg?: string;
 }
 
@@ -986,7 +1022,7 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const fg = opts.fg ?? (opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
     : lum < 128 ? '#ffffff' : '#000000');
-  const lineH = opts.height ?? face.height;
+  const lineH = resolveControlHeight(face, opts.height);
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
   const padX = opts.padX ?? 12;
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
@@ -1132,6 +1168,7 @@ export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOp
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;
+  if (opts.height != null) faceOpts.height = opts.height;
   return composeFaceButton(theme, face, usedId, faceOpts);
 }
 
@@ -1149,7 +1186,12 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   const cell = await loadById(theme, cellId);
   if (!cell) return null; // → platinumListHeader
   const cols = opts.columns ?? [{ label: 'Name', width: 140 }, { label: 'Size', width: 56 }, { label: 'Kind', width: 90 }];
-  const H = opts.height ?? Math.max(16, cell.height);
+  // List-header cells follow the same clamp rule as buttons — crayon-os ships
+  // -9567 at 70×70 (Finder Header Active), which would blow the list header up
+  // to ~70 px without the Apple-metric cap. `Math.max(16, …)` here is a floor
+  // (the cicn can't shrink below a usable size); `resolveControlHeight` is the
+  // CEILING (the cicn can't blow up beyond Apple's metric).
+  const H = Math.max(16, resolveControlHeight(cell, opts.height));
   const W = cols.reduce((a, c) => a + c.width, 0);
   const out = PixelBuffer.alloc(W, H);
   let x = 0;
