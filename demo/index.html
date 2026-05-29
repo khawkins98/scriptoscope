@@ -358,22 +358,25 @@
     // Picks the 16px icon to show in the info bar's "volume" slot. Lookup order:
     //   1. ics4/ics8 -3790 — the Mac OS "volume info" icon (12 of 18 corpus
     //      themes ship one).
-    //   2. ics4/ics8 -14336 — the document-window collapse-widget icon. Schemes
-    //      that don't theme -3790 typically draw a small theme-mark on -14336
-    //      (slimes' tiny slime; apple-platinum-2's monogram; platinum-8's diamond).
-    //      6 of 18 themes use this fallback.
-    //   3. The neutral FINDER_GRID_PNG (Platinum-era grid, sliced from the
-    //      reference screenshot) — only when neither is shipped.
-    // The icon's own transparency is preserved (img element on a coloured / patterned
-    // info bar lets the bar's fill show through the icon's transparent pixels —
-    // owner-spotted on slimes where ics8 -14336 has ~50% transparent pixels).
+    //   2. The neutral FINDER_GRID_PNG (Platinum-era grid, sliced from the
+    //      reference screenshot) — for the 6 themes that don't ship -3790.
+    //
+    // An earlier iteration of this slot promoted ics4/8 -14336 as a T2 fallback
+    // for corner-sprite schemes, on the hypothesis that "schemes that don't
+    // theme -3790 typically draw their mark on -14336." Wrong: -14336 is the
+    // document-window CLOSE/COLLAPSE widget — drawn at the title bar's left
+    // edge, not a volume-icon slot. Owner-surfaced 2026-05-29 (apple-platinum-2
+    // showed a close-box where the reference shows a grid). The references for
+    // all 4 corner-sprite schemes (apple-platinum-2, platinum-8, slimes,
+    // system7-nostalgia-silver) show the system-default grid for the volume
+    // icon; let them fall through to FINDER_GRID_PNG.
     const _gridCache = new Map();
     async function gridProxyIcon(theme) {
       if (!_gridCache.has(theme.baseUrl)) {
         _gridCache.set(theme.baseUrl, (async () => {
           const icons = await getIcons(theme);
           const at = (id) => icons.find((i) => i.id === id && i.size === 16);
-          const e = at(-3790) ?? at(-14336);
+          const e = at(-3790);
           return e ? { url: e.url, id: e.id } : null;
         })());
       }

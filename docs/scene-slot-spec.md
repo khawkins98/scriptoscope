@@ -63,14 +63,14 @@ The small (16px) icon that sits left of the volume name in the info bar.
 | Tier | Source field | Why |
 |---|---|---|
 | T1 | `ics4/ics8 -3790` | Mac OS volume info icon — the canonical Finder slot for this position. |
-| T2 | `ics4/ics8 -14336` | Document-window collapse-widget glyph. Schemes that don't theme -3790 (slimes, apple-platinum-2, platinum-8, …) typically draw a small theme-mark on -14336. |
-| T3 | `FINDER_GRID_PNG` | Neutral Platinum-era grid, sliced from the reference screenshot. Hard fallback. |
+| T2 | `FINDER_GRID_PNG` | Period system-default grid (sliced from the reference screenshot). The right answer for schemes that don't ship -3790; every corner-sprite reference shows this grid in the volume slot. |
 
 Implemented in: `demo/index.html gridProxyIcon`.
 
 The icon's transparency is preserved — placing the `<img>` on a coloured info
-bar lets the bar fill show through the icon's transparent pixels. Owner-spotted
-on slimes where `ics8 -14336` has ~50% transparent coverage.
+bar lets the bar fill show through the icon's transparent pixels.
+
+**Retraction trigger:** an earlier iteration promoted `ics4/8 -14336` as a T2 fallback on the hypothesis that corner-sprite schemes "draw their mark on -14336" when they don't ship -3790. **Wrong:** -14336 is the document-window CLOSE/COLLAPSE widget (drawn at title-bar widget positions, not in a volume slot). Owner surfaced this 2026-05-29 on apple-platinum-2, where the Scene showed the close-box glyph while the reference shows the system-default grid. Before reinstating any -14336-style tier, pixel-probe each corner-sprite scheme's reference and confirm the volume slot is NOT the system grid (it is, in all 4 current cases).
 
 ### `window-body-bg` — Window body background
 

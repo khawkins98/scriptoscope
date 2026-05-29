@@ -78,19 +78,24 @@ const SLOTS = [
     key: 'volume-icon',
     label: 'Volume icon (info-bar leading slot)',
     where: 'demo/index.html gridProxyIcon',
-    terminalIsAcceptable: false,
+    terminalIsAcceptable: true, // FINDER_GRID_PNG IS the right answer for schemes that don't ship -3790
     tiers: [
       {
         name: 'ics4/8 -3790',
         why: 'Mac OS volume info icon — the canonical Finder slot for this position',
         resolve: (_m, ii) => ii.find((e) => e.id === -3790 && e.size === 16) ? 'ics -3790' : null,
       },
-      {
-        name: 'ics4/8 -14336',
-        why: 'document-window collapse widget — schemes that don\'t theme -3790 typically draw their mark here',
-        resolve: (_m, ii) => ii.find((e) => e.id === -14336 && e.size === 16) ? 'ics -14336' : null,
-      },
-      { name: 'FINDER_GRID_PNG', why: 'sliced from the reference screenshot — neutral fallback', resolve: () => 'FINDER_GRID_PNG' },
+      // An earlier iteration promoted ics4/8 -14336 here as a T2, on the
+      // hypothesis that corner-sprite schemes "draw their mark on -14336"
+      // when they don't ship -3790. WRONG: -14336 is the document-window
+      // CLOSE/COLLAPSE WIDGET (drawn at the title-bar widget positions, not
+      // in a volume slot). Owner surfaced 2026-05-29 on apple-platinum-2,
+      // where the Scene was showing the close-box glyph next to "Apple
+      // Platinum 2" while the reference shows the system-default grid.
+      // Retraction trigger: before reinstating, pixel-probe each corner-
+      // sprite scheme's reference and confirm the volume-slot icon is NOT
+      // the system grid (it is, in all 4 current cases).
+      { name: 'FINDER_GRID_PNG', why: 'period system-default grid — the right answer for schemes that ship no -3790', resolve: () => 'FINDER_GRID_PNG' },
     ],
   },
   {
