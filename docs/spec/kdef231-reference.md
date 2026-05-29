@@ -398,7 +398,7 @@ coords; DEST borders are window-relative (filled by `0x5178`).
 | `[0]` | **Corner Size** | corner inset X (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
 | `[1]` | **Side Thickness** | corner inset Y (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
 | `[2]` | **Tile Sides** | (boolean: tile vs stretch the side bands) | TMPL 129 (was "(?)" — now confirmed) |
-| `[3]` | **Pattern Anchor** | slice STYLE / mode switch | `0x109be` `cmpib #5,%a0@(3)` + `0x10ab2` `subq #1`-chain switch (cases 1..4 select which edge pixels to stretch; 5 = special "stretch interior" path; default = plain) |
+| `[3]` | **Pattern Anchor** | body fill pattern-phase selector (NOT a 1..15 enum) | `0x109be cmpib #5,%a0@(3)` selects the bgPattern-fill path when `=5`; otherwise `0x10ab2 subq #1`-chain dispatches cases 1..4 → anchor body pattern phase at dst-rect corner TL/TR/BL/BR (reads `a2@(0/2/4/6)`); default (0 or ≥6) → anchor at origin `(0,0)`. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`. |
 | `[4..5]` | **Background Pattern ID** (DWRD) | tied ppat handle | TMPL 129 |
 | `[6..7]` | **Background Pixel y** (DWRD) | sample-pixel coordinate | TMPL 129 |
 | `[8..9]` | **Background Pixel x** (DWRD) | sample-pixel coordinate | TMPL 129 |
@@ -533,7 +533,7 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
    (`0x698a`/`0x6b14`/`0x6a86`/`0x6980`/`0x6b84`) but the per-message behaviour
    is not traced; the message *meanings* are inferred from Appearance numbering,
    not proven (§1.1).
-2. ~~**cinf byte[2] and bytes [4..55]**~~ **RESOLVED 2026-05-29** — TMPL 129 shipped in 16 of 18 corpus bundles gives the full field map: byte[2]=Tile Sides, byte[3]=Pattern Anchor, bytes[4..17]=3× DWRD pixel coords (bg/text/embossing). See §3.5.
+2. ~~**cinf byte[2] and bytes [4..55]**~~ **RESOLVED 2026-05-29** — TMPL 129 shipped in 16 of 18 corpus bundles gives the full field map: byte[2]=Tile Sides, byte[3]=Pattern Anchor, bytes[4..17]=3× DWRD pixel coords (bg/text/embossing). See §3.5. **The 15-value Scheme Factory MENU 139 vocabulary** referenced in earlier `cinf.js` decoder comments is editor-side authoring sugar — the kDEF dispatches on `byte[2]` as a boolean (tile vs stretch the 4 edge bands) and `byte[3]` as a 5-way switch (`0`=origin anchor, `1..4`=anchor TL/TR/BL/BR corner of dst rect, `5`=use bgPattern resource); higher values fall through to the `=0` default. Verified at `0x10ab2` subq-chain + `0x109be cmpib #5,%a0@(3)` — there is no `cmpib` against byte[3] for values 6..15 anywhere in the kDEF. The "anchor-corner" labels (indices 10..14) in `RESIZE_BEHAVIOR_LABELS` were speculative and unreachable from the kDEF's byte[3] dispatch; dropped. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`.
 3. **'pWin' companion resource** (`0x1175e`, `#1884776814`) — loaded for cinf-
    range ids; its layout/use is not decoded.
 4. **Scrollbar/slider/popup/progress/menu/disclosure LAYOUT arithmetic** — drawer
