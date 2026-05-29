@@ -147,7 +147,7 @@ symmetric; this check is here as a guardrail for future imports.
      tier must always hit (it's the hard fallback).
 2. Add a `### <key>` section here documenting the contract + why.
 3. Run `npm run audit:scenes -- --write` to regenerate the codex.
-4. Commit both `scene-coverage-audit.mjs` and `docs/scene-codex.md` together.
+4. Commit `scripts/scene-coverage-audit.mjs`, the updated `docs/scene-slot-spec.md` itself, and the regenerated `docs/scene-codex.md` together.
 
 ## Adding a new variant family
 

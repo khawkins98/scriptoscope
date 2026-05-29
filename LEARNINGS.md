@@ -2472,3 +2472,37 @@ For any new "this looks wrong" report:
 - `docs/scene-slot-spec.md` — the human contract
 - `tests/visual-baselines/scenes/*.png` — the eyeball net
 - `themes/lint-baseline.json` (with `decodedSha256`) — the decoder-output gate
+
+---
+
+### 2026-05-29 — Asymmetric slice insets need a 9-slice clamp (don't relitigate)
+
+**Context.** Pass C wired the cinf's `slice.side` as the VERTICAL 9-slice inset (was collapsed to `corner` for both axes everywhere). Six callers in `controls.ts` started passing `{l: corner, t: side, r: corner, b: side}` to `pixelBuffer.nineSlice`. Almost everything worked.
+
+**The gotcha.** 1990 + evolution ship `-10231`/`-10232` rings at 21×21 with `slice.corner=7, slice.side=14`. Inset math: `t + b = 28 > sr.h = 21`. The unclamped nineSlice silently corrupted:
+- `smy = sr.h - t - b = 21 - 14 - 14 = -7`.
+- The four side / center spans each early-returned via `if (sw <= 0 || sh <= 0)`.
+- The four corner blits (each `l × t` = 7×14) drew INTO a destination that was larger than the source corners could cover gap-free.
+- Top corners read source rows 0..13. Bottom corners read source rows `sr.h - b .. sr.h` = 7..21 — **the corner ranges overlapped** (rows 7..13). The middle band art got duplicated in BOTH halves.
+
+The result was four corner-stack failures visible as garbled default-button rings, and the buggy renders were briefly committed to the visual baselines before the framework-architecture + code-quality reviewers spotted them.
+
+**Fix.** Clamp insets BEFORE the math:
+
+```ts
+const _l = Math.max(0, Math.min(ins.l, Math.floor(sr.w / 2)));
+const _r = Math.max(0, Math.min(ins.r, sr.w - _l));
+const _t = Math.max(0, Math.min(ins.t, Math.floor(sr.h / 2)));
+const _b = Math.max(0, Math.min(ins.b, sr.h - _t));
+```
+
+Worst case is a degraded-but-CONSISTENT render the eyeball can catch on first sight, not a silent corruption that ships to the baseline.
+
+**Application.**
+
+- When wiring a structured field into a geometric primitive, check the **arithmetic bounds** before trusting the inputs. The cinf TMPL allows the artist to declare `corner + side > raster_size` because the bake doesn't enforce a per-resource ceiling; the runtime has to.
+- The visible-baseline fixtures (`tests/visual-baselines/scenes/*.png`) caught this one round-trip after the silent regression shipped — they're an eyeball net, not a deterministic gate. Adding pixel-diff (SSIM > 0.99 or similar) on these baselines as part of `npm test` would have caught it in the same commit (framework reviewer B6).
+- The framework reviewer's "tier resolvers should be a SHARED MODULE the runtime + audit both consume" is the prophylactic that prevents this whole class — when the runtime ships a value the audit must observe, they can't disagree.
+- See `src/pixelBuffer.ts:nineSlice` — the clamp now lives there. Comment cites the 1990 + evolution case as the canonical example. Any future "the inset doesn't draw what I expected" is most likely either (a) `corner + side > raster_size` triggering the clamp (visible as a tighter-than-authored band), or (b) the cinf carrying an exotic `resizeBehavior` the runtime collapses to binary tile/stretch (the 13-of-15 TMPL 139 values still unsupported).
+
+**Sibling gotcha — flatten rect bounds.** `composeFaceButton` paints a flatten rect AFTER the face nineSlice to erase the cinf text marker. The flatten rect's bounds also need the per-axis insets, not `fIns` for both. Same root cause: silent partial coverage when `fSide < fIns`.

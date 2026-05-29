@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Scriptoscope is a web-native runtime that renders classic Mac **Kaleidoscope** themes 1:1 from their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Scriptoscope does **not** hand-author chrome — it replays the binary's rendering model.
 
-Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Internal API surface — `data-scriptoscope-*` attributes, `.aw-*` CSS classes, `ScriptoscopeWindow` class — is intentionally stable across the package rebrand from Aaron UI; see `LEARNINGS.md` 2026-05-28 Scriptoscope pivot.)
+Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Consumer attribute surface: `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, `ScriptoscopeWindow` class — these went through a full sweep on 2026-05-29 reversing an earlier "Lodash-kept-`_`" decision; see `LEARNINGS.md` "Full `data-scriptoscope-*` sweep" entry.)
 
 ## Commands
 
@@ -26,6 +26,9 @@ npm run lint:themes        # default: VERIFY each source archive's sha256 agains
 npm run lint:themes -- --update   # re-lint in-memory + refresh the baseline (slow path — after a renderer or rule change)
 npm run lint:themes -- --strict   # verify-mode, exits 1 on any drift (CI signal)
 npm run baseline:scenes    # re-capture per-theme Scene panel into tests/visual-baselines/scenes/<slug>.png (eyeball regression check)
+npm run audit:scenes       # walk every bundle, audit per-slot tier resolution (8 slots), print per-theme table
+npm run audit:scenes -- --write   # regenerate docs/scene-codex.md from the audit
+npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its hard fallback (for slots where the floor is a regression candidate)
 
 # Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)
 npm run diag:render        # render a window off a bundle to a PNG for eyeballing

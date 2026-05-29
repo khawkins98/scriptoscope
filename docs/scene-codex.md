@@ -13,24 +13,24 @@ See [docs/scene-slot-spec.md](./scene-slot-spec.md) for the hand-authored contra
 
 | theme | info-bar-bg | volume-icon | window-body-bg | desktop-bg | dialog-body-bg | info-bar-text-color | progress-bar-hue | folder-scene-icons |
 |---|---|---|---|---|---|---|---|---|
-| 1138 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| 1984 | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T1 · desktop-pattern key | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| 1990 | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| animals | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| apple-lisa | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| apple-platinum-2 | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T2 · coverage-ranked icl4/8 |
-| beos-r503 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| black-platinum | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| crayon-os | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| dolphin-som | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| evolution | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| floppies | T2 · bodyBackground | T2 · ics4/8 -14336 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| monkey-paradise | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| platinum-8 | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| slimes | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| system7-nostalgia-silver | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T1 · contrast-pick | T1 · lavender 2-part canonical | T2 · coverage-ranked icl4/8 |
-| windows-31 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
-| windows-95 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| 1138 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| 1984 | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T1 · desktop-pattern key | T1 · flat #ffffff | T1 · contrast-pick → white | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| 1990 | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick → white | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| animals | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| apple-lisa | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| apple-platinum-2 | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · coverage-ranked icl4/8 |
+| beos-r503 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| black-platinum | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| crayon-os | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| dolphin-som | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick → white | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| evolution | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T1 · contrast-pick → white | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| floppies | T2 · bodyBackground | T2 · ics4/8 -14336 | T1 · bodyBackground | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| monkey-paradise | T1 · cinf bgPattern | T1 · ics4/8 -3790 | T1 · bodyBackground | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| platinum-8 | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| slimes | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| system7-nostalgia-silver | T3 · headerFill | T2 · ics4/8 -14336 | T2 · white | T3 · CSS checkerboard | T1 · flat #ffffff | T2 · contrast-pick → black | T1 · lavender 2-part canonical | T2 · coverage-ranked icl4/8 |
+| windows-31 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
+| windows-95 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T2 · ppat-17 (canonical Mac desktop) | T1 · flat #ffffff | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
 
 ## Tier distribution per slot
 
@@ -88,8 +88,9 @@ Resolved in: `demo/index.html buildScene volume span`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
-| T1 | `contrast-pick` | sample the resolved info-bar bg luminance + pick #fff / #000 for contrast — always available | 1138, 1984, 1990, animals, apple-lisa, apple-platinum-2, beos-r503, black-platinum, crayon-os, dolphin-som, evolution, floppies, monkey-paradise, platinum-8, slimes, system7-nostalgia-silver, windows-31, windows-95 |
-| T2 | `flat #000` | hardcoded fallback — illegible on dark info bars | — |
+| T1 | `contrast-pick → white` | resolved info-bar fill is dark (luminance < 128) — contrast pick returns white | 1984, 1990, dolphin-som, evolution |
+| T2 | `contrast-pick → black` | resolved info-bar fill is light (luminance ≥ 128) OR a textured ppat (we keep black against varied pattern luminance) | 1138, animals, apple-lisa, apple-platinum-2, beos-r503, black-platinum, crayon-os, floppies, monkey-paradise, platinum-8, slimes, system7-nostalgia-silver, windows-31, windows-95 |
+| T3 | `flat #000` | hardcoded fallback for schemes with malformed headerColors | — |
 
 ### Progress-bar accent hue  `progress-bar-hue`
 

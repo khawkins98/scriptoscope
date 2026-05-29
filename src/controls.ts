@@ -653,19 +653,18 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
   const bw = b.x1 - b.x0 + 1;
   const bh = b.y1 - b.y0 + 1;
 
-  // Label color: the tab's center marker pixel is the authored text colour;
-  // use it when it actually contrasts with the (solid) tab face, else pick a
-  // contrasting b/w from the face — the tabs are filled (blue 1984 / gray beos),
-  // so the label must read against that fill, not the content behind.
+  // Label colour: tabs are SOLID-filled trapezoids (blue 1984 / gray beos / yellow
+  // crayon-os) with no kDEF text-color marker convention — every pixel in the
+  // visible band is the same face fill. Pick a contrasting b/w from the face
+  // luminance. (Earlier code sampled a "marker" at the tab centre with a
+  // contrast threshold; both sampled pixels were face pixels, so the contrast
+  // check effectively always rejected and fell back to this path. Code-quality
+  // reviewer flagged the dead branch; simplified here.)
   const cx = (b.x0 + b.x1) >> 1;
   const cy = (b.y0 + b.y1) >> 1;
-  const [mr, mg, mb, ma] = tab.getPixel(cx, cy);
-  const [fr, fgc, fbc] = tab.getPixel(Math.max(b.x0, cx - 4), cy); // face pixel, offset from marker
+  const [fr, fgc, fbc] = tab.getPixel(cx, cy);
   const faceLum = 0.299 * fr + 0.587 * fgc + 0.114 * fbc;
-  const mLum = 0.299 * mr + 0.587 * mg + 0.114 * mb;
-  const fg = ma > 200 && Math.abs(mLum - faceLum) > 40
-    ? `#${[mr, mg, mb].map((c) => c.toString(16).padStart(2, '0')).join('')}`
-    : faceLum < 128 ? '#ffffff' : '#000000';
+  const fg = faceLum < 128 ? '#ffffff' : '#000000';
 
   const label = opts.label ?? '';
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;

@@ -150,12 +150,44 @@ const SLOTS = [
     where: 'demo/index.html buildScene volume span',
     terminalIsAcceptable: false, // hard-coded black is a regression risk on dark info bars
     tiers: [
+      // The runtime contrast-picks against the resolved info-bar bg luminance —
+      // sample the headerColors.active.fill (when no ppat is in play), threshold
+      // at lum<128 → white, else black. The audit's two tiers split by which
+      // ANSWER the demo's code lands on, so a 'flat-bar dark fill → white' theme
+      // (slimes' #d6ff76 is light) shows T1; a 'pattern bg or light fill' theme
+      // shows T2. The earlier degenerate-single-branch shape (T1 fires for every
+      // theme with headerColors) gave no per-theme signal.
       {
-        name: 'contrast-pick',
-        why: 'sample the resolved info-bar bg luminance + pick #fff / #000 for contrast — always available',
-        resolve: (m) => m.headerColors?.active?.fill ? `contrast-pick vs headerColors.active.fill (${m.headerColors.active.fill})` : null,
+        name: 'contrast-pick → white',
+        why: 'resolved info-bar fill is dark (luminance < 128) — contrast pick returns white',
+        resolve: (m) => {
+          const f = m.headerColors?.active?.fill;
+          if (!f) return null;
+          const h = f.replace('#', '');
+          if (h.length !== 6) return null;
+          const r = parseInt(h.slice(0, 2), 16);
+          const g = parseInt(h.slice(2, 4), 16);
+          const b = parseInt(h.slice(4, 6), 16);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          return lum < 128 ? `headerColors.active.fill ${f} (lum ${Math.round(lum)}) → #fff` : null;
+        },
       },
-      { name: 'flat #000', why: 'hardcoded fallback — illegible on dark info bars', resolve: () => 'flat #000' },
+      {
+        name: 'contrast-pick → black',
+        why: 'resolved info-bar fill is light (luminance ≥ 128) OR a textured ppat (we keep black against varied pattern luminance)',
+        resolve: (m) => {
+          const f = m.headerColors?.active?.fill;
+          if (!f) return 'no headerColors — defaults to #000 against unknown bg';
+          const h = f.replace('#', '');
+          if (h.length !== 6) return null;
+          const r = parseInt(h.slice(0, 2), 16);
+          const g = parseInt(h.slice(2, 4), 16);
+          const b = parseInt(h.slice(4, 6), 16);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          return lum >= 128 ? `headerColors.active.fill ${f} (lum ${Math.round(lum)}) → #000` : null;
+        },
+      },
+      { name: 'flat #000', why: 'hardcoded fallback for schemes with malformed headerColors', resolve: () => 'flat #000' },
     ],
   },
   {

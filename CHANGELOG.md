@@ -7,6 +7,146 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Fixed (rendering — 18 themes refreshed via the codex pattern, 2026-05-29)
+
+The decoded `ThemeManifest` carries structured answers for every visual slot;
+the runtime was guessing or hardcoding in many places. The fixes below all
+share the same shape: **read the manifest field instead**. Captured in
+`LEARNINGS.md`'s "codex pattern" entry as a 16-row table.
+
+- `controls.ts:elementById` — resolve by `chromeElement.sourceCicnId` (numeric)
+  instead of regex-on-asset-path. Asset paths become `blob:` URLs under the
+  Option A in-memory load; the regex matched nothing, every `elementById` call
+  returned null, buttons / default-rings / textAnchors silently un-themed.
+- Default-button ring outset uses `(ring.width - face.width) / 2` (the
+  artist-authored halo) when ring > face, instead of `ring.width / 4`. Crayon-os
+  (ring 80×80 / face 74×74) went from 20px outset to the authored 3.
+- `pixelBuffer.nineSlice` honours `slice.tile: true` (repeat side bands at
+  native pixel rate rather than stretching). Wired into `composeFaceButton` +
+  ring + `composeProgress` frame + `composeTab` middle + `composeScrollbar` +
+  `composeSlider` tracks. Apple-lisa Lisa-frame, windows-31 double-rectangle
+  border, crayon-os crayon-stroke patterns all preserved at button-display size.
+- `pixelBuffer.nineSlice` honours `slice.side` for vertical inset (was
+  collapsed to corner=side everywhere). The kDEF TMPL 129 declares them
+  independently; 1138 / 1984 / animals / apple-lisa / dolphin-som etc. all
+  have button-family elements with non-square slices.
+- `pixelBuffer.nineSlice` clamps `(l+r) ≤ sr.w` and `(t+b) ≤ sr.h` —
+  unclamped, the negative middle silently corrupted (corner blits overlapped,
+  side spans early-returned) on 1990 + evolution rings authored as 21×21 with
+  `slice.side=14`. The buggy renders briefly shipped before this clamp.
+- `composeChrome.titleFillRgb` samples the kDEF 0x5530 title-text marker
+  pixel; `renderWindow` uses the sampled colour when it contrasts with the
+  bar (|markerLum − barLum| > 40), else falls back to the luminance-contrast
+  B/W pick. Windows-31 "Hello!" now draws (the marker pixel sits on the dark
+  blue title bg; contrast-rejection routes to the white fallback).
+- `resolveTitleWidgetRects` maps source-x widget positions through the
+  per-cell placement record to output-x. 1990's widgets stacked left of a
+  growable title plate were claimed to be at source x=56-64 when the plate's
+  growth had shifted them to output x≈92-100; the title-fit math saw negative
+  available width and dropped the title. The `mapX(sx)` per-cell mapping now
+  produces correct output positions; 1990 / apple-lisa / windows-31 "Hello!"
+  all render.
+- `loadTheme` preserves `bundleUrl` as `theme.baseUrl` (was `''` under
+  Option A's in-memory decode). The empty key collapsed every theme into the
+  first-loaded theme's slot in `_gridCache` / `_iconCache` /
+  `interactive.titleStripCache` — 1138's folder icons leaked into 1984's
+  Scene preview.
+
+### Fixed (Scene composition — `demo/index.html` + slot wiring)
+
+- Info bar lookup: `chromeElement(-9567).bgPattern` → `bodyBackground.pattern`
+  → `headerColors.active.fill` → flat. Replaces the hardcoded `#e6e6e6`.
+  Every theme now lands above the hard fallback. monkey-paradise's
+  `ppat-129` (declared via cinf), 1990's army-camo, slimes' lemon-lime
+  header fill — all picked up from the structured field rather than guessed.
+- Volume icon lookup: `ics4/8 -3790` → `ics4/8 -14336` → `FINDER_GRID_PNG`.
+  Slimes / floppies / apple-platinum-2 / platinum-8 / system7-nostalgia-
+  silver pick up their theme-mark on `-14336` when `-3790` isn't shipped.
+- Info-bar text colour contrast-picks against the resolved background
+  luminance instead of hardcoded `#000`. Black-platinum / Windows-ports
+  dark fills are legible now.
+- `schemeIcons` excludes well-known document ids (Clippings -3800..-3803,
+  Edition File -3989, App badge -16455) from coverage-rank, and drops the
+  non-folder last-resort ids from the folder priority list. Apple-platinum-2
+  + system7-nostalgia-silver fall through to neutral SVG folders instead
+  of showing the Earth icon / App badge.
+- Desktop pattern: adds `ppat-17` (Apple-reserved Mac OS canonical id) as
+  T2 in the lookup. 1990 / animals / monkey-paradise / evolution / crayon-os
+  ship it; previously fell to the CSS checkerboard.
+- `renderWindow.bodyBackgroundStyle` skips the Icon-View ppat for modal-
+  style windowTypes (`UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/`).
+  The Options dialog body across every textured-body theme stopped filling
+  with the army-camo / aqua / etc and now matches the references' flat
+  utility surface.
+- 3-tone procedural pinstripe via `lightTinge → fill → darkTinge` (was
+  only `darkTinge`; `lightTinge` was decoded but unconsumed). Only the
+  `buildBaselineWindow` procedural path is affected; corner-sprite + sliced
+  paths use their own pinstripe sprites.
+- Scene geometry: `winW: 178 → 220` so multi-word volume names fit;
+  `dlgTop: mainTop + 2` so the Options dialog stops covering windows-31's
+  title bar entirely.
+
+### Fixed (loadTheme + cascade hardening)
+
+- `fetchFirst` rejects 200-with-bad-bytes (HTML SPA fallback) and continues
+  the `.sit → .rsrc` cascade. Without it, a misconfigured CDN serving HTML
+  for missing files made `parseResourceFork` explode with
+  `dataOffset=1008813135` instead of falling through.
+- `loadKaleidoscopeScheme` default asset factory adds a main-thread
+  `<canvas>` fallback for Safari 16.0–16.3 (where `OffscreenCanvas` is
+  undefined). Without it, ~5% of iOS traffic returned a broken `LoadedTheme`
+  with un-rewritten asset paths.
+
+### Added
+
+- **Codex framework** — three coupled artifacts for "stop guessing, read
+  the manifest field" discipline:
+  - `scripts/scene-coverage-audit.mjs` — walks every bundle's decoded
+    manifest, runs each Scene SLOT's tier resolver, prints per-theme
+    table; modes: console / `--write` / `--json` / `--check` / `--theme=`.
+  - `docs/scene-slot-spec.md` — hand-authored slot contract: 8 slots
+    each with tier hierarchy, why each tier exists, where the runtime /
+    demo implements it.
+  - `docs/scene-codex.md` — auto-generated; committed; the corpus-wide
+    audit. Per-theme tier table + tier distribution per slot + shipped
+    resource counts + variant flags.
+- `tests/visual-baselines/scenes/<slug>.png` — committed Scene-panel
+  fixtures per theme. Regen via `npm run baseline:scenes`. Eyeball
+  comparison net against the per-theme reference for "the path ran but
+  produced empty / wrong-looking output" regressions (lint can't catch).
+- `themes/lint-baseline.json` — sha256 + decoded-manifest fingerprint
+  per slug from the maintainer's last full lint run. Default
+  `npm run lint:themes` is fast-verify against this baseline;
+  `--update` re-runs the slow rule walk; `--strict` re-decodes + checks
+  the decoded fingerprint (CI signal).
+- `npm run audit:scenes` — codex audit; `-- --check` is the CI signal
+  for slot floor.
+- `npm run baseline:scenes` — re-capture all 18 scene fixtures.
+- New `ChromeElement` type fields, JSDoc-documented: `sourceCicnId`,
+  `sourceCinfId`, `bgPattern`, `bgAnchor`, `embossAnchor`.
+- New `ThemeManifest.patterns` field — the catalog of decoded ppats
+  keyed by slug.
+- New `ThemeProgressModel`, `ThemeScrollArrowMap` types covering the
+  inspector catalog's role-classification shapes.
+- `ButtonOptions.height` — caller-supplied override for the button face
+  height. Without it, themes with big face cicns (crayon-os 74×74) blow
+  up to 80-tall buttons. The demo passes `height: 22` for tab-sized
+  cells.
+- `LoadedTheme.dispose?: () => void` — revokes blob: URLs minted at
+  decode (~500 per scheme). Without it, switching themes 50× leaks
+  ~25k blob URLs.
+- `loadTheme(url, opts.source?: string)` — hint to skip the
+  `.sit → .rsrc` cascade. Catalog's `themes-manifest.json` carries
+  the `source` field per slug; demo's `loadWithBase` passes it.
+
+### Changed (renderer surface)
+
+- `composeChrome` returns new `titleFillRgb` field on `ComposedChrome`
+  (the sampled marker colour or null). Backwards-compat (optional).
+- `bodyBackgroundStyle` now takes an optional `slug` parameter so it
+  can gate the Icon-View ppat by windowType. Shared
+  `UTILITY_SLUG_RE` between `renderWindow` and the body-bg style.
+
 ### Changed
 
 - **Theme bundles ship only the original archive** (Option A migration, 2026-05-29).
