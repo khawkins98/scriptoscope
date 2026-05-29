@@ -110,6 +110,8 @@ The Finder Icon-View ppat (`bodyBackground.pattern`, cinf -9551) is **never** re
 
 An earlier iteration retired the hierarchy after a visual misread that thought all the references showed flat. The user's screenshot review on 2026-05-29 surfaced that monkey-paradise / 1990 / etc. references actually show a themed utility body; reinstated the structured-field walk.
 
+**Retraction trigger:** before retiring T1/T2 again, pixel-probe the per-bundle reference images at native resolution (not the thumbnails in the demo's index — that was the misread that originally retired the hierarchy). Use a PNG decoder on the bundle's reference image and sample the rectangle the slot occupies; if the dialog body has any non-fffffff pixels, the hierarchy stays.
+
 Implemented in: `src/renderWindow.ts:bodyBackgroundStyle` (utility-slug branch).
 
 ### `info-bar-text-color` — Info-bar volume-label colour

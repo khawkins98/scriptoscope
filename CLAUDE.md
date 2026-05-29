@@ -24,11 +24,14 @@ npm run import -- <slug>   # one-command port: places a fresh scheme.sit/.rsrc +
 npm run build:themes       # locally re-bake every bundle (extract-scheme + extract-icons + index-rasters + gen-resource-roles + gen-themes-manifest)
 npm run lint:themes        # default: VERIFY each source archive's sha256 against themes/lint-baseline.json (fast)
 npm run lint:themes -- --update   # re-lint in-memory + refresh the baseline (slow path — after a renderer or rule change)
-npm run lint:themes -- --strict   # verify-mode, exits 1 on any drift (CI signal)
+npm run lint:themes -- --strict   # verify-mode + re-decode + check decodedSha256 fingerprint, exits 1 on any drift (CI signal)
+npm run lint:themes -- --decoded  # like default but ALSO re-decodes + checks decodedSha256 (catches tools/theme-loader regressions that don't change source bytes)
 npm run baseline:scenes    # re-capture per-theme Scene panel into tests/visual-baselines/scenes/<slug>.png (eyeball regression check)
-npm run audit:scenes       # walk every bundle, audit per-slot tier resolution (8 slots), print per-theme table
+npm run verify:scenes      # capture fresh + byte-diff against committed baselines (exit 1 on drift; --diff-only skips the capture)
+npm run audit:scenes       # walk every bundle, audit per-slot tier resolution (10 slots), print per-theme table
 npm run audit:scenes -- --write   # regenerate docs/scene-codex.md from the audit
 npm run audit:scenes -- --check   # CI signal: exit 1 if any slot fell to its hard fallback (for slots where the floor is a regression candidate)
+npm run gates              # umbrella pre-push gate: typecheck + test + lint --strict + audit --check (use this before pushing)
 
 # Diagnostics (consume the locally-baked derivatives — run `build:themes` first if needed)
 npm run diag:render        # render a window off a bundle to a PNG for eyeballing

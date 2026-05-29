@@ -73,7 +73,13 @@ to a bug class we hit reactively before the linter existed:
 - Anything requiring the **per-edge title-fits flag** or the **widget-draw pass**
   we skip — guarded only indirectly (corpus has no widget in a growing cell).
 
-## Accepted divergences (decode beats reference, by owner decision)
+## Accepted divergences from kDEF / reference (by owner decision)
+
+Each entry below tags its divergence direction explicitly:
+- **decode→reference** means "the kDEF / decode says X; the per-scheme reference image disagrees; we follow the decode."
+- **manifest→decode** means "the kDEF would have produced a broken render; we override the kDEF by reading the bundle's structured manifest role."
+
+### decode→reference
 
 - **Scroll-arrow id→state mapping is the 2.3.1 CDEF's, applied universally.** The
   shared CDEF (no per-scheme control template exists) fixes RAISED/normal =
@@ -98,6 +104,8 @@ to a bug class we hit reactively before the linter existed:
   light-pressed convention), which is the per-theme branch we reject by policy.
   (Owner decision 2026-05-29.)
 
+### manifest→decode
+
 - **Push-button face resolves by manifest role name first, then by id.** The 2.3.1
   kDEF asked for cicn id `-10239` (active) / `-10238` (pressed) / `-10240` (inactive)
   and blitted whatever sat there. Two corpus bundles — **monkey-paradise** + **animals**
@@ -109,8 +117,10 @@ to a bug class we hit reactively before the linter existed:
   lookup that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`);
   finally, when no active face exists, substitutes the pressed face (the AppearanceManager's
   documented "empty state slot" fallback). Codex pattern: the manifest carries the
-  structured answer, the runtime was guessing from an id collision. (Owner decision
-  2026-05-29; previously deferred in LEARNINGS as "non-canonical authoring".)
+  structured answer, the runtime was guessing from an id collision. The fix is a
+  CORPUS-WIDE policy — no per-bundle slug branch — preserving the "never hack the
+  compositor for one theme" norm in CLAUDE.md. (Owner decision 2026-05-29; previously
+  deferred in LEARNINGS as "non-canonical authoring".)
 
 ## References
 - `compositor-spec.md` — the model these routines implement.
