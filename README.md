@@ -130,7 +130,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 await mountDeclarative({
   themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes', // where bundles live
   pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
-  persistKey: 'my-app-layout',      // optional: save window positions to localStorage.aaron:layout:<key>
+  persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
   baseSlug: 'apple-platinum-replica', // optional: universal-base scheme to inherit from
   root: document,                   // optional: scan a subtree instead of the whole page
 });
@@ -385,7 +385,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 ### Adopter-facing extras
 
-- **`<aaron-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/aaron-ui/issues/29) — open decision).
+- **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/aaron-ui/issues/29) — open decision).
 - **CSS `border-image` emitter** for the body-frame chrome — gated by a representability spike (ADR-0001 Decision 1, still open).
 - **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/aaron-ui/issues/79) closed but the framework would live here.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.

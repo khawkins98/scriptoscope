@@ -33,6 +33,16 @@ await copy(
   resolve(outAssets, 'references'),
 );
 
+// themes-manifest.json — the canonical theme catalog the README's integration guide
+// publicizes at https://khawkins98.github.io/aaron-ui/themes-manifest.json. Vite bundles
+// it as a JSON import for the demos, but the published URL itself needs a static copy.
+if (await exists(resolve(root, 'demo/themes-manifest.json'))) {
+  await copy(
+    resolve(root, 'demo/themes-manifest.json'),
+    resolve(root, 'dist/demo/themes-manifest.json'),
+  );
+}
+
 // Bundled font referenced by the @font-face (the OFL Charcoal stand-in).
 if (await exists(resolve(root, 'demo/assets/fonts'))) {
   await copy(resolve(root, 'demo/assets/fonts'), resolve(outAssets, 'fonts'));

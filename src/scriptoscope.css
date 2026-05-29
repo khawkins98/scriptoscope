@@ -101,7 +101,6 @@
   [data-scriptoscope-promoted] {
     box-shadow: none;
   }
-  [data-scriptoscope-promoted]::part(aw-chrome),
   [data-scriptoscope-promoted] canvas.scriptoscope-chrome {
     display: none;
   }

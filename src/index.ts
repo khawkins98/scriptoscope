@@ -106,12 +106,14 @@ export {
 // future API-break-eligible change tracked separately, not coupled to the package rebrand.
 export {
   mountDeclarative, type MountOptions,
-  ScriptoscopeWindow,
+  ScriptoscopeWindow, type ScriptoscopeWindowDeps,
+  // Theme resolver — exposed so consumers can pre-load themes outside mountDeclarative.
+  createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts,
   promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,
   attachThemeDropZone,
   type ThemeDropZoneOptions, type ThemeDropZoneHandle,
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
-  type ParsedWindow, type ParsedButton,
+  type ParsedWindow, type ParsedButton, type SizeMode,
 } from './declarative/index.js';

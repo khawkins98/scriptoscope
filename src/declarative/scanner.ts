@@ -244,6 +244,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     lastThemeRef = ref;
     const theme = await resolver.load(ref);
     await manager.retheme(theme);
+    // Update each promoted host's `data-scriptoscope-theme` so consumers querying
+    // `[data-scriptoscope-theme="<slug>"]` see the new value and CSS / AT see consistent state.
+    // Manager.retheme rebuilds the inner `.scriptoscope-window` but doesn't touch the outer host
+    // dataset — we do that here.
+    for (const aw of mounted) aw.host.dataset.scriptoscopeTheme = ref;
     // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
     // out of any .scriptoscope-window, so re-skinning them would re-inject a face into the restored consumer DOM.
     // `isConnected` (not `.closest('.scriptoscope-window')`) is the load-bearing filter: `closest` walks even
