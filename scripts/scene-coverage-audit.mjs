@@ -233,6 +233,89 @@ const SLOTS = [
     ],
   },
   {
+    key: 'title-widget-glyph',
+    label: 'Title-bar widget glyph (close / zoom / collapse)',
+    where: 'src/composeCornerSprite.ts loadWidgetGlyph + src/renderWindow.ts widget id arithmetic',
+    terminalIsAcceptable: false, // procedural box fallback is a coverage gap
+    tiers: [
+      // The kDEF resolves widget glyphs by WINDOW MODEL:
+      //   Native-recipe schemes BAKE the widget art into the chrome cicn (the
+      //   wnd# recipe places widget cells AT the bar's grid). No separate glyph
+      //   lookup — the widget IS the chrome at those coordinates.
+      //   Corner-sprite schemes draw the bar procedurally + stamp ics4/ics8
+      //   glyphs at -14336 (doc) or -14320 (utility) positions.
+      // Both are period-faithful; the codex documents which model each theme uses.
+      {
+        name: 'baked into chrome cicn (native recipe)',
+        why: 'sliced-recipe schemes embed widgets in the wnd# layout — no glyph lookup needed (faithful kDEF)',
+        resolve: (m) => {
+          const wt = m.windowTypes?.['document-window'];
+          if (!wt) return null;
+          return wt.model !== 'corner-sprite' ? 'chrome cicn (widget cells baked)' : null;
+        },
+      },
+      {
+        name: 'document widgets (-14336/-14335/-14334)',
+        why: 'corner-sprite schemes ship ics4/ics8 -14336 family for doc windows',
+        resolve: (_m, ii) => {
+          const has = (id) => ii.some((e) => e.id === id && e.size === 16);
+          return has(-14336) ? `ics -14336/-14335/-14334 shipped (${[-14336,-14335,-14334].filter(has).length}/3)` : null;
+        },
+      },
+      {
+        name: 'utility widgets (-14320/-14319/-14318)',
+        why: 'ics4/ics8 -14320 family — utility-window widgets where docs are absent',
+        resolve: (_m, ii) => {
+          const has = (id) => ii.some((e) => e.id === id && e.size === 16);
+          return has(-14320) ? `ics -14320/-14319/-14318 shipped (${[-14320,-14319,-14318].filter(has).length}/3)` : null;
+        },
+      },
+      { name: 'procedural box', why: 'composeCornerSpriteChrome stamps a 1px outline — no scheme art to draw', resolve: () => 'procedural box' },
+    ],
+  },
+  {
+    key: 'scroll-arrow-glyph',
+    label: 'Scrollbar arrow glyph (raised + pressed × 4 directions)',
+    where: 'src/controls.ts composeScrollbar (arrow lookup by id family)',
+    terminalIsAcceptable: false,
+    tiers: [
+      // Same model split as title-widget-glyph: native-recipe schemes bake the
+      // arrow ART into the scrollbar track cicn (the visible button-style cell
+      // at each end), so they don't need separate glyphs. Corner-sprite schemes
+      // need the ics4/8 -10197..-10204 family.
+      {
+        name: 'baked into scrollbar cicn (native recipe)',
+        why: 'sliced-recipe schemes embed arrow art in the track cicn — no separate glyph lookup',
+        resolve: (m) => {
+          const wt = m.windowTypes?.['document-window'];
+          if (!wt) return null;
+          const hasScrollbarCicn = Object.values(m.chromeElements ?? {})
+            .some((v) => typeof v.sourceCicnId === 'number' && Math.abs(v.sourceCicnId) >= 8277 && Math.abs(v.sourceCicnId) <= 8288);
+          return (wt.model !== 'corner-sprite' && hasScrollbarCicn) ? 'scrollbar cicn (-827x family, arrow baked)' : null;
+        },
+      },
+      {
+        name: 'full 8-glyph set (-10197..-10204)',
+        why: 'four directions × raised+pressed — the canonical kDEF231 CDEF arrow map (asm 9f0e-9f38)',
+        resolve: (_m, ii) => {
+          const ids = [-10197,-10198,-10199,-10200,-10201,-10202,-10203,-10204];
+          const got = ids.filter((id) => ii.some((e) => e.id === id && e.size === 16));
+          return got.length === 8 ? 'all 8 glyphs (4 dir × raised+pressed)' : null;
+        },
+      },
+      {
+        name: 'partial set (≥4 glyphs)',
+        why: 'four directions covered, may be missing pressed variants',
+        resolve: (_m, ii) => {
+          const ids = [-10197,-10198,-10199,-10200,-10201,-10202,-10203,-10204];
+          const got = ids.filter((id) => ii.some((e) => e.id === id && e.size === 16));
+          return got.length >= 4 ? `${got.length}/8 glyphs shipped` : null;
+        },
+      },
+      { name: 'procedural arrows', why: 'platinumScrollbar draws CSS-procedural arrows', resolve: () => 'procedural' },
+    ],
+  },
+  {
     key: 'folder-scene-icons',
     label: 'Folder/scene icons inside the body',
     where: 'demo/index.html schemeIcons',

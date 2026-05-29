@@ -258,7 +258,15 @@ const win = await renderWindow(theme, {
 document.body.appendChild(win);
 ```
 
-See [`demo/index.html`](./demo/index.html) for the full integration and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model.
+`loadTheme` races `scheme.sit` → `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
+
+```ts
+const theme = await loadTheme('/themes/1990', { source: 'scheme.rsrc' });
+```
+
+The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs (~500 per scheme); call it when permanently unmounting to avoid pinning the decoded ImageBitmap memory.
+
+See [`demo/index.html`](./demo/index.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
 ### Declarative — `mountDeclarative()` + `data-scriptoscope-*`
 

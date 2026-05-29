@@ -96,6 +96,67 @@ size; not a window contents background.
 
 Implemented in: `demo/index.html buildScene` (the `desk` element).
 
+### `dialog-body-bg` — Dialog / utility window body background
+
+The content area behind the Options dialog (`no-title-utility-window`).
+
+| Tier | Source field | Why |
+|---|---|---|
+| T1 | `flat #ffffff` | Period-faithful: the classic Mac convention used a system platinum grey for modal-style surfaces, NOT a textured ppat. Visually verified against the corpus references — every theme's Options dialog body is flat. |
+
+An earlier iteration of this slot hypothesised `patterns['utility-pattern']` → `ppat--9568` → `headerColors.active.fill` tiers. The visual baselines showed that hypothesis was wrong: the Finder Icon-View ppat wrapped the dialog (1990 / animals / etc.), where the reference shows flat. The hypothesis was retired; the slot now has one tier matching what `bodyBackgroundStyle` (`src/renderWindow.ts`) actually returns for `UTILITY_SLUG_RE` matches.
+
+Implemented in: `src/renderWindow.ts:bodyBackgroundStyle` (utility-slug branch).
+
+### `info-bar-text-color` — Info-bar volume-label colour
+
+The label colour applied to the volume name in the Scene's Finder info bar.
+
+| Tier | Source field | Why |
+|---|---|---|
+| T1 | contrast-pick → `#fff` (when `headerColors.active.fill` luminance < 128) | Dark info-bar fills (1990 / animals / dolphin-som / evolution) need white text for legibility |
+| T2 | contrast-pick → `#000` (when fill ≥ 128 OR a textured ppat is in play) | Light fills + textured backgrounds keep black text |
+| T3 | `flat #000` | Hardcoded fallback for schemes with malformed headerColors (none in corpus) |
+
+Implemented in: `demo/index.html` buildScene's volume span — luminance threshold mirrors the trick `composeCornerSpriteChrome` uses for the title bar.
+
+### `progress-bar-hue` — Progress-bar accent
+
+| Tier | Source field | Why |
+|---|---|---|
+| T1 | shipped `-10223` lavender canonical | `composeProgress` checks this FIRST — the kDEF default. Most platinum-family + Windows-port + dolphin-som themes land here |
+| T2 | role-3-part `-10080/-10079/-10078` (frame/fill/track) | Native-recipe schemes that paint a custom progress bar — runtime fallback when `-10223` isn't shipped |
+| T3 | multi-hue variant flag (informational) | When a scheme ships 3+ alternate hue cicns (apple-platinum-2, black-platinum, system7-nostalgia-silver ship 13 hues), exposing a picker is a future feature |
+| T4 | procedural Platinum | No progress art → `platinumProgress` fallback (no theme currently lands here) |
+
+Implemented in: `src/controls.ts:composeProgress`.
+
+Tier order **MUST mirror** composeProgress's runtime lookup order. The audit's tier order was reversed in an earlier draft (role-3-part as T1); the framework-architecture reviewer caught this and the order was corrected to match runtime. Future tier reordering must update both.
+
+### `title-widget-glyph` — Title-bar widget (close / zoom / collapse)
+
+The close / zoom / collapse boxes drawn in the title bar.
+
+| Tier | Source field | Why |
+|---|---|---|
+| T1 | baked into chrome cicn (native recipe) | Sliced-recipe schemes embed widget art in the wnd# recipe — no separate glyph lookup. Period-faithful: the kDEF blits the widget cells from the chrome cicn at their authored coordinates |
+| T2 | ics4/ics8 `-14336/-14335/-14334` (document widgets) | Corner-sprite schemes draw the bar procedurally + stamp these glyphs at the widget positions |
+| T3 | ics4/ics8 `-14320/-14319/-14318` (utility widgets) | Used by utility window types when the document family isn't shipped |
+| T4 | procedural 1px box | `composeCornerSpriteChrome` fallback stamps an outline when no widget art is available |
+
+Two distinct rendering models are at play (native-recipe vs corner-sprite), both period-faithful. The codex documents which model each theme uses.
+
+### `scroll-arrow-glyph` — Scrollbar arrow (raised + pressed × 4 directions)
+
+The 8-glyph arrow set for scrollbar end-buttons.
+
+| Tier | Source field | Why |
+|---|---|---|
+| T1 | baked into scrollbar cicn (native recipe) | Sliced-recipe schemes embed arrow art in the track cicn (the visible button-style cell at each end). No separate glyph lookup |
+| T2 | full 8-glyph set `-10197..-10204` | Corner-sprite schemes ship the canonical kDEF231 CDEF arrow map (asm 9f0e-9f38) — 4 directions × raised+pressed |
+| T3 | partial set (≥4 glyphs) | Direction coverage with missing pressed variants |
+| T4 | procedural arrows | `platinumScrollbar` CSS fallback |
+
 ### `folder-scene-icons` — Folder/scene icons inside the body
 
 Up to 8 32px icons rendered as the Finder window's "contents" in the Scene.
