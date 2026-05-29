@@ -1,57 +1,47 @@
 // tools/theme-loader/convert.test.mjs
-// Parity gate for the portable conversion core: convertScheme(fork) must reproduce the
-// committed on-disk bundle — the same theme.json, the same icons/index.json, and exactly
-// the asset set the bundle ships — for both a native-recipe scheme (1138) and a
-// corner-sprite one (platinum-8). This is what guarantees the browser drop path (which
-// calls convertScheme over a Blob) yields the same theme the Node pipeline writes.
+// Smoke + invariant gate for the in-memory decode pipeline (`loadKaleidoscopeScheme`).
+//
+// Pre-Option-A this file also held a "parity gate" that compared `convertScheme(fork)`
+// against the on-disk `theme.json` + `icons/index.json` + PNG asset set. Option A retired
+// those derivatives — the bundle ships only `scheme.sit` / `scheme.rsrc` now — so there is
+// no on-disk reference to compare against. The decode IS now the source of truth, validated
+// in-memory: a well-formed manifest, every asset ref + glyph rewritten to the mock URL,
+// no bundle-relative path leaking past `rewriteAssetRefs`. Per prototype-mode cadence,
+// the now-obsolete reproducibility test was deleted rather than rewritten against itself.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { convertScheme } from './convert.js';
 import { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..'); // tools/theme-loader → repo root
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
-const pngs = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.png')) : []);
 
-for (const slug of ['1138', 'platinum-8']) {
-  test(`convertScheme reproduces the ${slug} bundle (theme + icon index + asset set)`, () => {
-    const dir = resolve(root, 'themes', slug);
-    const meta = existsSync(resolve(dir, 'meta.json')) ? readJson(resolve(dir, 'meta.json')) : {};
-    const fork = new Uint8Array(readFileSync(resolve(dir, 'scheme.rsrc')));
-
-    const { theme, assets, iconIndex } = convertScheme(fork, { meta, source: `${slug}/scheme.rsrc` });
-
-    // theme.json + icons/index.json reproduced exactly.
-    assert.deepEqual(theme, readJson(resolve(dir, 'theme.json')), `${slug} theme.json`);
-    assert.deepEqual(iconIndex, readJson(resolve(dir, 'icons', 'index.json')), `${slug} icons/index.json`);
-
-    // The decoded asset set matches every PNG the bundle ships (cicns + ppats + icons).
-    const onDisk = [
-      ...pngs(resolve(dir, 'cicns')).map((f) => `cicns/${f}`),
-      ...pngs(resolve(dir, 'ppats')).map((f) => `ppats/${f}`),
-      ...pngs(resolve(dir, 'icons')).map((f) => `icons/${f}`),
-    ].sort();
-    assert.deepEqual(assets.map((a) => a.path).sort(), onDisk, `${slug} asset paths`);
-
-    // Every asset is a well-formed RGBA buffer of width*height*4.
-    for (const a of assets) assert.equal(a.rgba.length, a.width * a.height * 4, `${a.path} rgba size`);
-  });
+/** Resolve the bundle's source bytes — `scheme.sit` if present, else `scheme.rsrc`.
+ *  Mirrors `src/loadTheme.fetchFirst`'s try-order so the same surface is exercised. */
+function readBundleBytes(dir) {
+  for (const name of ['scheme.sit', 'scheme.rsrc']) {
+    const p = resolve(dir, name);
+    if (existsSync(p)) return { name, bytes: new Uint8Array(readFileSync(p)) };
+  }
+  throw new Error(`no scheme.sit or scheme.rsrc in ${dir}`);
 }
 
 // The browser loader (in-memory, drop-a-fork path) — with a mock encoder, since Node has
 // no OffscreenCanvas. Proves it produces a render-ready LoadedTheme with EVERY asset ref
-// + glyph resolved to a URL (no bundle-relative path survives).
+// + glyph resolved to a URL (no bundle-relative path survives), plus a populated inspector
+// catalog (icons + cicns + ppats + resourceRoles) the demo's diagnostic panels read.
+//
+// Two slugs — platinum-8 (.sit only) + 1138 (.rsrc only) — cover both source paths.
 for (const slug of ['platinum-8', '1138']) {
   test(`loadKaleidoscopeScheme yields a render-ready in-memory theme for ${slug}`, async () => {
     const dir = resolve(root, 'themes', slug);
     const meta = existsSync(resolve(dir, 'meta.json')) ? readJson(resolve(dir, 'meta.json')) : {};
-    const fork = new Uint8Array(readFileSync(resolve(dir, 'scheme.rsrc')));
-    const loaded = await loadKaleidoscopeScheme(fork, {
-      meta, source: `${slug}/scheme.rsrc`, encodeAssets: true,
-      assetUrlFactory: (rgba, w, h, path) => `mock://${path}`, // stand-in for the blob: URL
+    const { name, bytes } = readBundleBytes(dir);
+    const loaded = await loadKaleidoscopeScheme(bytes, {
+      meta, source: `${slug}/${name}`, encodeAssets: true,
+      assetUrlFactory: (_rgba, _w, _h, path) => `mock://${path}`, // stand-in for the blob: URL
     });
 
     assert.equal(loaded.baseUrl, '', `${slug} in-memory baseUrl is empty`);
@@ -72,5 +62,16 @@ for (const slug of ['platinum-8', '1138']) {
     // Glyph map present + every glyph resolved (both schemes ship pictograms).
     assert.ok(loaded.glyphs && Object.keys(loaded.glyphs).length > 0, `${slug} has glyphs`);
     for (const url of Object.values(loaded.glyphs)) assert.match(url, /^mock:\/\/icons\//, `${slug} glyph url`);
+
+    // Inspector catalog — the data the demo's diagnostic panels read (Option A: no
+    // pre-extracted resource-roles.json / rasters.json shipped). Cicns + ppats + icons
+    // present; resource roles classified; every URL is the mock stand-in.
+    const inspector = loaded.inspector;
+    assert.ok(inspector, `${slug} has inspector`);
+    assert.ok(inspector.iconIndex.length > 0, `${slug} iconIndex non-empty`);
+    assert.ok(inspector.cicns.length > 0, `${slug} cicns non-empty`);
+    assert.ok(inspector.resourceRoles.resources.length > 0, `${slug} resourceRoles populated`);
+    for (const c of inspector.cicns) assert.match(c.url, /^mock:\/\/cicns\//, `${slug} cicn url`);
+    for (const i of inspector.iconIndex) assert.match(i.url, /^mock:\/\/icons\//, `${slug} icon url`);
   });
 }

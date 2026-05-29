@@ -52,3 +52,20 @@ playwright/.cache/
 
 # Generated diagnostic renders (regenerable via npm run diag:render)
 themes/*/diag/
+
+# Option A (2026-05-29) — bundles ship ONLY the source-of-truth files (scheme.sit /
+# scheme.rsrc / meta.json / PROVENANCE.md). Pre-extracted derivatives are produced
+# on-demand by `npm run build:themes` / `extract-scheme` but stay out of git, since
+# the runtime decodes from the original archive in-browser. Re-bake locally any time
+# you need them for `lint:themes` / `audit-placement` / `diag:render`.
+themes/*/theme.json
+themes/*/extraction-manifest.json
+themes/*/rasters.json
+themes/*/resource-roles.json
+themes/*/cicns/
+themes/*/ppats/
+themes/*/icons/
+themes/*/icl4/
+themes/*/icl8/
+themes/*/ics4/
+themes/*/ics8/

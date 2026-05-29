@@ -24,7 +24,8 @@ const refsDir = resolve(root, 'demo/assets/references');
 const entries = [];
 for (const slug of readdirSync(themesDir).sort()) {
   const dir = resolve(themesDir, slug);
-  if (!existsSync(resolve(dir, 'scheme.rsrc'))) continue; // a real, shippable bundle (Option A: source-of-truth only)
+  // Shippable iff EITHER source-of-truth file is present (Option A: scheme.sit preferred, scheme.rsrc fallback).
+  if (!existsSync(resolve(dir, 'scheme.sit')) && !existsSync(resolve(dir, 'scheme.rsrc'))) continue;
   let meta = {};
   try { meta = JSON.parse(readFileSync(resolve(dir, 'meta.json'), 'utf8')); } catch { /* no meta → derive from slug */ }
 

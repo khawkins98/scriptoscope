@@ -11,6 +11,7 @@
 
 import { convertScheme } from './convert.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
+import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
 
 /**
  * @typedef {object} LoadOptions
@@ -65,9 +66,16 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   }
 
   const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
-  // Encode every decoded asset → a URL, keyed by its bundle path.
+  // Encode every decoded asset → a URL, keyed by its bundle path. Parallel: each
+  // OffscreenCanvas convertToBlob call is its own task; with ~500 assets per scheme
+  // a serial await-loop spent 30–50 ms × N = a 15–25 s freeze. Promise.all hands the
+  // pool off to the browser's encode workers and reduces wall time to a few seconds.
   const urlByPath = new Map();
-  for (const a of assets) urlByPath.set(a.path, await urlFor(a.rgba, a.width, a.height, a.path));
+  const encoded = await Promise.all(
+    assets.map((a) => Promise.resolve(urlFor(a.rgba, a.width, a.height, a.path))
+      .then((url) => [a.path, url])),
+  );
+  for (const [path, url] of encoded) urlByPath.set(path, url);
 
   // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
   // proxy, patterns, body pattern — all stored as path strings that match an asset).
@@ -76,7 +84,49 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
   const glyphs = buildGlyphMap(iconIndex, urlByPath);
 
-  return { manifest: theme, baseUrl: '', ...(Object.keys(glyphs).length ? { glyphs } : {}) };
+  // Inspector catalog — the data the demo's diagnostic foldouts (icon inventory,
+  // raster inventory, resource-roles viewer) used to fetch from per-bundle JSON
+  // files (themes/<slug>/{icons/index.json,rasters.json,resource-roles.json}).
+  // Synthesising them here instead of shipping pre-extracted JSONs is what makes
+  // Option A (source-of-truth bundles, decode at runtime) compatible with the
+  // diagnostic UI. The catalog mirrors the legacy JSON shape exactly so the demo
+  // can swap fetch() → theme.inspector.* with no other change.
+  const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
+
+  return { manifest: theme, baseUrl: '', inspector, ...(Object.keys(glyphs).length ? { glyphs } : {}) };
+}
+
+/** Build the inspector catalog from the decode output. Mirrors the on-disk JSON
+ *  shape: { iconIndex, cicns, ppats, resourceRoles }. URLs (vs filesystem paths)
+ *  are baked in so the panel code can render directly. */
+function buildInspector(manifest, assets, iconIndex, urlByPath, slugHint) {
+  // Reverse: bundle-path → URL, so the inspector can hand each row a ready URL.
+  // The cicn/ppat lists come from the assets[] array (the same source that gave
+  // us urlByPath). Icon list comes from convertScheme's iconIndex.
+  const cicns = [];
+  const ppats = [];
+  for (const a of assets) {
+    // Asset paths: 'cicns/cicn-n10239-…png', 'ppats/ppat-…png', 'icons/…png'.
+    if (a.path.startsWith('cicns/')) {
+      const file = a.path.slice('cicns/'.length);
+      const parsed = parseCicnFilename(file);
+      cicns.push({ ...parsed, url: urlByPath.get(a.path) });
+    } else if (a.path.startsWith('ppats/')) {
+      const file = a.path.slice('ppats/'.length);
+      const parsed = parsePpatFilename(file);
+      ppats.push({ ...parsed, url: urlByPath.get(a.path) });
+    }
+  }
+  // Icon entries get a URL too (panel rendering happens off `i.url`, not a path).
+  const enrichedIcons = iconIndex.map((e) => ({
+    ...e,
+    url: urlByPath.get(`icons/${e.file}`),
+  }));
+
+  const themeSlug = (slugHint || manifest?.name || 'theme').toString();
+  const resourceRoles = buildResourceRoles(themeSlug, cicns, ppats, iconIndex);
+
+  return { iconIndex: enrichedIcons, cicns, ppats, resourceRoles };
 }
 
 /** Recursively replace any string value that is a known asset bundle-path with its URL. */

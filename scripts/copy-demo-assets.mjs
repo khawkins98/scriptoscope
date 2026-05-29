@@ -65,10 +65,15 @@ if (await exists(resolve(root, 'demo/assets/fonts'))) {
 const outThemes = resolve(root, 'dist/demo/themes');
 await mkdir(outThemes, { recursive: true });
 const themesDir = resolve(root, 'themes');
-const BUNDLE_SHIP_FILES = ['scheme.rsrc', 'meta.json', 'PROVENANCE.md'];
+// Prefer .sit (the original StuffIt the author published — palatable, ~half the
+// size of the unwrapped fork) and fall back to .rsrc for bundles where the
+// upstream .sit is no longer reachable (wayback-recovered schemes).
+const BUNDLE_SHIP_FILES = ['scheme.sit', 'scheme.rsrc', 'meta.json', 'PROVENANCE.md'];
 for (const slug of await readdir(themesDir)) {
   const srcDir = resolve(themesDir, slug);
-  if (!(await exists(resolve(srcDir, 'scheme.rsrc')))) continue;
+  const hasSit = await exists(resolve(srcDir, 'scheme.sit'));
+  const hasRsrc = await exists(resolve(srcDir, 'scheme.rsrc'));
+  if (!hasSit && !hasRsrc) continue;
   const dstDir = resolve(outThemes, slug);
   await mkdir(dstDir, { recursive: true });
   for (const f of BUNDLE_SHIP_FILES) {

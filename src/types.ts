@@ -186,4 +186,42 @@ export interface LoadedTheme {
    * the asset from the base bundle's own URL. Chains (base.base) are followed.
    */
   base?: LoadedTheme;
+  /**
+   * Optional inspector catalog — the data the demo's diagnostic foldouts (icon
+   * inventory, raster inventory, resource-roles viewer) used to fetch from
+   * per-bundle JSON files. Present when the theme was decoded in-browser via
+   * `loadKaleidoscopeScheme` (Option A); absent for pre-extracted bundles. The
+   * catalog mirrors the on-disk JSON shape (`icons/index.json`, `rasters.json`,
+   * `resource-roles.json`) plus baked-in URLs so the panel can render directly.
+   * Demo panels prefer this over fetch() when present.
+   */
+  inspector?: ThemeInspector;
+}
+
+/** Inspector catalog returned by an in-memory decode — the source of truth for the demo's
+ *  diagnostic panels now that bundles ship only the original archive. */
+export interface ThemeInspector {
+  iconIndex: Array<{
+    id: number;
+    type: 'icl4' | 'ics4' | 'icl8' | 'ics8';
+    size?: number;
+    depth?: number;
+    file: string;
+    name?: string | null;
+    /** Asset URL (blob: in a browser; pass-through in Node when assetUrlFactory was set). */
+    url?: string;
+    /** Optional decoder-side coverage metric (fraction of opaque pixels). */
+    coverage?: number;
+  }>;
+  cicns: Array<{ file: string; id: number | null; name: string | null; url?: string }>;
+  ppats: Array<{ file: string; label: string; url?: string }>;
+  resourceRoles: {
+    theme: string;
+    progress: Record<string, unknown>;
+    scrollArrows: Record<string, unknown> | null;
+    resources: Array<{
+      id: number | null; type: string; size?: number;
+      slug: string | null; family: string; role: string;
+    }>;
+  };
 }

@@ -22,12 +22,15 @@ export async function loadTheme(
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
-  // Fetch the resource fork bytes.
-  const rsrcRes = await fetch(`${baseUrl}/scheme.rsrc`);
-  if (!rsrcRes.ok) {
-    throw new Error(`loadTheme: ${baseUrl}/scheme.rsrc → HTTP ${rsrcRes.status}`);
+  // Try the StuffIt archive first (the original `.sit` the author published — the
+  // most palatable redistribution form: nothing decompressed by us). Fall back to
+  // the raw resource fork (the unwrapped form some bundles ship when the upstream
+  // .sit is no longer reachable, e.g. wayback-recovered schemes). loadKaleidoscopeScheme
+  // unwraps both — `.sit` lazy-loads the WASM decoder, `.rsrc` skips it.
+  const fileBytes = await fetchFirst(baseUrl, ['scheme.sit', 'scheme.rsrc']);
+  if (!fileBytes) {
+    throw new Error(`loadTheme: ${baseUrl} — no scheme.sit or scheme.rsrc found`);
   }
-  const rsrcBytes = new Uint8Array(await rsrcRes.arrayBuffer());
 
   // Fetch meta.json if present (author/license/provenance — merged into the
   // decoded manifest's `name` / `author` / `origin` fields). Missing is OK
@@ -39,15 +42,30 @@ export async function loadTheme(
   } catch { /* network error / not present — silently degrade */ }
 
   const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
-  const loaded = await loadKaleidoscopeScheme(rsrcBytes, {
+  const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
     meta: { name: (meta.name as string) ?? slug, ...meta },
-    source: `${slug}/scheme.rsrc`,
+    source: `${slug}/${fileBytes.filename}`,
   });
 
   return {
     ...loaded,
     ...(opts.base ? { base: opts.base } : {}),
   };
+}
+
+/** Race the candidate filenames; return the first one that responds 200. Falls back to
+ *  trying them serially so a 404 → next-name cascade is deterministic (HEAD-then-GET would
+ *  add a round-trip; a serial fetch with `cache: 'force-cache'` is fine for this use case). */
+async function fetchFirst(
+  baseUrl: string, filenames: string[],
+): Promise<{ filename: string; bytes: Uint8Array } | null> {
+  for (const filename of filenames) {
+    try {
+      const res = await fetch(`${baseUrl}/${filename}`);
+      if (res.ok) return { filename, bytes: new Uint8Array(await res.arrayBuffer()) };
+    } catch { /* try the next candidate */ }
+  }
+  return null;
 }
 
 /** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute

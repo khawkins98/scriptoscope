@@ -23,7 +23,15 @@ const serveThemesPlugin = () => ({
       if (!req.url || !req.url.startsWith('/themes/')) return next();
       const url = req.url.split('?')[0];
       const filepath = resolve(import.meta.dirname, '.' + url);
-      if (!existsSync(filepath) || !statSync(filepath).isFile()) return next();
+      // Return a real 404 for missing files INSIDE /themes/ — falling through to
+      // next() would let Vite serve the demo HTML for `/themes/<slug>/missing.json`,
+      // which then 200s with HTML bytes and breaks `loadTheme`'s scheme.sit ←→
+      // scheme.rsrc fallback (it would decode the HTML as a fork and explode).
+      if (!existsSync(filepath) || !statSync(filepath).isFile()) {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
       const ext = (filepath.split('.').pop() ?? '').toLowerCase();
       const mime = ext === 'json' ? 'application/json'
                  : ext === 'png'  ? 'image/png'
