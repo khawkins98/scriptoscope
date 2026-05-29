@@ -864,14 +864,31 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const ringActive = await loadById(theme, 10231);
   if (!ringActive) return faceBuf; // theme ships no ring at all — preserve face-only output
   const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
-  // The ring cicn is a 9-slice default-button OUTLINE template (a rounded gray/black
-  // ring, or apple-platinum-2's indigo frame — both shipped art). The face fills its
-  // centre; the ring wraps it by an OUTSET ≈ ¼ the template (NOT ring.width -
-  // face.width, which is 0 for the shared 16px template → a squashed 2px band).
-  // Outset from the ACTUALLY-DRAWN ring's width when there is one (default-button path) so a
-  // disabled-default isn't mis-outset if the theme ships -10231 / -10232 at different sizes; fall
-  // back to the active probe for the plain-button reservation.
-  const outset = Math.max(3, Math.round((ring?.width ?? ringActive.width) / 4));
+  // The ring cicn is a 9-slice default-button OUTLINE template. Two authoring models
+  // exist across the corpus — pick the right outset for each:
+  //
+  //   1. OUTSET model (ring authored LARGER than face): the artist drew the ring
+  //      cicn at face-size + halo, so the canonical outset is the half-difference
+  //      between the two. Crayon-os ships ring 80×80 / face 74×74 → outset 3.
+  //      Most themed schemes use this (1984 / 1990 / animals / dolphin-som / evolution
+  //      / monkey-paradise / windows-* etc.).
+  //   2. OVERLAY model (ring authored SAME-OR-SMALLER than face): the ring is meant
+  //      to draw AS an outline on top of the face. Apple-platinum-2 / 1138 / beos-r503
+  //      / platinum-8 / slimes / system7-nostalgia-silver / black-platinum ship
+  //      ring 16×16 = face 16×16. Falls back to the historical ring.width/4 heuristic
+  //      so existing working renders don't regress.
+  //
+  // Probe BOTH ids (ring-active for the plain-button reservation, ring-or-fallback
+  // for the actual draw) so a disabled-default isn't mis-outset if -10231/-10232
+  // ship at different sizes.
+  const faceCe = elementById(theme, 10239);
+  const ringDrawn = ring ?? ringActive;
+  const authoredDelta = (faceCe && ringDrawn.width > faceCe.width)
+    ? Math.max(0, Math.round((ringDrawn.width - faceCe.width) / 2))
+    : 0;
+  const outset = authoredDelta >= 1
+    ? authoredDelta
+    : Math.max(3, Math.round(ringDrawn.width / 4));
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
