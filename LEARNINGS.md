@@ -2506,3 +2506,48 @@ Worst case is a degraded-but-CONSISTENT render the eyeball can catch on first si
 - See `src/pixelBuffer.ts:nineSlice` — the clamp now lives there. Comment cites the 1990 + evolution case as the canonical example. Any future "the inset doesn't draw what I expected" is most likely either (a) `corner + side > raster_size` triggering the clamp (visible as a tighter-than-authored band), or (b) the cinf carrying an exotic `resizeBehavior` the runtime collapses to binary tile/stretch (the 13-of-15 TMPL 139 values still unsupported).
 
 **Sibling gotcha — flatten rect bounds.** `composeFaceButton` paints a flatten rect AFTER the face nineSlice to erase the cinf text marker. The flatten rect's bounds also need the per-axis insets, not `fIns` for both. Same root cause: silent partial coverage when `fSide < fIns`.
+
+---
+
+### 2026-05-29 — Option-A blob URLs break asset-path-based id lookups (read first)
+
+**This bug class has now bitten three times in two months. If you write a "look up the resource by parsing an id out of the asset path" function, STOP and read this entry.**
+
+Under Option A, `loadKaleidoscopeScheme` rewrites every asset reference (chromeElements, patterns, icons) to a `blob:...` URL pointing at an in-memory `OffscreenCanvas`. The rewrite happens once at load and is invisible to consumers — `theme.manifest.chromeElements['…'].asset` no longer contains `cicns/cicn-n10239-….png`, it contains `blob:http://localhost…/uuid-…`.
+
+Code that tries to derive an id by regex-on-asset-path then silently returns null. Every consumer downstream falls to a procedural / hard fallback. The first occurrence — `elementById` (commit 4ba57a3) — un-themed every button / default-ring / textAnchor in every theme; the parity-gate caught it. The third occurrence — `bodyBackgroundStyle`'s "find a pattern whose asset includes `ppat-42-`" — silently flat-whited every utility-window body in the corpus for ~30 minutes after `8b641b0` until the user surfaced "1984 is still not fixed."
+
+**The structural fix.** Add a `source<X>Id` numeric field at decode time, mirror the `sourceCicnId` pattern, look up by `|sourceXxxId|`. Three live cases:
+
+| Resource | Decode field | Lookup helper | First commit |
+|---|---|---|---|
+| chromeElement (cicn) | `sourceCicnId` | `elementById` (`src/controls.ts`) | 4ba57a3 |
+| chromeElement (cinf) | `sourceCinfId` | (typed-only, no current consumer) | adc8bc3 |
+| pattern (ppat) | `sourcePpatId` | `patternByResourceId` (`src/renderWindow.ts`) | 68f5ff8 |
+
+Pending consumers that should be id-based, not asset-path-based:
+- ics4 / ics8 glyph lookup (currently goes through `theme.glyphs[id]` by string key — safe, but if a future caller wants to walk by asset path, same trap).
+- Any future "find a chromeElement by role family" helper that today might be tempted to grep `chromeElement.asset` for `cicn-n8278-` or similar.
+
+**Detection-after-the-fact.** The decoded-manifest fingerprint (`themes/lint-baseline.json`'s `decodedSha256`, opt-in via `--decoded` or `--strict`) catches "the decoder output changed without the source bytes changing." It WILL fire when a new `source<X>Id` field is added — that's a legitimate decoder output change, run `npm run lint:themes -- --update`. It will also fire when a code change accidentally drops the id rewrite (the prophylactic). The visual-baseline byte-diff (`npm run verify:scenes`) catches the downstream effect: silent un-themed renders show up as different pixels.
+
+**Application.**
+
+1. **Never parse an id out of an asset path at runtime.** If you find yourself writing `asset.includes('cicn-n')` or `/ppat-(\d+)/.exec(path)`, stop. Use the structured `source<X>Id` field instead, or add one if the decoder doesn't write one yet.
+2. **When you add a new resource type with a canonical id slot, add the `source<X>Id` field BEFORE writing any consumers.** The decoder is one edit + one type update + one re-baseline. Doing it after writing consumers means the consumers ship broken and the decoded-fingerprint guard misses it (because the consumer reads via blob URL, the guard reads via the manifest's structured field — they diverge silently).
+3. **Friendly keys are author-decorative; ids are structured truth.** Two bundles can ship the same kDEF resource under wildly different friendly keys (1984's `ppat-42` is "blue-utility"; monkey-paradise's `ppat-42` is "utility-pattern"; 1990's is unnamed). The id is invariant; the key is not. Look up by id.
+4. **A separate but-related trap: the `friendly key` lookup misses the same case for chromeElements.** push-button-active is canonically `push-button-active`, but apple-platinum-2's decoder emits `cicn--10239` (generic dump key, no semantic info). The role-name walker in `loadPushButtonFace` (`3c36723`) walks a list of canonical key aliases AND falls back to id-with-anti-role-rejection. Same shape; different field.
+
+---
+
+### 2026-05-29 — Visual misreads at thumbnail resolution flip "spec wrong vs runtime wrong"
+
+The `dialog-body-bg` codex slot was reverted from a 3-tier hierarchy to flat-white once before this session — see `b6e9b86` and the spec-doc comment "the visual audit confirmed the references show FLAT bodies." That visual audit was wrong. At thumbnail resolution (the per-theme Scene tile in the demo's index), a subtle `ppat-42` tile reads as flat off-white; the references that actually carry a themed utility body (1984's blue-utility, 1990's green ppat-42, monkey-paradise's beige) look identical to the references that don't (1984 vs apple-platinum-2 at thumb size, indistinguishable).
+
+The user surfaced the misread on 2026-05-29 with the screenshots that prompted commit `8b641b0` — the 3-tier hierarchy is back, by canonical resource id rather than friendly key (`68f5ff8`).
+
+**Application.**
+
+- When a hypothesis says "every reference shows X," verify by pixel-probing the reference images, not by eyeballing thumbnails. The `.scratch/crop-baseline.mjs`-style PNG decoder is enough; classify the rectangle the slot occupies and confirm.
+- When retracting a tier from the codex, add a "retraction trigger" line in the spec entry: "if any reference reading sees a non-flat utility body, reinstate." It's the same idea as a parked issue's "unpark when" — make the next reviewer's job easier.
+- Visual baselines (`tests/visual-baselines/scenes/*.png`) at the thumbnail resolution they live in are an existence check ("the pipeline ran"), not a faithful-rendering check. The reference images shipped with each bundle are the source of truth for "does this theme look right."
