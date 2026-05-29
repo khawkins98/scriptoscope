@@ -71,7 +71,7 @@ export function buildThemeJson(manifest, options = {}) {
     // resolution by canonical resource id (`ppat-42` = the kDEF utility-window
     // pattern slot, regardless of the bundle author's friendly name) breaks
     // because `asset` becomes a `blob:...` URL that no longer contains the id.
-    patterns[slug] = { asset: ppat.file, sourcePpatId: ppat.id };
+    patterns[slug] = { asset: ppat.file, sourcePpatId: ppat.id, authorLabel: ppat.name || null };
     ppatSlugById[ppat.id] = slug;
   }
 
@@ -109,6 +109,15 @@ export function buildThemeJson(manifest, options = {}) {
       embossAnchor: cd ? coordTuple(cd.embossPixel) : null,
       sourceCicnId: cicn.id,
       sourceCinfId: cinf?.id ?? null,
+      // The bundle author's original NAMED-resource label (verbatim, NOT
+      // slugified). Surfaces "Push Button Active" / "Inactive Grow Box"
+      // / "Snap-To-Grid" as primary-source role labels. The slug key is
+      // decoration; the cicn.name string is the structured truth and
+      // surfacing it lets consumers cite "the bundle author labeled this
+      // X" instead of inferring roles from ids or slugs. See
+      // docs/spec/corpus-corroborated-ids.md for the aggregate, which
+      // pulls from this field across all bundles.
+      authorLabel: cicn.name || null,
     };
     chromeElements[slug] = entry;
   }

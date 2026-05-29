@@ -141,6 +141,17 @@ export interface ChromeElement {
    */
   sourceCinfId?: number;
   /**
+   * The bundle author's original NAMED-resource label (verbatim from the .sit /
+   * .rsrc), e.g. `"Push Button Active"`, `"Inactive Grow Box"`, `"Snap-To-Grid"`.
+   * Primary-source role label — cross-corroborated in `docs/spec/
+   * corpus-corroborated-ids.md` across 17 of 18 bundles (6,842 NAMED labels).
+   * Surfaces the structural answer to "what role does this id play" without
+   * inference; the codex tier resolvers can trust this over heuristics when
+   * present. Null when the bundle author shipped the cicn without a label
+   * (windows-31 + windows-95 are the only corpus bundles with zero labels).
+   */
+  authorLabel?: string | null;
+  /**
    * The scheme-author-declared background pattern for this chromeElement, as a key
    * into `manifest.patterns`. Example: cinf -9567 (finder-header) carries
    * `bgPattern: 'ppat--9567'` or `'ppat-129'` depending on the scheme (monkey-paradise
@@ -208,7 +219,7 @@ export interface ThemeManifest {
    * `bgPattern` field references these keys; the demo + future per-slot lookups
    * resolve through this map. Always present (may be empty for slim schemes).
    */
-  patterns?: Record<string, { asset: string; sourcePpatId?: number }>;
+  patterns?: Record<string, { asset: string; sourcePpatId?: number; authorLabel?: string | null }>;
 }
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */
