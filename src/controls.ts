@@ -796,6 +796,7 @@ export async function composeProgress(
   // source of truth, the pixel scan is a heuristic that drifts from artist intent.
   const frameEl = elementById(theme, active ? 10080 : 10077);
   const border = frameEl?.slice?.corner ?? (frame ? frameBorder(frame) : 1);
+  const borderV = frameEl?.slice?.side ?? border;
   const ix = border;
   const iw = Math.max(0, length - border * 2);
   const iy = border;
@@ -813,7 +814,7 @@ export async function composeProgress(
   if (frame) {
     // Honour the cinf-declared slice.tile (same as composeFaceButton / composeButton ring).
     const frameMode = frameEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h }, frameMode);
+    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: borderV, r: border, b: borderV }, { x: 0, y: 0, w: length, h }, frameMode);
   }
 
   // 3) fill across 0..value of the interior, ON TOP of the frame — 3-slice
@@ -879,8 +880,16 @@ interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; f
 async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: number, opts: FaceOptions): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const faceEl = elementById(theme, faceId) ?? elementById(theme, 10239);
+  // The cinf carries TWO independent 9-slice insets:
+  //   cornerSize / `slice.corner`  — horizontal corner block width (l/r)
+  //   sideThickness / `slice.side` — vertical corner block height (t/b)
+  // Apple-lisa's -10240 ships corner=4 side=1: a 4px-wide rounded side with a
+  // 1px top/bottom rim. Animals' -10240 ships corner=6 side=4. Treating the
+  // band as a square (l=t=r=b=corner) loses the artist's authored proportions;
+  // honouring both gives the real rectangular 9-slice the cinf TMPL declares.
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
-  const faceIns = { l: fIns, t: fIns, r: fIns, b: fIns };
+  const fSide = faceEl?.slice?.side ?? fIns;
+  const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
   // Sample the interior FILL colour OFFSET from the marker (which often sits at
   // [fIns,fIns]); sampling the marker would flood the flattened interior with the
   // light label colour — a stripe across the button.
@@ -962,12 +971,13 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
     const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
+    const rSide = ringEl?.slice?.side ?? rIns;
     // Honour the artist-declared resize behaviour: `slice.tile: true` (apple-lisa,
     // windows-31, crayon-os, …) means the side bands carry a pixel-rate border
     // pattern that must be repeated, not stretched. Stretching it smears the
     // thickness signal and the ring looks faint at button-display size.
     const ringMode = ringEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
+    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rSide, r: rIns, b: rSide }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
   }
   out.drawOver(faceBuf, outset, outset);
   return out;

@@ -365,22 +365,30 @@ export async function renderWindow(
         lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
       }
       // Title colour priority:
-      //   1. The AUTHORED colour from the kDEF title-text marker (`0x5530`) — the
-      //      cicn pixel at (titleFillSrcX, midY-of-marker-band), sampled by
-      //      composeChrome. Faithful per-scheme; no luminance guess. Current
-      //      corpus has no scheme that ships this with a non-black/non-white
-      //      authored colour, so the practical effect today is a no-op — but
-      //      future imports with a coloured marker will be respected.
+      //   1. The AUTHORED colour from the kDEF title-text marker (`0x5530`) — IF
+      //      it contrasts with the bar's average luminance. The marker is a 1-pixel
+      //      hint the artist drew INTO the title cicn; sometimes it's filled with
+      //      the title-text color (the faithful "draw white-on-blue" hint), sometimes
+      //      it's filled with the bar's BG color (the artist used it only as a
+      //      position marker, not a color hint — windows-31's marker pixel is on
+      //      the dark blue title bar, so sampling it gives dark blue → invisible
+      //      title text). Reject the sample when |marker - bar avg| is small.
       //   2. Luminance-contrast B/W on the composed bar's pixels (the fallback
-      //      path; what every render currently uses).
+      //      path; what every current corpus render uses).
       // Active windows take the authored colour at full saturation; inactive ones
       // dim it toward grey to match the classic Mac convention.
       const authored = composed.titleFillRgb;
+      let useAuthored = false;
+      if (authored && lumN > 0) {
+        const markerLum = 0.299 * authored.r + 0.587 * authored.g + 0.114 * authored.b;
+        const barLum = lumSum / lumN;
+        // 40 ≈ minimum perceptual contrast for legible text on a coloured bg.
+        useAuthored = Math.abs(markerLum - barLum) > 40;
+      }
       let fgHex: string;
-      if (authored) {
+      if (useAuthored && authored) {
         const hex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
         if (state === 'inactive') {
-          // Mix 50% toward #808080 — the classic inactive dim.
           const r = (authored.r + 128) / 2, g = (authored.g + 128) / 2, b = (authored.b + 128) / 2;
           fgHex = `#${hex(r)}${hex(g)}${hex(b)}`;
         } else {
