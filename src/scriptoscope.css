@@ -85,9 +85,9 @@
    — the chrome doesn't beg to be clicked). On the title-bar drag area though,
    consumers expect a move cursor when hovering. The chrome doesn't expose
    distinct hit zones via DOM, so this is best-effort on the host: when the
-   pointer is over the host but NOT over a promoted .aw-content (i.e. NOT
+   pointer is over the host but NOT over a promoted .scriptoscope-content (i.e. NOT
    over the body), the cursor reads as draggable. The runtime owns
-   pointer-events on .aw-chrome and overlay elements; this only affects
+   pointer-events on .scriptoscope-chrome and overlay elements; this only affects
    the host's default cursor when hovering empty chrome zones. */
 [data-scriptoscope-promoted] {
   cursor: default;
@@ -102,7 +102,7 @@
     box-shadow: none;
   }
   [data-scriptoscope-promoted]::part(aw-chrome),
-  [data-scriptoscope-promoted] canvas.aw-chrome {
+  [data-scriptoscope-promoted] canvas.scriptoscope-chrome {
     display: none;
   }
 }

@@ -198,8 +198,8 @@
     //    setDebug(); a checkbox in the header keeps the UI honest. Persists in localStorage
     //    so the next page load remembers. Off by default.
     {
-      const stored = localStorage.getItem('aaron-debug') || '';
-      const urlParam = new URLSearchParams(location.search).get('aaron-debug');
+      const stored = localStorage.getItem('scriptoscope-debug') || '';
+      const urlParam = new URLSearchParams(location.search).get('scriptoscope-debug');
       const initial = urlParam ?? stored;
       const isOn = initial && initial !== '0' && initial !== 'false' && initial !== 'off';
       if (initial === '1' || initial === 'true' || initial === 'on') setDebug(true);
@@ -212,12 +212,12 @@
         cb.addEventListener('change', () => {
           if (cb.checked) {
             setDebug(true);
-            localStorage.setItem('aaron-debug', '1');
-            console.log('[aaron] debug logging ENABLED — interact with the playgrounds + scheme switcher to see events');
+            localStorage.setItem('scriptoscope-debug', '1');
+            console.log('[scriptoscope] debug logging ENABLED — interact with the playgrounds + scheme switcher to see events');
           } else {
             setDebug(false);
-            localStorage.removeItem('aaron-debug');
-            console.log('[aaron] debug logging disabled');
+            localStorage.removeItem('scriptoscope-debug');
+            console.log('[scriptoscope] debug logging disabled');
           }
         });
       });
@@ -714,11 +714,11 @@
       // baseline window is sized by content + a ~19px title bar + 1px borders).
       const mainW = parseInt(win.style.width) || (winW + 4);
       const mainH = parseInt(win.style.height) || (winH + 22);
-      const contentEl = win.querySelector('.aw-content');
+      const contentEl = win.querySelector('.scriptoscope-content');
       const mainTop = contentEl && parseInt(contentEl.style.top) ? parseInt(contentEl.style.top) : 19;
       Object.assign(desk.style, { width: `${mainW}px`, height: `${mainH}px` });
       Object.assign(win.style, { position: 'absolute', left: '0', top: '0' });
-      const content = win.querySelector('.aw-content');
+      const content = win.querySelector('.scriptoscope-content');
       if (content) {
         Object.assign(content.style, { overflow: 'hidden' });
         // scheme-name info bar (the Finder window's volume header): a grid/proxy
@@ -781,7 +781,7 @@
       const dlgLeft = Math.max(0, mainW - dlgW - 6);
       const dlgTop = Math.max(2, Math.min(mainH - dlgH - 4, mainTop));
       Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
-      const dc = dlg.querySelector('.aw-content');
+      const dc = dlg.querySelector('.scriptoscope-content');
       if (dc) {
         Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
         const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
@@ -841,7 +841,7 @@
         // regions onto X. Now these schemes show their region geometry like 1138.
         let cwin = null;
         try { cwin = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 1, state: 'active' }); } catch { /* render may fail offline */ }
-        const comp = cwin && cwin._awComposed;
+        const comp = cwin && cwin._scriptoscopeComposed;
         if (!comp || !comp.placement || !comp.placement.length) {
           const e = document.createElement('div'); e.textContent = '(no wnd# recipe — default/baseline window)'; e.style.opacity = '.6'; wrap.appendChild(e); return wrap;
         }
@@ -949,7 +949,7 @@
       return null;
     }
 
-    // The reusable slice VIEW: given a rendered window (with _awComposed) + the
+    // The reusable slice VIEW: given a rendered window (with _scriptoscopeComposed) + the
     // source cicn image + scale, build the window-with-overlay + the slice list.
     // Hover/click a slice to highlight EVERY output region it produced (tiled
     // slices light up N times); hover the window to read off the slice under the
@@ -968,7 +968,7 @@
     }
 
     function buildSliceView(win, cicnImg, SC, refSrc, ctx = {}) {
-      const placement = win._awComposed.placement;
+      const placement = win._scriptoscopeComposed.placement;
       const winH = (parseInt(win.style.height) || 200);
       const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
       const winCol = document.createElement('div'); winCol.style.cssText = 'flex:0 0 auto';
@@ -1036,15 +1036,15 @@
       // real PLACED pixels (the positioned glyph / title), not the raw cicn
       // source — that's what lets the owner eyeball "this icon is 2px too high".
       let chromeCanvas = null;
-      try { if (win._awComposed.buffer) chromeCanvas = bufferToCanvas(win._awComposed.buffer, 1); } catch { /* fall back to cicn src */ }
-      const frame = win._awComposed.frame || { top: 0 };
+      try { if (win._scriptoscopeComposed.buffer) chromeCanvas = bufferToCanvas(win._scriptoscopeComposed.buffer, 1); } catch { /* fall back to cicn src */ }
+      const frame = win._scriptoscopeComposed.frame || { top: 0 };
 
       // Expand the placement into INSPECTABLE items: each widget rect is its OWN
       // item (close / zoom / collapse individually), every other slice stays one,
       // and a synthetic "title string" item is prepended so the title position is
       // clickable too. Each item carries its own output rect for highlight + crop.
       const items = [];
-      const titleReg = win._awComposed.titleRegion;
+      const titleReg = win._scriptoscopeComposed.titleRegion;
       if (titleReg && frame.top > 6) {
         items.push({ edge: 'title', code: -1, role: 'title string', mode: 'text',
           src: { x: 0, y: 0, w: titleReg.w, h: frame.top },
@@ -1145,7 +1145,7 @@
       let win;
       try { win = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 2, state: 'active' }); }
       catch (e) { const d = document.createElement('div'); d.textContent = '(render failed: ' + e + ')'; details.appendChild(d); return details; }
-      if (!win._awComposed || !win._awComposed.placement || !win._awComposed.placement.length) {
+      if (!win._scriptoscopeComposed || !win._scriptoscopeComposed.placement || !win._scriptoscopeComposed.placement.length) {
         const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
       }
       const cicnImg = await loadImgSafe(theme, docWindowCicn(theme));
@@ -1249,7 +1249,7 @@
         // radio/checkbox, edge scrollbars, grow handle) so the playground shows controls
         // in a real window context — handy for checking control + frame placement.
         // Scaled to the window (SC); robust to small windows (skips what won't fit).
-        const body = win.querySelector('.aw-content');
+        const body = win.querySelector('.scriptoscope-content');
         if (body) {
           const cw = +wIn.value, ch = +hIn.value;
           body.style.overflow = 'hidden';
@@ -1270,7 +1270,7 @@
         const refMeta = THEMES.find((t) => t.slug === themeSel.value);
         const refSrc = refMeta ? `./assets/references/${refMeta.ref}` : null;
         const ctx = { themeName: refMeta ? refMeta.label : themeSel.value, slug: themeSel.value, windowType: wtypeSel.value || '(default)', w: +wIn.value, h: +hIn.value, scale: SC, state: stateSel.value };
-        if (win._awComposed && win._awComposed.placement && win._awComposed.placement.length) {
+        if (win._scriptoscopeComposed && win._scriptoscopeComposed.placement && win._scriptoscopeComposed.placement.length) {
           const cicnImg = await loadImgSafe(theme, windowCicn(theme, wtypeSel.value));
           if (my !== token) return;
           out.appendChild(buildSliceView(win, cicnImg, SC, refSrc, ctx));

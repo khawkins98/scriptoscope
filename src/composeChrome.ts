@@ -73,7 +73,7 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 //                              system7-nostalgia-silver, black-platinum).
 //                              renderWindow.ts picks one based on windowType.model.
 //   renderWindow.ts            Wraps composeWindowChrome's output in DOM
-//                              (.aw-window > canvas + .aw-content + grow box).
+//                              (.scriptoscope-window > canvas + .scriptoscope-content + grow box).
 //   types.ts                   ThemeManifest + Rect + EdgeStep + WindowType
 //                              shapes consumed here.
 //

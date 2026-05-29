@@ -366,7 +366,7 @@ export async function renderWindow(
   // 0,0 and the content is INSET by the frame thickness. ──
   const win = document.createElement('div');
   win.className = 'scriptoscope-window';
-  win.dataset.awState = state;
+  win.dataset.scriptoscopeCurrentState = state;
   // The title is always exposed to assistive tech, even when it isn't drawn
   // (utility/mini windows show no visible label in a modern context).
   if (title) {
@@ -411,7 +411,7 @@ export async function renderWindow(
   // content (slotted children stay light-DOM-styled); the chrome is shielded
   // from host CSS by the shadow boundary. When this window is used WITHOUT a
   // shadow root (the demo's direct renderWindow path), the slot is a no-op and
-  // .aw-content can still receive direct children — no behavioural change.
+  // .scriptoscope-content can still receive direct children — no behavioural change.
   const content = document.createElement('div');
   content.className = 'scriptoscope-content';
   Object.assign(content.style, {
@@ -467,7 +467,7 @@ export async function renderWindow(
  * (they inherit the OS-default Platinum window). DOM/CSS only — analogous
  * to the baseline controls. Uses the scheme's declared header colors for
  * the titlebar fill/text so it still reads as that scheme. Returns the same
- * `.aw-window` / `.aw-content` structure consumers expect.
+ * `.scriptoscope-window` / `.scriptoscope-content` structure consumers expect.
  */
 function buildBaselineWindow(
   theme: LoadedTheme,
@@ -494,7 +494,7 @@ function buildBaselineWindow(
 
   const win = document.createElement('div');
   win.className = 'scriptoscope-window';
-  win.dataset.awState = state;
+  win.dataset.scriptoscopeCurrentState = state;
   if (title) {
     win.setAttribute('role', utility ? 'dialog' : 'group');
     win.setAttribute('aria-label', title);

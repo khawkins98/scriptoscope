@@ -12,7 +12,7 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-05-28):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) 2026-05-28 for the Aaron UI → Scriptoscope rename rationale (npm package: scriptoscope; consumer-facing internal API surface — `data-scriptoscope-*` attributes, `.scriptoscope-*` classes, `ScriptoscopeWindow` class — stays stable on the Lodash-kept-`_` model). Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status (pre-1.0, 2026-05-29):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) for the Aaron UI → Scriptoscope rebrand (2026-05-28) + the full `data-scriptoscope-*` sweep (2026-05-29 — the Lodash-kept-`_` argument didn't survive the first integration guide). Live demo: <https://khawkins98.github.io/aaron-ui/>.
 
 ## Install
 
@@ -48,10 +48,9 @@ The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the 
 
   <!-- 2. Tag any element to become a Mac window. The children stay live HTML
        (selectable, accessible, real form values) — only the chrome is canvas. -->
+  <!-- (No x/y/width/height needed: position + size default to the element's current page rect.) -->
   <div data-scriptoscope-window
-       data-scriptoscope-title="Welcome"
-       data-scriptoscope-x="100" data-scriptoscope-y="80"
-       data-scriptoscope-width="380" data-scriptoscope-height="240">
+       data-scriptoscope-title="Welcome">
     <p>Anything in here is the window's body. <a href="#">Real links</a> work.</p>
     <button data-scriptoscope-button data-scriptoscope-default>OK</button>
   </div>
@@ -107,8 +106,8 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-window` | any element | Promote into a Mac window. Children become the window body. |
 | `data-scriptoscope-title="…"` | a window | Title-bar text. Optional. |
 | `data-scriptoscope-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
-| `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. Omit both to fall back to a default position. |
-| `data-scriptoscope-width="…"` / `data-scriptoscope-height="…"` | a window | Declared size. **Omit both** for content-fit (a `ResizeObserver` re-renders the chrome to fit content reflow). |
+| `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. **Optional** — omitted values inherit from the element's current page position, so the window appears in place where the original `<div>` was. Fallback (24,24) only kicks in when the element has no bounding rect (e.g. `display:none` at promotion time). |
+| `data-scriptoscope-width="…"` / `data-scriptoscope-height="…"` | a window | Declared size. **Optional** — omitted values inherit the element's currently-rendered width/height (one-shot capture). When neither is declared AND the element has no rect, content-fit kicks in (a `ResizeObserver` re-renders the chrome to fit content reflow). The combination "natural-rect capture or content-fit fallback" gives correct behavior whether the element is static (CSS-sized) or dynamic. |
 | `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
 | `data-scriptoscope-z="…"` | a window | Initial stacking order. Higher = on top. |
 | `data-scriptoscope-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
@@ -141,7 +140,7 @@ The call returns `{ disconnect, retheme, registerTheme }` — `retheme(slug)` to
 
 ### CSS classes (fallback if `data-scriptoscope-*` isn't an option)
 
-For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.aaron-window`, `.aaron-button` — the scanner picks both. The data-attribute path is preferred.
+For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.scriptoscope-window-fallback`, `.scriptoscope-button-fallback` — the scanner picks both. The data-attribute path is preferred.
 
 ### Theme switching at runtime
 
@@ -313,11 +312,11 @@ The declarative front door (principle 2 below) is **now built** — `mountDeclar
 
 1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Scriptoscope is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 
-2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-scriptoscope-window` (with `data-scriptoscope-title`, `data-scriptoscope-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-scriptoscope-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
+2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-scriptoscope-window` (with `data-scriptoscope-title`, `data-scriptoscope-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-scriptoscope-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.scriptoscope-window-fallback`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
 
 3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
-> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing internal API namespace stays stable — `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, `ScriptoscopeWindow` class — same Lodash-kept-`_` model.
+> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing API surface is `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, and the `ScriptoscopeWindow` class (swept 2026-05-29 from the original `data-aaron-*`/.aw-/AaronWindow naming).
 
 ## Where the idea came from
 

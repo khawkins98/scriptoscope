@@ -1,5 +1,5 @@
 // ScriptoscopeWindow — promotes a single consumer element into a managed Mac window. The element's
-// CHILDREN become the window's content (moved into the chrome's `.aw-content` hole as live light
+// CHILDREN become the window's content (moved into the chrome's `.scriptoscope-content` hole as live light
 // DOM — still selectable, focusable, reflowing); the chrome is the canvas behind them. Two size
 // modes: declared (data-scriptoscope-width/height) or content-fit (a ResizeObserver re-renders the chrome
 // when the content reflows). Built on the WindowManager's contentEl re-slot hook.
@@ -18,6 +18,32 @@ export interface ScriptoscopeWindowDeps {
 const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for content-fit (corrected after measure)
 const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40;
+
+/** Parse a string to number, or null when the input is missing or NaN. Used to read the
+ *  scanner's pre-captured rect seam values from the dataset. */
+function numOrNull(s: string | undefined): number | null {
+  if (s == null) return null;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Walk up the DOM to find the nearest positioned ancestor (the one the host's absolute
+ *  positioning will resolve against). Returns null when no positioned ancestor exists
+ *  (the host will resolve against the viewport via `<html>`). Matches the browser's own
+ *  "containing block for absolute positioning" algorithm: any element whose computed
+ *  `position` is `relative`/`absolute`/`fixed`/`sticky`, OR a `transform`/`filter`/`perspective`
+ *  that creates a containing block, OR `<html>`. */
+function findPositionedAncestor(el: HTMLElement): HTMLElement | null {
+  let node: HTMLElement | null = el.parentElement;
+  while (node && node !== document.documentElement) {
+    const cs = getComputedStyle(node);
+    if (cs.position !== 'static') return node;
+    // CSS transforms / filters create a containing block too.
+    if (cs.transform !== 'none' || cs.filter !== 'none' || cs.perspective !== 'none') return node;
+    node = node.parentElement;
+  }
+  return node; // <html> when nothing positioned along the chain
+}
 
 export class ScriptoscopeWindow {
   /** The positioned WindowManager host element (lives in the document). */
@@ -41,11 +67,49 @@ export class ScriptoscopeWindow {
     this.host = host; this.fit = fit; this.deps = deps; this.restore = restore;
   }
 
-  /** Promote `el` into a window. `fallbackPos` positions windows whose x/y aren't declared. */
+  /** Promote `el` into a window. When position attrs (`data-scriptoscope-x`/`-y`) are omitted,
+   *  the window appears where the element naturally sat in the page. When size attrs are omitted,
+   *  the window inherits the element's rendered width/height. `fallbackPos` is only used when
+   *  the element has no bounding rect (e.g. `display:none` at promotion time). */
   static async promote(
     el: HTMLElement, deps: ScriptoscopeWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
   ): Promise<ScriptoscopeWindow> {
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
+    // ── INHERIT FROM DOM RECT (when attrs are omitted) ─────────────────────────
+    // Capture the element's natural position + size in the document BEFORE we move
+    // its children into the slot. Subtract the positioned ancestor's offset so the
+    // host (which is absolute-positioned) lands at the same visual spot.
+    // - Position: omitted x/y default to the element's current page position.
+    // - Size: omitted width/height default to the element's rendered size (one-shot
+    //   capture at promotion time; if the consumer wants content-fit reflow, they
+    //   can omit both AND keep the children sized by content — the runtime keeps the
+    //   fit ResizeObserver wired in that case).
+    // Edge case: an element with `display:none` or detached has a 0-rect; fall through
+    // to the legacy `fallbackPos` (24,24) + `FIT_DEFAULT` (260x150).
+    //
+    // The scanner pre-captures rects for ALL window targets before any promotion runs
+    // (so sibling reflows don't corrupt later measurements). We prefer those when
+    // present, and fall back to measuring `el` ourselves when called directly (test
+    // harness, programmatic AaronWindow.promote calls, etc.).
+    const ancestor = findPositionedAncestor(el);
+    const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
+    const preLeft = numOrNull(el.dataset.scriptoscopeInheritedLeft);
+    const preTop = numOrNull(el.dataset.scriptoscopeInheritedTop);
+    const preW = numOrNull(el.dataset.scriptoscopeInheritedWidth);
+    const preH = numOrNull(el.dataset.scriptoscopeInheritedHeight);
+    const elRect = (preLeft != null && preTop != null && preW != null && preH != null)
+      ? { left: preLeft, top: preTop, width: preW, height: preH }
+      : el.getBoundingClientRect();
+    const naturalX = Math.round(elRect.left - ancRect.left);
+    const naturalY = Math.round(elRect.top - ancRect.top);
+    const naturalW = Math.round(elRect.width);
+    const naturalH = Math.round(elRect.height);
+    const hasNaturalRect = naturalW > 0 && naturalH > 0;
+    // Clean up the seam values once consumed.
+    delete el.dataset.scriptoscopeInheritedLeft;
+    delete el.dataset.scriptoscopeInheritedTop;
+    delete el.dataset.scriptoscopeInheritedWidth;
+    delete el.dataset.scriptoscopeInheritedHeight;
     el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.
@@ -63,8 +127,11 @@ export class ScriptoscopeWindow {
     slot.append(fit);
 
     const restore = { parent: el.parentNode, next: el.nextSibling, el };
-    const w0 = Math.max(MIN_W, parsed.width ?? FIT_DEFAULT.w);
-    const h0 = Math.max(MIN_H, parsed.height ?? FIT_DEFAULT.h);
+    // Initial size: declared > inherited from DOM rect > content-fit default.
+    const w0 = Math.max(MIN_W,
+      parsed.width ?? (hasNaturalRect ? naturalW : FIT_DEFAULT.w));
+    const h0 = Math.max(MIN_H,
+      parsed.height ?? (hasNaturalRect ? naturalH : FIT_DEFAULT.h));
 
     let inst: ScriptoscopeWindow | undefined;
     const host = await deps.manager.add(
@@ -82,14 +149,19 @@ export class ScriptoscopeWindow {
     );
     inst = new ScriptoscopeWindow(host, fit, deps, restore);
 
-    // Place the host where the original element was (in-flow position; the host is absolute, so it
-    // floats relative to the nearest positioned ancestor — the demo provides one), then drop `el`.
-    host.style.left = `${parsed.x ?? fallbackPos.x}px`;
-    host.style.top = `${parsed.y ?? fallbackPos.y}px`;
+    // Place the host where the original element was. Priority: declared x/y > inherited
+    // page position > fallback (24,24 for detached / display:none elements).
+    host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
+    host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
-    if (parsed.sizeMode === 'fit') await inst.fitToContent(true);
+    // Content-fit only when NEITHER w/h was declared AND we didn't capture a natural rect:
+    // the captured rect already gives the right initial size, and triggering a fit-to-content
+    // pass would override it with content's max-content size (often smaller than the
+    // visually-occupied element). When the natural rect is missing (display:none, etc.),
+    // fall back to content-fit so the window at least picks up the body's intrinsic size.
+    if (parsed.sizeMode === 'fit' && !hasNaturalRect) await inst.fitToContent(true);
     return inst;
   }
 
@@ -108,7 +180,7 @@ export class ScriptoscopeWindow {
   }
 
   /** Debounced, loop-guarded re-fit on content reflow. Observes the max-content `fit` wrapper (whose
-   *  natural size is independent of the `.aw-content` box we resize), with an epsilon + re-entrancy
+   *  natural size is independent of the `.scriptoscope-content` box we resize), with an epsilon + re-entrancy
    *  flag + disconnect-during-render so our own size changes can't re-trigger it. */
   private scheduleFit(): void {
     if (this.rendering || this.rafId) return;

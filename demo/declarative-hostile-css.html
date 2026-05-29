@@ -46,7 +46,7 @@
   }
 
   /* Aggressive aw-* targeting — what a hostile page that KNOWS about Aaron might try */
-  .aw-window, .aw-chrome, .aw-content, .aw-titlewidget, .aw-growbox {
+  .scriptoscope-window, .scriptoscope-chrome, .scriptoscope-content, .scriptoscope-titlewidget, .scriptoscope-growbox {
     all: revert !important;
     background: red !important;
     border: 5px solid yellow !important;
@@ -70,7 +70,7 @@
     font: 12px system-ui; padding: 4px 10px; border: 1px solid #888; background: #f5f3ee;
     color: #111; border-radius: 4px; cursor: pointer; margin: 0 0 12px;
   }
-  #scheme-drop.aaron-drop-active { background: #dbe7f5; border-color: #2b5070; }
+  #scheme-drop.scriptoscope-drop-active { background: #dbe7f5; border-color: #2b5070; }
   #scheme-drop-status { font: 11.5px system-ui; margin-left: 8px; }
   #scheme-drop-status[data-kind="busy"] { color: #cfd9ee; }
   #scheme-drop-status[data-kind="ok"]   { color: #b0e2c2; }
@@ -101,7 +101,7 @@
     <h2>This content is in light DOM</h2>
     <p>Host CSS reaches me — see the cream background, the indigo heading, and the red link.
       I'm a <code>&lt;div class=&quot;article-card&quot;&gt;</code> slotted into the shadow root's
-      <code>&lt;slot&gt;</code> via the Aaron <code>.aw-content</code>.</p>
+      <code>&lt;slot&gt;</code> via the Aaron <code>.scriptoscope-content</code>.</p>
     <p>The chrome around me, though, was painted by canvas inside the shadow root. Host CSS can't
       touch it. Try the dev tools.</p>
     <p><a href="https://example.com">An ordinary link</a> — styled by the host's rules.</p>

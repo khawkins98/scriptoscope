@@ -144,7 +144,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   };
 
   const promoteWindow = async (el: HTMLElement): Promise<void> => {
-    if (isPromoted(el) || el.closest('.aw-window')) return; // skip done / nested-in-chrome
+    if (isPromoted(el) || el.closest('.scriptoscope-window')) return; // skip done / nested-in-chrome
     inFlight.add(el);
     try {
       const ref = refForEl(el);
@@ -185,7 +185,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   };
 
   const promoteBtn = async (el: HTMLElement): Promise<void> => {
-    if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .aw-window
+    if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .scriptoscope-window
     inFlight.add(el);
     try {
       const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
@@ -245,9 +245,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     const theme = await resolver.load(ref);
     await manager.retheme(theme);
     // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
-    // out of any .aw-window, so re-skinning them would re-inject a face into the restored consumer DOM.
-    // `isConnected` (not `.closest('.aw-window')`) is the load-bearing filter: `closest` walks even
-    // detached subtrees and would keep entries whose window was removed via `.aw-window.remove()`.
+    // out of any .scriptoscope-window, so re-skinning them would re-inject a face into the restored consumer DOM.
+    // `isConnected` (not `.closest('.scriptoscope-window')`) is the load-bearing filter: `closest` walks even
+    // detached subtrees and would keep entries whose window was removed via `.scriptoscope-window.remove()`.
     const live = skinnedButtons.filter((b) => b.skinned.isConnected);
     skinnedButtons.length = 0; skinnedButtons.push(...live);
     for (const b of skinnedButtons) {
@@ -295,7 +295,30 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
   // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
-    for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
+    // Capture every window-target's bounding rect BEFORE we start promoting. Sequential
+    // promotion removes each element from the document, reflowing the page; if we measured
+    // each rect just-in-time, sibling inline-block windows would collapse onto each other
+    // (right card measured AFTER left card was removed → both end up at x=0). Pre-capturing
+    // gives every window its true natural position relative to its positioned ancestor.
+    // Stored on the dataset so ScriptoscopeWindow.promote (which reads its own dataset) sees
+    // them naturally — keeps the helper API uncluttered.
+    const windowTargets = Array.from(within.querySelectorAll(WINDOW_SEL)) as HTMLElement[];
+    for (const el of windowTargets) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        // The host's positioned ancestor — same one ScriptoscopeWindow.promote will resolve —
+        // is the SAME ancestor we should subtract here. But the host doesn't exist yet; it'll
+        // share the element's parent chain, so the right offset is what ScriptoscopeWindow
+        // computes itself. We just record the viewport-relative rect here; the promote()
+        // method handles the conversion. The keys mirror dataset.scriptoscope* shape for
+        // consistency — they're internal seam values, not part of the public attribute set.
+        el.dataset.scriptoscopeInheritedLeft = String(r.left);
+        el.dataset.scriptoscopeInheritedTop = String(r.top);
+        el.dataset.scriptoscopeInheritedWidth = String(r.width);
+        el.dataset.scriptoscopeInheritedHeight = String(r.height);
+      }
+    }
+    for (const el of windowTargets) await promoteWindow(el);
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
     for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);
@@ -335,7 +358,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   const obs = new MutationObserver((records) => {
     if (scheduled) return;
     const relevant = records.some((r) =>
-      Array.from(r.addedNodes).some((n) => n instanceof Element && !n.closest('.aw-window')));
+      Array.from(r.addedNodes).some((n) => n instanceof Element && !n.closest('.scriptoscope-window')));
     if (!relevant) return; // ignore our own churn inside the chrome
     scheduled = true;
     queueMicrotask(() => {
@@ -351,7 +374,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   // original element, disconnects its ResizeObserver). NB: skinned buttons aren't restored to their
   // original elements (the window's content, incl. the skinned button, is moved back as-is).
   // Also note: declarative elements added INSIDE an already-promoted window's content are not
-  // promoted (the observer ignores `.aw-window` subtrees) — a documented current-shape limitation.
+  // promoted (the observer ignores `.scriptoscope-window` subtrees) — a documented current-shape limitation.
   const teardownPersistence = (): void => {
     unsubCrossTab?.();
     manager.setChangeListener(undefined);

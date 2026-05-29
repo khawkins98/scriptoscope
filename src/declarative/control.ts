@@ -5,7 +5,7 @@
 //
 // Radio-group exclusivity rides on the native inputs' shared `name` (the browser un-checks siblings
 // when one is checked via .click()); the themed siblings' VISUALS get re-synced on each change via
-// their `_awSetChecked` setter so they all show the right state without us rebuilding them.
+// their `_scriptoscopeSetChecked` setter so they all show the right state without us rebuilding them.
 
 import type { LoadedTheme } from '../types.js';
 import { interactiveCheckbox, interactiveRadio, interactiveSlider, interactiveButton } from '../interactive.js';
@@ -14,7 +14,7 @@ type Promotable = HTMLInputElement | HTMLSelectElement;
 type Kind = 'checkbox' | 'radio' | 'range' | 'select';
 
 const INPUT_KIND_RE = /^(checkbox|radio|range)$/;
-const SETTER = '_awSetChecked'; // see interactive.ts buildToggle — exposes the visual state setter
+const SETTER = '_scriptoscopeSetChecked'; // see interactive.ts buildToggle — exposes the visual state setter
 
 /** Promote one form control. Returns the themed element / wrapper, or null if the type isn't one we handle. */
 export async function promoteControl(el: Promotable, theme: LoadedTheme): Promise<HTMLElement | null> {
@@ -102,7 +102,7 @@ const selectChangeAborts = new WeakMap<HTMLSelectElement, AbortController>();
 
 async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise<HTMLElement> {
   // Unwrap a prior promotion (retheme path) so we always rebuild cleanly.
-  const existingWrap = el.closest('.aw-select') as HTMLElement | null;
+  const existingWrap = el.closest('.scriptoscope-select') as HTMLElement | null;
   if (existingWrap && existingWrap.parentNode) {
     existingWrap.parentNode.insertBefore(el, existingWrap);
     existingWrap.remove();
@@ -147,7 +147,7 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
   selectChangeAborts.set(el, ac);
   el.addEventListener('change', async () => {
     const fresh = await renderBtn();
-    const cur = wrap.querySelector(':scope > .aw-button');
+    const cur = wrap.querySelector(':scope > .scriptoscope-button');
     cur?.replaceWith(fresh);
   }, { signal: ac.signal });
 
@@ -179,7 +179,7 @@ function clamp01(n: number): number { return n < 0 ? 0 : n > 1 ? 1 : n; }
  *  their themed visuals. */
 function syncRadioGroup(name: string): void {
   if (!name) return;
-  const sel = `.aw-radio[data-scriptoscope-radio-group="${CSS.escape(name)}"]`;
+  const sel = `.scriptoscope-radio[data-scriptoscope-radio-group="${CSS.escape(name)}"]`;
   for (const node of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
     const native = (node as unknown as { _scriptoscopeNative?: HTMLInputElement })._scriptoscopeNative;
     const setVisual = (node as unknown as Record<string, ((v: boolean) => void) | undefined>)[SETTER];

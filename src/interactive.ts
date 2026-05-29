@@ -33,7 +33,7 @@
 //      collapsed, zoomed, theme, opts) and rebuilds the chrome on state changes.
 //      All chrome lives inside the host's shadow root (per ADR-0001 Decision 2);
 //      consumer content lives in light DOM and is rendered via <slot> inside
-//      .aw-content. See LEARNINGS 2026-05-28 "Shadow DOM gotchas" for the
+//      .scriptoscope-content. See LEARNINGS 2026-05-28 "Shadow DOM gotchas" for the
 //      staleness-check semantics that changed when chrome moved to shadow.
 //
 //      KEY ENTRY POINTS:
@@ -70,7 +70,7 @@
 //                                          ComposedChrome attached to the
 //                                          rendered win as _scriptoscopeComposed
 //   renderWindow.ts                      → wraps the composed chrome in a DOM
-//                                          subtree (.aw-window > canvas + slot)
+//                                          subtree (.scriptoscope-window > canvas + slot)
 //   declarative/ScriptoscopeWindow.ts           → the consumer-facing wrapper that
 //                                          calls manager.add() with light-DOM
 //                                          slotted content
@@ -194,7 +194,7 @@ async function buildToggle(
   const offBuf = await composeCheckable(theme, kind, { ...base, checked: false });
 
   const el = document.createElement('span');
-  el.className = `aw-${kind}`;
+  el.className = `scriptoscope-${kind}`;
   el.setAttribute('role', kind);
   el.tabIndex = disabled ? -1 : 0;
   if (label) el.setAttribute('aria-label', label);
@@ -530,7 +530,7 @@ interface ManagedWindow {
   scrollAbort?: AbortController;
   /** Pooled chrome canvas — kept across renders so we don't allocate a fresh RGBA buffer on every
    *  state change (closes #171; see the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
-   *  entry pattern #5). The same canvas element is moved into each new .aw-window via renderWindow's
+   *  entry pattern #5). The same canvas element is moved into each new .scriptoscope-window via renderWindow's
    *  reuseCanvas option; setting width/height resets the pixels (re-painted via putImageData). At 50
    *  windows × theme switch, this eliminates ~3.2 MB of transient allocations + the GC pause they
    *  trigger. */
@@ -553,7 +553,7 @@ interface ManagedWindow {
     inactiveStrip?: ImageData;
   };
   /** Optional persistent content node (the declarative layer's slotted consumer DOM). Re-attached
-   *  into the freshly-built `.aw-content` after every render() — `renderWindow` rebuilds the window
+   *  into the freshly-built `.scriptoscope-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
   contentEl?: HTMLElement;
 }
@@ -629,11 +629,11 @@ export class WindowManager {
     // canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root —
     // shielded from host-page CSS that targets div/canvas/button universally or via resets. The
     // consumer's content lives in the host's LIGHT DOM (set below if extra.contentEl), where
-    // host CSS still reaches it; renderWindow's <slot> inside .aw-content auto-renders it.
+    // host CSS still reaches it; renderWindow's <slot> inside .scriptoscope-content auto-renders it.
     host.attachShadow({ mode: 'open' });
     debug('shadow', `attached for ${opts.title ?? '(untitled)'}`, { hasContent: !!extra.contentEl });
     if (extra.contentEl) host.appendChild(extra.contentEl);  // light-DOM child → slotted into shadow
-    // NB: role + aria-label live on the INNER `.aw-window` element built by renderWindow.ts (which
+    // NB: role + aria-label live on the INNER `.scriptoscope-window` element built by renderWindow.ts (which
     // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
     // them on the host — double-labelling makes screen readers announce the window twice.
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
@@ -680,7 +680,7 @@ export class WindowManager {
    *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers. */
   async retheme(theme: LoadedTheme): Promise<void> {
     // Drop entries whose host is no longer in the document (e.g. a demo dismissed the window via
-    // `.aw-window.remove()` without going through manager.remove). Without this, retheme would
+    // `.scriptoscope-window.remove()` without going through manager.remove). Without this, retheme would
     // render-into-detached-DOM for every dismissed window on every theme switch.
     this.windows = this.windows.filter((w) => w.host.isConnected);
     debug('theme', `retheme → ${theme.manifest.name ?? '(unnamed)'}`, { windows: this.windows.length });
@@ -756,7 +756,7 @@ export class WindowManager {
   /** Try the title-strip fast-path for an active-state flip. Returns true iff the cache had the
    *  target state's strip under matching keys AND the optimization is applicable (a chromeCanvas
    *  exists; the target strip is present). On success, putImageData the cached strip into the
-   *  existing canvas, update data-aw-state on .aw-window, and update z-index — the chrome's body
+   *  existing canvas, update data-scriptoscope-current-state on .scriptoscope-window, and update z-index — the chrome's body
    *  frame + widget overlays + scrollbars all stay in place (active state doesn't change those,
    *  only the title-bar tinting). */
   private tryFastFocusFlip(entry: ManagedWindow): boolean {
@@ -774,11 +774,11 @@ export class WindowManager {
     const ctx = canvas.getContext('2d');
     if (!ctx) return false;
     ctx.putImageData(targetStrip, 0, 0);
-    // Update data-aw-state on .aw-window so CSS selectors / AT see the new state. Without this,
-    // visual chrome would flip but the attribute would stay stale, breaking any [data-aw-state]
-    // styling the consumer or theme might have. Find via the canvas's parent (the .aw-window).
+    // Update data-scriptoscope-current-state on .scriptoscope-window so CSS selectors / AT see the new state. Without this,
+    // visual chrome would flip but the attribute would stay stale, breaking any [data-scriptoscope-current-state]
+    // styling the consumer or theme might have. Find via the canvas's parent (the .scriptoscope-window).
     const win = canvas.parentElement as HTMLElement | null;
-    if (win) win.dataset.awState = entry.active ? 'active' : 'inactive';
+    if (win) win.dataset.scriptoscopeCurrentState = entry.active ? 'active' : 'inactive';
     entry.host.style.zIndex = this.zIndexFor(entry);
     return true;
   }
@@ -834,7 +834,7 @@ export class WindowManager {
     // Capture the canvas from the freshly-rendered win for next time. On first render this stores
     // a brand-new canvas; on subsequent renders, renderWindow reused entry.chromeCanvas (which is
     // now inside the new win — append-from-old-parent semantics handle the move automatically).
-    entry.chromeCanvas = win.querySelector('canvas.aw-chrome') as HTMLCanvasElement ?? undefined;
+    entry.chromeCanvas = win.querySelector('canvas.scriptoscope-chrome') as HTMLCanvasElement ?? undefined;
     // Title-strip cache (closes #173) — capture the just-painted title region for the CURRENT
     // active state. On the next focus flip in the opposite direction (with cache key matching),
     // tryFastFocusFlip() can putImageData this strip into the existing canvas instead of doing a
@@ -844,12 +844,12 @@ export class WindowManager {
     this.overlayWidgets(entry, win);
     this.wireMoveResize(entry, win);
     // Consumer content lives in the host's LIGHT DOM (placed there once in add()); renderWindow's
-    // <slot> inside .aw-content auto-renders it. No per-render re-slotting needed — the slot
+    // <slot> inside .scriptoscope-content auto-renders it. No per-render re-slotting needed — the slot
     // shows whatever's in light DOM, and the same DOM node persists across re-renders so
     // listeners + selection + scroll position survive.
     // When shaded, hide the content area (preserves the content node, just visually collapsed).
     if (collapsed) {
-      const hole = win.querySelector('.aw-content') as HTMLElement | null;
+      const hole = win.querySelector('.scriptoscope-content') as HTMLElement | null;
       if (hole) hole.style.display = 'none';
     }
     // Mount the chrome into the SHADOW ROOT (attached in add()). Host CSS can't reach in;
@@ -869,7 +869,7 @@ export class WindowManager {
   /**
    * Replace the native browser scrollbar with the scheme's own scrollbar art when declared-size
    * content overflows (content-fit windows grow to fit, so they never reach here). We own the scroll:
-   * `.aw-content` goes `overflow:hidden`, a gutter is reserved on the relevant side(s), and themed
+   * `.scriptoscope-content` goes `overflow:hidden`, a gutter is reserved on the relevant side(s), and themed
    * scrollbar(s) are overlaid — dragging the thumb, the wheel, and arrow keys all set scrollTop /
    * scrollLeft and repaint the thumb (two-way). Re-run on every render() (which rebuilds the subtree),
    * guarded against stale wins. `attempt` retries across a couple of frames for the first render, when
@@ -878,7 +878,7 @@ export class WindowManager {
    */
   private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
-    // gotchas" — host.firstChild is the slotted .aw-slot now, not win. We resolve via shadowRoot.
+    // gotchas" — host.firstChild is the slotted .scriptoscope-slot now, not win. We resolve via shadowRoot.
     // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
     // document AFTER manager.add returns, so the initial wireScrollbars fires while host is
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
@@ -894,7 +894,7 @@ export class WindowManager {
     entry.scrollAbort?.abort();
     if (entry.collapsed) return;                          // shaded: no body to scroll
     const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
-    const content = win.querySelector('.aw-content') as HTMLElement | null;
+    const content = win.querySelector('.scriptoscope-content') as HTMLElement | null;
     if (!composed || !content) return;
     // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
     // their content. Hard-clip them so neither a native nor a themed scrollbar can appear.
@@ -904,7 +904,7 @@ export class WindowManager {
       return;
     }
     // The real scroll container is the declarative layer's slot (entry.contentEl, overflow:auto inside
-    // .aw-content) when present, else .aw-content itself for plain WindowManager windows.
+    // .scriptoscope-content) when present, else .scriptoscope-content itself for plain WindowManager windows.
     const scrollEl = entry.contentEl ?? content;
     // Reset gutters from a previous wire so the natural-size measurement isn't inflated.
     scrollEl.style.paddingRight = '';
@@ -975,7 +975,7 @@ export class WindowManager {
     let value = maxScroll > 0 ? clamp01((vertical ? scrollEl.scrollTop : scrollEl.scrollLeft) / maxScroll) : 0;
 
     const bar = document.createElement('div');
-    bar.className = `aw-window-scrollbar aw-window-scrollbar-${axis}`;
+    bar.className = `scriptoscope-window-scrollbar scriptoscope-window-scrollbar-${axis}`;
     Object.assign(bar.style, {
       position: 'absolute', zIndex: '3', lineHeight: '0', touchAction: 'none', cursor: 'default',
       ...(vertical
@@ -1193,7 +1193,7 @@ export class WindowManager {
     // double-clicks on the widgets, the scrollbar, and the grow-box corner.
     win.addEventListener('dblclick', (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('.aw-titlewidget') || t.closest('.aw-window-scrollbar')) return;
+      if (t.closest('.scriptoscope-titlewidget') || t.closest('.scriptoscope-window-scrollbar')) return;
       if (!inFrame(e)) return;
       e.preventDefault();
       void this.toggleCollapse(entry);
@@ -1290,7 +1290,7 @@ export class WindowManager {
     // To show the PRESSED state on mousedown we repaint the live chrome canvas with a pre-rendered
     // pressed variant (renderWindow's pressedWidget), then restore a snapshot of the normal chrome
     // on release. Cheap + lag-free after the first press (the pressed render is cached per widget).
-    const chrome = win.querySelector('.aw-chrome') as HTMLCanvasElement | null;
+    const chrome = win.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null;
     const cctx = chrome?.getContext('2d') ?? null;
     let normalSnap: HTMLCanvasElement | null = null;
     if (chrome) {
@@ -1303,7 +1303,7 @@ export class WindowManager {
       if (!handler) continue;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `aw-titlewidget aw-titlewidget-${hit.role}`;
+      btn.className = `scriptoscope-titlewidget scriptoscope-titlewidget-${hit.role}`;
       // Friendlier labels than the bare role string ("close" → "Close window" etc.) so screen
       // readers announce the action, not just the technical name. aria-pressed is intentionally
       // omitted — these are momentary actions, not toggles (window-shade collapses the WINDOW, not
@@ -1328,7 +1328,7 @@ export class WindowManager {
           if (pressedCanvas === undefined) {
             try {
               const pwin = await renderWindow(entry.theme, { ...entry.opts, state: entry.active ? 'active' : 'inactive', pressedWidget: hit.role });
-              pressedCanvas = (pwin.querySelector('.aw-chrome') as HTMLCanvasElement | null) ?? null;
+              pressedCanvas = (pwin.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null) ?? null;
             } catch { pressedCanvas = null; }
           }
           if (pressedCanvas) cctx.drawImage(pressedCanvas, 0, 0);
