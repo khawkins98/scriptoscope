@@ -85,6 +85,19 @@ to a bug class we hit reactively before the linter existed:
   faithful to the engine, divergent from that one scheme's shipped image. s7-nostalgia-
   silver + apple-platinum-2 match the 2.3.1 convention. (Owner decision 2026-05-26.)
 
+- **Segmented On/Off uses the literal pressed + active cicns the bundle ships,
+  even when the two are visually disjoint.** 1984's `push-button-pressed`
+  (-10238) is a WHITE 3D-bevel face; its `push-button-active` (-10239) is a
+  BLUE gradient face. Rendered as a 2-segment toggle (demo's Options dialog),
+  "On" (pressed) reads white and "Off" (active) reads blue — a stark split that
+  visibly diverges from the reference image's more uniform segmented treatment.
+  The reference image was hand-composed for the scheme's docs; the kDEF
+  dispatched on button STATE independently and blitted whatever cicn the
+  artist authored for that state. We follow the decode: a per-theme override
+  would have to special-case 1984 (and any future author who chose the same
+  light-pressed convention), which is the per-theme branch we reject by policy.
+  (Owner decision 2026-05-29.)
+
 - **Push-button face resolves by manifest role name first, then by id.** The 2.3.1
   kDEF asked for cicn id `-10239` (active) / `-10238` (pressed) / `-10240` (inactive)
   and blitted whatever sat there. Two corpus bundles — **monkey-paradise** + **animals**
