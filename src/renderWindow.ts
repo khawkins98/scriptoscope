@@ -6,6 +6,7 @@ import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
 import { composeCornerSpriteChrome } from './composeCornerSprite.js';
 import { rasterizeText } from './textRaster.js';
 import { PixelBuffer } from './pixelBuffer.js';
+import { cascadeFallbackSlugs } from './wndCascade.js';
 
 /**
  * Rasterize the window title in a real FONT (the CSS "Charcoal" stack — a local
@@ -756,13 +757,31 @@ function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number, sl
  * Resolve a window type robustly across bundles. Some schemes use the
  * friendly slug (`document-window`); others (acid, evolution, big-blue)
  * key by raw resource id (`wnd--14336`). Try, in order: exact slug,
+ * the period-faithful kDEF 2.3.1 fallback ladder (`src/wndCascade.ts` —
+ * clean-room replay of the 12-step AND-mask cascade at `0x356c..0x367e`),
  * any key containing the slug's noun, the doc-window resource ids, then
  * the first window type that publishes a `part-0` body.
+ *
+ * The cascade sits BEFORE the heuristic noun/utility scans because it's the
+ * binary's documented behaviour for "scheme doesn't ship this wnd# id";
+ * the heuristics remain as catch-alls for off-canonical (author-custom or
+ * raw-id-keyed) bundles the cascade doesn't cover.
  */
 function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
   const wts = theme.manifest.windowTypes ?? {};
   const ok = (k: string): WindowType | undefined => (wts[k] && looksLikeWindow(wts[k]) ? wts[k] : undefined);
   if (wts[slug] && looksLikeWindow(wts[slug])) return wts[slug];
+
+  // kDEF 2.3.1 fallback ladder (the binary's wnd# id-degradation cascade).
+  // For canonical slugs (`collapsed-side-utility` etc.), this walks the
+  // structurally compatible ids the kDEF would try next. Example impact:
+  //   collapsed-side-utility → side-floating-utility-window → titled-utility-window
+  // This catches 16 of 18 corpus bundles' missing collapsed-* variants
+  // (see docs/spec/kdef231-reference.md §3.4 cascade table).
+  for (const fallback of cascadeFallbackSlugs(slug)) {
+    const hit = ok(fallback);
+    if (hit) return hit;
+  }
 
   // "mini" / utility / floating palette windows have their OWN edge recipe +
   // chrome cicn (short title bar, thin frame). Schemes key these inconsistently
