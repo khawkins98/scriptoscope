@@ -59,6 +59,9 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | Doc | What it is |
 |---|---|
 | `cinf-resize-behavior.md` | The "15-value resizeBehavior" was a category error: byte[2] (Tile Sides, boolean) + byte[3] (Pattern Anchor, 5-way switch) are two independent fields. Decoded at `0x10bc6` / `0x109be` / `0x10ab2`. |
+| `cinf-extended-decode.md` | The 2.3.1 cinf extended-record format (bytes 18..55) is a binary-internal RGB cache (6 slots: active + inactive × bg/text/emboss), NOT Translucency/Opacity. Consumer at kDEF `0x116f8`. No decoder change recommended. |
+| `proxy-icon-modified-dot.md` | 2.3.1 imports `GetWindowProxyIcon` + `IsWindowModified` (1.8.2 doesn't). The gating resource is `'wind'`. Zero corpus bundles ship it — graceful no-op + documented. PowerPC call sites pinned. |
+| `platinum-theme-provider-decode.md` | Apple's `Platinum Engine` is a CFM alias for AppearanceLib itself (not a separate PEF). DrawThemeButton vtable at `data[0xA554]+0xCC` is a 2-level dispatcher; push-button drawer at code `0x01CAE0`. Focus-ring outset confirmed at 3 px. Platinum gray palette pinned (13 grays + highlight blue + error red); 5 of 6 bit-exact with our `src/platinum.ts`. |
 | `platinum-controls-decode.md` | Decode of Apple's WDEF 125 (Platinum) for the procedural baseline. |
 | `platinum-wdef125-decode.md` | Same. WDEF 125 specifically. |
 | `platinum-controls-faithfulness-ledger.md` | Companion ledger for the Platinum decode. |
