@@ -159,15 +159,27 @@
     #byo-out .byo-cell .lbl { font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; }
     #byo-out .byo-sw { display: inline-block; width: 13px; height: 13px; border: 1px solid #0003; border-radius: 2px; }
 
-    /* ── "The powers behind Scriptoscope" — 1999-Apple-page-style intro ────
-       Inspiration: web.archive.org/19991002122808/apple.com/macos/technologies.html
-       (the "Powers behind Mac OS" page). Times-set body, two-column feature
-       cards, marketing voice, mauve-blue link colour, modest leading. This is
-       the BARE look — when the skinning toggle is OFF, the page looks like a
-       1999 Apple marketing page. When ON (default), mountDeclarative promotes
-       each card to a FLOATING Mac window (data-scriptoscope-window attrs),
-       skins the demo widgets, and the section becomes a desktop. */
-    #powers { background: #ffffff; color: #2a2a2a; padding: 40px 24px 48px; border-bottom: 1px solid #d0d0d0; }
+    /* ── "Eighteen schemes. One runtime." — the intro section ──────────────
+       Synthesised from 4 planning agents (UX hierarchy, 1999-Apple voice,
+       capability breadth, narrative through-line):
+       - Frame is the emulator-for-ROMs pitch, not Apple-page cosplay
+       - Folder picker reskinning the whole page IS the demo
+       - Toggle is preserved per user request but DEMOTED to footer link
+       - Each card is a named technology in 1999-Apple compound-sentence voice
+       - Cards differentiate by control family (Card 1 = control set; Card 2
+         = themed form; Card 3 = tabs + disclosure; Card 4 = utility-window
+         + scheme swatches)
+       - OFF state finishes the 1999-Apple touches (/Mac breadcrumb, Think
+         pixel., glyphs replaced with actual scheme icons) */
+    #powers { background: #ffffff; color: #2a2a2a; padding: 40px 24px 48px; border-bottom: 1px solid #d0d0d0; position: relative; }
+    /* Bare-HTML period touches — top-left breadcrumb + top-right tagline.
+       Apple's 1999 page had `Products` / `/Mac` top-left + `Think different.`
+       top-right; ours is `/aaron-ui` + `Think pixel.` (homage, not copy). */
+    #powers .powers-tab { position: absolute; top: 0; padding: 4px 10px 5px; font: 11px Georgia, "Times New Roman", serif; }
+    #powers .powers-tab.left { left: 24px; background: #2a2a2a; color: #f0f0f0; }
+    #powers .powers-tab.left b { color: #fff; font-weight: 700; padding-right: 8px; border-right: 1px solid #555; margin-right: 8px; }
+    #powers .powers-tab.right { right: 24px; color: #2a2a2a; font-style: italic; }
+    #powers .powers-tab.right ::before { content: '"'; font-style: normal; }
     #powers .powers-inner { max-width: 960px; margin: 0 auto; font: 14px/1.55 Georgia, "Times New Roman", Times, serif; }
     #powers h2 { font: 34px/1.1 Georgia, "Times New Roman", Times, serif; margin: 0 0 14px; font-weight: 400; letter-spacing: -0.01em; }
     #powers > .powers-inner > p.powers-lede { font-size: 15px; line-height: 1.5; margin: 0 0 22px; max-width: 64ch; }
@@ -225,8 +237,45 @@
     }
     #powers button.powers-demo-btn:hover { background: linear-gradient(#fefefe, #c8c8c8); }
     #powers label.powers-checkable { font: 12px Georgia, serif; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-    #powers .powers-divider { margin-top: 28px; padding-top: 18px; border-top: 1px solid #d0d0d0; font-size: 12px; color: #666; }
+    /* Slider row in Card 1: label + range input + live value readout. The
+       breadth agent calls for the slider to drive the progress bar; we use a
+       single live-updating value span instead (simpler, same "real widgets"
+       point — the value is recomputed in JS and shown). */
+    #powers .powers-slider-row { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; font: 12px Georgia, serif; }
+    #powers .powers-slider-row label { color: #555; }
+    #powers .powers-slider-row input[type=range] { flex: 1 1 auto; min-width: 60px; }
+    #powers .powers-slider-row span { color: #2a2a2a; font-weight: 700; min-width: 36px; text-align: right; }
+    /* Themed select in Card 2: keep the native <select> visible (the closed
+       face wears Mac chrome when skinned; the dropdown stays native + a11y-
+       friendly). */
+    #powers .powers-field select { font: 12px Georgia, serif; padding: 2px 6px; border: 1px solid #888; background: #fff; }
+    /* Utility-window caption — only visible in OFF state (when skinned the
+       window's title bar shows "titled-utility-window" implicitly). */
+    #powers .powers-utility-caption { font: 11px Georgia, serif; color: #888; font-style: italic; margin: 6px 0 0; }
+    /* Demoted toggle: a small inline checkbox + label in the divider line,
+       not the section's primary affordance. The narrative-agent's "kill the
+       toggle" advice meets the user's "should be enabled by default" request
+       by keeping it but making it an easter-egg revealer. */
+    #powers .powers-skin-link { display: inline-flex; align-items: center; gap: 4px; margin-left: 12px; padding: 2px 8px; background: #f0f0f0; border: 1px solid #c0c0c0; border-radius: 3px; font: 11px Georgia, serif; color: #555; cursor: pointer; user-select: none; vertical-align: middle; }
+    #powers .powers-skin-link:hover { background: #e6e6e6; }
+    #powers .powers-skin-link input { margin: 0; }
+    /* Apple-1999-style 5-link footer nav at the bottom of the section. */
+    #powers .powers-divider { margin-top: 28px; padding-top: 18px; border-top: 1px solid #d0d0d0; font-size: 12px; color: #666; display: flex; flex-direction: column; gap: 12px; }
     #powers .powers-divider a { color: #3859b3; }
+    #powers .powers-footnav { text-align: center; font: 11px Georgia, serif; color: #888; }
+    #powers .powers-footnav a { color: #3859b3; text-decoration: underline; padding: 0 4px; }
+    #powers .powers-footnav span { color: #ccc; padding: 0 4px; }
+    /* Scheme icons in the card glyph slots — replaces the Unicode placeholders
+       with actual 48x48 cicns from the active scheme. Filled by the boot
+       script via data-powers-icon mapping. */
+    #powers .powers-glyph img { width: 48px; height: 48px; image-rendering: pixelated; display: block; }
+    /* First-load pulse on the folder strip — directs the eye to the highest-
+       impact interaction without an overlay. Runs once, cancellable. */
+    @keyframes powers-pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 #3859b300; }
+      50% { box-shadow: 0 0 12px 2px #3859b333; }
+    }
+    #powers .powers-folders.powers-pulse { animation: powers-pulse-glow 1.6s ease-in-out 2; }
     @media (max-width: 720px) {
       #powers .powers-grid { grid-template-columns: 1fr; }
     }
@@ -242,19 +291,21 @@
        underlying serif HTML. Reference image:
        https://web.archive.org/web/19991002122808/http://apple.com/macos/technologies.html -->
   <section id="powers" aria-label="What is Scriptoscope">
+    <!-- 1999-Apple-page top-tabs: breadcrumb left, tagline right. Visible only
+         in OFF state (when skinning is mounted these are hidden by the host's
+         chrome flow). The right "Think pixel." is homage to Apple's "Think
+         different." — same place, same period, not a copy. -->
+    <div class="powers-tab left"><b>/aaron-ui</b>/Scriptoscope</div>
+    <div class="powers-tab right">Think pixel.</div>
     <div class="powers-inner">
-      <h2>The powers behind Scriptoscope</h2>
-      <p class="powers-lede">A web-native runtime for classic Mac <em>Kaleidoscope</em> themes — Sherlock-shaped File menus, BeOS pinstripes, the unmistakable Apple Platinum bevel — rendered pixel-faithfully in your browser from their original binary resources.</p>
+      <h2>Eighteen schemes. One runtime.</h2>
+      <p class="powers-lede">Scriptoscope plays Kaleidoscope schemes the way an emulator plays a ROM — pixel-faithfully, in your browser, from the original binary resources their authors shipped between 1997 and 2003. Pick a folder below and the whole page wears it.</p>
       <div class="powers-bar">
-        <label class="powers-toggle" for="powers-skin-toggle" title="Toggle the Kaleidoscope chrome on the cards below. Off = bare 1999 HTML in two columns; on = each card floats as a draggable Mac window.">
-          <input type="checkbox" id="powers-skin-toggle" checked />
-          <span><strong>Skin this page</strong> with the active scheme</span>
-        </label>
-        <!-- Folder-icon theme picker. Populated by the boot script with each
-             theme's own -3983 System Folder cicn (or -3999 Generic Folder
-             fallback). Click an icon = call activate(slug), which reskins the
-             whole page. The icons ARE the theme art — no scripted styling
-             needed; the bundle's authored 32×32 folder appears. -->
+        <!-- Folder-icon theme picker. Each tile is the authentic -3983 System
+             Folder cicn (or -3999 Generic Folder fallback) from that bundle's
+             resource fork — the icons ARE the demo. Click = call activate(slug),
+             which retheme()s the intro + reflows the whole page through
+             syncHooks. -->
         <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
       </div>
       <div class="powers-grid" id="powers-grid">
@@ -262,71 +313,107 @@
              promotes it to a draggable, themed Mac window. When unmounted the
              cards lay out as a 2-column grid (the original 1999-Apple-page
              look). Position/size only apply once the skin is on. -->
+        <!-- Card 1 — the kDEF Replay Engine. Per the breadth agent: shows a
+             control SET (button + checkbox + radio + slider with progress
+             reflecting its value) so the visitor sees that the toolkit ISN'T
+             just buttons. The slider drives the progress bar — communicates
+             "real, wired widgets" rather than screenshots. -->
         <article class="powers-card" data-scriptoscope-window
-                 data-scriptoscope-title="Pixel-perfect" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window"
                  data-scriptoscope-x="20" data-scriptoscope-y="20"
-                 data-scriptoscope-width="290" data-scriptoscope-height="180">
-          <div class="powers-glyph" aria-hidden="true">⌘</div>
+                 data-scriptoscope-width="300" data-scriptoscope-height="220">
+          <div class="powers-glyph" aria-hidden="true" data-powers-icon="folder">⌘</div>
           <div>
-            <h3><a href="#detail">Pixel-perfect Kaleidoscope.</a></h3>
-            <p>Every <code>cicn</code> nine-sliced and every <code>wnd#</code> recipe replayed from the same binary the Mac OS ran. The compositor mimics the 2.3.1 kDEF's part-code jump table verbatim.</p>
+            <h3><a href="#detail">kDEF Replay Engine.</a></h3>
+            <p>A clean-room reimplementation of the 2.3.1 <code>WDEF</code> that shipped inside Kaleidoscope — the same part-code jump table, the same <code>wnd#</code> rect-list walk, the same nine-slice of every <code>cicn</code> the scheme author drew. Every pixel of chrome is composited from the binary's resources, the way the Mac OS would have composited it.</p>
             <div class="powers-widget-row">
               <button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button>
               <button class="powers-demo-btn" data-scriptoscope-button>Cancel</button>
               <label class="powers-checkable"><input type="checkbox" data-scriptoscope-checkbox checked /> Crisp</label>
             </div>
+            <div class="powers-slider-row">
+              <label for="powers-vol">Volume</label>
+              <input id="powers-vol" type="range" min="0" max="100" value="50" data-scriptoscope-slider />
+              <span id="powers-vol-out" aria-live="polite">50%</span>
+            </div>
           </div>
         </article>
+        <!-- Card 2 — ResourceForkLib. Per the breadth agent: a real form (text
+             field + select + checkbox + button), all themed but fully
+             accessible — the themed <select> keeps its native dropdown. -->
         <article class="powers-card" data-scriptoscope-window
-                 data-scriptoscope-title="Bring your own" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="330" data-scriptoscope-y="20"
-                 data-scriptoscope-width="290" data-scriptoscope-height="180">
-          <div class="powers-glyph" aria-hidden="true">↘</div>
+                 data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-x="340" data-scriptoscope-y="20"
+                 data-scriptoscope-width="300" data-scriptoscope-height="220">
+          <div class="powers-glyph" aria-hidden="true" data-powers-icon="document">↘</div>
           <div>
-            <h3><a href="#byo">Bring your own theme.</a></h3>
-            <p>Drop a <code>.sit</code> file. Decoded in your browser — nothing uploaded. The same StuffIt + resource-fork pipeline the Mac OS used, transliterated to WebAssembly.</p>
+            <h3><a href="#byo">ResourceForkLib.</a></h3>
+            <p>Almost as easy as opening a folder, ResourceForkLib reads any classic scheme — a StuffIt archive, a MacBinary wrapper, a raw <code>.rsrc</code> fork still warm from a System&nbsp;7 disk — directly in your browser. Nothing is uploaded; the resource map, the <code>cicn</code> tables, and the <code>ppat</code> tiles are read in place.</p>
             <div class="powers-field">
               <label for="powers-name">Scheme name</label>
               <input id="powers-name" type="text" value="My new theme" data-scriptoscope-field />
+            </div>
+            <div class="powers-field">
+              <label for="powers-src">Source</label>
+              <select id="powers-src" data-scriptoscope-select>
+                <option>.sit (StuffIt)</option>
+                <option>.rsrc (raw fork)</option>
+                <option>.hqx (BinHex)</option>
+              </select>
             </div>
             <div class="powers-widget-row">
               <button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>Choose…</button>
             </div>
           </div>
         </article>
+        <!-- Card 3 — data-scriptoscope-*. Per the breadth agent: show the
+             SURFACE AREA of the attribute set — tabs (a non-trivial widget),
+             plus the code snippet, plus a small radio row. -->
         <article class="powers-card" data-scriptoscope-window
                  data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="20" data-scriptoscope-y="240"
-                 data-scriptoscope-width="330" data-scriptoscope-height="220">
-          <div class="powers-glyph" aria-hidden="true">✎</div>
+                 data-scriptoscope-x="20" data-scriptoscope-y="260"
+                 data-scriptoscope-width="340" data-scriptoscope-height="240">
+          <div class="powers-glyph" aria-hidden="true" data-powers-icon="prefs">✎</div>
           <div>
-            <h3><a href="./declarative-site.html">Skin any HTML.</a></h3>
-            <p>One attribute and your page wears Kaleidoscope chrome:</p>
+            <h3><a href="./declarative-site.html">data-scriptoscope-*.</a></h3>
+            <p>To keep classic Appearance from getting lost between markup and pixels, the <code>data-scriptoscope-*</code> attributes let any element declare what it is — a window, a button, a checkbox, a tab — and wear the active scheme's chrome the instant the runtime mounts.</p>
             <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
-&lt;input type="text" data-scriptoscope-field /&gt;
 &lt;article data-scriptoscope-window
          data-scriptoscope-title="Hello!"&gt;
-  …</pre>
+&lt;input type="range" data-scriptoscope-slider /&gt;</pre>
             <div class="powers-widget-row">
-              <button class="powers-demo-btn" data-scriptoscope-button>Open</button>
-              <button class="powers-demo-btn" data-scriptoscope-button>Save</button>
               <label class="powers-checkable"><input type="radio" name="powers-fmt" data-scriptoscope-radio checked /> .rsrc</label>
               <label class="powers-checkable"><input type="radio" name="powers-fmt" data-scriptoscope-radio /> .sit</label>
             </div>
           </div>
         </article>
+        <!-- Card 4 — the Scheme Library. Per the breadth agent: titled-utility
+             window-type (architectural variation), plus a row of 3 chrome
+             swatches (a 32x32 corner sample of three visually distinct
+             schemes — 1138 clean, animals painterly, crayon-os textured).
+             Click a swatch = retheme to that scheme. Reinforces the folder
+             strip but at the chrome scale rather than the icon scale. -->
         <article class="powers-card" data-scriptoscope-window
                  data-scriptoscope-title="Schemes" data-scriptoscope-window-type="titled-utility-window"
-                 data-scriptoscope-x="370" data-scriptoscope-y="240"
-                 data-scriptoscope-width="260" data-scriptoscope-height="220">
-          <div class="powers-glyph" aria-hidden="true">✦</div>
+                 data-scriptoscope-x="380" data-scriptoscope-y="260"
+                 data-scriptoscope-width="260" data-scriptoscope-height="240">
+          <div class="powers-glyph" aria-hidden="true" data-powers-icon="suitcase">✦</div>
           <div>
-            <h3><a href="#ribbon">Eighteen schemes ready.</a></h3>
-            <p>From System 7's <em>1138</em> through <em>Apple Platinum</em> to <em>BeOS R5.0.3</em>, <em>Crayon OS</em>, and <em>Monkey Paradise</em> — every popular scheme of the era. Pick a folder above to switch the whole page.</p>
+            <h3><a href="#ribbon">the Scheme Library.</a></h3>
+            <p>Eighteen of the era's best — System 7's <em>1138</em> and <em>1990</em>, <em>Apple Platinum</em>, <em>BeOS R5.0.3</em>, <em>Crayon OS</em>, <em>Monkey Paradise</em>, the pinstripes of <em>Windows 95</em>, and ten more. Each authored by a designer of the period, decoded from the same archives the Macintosh Garden preserves.</p>
+            <p class="powers-utility-caption">← <em>titled-utility window</em> — note the skinnier title bar.</p>
           </div>
         </article>
       </div>
-      <p class="powers-divider">Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no Apple code embedded. The deliberate divergences are catalogued in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>.</p>
+      <!-- Demoted toggle + clean-room credit + a small 5-link Apple-1999-style
+           footer nav. The toggle is here per user request but lives at the
+           bottom (a "reveal the bare HTML" easter-egg, not a hero affordance). -->
+      <div class="powers-divider">
+        <span>Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no original code is shipped or executed. Deliberate divergences are catalogued in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>. <label class="powers-skin-link" for="powers-skin-toggle" title="Toggle the chrome on the cards above. Off shows the bare HTML; on (the default) shows Mac windows."><input type="checkbox" id="powers-skin-toggle" checked /><span>↻ show the bare HTML</span></label></span>
+        <nav class="powers-footnav" aria-label="Section nav">
+          <a href="#ribbon">Schemes</a><span>|</span><a href="#byo">Bring your own</a><span>|</span><a href="./declarative-site.html">Try it on a real page</a><span>|</span><a href="https://github.com/khawkins98/aaron-ui">Source</a><span>|</span><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">Ledger</a>
+        </nav>
+      </div>
     </div>
   </section>
   <header>
@@ -2154,6 +2241,24 @@
       }
       // Fill each tile's real folder icon in the background (best-effort —
       // some bundles ship no -3983/-3999, which is fine; the placeholder stays).
+      // ALSO fill the per-card .powers-glyph slots: each card carries a
+      // data-powers-icon hint ("folder", "document", "prefs", "suitcase") —
+      // we map those to canonical Finder icon ids and load from the ACTIVE
+      // scheme. The breadth agent's recommendation: replace the Unicode
+      // glyph placeholders with actual scheme art (eat our own dog food).
+      const POWERS_GLYPH_IDS = { folder: -3999, document: -4000, prefs: -3974, suitcase: -3970 };
+      const refreshCardGlyphs = async (theme) => {
+        const idx = await getIcons(theme);
+        const at48 = idx.filter((i) => i.size === 32 || i.size === 48);
+        for (const glyph of powersSection.querySelectorAll('.powers-glyph[data-powers-icon]')) {
+          const want = POWERS_GLYPH_IDS[glyph.dataset.powersIcon];
+          const hit = at48.find((i) => i.id === want);
+          if (!hit) continue;
+          let img = glyph.querySelector('img');
+          if (!img) { img = document.createElement('img'); img.alt = ''; glyph.replaceChildren(img); }
+          img.src = hit.url;
+        }
+      };
       (async () => {
         for (const t of THEMES) {
           try {
@@ -2170,12 +2275,23 @@
           } catch { /* tolerate per-theme failures */ }
         }
       })();
+      // Live slider readout — Card 1's slider drives a value span next to it,
+      // so the visitor sees a real wired widget (per breadth agent).
+      const slider = document.getElementById('powers-vol');
+      const sliderOut = document.getElementById('powers-vol-out');
+      if (slider && sliderOut) slider.addEventListener('input', () => { sliderOut.textContent = `${slider.value}%`; });
+      // First-load pulse on the folder strip — once, 2 cycles, cancellable.
+      foldersEl.classList.add('powers-pulse');
+      foldersEl.addEventListener('mouseenter', () => foldersEl.classList.remove('powers-pulse'), { once: true });
+      setTimeout(() => foldersEl.classList.remove('powers-pulse'), 3400);
 
       // Follow the ribbon's active theme — retheme the intro AND highlight the
-      // active folder tile in the strip whenever the active scheme changes.
+      // active folder tile AND refresh the per-card .powers-glyph icons
+      // (which load from the ACTIVE scheme) whenever the active scheme changes.
       syncHooks.push(async (slug) => {
         for (const [s, el] of folderTiles) el.classList.toggle('active', s === slug);
         if (powersHandle) { try { await powersHandle.retheme(slug); } catch { /* */ } }
+        try { const theme = await loadWithBase(slug); await refreshCardGlyphs(theme); } catch { /* tolerate */ }
       });
       // Mount once on boot (default = checked). Defer to next tick so the
       // ribbon's first `activate(slug)` has set `activeSlug` first.
