@@ -263,7 +263,17 @@ export async function renderWindow(
   }
   // Plate width = measured title width + a little padding each side (the kDEF
   // measures with trailing space, 0x4f18); 0 when there's no visible title.
-  const titleWidthPx = glyphs ? glyphs.width + 8 : 0;
+  // Title plate width = glyph width + 8px visual padding + 10px widget-clearance
+  // budget (the truncation math at L347 reserves 5px on each side between the
+  // title text and the nearest widget). Without the widget-clearance budget the
+  // plate grew exactly to glyph_width + 8, and any scheme whose recipe placed a
+  // widget IMMEDIATELY after the plate (windows-95: -16px close box right at the
+  // grown plate's edge; apple-lisa: similar) had `maxTitleW < glyph_width` and
+  // the title truncated to "Hel…". By baking the widget budget into the plate
+  // size, the plate grows wide enough that the widget never overlaps the title
+  // text's footprint. Period-faithful: the kDEF's plate-tile pass `0x4f18`
+  // measures with trailing space too — same idea, smaller constant.
+  const titleWidthPx = glyphs ? glyphs.width + 8 + 10 : 0;
 
   // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
   // platinum-8, system7-nostalgia-silver) ship the document corner cicns + the

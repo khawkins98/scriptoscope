@@ -66,9 +66,11 @@
     "diag:audit": "node scripts/audit-placement.mjs",
     "lint:themes": "node scripts/lint-themes.mjs",
     "baseline:scenes": "node scripts/capture-visual-baselines.mjs",
+    "verify:scenes": "node scripts/verify-visual-baselines.mjs",
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
     "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs",
-    "import": "node scripts/import-scheme.mjs"
+    "import": "node scripts/import-scheme.mjs",
+    "gates": "npm run typecheck && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check"
   },
   "engines": {
     "node": ">=20"

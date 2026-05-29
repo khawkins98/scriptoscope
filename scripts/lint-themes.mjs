@@ -386,10 +386,12 @@ if (only) {
   let drift = 0, missing = 0, extra = 0, decoderDrift = 0;
   const baselineSlugs = Object.keys(baselineThemes);
   const liveSlugs = new Set(slugs);
-  // Strict mode (or any time we want to catch a `tools/theme-loader/convert.js` regression
-  // that DIDN'T change the source bytes) re-decodes every bundle and recomputes the manifest
-  // fingerprint. Plain verify mode trusts the source hash — it's the fast path.
-  const recheckDecoded = MODE_STRICT;
+  // Decoded-fingerprint check (re-decodes every bundle, recomputes the manifest
+  // hash, compares against the stored decodedSha256) catches `tools/theme-loader/
+  // convert.js` regressions that don't change source bytes. Opt in via --decoded;
+  // --strict implies it. Default mode trusts the source hash only (no dist/
+  // required — keeps the "lint works on fresh checkout" property).
+  const recheckDecoded = MODE_STRICT || flags.has('--decoded');
   console.log(`-- verify against ${baselinePath.replace(repoRoot + '/', '')} (ranAt ${baseline.ranAt ?? '?'}${recheckDecoded ? ', re-decode' : ''}) --`);
   for (const slug of slugs) {
     const themeDir = resolve(themesRoot, slug);
