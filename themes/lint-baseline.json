@@ -1,0 +1,151 @@
+{
+  "_generator": "scripts/lint-themes.mjs --update",
+  "_note": "Fingerprint baseline for `npm run lint:themes`: sha256 of each bundle's source archive + the lint outcome from the maintainer's last full run. Default `npm run lint:themes` is a fast verify pass (hash + report stored result); the slow decode-and-rule-walk only runs on `--update` or when the hash drifts. Keep this file in git; let CI run `--strict` to fail on drift.",
+  "ranAt": "2026-05-29T06:02:33.282Z",
+  "themes": {
+    "1138": {
+      "source": "scheme.rsrc",
+      "sha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 11
+    },
+    "1984": {
+      "source": "scheme.sit",
+      "sha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 5
+    },
+    "1990": {
+      "source": "scheme.rsrc",
+      "sha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "animals": {
+      "source": "scheme.sit",
+      "sha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 16
+    },
+    "apple-lisa": {
+      "source": "scheme.sit",
+      "sha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 0
+    },
+    "apple-platinum-2": {
+      "source": "scheme.sit",
+      "sha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "beos-r503": {
+      "source": "scheme.sit",
+      "sha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 16
+    },
+    "black-platinum": {
+      "source": "scheme.rsrc",
+      "sha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "crayon-os": {
+      "source": "scheme.sit",
+      "sha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 1
+    },
+    "dolphin-som": {
+      "source": "scheme.sit",
+      "sha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 7
+    },
+    "evolution": {
+      "source": "scheme.rsrc",
+      "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 6
+    },
+    "floppies": {
+      "source": "scheme.sit",
+      "sha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 5
+    },
+    "monkey-paradise": {
+      "source": "scheme.sit",
+      "sha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 6
+    },
+    "platinum-8": {
+      "source": "scheme.sit",
+      "sha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "slimes": {
+      "source": "scheme.sit",
+      "sha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "system7-nostalgia-silver": {
+      "source": "scheme.rsrc",
+      "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    },
+    "windows-31": {
+      "source": "scheme.sit",
+      "sha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 1
+    },
+    "windows-95": {
+      "source": "scheme.sit",
+      "sha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+      "status": "ok",
+      "errors": 0,
+      "warnings": 0,
+      "notes": 2
+    }
+  }
+}

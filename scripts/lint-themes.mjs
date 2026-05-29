@@ -6,7 +6,18 @@
 // data-shaped anomalies a render-audit is blind to (a glitch only becomes visible
 // when a human looks at a render — these surface it the moment the theme builds).
 //
-// Usage:  node scripts/lint-themes.mjs [slug]
+// Usage:
+//   node scripts/lint-themes.mjs                 # verify mode (the default)
+//   node scripts/lint-themes.mjs --update        # re-lint every bundle and refresh themes/lint-baseline.json
+//   node scripts/lint-themes.mjs --strict        # verify mode + exit 1 on any drift (CI-friendly)
+//   node scripts/lint-themes.mjs <slug>          # single-theme full lint (skips the baseline entirely)
+//
+// Option A bundles ship only the original archive (scheme.sit / scheme.rsrc); the
+// linter decodes each on the fly via loadKaleidoscopeScheme + holds the cicn rasters
+// in memory. The themes/lint-baseline.json companion file records, per slug, the
+// sha256 of the source archive + the lint outcome from the maintainer's last full
+// run, so a fresh checkout or CI can confirm "lint was clean against THIS commit"
+// without re-decoding 18 bundles.
 //
 // Each rule maps to a real bug class we hit reactively. The cited kDEF routines
 // are the source of the assumption (see docs/spec/kdef-faithfulness-ledger.md
@@ -15,38 +26,29 @@
 //   tail   — the cicn carries opaque art only up to col/row C, but the resource
 //            is wider/taller. The kDEF blits with the mask and walks the recipe
 //            over [0,lastBorder), so the slack past the art is NOT the window;
-//            sizing an inset off the raw bounds inflates it. (drawableExtent in
-//            composeChrome handles this — the rule records the dependency and
-//            flags any cicn that newly relies on it.)  [beos document-window]
-//   body   — part-0 (the content rect) must sit inside the drawable extent. A
-//            body rect that overruns it means the wnd# rect was paired with the
-//            WRONG cicn (the inset goes negative / samples OOB; the compositor
-//            clamps, but the frame is wrong).  [1138 movable-modal grow-box]
-//   recipe — each side recipe should span the drawable art on its axis: ending
-//            well SHORT leaves frame art undrawn; running PAST the cicn samples
-//            out of bounds.  [generalises the beos signature]
-//   norecipe — a side with a non-zero inset but no recipe draws nothing (we no
-//            longer fake-fill it). Expected for collapsed/topless types; flagged
-//            so an unexpected one stands out.  [recipe-less edge back-off]
-//   title  — the title text centres on the scheme's title-text MARKER band (the
-//            ≤2px-wide line in the title bar → composeChrome titleRegion.midY →
-//            renderWindow draws there; data-driven on import). Surfaced so a silent
-//            misplace can't hide: a marker band running PAST the bar (b > barH, midY
-//            clamped) is the tell-tale of a stray thin part picked instead of the
-//            title line; a document-window with NO marker falls back to geometric
-//            centring (fine flat, too-high on a tall ornate bar).  [evolution/1984]
+//            sizing an inset off the raw bounds inflates it. [beos document-window]
+//   body   — part-0 (the content rect) must sit inside the drawable extent.
+//   recipe — each side recipe should span the drawable art on its axis.
+//   norecipe — a side with a non-zero inset but no recipe draws nothing.
+//   title  — the title text centres on the scheme's title-text MARKER band.
 
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadCicn } from './diag-lib.mjs';
+import { createHash } from 'node:crypto';
+import { PixelBuffer } from '../dist/scriptoscope.js';
+import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const themesRoot = resolve(repoRoot, 'themes');
-const only = process.argv[2];
-const slugs = (only ? [only] : readdirSync(themesRoot)).filter((s) =>
-  existsSync(resolve(themesRoot, s, 'theme.json')),
-);
+const baselinePath = resolve(themesRoot, 'lint-baseline.json');
+
+const argv = process.argv.slice(2);
+const flags = new Set(argv.filter((a) => a.startsWith('--')));
+const positional = argv.filter((a) => !a.startsWith('--'));
+const only = positional[0]; // single-theme mode skips the baseline entirely
+const MODE_UPDATE = flags.has('--update');
+const MODE_STRICT = flags.has('--strict');
 
 const ALPHA = 16; // matches composeChrome's opacity threshold
 
@@ -66,45 +68,67 @@ function drawableExtent(cicn) {
 
 const lastBorder = (edge) => (edge?.length ? Math.max(...edge.map((s) => s.at)) : null);
 
-let errors = 0, warns = 0, notes = 0, wins = 0;
+/** Resolve the per-bundle source file (`scheme.sit` preferred; `scheme.rsrc` fallback)
+ *  and its sha256 — the fingerprint that lets a verify-mode run trust a stored result. */
+function sourceFingerprint(themeDir) {
+  for (const name of ['scheme.sit', 'scheme.rsrc']) {
+    const p = resolve(themeDir, name);
+    if (!existsSync(p)) continue;
+    const bytes = readFileSync(p);
+    const sha256 = createHash('sha256').update(bytes).digest('hex');
+    return { source: name, bytes, sha256 };
+  }
+  return null;
+}
 
-for (const slug of slugs) {
+/** Decode the bundle in-memory + return what the rules need: manifest, iconIndex,
+ *  and a loadCicn(assetPath) helper that hands back a PixelBuffer wrapping the
+ *  decoded RGBA — the same surface the on-disk loader exposed pre-Option-A. */
+async function decodeBundle(slug, themeDir) {
+  const fp = sourceFingerprint(themeDir);
+  if (!fp) throw new Error(`no scheme.sit or scheme.rsrc in ${themeDir}`);
+  const meta = existsSync(resolve(themeDir, 'meta.json'))
+    ? JSON.parse(readFileSync(resolve(themeDir, 'meta.json'), 'utf8')) : {};
+  const { manifest, assets, iconIndex } = await loadKaleidoscopeScheme(fp.bytes, {
+    meta, source: `${slug}/${fp.source}`, encodeAssets: false,
+  });
+  const byPath = new Map(assets.map((a) => [a.path, a]));
+  const loadCicn = (asset) => {
+    const a = byPath.get(asset);
+    if (!a) throw new Error(`asset not in decoded bundle: ${asset}`);
+    return new PixelBuffer(a.width, a.height, new Uint8ClampedArray(a.rgba));
+  };
+  return { manifest, iconIndex, loadCicn, fingerprint: fp };
+}
+
+/** Single-bundle lint pass. Returns { status, errors, warnings, notes, lines } — `lines`
+ *  is the console output for that bundle so the caller controls when to print it. */
+async function lintBundle(slug) {
   const themeDir = resolve(themesRoot, slug);
-  const manifest = JSON.parse(readFileSync(resolve(themeDir, 'theme.json'), 'utf8'));
+  const { manifest, iconIndex, loadCicn, fingerprint } = await decodeBundle(slug, themeDir);
   const wts = manifest.windowTypes || {};
   const keys = Object.keys(wts).filter((k) => wts[k]?.chrome?.active);
-  if (!keys.length) { console.log(`\n${slug}: (no chrome cicns — baseline/procedural)`); continue; }
-  console.log(`\n${slug}:`);
+  const lines = [];
+  let errors = 0, warns = 0, notes = 0;
+  if (!keys.length) {
+    lines.push(`${slug}: (no chrome cicns — baseline/procedural)`);
+    return { status: 'ok', errors: 0, warnings: 0, notes: 0, lines, fingerprint };
+  }
+  lines.push(`${slug}:`);
 
   for (const key of keys) {
     const wt = wts[key];
 
-    // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
-    // platinum-8, system7-nostalgia-silver) are NOT the sliced kDEF cicn-walk —
-    // they render procedurally from sprite cicns (composeCornerSprite.ts). The
-    // sliced rules below (body rect inside the chrome cicn's drawable extent,
-    // per-edge recipe span) don't apply: chrome.active is a 16px proxy ICON, not
-    // a frame template, and part-0 carries the four frame THICKNESSES, not a body
-    // rect (so r<=l, etc. is by design). Verify the sprite set exists instead.
+    // Corner-sprite windows render procedurally — sliced rules don't apply.
     if (wt.model === 'corner-sprite') {
-      wins++;
       const out = [];
       const ERR = (m) => { out.push(['E', m]); errors++; };
       const NOTE2 = (m) => { out.push(['n', m]); notes++; };
       const checkSprite = (label, rel) => {
         if (!rel) return;
-        try { loadCicn(themeDir, rel); }
+        try { loadCicn(rel); }
         catch (e) { ERR(`sprite ${label}: cannot load ${rel} (${e.message})`); }
       };
-      // A TITLED corner-sprite type (part-0 top inset > 1 ⇒ a real title bar)
-      // typically ships a pinstripe to fill that bar. Some schemes (e.g. slimes)
-      // deliberately use a SOLID fill from `headerColors.active.fill` instead of
-      // a striped pattern — that's still a valid corner-sprite presentation,
-      // so flag missing-pinstripe as a NOTE rather than an ERROR when
-      // headerColors are present (the compositor falls back cleanly). Only ERROR
-      // when neither pinstripe nor headerColors.active.fill is available.
-      // A title-LESS frame (top inset 1: alert/dialog/no-title utility) legitimately
-      // omits the pinstripe — it draws only the 1px ring.
       const topInset = Array.isArray(wt.parts?.['part-0']?.rect) ? wt.parts['part-0'].rect[1] : 0;
       const titled = topInset > 1;
       const hasHeaderFill = !!manifest.headerColors?.active?.fill;
@@ -118,15 +142,14 @@ for (const slug of slugs) {
       checkSprite('chrome.active', wt.chrome?.active);
       if (!Array.isArray(wt.parts?.['part-0']?.rect)) ERR('corner-sprite: missing part-0 frame thicknesses');
       const tag = out.some(([s]) => s === 'E') ? 'ERROR' : out.length ? 'note' : 'ok';
-      console.log(`  ${key.padEnd(32)} ${tag}`);
-      for (const [s, m] of out) console.log(`      ${s === 'E' ? '✗' : '·'} ${m}`);
+      lines.push(`  ${key.padEnd(32)} ${tag}`);
+      for (const [s, m] of out) lines.push(`      ${s === 'E' ? '✗' : '·'} ${m}`);
       continue;
     }
 
     let cicn;
-    try { cicn = loadCicn(themeDir, wt.chrome.active); }
-    catch (e) { console.log(`  ${key.padEnd(32)} LOAD FAIL ${e.message}`); errors++; continue; }
-    wins++;
+    try { cicn = loadCicn(wt.chrome.active); }
+    catch (e) { lines.push(`  ${key.padEnd(32)} LOAD FAIL ${e.message}`); errors++; continue; }
     const out = [];
     const ERR = (m) => { out.push(['E', m]); errors++; };
     const WARN = (m) => { out.push(['W', m]); warns++; };
@@ -138,17 +161,11 @@ for (const slug of slugs) {
     const wRecipe = Math.max(lastBorder(ed.top) ?? 0, lastBorder(ed.bottom) ?? 0) || null;
     const hRecipe = Math.max(lastBorder(ed.left) ?? 0, lastBorder(ed.right) ?? 0) || null;
 
-    // ── tail: transparent slack past the art ──
     if (raw.w - draw.w > 1)
       NOTE(`tail: cicn ${raw.w}px wide, art ends at ${draw.w} (${raw.w - draw.w}px transparent tail — inset sized off the drawable extent)`);
     if (raw.h - draw.h > 1)
       NOTE(`tail: cicn ${raw.h}px tall, art ends at ${draw.h} (${raw.h - draw.h}px transparent tail)`);
 
-    // ── body: content rect must sit inside the drawable extent ──
-    // A full window's body rect that overruns the drawable extent means the wnd#
-    // rect was paired with the WRONG cicn (negative inset, OOB sampling). Collapsed
-    // types intentionally REUSE the full type's body rect against a shorter cicn,
-    // so their overrun is expected (the inset clamps to 0 — no bottom edge).
     const isCollapsed = /collapsed/.test(key);
     const body = wt.parts?.['part-0']?.rect;
     if (body) {
@@ -163,20 +180,6 @@ for (const slug of slugs) {
       ERR(`body: no part-0 rect`);
     }
 
-    // ── recipe: the TOP/BOTTOM recipe spans the full width corner-to-corner, so
-    // it should reach the drawable width; ending short leaves frame art undrawn
-    // (the beos-class bug, caught against the DRAWABLE extent — beos's own top
-    // recipe ends at 75 == its drawable width, so it reads clean; only the raw
-    // bounds were off). LEFT/RIGHT recipes are NOT checked for span: they cover
-    // only the content-height middle (the corners belong to top/bottom), so they
-    // legitimately stop well short of the cicn height.
-    //
-    // SIDE-TITLED EXCEPTION (animals/windows-31 side-floating-utility-window):
-    // when the title bar is on the LEFT (not top), the TOP/BOTTOM recipes legitimately
-    // cap at the body's right edge — the remaining drawable width is the side title
-    // strip, drawn by the LEFT recipe instead. Demote the span check to a NOTE for
-    // these cases. Detection: body.left > body.top (the title strip is on the side
-    // of the chrome, not the top), or the window-type slug explicitly says so.
     const sideTitled = key === 'side-floating-utility-window' || key === 'collapsed-side-utility'
       || (body != null && Array.isArray(body) && body[0] > body[1]);
     if (wRecipe != null) {
@@ -189,7 +192,6 @@ for (const slug of slugs) {
     if (hRecipe != null && hRecipe > raw.h + 1)
       NOTE(`recipe: left/right ends at ${hRecipe}, past cicn ${raw.h} (samples a transparent corner — benign)`);
 
-    // ── norecipe: a non-zero inset with no side-list draws nothing ──
     if (body) {
       const [l, t, r, b] = body;
       const insets = { top: t, left: l, right: draw.w - r, bottom: draw.h - b };
@@ -199,23 +201,14 @@ for (const slug of slugs) {
       }
     }
 
-    // ── title: the title text centres on the scheme's title-text MARKER band (the
-    // ≤2px-wide vertical line in the title bar — composeChrome derives
-    // titleRegion.midY from it, renderWindow draws there). Scoped to title-DRAWING
-    // types (renderWindow.ts: showTitle = !isUtility, so exclude utility/mini/
-    // floating/palette). Two anomalies, since the placement is otherwise silent:
-    //   • a marker band running PAST the bar (b > barH) → midY is clamped: the
-    //     tell-tale of a stray thin part picked instead of the title line;
-    //   • document-window with NO marker → geometric centring (too high on a tall
-    //     ornate bar — the evolution bug this guards).
     if (body && body[1] > 6 && !/utility|mini|floating|palette/.test(key)) {
-      const barH = body[1]; // top inset = title-bar height (= composeChrome frame.top)
+      const barH = body[1];
       let marker = null;
       for (const [pk, p] of Object.entries(wt.parts || {})) {
         if (pk === 'part-0' || !Array.isArray(p.rect)) continue;
         const [pl, pt, pr, pb] = p.rect;
         if (pr <= pl || pb <= pt) continue;
-        if (pt < barH && pr - pl <= 2) { marker = [pt, pb]; break; } // first ≤2px line in the bar
+        if (pt < barH && pr - pl <= 2) { marker = [pt, pb]; break; }
       }
       if (marker) {
         const midY = Math.min(barH - 1, (marker[0] + marker[1]) / 2);
@@ -231,19 +224,11 @@ for (const slug of slugs) {
     const tag = out.some(([s]) => s === 'E') ? 'ERROR'
       : out.some(([s]) => s === 'W') ? 'warn'
       : out.length ? 'note' : 'ok';
-    console.log(`  ${key.padEnd(32)} ${tag}`);
-    for (const [s, m] of out) console.log(`      ${s === 'E' ? '✗' : s === 'W' ? '!' : '·'} ${m}`);
+    lines.push(`  ${key.padEnd(32)} ${tag}`);
+    for (const [s, m] of out) lines.push(`      ${s === 'E' ? '✗' : s === 'W' ? '!' : '·'} ${m}`);
   }
 
-  // ── control coverage: each control composer (src/controls.ts) resolves a
-  // control by RESOURCE ID. If a scheme ships that control's art under a
-  // DIFFERENT id than the composer looks up, the control silently falls back to
-  // a procedural/CSS rendering even though the RASTER exists — the exact bug
-  // behind the On/Off (composeTab looked up the never-shipped popup tab -12319
-  // while schemes ship the -998x tab family) and the beos progress (-10223/4 vs
-  // the -10080 family). Flag when a control's id FAMILY is present but the
-  // composer's own ids are not. (Family absent = a genuine fallback, e.g.
-  // apple-platinum-2 ships no checkbox/radio art — fine.)
+  // ── control coverage ────────────────────────────────────────────────────
   const cicnIds = new Set(
     Object.values(manifest.chromeElements || {})
       .map((e) => (typeof e.sourceCicnId === 'number' ? Math.abs(e.sourceCicnId) : null))
@@ -251,7 +236,6 @@ for (const slug of slugs) {
   );
   const hasAny = (ids) => ids.some((id) => cicnIds.has(id));
   const inFamily = (fams) => [...cicnIds].some((id) => fams.some(([lo, hi]) => id >= lo && id <= hi));
-  // control → { composer ids it loads (controls.ts), the id FAMILY meaning "art exists" }
   const CONTROLS = [
     { n: 'button',    ids: [10239, 10238, 10240],                              fam: [[10238, 10240]] },
     { n: 'checkbox',  ids: [9500, 9503, 9501, 9504],                           fam: [[9500, 9504]] },
@@ -269,31 +253,11 @@ for (const slug of slugs) {
   }
   if (cwarn.length) {
     warns += cwarn.length;
-    console.log(`  ${'(control coverage)'.padEnd(32)} warn`);
-    for (const m of cwarn) console.log(`      ! ${m}`);
+    lines.push(`  ${'(control coverage)'.padEnd(32)} warn`);
+    for (const m of cwarn) lines.push(`      ! ${m}`);
   }
 
-  // ── glyph orphans: a decoded ics4 PICTOGRAM (icons/ics4-*.png) that the
-  // renderer can stamp by id but DOESN'T — the guardrail against the gap that
-  // motivated this whole change (the scroll-arrow ics4 were shipped but never
-  // used). It is scoped to ics4 ids the renderer ACTUALLY resolves as a glyph
-  // (vs a cicn): the scroll-arrow button family (-10197..-10204) and the
-  // window-corner-widget proxy family (-14336..-14315). Other ics4 (button /
-  // progress / checkbox duplicates of cicn art, scene folder/app icons) are
-  // rendered as cicns or aren't chrome at all, so they are NOT glyph roles and
-  // would be noise here — the control-coverage rule above already guards the
-  // cicn side.
-  //
-  // GLYPH_FAMILIES — the SINGLE SOURCE OF TRUTH for which 16px pictogram id ranges
-  // the renderer wires to a role, kept in sync with the consumers:
-  //   • scroll/slider arrows  -10197..-10208  → controls.ts composeScrollbar
-  //   • radio                 -10214..-10224  → controls.ts composeCheckable
-  //   • checkbox              -10229..-10240  → controls.ts composeCheckable
-  //   • document-window widget -14331..-14336 → renderWindow (close/zoom/collapse)
-  //   • utility-window widget  -14315..-14320 → renderWindow (utility close/collapse)
-  // Holistic + repeatable: this runs every `lint:themes` (so every import/CI) and
-  // covers BOTH bit-depths (ics4 AND ics8, size 16) — so an 8-bit-only scheme
-  // (black-platinum, 1990) is verified the same as a 4-bit one.
+  // ── glyph orphans (iconIndex from the in-memory decode) ────────────────
   const GLYPH_FAMILIES = [
     [-10208, -10197, 'scroll/slider-arrow'],
     [-10224, -10214, 'radio'],
@@ -301,30 +265,110 @@ for (const slug of slugs) {
     [-14336, -14331, 'doc-widget'],
     [-14320, -14315, 'util-widget'],
   ];
-  const iconsIdx = resolve(themeDir, 'icons', 'index.json');
-  if (existsSync(iconsIdx)) {
-    const idx = JSON.parse(readFileSync(iconsIdx, 'utf8'));
+  if (iconIndex?.length) {
     const counts = {};
     const unmapped = [];
-    for (const i of idx) {
-      if (i.size !== 16) continue; // 16px pictograms only (ics4 ∪ ics8)
+    for (const i of iconIndex) {
+      if (i.size !== 16) continue;
       const fam = GLYPH_FAMILIES.find(([lo, hi]) => i.id >= lo && i.id <= hi);
       if (fam) { counts[fam[2]] = (counts[fam[2]] || 0) + 1; continue; }
-      // a 16px glyph inside the CONTROL/WIDGET id span but in no wired family =
-      // drift (a role we don't map) — surface it so the mapping stays holistic.
       if (i.id <= -10197 && i.id >= -14336) unmapped.push(`${i.type} ${i.id} (${i.file})`);
     }
     const covered = GLYPH_FAMILIES.map(([, , l]) => l).filter((l) => counts[l]);
     if (covered.length) {
-      console.log(`  ${'(glyph families wired)'.padEnd(32)} ${covered.map((l) => `${l}:${counts[l]}`).join(' · ')}`);
+      lines.push(`  ${'(glyph families wired)'.padEnd(32)} ${covered.map((l) => `${l}:${counts[l]}`).join(' · ')}`);
     }
     if (unmapped.length) {
       notes += unmapped.length;
-      console.log(`  ${'(unmapped control glyphs)'.padEnd(32)} note`);
-      for (const m of unmapped) console.log(`      · ${m} — in the control id-span but no wired family`);
+      lines.push(`  ${'(unmapped control glyphs)'.padEnd(32)} note`);
+      for (const m of unmapped) lines.push(`      · ${m} — in the control id-span but no wired family`);
     }
   }
+
+  const status = errors ? 'error' : warns ? 'warn' : 'ok';
+  return { status, errors, warnings: warns, notes, lines, fingerprint };
 }
 
-console.log(`\n-- linted ${wins} window(s): ${errors} error(s), ${warns} warning(s), ${notes} note(s) --`);
-process.exit(errors ? 1 : 0);
+// ── main ────────────────────────────────────────────────────────────────
+const allSlugs = readdirSync(themesRoot).filter((s) =>
+  existsSync(resolve(themesRoot, s, 'scheme.sit')) || existsSync(resolve(themesRoot, s, 'scheme.rsrc')),
+);
+const slugs = only ? [only] : allSlugs;
+
+if (only) {
+  // Single-theme mode — full lint, no baseline touch.
+  let errors = 0, warns = 0, notes = 0;
+  for (const slug of slugs) {
+    const r = await lintBundle(slug);
+    for (const line of r.lines) console.log(line);
+    errors += r.errors; warns += r.warnings; notes += r.notes;
+  }
+  console.log(`\n-- linted ${slugs.length} bundle(s): ${errors} error(s), ${warns} warning(s), ${notes} note(s) --`);
+  process.exit(errors ? 1 : 0);
+} else if (MODE_UPDATE) {
+  // Update mode — re-lint every bundle, write the baseline.
+  const out = {
+    _generator: 'scripts/lint-themes.mjs --update',
+    _note: 'Fingerprint baseline for `npm run lint:themes`: sha256 of each bundle\'s source archive + the lint outcome from the maintainer\'s last full run. Default `npm run lint:themes` is a fast verify pass (hash + report stored result); the slow decode-and-rule-walk only runs on `--update` or when the hash drifts. Keep this file in git; let CI run `--strict` to fail on drift.',
+    ranAt: new Date().toISOString(),
+    themes: {},
+  };
+  let errors = 0, warns = 0, notes = 0;
+  for (const slug of slugs) {
+    const r = await lintBundle(slug);
+    for (const line of r.lines) console.log(line);
+    errors += r.errors; warns += r.warnings; notes += r.notes;
+    out.themes[slug] = {
+      source: r.fingerprint.source,
+      sha256: r.fingerprint.sha256,
+      status: r.status,
+      errors: r.errors,
+      warnings: r.warnings,
+      notes: r.notes,
+    };
+  }
+  writeFileSync(baselinePath, JSON.stringify(out, null, 2) + '\n');
+  console.log(`\n-- linted ${slugs.length} bundle(s): ${errors} error(s), ${warns} warning(s), ${notes} note(s) --`);
+  console.log(`-- wrote ${baselinePath.replace(repoRoot + '/', '')} --`);
+  process.exit(errors ? 1 : 0);
+} else {
+  // Default (verify) mode — read the baseline, hash each source, report drift.
+  // Strict mode (--strict) is the same flow but exits 1 on any mismatch.
+  if (!existsSync(baselinePath)) {
+    console.error(`✗ no baseline at ${baselinePath.replace(repoRoot + '/', '')} — run \`npm run lint:themes -- --update\` first`);
+    process.exit(1);
+  }
+  const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  const baselineThemes = baseline.themes ?? {};
+  let drift = 0, missing = 0, extra = 0;
+  const baselineSlugs = Object.keys(baselineThemes);
+  const liveSlugs = new Set(slugs);
+  console.log(`-- verify against ${baselinePath.replace(repoRoot + '/', '')} (ranAt ${baseline.ranAt ?? '?'}) --`);
+  for (const slug of slugs) {
+    const themeDir = resolve(themesRoot, slug);
+    const fp = sourceFingerprint(themeDir);
+    if (!fp) { console.log(`  ${slug.padEnd(28)} ✗ no source archive`); drift++; continue; }
+    const stored = baselineThemes[slug];
+    if (!stored) {
+      console.log(`  ${slug.padEnd(28)} + NEW bundle (no baseline entry) — run --update`);
+      extra++; continue;
+    }
+    if (stored.sha256 !== fp.sha256) {
+      console.log(`  ${slug.padEnd(28)} ✗ DRIFT (source sha256 changed: ${stored.sha256.slice(0, 12)} → ${fp.sha256.slice(0, 12)}) — re-lint via --update`);
+      drift++; continue;
+    }
+    const counts = `${stored.errors}E ${stored.warnings}W ${stored.notes}N`;
+    console.log(`  ${slug.padEnd(28)} ${stored.status.padEnd(5)} ${counts}  · via ${stored.source} sha:${stored.sha256.slice(0, 8)}`);
+  }
+  for (const slug of baselineSlugs) {
+    if (!liveSlugs.has(slug)) {
+      console.log(`  ${slug.padEnd(28)} - REMOVED bundle (baseline entry orphaned) — run --update`);
+      missing++;
+    }
+  }
+  const exitNonZero = MODE_STRICT && (drift || missing || extra);
+  console.log(`\n-- verify: ${slugs.length} bundle(s), drift=${drift}, new=${extra}, removed=${missing}${MODE_STRICT ? ' (strict)' : ''} --`);
+  if (exitNonZero) process.exit(1);
+  if (drift || extra) console.log('   (run `npm run lint:themes -- --update` to refresh the baseline)');
+  process.exit(0);
+}
