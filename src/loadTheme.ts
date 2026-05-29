@@ -1,70 +1,53 @@
-import type { LoadedTheme, ThemeManifest, ChromeElement } from './types.js';
+import type { LoadedTheme, ChromeElement } from './types.js';
+import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
 /**
- * Fetch a theme bundle's `theme.json` from `bundleUrl` (a directory URL
- * like `/themes/masswerk-7-le`). Asset paths inside the manifest are
- * relative to that directory; resolve them with {@link assetUrl}.
+ * Fetch and decode a theme bundle. The bundle is a directory containing a
+ * single source-of-truth file — `scheme.rsrc`, the original Kaleidoscope
+ * scheme resource fork — alongside optional `meta.json` for author /
+ * license / provenance metadata. The runtime decodes the resource fork
+ * in-browser via the WASM-bound StuffIt + Kaleidoscope decoders; no
+ * pre-extracted PNG assets need to be committed to the bundle. This is
+ * the same path the demo's drop-zone uses; we just resolve the bytes
+ * from a URL instead of a File.
+ *
+ * The previous pre-decoded model (`theme.json` + `cicns/*.png` + …)
+ * was retired 2026-05-29 — committing derivative PNGs read awkwardly
+ * for community authors whose redistribution terms specify "keep the
+ * original archive intact." Now the bundle IS the original archive.
  */
 export async function loadTheme(
   bundleUrl: string,
   opts: { base?: LoadedTheme } = {},
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
-  const res = await fetch(`${baseUrl}/theme.json`);
-  if (!res.ok) {
-    throw new Error(`loadTheme: ${baseUrl}/theme.json → HTTP ${res.status}`);
+
+  // Fetch the resource fork bytes.
+  const rsrcRes = await fetch(`${baseUrl}/scheme.rsrc`);
+  if (!rsrcRes.ok) {
+    throw new Error(`loadTheme: ${baseUrl}/scheme.rsrc → HTTP ${rsrcRes.status}`);
   }
-  const manifest = (await res.json()) as ThemeManifest;
-  const glyphs = await loadGlyphMap(baseUrl);
+  const rsrcBytes = new Uint8Array(await rsrcRes.arrayBuffer());
+
+  // Fetch meta.json if present (author/license/provenance — merged into the
+  // decoded manifest's `name` / `author` / `origin` fields). Missing is OK
+  // for a freshly-imported scheme that hasn't had its provenance scaffolded.
+  let meta: Record<string, unknown> = {};
+  try {
+    const metaRes = await fetch(`${baseUrl}/meta.json`);
+    if (metaRes.ok) meta = await metaRes.json() as Record<string, unknown>;
+  } catch { /* network error / not present — silently degrade */ }
+
+  const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
+  const loaded = await loadKaleidoscopeScheme(rsrcBytes, {
+    meta: { name: (meta.name as string) ?? slug, ...meta },
+    source: `${slug}/scheme.rsrc`,
+  });
+
   return {
-    manifest,
-    baseUrl,
-    ...(glyphs ? { glyphs } : {}),
+    ...loaded,
     ...(opts.base ? { base: opts.base } : {}),
   };
-}
-
-/**
- * One entry of a bundle's `icons/index.json` (written by extract-icons.mjs):
- * the decoded icon-family resources (`icl4`/`icl8` 32×32, `ics4`/`ics8` 16×16;
- * `size` distinguishes them, `depth` is 4 or 8).
- */
-interface IconIndexEntry {
-  id: number;
-  type: 'icl4' | 'ics4' | 'icl8' | 'ics8';
-  size?: number;
-  depth?: number;
-  file: string;
-}
-
-/**
- * Fetch a bundle's `icons/index.json` and build the GLYPH map (id-string →
- * `icons/<file>`) from the 16px pictograms — the scheme's OWN scroll-arrow /
- * checkbox / radio / window-widget glyphs that the renderer stamps instead of
- * fabricating. Keyed by the 16px family REGARDLESS of bit-depth: a scheme that
- * ships only 8-bit `ics8` (e.g. Black Platinum, 1990) maps its glyphs the same
- * as a 4-bit `ics4` scheme. The extractor now emits EVERY depth a scheme ships
- * (so the gallery shows all assets); here we keep the HIGHEST depth per id for
- * rendering. The 32px icl4/icl8 scene icons are read by the demo inventory.
- * Returns null when the bundle ships no glyphs, so `glyphs` stays absent.
- */
-async function loadGlyphMap(baseUrl: string): Promise<Record<string, string> | null> {
-  try {
-    const res = await fetch(`${baseUrl}/icons/index.json`);
-    if (!res.ok) return null;
-    const index = (await res.json()) as IconIndexEntry[];
-    const glyphs: Record<string, string> = {};
-    const depthAt: Record<string, number> = {};
-    for (const e of index) {
-      if (e.size !== 16 && e.type !== 'ics4' && e.type !== 'ics8') continue;
-      const id = String(e.id);
-      const d = e.depth ?? (e.type === 'ics8' ? 8 : 4); // prefer 8-bit over 4-bit at the same id
-      if (d > (depthAt[id] ?? 0)) { glyphs[id] = `icons/${e.file}`; depthAt[id] = d; }
-    }
-    return Object.keys(glyphs).length ? glyphs : null;
-  } catch {
-    return null; // no icons index (offline / not extracted) → no glyphs
-  }
 }
 
 /** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
