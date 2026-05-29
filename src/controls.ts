@@ -138,8 +138,21 @@ const PUSH_BUTTON_FACE_KEYS = {
 /** Anti-roles for the push-button face: when a bundle ships id -10239/-10238/-10240
  *  under one of these keys, the author repurposed the kDEF slot for an unrelated
  *  resource (menu wallpaper, tab pane, popup background). Loading it as a button
- *  face produces the "menu cicn in the OK slot" misrender. */
-const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab-pane|pull-down|popup|window|dialog|scroll/;
+ *  face produces the "menu cicn in the OK slot" misrender.
+ *
+ *  TWO detection paths share this regex:
+ *    - PRIMARY: the bundle's `authorLabel` (the verbatim NAMED-resource label;
+ *      e.g. animals + monkey-paradise both ship `-10239` with authorLabel
+ *      "Solo Menu Background"). This is far more precise than the friendly-key
+ *      check below because it matches the AUTHOR's own role tag.
+ *    - FALLBACK: the friendly chromeElement key (decoder-emitted slug). Used
+ *      when authorLabel is missing — 9 of 18 bundles (1138, apple-platinum-2,
+ *      etc.) ship no labels on the push-button slots.
+ *
+ *  The substring match is over-broad on the friendly-key path (parked #185:
+ *  `dialog-button-active` would false-positive) but is the necessary fallback
+ *  shape for unlabelled bundles. The authorLabel path is strictly tighter. */
+const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialog|scroll/i;
 
 /** Resolve a push-button face for a given state via the manifest's STRUCTURED
  *  role names first, then falling back to id-based lookup that REJECTS the
@@ -166,13 +179,22 @@ async function loadPushButtonFace(
     return null;
   });
   if (byRole) return loadCicnBuffer(assetUrl(byRole.theme, byRole.asset));
-  // Pass 2: by id, but reject anti-role keys (the monkey-paradise/animals case).
+  // Pass 2: by id, but reject anti-role entries. AuthorLabel (the verbatim
+  // bundle-author NAMED-resource label) is more authoritative than the friendly
+  // key — animals + monkey-paradise both ship -10239 with authorLabel "Solo
+  // Menu Background" and the test catches it cleanly without the substring-
+  // match false-positive risk the key-regex carries (parked #185).
   const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
   const byId = resolveInChain(theme, (t) => {
     const ces = t.manifest.chromeElements ?? {};
     for (const [k, v] of Object.entries(ces)) {
       if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
-      if (PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) return null;
+      // Primary check: the bundle author's verbatim role label. Always wins
+      // when present (it's the AUTHOR's own tag, not a heuristic).
+      if (v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(v.authorLabel)) return null;
+      // Fallback check: the friendly key. Only consulted when the bundle
+      // ships no authorLabel (9 of 18 corpus bundles — kept for back-compat).
+      if (!v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) return null;
       return { theme: t, asset: v.asset };
     }
     return null;
