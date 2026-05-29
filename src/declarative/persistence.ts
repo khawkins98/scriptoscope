@@ -6,7 +6,7 @@
 //   { "version": 1, "windows": { "<id>": { x,y,w,h,collapsed,z } }, "activeTheme"?: "<slug>" }
 //
 // WINDOW IDENTITY:
-//   data-aaron-window-id="<id>" on the consumer's element → stable across DOM order changes
+//   data-scriptoscope-window-id="<id>" on the consumer's element → stable across DOM order changes
 //   No id → DOM-source-ordinal ("<dom-ordinal-N>") — convenient for static pages but breaks if
 //   windows reorder. Documented in the proposal at docs/superpowers/specs/2026-05-28-persistence-design.md.
 //
@@ -37,7 +37,7 @@ export interface PersistedLayout {
   activeTheme?: string;
 }
 
-const STORAGE_PREFIX = 'aaron:layout:';
+const STORAGE_PREFIX = 'scriptoscope:layout:';
 
 /** Read the persisted layout for a key. Returns null if missing/unparsable/future-version. */
 export function readLayout(persistKey: string): PersistedLayout | null {
@@ -49,7 +49,7 @@ export function readLayout(persistKey: string): PersistedLayout | null {
     const parsed = JSON.parse(raw) as PersistedLayout;
     if (!parsed || typeof parsed !== 'object') return null;
     if (parsed.version > SCHEMA_VERSION) {
-      console.warn(`[aaron] persisted layout for "${persistKey}" is version ${parsed.version}; this build supports up to ${SCHEMA_VERSION}. Ignoring.`);
+      console.warn(`[scriptoscope] persisted layout for "${persistKey}" is version ${parsed.version}; this build supports up to ${SCHEMA_VERSION}. Ignoring.`);
       return null;
     }
     return parsed;
@@ -61,7 +61,7 @@ export function writeLayout(persistKey: string, layout: PersistedLayout): void {
   try { localStorage.setItem(STORAGE_PREFIX + persistKey, JSON.stringify(layout)); }
   catch (err) {
     // Quota or SecurityError — log once and degrade. Don't crash the consumer.
-    console.warn(`[aaron] couldn't persist layout for "${persistKey}":`, err);
+    console.warn(`[scriptoscope] couldn't persist layout for "${persistKey}":`, err);
   }
 }
 
@@ -95,11 +95,11 @@ export function onCrossTabUpdate(persistKey: string, cb: (layout: PersistedLayou
   return () => { window.removeEventListener('storage', handler); };
 }
 
-/** Compute a window's identity for the persistence map. Stable id from data-aaron-window-id when
+/** Compute a window's identity for the persistence map. Stable id from data-scriptoscope-window-id when
  *  the consumer provided one; else a DOM-ordinal fallback so static pages get sensible behavior
  *  out of the box (with the documented caveat that reordering breaks the mapping). */
 export function windowIdFor(el: HTMLElement, ordinal: number): string {
-  return el.dataset.aaronWindowId || `dom-ordinal-${ordinal}`;
+  return el.dataset.scriptoscopeWindowId || `dom-ordinal-${ordinal}`;
 }
 
 /** Read a host element's current geometry (position from host.style; size from entry.opts via

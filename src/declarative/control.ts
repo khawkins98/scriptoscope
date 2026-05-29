@@ -18,7 +18,7 @@ const SETTER = '_awSetChecked'; // see interactive.ts buildToggle — exposes th
 
 /** Promote one form control. Returns the themed element / wrapper, or null if the type isn't one we handle. */
 export async function promoteControl(el: Promotable, theme: LoadedTheme): Promise<HTMLElement | null> {
-  if (el.dataset.aaronPromoted != null) return null;
+  if (el.dataset.scriptoscopePromoted != null) return null;
   const kind: Kind | undefined =
     el.tagName === 'SELECT' ? 'select'
     : INPUT_KIND_RE.test((el as HTMLInputElement).type) ? (el as HTMLInputElement).type as Kind
@@ -26,7 +26,7 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
   if (!kind) return null;
   // Selects take a different shape (wrap + transparent overlay), handled in their own branch below.
   if (kind === 'select') return promoteSelect(el as HTMLSelectElement, theme);
-  el.dataset.aaronPromoted = '';
+  el.dataset.scriptoscopePromoted = '';
   const input = el as HTMLInputElement;
   const label = labelTextFor(input);
   let skinned: HTMLElement;
@@ -51,8 +51,8 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
         syncRadioGroup(input.name);
       },
     });
-    if (input.name) skinned.dataset.aaronRadioGroup = input.name;
-    (skinned as unknown as { _awNative: HTMLInputElement })._awNative = input;
+    if (input.name) skinned.dataset.scriptoscopeRadioGroup = input.name;
+    (skinned as unknown as { _scriptoscopeNative: HTMLInputElement })._scriptoscopeNative = input;
   } else {
     const min = numOr(input.min, 0), max = numOr(input.max, 100);
     const range = max - min;
@@ -80,7 +80,7 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
     input.after(skinned);
     if (lbl && label) lbl.style.display = 'none';
   }
-  skinned.dataset.aaronPromoted = '';
+  skinned.dataset.scriptoscopePromoted = '';
   if (kind === 'radio' && input.name) syncRadioGroup(input.name);
   return skinned;
 }
@@ -108,14 +108,14 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
     existingWrap.remove();
     el.style.cssText = '';
   }
-  el.dataset.aaronPromoted = '';
+  el.dataset.scriptoscopePromoted = '';
   // Abort the PREVIOUS promotion's change listener (every retheme reaches this path; without the
   // abort the change-listener count would grow by one per retheme on every themed select — caught
   // by the 2026-05-28 review).
   selectChangeAborts.get(el)?.abort();
 
   const wrap = document.createElement('span');
-  wrap.className = 'aw-select';
+  wrap.className = 'scriptoscope-select';
   Object.assign(wrap.style, {
     position: 'relative', display: 'inline-block', verticalAlign: 'middle',
     cursor: el.disabled ? 'default' : 'pointer',
@@ -151,7 +151,7 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
     cur?.replaceWith(fresh);
   }, { signal: ac.signal });
 
-  wrap.dataset.aaronPromoted = '';
+  wrap.dataset.scriptoscopePromoted = '';
   return wrap;
 }
 
@@ -179,9 +179,9 @@ function clamp01(n: number): number { return n < 0 ? 0 : n > 1 ? 1 : n; }
  *  their themed visuals. */
 function syncRadioGroup(name: string): void {
   if (!name) return;
-  const sel = `.aw-radio[data-aaron-radio-group="${CSS.escape(name)}"]`;
+  const sel = `.aw-radio[data-scriptoscope-radio-group="${CSS.escape(name)}"]`;
   for (const node of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
-    const native = (node as unknown as { _awNative?: HTMLInputElement })._awNative;
+    const native = (node as unknown as { _scriptoscopeNative?: HTMLInputElement })._scriptoscopeNative;
     const setVisual = (node as unknown as Record<string, ((v: boolean) => void) | undefined>)[SETTER];
     if (native && setVisual) setVisual(native.checked);
   }

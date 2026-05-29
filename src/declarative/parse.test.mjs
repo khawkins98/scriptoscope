@@ -16,16 +16,16 @@ test('parseWindowAttrs: defaults (no attrs) → document-window, active, fit', (
 });
 
 test('parseWindowAttrs: sizeMode = declared when EITHER dimension is present', () => {
-  assert.equal(parseWindowAttrs({ aaronWidth: '200', aaronHeight: '120' }).sizeMode, 'declared');
-  assert.equal(parseWindowAttrs({ aaronWidth: '200' }).sizeMode, 'declared');
-  assert.equal(parseWindowAttrs({ aaronHeight: '120' }).sizeMode, 'declared');
+  assert.equal(parseWindowAttrs({ scriptoscopeWidth: '200', scriptoscopeHeight: '120' }).sizeMode, 'declared');
+  assert.equal(parseWindowAttrs({ scriptoscopeWidth: '200' }).sizeMode, 'declared');
+  assert.equal(parseWindowAttrs({ scriptoscopeHeight: '120' }).sizeMode, 'declared');
   assert.equal(parseWindowAttrs({}).sizeMode, 'fit');
 });
 
 test('parseWindowAttrs: numbers + inactive + title + window-type', () => {
   const p = parseWindowAttrs({
-    aaronX: '10', aaronY: '20', aaronWidth: '300', aaronHeight: '150',
-    aaronState: 'inactive', aaronTitle: 'Hi', aaronWindowType: 'dialog',
+    scriptoscopeX: '10', scriptoscopeY: '20', scriptoscopeWidth: '300', scriptoscopeHeight: '150',
+    scriptoscopeState: 'inactive', scriptoscopeTitle: 'Hi', scriptoscopeWindowType: 'dialog',
   });
   assert.deepEqual([p.x, p.y, p.width, p.height], [10, 20, 300, 150]);
   assert.equal(p.state, 'inactive');
@@ -35,7 +35,7 @@ test('parseWindowAttrs: numbers + inactive + title + window-type', () => {
 });
 
 test('parseWindowAttrs: empty / NaN numbers → undefined', () => {
-  const p = parseWindowAttrs({ aaronX: '', aaronY: 'abc', aaronWidth: '  ' });
+  const p = parseWindowAttrs({ scriptoscopeX: '', scriptoscopeY: 'abc', scriptoscopeWidth: '  ' });
   assert.equal(p.x, undefined);
   assert.equal(p.y, undefined);
   assert.equal(p.width, undefined);
@@ -43,9 +43,9 @@ test('parseWindowAttrs: empty / NaN numbers → undefined', () => {
 });
 
 test('parseButtonAttrs: presence flags + label trim', () => {
-  assert.deepEqual(parseButtonAttrs({ aaronDefault: '' }, '  OK  '), { isDefault: true, disabled: false, label: 'OK' });
-  assert.deepEqual(parseButtonAttrs({ aaronDisabled: '' }, ''), { isDefault: false, disabled: true });
-  assert.equal(parseButtonAttrs({ aaronDefault: 'false' }, 'x').isDefault, false); // explicit false
+  assert.deepEqual(parseButtonAttrs({ scriptoscopeDefault: '' }, '  OK  '), { isDefault: true, disabled: false, label: 'OK' });
+  assert.deepEqual(parseButtonAttrs({ scriptoscopeDisabled: '' }, ''), { isDefault: false, disabled: true });
+  assert.equal(parseButtonAttrs({ scriptoscopeDefault: 'false' }, 'x').isDefault, false); // explicit false
 });
 
 test('resolveThemeRef: nearest-ancestor (innermost) wins, else pageDefault', () => {

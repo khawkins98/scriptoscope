@@ -12,7 +12,7 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-05-28):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-aaron-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) 2026-05-28 for the Aaron UI → Scriptoscope rename rationale (npm package: scriptoscope; consumer-facing internal API surface — `data-aaron-*` attributes, `.aw-*` classes, `AaronWindow` class — stays stable on the Lodash-kept-`_` model). Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status (pre-1.0, 2026-05-28):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) 2026-05-28 for the Aaron UI → Scriptoscope rename rationale (npm package: scriptoscope; consumer-facing internal API surface — `data-scriptoscope-*` attributes, `.scriptoscope-*` classes, `ScriptoscopeWindow` class — stays stable on the Lodash-kept-`_` model). Live demo: <https://khawkins98.github.io/aaron-ui/>.
 
 ## Install
 
@@ -48,16 +48,16 @@ The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the 
 
   <!-- 2. Tag any element to become a Mac window. The children stay live HTML
        (selectable, accessible, real form values) — only the chrome is canvas. -->
-  <div data-aaron-window
-       data-aaron-title="Welcome"
-       data-aaron-x="100" data-aaron-y="80"
-       data-aaron-width="380" data-aaron-height="240">
+  <div data-scriptoscope-window
+       data-scriptoscope-title="Welcome"
+       data-scriptoscope-x="100" data-scriptoscope-y="80"
+       data-scriptoscope-width="380" data-scriptoscope-height="240">
     <p>Anything in here is the window's body. <a href="#">Real links</a> work.</p>
-    <button data-aaron-button data-aaron-default>OK</button>
+    <button data-scriptoscope-button data-scriptoscope-default>OK</button>
   </div>
 
   <!-- 3. Bootstrap. mountDeclarative() scans the page once, then watches
-       MutationObserver-style for new data-aaron-* elements. -->
+       MutationObserver-style for new data-scriptoscope-* elements. -->
   <script type="module">
     import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
     await mountDeclarative({
@@ -72,37 +72,65 @@ The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the 
 
 That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
-### The full `data-aaron-*` vocabulary
+#### Available theme slugs
+
+The live list (with display labels and reference renders) is served at <https://khawkins98.github.io/aaron-ui/themes-manifest.json> and rendered visually at <https://khawkins98.github.io/aaron-ui/> (the demo page's theme switcher). Current bundled corpus:
+
+| slug | name | author |
+|---|---|---|
+| `1138` | 1138 | Erik Ekengren (1998) |
+| `1984` | 1984 | Geoffrey Hamilton (1999) |
+| `1990` | 1990 | SHIOCOP (1999) |
+| `animals` | Animals | Masashi Ichikawa (1999) |
+| `apple-lisa` | Apple Lisa for K2.1 | R. Bensam & E. Deans |
+| `apple-platinum-2` | Apple Platinum 2 | Orion Dimitrakopoulos (1999) |
+| `apple-platinum-replica` | Apple Platinum (generated universal base) | — |
+| `beos-r503` | BeOS R5.0.3 | Jon Alexander (2002) |
+| `black-platinum` | Black Platinum | Daisuke Yamashita (1999) |
+| `crayon-os` | Crayon OS | Karl von Laudermann (2000) |
+| `dolphin-som` | Dolphin SOM (dsom) | unknown |
+| `evolution` | 1991 evolution | SHIOCOP (1999) |
+| `floppies` | Floppies! | unknown |
+| `monkey-paradise` | Monkey Paradise | Masashi Ichikawa (1998) |
+| `platinum-8` | Platinum 8 | Russell Silver Jr. (1998) |
+| `slimes` | slimes 1.5 | JUN (1998) |
+| `system7-nostalgia-silver` | System 7 Nostalgia Silver | mollusc (1997) |
+| `windows-31` | Windows 3.1 | Scott Naness |
+| `windows-95` | Windows 95 | Scott Naness |
+
+Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https://macthemes.garden/) or [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/) onto the BYO drop-zone (see "Bring your own theme" below) and it'll render in the browser with no upload step.
+
+### The full `data-scriptoscope-*` vocabulary
 
 | Attribute | Where | What it does |
 |---|---|---|
-| `data-aaron-window` | any element | Promote into a Mac window. Children become the window body. |
-| `data-aaron-title="…"` | a window | Title-bar text. Optional. |
-| `data-aaron-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
-| `data-aaron-x="…"` / `data-aaron-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. Omit both to fall back to a default position. |
-| `data-aaron-width="…"` / `data-aaron-height="…"` | a window | Declared size. **Omit both** for content-fit (a `ResizeObserver` re-renders the chrome to fit content reflow). |
-| `data-aaron-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
-| `data-aaron-z="…"` | a window | Initial stacking order. Higher = on top. |
-| `data-aaron-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
-| `data-aaron-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
-| `data-aaron-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
-| `data-aaron-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |
-| `data-aaron-default` | a `<button data-aaron-button>` | Adds the "OK ring" (the period-correct default-button outline). |
-| `data-aaron-disabled` | a `<button data-aaron-button>` | Disabled state — flatten + grey. |
-| `data-aaron-control` | `<input type=checkbox\|radio\|range>` or `<select>` | **Auto-applied** to every matching input — themed chrome over the native control. Opt out per-input with `data-aaron-control="off"`. |
-| `data-aaron-field` | `<input type=text\|email\|password\|…>` or `<textarea>` | Mac OS 8 sunken-bevel chrome over a native text input. Opt-in (consumer CSS can conflict). |
-| `data-aaron-tabs` | a `<div>` containing `data-aaron-tab` buttons + `data-aaron-panel` siblings | Tab strip. Click cycles panels; ARIA + roving tabindex + keyboard nav wired. |
-| `data-aaron-tab="<panel-id>"` | a `<button>` inside `data-aaron-tabs` | One tab. Value references the panel id. |
-| `data-aaron-panel="<id>"` | a `<div>` inside `data-aaron-tabs` | A panel. Hidden unless its id matches the selected tab. |
-| `data-aaron-selected` | a `<button data-aaron-tab>` | Initial selected tab. Default: first tab. |
-| `data-aaron-window-id="…"` | a window | Stable identity for layout persistence (see `persistKey` below). Without it, DOM ordinal is used. |
+| `data-scriptoscope-window` | any element | Promote into a Mac window. Children become the window body. |
+| `data-scriptoscope-title="…"` | a window | Title-bar text. Optional. |
+| `data-scriptoscope-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
+| `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. Omit both to fall back to a default position. |
+| `data-scriptoscope-width="…"` / `data-scriptoscope-height="…"` | a window | Declared size. **Omit both** for content-fit (a `ResizeObserver` re-renders the chrome to fit content reflow). |
+| `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
+| `data-scriptoscope-z="…"` | a window | Initial stacking order. Higher = on top. |
+| `data-scriptoscope-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
+| `data-scriptoscope-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
+| `data-scriptoscope-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
+| `data-scriptoscope-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |
+| `data-scriptoscope-default` | a `<button data-scriptoscope-button>` | Adds the "OK ring" (the period-correct default-button outline). |
+| `data-scriptoscope-disabled` | a `<button data-scriptoscope-button>` | Disabled state — flatten + grey. |
+| `data-scriptoscope-control` | `<input type=checkbox\|radio\|range>` or `<select>` | **Auto-applied** to every matching input — themed chrome over the native control. Opt out per-input with `data-scriptoscope-control="off"`. |
+| `data-scriptoscope-field` | `<input type=text\|email\|password\|…>` or `<textarea>` | Mac OS 8 sunken-bevel chrome over a native text input. Opt-in (consumer CSS can conflict). |
+| `data-scriptoscope-tabs` | a `<div>` containing `data-scriptoscope-tab` buttons + `data-scriptoscope-panel` siblings | Tab strip. Click cycles panels; ARIA + roving tabindex + keyboard nav wired. |
+| `data-scriptoscope-tab="<panel-id>"` | a `<button>` inside `data-scriptoscope-tabs` | One tab. Value references the panel id. |
+| `data-scriptoscope-panel="<id>"` | a `<div>` inside `data-scriptoscope-tabs` | A panel. Hidden unless its id matches the selected tab. |
+| `data-scriptoscope-selected` | a `<button data-scriptoscope-tab>` | Initial selected tab. Default: first tab. |
+| `data-scriptoscope-window-id="…"` | a window | Stable identity for layout persistence (see `persistKey` below). Without it, DOM ordinal is used. |
 
 ### `mountDeclarative()` options
 
 ```ts
 await mountDeclarative({
   themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes', // where bundles live
-  pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-aaron-theme
+  pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.aaron:layout:<key>
   baseSlug: 'apple-platinum-replica', // optional: universal-base scheme to inherit from
   root: document,                   // optional: scan a subtree instead of the whole page
@@ -111,14 +139,14 @@ await mountDeclarative({
 
 The call returns `{ disconnect, retheme, registerTheme }` — `retheme(slug)` to switch programmatically, `registerTheme(ref, loadedTheme)` to register a runtime-decoded theme (used by drop-zones).
 
-### CSS classes (fallback if `data-aaron-*` isn't an option)
+### CSS classes (fallback if `data-scriptoscope-*` isn't an option)
 
 For environments that strip data attributes (some CMSes, some CSP setups), use the class equivalents: `.aaron-window`, `.aaron-button` — the scanner picks both. The data-attribute path is preferred.
 
 ### Theme switching at runtime
 
 ```html
-<select data-aaron-theme-switcher>
+<select data-scriptoscope-theme-switcher>
   <option value="1138">1138</option>
   <option value="beos-r503">BeOS R5</option>
   <option value="crayon-os">Crayon OS</option>
@@ -194,7 +222,7 @@ import { mountDeclarative } from 'scriptoscope';
 import 'scriptoscope/scriptoscope.css'; // optional
 ```
 
-Subpath available: `scriptoscope/declarative` exposes the focused declarative entry (`createThemeResolver`, `ThemeResolver`, `AaronWindowDeps`, `SizeMode`, `ThemeBootstrapOpts` — not re-exported from the root).
+Subpath available: `scriptoscope/declarative` exposes the focused declarative entry (`createThemeResolver`, `ThemeResolver`, `ScriptoscopeWindowDeps`, `SizeMode`, `ThemeBootstrapOpts` — not re-exported from the root).
 
 ## Trying it locally
 
@@ -206,7 +234,7 @@ npm run dev        # http://localhost:5173/
 ```
 
 - **[`demo/index.html`](./demo/index.html)** — the **runtime showcase**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
-- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar** and North Star integration story: an ordinary article/form/list/gallery page with `data-aaron-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-aaron-button` / `data-aaron-control` elements are skinned. Includes a page-level theme switcher that re-skins every promoted window live.
+- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar** and North Star integration story: an ordinary article/form/list/gallery page with `data-scriptoscope-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-scriptoscope-button` / `data-scriptoscope-control` elements are skinned. Includes a page-level theme switcher that re-skins every promoted window live.
 
 ## The runtime API
 
@@ -230,18 +258,18 @@ document.body.appendChild(win);
 
 See [`demo/index.html`](./demo/index.html) for the full integration and [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model.
 
-### Declarative — `mountDeclarative()` + `data-aaron-*`
+### Declarative — `mountDeclarative()` + `data-scriptoscope-*`
 
-The same runtime exposed as markup. Put `data-aaron-window` on a plain `<div>` and one bootstrap line promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:
+The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<div>` and one bootstrap line promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:
 
 ```html
 <body>
   <div id="desktop">
-    <div data-aaron-window data-aaron-title="Read Me" data-aaron-x="32" data-aaron-y="28"
-         data-aaron-width="360" data-aaron-height="280">
+    <div data-scriptoscope-window data-scriptoscope-title="Read Me" data-scriptoscope-x="32" data-scriptoscope-y="28"
+         data-scriptoscope-width="360" data-scriptoscope-height="280">
       <h2>About</h2>
       <p>This is real HTML. Selectable, focusable, accessible. The chrome is canvas behind it.</p>
-      <button data-aaron-button data-aaron-default onclick="alert('OK')">OK</button>
+      <button data-scriptoscope-button data-scriptoscope-default onclick="alert('OK')">OK</button>
     </div>
   </div>
 
@@ -252,11 +280,11 @@ The same runtime exposed as markup. Put `data-aaron-window` on a plain `<div>` a
 </body>
 ```
 
-**Window attributes** (all `data-aaron-*`): `window`, `title`, `window-type` (`document-window` / `movable-modal` / `dialog` / `titled-utility-window` / `side-floating-utility-window` / …), `x` / `y`, `width` / `height` (omit both → content-fit with a `ResizeObserver`), `state` (`active`/`inactive`), `z` (initial stacking order), `collapsed` (boot pre-shaded), `theme` (per-window scheme override, nearest-ancestor wins).
+**Window attributes** (all `data-scriptoscope-*`): `window`, `title`, `window-type` (`document-window` / `movable-modal` / `dialog` / `titled-utility-window` / `side-floating-utility-window` / …), `x` / `y`, `width` / `height` (omit both → content-fit with a `ResizeObserver`), `state` (`active`/`inactive`), `z` (initial stacking order), `collapsed` (boot pre-shaded), `theme` (per-window scheme override, nearest-ancestor wins).
 
-**Promoted children**: `<button data-aaron-button>` (with `data-aaron-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-aaron-control="off"`). The native input is hidden in place — form values, events, accessibility all preserved.
+**Promoted children**: `<button data-scriptoscope-button>` (with `data-scriptoscope-default` for the OK ring), and `<input type=checkbox|radio|range>` are auto-promoted to themed art (opt-out per-input with `data-scriptoscope-control="off"`). The native input is hidden in place — form values, events, accessibility all preserved.
 
-**Runtime theme switching**: any `<select data-aaron-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
+**Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
 **Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
 
@@ -272,7 +300,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
 - **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — the current window-chrome model (the implemented spec).
 - **[`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for **"where is X?"**; it indexes the architecture tour, the compositor spec, the recipe-walk, and the faithfulness ledger.
-- **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-aaron-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
+- **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-scriptoscope-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
 - **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
 - **[`LEARNINGS.md`](./LEARNINGS.md)** — running log of gotchas and decisions, populated as we build.
@@ -281,15 +309,15 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 A web window manager that **any** project — built with any framework, or no framework at all — can drop in by adding **data attributes to plain HTML**, and that ships a **Kaleidoscope-style theme engine** capable of loading freeware-licensed period theme bundles and rendering them faithfully on the modern web.
 
-The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-aaron-*` contract, with the demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
+The declarative front door (principle 2 below) is **now built** — `mountDeclarative()` + the `data-scriptoscope-*` contract, with the demo pages exercising it (see "Trying it" above). Three principles do the load-bearing work:
 
 1. **Framework-agnostic by default.** No React peer dep, no Vue plugin, no Solid integration layer. Scriptoscope is plain TypeScript + CSS that works wherever HTML works — vanilla DOM, htmx, server-rendered Rails/Django/Laravel, every JS framework, and a `<script>` tag on a static page.
 
-2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-aaron-window` (with `data-aaron-title`, `data-aaron-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-aaron-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
+2. **Declarative-first integration via data attributes.** The primary integration path is markup-only: add `data-scriptoscope-window` (with `data-scriptoscope-title`, `data-scriptoscope-x`, etc.) to any element and Scriptoscope promotes it into a draggable window on load. Native form controls inside (`<button data-scriptoscope-button>`, `<input type=checkbox|radio|range>`) are auto-skinned to the current theme while staying real accessible inputs. An imperative `mountDeclarative()` exists for dynamic cases, but no one should *need* to write more than one bootstrap line to use the library. CSS class hooks (`.aaron-window`, etc.) are accepted as a fallback for environments where data attributes are awkward. See the full attribute contract in "The runtime API → Declarative" above.
 
 3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is a *runtime for an existing corpus*, not a new theme-authoring project. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet.
 
-> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing internal API namespace stays stable — `data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class — same Lodash-kept-`_` model.
+> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing internal API namespace stays stable — `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, `ScriptoscopeWindow` class — same Lodash-kept-`_` model.
 
 ## Where the idea came from
 

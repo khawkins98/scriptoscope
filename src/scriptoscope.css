@@ -26,44 +26,44 @@
 /* ─── CSS custom-property API — override at :root or any scope ─────────── */
 :root {
   /* Outer drop shadow on windows. Mac OS 8.5 used a subtle offset shadow; this
-     matches that aesthetic. Set --aaron-window-shadow: none to disable. */
-  --aaron-window-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.35);
+     matches that aesthetic. Set --scriptoscope-window-shadow: none to disable. */
+  --scriptoscope-window-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.35);
 
   /* Optional desktop background. Default: none (transparent). Set this to a
      color, a gradient, or a url() to give Aaron windows a backdrop. Example:
-       --aaron-desktop: #5d6c83;
-       --aaron-desktop: linear-gradient(140deg, #45526a, #5d6c83);
-       --aaron-desktop: url('/desktop-pattern.png'); */
-  --aaron-desktop: transparent;
+       --scriptoscope-desktop: #5d6c83;
+       --scriptoscope-desktop: linear-gradient(140deg, #45526a, #5d6c83);
+       --scriptoscope-desktop: url('/desktop-pattern.png'); */
+  --scriptoscope-desktop: transparent;
 
   /* Focus-ring color for keyboard navigation. Scriptoscope's interactive widgets
      are inside Shadow DOM and use their own outline-offset; this applies to
      the OUTER host element when it receives focus. Defaults to the standard
      browser blue. */
-  --aaron-focus-color: rgb(0 95 204);
-  --aaron-focus-width: 2px;
+  --scriptoscope-focus-color: rgb(0 95 204);
+  --scriptoscope-focus-width: 2px;
 }
 
 /* ─── Drop shadow on window hosts ──────────────────────────────────────── */
 /* Every promoted window's outermost element is the host div (the one with a
-   shadow root attached). The runtime stamps it `data-aaron-promoted="";` after
+   shadow root attached). The runtime stamps it `data-scriptoscope-promoted="";` after
    promotion. We match on that to scope the shadow purely to Aaron windows
    without touching the consumer's other absolute-positioned divs. */
-[data-aaron-promoted] {
+[data-scriptoscope-promoted] {
   /* box-shadow on the host is safe: it's outside the shadow boundary, applies
      to the host element itself, matches the position/size of whatever the
      shadow renders inside. */
-  box-shadow: var(--aaron-window-shadow);
+  box-shadow: var(--scriptoscope-window-shadow);
 }
 
 /* ─── Optional desktop wrapper ─────────────────────────────────────────── */
 /* Consumers who want the classic Mac "windows on a desktop" feel can wrap
-   their windows in a container with class .aaron-desktop. Most pages won't
+   their windows in a container with class .scriptoscope-desktop. Most pages won't
    need this — windows over normal page content is fine — but for "Mac OS
    in a tab" style demos, this turns the background on. */
-.aaron-desktop {
+.scriptoscope-desktop {
   position: relative;
-  background: var(--aaron-desktop);
+  background: var(--scriptoscope-desktop);
   min-height: 100vh;
 }
 
@@ -75,8 +75,8 @@
    gets focus when the user clicks empty content area; this rule makes
    that focus visible without overriding consumer styles for non-Aaron
    focusable elements. */
-[data-aaron-promoted]:focus-visible {
-  outline: var(--aaron-focus-width) solid var(--aaron-focus-color);
+[data-scriptoscope-promoted]:focus-visible {
+  outline: var(--scriptoscope-focus-width) solid var(--scriptoscope-focus-color);
   outline-offset: 2px;
 }
 
@@ -89,7 +89,7 @@
    over the body), the cursor reads as draggable. The runtime owns
    pointer-events on .aw-chrome and overlay elements; this only affects
    the host's default cursor when hovering empty chrome zones. */
-[data-aaron-promoted] {
+[data-scriptoscope-promoted] {
   cursor: default;
 }
 
@@ -98,11 +98,11 @@
    probably want the consumer's content — not the Mac frame. Hide the
    chrome but leave the body content (slotted, in light DOM) visible. */
 @media print {
-  [data-aaron-promoted] {
+  [data-scriptoscope-promoted] {
     box-shadow: none;
   }
-  [data-aaron-promoted]::part(aw-chrome),
-  [data-aaron-promoted] canvas.aw-chrome {
+  [data-scriptoscope-promoted]::part(aw-chrome),
+  [data-scriptoscope-promoted] canvas.aw-chrome {
     display: none;
   }
 }

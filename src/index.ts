@@ -86,7 +86,7 @@ export {
   type CornerSpriteOptions,
 } from './composeCornerSprite.js';
 
-// ── Declarative front door (data-aaron-*) ──────────────────────────────────
+// ── Declarative front door (data-scriptoscope-*) ──────────────────────────────────
 // Additive re-exports of the declarative layer so consumers can `import { mountDeclarative } from
 // 'scriptoscope'` directly from the bare-package path.
 //
@@ -96,17 +96,17 @@ export {
 //                                       symbols re-exported below. The right choice for most use.
 //   `from 'scriptoscope/declarative'` — focused declarative entry. Exposes the full declarative
 //                                       public surface (incl. `createThemeResolver`,
-//                                       `ThemeResolver`, `AaronWindowDeps`, `SizeMode`,
+//                                       `ThemeResolver`, `ScriptoscopeWindowDeps`, `SizeMode`,
 //                                       `ThemeBootstrapOpts` — not re-exported below). For
 //                                       library authors who want only the declarative tree.
 //
-// Note: the consumer attribute namespace stays `data-aaron-*` (and the CSS class prefix `.aw-*`
-// and the `AaronWindow` class name) even though the package name pivoted to scriptoscope — these
+// Note: the consumer attribute namespace stays `data-scriptoscope-*` (and the CSS class prefix `.scriptoscope-*`
+// and the `ScriptoscopeWindow` class name) even though the package name pivoted to scriptoscope — these
 // are the stable internal API surface, treated like Lodash's `_` namespace. Renaming them is a
 // future API-break-eligible change tracked separately, not coupled to the package rebrand.
 export {
   mountDeclarative, type MountOptions,
-  AaronWindow,
+  ScriptoscopeWindow,
   promoteButton,
   promoteField, isFieldEligible,
   promoteTabs,

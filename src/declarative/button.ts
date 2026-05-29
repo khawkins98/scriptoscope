@@ -1,4 +1,4 @@
-// Promote a `data-aaron-button` element into a themed button. We skin, we don't steal: the original
+// Promote a `data-scriptoscope-button` element into a themed button. We skin, we don't steal: the original
 // element is HIDDEN in place (not detached) so its form association — submit/reset, `<form>` wiring —
 // and its listeners all keep working; the skinned control simply forwards clicks to it.
 
@@ -8,7 +8,7 @@ import { parseButtonAttrs } from './parse.js';
 
 export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement> {
   const parsed = parseButtonAttrs(el.dataset as Record<string, string | undefined>, el.textContent ?? '');
-  el.dataset.aaronPromoted = '';
+  el.dataset.scriptoscopePromoted = '';
   const skinned = await interactiveButton(theme, {
     default: parsed.isDefault, // the OK ring (falls back to baseline button if the theme ships none)
     disabled: parsed.disabled,
@@ -21,7 +21,7 @@ export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promis
   });
   const aria = el.getAttribute('aria-label') ?? parsed.label;
   if (aria) skinned.setAttribute('aria-label', aria);
-  skinned.dataset.aaronPromoted = '';
+  skinned.dataset.scriptoscopePromoted = '';
   el.style.display = 'none'; // keep it (form association/listeners) but invisible
   el.after(skinned);
   return skinned;

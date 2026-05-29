@@ -1,4 +1,4 @@
-# Declarative window management via `data-aaron-*` — design (litmus-test build)
+# Declarative window management via `data-scriptoscope-*` — design (litmus-test build)
 
 **Date:** 2026-05-27 · **Branch:** `feat/declarative-windows` (merged) · **Status:** BUILT + shipped to `main` 2026-05-27/28
 
@@ -25,11 +25,11 @@ npm run dev    # then open:
 #   http://localhost:5173/declarative-site.html   — the data-attribute hooks applied to a REALISTIC
 #                                                    vanilla page (article + native form + links + gallery)
 ```
-You should see four Mac windows, each just a `<div data-aaron-window>` with live HTML inside:
+You should see four Mac windows, each just a `<div data-scriptoscope-window>` with live HTML inside:
 1. **"Read Me"** — declared size; scrollable content; drag the title to move, the gripper to resize, click to focus. Selectable text. Should start ACTIVE.
 2. **"Notes"** — *content-fit* (no declared size): fits its content, and clicking **"Add a line"** grows the chrome (a ResizeObserver re-render). The litmus of the canvas-vs-live-DOM tension.
-3. **"Save changes?"** — a `1138`-themed modal (per-window `data-aaron-theme`) with a **default OK button** (the ring); buttons fire their `alert()`.
-4. **"Background"** — starts inactive (`data-aaron-state="inactive"`); click to focus.
+3. **"Save changes?"** — a `1138`-themed modal (per-window `data-scriptoscope-theme`) with a **default OK button** (the ring); buttons fire their `alert()`.
+4. **"Background"** — starts inactive (`data-scriptoscope-state="inactive"`); click to focus.
 
 **Verification done overnight:** `npm run typecheck` clean · `npm test` 46/46 (7 new pure-logic
 tests) · `npm run build` + `npm run build:demo` green (both pages emit). Two subagents reviewed the
@@ -53,7 +53,7 @@ host-page CSS can reach the slotted content); the border-image/CSS chrome (ADR D
 spike-gated — this build is canvas-only); whether content-fit should be the default or declared-size
 should; and whether a manually-resized fit window should auto-switch to declared mode.
 
-**Commits:** design `52bea78` · parse+tests `cb3e816` · WM hook `8da43a5` · AaronWindow `e443d98` ·
+**Commits:** design `52bea78` · parse+tests `cb3e816` · WM hook `8da43a5` · ScriptoscopeWindow `e443d98` ·
 theme/scanner/button/entry `1323600` · demo page+vite `bd5d248` · review P1 fixes `10cbc47` ·
 morning handoff `5f95dc0` · disconnect teardown (P2) `ec7ce86`. Two subagent reviews; final = GO.
 
@@ -73,7 +73,7 @@ errors throughout). `main` still untouched; `demo/index.html` byte-unchanged in 
    again to restore. Commit `f3f3a1a`.
 3. **Generalized z-order.** Was a two-level 1/2 that buried the active window under later ones; now a
    monotonic clock + active-on-top offset, correct for N windows + modals. Commit `f3f3a1a`.
-4. **Runtime theme switching** — the PRD's `data-aaron-theme-switcher`. The dropdown in each demo
+4. **Runtime theme switching** — the PRD's `data-scriptoscope-theme-switcher`. The dropdown in each demo
    page's header re-skins the WHOLE desktop live (windows + buttons), the Kaleidoscope way. Verified
    across native-recipe (1138, BeOS) AND corner-sprite (Black Platinum, System 7) schemes. New API:
    `mountDeclarative()` returns `{ disconnect, retheme(ref) }`. Commit `62264d5`.
@@ -91,8 +91,8 @@ A second review agent audited the new code; its findings are tracked below (the 
 predicted was real and is fixed in `f0b2ba2`).
 
 **Night-3 design review (background agent, 2026-05-28) — top deferred polish:**
-- Themed `<select>`: the Inspector's theme dropdown is still native. Needs a `data-aaron-menu`/
-  `data-aaron-control="select"` family on top of the existing `popup-window` chrome.
+- Themed `<select>`: the Inspector's theme dropdown is still native. Needs a `data-scriptoscope-menu`/
+  `data-scriptoscope-control="select"` family on top of the existing `popup-window` chrome.
 - `titled-utility-window` + `side-floating-utility-window` title text isn't showing (Tools palette
   + Inspector both anonymous). Likely a title-color or title-bar-fill bug in those window types.
 - Notepad's title bar in 1138 (corner-sprite, inactive state) doesn't paint — title text floats
@@ -101,8 +101,8 @@ predicted was real and is fixed in `f0b2ba2`).
 - Scrollbar thumb renders lilac on Apple Platinum (looks like highlight-color clut leakage; should
   be the Platinum greyscale thumb with grip dots).
 - Trash SVG looks Material-Design-modern; should be a Susan-Kare-lineage ribbed pail.
-- `data-aaron-z` (initial z-order from the page) + `data-aaron-collapsed` (Notepad pre-shaded) +
-  `data-aaron-zoom-target` (sticky zoom size) — small additions to the parser that pay off big.
+- `data-scriptoscope-z` (initial z-order from the page) + `data-scriptoscope-collapsed` (Notepad pre-shaded) +
+  `data-scriptoscope-zoom-target` (sticky zoom size) — small additions to the parser that pay off big.
 
 **Known follow-ups (deliberately deferred):**
 - **Close re-opens (needs a product decision).** The close box calls `unmount()`, which RESTORES the
@@ -112,14 +112,14 @@ predicted was real and is fixed in `f0b2ba2`).
   Decide, then either remove the element on close or stamp it so the observer skips it.
 - Horizontal scrollbar (vertical only so far).
 - Modals are collapsible/scrollable — no per-window widget toggles yet (that's the review's P0-1
-  `data-aaron-closable/zoomable/collapsible` contract work, the recommended next step).
-- The review's other strategic recs: opt-in `data-aaron-windows` scope, `data-aaron-modal` focus trap,
+  `data-scriptoscope-closable/zoomable/collapsible` contract work, the recommended next step).
+- The review's other strategic recs: opt-in `data-scriptoscope-windows` scope, `data-scriptoscope-modal` focus trap,
   touch (Pointer Events for drag/resize — currently mouse-only), and pressure-testing on a real
   third-party page before investing in the ADR's border-image/CSS chrome path.
 
 ---
 
-**One line:** put `data-aaron-window` on a plain `<div>` and the library promotes it into a faithful
+**One line:** put `data-scriptoscope-window` on a plain `<div>` and the library promotes it into a faithful
 classic-Mac window — no JS required for the common case — over the EXISTING canvas runtime.
 
 This is the North Star front door (`PRD.md`, `docs/adr/0001-consumption-architecture.md`), built as
@@ -132,7 +132,7 @@ underneath later without changing the public attribute contract.
 
 1. **New code only under `src/declarative/`.** A NEW entry (`src/declarative/index.ts`) — do NOT add
    the consumption API to the existing `src/index.ts` runtime contract (additive re-export at most).
-2. **New page `demo/declarative.html`** — a sample webpage driven by `data-aaron-*` + one tiny
+2. **New page `demo/declarative.html`** — a sample webpage driven by `data-scriptoscope-*` + one tiny
    bootstrap. The existing `demo/index.html` is untouched.
 3. **Reuse, don't fork, the runtime:** `loadTheme`/`loadKaleidoscopeScheme`, `renderWindow`,
    `WindowManager`, `interactiveButton` (from `src/`). The declarative layer is a THIN scanner over them.
@@ -141,19 +141,19 @@ underneath later without changing the public attribute contract.
 
 ## The attribute contract (v1)
 
-- **`data-aaron-window`** on an element → promote to a window. Reads:
-  - `data-aaron-title` — title text (also feeds the window's `aria-label`).
-  - `data-aaron-window-type` — slug (default `document-window`).
-  - `data-aaron-x` / `data-aaron-y` — initial position (px). Default: leave in flow / a sensible offset.
-  - `data-aaron-width` / `data-aaron-height` — CONTENT size (px). **If omitted → content-fit** (the
+- **`data-scriptoscope-window`** on an element → promote to a window. Reads:
+  - `data-scriptoscope-title` — title text (also feeds the window's `aria-label`).
+  - `data-scriptoscope-window-type` — slug (default `document-window`).
+  - `data-scriptoscope-x` / `data-scriptoscope-y` — initial position (px). Default: leave in flow / a sensible offset.
+  - `data-scriptoscope-width` / `data-scriptoscope-height` — CONTENT size (px). **If omitted → content-fit** (the
     element's natural size drives the window; a `ResizeObserver` re-renders chrome on reflow).
-  - `data-aaron-state` — `active` | `inactive` (default active; the WindowManager owns focus after).
-- **`data-aaron-button`** on a `<button>`/element → promote to a themed button. Reads
-  `data-aaron-default` (the OK ring), `data-aaron-disabled`. Click behavior preserved (it stays a
+  - `data-scriptoscope-state` — `active` | `inactive` (default active; the WindowManager owns focus after).
+- **`data-scriptoscope-button`** on a `<button>`/element → promote to a themed button. Reads
+  `data-scriptoscope-default` (the OK ring), `data-scriptoscope-disabled`. Click behavior preserved (it stays a
   real focusable button; we skin it).
-- **`data-aaron-theme="<url-or-slug>"`** on `<html>`/`<body>`/any ancestor → which theme bundle to
+- **`data-scriptoscope-theme="<url-or-slug>"`** on `<html>`/`<body>`/any ancestor → which theme bundle to
   load. Resolved nearest-ancestor-wins. A page-level default is configurable in the bootstrap.
-- **CSS-class fallback** (`.aaron-window`, `.aaron-button`) — recognised too, for CSP/markup-restricted
+- **CSS-class fallback** (`.scriptoscope-window-fallback`, `.scriptoscope-button-fallback`) — recognised too, for CSP/markup-restricted
   hosts. Data attributes are the primary path.
 
 ## Mechanic ("promote in place")
@@ -161,33 +161,33 @@ underneath later without changing the public attribute contract.
 The promoted element's **own children become the window's content**, slotted into the frame's content
 hole (light DOM — the content stays selectable/accessible/reflowing). The chrome is the canvas behind
 it (already how `renderWindow` works). Two size modes:
-- **Declared** (`data-aaron-width/height`): fixed content rect.
+- **Declared** (`data-scriptoscope-width/height`): fixed content rect.
 - **Content-fit** (omitted): measure the content, render chrome to fit, and `ResizeObserver` →
   re-render chrome (debounced) when the content reflows. This is the realistic "drop on a div" case
   and the real stress test of the canvas-vs-live-DOM tension.
 
 ## Scanner
 
-- On `DOMContentLoaded`: `querySelectorAll('[data-aaron-window], .aaron-window')` → promote each.
+- On `DOMContentLoaded`: `querySelectorAll('[data-scriptoscope-window], .scriptoscope-window-fallback')` → promote each.
 - A single root **`MutationObserver`** promotes elements added later (dynamic content). Promoted
-  elements get `data-aaron-promoted` so re-scans skip them.
-- An imperative foundation underneath: an **`AaronWindow`** class (wraps one element) + a
+  elements get `data-scriptoscope-promoted` so re-scans skip them.
+- An imperative foundation underneath: an **`ScriptoscopeWindow`** class (wraps one element) + a
   `mountDeclarative(root?, opts?)` entry the scanner and consumers both use.
 
 ## Plan-agent corrections (red-team, 2026-05-27)
 
 - **`WindowManager` re-render destroys slotted content (the load-bearing finding).** `render()` does
-  `host.replaceChildren(win)` on every focus/resize, rebuilding `.aw-content`. Fix: an ADDITIVE
+  `host.replaceChildren(win)` on every focus/resize, rebuilding `.scriptoscope-content`. Fix: an ADDITIVE
   `contentEl` hook on `add(theme, opts, handlers, { contentEl })` — `render()` re-attaches the SAME
-  persistent content node into the fresh `.aw-content` each time (preserves listeners/selection).
+  persistent content node into the fresh `.scriptoscope-content` each time (preserves listeners/selection).
   Existing callers pass 3 args → unaffected.
 - **Content-fit is highest-risk → LAST task.** Build it on the declared-size re-render path. Observe
-  an inner `max-content` wrapper (NOT `.aw-content`, which we resize), with rAF debounce + epsilon +
+  an inner `max-content` wrapper (NOT `.scriptoscope-content`, which we resize), with rAF debounce + epsilon +
   re-entrancy flag + disconnect-during-render to kill the feedback loop.
 - **Base chain needs a configurable base URL** in the bootstrap (standalone consumers must point at a
   reachable `apple-platinum-replica` bundle). Port `loadWithBase` from `demo/index.html` into
   `src/declarative/theme.ts`.
-- **Drop `data-aaron-scale` from v1** (scale 1 only) — avoids the scale×content-measurement interaction.
+- **Drop `data-scriptoscope-scale` from v1** (scale 1 only) — avoids the scale×content-measurement interaction.
 - **Tests: pure logic in Node, NO DOM devDep** (jsdom/etc. can't do the canvas the runtime needs).
   `demo/declarative.html` is the integration litmus.
 
@@ -204,12 +204,12 @@ it (already how `renderWindow` works). Two size modes:
 - Shadow-DOM encapsulation (ADR Decision 2) — light DOM for now; note the CSS-leak risk.
 - border-image/CSS chrome emission (ADR Decision 1, spike-gated) — canvas only.
 - Reskinning native form controls (`<input>`/`<select>`/scrollbars) — out (ADR scope guard); only
-  explicitly-marked `data-aaron-button` etc.
+  explicitly-marked `data-scriptoscope-button` etc.
 - Persistence of window positions across reloads.
 
 ## Testing
 
-- **Node-testable pure logic:** attribute→options parsing, theme-URL/`data-aaron-theme` resolution
+- **Node-testable pure logic:** attribute→options parsing, theme-URL/`data-scriptoscope-theme` resolution
   (nearest-ancestor), the promote/skip bookkeeping — extracted into pure functions, tested without a DOM.
 - **DOM/integration:** the `demo/declarative.html` page IS the litmus test (browser, owner-verified in
   the morning). If a lightweight DOM (jsdom/linkedom) is cheap to add as a devDependency, add scanner
@@ -217,7 +217,7 @@ it (already how `renderWindow` works). Two size modes:
 
 ## Success / litmus criteria
 
-A static `demo/declarative.html` with NO per-window JS — just `data-aaron-*` on divs and one
+A static `demo/declarative.html` with NO per-window JS — just `data-scriptoscope-*` on divs and one
 `<script type="module">` bootstrap — renders several real Mac windows wrapping live, selectable,
 reflowing HTML content (paragraphs, a list, a button), draggable/resizable/focusable, with at least
 one **content-fit** window that re-renders its chrome when its content changes. If that feels right,

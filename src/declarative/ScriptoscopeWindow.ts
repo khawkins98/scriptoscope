@@ -1,7 +1,7 @@
-// AaronWindow — promotes a single consumer element into a managed Mac window. The element's
+// ScriptoscopeWindow — promotes a single consumer element into a managed Mac window. The element's
 // CHILDREN become the window's content (moved into the chrome's `.aw-content` hole as live light
 // DOM — still selectable, focusable, reflowing); the chrome is the canvas behind them. Two size
-// modes: declared (data-aaron-width/height) or content-fit (a ResizeObserver re-renders the chrome
+// modes: declared (data-scriptoscope-width/height) or content-fit (a ResizeObserver re-renders the chrome
 // when the content reflows). Built on the WindowManager's contentEl re-slot hook.
 
 import type { LoadedTheme } from '../types.js';
@@ -10,7 +10,7 @@ import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 
-export interface AaronWindowDeps {
+export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
   theme: LoadedTheme;
 }
@@ -19,11 +19,11 @@ const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for con
 const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40;
 
-export class AaronWindow {
+export class ScriptoscopeWindow {
   /** The positioned WindowManager host element (lives in the document). */
   readonly host: HTMLElement;
   private readonly fit: HTMLElement; // max-content wrapper inside the slot; the resize-observe target
-  private readonly deps: AaronWindowDeps;
+  private readonly deps: ScriptoscopeWindowDeps;
   private readonly restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement };
   /** True once this window is registered with the shared ResizeObserver. We track this rather
    *  than holding a per-window ResizeObserver — sharedRO handles a single browser-side observer
@@ -35,7 +35,7 @@ export class AaronWindow {
   private unmounted = false;
 
   private constructor(
-    host: HTMLElement, fit: HTMLElement, deps: AaronWindowDeps,
+    host: HTMLElement, fit: HTMLElement, deps: ScriptoscopeWindowDeps,
     restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement },
   ) {
     this.host = host; this.fit = fit; this.deps = deps; this.restore = restore;
@@ -43,17 +43,17 @@ export class AaronWindow {
 
   /** Promote `el` into a window. `fallbackPos` positions windows whose x/y aren't declared. */
   static async promote(
-    el: HTMLElement, deps: AaronWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
-  ): Promise<AaronWindow> {
+    el: HTMLElement, deps: ScriptoscopeWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
+  ): Promise<ScriptoscopeWindow> {
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
-    el.dataset.aaronPromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
+    el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.
     const slot = document.createElement('div');
-    slot.className = 'aw-slot';
+    slot.className = 'scriptoscope-slot';
     Object.assign(slot.style, { width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'auto' });
     const fit = document.createElement('div');
-    fit.className = 'aw-fit';
+    fit.className = 'scriptoscope-fit';
     if (parsed.sizeMode === 'fit') {
       Object.assign(fit.style, { width: 'max-content', maxWidth: `${FIT_MAX_W}px`, height: 'max-content' });
     } else {
@@ -66,7 +66,7 @@ export class AaronWindow {
     const w0 = Math.max(MIN_W, parsed.width ?? FIT_DEFAULT.w);
     const h0 = Math.max(MIN_H, parsed.height ?? FIT_DEFAULT.h);
 
-    let inst: AaronWindow | undefined;
+    let inst: ScriptoscopeWindow | undefined;
     const host = await deps.manager.add(
       deps.theme,
       {
@@ -80,7 +80,7 @@ export class AaronWindow {
         ...(parsed.collapsed ? { collapsed: true } : {}),
       },
     );
-    inst = new AaronWindow(host, fit, deps, restore);
+    inst = new ScriptoscopeWindow(host, fit, deps, restore);
 
     // Place the host where the original element was (in-flow position; the host is absolute, so it
     // floats relative to the nearest positioned ancestor — the demo provides one), then drop `el`.
@@ -134,14 +134,14 @@ export class AaronWindow {
   /** Restore the original DOM: move the content back into the original element and remove the window. */
   unmount(): void {
     if (this.unmounted) return; // idempotent: onClose AND disconnect() may both call this
-    debug('unmount', `AaronWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
+    debug('unmount', `ScriptoscopeWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.observing) { sharedRO.unobserve(this.fit); this.observing = false; }
     this.deps.manager.remove(this.host); // stop the manager re-rendering/re-theming a closed window
     const { el, parent, next } = this.restore;
     el.append(...Array.from(this.fit.childNodes));
-    delete el.dataset.aaronPromoted;
+    delete el.dataset.scriptoscopePromoted;
     // The captured nextSibling may itself have been removed (e.g. an adjacent promoted window) —
     // only insert before it if it's still a child of the parent, else append.
     if (parent) {

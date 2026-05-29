@@ -1,11 +1,11 @@
-// The declarative scanner: find `data-aaron-window` / `data-aaron-button` elements (+ `.aaron-*`
+// The declarative scanner: find `data-scriptoscope-window` / `data-scriptoscope-button` elements (+ `.aaron-*`
 // class fallbacks) and promote them, then keep promoting elements added later via a MutationObserver.
-// Idempotent: promoted elements are stamped `data-aaron-promoted`, so re-scans (incl. the observer
+// Idempotent: promoted elements are stamped `data-scriptoscope-promoted`, so re-scans (incl. the observer
 // firing on our OWN DOM moves) skip them and settle.
 
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
-import { AaronWindow } from './AaronWindow.js';
+import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
@@ -21,39 +21,39 @@ import {
 export interface MountOptions extends ThemeBootstrapOpts {
   /** Where to scan (default `document`). */
   root?: Document | Element;
-  /** Theme ref used when no ancestor carries `data-aaron-theme` (default = `baseSlug`). */
+  /** Theme ref used when no ancestor carries `data-scriptoscope-theme` (default = `baseSlug`). */
   pageThemeDefault?: string;
   /** Opt-in to localStorage layout persistence (closes #165). When set, this mount restores
-   *  window positions/sizes/collapsed state from `localStorage.aaron:layout:<persistKey>` on
+   *  window positions/sizes/collapsed state from `localStorage.scriptoscope:layout:<persistKey>` on
    *  promotion, then saves on every state change. Cross-tab sync via the `storage` event.
-   *  Window identity comes from `data-aaron-window-id` (stable) or DOM ordinal (fallback).
+   *  Window identity comes from `data-scriptoscope-window-id` (stable) or DOM ordinal (fallback).
    *  Default `undefined` = persistence disabled (current behavior). Schema details:
    *  `docs/superpowers/specs/2026-05-28-persistence-design.md`. */
   persistKey?: string;
 }
 
-const WINDOW_SEL = '[data-aaron-window], .aaron-window';
-const BUTTON_SEL = '[data-aaron-button], .aaron-button';
+const WINDOW_SEL = '[data-scriptoscope-window], .scriptoscope-window-fallback';
+const BUTTON_SEL = '[data-scriptoscope-button], .scriptoscope-button-fallback';
 // Themed text fields: native <input type=text|email|...> and <textarea>. OPT-IN via
-// [data-aaron-field] (not auto-scan over every text input) because field styling can
+// [data-scriptoscope-field] (not auto-scan over every text input) because field styling can
 // VISUALLY conflict with a consumer's existing stylesheet — checkbox/radio overlays are
 // composable, but a CMS may already paint inputs distinctively. Opt-in keeps the
 // surprise surface small. See src/declarative/field.ts for the bevel rationale.
-const FIELD_SEL = '[data-aaron-field], .aaron-field-attr';
-// Themed tab strip wrapper. The interior structure (children with [data-aaron-tab] +
-// [data-aaron-panel]) is parsed by promoteTabs itself. Wrapper-level scan keeps the selector
+const FIELD_SEL = '[data-scriptoscope-field], .scriptoscope-field-attr';
+// Themed tab strip wrapper. The interior structure (children with [data-scriptoscope-tab] +
+// [data-scriptoscope-panel]) is parsed by promoteTabs itself. Wrapper-level scan keeps the selector
 // list flat + lets us re-skin tabs on retheme without re-querying the panels each time.
-const TABS_SEL = '[data-aaron-tabs]';
+const TABS_SEL = '[data-scriptoscope-tabs]';
 // Themed checkbox / radio / slider / select. Auto-promoted page-wide so existing markup picks up
-// themes without retrofitting every input; opt-out per-control with `data-aaron-control="off"` if
+// themes without retrofitting every input; opt-out per-control with `data-scriptoscope-control="off"` if
 // a consumer wants the native chrome. Selects use a transparent-overlay strategy (themed button +
 // native `<select>` invisible on top) — the dropdown menu itself stays browser-native for now;
 // fully themed via `popup-window` chrome is a follow-up.
 const CONTROL_SEL = [
-  'input[type=checkbox]:not([data-aaron-control=off])',
-  'input[type=radio]:not([data-aaron-control=off])',
-  'input[type=range]:not([data-aaron-control=off])',
-  'select:not([data-aaron-control=off])',
+  'input[type=checkbox]:not([data-scriptoscope-control=off])',
+  'input[type=radio]:not([data-scriptoscope-control=off])',
+  'input[type=range]:not([data-scriptoscope-control=off])',
+  'select:not([data-scriptoscope-control=off])',
 ].join(', ');
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
@@ -67,7 +67,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
   const root: Document | Element = opts.root ?? document;
   const inFlight = new Set<Element>();
-  const mounted: AaronWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
+  const mounted: ScriptoscopeWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
   const skinnedTabs: HTMLElement[] = []; // tablist wrappers (re-promoted on retheme to swap faces)
@@ -131,13 +131,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   await resolver.preloadFonts();
 
   const isPromoted = (el: Element): boolean =>
-    (el as HTMLElement).dataset?.aaronPromoted != null || inFlight.has(el);
+    (el as HTMLElement).dataset?.scriptoscopePromoted != null || inFlight.has(el);
 
-  // Nearest-ancestor-wins theme ref for an element (walk ancestors collecting data-aaron-theme).
+  // Nearest-ancestor-wins theme ref for an element (walk ancestors collecting data-scriptoscope-theme).
   const refForEl = (el: Element): string => {
     const chain: (string | null)[] = [];
-    for (let n: Element | null = el; n; n = n.parentElement) chain.unshift(n.getAttribute('data-aaron-theme'));
-    // After a runtime theme switch, windows added later with no explicit data-aaron-theme follow the
+    for (let n: Element | null = el; n; n = n.parentElement) chain.unshift(n.getAttribute('data-scriptoscope-theme'));
+    // After a runtime theme switch, windows added later with no explicit data-scriptoscope-theme follow the
     // live theme (lastThemeRef), so the desktop stays consistent; before any switch, the page default.
     const fallback = lastThemeRef ?? pageDefault;
     return resolveThemeRef(chain, fallback) ?? fallback;
@@ -151,8 +151,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
       const theme = await resolver.load(ref);
       // Resolve persistence identity + restored geometry BEFORE promotion. If persistedWindows has
       // an entry for this id, apply the saved x/y/w/h/collapsed via temporary data attrs so
-      // AaronWindow.promote's existing parseWindowAttrs picks them up. Original attrs are restored
-      // on unmount via AaronWindow.restore (no change there).
+      // ScriptoscopeWindow.promote's existing parseWindowAttrs picks them up. Original attrs are restored
+      // on unmount via ScriptoscopeWindow.restore (no change there).
       const ord = promoteOrdinal++;
       const id = persistKey ? windowIdFor(el, ord) : '';
       const persisted = persistKey && id ? persistedWindows[id] : undefined;
@@ -160,25 +160,25 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
         ? { x: persisted.x, y: persisted.y }
         : { x: 24 + cascade * 26, y: 24 + cascade * 26 };
       if (!persisted) cascade += 1; // only consume cascade for non-restored windows
-      // Apply saved geometry via data attrs so AaronWindow's parseWindowAttrs picks them up.
-      // PERSISTED state takes precedence over declared data-aaron-* (the consumer's declared
+      // Apply saved geometry via data attrs so ScriptoscopeWindow's parseWindowAttrs picks them up.
+      // PERSISTED state takes precedence over declared data-scriptoscope-* (the consumer's declared
       // values are the BOOT defaults; persisted state is "where the user last left it"). This
       // intentionally overrides the consumer's declared x/y/w/h. Document this in the persistence
       // proposal: declared attrs = first-boot defaults; persisted state = the user's last layout.
       if (persisted) {
-        if (persisted.x != null) el.dataset.aaronX = String(persisted.x);
-        if (persisted.y != null) el.dataset.aaronY = String(persisted.y);
-        if (persisted.w != null) el.dataset.aaronWidth = String(persisted.w);
-        if (persisted.h != null) el.dataset.aaronHeight = String(persisted.h);
-        if (persisted.collapsed) el.dataset.aaronCollapsed = '';
+        if (persisted.x != null) el.dataset.scriptoscopeX = String(persisted.x);
+        if (persisted.y != null) el.dataset.scriptoscopeY = String(persisted.y);
+        if (persisted.w != null) el.dataset.scriptoscopeWidth = String(persisted.w);
+        if (persisted.h != null) el.dataset.scriptoscopeHeight = String(persisted.h);
+        if (persisted.collapsed) el.dataset.scriptoscopeCollapsed = '';
       }
-      const aw = await AaronWindow.promote(el, { manager, theme }, pos);
-      aw.host.dataset.aaronTheme = ref;
+      const aw = await ScriptoscopeWindow.promote(el, { manager, theme }, pos);
+      aw.host.dataset.scriptoscopeTheme = ref;
       if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
-      debug('promote', `window: ${el.dataset.aaronTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
+      debug('promote', `window: ${el.dataset.scriptoscopeTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
     } catch (err) {
-      console.error('[aaron] window promote failed:', err);
+      console.error('[scriptoscope] window promote failed:', err);
     } finally {
       inFlight.delete(el);
     }
@@ -192,32 +192,32 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
       skinnedButtons.push({ el, skinned });
       debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
     } catch (err) {
-      console.error('[aaron] button promote failed:', err);
+      console.error('[scriptoscope] button promote failed:', err);
     } finally {
       inFlight.delete(el);
     }
   };
 
   const promoteTabsEl = async (el: HTMLElement): Promise<void> => {
-    if (el.dataset.aaronTabsPromoted != null) return;
+    if (el.dataset.scriptoscopeTabsPromoted != null) return;
     inFlight.add(el);
     try {
       await promoteTabs(el, await resolver.load(refForEl(el)));
       skinnedTabs.push(el);
     } catch (err) {
-      console.error('[aaron] tabs promote failed:', err);
+      console.error('[scriptoscope] tabs promote failed:', err);
     } finally {
       inFlight.delete(el);
     }
   };
 
   const promoteFld = async (el: HTMLInputElement | HTMLTextAreaElement): Promise<void> => {
-    if (el.dataset.aaronFieldPromoted != null) return;
+    if (el.dataset.scriptoscopeFieldPromoted != null) return;
     inFlight.add(el);
     try {
       promoteField(el, await resolver.load(refForEl(el)));
     } catch (err) {
-      console.error('[aaron] field promote failed:', err);
+      console.error('[scriptoscope] field promote failed:', err);
     } finally {
       inFlight.delete(el);
     }
@@ -231,7 +231,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
       if (skinned) skinnedControls.push({ el, skinned });
       debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
     } catch (err) {
-      console.error('[aaron] control promote failed:', err);
+      console.error('[scriptoscope] control promote failed:', err);
     } finally {
       inFlight.delete(el);
     }
@@ -255,7 +255,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
         const fresh = await promoteButton(b.el, theme); // inserts the new face right after el…
         b.skinned.remove();                              // …then drop the previous one
         b.skinned = fresh;
-      } catch (err) { console.error('[aaron] button re-skin failed:', err); }
+      } catch (err) { console.error('[scriptoscope] button re-skin failed:', err); }
     }
     // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
     // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
@@ -265,17 +265,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     for (const tabsEl of skinnedTabs) {
       try {
         // Strip the old skinned siblings before re-promoting so we don't accumulate them.
-        for (const old of Array.from(tabsEl.querySelectorAll(':scope > [data-aaron-tab-skinned]'))) old.remove();
+        for (const old of Array.from(tabsEl.querySelectorAll(':scope > [data-scriptoscope-tab-skinned]'))) old.remove();
         // Restore the native buttons' visibility + clear promoted flag so promoteTabs sees them
         // again and can re-decide skinned vs CSS fallback under the new theme.
-        for (const btn of Array.from(tabsEl.querySelectorAll<HTMLElement>(':scope > [data-aaron-tab]'))) {
+        for (const btn of Array.from(tabsEl.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab]'))) {
           btn.style.display = '';
-          delete btn.dataset.aaronPromoted;
-          delete btn.dataset.aaronTabFallback;
+          delete btn.dataset.scriptoscopePromoted;
+          delete btn.dataset.scriptoscopeTabFallback;
         }
-        delete tabsEl.dataset.aaronTabsPromoted;
+        delete tabsEl.dataset.scriptoscopeTabsPromoted;
         await promoteTabs(tabsEl, theme, { forceRescan: true });
-      } catch (err) { console.error('[aaron] tabs re-skin failed:', err); }
+      } catch (err) { console.error('[scriptoscope] tabs re-skin failed:', err); }
     }
     // Same dance for promoted checkbox/radio/slider controls: drop orphans, then re-skin each in
     // place. clear the promoted stamp first so promoteControl will re-promote (it self-guards).
@@ -283,10 +283,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     skinnedControls.length = 0; skinnedControls.push(...liveCtls);
     for (const c of skinnedControls) {
       try {
-        delete c.el.dataset.aaronPromoted;
+        delete c.el.dataset.scriptoscopePromoted;
         const fresh = await promoteControl(c.el, theme);
         if (fresh) { c.skinned.remove(); c.skinned = fresh; }
-      } catch (err) { console.error('[aaron] control re-skin failed:', err); }
+      } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
     }
   };
 
@@ -297,7 +297,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
     for (const el of Array.from(within.querySelectorAll(WINDOW_SEL))) await promoteWindow(el as HTMLElement);
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
-    // <button> because promoteTabs stamps them with data-aaron-promoted.
+    // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
     for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);
     await Promise.all([
       ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
@@ -306,20 +306,20 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     ]);
   };
 
-  // Wire `[data-aaron-theme-switcher]` controls (the PRD's named front door for runtime themes). A
+  // Wire `[data-scriptoscope-theme-switcher]` controls (the PRD's named front door for runtime themes). A
   // <select> switches on change (option values = theme refs); any other element switches on click
-  // using its own data-aaron-theme. Uses a DEDICATED stamp (`aaronSwitcherWired`) — the generic
+  // using its own data-scriptoscope-theme. Uses a DEDICATED stamp (`scriptoscopeSwitcherWired`) — the generic
   // `aaronPromoted` stamp is set by control-promotion on every <select>, which would otherwise
   // skip this wiring (the two concerns are orthogonal: themed appearance vs. event binding).
   const wireThemeSwitchers = (within: Document | Element): void => {
-    for (const node of Array.from(within.querySelectorAll('[data-aaron-theme-switcher]'))) {
+    for (const node of Array.from(within.querySelectorAll('[data-scriptoscope-theme-switcher]'))) {
       const sw = node as HTMLElement;
-      if (sw.dataset.aaronSwitcherWired != null) continue;
-      sw.dataset.aaronSwitcherWired = '';
+      if (sw.dataset.scriptoscopeSwitcherWired != null) continue;
+      sw.dataset.scriptoscopeSwitcherWired = '';
       if (sw instanceof HTMLSelectElement) {
         sw.addEventListener('change', () => { void retheme(sw.value); });
       } else {
-        sw.addEventListener('click', () => { const ref = sw.getAttribute('data-aaron-theme'); if (ref) void retheme(ref); });
+        sw.addEventListener('click', () => { const ref = sw.getAttribute('data-scriptoscope-theme'); if (ref) void retheme(ref); });
       }
     }
   };
@@ -366,7 +366,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     /** Switch the whole desktop (all windows + skinned buttons) to a theme ref at runtime. */
     retheme,
     /** Pre-seed the resolver cache so a subsequent `retheme(ref)` (incl. via
-     *  `<select data-aaron-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
+     *  `<select data-scriptoscope-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
      *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
     registerTheme: (ref, theme) => resolver.register(ref, theme),
   };

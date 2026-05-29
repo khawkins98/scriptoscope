@@ -1,10 +1,10 @@
-// Pure, DOM-free parsing for the declarative (`data-aaron-*`) window layer. No imports, no DOM —
+// Pure, DOM-free parsing for the declarative (`data-scriptoscope-*`) window layer. No imports, no DOM —
 // so it's unit-testable in Node. The scanner (scanner.ts) collects the DOM-side inputs (dataset
 // records, the ancestor theme chain) and feeds them here.
 
 export type SizeMode = 'declared' | 'fit';
 
-/** A window's options parsed from `data-aaron-*` attributes. */
+/** A window's options parsed from `data-scriptoscope-*` attributes. */
 export interface ParsedWindow {
   windowType: string; // default 'document-window'
   title?: string;
@@ -15,15 +15,15 @@ export interface ParsedWindow {
   height?: number; // CONTENT height (px)
   /** 'fit' when BOTH width and height are omitted → size to the content; else 'declared'. */
   sizeMode: SizeMode;
-  /** Initial z-order — `data-aaron-z`. Higher = closer to the front. Lets the page DECLARE which
+  /** Initial z-order — `data-scriptoscope-z`. Higher = closer to the front. Lets the page DECLARE which
    *  window should boot on top (without it the scanner falls back to document order). Optional. */
   z?: number;
-  /** Boot the window already window-shaded — `data-aaron-collapsed`. Classic Mac users left
+  /** Boot the window already window-shaded — `data-scriptoscope-collapsed`. Classic Mac users left
    *  Notepad / palettes rolled-up at startup; this restores that. Default false. */
   collapsed: boolean;
 }
 
-/** A button's options parsed from `data-aaron-button` + neighbours. */
+/** A button's options parsed from `data-scriptoscope-button` + neighbours. */
 export interface ParsedButton {
   label?: string;
   isDefault: boolean; // the OK ring
@@ -40,19 +40,19 @@ const num = (v: string | undefined): number | undefined => {
 /** A boolean attribute is "present" unless its value is literally "false". */
 const present = (v: string | undefined): boolean => v != null && v !== 'false';
 
-/** Parse a `data-aaron-window` element's `dataset` (a plain record here) into window options. */
+/** Parse a `data-scriptoscope-window` element's `dataset` (a plain record here) into window options. */
 export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedWindow {
-  const width = num(d.aaronWidth);
-  const height = num(d.aaronHeight);
-  const x = num(d.aaronX);
-  const y = num(d.aaronY);
-  const z = num(d.aaronZ);
+  const width = num(d.scriptoscopeWidth);
+  const height = num(d.scriptoscopeHeight);
+  const x = num(d.scriptoscopeX);
+  const y = num(d.scriptoscopeY);
+  const z = num(d.scriptoscopeZ);
   return {
-    windowType: d.aaronWindowType?.trim() || 'document-window',
-    state: d.aaronState === 'inactive' ? 'inactive' : 'active',
+    windowType: d.scriptoscopeWindowType?.trim() || 'document-window',
+    state: d.scriptoscopeState === 'inactive' ? 'inactive' : 'active',
     sizeMode: width === undefined && height === undefined ? 'fit' : 'declared',
-    collapsed: present(d.aaronCollapsed),
-    ...(d.aaronTitle != null ? { title: d.aaronTitle } : {}),
+    collapsed: present(d.scriptoscopeCollapsed),
+    ...(d.scriptoscopeTitle != null ? { title: d.scriptoscopeTitle } : {}),
     ...(x !== undefined ? { x } : {}),
     ...(y !== undefined ? { y } : {}),
     ...(width !== undefined ? { width } : {}),
@@ -61,12 +61,12 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
   };
 }
 
-/** Parse a `data-aaron-button` element's `dataset` + its text content into button options. */
+/** Parse a `data-scriptoscope-button` element's `dataset` + its text content into button options. */
 export function parseButtonAttrs(d: Record<string, string | undefined>, text: string): ParsedButton {
   const label = text.trim();
   return {
-    isDefault: present(d.aaronDefault),
-    disabled: present(d.aaronDisabled),
+    isDefault: present(d.scriptoscopeDefault),
+    disabled: present(d.scriptoscopeDisabled),
     ...(label ? { label } : {}),
   };
 }
@@ -85,12 +85,12 @@ export function resolveThemeRef(
 }
 
 const URL_RE = /^(?:https?:|\/|\.\/|\.\.\/|blob:|data:)/;
-/** True if a `data-aaron-theme` value is already a URL/path (vs. a bare bundle slug). */
+/** True if a `data-scriptoscope-theme` value is already a URL/path (vs. a bare bundle slug). */
 export function isThemeUrl(ref: string): boolean {
   return URL_RE.test(ref);
 }
 
-/** Resolve a `data-aaron-theme` value (slug OR url) to a bundle URL under `themeBaseUrl`. */
+/** Resolve a `data-scriptoscope-theme` value (slug OR url) to a bundle URL under `themeBaseUrl`. */
 export function themeRefToUrl(ref: string, themeBaseUrl: string): string {
   return isThemeUrl(ref) ? ref : `${themeBaseUrl.replace(/\/$/, '')}/${ref}`;
 }

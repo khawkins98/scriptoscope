@@ -198,7 +198,7 @@ In your browser, open the demo (`http://localhost:5173/`). To load your scheme, 
 await loadTheme('themes/<your-slug>/');
 ```
 
-(or set `<html data-aaron-theme="themes/<your-slug>/">` and reload, if the demo wires that up).
+(or set `<html data-scriptoscope-theme="themes/<your-slug>/">` and reload, if the demo wires that up).
 
 You should see:
 

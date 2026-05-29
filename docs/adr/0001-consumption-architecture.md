@@ -70,13 +70,13 @@ PC PR). **PC implementation is now unblocked** — see §Recommendations in the 
 
 Decision 3 (imperative + declarative front door) shipped on `main` (commits `2e22d48` … `beec030`, 2026-05-27/28). The "Confirmed still absent" list in the 2026-05-26 update below has flipped almost entirely — what's now in `src/declarative/` + `src/interactive.ts`:
 
-- `data-aaron-*` scanner with `MutationObserver` (`src/declarative/scanner.ts`)
-- `AaronWindow` class (`src/declarative/AaronWindow.ts`)
+- `data-scriptoscope-*` scanner with `MutationObserver` (`src/declarative/scanner.ts`)
+- `ScriptoscopeWindow` class (`src/declarative/ScriptoscopeWindow.ts`)
 - A real WindowManager: drag from any edge, grow-box resize, z-order, window-shade (collapse), zoom-to-fit, themed scrollbars on overflow, runtime theme switching (`src/interactive.ts`)
 - `ResizeObserver`-driven content-fit re-render
-- Themed `data-aaron-control` promotion (checkbox / radio / slider) over native form widgets (`src/declarative/control.ts`) — a partial relaxation of Decision 4's "native controls NOT themed" scope guard, scoped to controls the consumer explicitly opts into via attribute (the spirit of "opt-in" Decision 4 reserves)
+- Themed `data-scriptoscope-control` promotion (checkbox / radio / slider) over native form widgets (`src/declarative/control.ts`) — a partial relaxation of Decision 4's "native controls NOT themed" scope guard, scoped to controls the consumer explicitly opts into via attribute (the spirit of "opt-in" Decision 4 reserves)
 - Validation demo: `demo/declarative-site.html` ("skin an existing site") — exercises the data-attribute scanner, themed controls, runtime theme switch, scroll/shade/zoom. (An earlier OS 8.6 desktop demo at `demo/declarative.html` was retired 2026-05-28 once the main showcase at `demo/index.html` absorbed its window-type + control-variety coverage via the playgrounds.)
-- Public re-exports from `src/index.ts` (`mountDeclarative`, `AaronWindow`, `promoteButton`, etc.)
+- Public re-exports from `src/index.ts` (`mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, etc.)
 
 Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-design.md`.
 
@@ -89,7 +89,7 @@ Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-
 
 ## Update — 2026-05-26 (engine deepened; decisions unchanged) — ⚠️ "still absent" list now SUPERSEDED by the 2026-05-28 update above
 
-A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. ~~Confirmed still absent: any `data-aaron-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `AaronWindow`, `ResizeObserver`, or emitted CSS.~~ (Ingestion note now stale — see the 2026-05-27 update below: the blob-URL passthrough Decision 4 needs HAS landed.)
+A ~50-commit review found all work since this ADR landed on the **rendering engine**, none on the **consumption layer** — so every decision below still stands, and the §Gating spike is still the unstarted next gate. ~~Confirmed still absent: any `data-scriptoscope-*` scanner, `MutationObserver`, `customElements`, `border-image`, Shadow DOM, `ScriptoscopeWindow`, `ResizeObserver`, or emitted CSS.~~ (Ingestion note now stale — see the 2026-05-27 update below: the blob-URL passthrough Decision 4 needs HAS landed.)
 
 **Ingestion is now LIVE (update 2026-05-27):** the whole in-browser drag-drop conversion path shipped — drop a Kaleidoscope theme (`.sit` via a munbox→WASM decoder in `tools/sit-wasm/`, or `.hqx`/MacBinary/AppleDouble/raw `.rsrc`) and `loadKaleidoscopeScheme` → `convertScheme` produces a render-ready in-memory `LoadedTheme` with `OffscreenCanvas` blob-URL assets, which `renderWindow` paints — no build, no server. The `assetUrl` blob-URL passthrough Decision 4 calls for HAS landed (5afd70b). See `docs/superpowers/specs/2026-05-27-browser-conversion-design.md`. **Consequence for this ADR:** the consumer can now receive a translated theme two ways, and the choice is a consumption-layer decision to make at the §Gating spike — (a) an **in-page handoff** (pass the in-memory `LoadedTheme` straight to the consumer, no disk round-trip) or (b) a **saved/exported bundle** (`theme.json` + PNG assets, zipped) the consumer re-loads. "Save/export the translated output" is therefore deliberately deferred until this ADR's spike picks the consumption shape, so we don't build a save format the consumer can't use.
 
@@ -108,12 +108,12 @@ Also noted (no decision change): the engine added control classes (bevel button,
 
 ## Context
 
-The vision (per `PRD.md` North Star): a consumer either picks a bundled theme **or drags in a Kaleidoscope scheme**, and applies it to their **existing website** via `data-aaron-*` attributes — the library generates wrapper elements + CSS to skin it. Themes are runtime-switchable.
+The vision (per `PRD.md` North Star): a consumer either picks a bundled theme **or drags in a Kaleidoscope scheme**, and applies it to their **existing website** via `data-scriptoscope-*` attributes — the library generates wrapper elements + CSS to skin it. Themes are runtime-switchable.
 
 What actually exists today (verified 2026-05-25):
 
 - **Built:** a faithful canvas chrome compositor (`src/composeChrome.ts` → `src/renderWindow.ts`) that replays the Kaleidoscope kDEF and insets real DOM content into the frame's interior; interactive controls with real ARIA (`src/interactive.ts`); base-theme inheritance (`src/baseChain.ts`); browser-portable decoders (`tools/theme-loader/`, incl. `loadKaleidoscopeScheme.js` which already accepts a `Blob` and emits blob-URL assets via `OffscreenCanvas`). Zero runtime deps, ~51 KB ESM.
-- **Not built — the entire consumption layer:** no `data-aaron-*` scanner, no `MutationObserver`, no wrapper generation, **no emitted CSS at all** (everything is inline CSS-in-JS), no `AaronWindow` front door, and no production window manager (`WindowManager` now does focus + z-index + demo-grade drag-to-move / grow-box resize / title-widget press, but still no persistence, snapping, or constraints — see the 2026-05-27 update).
+- **Not built — the entire consumption layer:** no `data-scriptoscope-*` scanner, no `MutationObserver`, no wrapper generation, **no emitted CSS at all** (everything is inline CSS-in-JS), no `ScriptoscopeWindow` front door, and no production window manager (`WindowManager` now does focus + z-index + demo-grade drag-to-move / grow-box resize / title-widget press, but still no persistence, snapping, or constraints — see the 2026-05-27 update).
 
 The central tension: faithful chrome is a **fixed-resolution raster**, but a live site's content **reflows, is selectable/accessible, zooms, scrolls, and is responsive**. Wrapping a third party's live DOM in a canvas frame fights all of that — and a canvas is invisible to assistive tech.
 
@@ -150,9 +150,9 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 
 ### 3. Front door: imperative foundation + declarative scanner (matches PRD North Star)
 
-- **Foundation:** an imperative `AaronWindow` class + `loadTheme()` (the existing renderer is the engine underneath).
-- **Primary surface:** a declarative scanner that promotes `[data-aaron-*]` elements, driven by a **single root `MutationObserver`** (idempotent — mark promoted nodes; batch; `disconnect()` on teardown) for dynamic content.
-- **Fallback surface:** class selectors (`.aaron-window`, …) for CSP/CMS environments.
+- **Foundation:** an imperative `ScriptoscopeWindow` class + `loadTheme()` (the existing renderer is the engine underneath).
+- **Primary surface:** a declarative scanner that promotes `[data-scriptoscope-*]` elements, driven by a **single root `MutationObserver`** (idempotent — mark promoted nodes; batch; `disconnect()` on teardown) for dynamic content.
+- **Fallback surface:** class selectors (`.scriptoscope-window-fallback`, …) for CSP/CMS environments.
 - Internally, the declarative path may be realized as a custom element + the Shadow boundary from Decision 2; the public contract is the data-attribute.
 
 ### 4. Scope guards (to bound maintenance surface)
@@ -174,7 +174,7 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 - **Pixel-faithful chrome** for any Kaleidoscope scheme, including the visually distinctive ones (evolution, BeOS) — the canvas compositor already proved this.
 - **Real DOM body** that's selectable, scrollable, accessible, and reachable by host-page CSS.
 - **DOM twins for widgets + grow box** give a11y a clean target (already partially built; finish in PC).
-- **Drop-in via `data-aaron-*`** — the data-attribute scanner + WindowManager already shipped (Decision 3).
+- **Drop-in via `data-scriptoscope-*`** — the data-attribute scanner + WindowManager already shipped (Decision 3).
 - **Simple emitter mental model** — one rendering path, not two. No CSS emitter, no representability classifier to maintain.
 
 **Negative / costs:**
@@ -192,22 +192,22 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 ## Alternatives considered
 
 - **CSS-first hybrid** (the original Decision 1 — emit body frame as `border-image`, keep title bar canvas). **Tried 2026-05-28, retired.** Three iterations couldn't reach fidelity for the exotic schemes without per-scheme tuning the architecture wasn't designed for. The wins (SSR, native scaling) are real but small for the actual consumer profile; the costs (CSS emitter complexity, classifier, fidelity loss on exotic schemes) are too large. See §Spike result.
-- **CSS-custom-property reskin** (the old PRD model: `--aaron-titlebar-bg`, `chrome.css`/`controls.css`). Rejected: hand-tuned CSS variables can't be pixel-faithful to an arbitrary decoded scheme.
+- **CSS-custom-property reskin** (the old PRD model: `--scriptoscope-titlebar-bg`, `chrome.css`/`controls.css`). Rejected: hand-tuned CSS variables can't be pixel-faithful to an arbitrary decoded scheme.
 - **Full web-component authoring kit** (React95-style `<Window>`/`<Button>` tree). Rejected: that's "author the markup," not "skin an existing site"; framework-leaning; wrong model for the North Star.
 
 ## Phase map (revised 2026-05-28)
 
 - **P0 — Reconcile + decide:** PRD refresh (done alongside this ADR); spike concluded; Decision 1 revised. ✅
-- **PA — One front door:** `AaronWindow` + `data-aaron-window` scanner over the existing renderer. **SHIPPED 2026-05-28.**
+- **PA — One front door:** `ScriptoscopeWindow` + `data-scriptoscope-window` scanner over the existing renderer. **SHIPPED 2026-05-28.**
 - **PB — WM behaviors:** drag / resize / z-order / shade / zoom / themed scrollbars / runtime theme switch. **SHIPPED 2026-05-28.** Persistence remains open.
 - **PC — Finish the hybrid (revised):** ~~CSS emitter / classifier~~ retired. New scope: (1) DOM-twin coverage audit (widgets, scrollbars, slider); (2) Shadow DOM wrapping (Decision 2); (3) canvas repaint efficiency audit; (4) shipped `scriptoscope.css` for outer-shell affordances; (5) a11y audit (axe + keyboard + screen reader).
 - **PD — In-browser ingestion:** drop zone + `assetUrl` passthrough + archive unpacking (`.sit`/`.hqx`/MacBinary). **SHIPPED 2026-05-27.** `.sitx` unsupported (unrelated).
-- **PE — Opt-in control decoration** (explicitly *not* native form-control reskin). **Partially shipped** via `data-aaron-control` 2026-05-28; broader widget surfaces (menu, popup, list-header) remain open.
+- **PE — Opt-in control decoration** (explicitly *not* native form-control reskin). **Partially shipped** via `data-scriptoscope-control` 2026-05-28; broader widget surfaces (menu, popup, list-header) remain open.
 - **Cross-cutting:** npm/packaging, theme-schema versioning, consumption test harness, persistence story.
 
 ## References
 
-- Engine: `src/composeChrome.ts` (the slice recipe that drives the canvas compositor), `src/renderWindow.ts` (canvas + inset model + a11y wiring), `src/interactive.ts` (WindowManager + focusable DOM twins for widgets), `src/declarative/` (the `data-aaron-*` scanner + AaronWindow).
+- Engine: `src/composeChrome.ts` (the slice recipe that drives the canvas compositor), `src/renderWindow.ts` (canvas + inset model + a11y wiring), `src/interactive.ts` (WindowManager + focusable DOM twins for widgets), `src/declarative/` (the `data-scriptoscope-*` scanner + ScriptoscopeWindow).
 - Ingestion: `tools/theme-loader/loadKaleidoscopeScheme.js`, `tools/theme-loader/resource-fork.js`, `src/cicnImage.ts`, `src/loadTheme.ts` (the `assetUrl` blob passthrough).
 - Spec: `docs/spec/compositor-spec.md`; bundle: `docs/theme-bundle-layout.md`.
 - Spike retrospective: `docs/superpowers/specs/2026-05-28-css-emitter-spike.md` (three rounds + conclusion).

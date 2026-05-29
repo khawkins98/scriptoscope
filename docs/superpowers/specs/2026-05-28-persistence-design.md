@@ -6,7 +6,7 @@
 
 ## What the problem actually is
 
-Today, a `mountDeclarative()` consumer can't preserve a user's adjusted state across reloads. If a visitor drags windows into a layout they like, refreshes, the layout's gone — windows return to wherever their `data-aaron-x` / `data-aaron-y` attributes pinned them. For an "intranet productivity app" or "wiki sidebar" use case this is a significant ergonomic hole.
+Today, a `mountDeclarative()` consumer can't preserve a user's adjusted state across reloads. If a visitor drags windows into a layout they like, refreshes, the layout's gone — windows return to wherever their `data-scriptoscope-x` / `data-scriptoscope-y` attributes pinned them. For an "intranet productivity app" or "wiki sidebar" use case this is a significant ergonomic hole.
 
 What we'd want to persist, by importance:
 1. **Window positions** (left, top) — the primary need
@@ -44,13 +44,13 @@ The scope question is **what key do we write under?**
 
 - **Per-page:** single key like `aaron:layout` — every window's state serialized into one blob. Simple. Doesn't survive a `mountDeclarative` call from a different code path on the same page (they'd clobber each other). Acceptable for the common case where a page has one Aaron consumer.
 - **Per-mount:** a key per `mountDeclarative` call, e.g. `aaron:layout:<consumer-id>`. Requires the consumer to pass an id. Solves the multi-consumer case explicitly.
-- **Per-window:** key per window, e.g. `aaron:window:<window-id>`. Window id comes from a `data-aaron-window-id` attribute the consumer adds. Most granular; survives windows moving between mounts; requires every persisted window to have an id.
+- **Per-window:** key per window, e.g. `aaron:window:<window-id>`. Window id comes from a `data-scriptoscope-window-id` attribute the consumer adds. Most granular; survives windows moving between mounts; requires every persisted window to have an id.
 
-**Recommendation: per-mount as the default, with the consumer's `mountDeclarative({ persistKey: 'my-app' })` opt-in.** Default `persistKey: undefined` means "don't persist." When set, all windows under that mount serialize to `aaron:layout:<persistKey>`. Per-window opt-out via `data-aaron-persist="off"` (e.g. transient dialogs the consumer wouldn't want restored).
+**Recommendation: per-mount as the default, with the consumer's `mountDeclarative({ persistKey: 'my-app' })` opt-in.** Default `persistKey: undefined` means "don't persist." When set, all windows under that mount serialize to `aaron:layout:<persistKey>`. Per-window opt-out via `data-scriptoscope-persist="off"` (e.g. transient dialogs the consumer wouldn't want restored).
 
 This:
 - Keeps persistence **opt-in** (no surprise behavior).
-- Identifies windows within a mount by their **`data-aaron-window-id`** attribute when set, else by **DOM source ordinal** (the Nth promoted window in DOM order). Window-id is the consumer's choice; ordinal is the fallback for ad-hoc cases.
+- Identifies windows within a mount by their **`data-scriptoscope-window-id`** attribute when set, else by **DOM source ordinal** (the Nth promoted window in DOM order). Window-id is the consumer's choice; ordinal is the fallback for ad-hoc cases.
 - Survives multiple mounts on a page (each has its own key namespace).
 
 ## What to persist (the snapshot shape)
@@ -68,8 +68,8 @@ This:
 ```
 
 - **`version`** — schema marker. v1 covers the fields above. Future fields land as v2; the loader migrates v1→v2 (or drops unknown keys silently). Worth doing right from the start so we don't have a "what version is this?" mess in 6 months.
-- **`windows`** — keyed by `data-aaron-window-id` if set, else `<dom-ordinal-N>`. Each value carries the geometry the renderer needs to restore.
-- **`activeTheme`** — last-selected scheme via the runtime switcher (`data-aaron-theme-switcher` change). Optional; only written if a switcher fired during the session.
+- **`windows`** — keyed by `data-scriptoscope-window-id` if set, else `<dom-ordinal-N>`. Each value carries the geometry the renderer needs to restore.
+- **`activeTheme`** — last-selected scheme via the runtime switcher (`data-scriptoscope-theme-switcher` change). Optional; only written if a switcher fired during the session.
 
 ## API surface (minimal)
 
@@ -86,15 +86,15 @@ That's the entire public surface. Everything else lives behind the scenes:
 
 - **On boot, after windows are promoted:** scanner checks `localStorage.getItem('aaron:layout:my-app')`; if present, applies position / size / collapsed / z / theme. Then attaches a `storage` event listener for cross-tab sync.
 - **On any change** (window drag, resize, shade toggle, zoom, theme switch): WindowManager bumps a debounced save (~250 ms) that serializes the current snapshot to localStorage.
-- **`data-aaron-window-id="welcome"`** on a window's source div = stable identity; persisted state keys to this. Without it, DOM-source-ordinal is used (`<dom-ordinal-0>`, `<dom-ordinal-1>`, …) — works for static pages, breaks if windows are reordered.
-- **`data-aaron-persist="off"`** on a window's source div = exclude from persistence. For e.g. an `aaronAlert()`-style transient dialog.
+- **`data-scriptoscope-window-id="welcome"`** on a window's source div = stable identity; persisted state keys to this. Without it, DOM-source-ordinal is used (`<dom-ordinal-0>`, `<dom-ordinal-1>`, …) — works for static pages, breaks if windows are reordered.
+- **`data-scriptoscope-persist="off"`** on a window's source div = exclude from persistence. For e.g. an `aaronAlert()`-style transient dialog.
 
 Imperative escape hatches (additive, not core):
 ```ts
 const handle = await mountDeclarative({...});
 handle.layout.snapshot();              // returns current state JSON
 await handle.layout.restore(json);     // apply external state
-handle.layout.clear();                 // wipe localStorage + reset to data-aaron-* declarations
+handle.layout.clear();                 // wipe localStorage + reset to data-scriptoscope-* declarations
 ```
 
 ## What changes in `WindowManager` to support this
@@ -105,22 +105,22 @@ Static analysis (haven't coded; sketching what'd be touched):
 
 2. **The declarative scanner** (`src/declarative/scanner.ts`) attaches a debounced serializer-to-localStorage as the `onChange` hook when `persistKey` is set.
 
-3. **AaronWindow.promote** reads any persisted geometry for its window-id (or DOM ordinal) BEFORE constructing the WindowManager add() call, using it instead of the `data-aaron-*` declarations.
+3. **ScriptoscopeWindow.promote** reads any persisted geometry for its window-id (or DOM ordinal) BEFORE constructing the WindowManager add() call, using it instead of the `data-scriptoscope-*` declarations.
 
 4. **The host-element drag handler** (`wireMoveResize`, title-bar drag) needs to fire the `onChange` callback on mouseup. Currently it sets `host.style.left/top` directly without triggering a render — that's CSS-only, no render. The change: also call `onChange(entry)` on mouseup, with the new x/y. (The render-frequency contract is preserved — no per-mousemove fire.)
 
 5. **`storage` event listener** for multi-tab sync: when another tab writes the same key, re-apply the layout in this tab. Debounced. Throttled.
 
-Estimated diff: ~150–200 LOC across `src/interactive.ts` + `src/declarative/scanner.ts` + `src/declarative/AaronWindow.ts`. Plus a couple test fixtures.
+Estimated diff: ~150–200 LOC across `src/interactive.ts` + `src/declarative/scanner.ts` + `src/declarative/ScriptoscopeWindow.ts`. Plus a couple test fixtures.
 
 ## Edge cases worth thinking about
 
 - **Window doesn't exist in HTML anymore:** the persisted snapshot has `{"removed-window": {...}}` but the HTML doesn't have an element matching that id. Silently ignore — the entry stays in storage in case the consumer re-adds it later. (Garbage collection could be a maintenance method on the imperative handle.)
-- **HTML adds a new window not in storage:** use the `data-aaron-*` declarations. Storage doesn't override — declarations are the authoritative initial state for new windows.
+- **HTML adds a new window not in storage:** use the `data-scriptoscope-*` declarations. Storage doesn't override — declarations are the authoritative initial state for new windows.
 - **Theme switched in another tab:** the `storage` listener picks it up. The scanner calls `manager.retheme(newTheme)`. UX-noticeable but defensible.
 - **Storage quota exceeded:** wrap `setItem` in try/catch; on `QuotaExceededError`, drop the oldest window's state. Log a warning to console. Should be vanishingly rare for ~1 KB of layout state.
 - **Private browsing / storage disabled:** `localStorage.setItem` may throw `SecurityError`. Wrap in try/catch; the feature degrades to "session-only" (in-memory snapshot, no persistence) without breaking the app.
-- **DOM-ordinal stability:** if the consumer reorders or removes windows in their HTML, the ordinals shift, and the persisted state attaches to the wrong windows. Document this explicitly: **use `data-aaron-window-id` for any window you actually want to persist.** Ordinal is the convenience fallback for "I don't care."
+- **DOM-ordinal stability:** if the consumer reorders or removes windows in their HTML, the ordinals shift, and the persisted state attaches to the wrong windows. Document this explicitly: **use `data-scriptoscope-window-id` for any window you actually want to persist.** Ordinal is the convenience fallback for "I don't care."
 - **URL sharing:** the imperative `handle.layout.snapshot()` can emit a compact `#hash` value the consumer can route to a "Copy shareable link" UI. Scriptoscope itself wouldn't auto-write to URL by default; the consumer chooses.
 
 ## What I'd NOT do in v1
@@ -136,9 +136,9 @@ Estimated diff: ~150–200 LOC across `src/interactive.ts` + `src/declarative/sc
 - **Storage:** `localStorage` primary. URL hash as an additive, manual mode via the imperative handle. `sessionStorage` later if a real use case appears.
 - **Scope:** per-`mountDeclarative` call, opted in via `persistKey: '<consumer-id>'`. Default off.
 - **Snapshot shape:** v1 schema as above; versioned for forward-compat.
-- **Window identity:** `data-aaron-window-id` (consumer-stable) → DOM ordinal (fallback). Document the trade-off.
+- **Window identity:** `data-scriptoscope-window-id` (consumer-stable) → DOM ordinal (fallback). Document the trade-off.
 - **Cross-tab sync:** native via `storage` event, debounced.
-- **API surface:** one option (`persistKey`), one stamp attribute (`data-aaron-window-id`), one opt-out attribute (`data-aaron-persist="off"`), three optional imperative methods (`snapshot`/`restore`/`clear`).
+- **API surface:** one option (`persistKey`), one stamp attribute (`data-scriptoscope-window-id`), one opt-out attribute (`data-scriptoscope-persist="off"`), three optional imperative methods (`snapshot`/`restore`/`clear`).
 - **Implementation cost:** ~150–200 LOC + a small test fixture for the snapshot round-trip.
 - **Render contract preserved:** `onChange` fires at the end of `render()`; the title-bar-drag path adds an `onChange` call on mouseup (still no per-mousemove canvas re-paints).
 
@@ -154,7 +154,7 @@ Estimated diff: ~150–200 LOC across `src/interactive.ts` + `src/declarative/sc
 Order:
 1. Add `onChange?` hook to `WindowManager` + invoke it from the change paths (~30 LOC).
 2. Add `persistKey?` option to `mountDeclarative` + serialize/deserialize layer in `src/declarative/scanner.ts` (~80 LOC).
-3. Wire `AaronWindow.promote` to consult persisted geometry before declarations (~30 LOC).
+3. Wire `ScriptoscopeWindow.promote` to consult persisted geometry before declarations (~30 LOC).
 4. Add `storage` event listener for cross-tab sync (~20 LOC).
 5. Tests: snapshot round-trip + restoration test against a fixture (~50 LOC, lands as `src/declarative/persistence.test.mjs`).
 6. Demo update: enable `persistKey: 'aaron-site-demo'` on `declarative-site.html` so visitors see persistence work without further config.

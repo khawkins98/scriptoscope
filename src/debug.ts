@@ -11,7 +11,7 @@
 //   drag        — title-bar drag start/end; grow-box pointer + keyboard start/end
 //   theme       — retheme calls + per-window resolution
 //   promote     — declarative promotion (window / button / control)
-//   unmount     — AaronWindow unmount + manager.remove
+//   unmount     — ScriptoscopeWindow unmount + manager.remove
 //   shadow      — shadow root attach + light-DOM slot operations
 //
 // USAGE FROM A DEMO/CONSUMER:
@@ -21,8 +21,8 @@
 //   setDebug(false);                                 // off
 //
 // URL-DRIVEN (the runtime does NOT read URL params on its own — the demo wires this):
-//   ?aaron-debug=1                              → all
-//   ?aaron-debug=scrollbar,drag                 → filtered
+//   ?scriptoscope-debug=1                              → all
+//   ?scriptoscope-debug=scrollbar,drag                 → filtered
 
 let enabled = false;
 let allowed: Set<string> | null = null; // null = "all categories"
@@ -64,6 +64,6 @@ export function isDebug(category?: string): boolean {
  */
 export function debug(category: string, label: string, data?: object): void {
   if (!isDebug(category)) return;
-  if (data !== undefined) console.log(`[aaron:${category}] ${label}`, data);
-  else console.log(`[aaron:${category}] ${label}`);
+  if (data !== undefined) console.log(`[scriptoscope:${category}] ${label}`, data);
+  else console.log(`[scriptoscope:${category}] ${label}`);
 }

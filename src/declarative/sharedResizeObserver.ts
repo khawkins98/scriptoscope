@@ -1,5 +1,5 @@
 // Lazy singleton wrapper around a single ResizeObserver that multiplexes observations
-// for multiple AaronWindow content-fit observations. Closes #170 — without this, every
+// for multiple ScriptoscopeWindow content-fit observations. Closes #170 — without this, every
 // content-fit window attaches its own ResizeObserver (~50 observers at 50 windows, each
 // firing independently on layout changes). The shared observer batches into one callback
 // per ResizeObserver firing, dispatches to per-element registered callbacks.
@@ -33,7 +33,7 @@ class SharedResizeObserver {
           const handler = this.callbacks.get(e.target);
           if (!handler) continue;
           try { handler(e); }
-          catch (err) { console.error('[aaron] SharedResizeObserver callback threw:', err); }
+          catch (err) { console.error('[scriptoscope] SharedResizeObserver callback threw:', err); }
         }
       });
     }

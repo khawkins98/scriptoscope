@@ -2294,7 +2294,7 @@ region a proper subset of the canvas? If (3), don't repaint the whole canvas
 as a composable strip-machine; ours treats it as a monolithic recipe. The
 gap between the two is where the wins live.
 
-### 2026-05-28 — Scriptoscope pivot (project rename + npm publish prep)
+### 2026-05-28 — Scriptoscope pivot (project rename + npm publish prep)  *(internal-API-stable claim superseded 2026-05-29 — see "Full data-scriptoscope-* sweep" below)*
 
 *Tracker companion: [#175](https://github.com/khawkins98/aaron-ui/issues/175) (closed `wontfix` — "decision recorded"). Same shape as #174's Appearance-themes confirmed-no, so the question "why is this called Scriptoscope?" has a tracker to point at, not just prose.*
 
@@ -2330,3 +2330,31 @@ Verified post-patch: all four user files decode every fork; the picker correctly
 **Test fixture nuance.** `tools/sit-wasm/sit-wasm.test.mjs` test #8 had `assert.equal(rsrcEntries.length, 1, 'exactly one resource fork')` — that assertion was hard-coded to the buggy pre-patch behavior (the `system7nostalgiasilver.sit` fixture genuinely has scheme + ReadMe = 2 entries). Relaxed to `>= 1`; the byte-for-byte equality of the **picked** fork against the corpus is unchanged and still holds.
 
 **Application — meta-lesson:** when a binary-format integer field is named ambiguously (`num_files`, `num_entries`, `count`), verify what it actually counts: top-level entries, total leaves, immediate children? The choice matters most when the format supports nesting. Don't treat the field as authoritative without tracing through a real multi-entry, nested example. Classic SIT!'s `num_files` looks like "files" but means "root entries"; folder trees decompose it the way the iterator state machine has to model. Same trap likely exists in adjacent classic-Mac formats (Compact Pro, DiskDoubler) and possibly in modern formats too — verify before assuming.
+
+### 2026-05-29 — Full `data-scriptoscope-*` sweep: the Lodash-kept-`_` model didn't survive 24 hours
+
+Yesterday's "Scriptoscope pivot" entry argued for keeping the internal API surface (`data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class name) stable across the package rename, on the Lodash-kept-`_` model. The reasoning was about API-break cost vs marginal brand value.
+
+That call held for **one day**. Today the integration guide went out — the first piece of documentation a real consumer would copy-paste — and the brand wobble immediately read wrong. `data-aaron-window` in code published as Scriptoscope is the equivalent of `data-_-toggle` in Bootstrap: legible only to readers who know the project's history. The Lodash precedent was set when `_` was an established convention; nobody had typed `data-aaron-*` in any consumer integration yet.
+
+Pre-publish (0.0.1 unpublished) is the cheapest possible moment to break this contract. Decision today: **full sweep, no internal/external split**.
+
+### What changed
+
+- **Consumer attribute namespace:** `data-aaron-*` → `data-scriptoscope-*` (all 30 attributes).
+- **JS dataset access:** `dataset.aaronWindow` → `dataset.scriptoscopeWindow` (every camelCase variant).
+- **CSS class prefix:** `.aw-*` → `.scriptoscope-*` (runtime-emitted classes inside Shadow DOM).
+- **CSS fallback selectors:** `.aaron-window` / `.aaron-button` → `.scriptoscope-window-fallback` / `.scriptoscope-button-fallback` (kept distinct from the shadow `.scriptoscope-window` to avoid selector ambiguity).
+- **JS class name:** `AaronWindow` → `ScriptoscopeWindow`. The file `src/declarative/AaronWindow.ts` renamed to `ScriptoscopeWindow.ts` (git mv tracked).
+- **Private field markers:** `_awComposed` / `_awNative` / `_awSetChecked` → `_scriptoscope*`.
+- **localStorage prefix:** `aaron:layout:` → `scriptoscope:layout:` (breaks any persisted layouts — fine pre-publish, no users yet).
+- **Debug + error log prefix:** `[aaron:category]` → `[scriptoscope:category]`; `[aaron]` (errors) → `[scriptoscope]`.
+- **URL param:** `?aaron-debug=` → `?scriptoscope-debug=`.
+- **CSS custom properties:** `--aaron-window-shadow` / `--aaron-desktop` / `--aaron-focus-color` / `--aaron-focus-width` → `--scriptoscope-*`.
+- **Style IDs + default names:** `'aaron-tabs-css'` / `'aaron-field-css'` / `'aaron-drop-active'` → `'scriptoscope-*'`.
+
+Roughly 60 files touched across `src/`, `demo/`, `docs/`, `README.md`, `CLAUDE.md`. Tests + lint + build all clean post-sweep. Browser smoke confirms the demo's four declarative windows promote correctly with `data-scriptoscope-window` and render their themed chrome end-to-end.
+
+**Application:** the new public API surface is `data-scriptoscope-*` and `.scriptoscope-*`. Any documentation, error message, or consumer-facing string going forward uses these. The prior Lodash-style argument is recorded but doesn't hold — the threshold was lower than the entry estimated.
+
+**Meta-lesson on rebrands:** when "rename costs are real" is the argument for keeping legacy identifiers in a brand-fresh package, validate the cost against a concrete consumer-integration scenario before committing. Yesterday I imagined a cv-mac consumer who'd already typed `data-aaron-window` everywhere; today's reality is that no such consumer existed, so the rename cost was zero. Estimate carefully when the cost-to-defer math is symmetric to the cost-to-execute math.

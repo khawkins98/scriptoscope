@@ -365,7 +365,7 @@ export async function renderWindow(
   // element's box encloses everything it draws. The canvas fills the root at
   // 0,0 and the content is INSET by the frame thickness. ──
   const win = document.createElement('div');
-  win.className = 'aw-window';
+  win.className = 'scriptoscope-window';
   win.dataset.awState = state;
   // The title is always exposed to assistive tech, even when it isn't drawn
   // (utility/mini windows show no visible label in a modern context).
@@ -387,7 +387,7 @@ export async function renderWindow(
   // because the new chrome may have different dimensions than the previous
   // render (e.g. resize, shade/zoom).
   const canvas = opts.reuseCanvas ?? document.createElement('canvas');
-  canvas.className = 'aw-chrome';
+  canvas.className = 'scriptoscope-chrome';
   canvas.width = fullWidth;
   canvas.height = fullHeight;
   const ctx = canvas.getContext('2d');
@@ -413,7 +413,7 @@ export async function renderWindow(
   // shadow root (the demo's direct renderWindow path), the slot is a no-op and
   // .aw-content can still receive direct children — no behavioural change.
   const content = document.createElement('div');
-  content.className = 'aw-content';
+  content.className = 'scriptoscope-content';
   Object.assign(content.style, {
     position: 'absolute',
     left: `${frame.left * scale}px`,
@@ -438,7 +438,7 @@ export async function renderWindow(
   if (composed.growBox) {
     const gb = composed.growBox;
     const gcv = document.createElement('canvas');
-    gcv.className = 'aw-growbox';
+    gcv.className = 'scriptoscope-growbox';
     gcv.width = gb.w;
     gcv.height = gb.h;
     const gctx = gcv.getContext('2d');
@@ -458,7 +458,7 @@ export async function renderWindow(
     }
   }
   // Expose the composed result (incl. the slice placement map) for diagnostics.
-  (win as unknown as { _awComposed?: typeof composed })._awComposed = composed;
+  (win as unknown as { _scriptoscopeComposed?: typeof composed })._scriptoscopeComposed = composed;
   return win;
 }
 
@@ -493,7 +493,7 @@ function buildBaselineWindow(
   const titleH = 19;
 
   const win = document.createElement('div');
-  win.className = 'aw-window';
+  win.className = 'scriptoscope-window';
   win.dataset.awState = state;
   if (title) {
     win.setAttribute('role', utility ? 'dialog' : 'group');
@@ -550,7 +550,7 @@ function buildBaselineWindow(
   win.appendChild(bar);
 
   const content = document.createElement('div');
-  content.className = 'aw-content';
+  content.className = 'scriptoscope-content';
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
     overflow: 'hidden', boxSizing: 'border-box',

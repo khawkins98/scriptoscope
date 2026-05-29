@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Scriptoscope is a web-native runtime that renders classic Mac **Kaleidoscope** themes 1:1 from their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Scriptoscope does **not** hand-author chrome — it replays the binary's rendering model.
 
-Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Internal API surface — `data-aaron-*` attributes, `.aw-*` CSS classes, `AaronWindow` class — is intentionally stable across the package rebrand from Aaron UI; see `LEARNINGS.md` 2026-05-28 Scriptoscope pivot.)
+Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Internal API surface — `data-scriptoscope-*` attributes, `.aw-*` CSS classes, `ScriptoscopeWindow` class — is intentionally stable across the package rebrand from Aaron UI; see `LEARNINGS.md` 2026-05-28 Scriptoscope pivot.)
 
 ## Commands
 
@@ -56,7 +56,7 @@ Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing
 - `baseChain.ts` — `LoadedTheme.base` inheritance walker (`resolveInChain`). `apple-platinum-replica` is the generated universal base; sparse bundles like `apple-platinum-2` defer to it.
 - `pixelBuffer.ts` — the offscreen QuickDraw-style buffer everything draws into.
 - `textRaster.ts` — Charcoal 12 / Virtue bitmap title rasterizer (uses an ink-tight buffer; the compositor centres it).
-- `declarative/` — the `data-aaron-*` consumption layer (separate public entry — `mountDeclarative`, `AaronWindow`, `promoteButton`, `parseWindowAttrs`). Does **not** modify the runtime; imports it directly.
+- `declarative/` — the `data-scriptoscope-*` consumption layer (separate public entry — `mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, `parseWindowAttrs`). Does **not** modify the runtime; imports it directly.
 - `interactive.ts` — `WindowManager` + interactive widget wrappers (buttons, checkboxes, sliders, scrollbars, title widgets).
 
 ### Theme bundles (`themes/<slug>/`)
@@ -87,5 +87,5 @@ The corpus: `1138`, `1984`, `1990`, `apple-platinum-2`, `apple-platinum-replica`
 - `docs/spec/platinum-controls-decode.md` + `platinum-wdef125-decode.md` — Platinum CDEF/WDEF decodes.
 - `docs/theme-bundle-layout.md` — `theme.json` schema.
 - `docs/porting-a-kaleidoscope-scheme.md` — full porting walk-through.
-- `docs/adr/0001` — the consumption-layer architecture decision (CSS-first hybrid, Shadow DOM, `data-aaron-*` front door).
+- `docs/adr/0001` — the consumption-layer architecture decision (CSS-first hybrid, Shadow DOM, `data-scriptoscope-*` front door).
 - `LEARNINGS.md` — running log of gotchas; the historical record matters, so mark superseded entries rather than deleting them.

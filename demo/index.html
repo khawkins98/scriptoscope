@@ -164,7 +164,7 @@
         <input type="checkbox" id="debug-toggle" style="vertical-align: middle; margin-right: 4px;">
         Debug logging (console)
       </label>
-      <span style="margin-left: 8px; opacity: 0.7;">— or visit with <code>?aaron-debug=1</code> for all, or <code>?aaron-debug=render,scrollbar,drag</code> to filter</span>
+      <span style="margin-left: 8px; opacity: 0.7;">— or visit with <code>?scriptoscope-debug=1</code> for all, or <code>?scriptoscope-debug=render,scrollbar,drag</code> to filter</span>
     </p>
   </header>
   <section id="byo" aria-label="Bring your own theme">
@@ -194,7 +194,7 @@
       setDebug,
     } from '../src/index.ts';
 
-    // ── Debug logging — URL ?aaron-debug=1 (or =category,category) flips the runtime's
+    // ── Debug logging — URL ?scriptoscope-debug=1 (or =category,category) flips the runtime's
     //    setDebug(); a checkbox in the header keeps the UI honest. Persists in localStorage
     //    so the next page load remembers. Off by default.
     {
@@ -1592,7 +1592,7 @@
         );
 
         // Text fields — themed via promoteField() (the imperative path the declarative
-        // [data-aaron-field] scanner ultimately calls). Demonstrates the Mac OS 8 sunken-bevel
+        // [data-scriptoscope-field] scanner ultimately calls). Demonstrates the Mac OS 8 sunken-bevel
         // chrome over native <input> + <textarea>: native selection/IME/autofill/a11y stays,
         // only the box gets period-correct (#888 top/left + #fff bottom/right + inset shadow).
         const fields = document.createElement('div');
@@ -1604,7 +1604,7 @@
         const disIn = document.createElement('input'); disIn.type = 'text'; disIn.value = 'disabled'; disIn.disabled = true;
         const wrap = (lblTxt, el) => { const w = document.createElement('div'); w.append(fieldLabel(lblTxt), el); return w; };
         fields.append(wrap('Name', textIn), wrap('Email', emailIn), wrap('Notes', ta), wrap('Disabled', disIn));
-        // Promote each — opt-in, mirrors the declarative [data-aaron-field] path.
+        // Promote each — opt-in, mirrors the declarative [data-scriptoscope-field] path.
         for (const el of [textIn, emailIn, ta, disIn]) promoteField(el, theme);
 
         ctrls.append(btns, toggles, discWrap, drag, fields);

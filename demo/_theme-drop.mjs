@@ -1,5 +1,5 @@
 // Shared demo wiring: connect attachThemeDropZone() + loadKaleidoscopeScheme + the page's
-// [data-aaron-theme-switcher] <select> + the mountDeclarative handle.
+// [data-scriptoscope-theme-switcher] <select> + the mountDeclarative handle.
 //
 // Layer separation: this lives in demo/ on purpose. The runtime ships attachThemeDropZone (UX
 // glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder
@@ -13,7 +13,7 @@
 //   wireSchemeDrop({
 //     handle,
 //     dropTarget: document.querySelector('#scheme-drop'),
-//     switcher:   document.querySelector('[data-aaron-theme-switcher]'),
+//     switcher:   document.querySelector('[data-scriptoscope-theme-switcher]'),
 //     statusEl:   document.querySelector('#scheme-drop-status'), // optional
 //   });
 

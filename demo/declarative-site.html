@@ -10,7 +10,7 @@
     @font-face { font-family: 'Charcoal 12'; src: url('assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
 
     /* ── This is a perfectly ORDINARY web page. Nothing below is Aaron-specific styling; it's the
-       kind of vanilla HTML/CSS you'd already have. The ONLY Aaron touch is the data-aaron-* hooks
+       kind of vanilla HTML/CSS you'd already have. The ONLY Aaron touch is the data-scriptoscope-* hooks
        sprinkled on existing content divs (search "data-aaron") + the one bootstrap <script>. ── */
     * { box-sizing: border-box; }
     body { margin: 0; font: 15px/1.55 Georgia, 'Times New Roman', serif; color: #1c1c1c; }
@@ -63,24 +63,24 @@
 
     /* Progressive enhancement: before the scanner runs, the tagged content still shows as plain
        in-flow cards (visible without JS). Once promoted, they pop into floating windows. */
-    #screen > [data-aaron-window]:not([data-aaron-promoted]) {
+    #screen > [data-scriptoscope-window]:not([data-scriptoscope-promoted]) {
       display: inline-block; vertical-align: top; width: 300px; margin: 12px; background: #efeae0;
       border: 1px solid #998; box-shadow: 0 1px 3px #0003;
     }
   </style>
 </head>
-<!-- Whole site uses one scheme (1138). A real site picks a look; per-window data-aaron-theme can override. -->
-<body data-aaron-theme="1138">
+<!-- Whole site uses one scheme (1138). A real site picks a look; per-window data-scriptoscope-theme can override. -->
+<body data-scriptoscope-theme="1138">
   <header class="site">
     <h1>🌈 The Kaleidoscope Corner</h1>
     <p>A fan page for classic Mac OS theming.</p>
     <p class="note">Everything below is <strong>ordinary HTML</strong> — an article, a form, a list,
-      an image gallery. The only change is a few <code>data-aaron-window</code> attributes on the
+      an image gallery. The only change is a few <code>data-scriptoscope-window</code> attributes on the
       existing content divs and one bootstrap line, which promote them into real Mac windows. Drag,
       resize, focus; the form's inputs stay native and accessible. (Want the runtime showcase + per-scheme
       diagnostics? <a href="./">main demo →</a>.)</p>
     <p class="note">Reskin the whole page:
-      <select data-aaron-theme-switcher style="font:12px system-ui">
+      <select data-scriptoscope-theme-switcher style="font:12px system-ui">
         <option value="1138">1138</option>
         <option value="apple-platinum-2">Apple Platinum 2</option>
         <option value="beos-r503">BeOS R5</option>
@@ -97,8 +97,8 @@
   <div id="screen">
 
     <!-- An ordinary <article>, tagged. Real reflowing prose, content-fit (no declared size). -->
-    <article class="card" data-aaron-window data-aaron-title="Welcome.txt" data-aaron-x="26" data-aaron-y="24"
-             data-aaron-width="320" data-aaron-height="240">
+    <article class="card" data-scriptoscope-window data-scriptoscope-title="Welcome.txt" data-scriptoscope-x="26" data-scriptoscope-y="24"
+             data-scriptoscope-width="320" data-scriptoscope-height="240">
       <h2>What was Kaleidoscope?</h2>
       <p><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)" target="_blank" rel="noopener">Kaleidoscope</a>
         (1997–2003) let Mac OS 8/9 users reskin the entire system from community-made <em>schemes</em> —
@@ -115,27 +115,27 @@
     </article>
 
     <!-- A normal <form> with NATIVE controls. The scanner leaves inputs/selects native (a11y-preserved)
-         and only skins the data-aaron-button submit. Declared size so it doesn't jump while typing. -->
-    <form class="card" data-aaron-window data-aaron-title="Sign the guestbook"
-          data-aaron-x="372" data-aaron-y="40" data-aaron-width="280" data-aaron-height="300"
+         and only skins the data-scriptoscope-button submit. Declared size so it doesn't jump while typing. -->
+    <form class="card" data-scriptoscope-window data-scriptoscope-title="Sign the guestbook"
+          data-scriptoscope-x="372" data-scriptoscope-y="40" data-scriptoscope-width="280" data-scriptoscope-height="300"
           onsubmit="event.preventDefault(); alert('Thanks, ' + (this.elements.gb_name.value || 'friend') + '!');">
-      <div class="field"><label for="gb_name">Name</label><input id="gb_name" name="gb_name" type="text" placeholder="Your name" data-aaron-field /></div>
-      <div class="field"><label for="gb_mail">Email</label><input id="gb_mail" name="gb_mail" type="email" placeholder="you@example.com" data-aaron-field /></div>
+      <div class="field"><label for="gb_name">Name</label><input id="gb_name" name="gb_name" type="text" placeholder="Your name" data-scriptoscope-field /></div>
+      <div class="field"><label for="gb_mail">Email</label><input id="gb_mail" name="gb_mail" type="email" placeholder="you@example.com" data-scriptoscope-field /></div>
       <div class="field"><label for="gb_fav">Favourite scheme</label>
         <select id="gb_fav" name="gb_fav">
           <option>1138</option><option>BeOS R5</option><option>Apple Platinum</option><option>Aqua-ish</option>
         </select>
       </div>
-      <div class="field"><label for="gb_msg">Message</label><textarea id="gb_msg" name="gb_msg" rows="3" placeholder="Say hi…" data-aaron-field></textarea></div>
+      <div class="field"><label for="gb_msg">Message</label><textarea id="gb_msg" name="gb_msg" rows="3" placeholder="Say hi…" data-scriptoscope-field></textarea></div>
       <div class="field inline"><input id="gb_notify" name="gb_notify" type="checkbox" /><label for="gb_notify">Email me new schemes</label></div>
       <div class="actions">
-        <button type="reset" data-aaron-button>Clear</button>
-        <button type="submit" data-aaron-button data-aaron-default>Sign</button>
+        <button type="reset" data-scriptoscope-button>Clear</button>
+        <button type="submit" data-scriptoscope-button data-scriptoscope-default>Sign</button>
       </div>
     </form>
 
     <!-- An ordinary links list. Content-fit (grows to the list). -->
-    <nav class="card" data-aaron-window data-aaron-title="Cool Links" data-aaron-x="26" data-aaron-y="300">
+    <nav class="card" data-scriptoscope-window data-scriptoscope-title="Cool Links" data-scriptoscope-x="26" data-scriptoscope-y="300">
       <h2>Around the web</h2>
       <ul>
         <li><a href="https://macintoshgarden.org/apps/kaleidoscope" target="_blank" rel="noopener">Macintosh Garden — Kaleidoscope</a></li>
@@ -146,22 +146,22 @@
     </nav>
 
     <!-- An image gallery (real <img>s — the bundled theme reference screenshots). Tabs inside!
-         Demonstrates [data-aaron-tabs]: native <button data-aaron-tab="…"> elements stay native
+         Demonstrates [data-scriptoscope-tabs]: native <button data-scriptoscope-tab="…"> elements stay native
          (form/keyboard/AT) while a themed canvas face sits on top; panels show/hide on selection. -->
-    <div class="card" data-aaron-window data-aaron-title="Gallery" data-aaron-x="372" data-aaron-y="372"
-         data-aaron-width="320" data-aaron-height="260">
+    <div class="card" data-scriptoscope-window data-scriptoscope-title="Gallery" data-scriptoscope-x="372" data-scriptoscope-y="372"
+         data-scriptoscope-width="320" data-scriptoscope-height="260">
       <h2>Schemes in the wild</h2>
-      <div data-aaron-tabs>
-        <button data-aaron-tab="screens" data-aaron-selected>Screens</button>
-        <button data-aaron-tab="credits">Credits</button>
-        <div data-aaron-panel="screens">
+      <div data-scriptoscope-tabs>
+        <button data-scriptoscope-tab="screens" data-scriptoscope-selected>Screens</button>
+        <button data-scriptoscope-tab="credits">Credits</button>
+        <div data-scriptoscope-panel="screens">
           <div class="gallery">
             <figure><img src="assets/references/1138.png" alt="1138 scheme" width="120" /><figcaption>1138</figcaption></figure>
             <figure><img src="assets/references/beos-r503.png" alt="BeOS R5 scheme" width="120" /><figcaption>BeOS R5</figcaption></figure>
             <figure><img src="assets/references/apple-platinum-2.png" alt="Apple Platinum scheme" width="120" /><figcaption>Platinum</figcaption></figure>
           </div>
         </div>
-        <div data-aaron-panel="credits">
+        <div data-scriptoscope-panel="credits">
           <p style="font-size:13px">Each <code>themes/&lt;slug&gt;/</code> bundle carries the
             original author's terms in <code>meta.json</code>. Provenance lives in
             <code>PROVENANCE.md</code>; the runtime never relicenses.</p>
@@ -189,7 +189,7 @@
     wireSchemeDrop({
       handle,
       dropTarget: document.getElementById('scheme-drop'),
-      switcher:   document.querySelector('[data-aaron-theme-switcher]'),
+      switcher:   document.querySelector('[data-scriptoscope-theme-switcher]'),
       statusEl:   document.getElementById('scheme-drop-status'),
     });
   </script>

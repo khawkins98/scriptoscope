@@ -68,14 +68,14 @@
 //   composeChrome.ts                     → static chrome geometry (the pixel
 //                                          recipe Scriptoscope walks); produces a
 //                                          ComposedChrome attached to the
-//                                          rendered win as _awComposed
+//                                          rendered win as _scriptoscopeComposed
 //   renderWindow.ts                      → wraps the composed chrome in a DOM
 //                                          subtree (.aw-window > canvas + slot)
-//   declarative/AaronWindow.ts           → the consumer-facing wrapper that
+//   declarative/ScriptoscopeWindow.ts           → the consumer-facing wrapper that
 //                                          calls manager.add() with light-DOM
 //                                          slotted content
 //   declarative/scanner.ts               → mountDeclarative() — promotes
-//                                          [data-aaron-window] / -button /
+//                                          [data-scriptoscope-window] / -button /
 //                                          -control + drives retheme()
 //
 // RENDER FREQUENCY CONTRACT: see the comment block above WindowManager.render().
@@ -131,7 +131,7 @@ export async function interactiveButton(
   const pressed = pressedBuf ? bufferToCanvas(pressedBuf, scale) : normal;
 
   const el = document.createElement('span');
-  el.className = 'aw-button';
+  el.className = 'scriptoscope-button';
   el.setAttribute('role', 'button');
   el.tabIndex = bo.disabled ? -1 : 0;
   if (bo.label) el.setAttribute('aria-label', bo.label);
@@ -230,7 +230,7 @@ async function buildToggle(
   }
   // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
   // drive the visual state from the outside without an internal-API leak.
-  (el as unknown as { _awSetChecked: (v: boolean) => void })._awSetChecked = set;
+  (el as unknown as { _scriptoscopeSetChecked: (v: boolean) => void })._scriptoscopeSetChecked = set;
   return { el, get: () => checked, set };
 }
 
@@ -243,7 +243,7 @@ export async function interactiveCheckbox(
 }
 
 /** A standalone interactive radio (group exclusivity is the consumer's job — when wrapping native
- *  inputs, the browser handles it via shared `name`; the visual sync is via `_awSetChecked`). */
+ *  inputs, the browser handles it via shared `name`; the visual sync is via `_scriptoscopeSetChecked`). */
 export async function interactiveRadio(
   theme: LoadedTheme,
   opts: InteractiveCheckableOptions = {},
@@ -309,7 +309,7 @@ export async function interactiveDisclosure(
   const openBuf = await composeDisclosure(theme, { direction: 'down' });
 
   const el = document.createElement('span');
-  el.className = 'aw-disclosure';
+  el.className = 'scriptoscope-disclosure';
   el.setAttribute('role', 'button');
   el.tabIndex = 0;
   el.setAttribute('aria-expanded', String(open));
@@ -426,7 +426,7 @@ async function buildDraggable(
 export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSliderOptions = {}): Promise<HTMLElement> {
   const { orientation = 'horizontal', length = 120, value = 0.5, scale = 1, onChange } = opts;
   const el = document.createElement('span');
-  el.className = 'aw-slider';
+  el.className = 'scriptoscope-slider';
   await buildDraggable(el, orientation, value, scale,
     async (v, state) => (await composeSlider(theme, { orientation, length, value: v, state }))
       ?? platinumSlider({ orientation, length, value: v }),
@@ -438,7 +438,7 @@ export async function interactiveSlider(theme: LoadedTheme, opts: InteractiveSli
 export async function interactiveScrollbar(theme: LoadedTheme, opts: InteractiveScrollbarOptions = {}): Promise<HTMLElement> {
   const { orientation = 'vertical', length = 120, value = 0.3, thumbExtent = 0.3, scale = 1, onChange } = opts;
   const el = document.createElement('span');
-  el.className = 'aw-scrollbar';
+  el.className = 'scriptoscope-scrollbar';
   await buildDraggable(el, orientation, value, scale,
     async (v, state) => (await composeScrollbar(theme, { orientation, length, value: v, thumbExtent, state }))
       ?? platinumScrollbar({ orientation, length, value: v, thumbExtent }),
@@ -454,7 +454,7 @@ export type TitleWidget = 'close' | 'zoom' | 'collapse';
  * to serialize the post-mutation state to storage. The runtime never reads its return.
  *
  * Argument: the entry's host element (consumer-facing reference) — callers can derive
- * identity (data-aaron-window-id), read position (host.style.left/top), and call the
+ * identity (data-scriptoscope-window-id), read position (host.style.left/top), and call the
  * manager's public API for size if needed.
  */
 export type WindowChangeListener = (host: HTMLElement) => void;
@@ -637,11 +637,11 @@ export class WindowManager {
     // emits role=dialog for utility windows, role=group otherwise; aria-label=title). Don't duplicate
     // them on the host — double-labelling makes screen readers announce the window twice.
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
-    // (so a declarative `data-aaron-state="inactive"` is honored; then no window starts focused).
+    // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow = {
       theme, opts, handlers, host,
       active: this.windows.length === 0 && opts.state !== 'inactive',
-      // Declared z (data-aaron-z) wins; else take the next stacking-clock tick. We still bump the
+      // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
       // clock either way so subsequent focus events stay monotonic relative to any declared values.
       z: extra.z ?? ++this.zClock,
       ...(extra.collapsed ? { collapsed: true } : {}),
@@ -705,7 +705,7 @@ export class WindowManager {
         // fallback render then populates this state's strip for next time.
         if (this.tryFastFocusFlip(w)) {
           debug('focus', `${w.opts.title ?? ''} — fast strip swap (active=${w.active})`);
-          if (this.onChange) try { this.onChange(w.host); } catch (err) { console.error('[aaron] onChange threw:', err); }
+          if (this.onChange) try { this.onChange(w.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
         } else {
           await this.render(w);
         }
@@ -722,7 +722,7 @@ export class WindowManager {
   private captureTitleStrip(entry: ManagedWindow, slug: string): void {
     const canvas = entry.chromeCanvas;
     if (!canvas) return;
-    const composed = (canvas.parentElement as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const composed = (canvas.parentElement as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return;
     const stripHeight = composed.frame.top;
     // Skip side-titled palettes (title lives on a vertical strip the cache can't represent as a
@@ -863,7 +863,7 @@ export class WindowManager {
     // Notify the persistence layer (or any other state-change consumer) that this window's
     // render-affecting state is now committed. Fired after the DOM is updated so callers see the
     // final state. Cheap branch if no listener is registered.
-    if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[aaron] onChange threw:', err); }
+    if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
   }
 
   /**
@@ -879,7 +879,7 @@ export class WindowManager {
   private async wireScrollbars(entry: ManagedWindow, win: HTMLElement, attempt: number): Promise<void> {
     // Staleness check: is `win` still the current chrome? See LEARNINGS 2026-05-28 "Shadow DOM
     // gotchas" — host.firstChild is the slotted .aw-slot now, not win. We resolve via shadowRoot.
-    // We deliberately do NOT use win.isConnected: AaronWindow.promote inserts the host into the
+    // We deliberately do NOT use win.isConnected: ScriptoscopeWindow.promote inserts the host into the
     // document AFTER manager.add returns, so the initial wireScrollbars fires while host is
     // still detached. The ch===0 retry below catches that pre-layout case; staleness is what
     // this check covers (a NEWER render replaced win).
@@ -893,7 +893,7 @@ export class WindowManager {
     if (entry.scrollAbort) debug('scrollbar', `${entry.opts.title ?? ''} — tearing down previous bars`);
     entry.scrollAbort?.abort();
     if (entry.collapsed) return;                          // shaded: no body to scroll
-    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     const content = win.querySelector('.aw-content') as HTMLElement | null;
     if (!composed || !content) return;
     // Palettes / utility windows / modals / dialogs never scrolled in classic Mac — they're sized to
@@ -1110,7 +1110,7 @@ export class WindowManager {
    * re-render per mouse-move). Re-attached on every render(), so it tracks the current chrome.
    */
   private wireMoveResize(entry: ManagedWindow, win: HTMLElement): void {
-    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return;
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));
     const host = entry.host;
@@ -1141,7 +1141,7 @@ export class WindowManager {
         document.removeEventListener('pointerup', up);
         // Fire the change listener after the drag commits — persistence saves the new position.
         // (Drag itself is CSS-only and doesn't trigger render(); this is the dedicated commit point.)
-        if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[aaron] onChange threw:', err); }
+        if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
@@ -1156,7 +1156,7 @@ export class WindowManager {
     // tell us if it matters. (closes #169)
     const moveBtn = document.createElement('button');
     moveBtn.type = 'button';
-    moveBtn.className = 'aw-movehandle';
+    moveBtn.className = 'scriptoscope-movehandle';
     moveBtn.setAttribute('aria-label', 'Move window');
     Object.assign(moveBtn.style, {
       position: 'absolute', left: '0', top: '0',
@@ -1184,7 +1184,7 @@ export class WindowManager {
       // Notify the change listener so persistence (and any other consumer) sees the new position.
       // Same contract as the pointer-drag mouseup — CSS-only update, no render, but the position
       // is committed.
-      if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[aaron] onChange threw:', err); }
+      if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
     });
     win.appendChild(moveBtn);
 
@@ -1211,7 +1211,7 @@ export class WindowManager {
     const ch = (Math.max(7, composed.frame.bottom) + (composed.growBox?.h ?? 15)) * scale;
     const corner = document.createElement('button');
     corner.type = 'button';
-    corner.className = 'aw-growbox';
+    corner.className = 'scriptoscope-growbox';
     corner.setAttribute('aria-label', 'Resize window');
     Object.assign(corner.style, {
       position: 'absolute', right: '0', bottom: '0', width: `${cw}px`, height: `${ch}px`,
@@ -1270,7 +1270,7 @@ export class WindowManager {
 
   /** Overlay transparent hit buttons for any title-bar widget with a handler. */
   private overlayWidgets(entry: ManagedWindow, win: HTMLElement): void {
-    const composed = (win as unknown as { _awComposed?: ComposedChrome })._awComposed;
+    const composed = (win as unknown as { _scriptoscopeComposed?: ComposedChrome })._scriptoscopeComposed;
     if (!composed) return; // baseline (procedural) window — no cicn widget rects
     const slug = this.effectiveSlug(entry);
     const scale = Math.max(1, Math.round(entry.opts.scale ?? 1));

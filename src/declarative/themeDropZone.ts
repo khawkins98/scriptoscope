@@ -35,7 +35,7 @@ export interface ThemeDropZoneOptions {
    *  StuffIt, MacBinary, HQX, AppleSingle / AppleDouble, raw resource forks, Compact Pro. */
   accept?: string;
   /** CSS class added to `target` during dragenter/dragover, removed on dragleave/drop. Default
-   *  `aaron-drop-active`. Consumers style this however they like in their own stylesheet. */
+   *  `scriptoscope-drop-active`. Consumers style this however they like in their own stylesheet. */
   activeClass?: string;
 }
 
@@ -45,7 +45,7 @@ export interface ThemeDropZoneHandle {
 }
 
 const DEFAULT_ACCEPT = '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt';
-const DEFAULT_ACTIVE_CLASS = 'aaron-drop-active';
+const DEFAULT_ACTIVE_CLASS = 'scriptoscope-drop-active';
 
 /** Wire click + drag-and-drop on `target` so picking or dropping a file calls `opts.onFile`. */
 export function attachThemeDropZone(
@@ -65,7 +65,7 @@ export function attachThemeDropZone(
     if (!file) return;
     debug('promote', `themeDropZone: ${file.name} (${file.size} B)`);
     try { await opts.onFile(file); }
-    catch (err) { if (opts.onError) opts.onError(err); else console.error('[aaron] themeDropZone onFile failed:', err); }
+    catch (err) { if (opts.onError) opts.onError(err); else console.error('[scriptoscope] themeDropZone onFile failed:', err); }
     finally { input.value = ''; } // allow re-picking the SAME file (browsers suppress duplicate change otherwise)
   };
 

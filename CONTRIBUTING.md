@@ -99,7 +99,7 @@ test(wm): add Playwright regression for raise-on-click z-order
 Use `!` after the type or a `BREAKING CHANGE:` footer for breaking changes:
 
 ```
-feat(api)!: rename AaronWindow constructor option `theme` to `themeId`
+feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 ```
 
 ## Pull requests
