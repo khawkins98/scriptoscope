@@ -756,18 +756,24 @@
         // font, not the Finder body text.
         //
         // Background lookup hierarchy (matches classic Mac Finder rendering):
-        //   1. ppat -9567 — the canonical Finder LIST-HEADER / volume-info-bar
-        //      ppat (the dedicated id for this strip; -9568 is its inactive
-        //      counterpart; -9567/-9568 cicns are the column-header CELL face).
-        //      3 of 18 corpus themes ship one: 1990, animals, evolution.
-        //   2. theme.bodyBackground.pattern — the body / Icon-View ppat
-        //      (decoded from cinf -9551's bgPatternId). Most themed schemes
-        //      ship this; it's what the renderer also uses for the window body.
+        //   1. chromeElement(sourceCicnId=-9567).bgPattern → manifest.patterns[…].asset
+        //      — the SCHEME-DECODED choice. The finder-header cinf carries the
+        //      bgPatternId the scheme author wired in; for some themes that's
+        //      ppat -9567 itself (1990, animals, evolution), for crayon-os it
+        //      points at ppat-17 ("manilla-for-everything"), for monkey-paradise
+        //      it points at ppat-129. Reading the structured field beats guessing
+        //      ids: 5 of 18 corpus themes carry this.
+        //   2. theme.bodyBackground.pattern — the body / Icon-View ppat (from
+        //      cinf -9551). Fallback for themes that don't ship a header cinf;
+        //      most other themed schemes ship one.
         //   3. Flat #e6e6e6 — for schemes that ship neither (apple-platinum-2,
         //      platinum-8, the Windows ports, etc.).
         const info = document.createElement('div');
         const _patterns = theme.manifest?.patterns ?? {};
-        const _infoPat = _patterns['ppat--9567']?.asset
+        const _hdrCe = Object.values(theme.manifest?.chromeElements ?? {})
+          .find((v) => v.sourceCicnId === -9567);
+        const _hdrPatKey = _hdrCe?.bgPattern; // key into manifest.patterns, e.g. "ppat--9567" or "ppat-129"
+        const _infoPat = (_hdrPatKey && _patterns[_hdrPatKey]?.asset)
           ?? theme.manifest?.bodyBackground?.pattern
           ?? null;
         const _infoPatUrl = !_infoPat ? null
