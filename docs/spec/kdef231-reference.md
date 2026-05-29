@@ -193,16 +193,40 @@ immediates were swept from the asm; the cache-switch IDs were hex-decoded from
 
 The chrome cicn for a window comes in an **active/inactive pair** keyed by the
 WDEF id: **active = wndId+1, inactive = wndId+0** (a numeric +1, NOT a name).
-Immediates observed:
+Immediates observed (now CORROBORATED against corpus author-supplied NAMED labels — see `docs/spec/corpus-corroborated-ids.md`. n column = bundles agreeing on the role label):
 
-| id(s) | meaning |
-|---|---|
-| `-14336` / `-14335` | document window: **inactive / active** (the canonical pair; -14336 is loaded 13× — the base) |
-| `-14334` / `-14333` | document window grow-box / corner glyph (inactive/active) — `controls.ts` `growIcon` uses -14334/-14333 |
-| `-14332` / `-14331` / `-14330` | **collapsed** doc window (cached in `0x10472` switch). `controls.ts`: apple-platinum-2 uses -14330 |
-| `-14328`/`-14326`/`-14324`/`-14322` | modal / alert / movable-modal / plain-dialog frames (active/inactive variants) |
-| `-14320`..`-14313` | **utility ("floating") windows** (8 ids = 4 type/2 state) |
-| `-14310`/`-14309`, `-14304`, `-14286`/`-14285` | further window-family variants (zoom/side/tool) **(?)** — emitted but not individually pinned |
+| id(s) | meaning (cicn-template path) | n agree | meaning (corner-sprite path) | n agree |
+|---|---|---:|---|---:|
+| `-14336` | "Document Window Inactive" | 6 | "Document Window Inactive" | 5 |
+| `-14335` | "Document Window Active" | 7 | (not shipped) | — |
+| `-14334` | "Inactive Grow Box" | 10 | "Inactive Grow Box" | 5 |
+| `-14333` | "Document Window Grow Box Active" | 6 | (not shipped) | — |
+| `-14332` | collapsed inactive doc window | 9 | **"Document Window Active"** | 5 |
+| `-14331` | collapsed active doc window | 9 | "Document Racing Stripes" overlay | 5 |
+| `-14330` | "Document Window Pressed Widgets" | 6 | "Active Grow Box" | 5 |
+| `-14328` | "Inactive Dialog" | 8 | — | — |
+| `-14327` | "Dialog Active" | 6 | — | — |
+| `-14326` / `-14325` | Alert Inactive / Active | 6 / 6 | — | — |
+| `-14324` / `-14323` | Movable Dialog Inactive / Active | 6 / 6 | — | — |
+| `-14322` / `-14321` | Movable Alert Inactive / Active | 6 / 6 | — | — |
+| `-14320`..`-14313` | utility / floating window family (8 ids = 4 type / 2 state) — see corroborated table | — | — | — |
+| `-14317` | "Inactive Utility Window Grow Box" | 6 | "Inactive Utility Window Grow Box" | — |
+| `-14313` | "Active Utility Window Grow Box" | 6 | "Active Utility Window Grow Box" | — |
+| `-14304` / `-14303` | "Titled Utility Window Inactive / Active" | 6 / 6 | — | — |
+| `-14296` / `-14295` | "Side Utility Window Inactive / Active" | 6 / 6 | — | — |
+| `-14310` / `-14309`, `-14286` / `-14285` | further variants — see corroborated table | — | — | — |
+
+> **The corner-sprite vs cicn-template split** is now provably real (corpus
+> author labels). For cicn-template schemes (`1138`, `1984`, `1990`, …, 14
+> bundles), the active/inactive pair is `(-14336 inactive, -14335 active)`,
+> with `-14332`/`-14331` carrying the COLLAPSED variants. For corner-sprite
+> schemes (`apple-platinum-2`, `black-platinum`, `platinum-8`,
+> `system7-nostalgia-silver`, 4 bundles), the active doc cicn rides on
+> `-14332` (because they procedural-draw the frame coloured by `headerColors`
+> rather than 9-slicing a cicn), `-14335` is not shipped, and `-14331`
+> carries a racing-stripes overlay sprite. Same numeric range, different
+> convention per draw path. The runtime already discriminates correctly via
+> `composeCornerSprite.ts`; this table makes the split explicit.
 
 > The wnd# **recipe** id is separate from the cicn id: `0x356c` loads `'wnd#'`
 > by the window variation code with low-bit-mask fallbacks; the cicn id is the
@@ -241,10 +265,11 @@ hi=-8271). They reveal the control families the kDEF expects:
 | `-10197`..`-10204` | **Scroll-arrow ics4 family** — directional ARROW BUTTONS (each a whole 16×16 button: face + arrow + bevel) | `controls.ts composeScrollbar` (keep in sync with that code comment). **RAISED / normal:** right `-10201` · left `-10202` · down `-10203` · up `-10204`. **PRESSED:** right `-10197` · left `-10198` · down `-10199` · up `-10200`. **This split is UNIVERSAL, not per-scheme** — the scheme forks carry no CDEF/control template (only art), so the mapping lives in Kaleidoscope's shared CDEF. Decoded at `kDEF231_0.asm:9f0e-9f38`: the CDEF writes BOTH ids per direction into the control record (offsets left 24/26, up 28/30, right 32/34, down 36/38) and picks by `contrlHilite` at draw time — PRESSED id for the held arrow, RAISED for the rest; a disabled control dims the RAISED art (there is **no separate inactive-arrow bitmap** — the 12-id part table is 8 arrows + 4 thumb `-10205..-10208`). Scheme art APPEARANCE of each quartet varies (s7 raised = beveled 3-D, platinum-8 raised = boxed gray button / its pressed = flat arrow). **(Corrected 2026-05-26 — the two quartets were previously swapped, so resting scrollbars showed depressed arrows. Owner chose to follow the 2.3.1 decode universally; platinum-8 — a 1998/1.x scheme — placed art the other way, so it renders its boxed `-10202` at rest, diverging from its own preview; logged in the faithfulness ledger.)** |
 | `-8288`/`-8280` | scrollbar pressed (h/v) | immediates at the drawer |
 | `-8272`/`-8271` | scrollbar thumb ghost | drag preview |
-| `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **computed, not a kDEF immediate** |
-| `-12320`/`-12319`/`-12318`/`-12317` | popup-MENU window: frame / tab / disabled-frame / disabled-tab | **NB:** no corpus scheme ships the tab faces `-12319`/`-12317` (only the `-12320` frame) |
+| `-9504` | checkbox empty inactive | `controls.ts:573` (radio/checkbox -9488..-9504) — **corpus-corroborated as kDEF-canonical** (`docs/spec/corpus-corroborated-ids.md` — 1138 author-labels the family); strike the earlier "computed, not a kDEF immediate" speculation |
+| `-12320`/`-12319`/`-12318`/`-12317` | **popup MENU window** chrome (frame / tab / disabled-frame / disabled-tab) — author-label "Popup Window Active¥" n=6 | `composeChrome.ts` (window-type dispatch) |
+| `-8194`..`-8208` | **popup BUTTON** control family (small + large × normal / pressed / inactive, arrow vs text vs arrow-only) — author-labeled in 1138; **distinct from popup-MENU above**; the earlier conflation with `-12317..-12320` was wrong | not yet wired (no current consumer) |
 | `-9972`/`-9975` (SSF), `-9980`/`-9983` (LSF) + `-9969`/`-9977` pane | **segmented TAB control** (real pane tabs): front/"on" (selected, taller) vs rear/"off" (shorter) trapezoid + tab pane | `controls.ts composeTab`. NOT an On/Off toggle — that is a flat 2-segment control, drawn separately |
-| `-10080`/`-10078`/`-10079` · `-10223`/`-10224` | **progress bar**: 3-part frame/track/fill (most schemes) · 2-part track/fill, no frame (beos lavender) | `controls.ts composeProgress` |
+| `-10080`/`-10078`/`-10079` · `-10223`/`-10224` | **progress bar**: 3-part frame/track/fill (most schemes) · 2-part track/fill, no frame (`-10223` author-labeled "Progress Bar: Lavender" n=6) | `controls.ts composeProgress` |
 | `-12304`/`-12303` | popup variant **(?)** | immediates |
 
 > **Resolution (2026-05-25 — verified against the actual `cicn` *and* `ics4`
@@ -366,20 +391,24 @@ coords; DEST borders are window-relative (filled by `0x5178`).
 
 ### 3.5 cinf byte layout (`0x108a0` + `0x116f8`)
 
-| byte | meaning | evidence |
-|---|---|---|
-| `[0]` | **corner inset X** (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
-| `[1]` | **corner inset Y** (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
-| `[2]` | reserved / flags **(?)** — read as part of the word at `[0..1]` in some paths | (?) |
-| `[3]` | **slice STYLE / mode** | `0x109be` `cmpib #5,%a0@(3)` + `0x10ab2` `subq #1`-chain switch (cases 1..4 select which edge pixels to stretch; 5 = special "stretch interior" path; default = plain) |
-| `[4..]` | present only when resource size > 18 (`0x1173e` `cmpl #18`); size==56 ⇒ full record incl. text/emboss/bg colour pixels **(?)** | size checks at `0x11740`/`0x11796` |
+**Authoritative source:** every bundle in the corpus ships **TMPL 129 `cinf`** — Kaleidoscope's own ResEdit/Resorcerer template that documents the byte layout the kDEF reads. Every "(?)" entry below is now resolved against TMPL 129:
 
-> The recipe-walk's `cinf` summary in `compositor-spec.md` lists
-> `cornerSize`/`sideThickness`/`tileSides`/`patternAnchor`/`textPixel` — those
-> are the *theme-loader's* decoded field names; bytes `[0]`/`[1]` here are the
-> raw cornerX/cornerY the engine actually indexes. Byte `[3]` (the style switch)
-> is the closest raw analogue of `tileSides`/`patternAnchor` and is **not yet
-> mapped field-for-field** to the loader names — flagged in §7.
+| byte | TMPL 129 field name | kDEF use | evidence |
+|---|---|---|---|
+| `[0]` | **Corner Size** | corner inset X (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
+| `[1]` | **Side Thickness** | corner inset Y (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
+| `[2]` | **Tile Sides** | (boolean: tile vs stretch the side bands) | TMPL 129 (was "(?)" — now confirmed) |
+| `[3]` | **Pattern Anchor** | slice STYLE / mode switch | `0x109be` `cmpib #5,%a0@(3)` + `0x10ab2` `subq #1`-chain switch (cases 1..4 select which edge pixels to stretch; 5 = special "stretch interior" path; default = plain) |
+| `[4..5]` | **Background Pattern ID** (DWRD) | tied ppat handle | TMPL 129 |
+| `[6..7]` | **Background Pixel y** (DWRD) | sample-pixel coordinate | TMPL 129 |
+| `[8..9]` | **Background Pixel x** (DWRD) | sample-pixel coordinate | TMPL 129 |
+| `[10..11]` | **Text Pixel y** (DWRD) | text marker | TMPL 129 |
+| `[12..13]` | **Text Pixel x** (DWRD) | text marker | TMPL 129 |
+| `[14..15]` | **Embossing Pixel y** (DWRD) | embossing marker | TMPL 129 |
+| `[16..17]` | **Embossing Pixel x** (DWRD) | embossing marker | TMPL 129 |
+| `[18..]` | present only when resource size > 18 (`0x1173e` `cmpl #18`); size==56 ⇒ ext'd colour-pixel record | size checks at `0x11740`/`0x11796` |
+
+The TMPL is **shipped in 16 of 18 corpus bundles** — recoverable any time via `scripts/dump-author-hints.mjs` (`TMPL` resource id 129). The recipe-walk's `cinf` summary in `compositor-spec.md` (`cornerSize`/`sideThickness`/`tileSides`/`patternAnchor`/`textPixel`) is the loader's decoded field names; the TMPL 129 names above are the kDEF developer's own.
 
 ### 3.6 Rect layout
 
@@ -504,10 +533,7 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
    (`0x698a`/`0x6b14`/`0x6a86`/`0x6980`/`0x6b84`) but the per-message behaviour
    is not traced; the message *meanings* are inferred from Appearance numbering,
    not proven (§1.1).
-2. **cinf byte[2] and bytes [4..55]** — only `[0]`/`[1]` (corner insets) and
-   `[3]` (slice style switch) are pinned. The extended fields in size-56 records
-   (text/emboss/bg colour pixels, the `tileSides`/`patternAnchor` analogues the
-   theme-loader names) are NOT mapped field-for-field (§3.5).
+2. ~~**cinf byte[2] and bytes [4..55]**~~ **RESOLVED 2026-05-29** — TMPL 129 shipped in 16 of 18 corpus bundles gives the full field map: byte[2]=Tile Sides, byte[3]=Pattern Anchor, bytes[4..17]=3× DWRD pixel coords (bg/text/embossing). See §3.5.
 3. **'pWin' companion resource** (`0x1175e`, `#1884776814`) — loaded for cinf-
    range ids; its layout/use is not decoded.
 4. **Scrollbar/slider/popup/progress/menu/disclosure LAYOUT arithmetic** — drawer
@@ -528,3 +554,56 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
    model is solid, but whether the corpus's per-link p18 / p1 cells reflect the
    live `wnd#` is still open (see `kdef231-recipe-walk.md` "honest discrepancy").
    Needs a raw `wnd#` dump from the 2.3.1 resource fork.
+
+---
+
+## 8. Cross-reference: Apple primary-source role pegs
+
+The Kaleidoscope resource ids documented above are **Kaleidoscope-private** —
+they don't appear in Apple's published headers. What Apple documents is the
+**role each slot serves**. The mapping from Kaleidoscope id → Apple role peg
+is the bridge the runtime needs.
+
+See **`docs/spec/apple-primary-source.md`** for the full Apple enum tables:
+
+- `Appearance.h` ThemeBrush / ThemeTextColor / ThemeWidget / ThemeWindowType
+- `IconsCore.h` Apple Finder system icons (range -3968..-4000)
+- `MacWindows.h` defProcID + window-color-table entries
+- `Controls.h` control-type enums
+
+Key correlations established 2026-05-29:
+
+| Kaleidoscope id | Author label | Apple role peg |
+|---|---|---|
+| `bodyBackground.pattern` (cinf -9551) | "Icon View Background" | `kThemeBrushDocumentWindowBackground = 15` |
+| `ppat-42` / `ppat--9568` | (utility-window body) | `kThemeBrushUtilityWindowBackgroundActive = 7` |
+| `-10239` / `-10238` / `-10240` | Push Button Active / Pressed / Inactive | (CDEF-rendered; analog is `kThemeButton*`) |
+| `-10231` / `-10232` | Push Button Ring Active / Inactive | (same CDEF family) |
+| `-14336` (corner-sprite) / `-14335` (cicn-template) | Document Window Active | `kThemeBrushDocumentWindowBackground` chrome + `kThemeTextColorDocumentWindowTitleActive = 23` |
+| `-14320..-14313` | utility / floating windows | `kThemeUtilityWindow = 8` + `kThemeBrushUtilityWindowBackgroundActive = 7` |
+| `-3790` | "Snap-To-Grid" / "Grid Arrangement" | Finder header badge (NO Apple constant — Kaleidoscope private slot for the Finder-header layer) |
+
+The runtime renders via the Kaleidoscope id; the Apple peg gives us the
+authoritative role label for cross-talk with Inside Macintosh / Carbon docs.
+
+## 9. References (the citation chain)
+
+- **`docs/spec/corpus-corroborated-ids.md`** — auto-generated cross-theme
+  consensus from 6,842 author-supplied NAMED labels across 17 of 18 bundles.
+  The primary source for "what role does id X play". Refresh with
+  `node scripts/dump-author-hints.mjs`.
+- **`docs/spec/apple-primary-source.md`** — Apple `Appearance.h` /
+  `IconsCore.h` enum tables. Direct citations from
+  `phracker/MacOSX-SDKs` + `ctm/executor` + `elliotnunn/UniversalInterfaces`.
+- **`docs/spec/kaleidoscope-author-docs.md`** — surviving public-web
+  Kaleidoscope-era community docs (Companion / FAQ / Scheme Factory tutorial)
+  with archived Wayback URLs.
+- **`scripts/dump-author-hints.mjs`** — regenerates the corpus table.
+- **`scripts/probe-reference-slot.mjs`** — pixel-matches bundle reference
+  PNGs against candidate icons. The verification mechanism for Finder UI
+  slots where neither the kDEF nor Apple's docs give a direct answer.
+- **`compositor-spec.md`** — the runtime model these routines implement.
+- **`kdef231-recipe-walk.md`** — the wnd# recipe walk (truth source for
+  part-code edges).
+- **`kdef-faithfulness-ledger.md`** — every deliberate divergence from the
+  decode, with intent.
