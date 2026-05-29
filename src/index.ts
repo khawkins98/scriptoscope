@@ -4,8 +4,8 @@
 // replaying the Kaleidoscope 2.3.1 kDEF (a 68k WDEF) on a pixel buffer; CSS does
 // only positioning + integer upscale. Validated against the period reference
 // images. Key artifacts (see docs/ — don't re-derive):
-//   themes/<slug>/                       extracted bundles (theme.json + cicns/*.png)
-//   tools/theme-loader/                  .rsrc → theme.json decoder
+//   themes/<slug>/                       source-of-truth bundle (scheme.sit or scheme.rsrc + meta.json + PROVENANCE.md)
+//   tools/theme-loader/                  in-browser .sit/.rsrc → LoadedTheme decoder
 //   docs/spec/compositor-spec.md         the window-chrome model
 //   docs/spec/kdef231-recipe-walk.md     the 2.3.1 kDEF decode (truth)
 
@@ -25,8 +25,16 @@ export type {
   Palette,
   ThemeManifest,
   LoadedTheme,
+  ThemeInspector,
 } from './types.js';
 export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
+// In-browser .sit/.rsrc decoder — exposed so consumers can decode a dropped File / fetched
+// bytes (the BYO theme path) without going through `loadTheme(url)`. Same code `loadTheme`
+// runs internally; surfaced here so an npm consumer can reach it without importing a
+// /tools/ path. Returns a `LoadedTheme` (encoded mode) or `{ manifest, assets, iconIndex }`
+// (raw mode, when `encodeAssets: false` is set). Typing comes from the sibling
+// `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim.
+export { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,

@@ -4,7 +4,7 @@ A web-native runtime that renders classic [Kaleidoscope](https://en.wikipedia.or
 
 Load any freeware-licensed Kaleidoscope scheme and Scriptoscope draws its windows — chrome, controls, and colors — pixel-faithfully in the browser. Scriptoscope doesn't hand-author a "Platinum theme" (or any theme). It reads each scheme's `cicn` artwork, `wnd#` layout recipe, and `cinf`/`Colr` metadata and replays the rendering itself: the window-chrome compositor (`src/composeChrome.ts`) is a clean-room reimplementation of the decompiled Kaleidoscope **2.3.1** kDEF (a 68k `WDEF`), driven by a part-code jump table. Get the engine right once and every scheme renders for free.
 
-The current corpus of extracted bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`, plus the generated `apple-platinum-replica` universal base.
+The current corpus of bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. Each bundle ships only the original archive (`scheme.sit` or `scheme.rsrc`) + `meta.json` + `PROVENANCE.md` — the runtime decodes them client-side, no pre-extraction in git.
 
 Want more? Two community archives where Scriptoscope's drop-zone can read schemes from directly:
 - **[Mac Themes Garden](https://macthemes.garden/)** — a beautifully curated gallery + archive with reference renders and the original `.sit` downloads. The 2026-05-28 corpus additions came from here.
@@ -83,7 +83,6 @@ The live list (with display labels and reference renders) is served at <https://
 | `animals` | Animals | Masashi Ichikawa (1999) |
 | `apple-lisa` | Apple Lisa for K2.1 | R. Bensam & E. Deans |
 | `apple-platinum-2` | Apple Platinum 2 | Orion Dimitrakopoulos (1999) |
-| `apple-platinum-replica` | Apple Platinum (generated universal base) | — |
 | `beos-r503` | BeOS R5.0.3 | Jon Alexander (2002) |
 | `black-platinum` | Black Platinum | Daisuke Yamashita (1999) |
 | `crayon-os` | Crayon OS | Karl von Laudermann (2000) |
@@ -131,7 +130,7 @@ await mountDeclarative({
   themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes', // where bundles live
   pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
-  baseSlug: 'apple-platinum-replica', // optional: universal-base scheme to inherit from
+  baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
   root: document,                   // optional: scan a subtree instead of the whole page
 });
 ```
@@ -164,8 +163,12 @@ For a consumer-side "drop your Kaleidoscope scheme here" affordance, two extra m
 <span id="byo-status" aria-live="polite"></span>
 
 <script type="module">
-  import { mountDeclarative, attachThemeDropZone } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
-  import { loadKaleidoscopeScheme } from 'https://khawkins98.github.io/aaron-ui/theme-loader/loadKaleidoscopeScheme.js';
+  // Both `mountDeclarative` and `loadKaleidoscopeScheme` are exported from the same `scriptoscope`
+  // entry — npm consumers `import from 'scriptoscope'`; CDN consumers use the GH Pages URL below.
+  // The decoder is bundled into the main module; StuffIt WASM lazy-loads only when a .sit is decoded.
+  import {
+    mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
+  } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
 
   const handle = await mountDeclarative({
     themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
@@ -200,11 +203,11 @@ For a richer "add the dropped theme to the switcher + remember across reload" wi
 
 | URL | What |
 |---|---|
-| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~134 KB / ~40 KB gzip) |
+| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~187 KB raw / ~55 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
 | `https://khawkins98.github.io/aaron-ui/scriptoscope.css` | Optional outer-shell stylesheet (~6 KB) |
-| `https://khawkins98.github.io/aaron-ui/themes/<slug>/` | Bundled themes (18 slugs at time of writing) |
-| `https://khawkins98.github.io/aaron-ui/theme-loader/loadKaleidoscopeScheme.js` | In-browser `.sit`/`.rsrc` decoder |
-| `https://khawkins98.github.io/aaron-ui/sit-wasm/` | StuffIt WASM decoder (loaded lazily by `loadKaleidoscopeScheme`) |
+| `https://khawkins98.github.io/aaron-ui/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
+| `https://khawkins98.github.io/aaron-ui/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
+| `https://khawkins98.github.io/aaron-ui/sit-wasm/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
 
 For a versioned URL (locks to a specific release), use **unpkg** once the package is published: `https://unpkg.com/scriptoscope@0.0.1/dist/scriptoscope.js`. Until then, GH Pages tracks `main`.
 
@@ -241,7 +244,7 @@ Two surfaces, same engine.
 
 ### Imperative — `loadTheme()` + `renderWindow()`
 
-A scheme bundle is a directory (`theme.json` + decoded `cicns/`, `ppats/` PNGs); `loadTheme()` fetches it and `renderWindow()` composites a window from it:
+A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. First per-bundle load is ~234 ms on a fast machine (browser decode + 500 OffscreenCanvas PNG encodes); subsequent calls hit the in-page cache.
 
 ```ts
 import { loadTheme, renderWindow } from 'scriptoscope';
@@ -274,7 +277,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
   <script type="module">
     import { mountDeclarative } from 'scriptoscope';
-    await mountDeclarative({ themeBaseUrl: '/themes', baseSlug: 'apple-platinum-replica' });
+    await mountDeclarative({ themeBaseUrl: '/themes', baseSlug: 'apple-platinum-2' });
   </script>
 </body>
 ```

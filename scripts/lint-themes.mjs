@@ -36,8 +36,25 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
-import { PixelBuffer } from '../dist/scriptoscope.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+
+// PixelBuffer is only needed by the SLOW path (--update / single-slug mode that re-runs
+// the full lint). Verify mode (the default) only computes sha256 of the source archive
+// and reports the stored baseline — no decode needed. Lazy-import keeps verify mode
+// runnable on a fresh checkout WITHOUT first having to `npm run build` to produce dist/.
+let _PixelBuffer = null;
+async function PixelBufferOnDemand() {
+  if (_PixelBuffer) return _PixelBuffer;
+  try {
+    ({ PixelBuffer: _PixelBuffer } = await import('../dist/scriptoscope.js'));
+  } catch (e) {
+    console.error('✗ lint-themes (--update / single-slug mode): dist/scriptoscope.js not found.');
+    console.error('  Run `npm run build` first to produce it. Default verify mode does not require dist/.');
+    console.error(`  (underlying: ${e.message})`);
+    process.exit(1);
+  }
+  return _PixelBuffer;
+}
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const themesRoot = resolve(repoRoot, 'themes');
@@ -92,6 +109,7 @@ async function decodeBundle(slug, themeDir) {
   const { manifest, assets, iconIndex } = await loadKaleidoscopeScheme(fp.bytes, {
     meta, source: `${slug}/${fp.source}`, encodeAssets: false,
   });
+  const PixelBuffer = await PixelBufferOnDemand();
   const byPath = new Map(assets.map((a) => [a.path, a]));
   const loadCicn = (asset) => {
     const a = byPath.get(asset);

@@ -59,7 +59,7 @@ const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1024, height: 720 }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
 
-let captured = 0;
+let captured = 0, skipped = 0;
 for (const t of slugs) {
   const slug = t.slug;
   process.stdout.write(`  ${slug.padEnd(28)} `);
@@ -67,12 +67,24 @@ for (const t of slugs) {
   // The Scene section in the detail panel — `#d-scene`, the "Scene · reference" row.
   // Wait for it to be present + for its live canvas to be non-zero (the renderer
   // paints to canvas, not DOM; a 0×0 canvas means the scene is still composing).
+  // Then wait for `document.fonts.ready` so Charcoal 12 / Virtue are loaded before
+  // title text gets rasterized — without this, fresh-machine captures (where the
+  // font may not be in the system cache yet) differ from re-runs in subtle ways.
+  // If any wait FAILS, skip the screenshot instead of writing a broken baseline
+  // (silently captured broken baselines would just propagate the regression).
   const scene = page.locator('#d-scene');
-  await scene.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
-  await page.waitForFunction(() => {
-    const c = document.querySelector('#d-scene canvas');
-    return c && c.width > 0 && c.height > 0;
-  }, null, { timeout: 10000 }).catch(() => {});
+  try {
+    await scene.waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForFunction(() => {
+      const c = document.querySelector('#d-scene canvas');
+      return c && c.width > 0 && c.height > 0;
+    }, null, { timeout: 10000 });
+    await page.evaluate(() => document.fonts.ready);
+  } catch (e) {
+    console.log(`✗ skipped (${e.message.split('\n')[0]})`);
+    skipped++;
+    continue;
+  }
   const buf = await scene.screenshot();
   const out = resolve(outRoot, `${slug}.png`);
   await writeFile(out, buf);
@@ -82,4 +94,5 @@ for (const t of slugs) {
 
 await browser.close();
 if (viteProc) viteProc.kill();
-console.log(`\n-- captured ${captured} baseline(s) --`);
+console.log(`\n-- captured ${captured} baseline(s)${skipped ? `, ${skipped} skipped` : ''} --`);
+if (skipped) process.exit(1); // make a partial run a CI failure: a skipped baseline went stale

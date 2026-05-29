@@ -65,19 +65,60 @@ export async function loadTheme(
   };
 }
 
-/** Race the candidate filenames; return the first one that responds 200. Falls back to
- *  trying them serially so a 404 → next-name cascade is deterministic (HEAD-then-GET would
- *  add a round-trip; a serial fetch with `cache: 'force-cache'` is fine for this use case). */
+/** Race the candidate filenames; return the first one that responds 200 with bytes that
+ *  look at least PLAUSIBLY like a Mac archive / resource fork. Falls back to trying them
+ *  serially so a 404 → next-name cascade is deterministic.
+ *
+ *  The smell-test guards against a CDN configured with an SPA fallback that returns
+ *  200 + HTML for a missing file. Without it, the HTML bytes would be consumed as a
+ *  resource fork and explode deep in `parseResourceFork` with an opaque message; we'd
+ *  never fall through to the `.rsrc` alternative. The check is cheap (the magic-byte
+ *  detection in containers.js plus a string sniff for the HTML preamble). */
 async function fetchFirst(
   baseUrl: string, filenames: string[],
 ): Promise<{ filename: string; bytes: Uint8Array } | null> {
   for (const filename of filenames) {
     try {
       const res = await fetch(`${baseUrl}/${filename}`);
-      if (res.ok) return { filename, bytes: new Uint8Array(await res.arrayBuffer()) };
+      if (!res.ok) continue;
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (looksLikeArchiveOrFork(bytes)) return { filename, bytes };
+      // 200 but bytes don't smell like a binary archive — almost certainly an HTML SPA
+      // fallback. Don't accept it; let the cascade continue to the next candidate.
     } catch { /* try the next candidate */ }
   }
   return null;
+}
+
+/** Cheap, hardcoded "is this plausibly a Mac archive or a resource fork?" check used
+ *  by `fetchFirst` to recognise an SPA fallback / wrong-URL response. Covers all
+ *  formats containers.js detects (StuffIt, MacBinary, AppleSingle/Double, BinHex) plus
+ *  a positive sniff for "is this NOT an HTML/JSON/text document". Not an exhaustive
+ *  validator — the real decoder is the source of truth — just enough to fall through. */
+function looksLikeArchiveOrFork(b: Uint8Array): boolean {
+  if (b.length < 16) return false;
+  // Reject the unmistakable HTML preambles a misconfigured CDN serves.
+  const head = String.fromCharCode(...b.subarray(0, Math.min(64, b.length))).toLowerCase();
+  if (head.includes('<!doctype') || head.includes('<html') || head.startsWith('{')) return false;
+  // Positive sniff for known containers / forks.
+  // StuffIt: 'SIT!' / 'StuffIt' magic at offset 0.
+  if (b[0] === 0x53 && b[1] === 0x49 && b[2] === 0x54 && b[3] === 0x21) return true; // 'SIT!'
+  if (b[0] === 0x53 && b[1] === 0x74 && b[2] === 0x75 && b[3] === 0x66) return true; // 'Stuf'
+  // MacBinary: byte 0 = 0x00, byte 1 = filename length (1..63), byte 74 = 0x00.
+  if (b[0] === 0x00 && (b[1] ?? 0) >= 1 && (b[1] ?? 0) <= 63 && b.length > 128 && b[74] === 0x00) return true;
+  // AppleSingle/Double: magic 0x00051600 (single) or 0x00051607 (double) at offset 0.
+  if (b[0] === 0x00 && b[1] === 0x05 && b[2] === 0x16 && (b[3] === 0x00 || b[3] === 0x07)) return true;
+  // BinHex: ASCII '(This file must be converted with BinHex…' preamble.
+  if (head.startsWith('(this file must be converted')) return true;
+  // Raw resource fork: a Mac resource fork header is { dataOffset, mapOffset, dataLen,
+  // mapLen }, four big-endian u32 — usually with dataOffset=0x100 and small. Sanity-check
+  // that dataOffset + dataLen fits within file length.
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  const dataOffset = dv.getUint32(0); const mapOffset = dv.getUint32(4);
+  const dataLength = dv.getUint32(8); const mapLength = dv.getUint32(12);
+  if (dataOffset >= 16 && dataOffset + dataLength <= b.length
+      && mapOffset >= 16 && mapOffset + mapLength <= b.length) return true;
+  return false;
 }
 
 /** Resolve a manifest asset ref to a fetchable URL. A ref that's ALREADY an absolute
@@ -90,13 +131,17 @@ export function assetUrl(theme: LoadedTheme, relativePath: string): string {
   return `${theme.baseUrl}/${relativePath}`;
 }
 
-/** Look up the chromeElement whose `asset` matches a relative path. */
+/** Look up the chromeElement whose `asset` matches a path or URL. Compares strings —
+ *  works for both legacy relative paths (`cicns/cicn-….png`) and the in-memory blob:
+ *  URLs (both `chromeElement.asset` AND a windowType's `chrome.active` get rewritten
+ *  to the same blob URL when they reference the same resource, so string equality
+ *  still resolves correctly). For id-based lookup, see `elementById` in controls.ts. */
 export function findChromeElement(
   theme: LoadedTheme,
-  relativePath: string,
+  assetRefOrUrl: string,
 ): ChromeElement | undefined {
   for (const el of Object.values(theme.manifest.chromeElements)) {
-    if (el.asset === relativePath) return el;
+    if (el.asset === assetRefOrUrl) return el;
   }
   return undefined;
 }

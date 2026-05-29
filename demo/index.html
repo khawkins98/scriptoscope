@@ -182,7 +182,7 @@
 
   <script type="module">
     import {
-      VERSION, loadTheme, renderWindow,
+      VERSION, loadTheme, assetUrl, renderWindow,
       composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
       composeButton, composeBevelButton, composeListHeader, composeCheckable, composeGrowBox,
       baselineButton, bufferToCanvas,
@@ -927,7 +927,10 @@
         const artWrap = document.createElement('div');
         Object.assign(artWrap.style, { width: `${cicnW * SC}px`, height: `${ftop * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
         const img = document.createElement('img');
-        img.src = `${theme.baseUrl}/${ce.asset}`;
+        // ce.asset is already an absolute URL under the in-memory load path (rewritten
+        // to a blob: by loadKaleidoscopeScheme). assetUrl() passes those through, only
+        // prefixing baseUrl for legacy relative paths.
+        img.src = assetUrl(theme, ce.asset);
         img.title = `${ce.asset} (${ce.width}×${ce.height}) — active document window cicn`;
         Object.assign(img.style, { width: `${cicnW * SC}px`, imageRendering: 'pixelated', display: 'block' });
         artWrap.appendChild(img);
@@ -970,9 +973,13 @@
     // The `?retry=` query busts a cached failure so the re-fetch actually hits.
     async function loadImgSafe(theme, asset) {
       if (!asset) return null;
-      const url = `${theme.baseUrl}/${asset}`;
+      // assetUrl handles both legacy relative paths and the in-memory blob: URLs.
+      // The `?retry=` cache-bust only makes sense for fetched URLs (http(s)); blob:
+      // URLs are content-stable and don't need busting.
+      const url = assetUrl(theme, asset);
+      const isBlob = /^blob:/.test(url);
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { return await loadImg(attempt ? `${url}?retry=${attempt}` : url); }
+        try { return await loadImg(attempt && !isBlob ? `${url}?retry=${attempt}` : url); }
         catch { await new Promise((r) => setTimeout(r, 150)); }
       }
       return null;
