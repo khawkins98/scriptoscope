@@ -118,7 +118,12 @@ const SLOTS = [
           return key ? `patterns['${key}'] → ${m.patterns[key].asset}` : null;
         },
       },
-      { name: 'CSS checkerboard', why: 'fallback for schemes with no desktop ppat (1990 / evolution / Platinums)', resolve: () => 'repeating-conic-gradient' },
+      {
+        name: 'ppat-17 (canonical Mac desktop)',
+        why: 'Apple-reserved id 17 is the system Finder built-in desktop pattern — 5 themes ship it',
+        resolve: (m) => m.patterns?.['ppat-17']?.asset ? `patterns['ppat-17'] → ${m.patterns['ppat-17'].asset}` : null,
+      },
+      { name: 'CSS checkerboard', why: 'fallback for schemes that ship neither (apple-platinum-2 / Platinums / Windows ports)', resolve: () => 'repeating-conic-gradient' },
     ],
   },
   {

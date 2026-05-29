@@ -439,7 +439,20 @@
           const picked = [];
           for (const id of FINDER_CONTENT_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
           const seen = new Set(picked.map((i) => i.id));
-          const cov = uniq.filter((i) => i.coverage > 0.18 && i.coverage < 0.95 && !seen.has(i.id));
+          // Document blocklist: when a theme ships no folder ids, the coverage-rank
+          // fallback would happily return Edition File (-3989), Clipping files
+          // (-3800..-3803), App badge (-16455), Generic Document (-3984) — all
+          // 79%/58%-coverage glyphs the Finder reference NEVER puts inside a
+          // window (apple-platinum-2 + system7-nostalgia-silver were the visible
+          // regression). Filter those out of the coverage pool so what remains
+          // is folder-ish or genuinely scene-appropriate. If the pool empties,
+          // the caller falls through to the neutral SVG folders.
+          const DOC_BLOCKLIST = new Set([-3800, -3801, -3802, -3803, -3984, -3989, -16455]);
+          const cov = uniq.filter((i) =>
+            i.coverage > 0.18 && i.coverage < 0.95
+            && !seen.has(i.id)
+            && !DOC_BLOCKLIST.has(i.id),
+          );
           return picked.concat(cov).slice(0, 8);
         })());
       }
@@ -740,8 +753,17 @@
       // desktop-pattern / blue-desktop / desktop-background) tiled at native px,
       // not a generic checkerboard. Fall back to the checkerboard for schemes that
       // ship no desktop ppat (1990/evolution/apple-platinum).
+      // Lookup hierarchy for the desktop pattern:
+      //   T1. A pattern keyed with /desktop/i in its slug (1138 / 1984 /
+      //       apple-lisa / beos-r503 — schemes that explicitly named it).
+      //   T2. `ppat-17` — the Mac OS canonical desktop ppat id (Apple-reserved
+      //       slot, the system Finder's built-in desktop pattern). Five corpus
+      //       themes ship this (1990, animals, monkey-paradise, evolution,
+      //       crayon-os); before this pickup they fell to the CSS checkerboard.
+      //   T3. CSS checkerboard fallback.
       const _pats = theme.manifest.patterns || {};
-      const _deskKey = Object.keys(_pats).find((k) => /desktop/i.test(k));
+      const _deskKey = Object.keys(_pats).find((k) => /desktop/i.test(k))
+        ?? (_pats['ppat-17'] ? 'ppat-17' : null);
       // In Option A the asset is already an absolute blob: URL (rewritten by
       // loadKaleidoscopeScheme); for legacy bundles it's a relative path the
       // baseUrl resolves. The /^(?:blob|https?|data):/ check mirrors assetUrl().
@@ -757,7 +779,13 @@
       });
 
       // ── main "Hello!" Finder window — fills the preview ──
-      const winW = 178, winH = 98;
+      // winW widened from 178 → 220 to fit longer volume names without truncation
+      // (every theme's "Apple Lisa Office System" / "BeOS R5.0.3" / "Windows 3.1"
+      // truncated in the info bar at 178) AND to leave more body area visible
+      // alongside the overlapping Options dialog. 10 themes had the volume name
+      // truncated, 6 had their body content clipped, and windows-31 had its title
+      // bar entirely covered by the dialog before this change.
+      const winW = 220, winH = 98;
       const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1, state });
       // The window root carries its full footprint (cicn path sets width/height;
       // baseline window is sized by content + a ~19px title bar + 1px borders).
@@ -816,7 +844,24 @@
         info.appendChild(await gridProxyIcon(theme));
         const vol = document.createElement('span');
         vol.textContent = theme.manifest?.name ?? '';
-        Object.assign(vol.style, { font: '400 10px Geneva, "Lucida Grande", Tahoma, sans-serif', color: '#000', overflow: 'hidden', textOverflow: 'ellipsis' });
+        // Contrast-pick the label colour against the resolved info-bar bg. When the
+        // bar resolves to a dark headerColors.active.fill (slimes' #d6ff76 is light,
+        // but black-platinum / windows-31 / monkey-paradise's headerFill is dark
+        // enough to make black text unreadable), pick white. Same trick the
+        // composeCornerSpriteChrome path uses for the title bar. The pattern case
+        // is harder — patterns vary in luminance across pixels — so we leave the
+        // textured info-bar at black until a per-element textColor field exists.
+        const _infoTextColor = (() => {
+          if (_infoPatUrl) return '#000'; // textured bg: keep black (best reading vs varied luminance)
+          const h = _infoFillColor.replace('#', '');
+          if (h.length !== 6) return '#000';
+          const r = parseInt(h.slice(0, 2), 16);
+          const g = parseInt(h.slice(2, 4), 16);
+          const b = parseInt(h.slice(4, 6), 16);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          return lum < 128 ? '#fff' : '#000';
+        })();
+        Object.assign(vol.style, { font: '400 10px Geneva, "Lucida Grande", Tahoma, sans-serif', color: _infoTextColor, overflow: 'hidden', textOverflow: 'ellipsis' });
         info.appendChild(vol);
         content.appendChild(info);
         // content icons — the scheme's OWN icons where it ships them, else
@@ -862,10 +907,12 @@
       const dlg = await renderWindow(theme, { windowType: 'no-title-utility-window', title: 'Options', width: DLG_W, height: 84, scale: 1, state });
       const dlgW = parseInt(dlg.style.width) || (DLG_W + 4);
       const dlgH = parseInt(dlg.style.height) || (84 + 22);
-      // Right-aligned (small margin), top at the main window's title-bar line —
+      // Right-aligned (small margin), top below the main window's title bar —
       // the placement the legacy previews use. Clamped to stay inside the desk.
+      // Top offset = mainTop + 2 so the dialog DOESN'T cover the main title bar
+      // (windows-31's title was entirely hidden when dlgTop equaled mainTop = 0).
       const dlgLeft = Math.max(0, mainW - dlgW - 6);
-      const dlgTop = Math.max(2, Math.min(mainH - dlgH - 4, mainTop));
+      const dlgTop = Math.max(mainTop + 2, Math.min(mainH - dlgH - 4, mainTop + 2));
       Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
       const dc = dlg.querySelector('.scriptoscope-content');
       if (dc) {

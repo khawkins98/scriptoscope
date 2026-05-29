@@ -461,7 +461,7 @@ export async function renderWindow(
     boxSizing: 'border-box',
     overflow: 'auto',
     zIndex: '1',
-    ...bodyBackgroundStyle(owner),
+    ...bodyBackgroundStyle(owner, slug),
   } satisfies Partial<CSSStyleDeclaration>);
   scaleBodyPattern(content, owner, scale);
   content.appendChild(document.createElement('slot'));
@@ -592,7 +592,7 @@ function buildBaselineWindow(
   Object.assign(content.style, {
     position: 'relative', width: `${contentW * scale}px`, height: `${contentH * scale}px`,
     overflow: 'hidden', boxSizing: 'border-box',
-    ...bodyBackgroundStyle(theme),
+    ...bodyBackgroundStyle(theme, utility ? 'utility' : undefined),
   } satisfies Partial<CSSStyleDeclaration>);
   scaleBodyPattern(content, theme, scale);
   content.appendChild(document.createElement('slot'));
@@ -601,11 +601,21 @@ function buildBaselineWindow(
 }
 
 /**
- * Content-area background style: tile the scheme's body pattern (the
- * Icon/List View cinf bgPatternId ppat) at native pixel size if declared,
- * else the OS-default white. Pixelated so the small ppat tile stays crisp.
+ * Content-area background style. For Finder document windows: tile the
+ * scheme's Icon-View body pattern (`bodyBackground.pattern` — decoded from
+ * cinf -9551's bgPatternId). For utility windows / dialogs / palettes: use
+ * a flat fill — the Mac convention was that the Finder Icon-View pattern
+ * doesn't apply to modal dialogs (they used a system platinum grey). Applying
+ * bodyBackground to a no-title-utility-window was demo-visible on every
+ * textured-body theme (the Options dialog filled with the army camo, aqua,
+ * etc instead of a flat utility-platinum). The slug is the windowType key
+ * the consumer requested.
  */
-function bodyBackgroundStyle(theme: LoadedTheme): Partial<CSSStyleDeclaration> {
+function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
+  // Utility / palette / floating / mini / no-title windows don't get the
+  // Icon-View body ppat — they're modal-style surfaces, not Finder windows.
+  const isUtility = !!slug && /utility|mini|floating|palette|dialog|alert/.test(slug);
+  if (isUtility) return { background: '#ffffff' };
   const pat = theme.manifest.bodyBackground?.pattern;
   if (!pat) return { background: '#ffffff' };
   return {
