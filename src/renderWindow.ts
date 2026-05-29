@@ -128,6 +128,11 @@ export function resolveTitleWidgetRects(
     return out;
   }
   // Native wnd# model: widget rects are wnd# parts mapped onto the stretched title bar.
+  // EVERY widget's source x must be mapped through the placement's shift at that cell,
+  // not just right-side widgets. Schemes like 1990 stack widgets to the LEFT of the
+  // title plate; after the plate grows to fit the title, the widgets shift right in the
+  // output by exactly the title-plate growth. Computing leftEnd off the SOURCE x left
+  // `maxTitleW` negative and the title got dropped (1990's "Hello!" never drew).
   const top = composed.placement.filter((s) => s.edge === 'top');
   if (!top.length || !wt.parts) return [];
   const shiftOf = (s: (typeof top)[number]): number => (s.rects[0]?.x ?? s.src.x) - s.src.x;
@@ -135,6 +140,13 @@ export function resolveTitleWidgetRects(
   const rightBandSrcX = rightShift > 0
     ? top.reduce((m, s) => (shiftOf(s) === rightShift ? Math.min(m, s.src.x) : m), Infinity)
     : Infinity;
+  /** Source x → output x, looked up in the placement at the cell containing `sx`.
+   *  The growth per cell isn't uniform (the title plate grows; widgets stay 1:1), so
+   *  pick the placement whose src band covers `sx` and shift by (rects[0].x - src.x). */
+  const mapX = (sx: number): number => {
+    const hit = top.find((s) => sx >= s.src.x && sx <= s.src.x + s.src.w);
+    return hit ? sx + shiftOf(hit) : sx + rightShift;
+  };
   const frameTop = composed.frame.top;
   const placed: { right: boolean; x: number; y: number; w: number; h: number }[] = [];
   for (const [slug, part] of Object.entries(wt.parts)) {
@@ -143,7 +155,10 @@ export function resolveTitleWidgetRects(
     if (r <= l || b <= t) continue; // empty rect
     if (t < frameTop && r - l <= 2) continue; // thin title-text marker, not a widget
     const right = (l + r) / 2 >= rightBandSrcX;
-    placed.push({ right, x: right ? l + rightShift : l, y: t, w: r - l, h: b - t });
+    // Widget cells in the recipe are FIXED — drawStretch with srcLen=dstLen — so the
+    // mapped output position preserves width 1:1.
+    const ox = mapX(l);
+    placed.push({ right, x: ox, y: t, w: r - l, h: b - t });
   }
   const out: { role: TitleWidgetRole; rect: { x: number; y: number; w: number; h: number } }[] = [];
   const lefties = placed.filter((p) => !p.right).sort((a, b) => a.x - b.x);
@@ -300,18 +315,6 @@ export async function renderWindow(
   const { frame, fullWidth, fullHeight } = composed;
 
   if (glyphs && frame.top > 6) {
-    // Title colour. Every scheme in the corpus draws a BLACK title (active),
-    // dimmed when inactive — verified against the references for 1984, 1138,
-    // platinum, beos, 1990 AND evolution (all black; the scheme places the title
-    // on a light area of its bar). It is NOT `headerColors.text` (the clut part-2
-    // entry — a frame tint, wrong for most schemes). Two earlier heuristics were
-    // worse than this constant: a "saturated cicn marker" picked the saturated
-    // BAR colour (beos's gold → gold-on-gold, invisible), and a luminance-contrast
-    // wrongly whitened the dark schemes (it measured the dark frame, not the light
-    // title plate the text actually sits on). The faithful kDEF mechanism samples
-    // a marker pixel (kdef231-reference.md §1.4 `0x5530`) — needed only to support
-    // a genuinely COLOURED title; pinning that coordinate is still open
-    // (docs/tracking/title-text-color.md). Until then, black is correct here.
     const tr = composed.titleRegion;
     const cx = tr.x + tr.w / 2;
     // Vertical anchor: the centre of the scheme's title-text marker band (tr.midY — the cicn
@@ -324,8 +327,19 @@ export async function renderWindow(
     // ("Infinite HD" → "Infi…" → nothing). Widget rects come from the SAME resolver the hit-testing
     // uses, so the text never runs under a widget.
     const wrects = resolveTitleWidgetRects(wt, composed);
-    const leftEnd = wrects.filter((w) => w.role === 'close').reduce((m, w) => Math.max(m, w.rect.x + w.rect.w), frame.left);
-    const rightStart = wrects.filter((w) => w.role !== 'close').reduce((m, w) => Math.min(m, w.rect.x), fullWidth - frame.right);
+    // Available title width starts from the titleRegion — the kDEF placed a title PLATE
+    // there that's already sized to fit the title. Widget rects only further CLIP it
+    // when they actually overlap the title region (Mac OS 8.5+ Platinum: zoom/collapse
+    // can intrude into the bar's middle). Schemes like 1990 stack widgets to the LEFT of
+    // the plate; the widgets sit OUTSIDE the title region so they don't constrain it.
+    const trLeft = tr.x;
+    const trRight = tr.x + tr.w;
+    const leftEnd = wrects
+      .filter((w) => w.rect.x + w.rect.w > trLeft && w.rect.x < trRight && (w.rect.x + w.rect.w / 2) < cx)
+      .reduce((m, w) => Math.max(m, w.rect.x + w.rect.w), trLeft);
+    const rightStart = wrects
+      .filter((w) => w.rect.x + w.rect.w > trLeft && w.rect.x < trRight && (w.rect.x + w.rect.w / 2) >= cx)
+      .reduce((m, w) => Math.min(m, w.rect.x), trRight);
     const maxTitleW = Math.max(0, Math.floor(2 * Math.min(cx - (leftEnd + 5), (rightStart - 5) - cx)));
     let dispTitle = title;
     if (glyphs.width > maxTitleW && title.length > 1) {

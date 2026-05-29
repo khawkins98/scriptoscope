@@ -870,7 +870,11 @@
       const dc = dlg.querySelector('.scriptoscope-content');
       if (dc) {
         Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
-        const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, ...o }); return b ? cv(b) : baselineButton(label, o); };
+        // height: 22 — match the segmented On/Off tab height (same reason: themes that
+        // ship oversized face cicns like crayon-os's 74×74 would otherwise render the OK
+        // button at ~80px tall, eating the dialog). Other themes' 16×16 face cicns
+        // 9-slice up to 22px tall without distortion.
+        const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, height: 22, ...o }); return b ? cv(b) : baselineButton(label, o); };
         // On/Off is a flat 2-SEGMENT TOGGLE, not tabs: the references draw it as
         // a flat rectangular pair (beos: dark "On" / light "Off"; 1984: two flat
         // blue cells), NOT the trapezoidal tab shape — and the scheme's actual
@@ -882,8 +886,13 @@
         // approximation. Full-bleed to the dialog's inner edges. Falls back to
         // the beveled CSS segmented toggle when the scheme ships no button cicn.
         const segW = Math.floor(DLG_INNER / 2);
-        const onB = await composeButton(theme, { label: 'On', pressed: true, minWidth: segW });
-        const offB = await composeButton(theme, { label: 'Off', minWidth: segW });
+        // height: 22 — segmented On/Off should read as a TAB, not as a full push button.
+        // Without it, themes that ship a 74×74 face cicn (crayon-os) render the segmented
+        // toggle at the cicn's native height (~80px), eating the whole dialog. The
+        // composeFaceButton honours opts.height when present; 9-slice + slice.tile
+        // preserves the artist's border pattern at the shrunken size.
+        const onB = await composeButton(theme, { label: 'On', pressed: true, minWidth: segW, height: 22 });
+        const offB = await composeButton(theme, { label: 'Off', minWidth: segW, height: 22 });
         const onoff = document.createElement('div');
         Object.assign(onoff.style, { display: 'flex', flexShrink: '0', margin: `-${DLG_PAD}px -${DLG_PAD}px 4px` });
         if (onB && offB) {
@@ -1558,7 +1567,10 @@
           const { c, frame } = colEl('buttons');
           const stack = document.createElement('div'); stack.className = 'btn-stack';
           const brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center';
-          const btn = async (label, o) => { const buf = await composeButton(theme, { label, ...o }); return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o); };
+          // Same height: 22 cap as the dialog buttons — keeps the Cancel/OK/Help row at
+          // a consistent size across themes whose face cicns range from 5×6 (windows-95)
+          // to 74×74 (crayon-os).
+          const btn = async (label, o) => { const buf = await composeButton(theme, { label, height: 22, ...o }); return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o); };
           brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
           const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
           const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);

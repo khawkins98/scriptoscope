@@ -783,6 +783,13 @@ export interface ButtonOptions {
   pressed?: boolean;
   disabled?: boolean;
   minWidth?: number;
+  /** Force the button face height. Defaults to the cicn's native height, which is
+   *  fine for the small 16×16 Platinum-family rings but blows up to ~80px tall for
+   *  schemes like crayon-os that ship 74×74 face cicns. The demo's segmented On/Off
+   *  toggle (which expects ~20px tabs) passes this so big-face themes still produce
+   *  tab-sized output. 9-slice with `slice.tile: true` preserves the artist's pixel
+   *  pattern at the shrunken size. */
+  height?: number;
   /** Title color (themed buttons carry no text-color metadata yet). */
   fg?: string;
 }
