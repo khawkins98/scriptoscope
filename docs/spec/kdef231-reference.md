@@ -69,26 +69,60 @@ param)`; on the frame: `fp@(18)`=varCode (→`d4`), `fp@(14)`=ControlHandle
 | `0x6c28` | (msg-0 sub) | called for drawCntl when `a0@(16)` set | `pea fp@(-26)` (the unpacked-state blob) | — | — |
 
 **Decoded dispatch targets** (`0x67b6` table; verified by hex-decode of the
-table bytes). Standard CDEF message numbers in parens:
+table bytes). Standard CDEF message numbers in parens. Apple's canonical
+`Controls.h` numbering is the `phracker/MacOSX-SDKs` mirror (10.6 SDK) — pinned
+in `docs/spec/apple-primary-source.md`.
+
 | msg | → target | meaning |
 |---|---|---|
-| 0 (drawCntl) | `0x67fc` | draw — routes to the part drawers |
-| 1 (testCntl) | `0x6816` | hit-test |
-| 2 (calcCRgns) | `0x686a` | calc control region |
-| 3 (initCntl) | `0x6910` | init |
-| 4 (dispCntl) | `0x695e` | dispose |
-| 10,11 (calc CntlRgn/ThumbRgn) | `0x6872` | region calc (shared) |
-| 14 (kControlMsgCalcBestRect) | `0x69b8` | best-fit rect |
-| 19 (kControlMsgGetFeatures?) (?) | `0x698a` | Appearance feature query (?) |
-| 20 (kControlMsgSetUpBackground?) (?) | `0x6b14` | background setup (?) |
-| 21 (kControlMsgDragControl?) (?) | `0x6a86` | drag (?) |
-| 27 (kControlMsgGetData / focus?) (?) | `0x6980` | data/focus (?) |
-| 34 (kControlMsgGetRegion?) (?) | `0x6b84` | region (?) |
-| 5,6,7,8,9,12,13,15,16,17,18,22-26,28-33 | `0x6c16` | unhandled → default |
+| 0 (drawCntl) ✓ | `0x67fc` | draw — `a0@(16)` gate → `0x6c28` part drawers (`$A874`/`$A95E`/`$A88B` GetCIcon/CopyMask/StringWidth chain — §1.2) |
+| 1 (testCntl) ✓ | `0x6816` | hit-test — `_PtInRgn` (`$A8AD`) on the face region; sentinel `a0@(17) == 0xfe` returns `d3=254` (pressed-state hit) |
+| 2 (calcCRgns) ✓ | `0x686a` | calc control region — strips bit-31 sign of `fp@(8)` arg, falls through to `0x6872` |
+| 3 (initCntl) ✓ | `0x6910` | init — `_NewHandle #32` (`$A122`) → ControlRecord+28 = kDEF's 32-byte aux block; writes `'Acid'` magic at +0, clears +6 / +30 (default-button flag) |
+| 4 (dispCntl) ✓ | `0x695e` | dispose — `_DisposeHandle` (`$A023`) on the aux block if the `'Acid'` magic checks out |
+| 10,11 (calcCntlRgn/calcThumbRgn) ✓ | `0x6872` | region calc (shared) — `_RectRgn` (`$A8DF`) the face cicn (-10240) rect; if default-button flag set, union in the ring (-10232) rect (insets -4) |
+| 14 (kControlMsgCalcBestRect) ✓ | `0x69b8` | best-fit rect — `$A874` `_GetMHandle`, read width/height/style from a font/title record, write Rect into `a3@`; routes through `0x65ba` for default-button cases |
+| **19 (kControlMsgGetFeatures)** ✓ | `0x698a` | Appearance feature query — returns bitmask in `d3`. Base = `#0x240` (`kControlSupportsDataAccess \| kControlSupportsCalcBestRect`); `\|= 0x800 (kControlHasRadioBehavior)` if radio; `\|= 0x4000 (kControlSupportsClickActivation)` if click-activated; always `\|= 0x2000 (kControlSupportsContextualMenus)`. (Bit 13/14 mapping is the Appearance 1.0 / pre-Carbon numbering — Carbon shifted these to bits 21/22 post-2001; Kaleidoscope 2.3.1 predates the shift.) |
+| **20 (kControlMsgSetData)** ✓ | `0x6b14` | set custom data on the aux block. Dispatches on a 4-CC tag at `a3@`: `'cncl'` → write byte from caller into `a2@(31)` (cancel-button flag); `'dflt'` → write byte into `a2@(30)` (default-button flag); `'font'` → copy 24-byte `ControlFontStyleRec` into `a2@(6..29)`. Unknown tag → returns `d3=#-30581` (`errMessageNotSupported`). |
+| **21 (kControlMsgGetData)** ✓ | `0x6a86` | mirror of msg 20 — read from aux block into caller's buffer at `a3@(12)`. Same `'cncl'`/`'dflt'`/`'font'` tag set; same -30581 default. Sets `a3@(8) = 24` for the font tag (returned-size field), `=1` for the flag tags. |
+| **27 (kControlMsgTestNewMsgSupport)** ✓ | `0x6980` | returns the magic constant `d3 = #0x206F6B20` (`' ok '`) to confirm Appearance-era CDEF compatibility (a single `movel #' ok ',%d3` then `braw 0x6c16` — see §1.1 confirmation note below). **This is NOT msg 16 `kControlMsgFocus` — Kaleidoscope's kDEF doesn't handle focus.** |
+| **34 (kDEF-private GetControlKind)** ✓ | `0x6b84` | writes a Kaleidoscope-private kind descriptor to `a3@(4..7)` based on aux flags + variation code. Long-write picks family by aux-block flags (`a0@(30)` default-btn → `'dbtp'`; `a0@(31)` cancel-btn → `'cbtp'`; neither → `'btnp'`; with `fp@(-15)` radio hint → `'radp'`; else `'chkp'`). Then `a3@(2)` variation-code (1..4) patches byte+7 with suffix `p/e/x/r` (Plain / Embossed / eXtended / Recessed). varCode 5+ → `clrl %a3@(4)` (no descriptor). **Msg 34 is unassigned in Apple's published `Controls.h` (`kControlMsgGetRegion = 31` and Carbon jumps to 38) — this is Kaleidoscope's private kind-introspection message, used by Kaleidoscope's own CDEF callers to learn which family/variation a control belongs to without re-classifying.** |
+| 5,6,7,8,9,12,13,15,16,17,18,22-26,28-33 | `0x6c16` | unhandled → default (returns whatever was last in `d3`) |
 
-> **(?)** The high-message meanings (19/20/21/27/34) are inferred from the
-> Appearance Manager CDEF message numbering, not proven from the code; the LOW
-> ones (0-4,10,11,14) are the classic CDEF set and are solid.
+> **Return-value mechanism.** At `0x6c1a`, the default-return path writes
+> `%d3` into `%sp@(370)` — the long that `rtd #12` will pop into the caller's
+> result slot. So every handler that wants to return a value loads `d3` and
+> branches to `0x6c16`. (Handlers that don't touch `d3` return whatever was
+> in it from the unpacked-state preamble.)
+>
+> **Confirmations (2026-05-29).** The five "(?)" entries above are now decoded
+> against `kDEF231_0.asm`. The two non-obvious ones:
+>
+> 1. **Msgs 19 and 27 are NOT swapped from Apple's numbering** even though
+>    msg 19's bitmask AND msg 27's `' ok '` constant both look like
+>    `kControlMsgGetFeatures` / `kControlMsgTestNewMsgSupport`. Apple's
+>    `Controls.h` (phracker 10.6 mirror) puts GetFeatures at 19 and
+>    TestNewMsgSupport at 27, so the kDEF matches Apple — the `' ok '`
+>    response to TestNewMsgSupport is the canonical Appearance handshake.
+> 2. **Msg 34 has no Apple-side counterpart** (the published enum ends at
+>    `kControlMsgSetCursor = 33` and resumes at `kControlMsgDragEnter = 38`).
+>    The handler writes a 5-family / 4-variation descriptor that looks like
+>    Apple's later `ControlKind` struct but uses Kaleidoscope-private tags
+>    (`dbtp/cbtp/btnp/radp/chkp` × `p/e/x/r`). The most likely explanation
+>    is an internal Kaleidoscope-engine query: the kDEF is consulted by
+>    Kaleidoscope's own button-promotion code (which needs to know "is this
+>    a default-button face?" without re-decoding the varCode) and uses
+>    `CallControlDefProc(msg=34)` as the ABI. Confirming this would require
+>    decompiling the calling-side Kaleidoscope code module, which isn't in
+>    the kDEF binary.
+>
+> All five entries' raw asm sits in the `0x6980..0x6c10` block; cite line
+> numbers in `kDEF/k231-kdef0.asm` are 8754 (msg 27), 8756 (msg 19), 8829
+> (msg 21), 8875 (msg 20), 8909 (msg 34).
+>
+> The LOW entries (0-4, 10, 11, 14) were the "classic CDEF set" called solid
+> previously; they're now spot-checked too — see the per-row ✓ citations
+> against the toolbox-trap signatures.
 
 ### 1.2 Control draw — push-button face + default ring
 
