@@ -40,65 +40,86 @@ async function sha(path) {
 }
 
 if (!flags.has('--diff-only')) {
-  // Capture a fresh set into the temp dir, leaving the committed baselines
-  // untouched. We run the existing capture script through a wrapper that
-  // overrides the output root via an environment hint — but the capture script
-  // writes into tests/visual-baselines/scenes/ unconditionally. Simpler:
-  // capture in place, snapshot the result, then restore the committed copy.
+  // Capture flow: snapshot committed → overwrite baselineDir via the capture
+  // script → snapshot the fresh set → ALWAYS restore committed. The restore
+  // is in a try/finally so a Ctrl-C / OOM / segfault in the capture script
+  // can't strand the working tree with the wrong baselines (the bug class the
+  // code-quality reviewer flagged). Restore wipes baselineDir and re-cp's the
+  // ENTIRE committed snapshot — not just files present at snapshot time — so a
+  // newly-captured theme that doesn't exist in committed is also cleaned up
+  // and surfaces in the diff loop as a `missing-committed` drift entry.
   console.log('  capturing fresh baselines into a scratch dir for comparison…');
   await mkdir(tempDir, { recursive: true });
-  // Snapshot committed first so we can restore + diff.
   const committedSnap = resolve(tempDir, '.committed');
-  await rm(committedSnap, { recursive: true, force: true });
-  await mkdir(committedSnap, { recursive: true });
-  for (const f of await readdir(baselineDir)) {
-    if (f.endsWith('.png')) {
-      await cp(resolve(baselineDir, f), resolve(committedSnap, f));
-    }
-  }
-  // Run the capture script (writes into baselineDir).
-  const code = await new Promise((res) => {
-    const proc = spawn('node', [resolve(repoRoot, 'scripts/capture-visual-baselines.mjs')], {
-      cwd: repoRoot, stdio: 'inherit',
-    });
-    proc.on('exit', (c) => res(c ?? 0));
-  });
-  if (code !== 0) {
-    console.error('\n✗ capture-visual-baselines failed; can\'t verify');
-    process.exit(code);
-  }
-  // Move the just-captured fresh set into the temp dir, restore the committed.
   const freshSnap = resolve(tempDir, 'fresh');
+  await rm(committedSnap, { recursive: true, force: true });
   await rm(freshSnap, { recursive: true, force: true });
+  await mkdir(committedSnap, { recursive: true });
   await mkdir(freshSnap, { recursive: true });
   for (const f of await readdir(baselineDir)) {
-    if (f.endsWith('.png')) {
-      await cp(resolve(baselineDir, f), resolve(freshSnap, f));
-    }
+    if (f.endsWith('.png')) await cp(resolve(baselineDir, f), resolve(committedSnap, f));
   }
-  // Restore committed.
-  for (const f of await readdir(committedSnap)) {
-    await cp(resolve(committedSnap, f), resolve(baselineDir, f));
+  /** Restore the committed snapshot over baselineDir. Idempotent. */
+  const restoreCommitted = async () => {
+    for (const f of await readdir(baselineDir)) {
+      if (f.endsWith('.png')) await rm(resolve(baselineDir, f), { force: true });
+    }
+    for (const f of await readdir(committedSnap)) {
+      await cp(resolve(committedSnap, f), resolve(baselineDir, f));
+    }
+  };
+  try {
+    const code = await new Promise((res) => {
+      const proc = spawn('node', [resolve(repoRoot, 'scripts/capture-visual-baselines.mjs')], {
+        cwd: repoRoot, stdio: 'inherit',
+      });
+      proc.on('exit', (c) => res(c ?? 0));
+    });
+    if (code !== 0) {
+      await restoreCommitted();
+      console.error('\n✗ capture-visual-baselines failed; can\'t verify');
+      process.exit(code);
+    }
+    // Snapshot the fresh capture BEFORE restoring committed.
+    for (const f of await readdir(baselineDir)) {
+      if (f.endsWith('.png')) await cp(resolve(baselineDir, f), resolve(freshSnap, f));
+    }
+  } finally {
+    await restoreCommitted();
   }
 }
 
 // Now diff committed vs fresh (or vs whatever's in baselineDir if --diff-only).
+// Walk the UNION of committed + fresh file names so a newly-captured theme that
+// isn't yet committed surfaces as a `missing-committed` drift entry (and a
+// removed theme surfaces as `missing-fresh`). Walking only `committed` would
+// silently ignore new themes.
 const compareSource = flags.has('--diff-only') ? baselineDir : resolve(tempDir, 'fresh');
-const committedFiles = (await readdir(baselineDir)).filter((f) => f.endsWith('.png')).sort();
+const committedFiles = (await readdir(baselineDir)).filter((f) => f.endsWith('.png'));
+const freshFiles = existsSync(compareSource)
+  ? (await readdir(compareSource)).filter((f) => f.endsWith('.png'))
+  : [];
+const all = Array.from(new Set([...committedFiles, ...freshFiles])).sort();
 const drifts = [];
-for (const f of committedFiles) {
-  const committedSha = await sha(resolve(baselineDir, f));
-  const freshSha = existsSync(resolve(compareSource, f)) ? await sha(resolve(compareSource, f)) : null;
-  if (freshSha == null) {
-    drifts.push({ slug: f, kind: 'missing-fresh', committed: committedSha });
+for (const f of all) {
+  const cExists = existsSync(resolve(baselineDir, f));
+  const fExists = existsSync(resolve(compareSource, f));
+  if (!cExists) {
+    drifts.push({ slug: f, kind: 'missing-committed (new theme not yet baselined)' });
     continue;
   }
+  if (!fExists) {
+    drifts.push({ slug: f, kind: 'missing-fresh (baseline orphaned — theme removed?)' });
+    continue;
+  }
+  const committedSha = await sha(resolve(baselineDir, f));
+  const freshSha = await sha(resolve(compareSource, f));
   if (committedSha !== freshSha) {
     drifts.push({ slug: f, kind: 'changed', committed: committedSha.slice(0, 12), fresh: freshSha.slice(0, 12) });
   }
 }
 
-console.log(`\n-- verify-scenes: ${committedFiles.length} baselines, ${drifts.length} drifted --`);
+console.log(`\n-- verify-scenes: ${all.length} baselines (${committedFiles.length} committed, ${freshFiles.length} fresh), ${drifts.length} drifted --`);
 for (const d of drifts) {
   console.log(`  ${d.slug.padEnd(40)} ${d.kind === 'changed' ? `${d.committed} → ${d.fresh}` : d.kind}`);
 }

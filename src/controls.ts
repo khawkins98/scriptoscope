@@ -1010,7 +1010,15 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // aiming at (they shipped pressed + inactive + ring; the missing active
   // slot is a bundle-side gap, not a kDEF requirement to render menu wallpaper).
   let face = await loadPushButtonFace(theme, state);
+  // AppearanceManager-style state-fallback chain (documented behaviour when a
+  // state's slot is empty): active misses → try pressed; inactive misses → try
+  // active (the convention; classic Mac drew the active art with a desaturated
+  // overlay when no inactive cicn shipped). The previous code only handled the
+  // active→pressed direction; the inactive→active case fell through to a raw
+  // `loadById(theme, 10240)` which could return a misrouted cicn the anti-role
+  // filter would have caught one layer up.
   if (!face && state === 'active') face = await loadPushButtonFace(theme, 'pressed');
+  if (!face && state === 'inactive') face = await loadPushButtonFace(theme, 'active');
   if (!face) face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239)); // last-resort id path
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(theme, face, faceId, opts);

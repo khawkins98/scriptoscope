@@ -71,6 +71,21 @@ async function loadWidgetGlyph(owner: LoadedTheme, id: number): Promise<PixelBuf
   return asset ? loadCicnBuffer(assetUrl(owner, asset)) : null;
 }
 
+/** Pixels reserved between the title plate's edge and the nearest title-bar widget.
+ *  Used by BOTH the plate sizing (so the plate grows wide enough that a widget
+ *  immediately adjacent to it doesn't overlap the title text's footprint) AND the
+ *  truncation budget (so the truncator's `maxTitleW` reserves the same margin on
+ *  each side). The two sites MUST use the same constant — when they diverged
+ *  before this constant was named, schemes with tight title bars (windows-95,
+ *  floppies, apple-lisa) truncated "Hello!" to "Hel…". Period-faithful: mirrors
+ *  the kDEF's `0x4f18` plate-tile pass which measured with trailing space too. */
+const TITLE_WIDGET_CLEARANCE_PX = 5;
+
+/** Pixels of visual padding around the title glyph WITHIN the plate (independent
+ *  of the widget-clearance budget — this is the inset between the plate's left/
+ *  right edges and the glyph's left/right edges, NOT between plate and widget). */
+const TITLE_PLATE_VISUAL_PAD_PX = 8;
+
 export interface RenderWindowOptions {
   /** Window-type slug. Default `'document-window'`. */
   windowType?: string;
@@ -263,17 +278,14 @@ export async function renderWindow(
   }
   // Plate width = measured title width + a little padding each side (the kDEF
   // measures with trailing space, 0x4f18); 0 when there's no visible title.
-  // Title plate width = glyph width + 8px visual padding + 10px widget-clearance
-  // budget (the truncation math at L347 reserves 5px on each side between the
-  // title text and the nearest widget). Without the widget-clearance budget the
-  // plate grew exactly to glyph_width + 8, and any scheme whose recipe placed a
-  // widget IMMEDIATELY after the plate (windows-95: -16px close box right at the
-  // grown plate's edge; apple-lisa: similar) had `maxTitleW < glyph_width` and
-  // the title truncated to "Hel…". By baking the widget budget into the plate
-  // size, the plate grows wide enough that the widget never overlaps the title
-  // text's footprint. Period-faithful: the kDEF's plate-tile pass `0x4f18`
-  // measures with trailing space too — same idea, smaller constant.
-  const titleWidthPx = glyphs ? glyphs.width + 8 + 10 : 0;
+  // The plate sizing + the truncation-budget math at L356 use the SAME
+  // widget-clearance constant — make it named so a future tune of one site
+  // can't desync the other (the regression class this fixes: schemes whose
+  // recipe places a widget immediately after the plate had `maxTitleW <
+  // glyph_width` and the title truncated to "Hel…"). Period-faithful in
+  // spirit: the kDEF's plate-tile pass `0x4f18` measures with trailing
+  // space too — same idea, smaller constant.
+  const titleWidthPx = glyphs ? glyphs.width + TITLE_PLATE_VISUAL_PAD_PX + TITLE_WIDGET_CLEARANCE_PX * 2 : 0;
 
   // Corner-sprite windows (look-only Platinum schemes: apple-platinum-2,
   // platinum-8, system7-nostalgia-silver) ship the document corner cicns + the
@@ -353,7 +365,7 @@ export async function renderWindow(
     const rightStart = wrects
       .filter((w) => w.rect.x + w.rect.w > trLeft && w.rect.x < trRight && (w.rect.x + w.rect.w / 2) >= cx)
       .reduce((m, w) => Math.min(m, w.rect.x), trRight);
-    const maxTitleW = Math.max(0, Math.floor(2 * Math.min(cx - (leftEnd + 5), (rightStart - 5) - cx)));
+    const maxTitleW = Math.max(0, Math.floor(2 * Math.min(cx - (leftEnd + TITLE_WIDGET_CLEARANCE_PX), (rightStart - TITLE_WIDGET_CLEARANCE_PX) - cx)));
     let dispTitle = title;
     if (glyphs.width > maxTitleW && title.length > 1) {
       dispTitle = '…';

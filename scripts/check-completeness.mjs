@@ -14,23 +14,36 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseResourceFork } from '../tools/theme-loader/resource-fork.js';
+import { KDEF_CONTROL_IDS } from './lib/kdef-control-ids.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Resource ids that matter for a complete baseline.
+// Resource ids that matter for a complete baseline. Window-type ids stay inline
+// (this script's concern); control ids are sourced from the shared catalogue so
+// the lint / audit / completeness check can't drift — same prophylactic as the
+// 2026-05-29 refactor that landed `kdef-control-ids.mjs`. lookupIds carry their
+// canonical signs (`kbutton-face-active` is negative-resource -10239 → 10239
+// positive in the catalogue); we negate here because completeness checks
+// against the raw resource-fork id (negative).
+const neg = (xs) => xs.map((n) => -Math.abs(n));
+const C = KDEF_CONTROL_IDS;
 const CHECKS = [
   ['document window frame', 'wnd#', [-14336, -14335]],
   ['document window cicn', 'cicn', [-14335, -14336]],
   ['utility window', 'wnd#', [-14320, -14316, -14319, -14315]],
-  ['h scrollbar', 'cicn', [-8286]],
-  ['v scrollbar', 'cicn', [-8278]],
+  ['h scrollbar', 'cicn', neg([C.scrollbar.lookupIds[4]])], // -8285
+  ['v scrollbar', 'cicn', neg([C.scrollbar.lookupIds[1]])], // -8278
   ['scroll thumb', 'cicn', [-10206, -10208]],
-  ['push button', 'cicn', [-10239]],
-  ['button ring', 'cicn', [-10231]],
-  ['checkbox', 'cicn', [-9500, -9503]],
-  ['radio', 'cicn', [-9488, -9491]],
+  ['push button', 'cicn', neg([C.button.active])],
+  ['button ring', 'cicn', neg([C.button.ringActive])],
+  ['checkbox', 'cicn', neg(C.checkbox.lookupIds.slice(0, 2))],
+  ['radio', 'cicn', neg(C.radio.lookupIds.slice(0, 2))],
   ['slider', 'cicn', [-10131, -10115]],
-  ['progress', 'cicn', [-10080, -10078]],
+  // Progress: include the role-3-part canonical (-10080/-10078) AND the
+  // lavender 2-part canonical (-10223) so a Platinum-family scheme that
+  // ships only the lavender doesn't read as incomplete (the audit's
+  // progress-bar-hue T1).
+  ['progress', 'cicn', neg([C.progress.frame, C.progress.track, C.progress.lavenderCanonical])],
 ];
 
 function check(label, entries) {
