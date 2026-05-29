@@ -95,6 +95,11 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - `docs/spec/kdef231-recipe-walk.md` — decoded recipe walk (truth).
 - `docs/spec/kdef-faithfulness-ledger.md` — every deliberate divergence from the binary, with intent.
 - `docs/spec/platinum-controls-decode.md` + `platinum-wdef125-decode.md` — Platinum CDEF/WDEF decodes.
+- **`docs/spec/corpus-corroborated-ids.md`** — author-supplied NAMED resource labels aggregated across 17 of 18 bundles (6,842 labels). The **primary source** for "what role does id X play". Refresh: `node scripts/dump-author-hints.mjs`.
+- **`docs/spec/apple-primary-source.md`** — Apple `Appearance.h` / `IconsCore.h` / `MacWindows.h` enum tables (kThemeBrush*, kThemeTextColor*, kThemeWidget*, kGenericFolderIconResource, etc.). The Apple-side role pegs Kaleidoscope schemes were authored against.
+- `docs/spec/kaleidoscope-author-docs.md` — surviving Kaleidoscope-era public docs (Companion + FAQ + Scheme Factory tutorial) with archived Wayback URLs.
+- `docs/spec/kdef182-disassembly-findings.md` — May 2026 Kaleidoscope 1.8.2 binary archaeology. Establishes structural facts: QuickDraw + CopyBits, kDEF themes surroundings + Appearance Manager draws controls, only 4 hardcoded `_GetResource` calls.
+- `docs/spec/apple-appearancelib-spike.md` + `apple-cdef-{geometry,button-geometry}.md` — Apple Mac OS 8.5 System file decompile. DrawThemeButton TVector decoded (thin dispatcher → theme-provider vtable +0xCC, data/drawer split).
 - `docs/theme-bundle-layout.md` — `theme.json` schema.
 - `docs/porting-a-kaleidoscope-scheme.md` — full porting walk-through.
 - `docs/adr/0001` — the consumption-layer architecture decision (CSS-first hybrid, Shadow DOM, `data-scriptoscope-*` front door).
