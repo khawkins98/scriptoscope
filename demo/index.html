@@ -348,20 +348,33 @@
       return [];
     }
 
+    // Picks the 16px icon to show in the info bar's "volume" slot. Lookup order:
+    //   1. ics4/ics8 -3790 — the Mac OS "volume info" icon (12 of 18 corpus
+    //      themes ship one).
+    //   2. ics4/ics8 -14336 — the document-window collapse-widget icon. Schemes
+    //      that don't theme -3790 typically draw a small theme-mark on -14336
+    //      (slimes' tiny slime; apple-platinum-2's monogram; platinum-8's diamond).
+    //      6 of 18 themes use this fallback.
+    //   3. The neutral FINDER_GRID_PNG (Platinum-era grid, sliced from the
+    //      reference screenshot) — only when neither is shipped.
+    // The icon's own transparency is preserved (img element on a coloured / patterned
+    // info bar lets the bar's fill show through the icon's transparent pixels —
+    // owner-spotted on slimes where ics8 -14336 has ~50% transparent pixels).
     const _gridCache = new Map();
     async function gridProxyIcon(theme) {
       if (!_gridCache.has(theme.baseUrl)) {
         _gridCache.set(theme.baseUrl, (async () => {
           const icons = await getIcons(theme);
-          const e = icons.find((i) => i.id === -3790 && i.size === 16);
-          return e?.url ?? null;
+          const at = (id) => icons.find((i) => i.id === id && i.size === 16);
+          const e = at(-3790) ?? at(-14336);
+          return e ? { url: e.url, id: e.id } : null;
         })());
       }
-      const url = await _gridCache.get(theme.baseUrl);
-      if (url) {
+      const hit = await _gridCache.get(theme.baseUrl);
+      if (hit) {
         const img = document.createElement('img');
-        img.src = url;
-        img.title = '-3790 grid (scheme icon)';
+        img.src = hit.url;
+        img.title = `${hit.id} (scheme volume icon)`;
         Object.assign(img.style, { width: '16px', height: '16px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (ics4/ics8 16px)
         return img;
       }
@@ -764,10 +777,13 @@
         //      it points at ppat-129. Reading the structured field beats guessing
         //      ids: 5 of 18 corpus themes carry this.
         //   2. theme.bodyBackground.pattern — the body / Icon-View ppat (from
-        //      cinf -9551). Fallback for themes that don't ship a header cinf;
-        //      most other themed schemes ship one.
-        //   3. Flat #e6e6e6 — for schemes that ship neither (apple-platinum-2,
-        //      platinum-8, the Windows ports, etc.).
+        //      cinf -9551). Fallback for textured schemes that ship a body
+        //      pattern but no header cinf (1984, dolphin-som, floppies).
+        //   3. headerColors.active.fill — the title-bar fill colour, used as a
+        //      SOLID fallback for schemes that ship no ppat but DO carry header
+        //      colours (slimes' bright #d6ff76, the Platinum-family grays, etc).
+        //      10 of 18 corpus themes land here.
+        //   4. Flat #e6e6e6 — no theme currently lands here; kept as a safety net.
         const info = document.createElement('div');
         const _patterns = theme.manifest?.patterns ?? {};
         const _hdrCe = Object.values(theme.manifest?.chromeElements ?? {})
@@ -779,13 +795,14 @@
         const _infoPatUrl = !_infoPat ? null
           : /^(?:blob:|https?:|data:)/.test(_infoPat) ? _infoPat
           : `${theme.baseUrl.replace(/\/$/, '')}/${_infoPat}`;
+        const _infoFillColor = theme.manifest?.headerColors?.active?.fill ?? '#e6e6e6';
         Object.assign(info.style, {
           position: 'absolute', left: '0', top: '0', right: '0', height: '18px',
           boxSizing: 'border-box', padding: '0 4px',
           borderBottom: '1px solid #aaa',
           ...(_infoPatUrl
-            ? { backgroundImage: `url("${_infoPatUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated' }
-            : { background: '#e6e6e6' }),
+            ? { backgroundImage: `url("${_infoPatUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated', backgroundColor: _infoFillColor }
+            : { background: _infoFillColor }),
           display: 'flex', alignItems: 'center', gap: '4px',
           whiteSpace: 'nowrap', overflow: 'hidden',
         });
