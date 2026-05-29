@@ -444,6 +444,13 @@ kind" cost characterisation holds — but now with the dispatch surface fully
 mapped, the open-endedness is just N independent disassemblies, not unknown
 breadth.
 
+**Update — landed by the follow-on pass:** the eight derefs all turned out to
+be in-PEF. See [`platinum-theme-provider-decode.md`](./platinum-theme-provider-decode.md)
+for the resolved vtable (data offset `0xA554`), the button-kind jump table,
+the focus-ring outset constant (3 px), and the **pinned Platinum gray palette**
+(13 grays + the `#6666CC` highlight) read directly from
+`GetThemeBrushAsColor`'s lookup tables.
+
 ---
 
 ## 7. Bottom-line claims that affect our runtime today
