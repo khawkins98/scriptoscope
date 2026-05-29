@@ -49,16 +49,32 @@ if (await exists(resolve(root, 'demo/assets/fonts'))) {
 }
 
 // Canonical theme bundles (themes/<slug>/) — served at /themes/ in dev via
-// the serveThemesPlugin in vite.config.js and copied verbatim here for the
-// gh-pages deploy so loadTheme('/themes/<slug>/') works at production URLs.
-// Copy EVERY bundle (any themes/<slug>/ with a theme.json), so the deployed
-// demo matches the dev demo no matter which schemes are listed.
+// the serveThemesPlugin in vite.config.js and copied here for the gh-pages
+// deploy so loadTheme('/themes/<slug>/') works at production URLs.
+//
+// Option A (2026-05-29): we ship ONLY the source-of-truth files —
+//   scheme.rsrc   (the original Kaleidoscope resource fork, decoded in-browser)
+//   meta.json     (author/origin/license/notes)
+//   PROVENANCE.md (the readme/notes from the upstream archive)
+// — and NOT the pre-extracted derivatives (theme.json, cicns/, ppats/, icons/,
+// resource-roles.json, rasters.json, extraction-manifest.json, diag/). The
+// runtime decodes scheme.rsrc on the fly via loadKaleidoscopeScheme; shipping
+// the derivatives would just bloat the demo download (~3 MB → ~700 KB per theme)
+// and risk re-distributing pre-decoded art the original authors didn't intend
+// to ship as PNGs. A bundle is considered "shippable" iff scheme.rsrc exists.
 const outThemes = resolve(root, 'dist/demo/themes');
 await mkdir(outThemes, { recursive: true });
 const themesDir = resolve(root, 'themes');
+const BUNDLE_SHIP_FILES = ['scheme.rsrc', 'meta.json', 'PROVENANCE.md'];
 for (const slug of await readdir(themesDir)) {
-  if (!(await exists(resolve(themesDir, slug, 'theme.json')))) continue;
-  await copy(resolve(themesDir, slug), resolve(outThemes, slug));
+  const srcDir = resolve(themesDir, slug);
+  if (!(await exists(resolve(srcDir, 'scheme.rsrc')))) continue;
+  const dstDir = resolve(outThemes, slug);
+  await mkdir(dstDir, { recursive: true });
+  for (const f of BUNDLE_SHIP_FILES) {
+    const src = resolve(srcDir, f);
+    if (await exists(src)) await copy(src, resolve(dstDir, f));
+  }
 }
 
 // ── Library files for integrators ──────────────────────────────────────

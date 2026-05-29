@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // scripts/gen-themes-manifest.mjs
 // Emit demo/themes-manifest.json — the gallery's theme list, DERIVED from each
-// bundle (theme.json presence + meta.json provenance + whether a reference
+// bundle (scheme.rsrc presence + meta.json provenance + whether a reference
 // screenshot exists). The demo imports this instead of a hand-maintained THEMES
 // array, so a freshly-imported scheme shows up in the ribbon with NO code edit.
 //
@@ -24,7 +24,7 @@ const refsDir = resolve(root, 'demo/assets/references');
 const entries = [];
 for (const slug of readdirSync(themesDir).sort()) {
   const dir = resolve(themesDir, slug);
-  if (!existsSync(resolve(dir, 'theme.json'))) continue; // a real, extracted bundle
+  if (!existsSync(resolve(dir, 'scheme.rsrc'))) continue; // a real, shippable bundle (Option A: source-of-truth only)
   let meta = {};
   try { meta = JSON.parse(readFileSync(resolve(dir, 'meta.json'), 'utf8')); } catch { /* no meta → derive from slug */ }
 
