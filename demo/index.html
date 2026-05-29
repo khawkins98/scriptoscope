@@ -754,8 +754,27 @@
         // icon + the volume name. Taller than before (~18px) and in a LIGHT face
         // (Geneva, regular weight) — the heavy Charcoal/Chicago is the window TITLE
         // font, not the Finder body text.
+        //
+        // Background: inherit the scheme's body-background pattern (the
+        // decoded `theme.bodyBackground.pattern`) so the bar reads as part of
+        // the window content — that's what the reference screenshots show for
+        // textured schemes like 1990 (army camo) and 1984 (blue cloth). Fall
+        // back to flat gray for schemes that don't ship a body pattern.
         const info = document.createElement('div');
-        Object.assign(info.style, { position: 'absolute', left: '0', top: '0', right: '0', height: '18px', boxSizing: 'border-box', padding: '0 4px', borderBottom: '1px solid #aaa', background: '#e6e6e6', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', overflow: 'hidden' });
+        const _bodyPat = theme.manifest?.bodyBackground?.pattern;
+        const _bodyPatUrl = !_bodyPat ? null
+          : /^(?:blob:|https?:|data:)/.test(_bodyPat) ? _bodyPat
+          : `${theme.baseUrl.replace(/\/$/, '')}/${_bodyPat}`;
+        Object.assign(info.style, {
+          position: 'absolute', left: '0', top: '0', right: '0', height: '18px',
+          boxSizing: 'border-box', padding: '0 4px',
+          borderBottom: '1px solid #aaa',
+          ...(_bodyPatUrl
+            ? { backgroundImage: `url("${_bodyPatUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated' }
+            : { background: '#e6e6e6' }),
+          display: 'flex', alignItems: 'center', gap: '4px',
+          whiteSpace: 'nowrap', overflow: 'hidden',
+        });
         info.appendChild(await gridProxyIcon(theme));
         const vol = document.createElement('span');
         vol.textContent = theme.manifest?.name ?? '';
