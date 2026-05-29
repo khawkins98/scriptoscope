@@ -55,7 +55,21 @@ Plus per-installer dumps of every WDEF / CDEF / MDEF / LDEF / cdev / PACH / Zoom
 
 ### 2. Master service-handler table
 
-At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x118b8, 0x1525a, 0x8d36, 0x28e0, 0x1d3e, 0x17452`. `0x118b8` is the **wnd# dispatcher** entry (loads `'wnd#'` at `0x118e4`, then `'WDEF'` at `0x11918`, then dispatches to the renderer at `0x28e0`). The cinf consumer is `0x116f8` (see § 3).
+At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x118b8, 0x1525a, 0x8d36, 0x28e0, 0x1d3e, 0x17452`. **All 9 roles confirmed** — full per-slot trace in `docs/spec/kdef-service-handlers.md`. Summary:
+
+| slot | addr | role |
+|---:|---:|---|
+| 0 | `0x6688` | CDEF main (push-button family, 32 B `'Acid'` aux) |
+| 1 | `0x997e` | re-entrant CDEF entry (callback-safe, saves `a4` via `0x9930`) |
+| 2 | `0xdd22` | GDevice-aware focus / state helper |
+| 3 | `0x118b8` | wnd# gate (document windows, id `-14336`) → slot 6 on hit; system `'WDEF'` fallback on miss |
+| 4 | `0x1525a` | wnd# gate (utility windows, id `-14304`) → slot 6 with msg-base `+1984` |
+| 5 | `0x8d36` | second CDEF main (scrollbar / slider, 68 B aux) |
+| 6 | `0x28e0` | master compositor dispatcher (msg 1000 = INIT, 1001..1009 verbs) |
+| 7 | `0x1d3e` | WDEF main (35-entry msg table at `0x1d68`, see §1) |
+| 8 | `0x17452` | wnd# gate (popup / tab, id `-12320`) → trampolines to a loaded `'WDEF', -14336` via `jsr a0@` |
+
+The cinf consumer is `0x116f8` (see §3), **NOT** slot 3 `0x118b8` — slot 3 loads `'wnd#'`, not `'cinf'`. (Slots 3, 4, 8 are three parallel wnd#-loading family gates.)
 
 ### 3. cinf load site (2.3.1)
 

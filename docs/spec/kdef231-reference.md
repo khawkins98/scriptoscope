@@ -63,6 +63,8 @@ param)`; on the frame: `fp@(18)`=varCode (→`d4`), `fp@(14)`=ControlHandle
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
 | `0x6688` | `CDEF_main` | CDEF entry: unpack handle, set state-bytes, dispatch on message | reads varCode `fp@18` (low 3 bits = control kind, bit3 = "active" → `fp@(-14)`), `a2@`→ControlRecord; sets `fp@(-16/-15/-14/-13/-4/-2/-1)` precomputed flags | `0x104` (gestalt-ish init), jump table `0x67b6` | `rtd #12` |
+| `0x997e` | **re-entrant CDEF entry** (service-handler slot 1) | callback-safe entry: `_HGetState`/`_HUnlock` brackets the handle; `bsrl 0x9930` saves `a4` globals to a static at `0x992c` so the kDEF can run from a context that hasn't bound globals (Toolbox action proc / Appearance Manager callback) | `fp@(8)`=param, `fp@(12)`=msg, `fp@(14)`=handle; 14-entry msg dispatch at `0x99d8` via `0x148` indexed-table helper; handlers `0xa2b6`/`0xa506`/`0xa1fe`/`0xa678` use `_PtInRgn`/`_GetGDevice`/`_GetCTSeed` | `0x9930`, `0x9d84` pre-call hook, `0x148`, `0x1c46` (`'SMARTSCROLLI'` literal nearby — interop with SmartScroll INIT) | `rtd #12` |
+| `0x8d36` | **second CDEF main** (service-handler slot 5) | scrollbar / slider family; identical dispatch shape to `0x6688` but allocates 68-byte aux on initCntl (`moveq #68,d0; A122` at `0x8df6`), vs the 32-byte `'Acid'` block | aux fields at +14/+20/+22/+26/+28/+30/+32/+34/+38/+40/+42/+44/+46/+48 (value, min, max, page+/–, action proc) | `0x104`, `0x148`, `0x8c88` msg-0 sub | `rtd #12` |
 | `0x67a2` | dispatch | `cmpiw #34,%d0` / `movew %pc@(0x67b6,%d0:w:2),%d0` / `jmp %pc@(0x67b6,%d0:w)` | message 0..34; >34 → `0x6c16` (no-op return) | — | — |
 | `0x67b6` | jump table | 35 int16 offsets, target = `0x67b6 + entry` | see §4-controls below | — | — |
 | `0x6c16` | default/no-op | return path for unhandled messages | — | — | — |
@@ -147,14 +149,36 @@ in `docs/spec/apple-primary-source.md`.
 
 | addr | role | cicn family | notes |
 |---|---|---|---|
+| `0x8d36` | **scrollbar / slider CDEF main** (second CDEF) | `-8278..-8271` etc | service-handler slot 5; 35-entry msg dispatch (matching CDEF protocol), allocates 68-byte aux block on initCntl (vs slot 0's 32). Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x66b4`-region | scrollbar drawer | `-8278..-8271` v / `-8286..-8271` h | per §2.6 (1.8.2-era); `controls.ts` uses these IDs (verified consumer-side) |
+| `0xdd22` | **GDevice-aware focus / state helper** | — | service-handler slot 2; gates draw on 3 ctSeed magics (`'CHTA'`/`'POrg'`/`'CH3D'`); no aux allocate, consumes slot 0's. Full trace: `docs/spec/kdef-service-handlers.md` |
 | `0x788c`/bevel | bevel/checkbox/radio path | `-10232/-10231` mixed | hand-drawn fallback when cicn absent |
-| popup/tab | (msg-routed) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`) |
+| popup/tab | (msg-routed via `0x17452`) | `-12320` frame / `-12319` tab | §2.6 (behavioural `[DOC]`); the kDEF gates these to a loaded `'WDEF', -14336` whose code is called directly (`jsr a0@`) with msg-base 1008 — see `docs/spec/kdef-service-handlers.md` slot 8 |
 
 ### 1.4 Window chrome — load / layout / draw
 
+**The three wnd# gates (service-handler slots 3, 4, 8).** Every themed
+window operation enters the kDEF through one of these three parallel
+`Get1Resource('wnd#', -id)` routers, each scoped to a different window
+family. On hit they hand off to **slot 6 `0x28e0`** — the master
+compositor that owns the routines tabled below. On miss they fall back to
+either a system `'WDEF'` (slots 3, 8) or a private dispatch (slot 4). Full
+slot-by-slot trace: `docs/spec/kdef-service-handlers.md`.
+
+| gate | addr | family | wnd# id loaded | msg base into slot 6 |
+|---|---|---|---:|---:|
+| slot 3 | `0x118b8` | document windows | `-14336` | per `0x28e0` table (1001..1009) |
+| slot 4 | `0x1525a` | utility windows | `-14304` | varCode + 1984 |
+| slot 8 | `0x17452` | popup / tab / menu | `-12320` | varCode + 1008 (trampolined to a loaded `'WDEF', -14336` via `jsr a0@`) |
+
+Slot 6 `0x28e0` is the **master compositor dispatcher** — receives msg
+1000 = INIT (called once at table install) + msgs 1001..1009 (per-side
+recipe walk + draw). Its 9-entry dispatch fans out to the routines below
+(`0x356c`, `0x3680`, `0x3f2c`, `0x41ee`, ...).
+
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
+| `0x28e0` | **master compositor dispatcher** (service-handler slot 6) | window-chrome message router; writes args into `a4@(454/458/460/464)`, dispatches msg-1001 via `0x148` indexed table | `fp@(8)`=param, `fp@(12)`=msg (1000 init / 1001..1009 verbs), `fp@(14)`=handle, `fp@(18)`=varCode | `0x2e02` precompute, `0x41ee`, `0x3f2c`, `0x3ac4`, `0x38fe`, `0x3aa8`, `0x3e6c`, `0x436c`, `0x4924` | `rtd` |
 | `0x356c`-`0x367e` | **wnd# loader + 12-step fallback ladder** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe; full decode + landing table in §3.4.1 | `d3`=window variation code | `$A9A0` GetResource | recipe handle in `a2` |
 | `0x3680`-`0x38c8` | recipe install / resize | copy rect-list → `a4@(1938)`, 4 source side-lists → `a4@(2788/2950/3112/3274)` (162 B stride); loop `s=0..3` calling `0x4a64` | rect-list count `a4@(1938)`; stride = `10*count+12` bytes | `0x4a64` | — |
 | `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = `a4@(500) && a4@(0x1f9) && !a4@(0x1f0)` | cinf widget flags | — | bool in `d0` |

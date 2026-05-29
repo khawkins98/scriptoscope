@@ -348,9 +348,12 @@ function probeHeaderBadge(scheme, ref) {
   const ru = matches[1];
   const distMargin = ru ? ru.distance - best.distance : Infinity;
   const lowConfidence = xPct > 25 || best.distance > 100 || distMargin < 10;
-  // Export the anchor for downstream slot probes. Even when confidence=low,
-  // the anchor is usually still in the right NEIGHBOURHOOD — downstream slots
-  // tolerate ±20% offset because they sample relative regions, not exact pixels.
+  // Export the anchor for downstream slot probes. When the badge probe itself
+  // had low confidence (xPct>25, weak margin, OR a perfect d=0 that coincided
+  // with a non-badge widget — apple-lisa's grid badge art happens to be
+  // identical to its dialog close box), every downstream slot inherits that
+  // uncertainty and CANNOT be trusted. The `anchorConfidence` field
+  // propagates the gate.
   return {
     runtime_tier: runtime,
     verified_tier: best.name,
@@ -360,6 +363,7 @@ function probeHeaderBadge(scheme, ref) {
     anchor: {
       x: best.x, y: best.y, scale: best.scale,
       w: best.candWidth * best.scale, h: best.candHeight * best.scale,
+      confidence: lowConfidence ? 'low' : 'ok',
     },
   };
 }
@@ -385,11 +389,13 @@ function probeInfoBarBg(scheme, ref, anchor) {
   const padX = anchor.w * 0.4; // small horizontal gap past the badge edge
   const xa = anchor.x + anchor.w + padX;
   const xb = Math.min(ref.width, anchor.x + anchor.w * 6); // a couple of badge-widths of strip
-  // Sample the FULL vertical band of the badge (anchor.y..anchor.y+anchor.h) —
-  // the bar background occupies the same row. Shrink slightly to avoid edge
-  // anti-aliasing.
-  const ya = anchor.y + anchor.h * 0.2;
-  const yb = anchor.y + anchor.h * 0.8;
+  // Sample only the MIDDLE THIRD of the badge's vertical band — the bar may
+  // be tighter than the badge cell (slimes: ref shows an ~8px strip with the
+  // badge centred; at 2x scale the badge cell is 26px tall but the actual
+  // strip extends from y~160 to y~170, so a y-band of badge.h*0.2..0.8 spills
+  // into the body bg below).
+  const ya = anchor.y + anchor.h * 0.35;
+  const yb = anchor.y + anchor.h * 0.65;
   const sampled = meanRgbOfRegion(ref, xa, ya, xb, yb);
   if (!sampled) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no opaque pixels in sample region' };
 
@@ -435,14 +441,16 @@ function probeInfoBarBg(scheme, ref, anchor) {
   // so 60-90 is realistic for a textured ppat.
   const sortedByDist = [...candidates].map((c) => ({ ...c, d: rgbDist(c.mean, sampled) })).sort((a, b) => a.d - b.d);
   const margin = sortedByDist.length > 1 ? sortedByDist[1].d - sortedByDist[0].d : Infinity;
-  const lowConf = bestD > 90 || margin < 10;
+  // Anchor confidence taints downstream: if the badge probe was uncertain, this
+  // slot is uncertain — the sampling region depended on it.
+  const lowConf = bestD > 90 || margin < 10 || anchor?.confidence === 'low';
 
   return {
     runtime_tier: runtime.name,
     verified_tier: best.name,
     agree: runtime.name === best.name,
     confidence: lowConf ? 'low' : 'ok',
-    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${bestD.toFixed(0)} margin=${margin.toFixed(0)}`,
+    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${bestD.toFixed(0)} margin=${margin.toFixed(0)}${anchor?.confidence === 'low' ? ' [anchor low]' : ''}`,
     sampled,
     candidates: sortedByDist,
   };
@@ -513,14 +521,14 @@ function probeDialogBodyBg(scheme, ref, anchor) {
   const sortedByDist = candidates.map((c) => ({ ...c, d: rgbDist(c.mean, sampled) })).sort((a, b) => a.d - b.d);
   const best = sortedByDist[0];
   const margin = sortedByDist.length > 1 ? sortedByDist[1].d - sortedByDist[0].d : Infinity;
-  const lowConf = best.d > 90 || margin < 10;
+  const lowConf = best.d > 90 || margin < 10 || anchor?.confidence === 'low';
 
   return {
     runtime_tier: runtime.name,
     verified_tier: best.name,
     agree: runtime.name === best.name,
     confidence: lowConf ? 'low' : 'ok',
-    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${best.d.toFixed(0)} margin=${margin.toFixed(0)}`,
+    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${best.d.toFixed(0)} margin=${margin.toFixed(0)}${anchor?.confidence === 'low' ? ' [anchor low]' : ''}`,
     sampled,
     candidates: sortedByDist,
   };
@@ -560,14 +568,14 @@ function probeWindowBodyBg(scheme, ref, anchor) {
   const sortedByDist = candidates.map((c) => ({ ...c, d: rgbDist(c.mean, sampled) })).sort((a, b) => a.d - b.d);
   const best = sortedByDist[0];
   const margin = sortedByDist.length > 1 ? sortedByDist[1].d - sortedByDist[0].d : Infinity;
-  const lowConf = best.d > 90 || margin < 10;
+  const lowConf = best.d > 90 || margin < 10 || anchor?.confidence === 'low';
 
   return {
     runtime_tier: runtime.name,
     verified_tier: best.name,
     agree: runtime.name === best.name,
     confidence: lowConf ? 'low' : 'ok',
-    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${best.d.toFixed(0)} margin=${margin.toFixed(0)}`,
+    notes: `sampled=rgb(${sampled[0].toFixed(0)},${sampled[1].toFixed(0)},${sampled[2].toFixed(0)}) bestD=${best.d.toFixed(0)} margin=${margin.toFixed(0)}${anchor?.confidence === 'low' ? ' [anchor low]' : ''}`,
     sampled,
     candidates: sortedByDist,
   };
@@ -739,13 +747,13 @@ function probeFolderIcons(scheme, ref, anchor) {
   // Strict confidence: only "ok" when the match is very tight (<60) and the
   // margin is decisive (>30). Painterly refs never qualify, which is correct
   // — the painterly art isn't the bundle's icon set.
-  const lowConf = best.distance > 60 || distMargin < 30;
+  const lowConf = best.distance > 60 || distMargin < 30 || anchor?.confidence === 'low';
   return {
     runtime_tier: runtime,
     verified_tier: best.name,
     agree,
     confidence: lowConf ? 'low' : 'ok',
-    notes: `d=${best.distance.toFixed(1)} @${best.x},${best.y} ${best.scale}x; ru=${ru ? ru.name + '/d=' + ru.distance.toFixed(1) : '-'}`,
+    notes: `d=${best.distance.toFixed(1)} @${best.x},${best.y} ${best.scale}x; ru=${ru ? ru.name + '/d=' + ru.distance.toFixed(1) : '-'}${anchor?.confidence === 'low' ? ' [anchor low]' : ''}`,
   };
 }
 
@@ -782,21 +790,34 @@ function probeInfoBarTextColor(scheme, ref, anchor) {
   if (totalN < 10) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'too few sampled pixels' };
   const bgLum = midN > 0 ? luminance([midR / midN, midG / midN, midB / midN]) : null;
 
-  // The text is the MINORITY extreme cluster (text occupies ~10-20% of a text-
-  // bar region; bg occupies the rest). Pick whichever of dark/light has more
-  // pixels than the OTHER extreme — that's the text.
-  // If both are present in significant numbers, the text is the cluster on
-  // the OPPOSITE side of the bg luminance (text contrasts AGAINST bg).
+  // The text is one of the extreme luminance clusters; the BG is everything
+  // else. Rules for picking which extreme is text:
+  //   - If only ONE extreme is present, that's text.
+  //   - If BOTH extremes are present, the text is the one on the side OPPOSITE
+  //     the BG (text contrasts against bg). If bg luminance isn't determinable
+  //     (no mid cluster — happens when bg is one of the extremes), the
+  //     LARGER cluster IS the bg and the text is the SMALLER one.
+  //   - This corrects the previous "pick whichever has more contrast vs bg"
+  //     rule, which failed on platinum-8 (light-gray bg, black text, sampled
+  //     region also caught the dialog overlap → bgLum=116<128 → mistakenly
+  //     called text "white").
   let textColor;
   const minCluster = Math.max(4, totalN * 0.003);
   if (darkN >= minCluster && lightN < minCluster) textColor = 'black';
   else if (lightN >= minCluster && darkN < minCluster) textColor = 'white';
   else if (darkN >= minCluster && lightN >= minCluster) {
-    // Both extremes present (e.g. white bg with black text + some specular
-    // highlights, OR dark bg with white text + some shadow accents). The text
-    // sits on the side OPPOSITE the bg luminance.
-    if (bgLum === null) textColor = darkN > lightN ? 'black' : 'white';
-    else textColor = bgLum < 128 ? 'white' : 'black';
+    if (bgLum === null) {
+      // No mid cluster — one extreme IS the bg. The minority extreme is text.
+      textColor = darkN < lightN ? 'black' : 'white';
+    } else if (midN > Math.max(darkN, lightN)) {
+      // Mid cluster dominates — bg is the mid color. Text is whichever extreme
+      // sits opposite bg luminance.
+      textColor = bgLum < 128 ? 'white' : 'black';
+    } else {
+      // Mid cluster is present but smaller than at least one extreme — that
+      // extreme IS the bg, the other is the text. Pick the minority extreme.
+      textColor = darkN < lightN ? 'black' : 'white';
+    }
   } else {
     return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: `no text cluster (darkN=${darkN}, lightN=${lightN}, mid=${midN})` };
   }
@@ -824,14 +845,16 @@ function probeInfoBarTextColor(scheme, ref, anchor) {
   // Confidence: low when both extreme clusters are close in count (ambiguous
   // — could be either) OR when the minority is tiny.
   const ratio = Math.max(darkN, lightN) / Math.max(1, Math.min(darkN, lightN));
-  const lowConf = (darkN > minCluster && lightN > minCluster && ratio < 2) || (darkN + lightN < totalN * 0.01);
+  const lowConf = (darkN > minCluster && lightN > minCluster && ratio < 2)
+    || (darkN + lightN < totalN * 0.01)
+    || anchor?.confidence === 'low';
 
   return {
     runtime_tier: runtime,
     verified_tier: textColor,
     agree: runtime === textColor,
     confidence: lowConf ? 'low' : 'ok',
-    notes: `bgLum=${bgLum?.toFixed(0) ?? '?'} darkN=${darkN} lightN=${lightN} mid=${midN}`,
+    notes: `bgLum=${bgLum?.toFixed(0) ?? '?'} darkN=${darkN} lightN=${lightN} mid=${midN}${anchor?.confidence === 'low' ? ' [anchor low]' : ''}`,
   };
 }
 
