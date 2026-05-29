@@ -122,6 +122,77 @@ const SLOTS = [
     ],
   },
   {
+    key: 'dialog-body-bg',
+    label: 'Dialog (no-title-utility-window) body background',
+    where: 'demo/index.html buildScene Options dialog',
+    terminalIsAcceptable: true, // flat fill is a fine default for a utility dialog
+    tiers: [
+      {
+        name: 'utility-pattern',
+        why: 'ppat -9568 / utility-pattern slug — the classic Mac utility-window tile',
+        resolve: (m) => {
+          const p = m.patterns?.['utility-pattern']?.asset ?? m.patterns?.['ppat--9568']?.asset;
+          return p ? `utility-pattern → ${p}` : null;
+        },
+      },
+      {
+        name: 'headerFill',
+        why: 'solid colour from the active title-bar fill — for schemes shipping no utility ppat',
+        resolve: (m) => m.headerColors?.active?.fill ? `headerColors.active.fill → ${m.headerColors.active.fill}` : null,
+      },
+      { name: 'flat #ececec', why: 'neutral fallback', resolve: () => 'flat #ececec' },
+    ],
+  },
+  {
+    key: 'info-bar-text-color',
+    label: 'Info-bar volume-label text color',
+    where: 'demo/index.html buildScene volume span',
+    terminalIsAcceptable: false, // hard-coded black is a regression risk on dark info bars
+    tiers: [
+      {
+        name: 'contrast-pick',
+        why: 'sample the resolved info-bar bg luminance + pick #fff / #000 for contrast — always available',
+        resolve: (m) => m.headerColors?.active?.fill ? `contrast-pick vs headerColors.active.fill (${m.headerColors.active.fill})` : null,
+      },
+      { name: 'flat #000', why: 'hardcoded fallback — illegible on dark info bars', resolve: () => 'flat #000' },
+    ],
+  },
+  {
+    key: 'progress-bar-hue',
+    label: 'Progress-bar accent hue',
+    where: 'src/controls.ts composeProgress (currently always lavender / role-3-part)',
+    terminalIsAcceptable: true, // lavender canonical is a fine default
+    tiers: [
+      {
+        name: 'role-3-part frame/fill/track',
+        why: 'schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar',
+        resolve: (m) => {
+          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
+          return (has(-10080) && has(-10079) && has(-10078)) ? 'role-3-part (-10080/-10079/-10078)' : null;
+        },
+      },
+      {
+        name: 'lavender 2-part canonical',
+        why: 'shipped -10223 / -10224 — the kDEF default lavender progress',
+        resolve: (m) => {
+          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
+          return has(-10223) ? 'lavender canonical (-10223)' : null;
+        },
+      },
+      {
+        name: 'multi-hue',
+        why: 'scheme ships 3+ alternate hues — runtime could expose a picker, currently picks default',
+        resolve: (m) => {
+          const ids = Object.values(m.chromeElements ?? {})
+            .map((v) => v.sourceCicnId)
+            .filter((id) => typeof id === 'number' && Math.abs(id) >= 10071 && Math.abs(id) <= 10080);
+          return ids.length >= 3 ? `${ids.length} hue cicns shipped (variant picker candidate)` : null;
+        },
+      },
+      { name: 'procedural Platinum', why: 'no progress cicn → platinumProgress fallback', resolve: () => 'procedural' },
+    ],
+  },
+  {
     key: 'folder-scene-icons',
     label: 'Folder/scene icons inside the body',
     where: 'demo/index.html schemeIcons',

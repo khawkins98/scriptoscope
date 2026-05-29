@@ -364,10 +364,34 @@ export async function renderWindow(
         if (pa < 8) continue;
         lumSum += 0.299 * pr + 0.587 * pg + 0.114 * pb; lumN++;
       }
-      const darkBar = lumN > 0 && lumSum / lumN < 112;
-      const fgHex = darkBar
-        ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
-        : (state === 'inactive' ? '#808080' : '#000000');
+      // Title colour priority:
+      //   1. The AUTHORED colour from the kDEF title-text marker (`0x5530`) — the
+      //      cicn pixel at (titleFillSrcX, midY-of-marker-band), sampled by
+      //      composeChrome. Faithful per-scheme; no luminance guess. Current
+      //      corpus has no scheme that ships this with a non-black/non-white
+      //      authored colour, so the practical effect today is a no-op — but
+      //      future imports with a coloured marker will be respected.
+      //   2. Luminance-contrast B/W on the composed bar's pixels (the fallback
+      //      path; what every render currently uses).
+      // Active windows take the authored colour at full saturation; inactive ones
+      // dim it toward grey to match the classic Mac convention.
+      const authored = composed.titleFillRgb;
+      let fgHex: string;
+      if (authored) {
+        const hex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+        if (state === 'inactive') {
+          // Mix 50% toward #808080 — the classic inactive dim.
+          const r = (authored.r + 128) / 2, g = (authored.g + 128) / 2, b = (authored.b + 128) / 2;
+          fgHex = `#${hex(r)}${hex(g)}${hex(b)}`;
+        } else {
+          fgHex = `#${hex(authored.r)}${hex(authored.g)}${hex(authored.b)}`;
+        }
+      } else {
+        const darkBar = lumN > 0 && lumSum / lumN < 112;
+        fgHex = darkBar
+          ? (state === 'inactive' ? '#bcbcbc' : '#ffffff')
+          : (state === 'inactive' ? '#808080' : '#000000');
+      }
       const g = fgHex === '#000000' ? baseGlyphs : (rasterizeTitleFont(dispTitle, textH, fgHex) ?? rasterizeText(dispTitle, textH, fgHex));
       const gx = Math.max(1, Math.min(fullWidth - g.width - 1, Math.round(cx - g.width / 2)));
       const gy = Math.max(1, Math.min(frame.top - g.height - 1, Math.round(titleMidY - g.height / 2)));

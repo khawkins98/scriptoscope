@@ -305,17 +305,35 @@ export async function composeScrollbar(
   let trackLen = length;
 
   if (composite) {
-    const end = Math.min(thickness, Math.floor((longSrc - 1) / 2));
+    // Read the artist's authored answer from the cinf when present (slice.corner
+    // for the end-cap thickness, slice.tile for middle-band repeat vs stretch).
+    // Mirrors composeFaceButton / composeProgress / composeTab — same shape, same
+    // failure mode: stretching a pixel-rate tile pattern smears it at long lengths.
+    const trackEl = elementById(theme, wantId);
+    const end = trackEl?.slice?.corner ?? Math.min(thickness, Math.floor((longSrc - 1) / 2));
+    const tileMid = !!trackEl?.slice?.tile;
     const mid = longSrc - end * 2;
     const dmid = length - end * 2;
+    const drawMid = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
+      if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+      if (!tileMid) { out.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
+      // Tile mode: repeat the source slab across the destination axis at 1:1.
+      const axisLen = horiz ? dw : dh;
+      const slab = horiz ? sw : sh;
+      for (let t = 0; t < axisLen; t += slab) {
+        const r = Math.min(slab, axisLen - t);
+        if (horiz) out.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
+        else        out.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
+      }
+    };
     if (horiz) {
       out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
       out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
-      out.copyBits(track, { x: end, y: 0, w: mid, h: thickness }, { x: end, y: 0, w: dmid, h: thickness });
+      drawMid(end, 0, mid, thickness, end, 0, dmid, thickness);
     } else {
       out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
       out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
-      out.copyBits(track, { x: 0, y: end, w: thickness, h: mid }, { x: 0, y: end, w: thickness, h: dmid });
+      drawMid(0, end, thickness, mid, 0, end, thickness, dmid);
     }
     trackStart = end;
     trackLen = Math.max(0, length - end * 2);
@@ -500,19 +518,34 @@ export async function composeSlider(
   const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
 
   // groove: 3-slice along the axis — keep the rounded end caps 1:1, stretch
-  // the uniform middle. (Full-stretch would smear the caps.) Cap width is a
-  // few px; clamp so two caps fit.
-  const end = Math.min(6, Math.floor((longSrc - 1) / 2));
+  // OR TILE the uniform middle per the cinf's slice.tile. (Full-stretch would
+  // smear the caps; tiling preserves pixel-rate detail at long lengths.)
+  // Read the cinf's slice.corner for the cap thickness; fall back to the
+  // historical 6-clamp.
+  const trackEl = elementById(theme, tId);
+  const end = trackEl?.slice?.corner ?? Math.min(6, Math.floor((longSrc - 1) / 2));
+  const tileMid = !!trackEl?.slice?.tile;
   const mid = longSrc - end * 2;
   const dmid = length - end * 2;
+  const drawMid = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
+    if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+    if (!tileMid) { out.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
+    const axisLen = horiz ? dw : dh;
+    const slab = horiz ? sw : sh;
+    for (let t = 0; t < axisLen; t += slab) {
+      const r = Math.min(slab, axisLen - t);
+      if (horiz) out.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
+      else        out.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
+    }
+  };
   if (horiz) {
     out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
     out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
-    out.copyBits(track, { x: end, y: 0, w: mid, h: thickness }, { x: end, y: 0, w: dmid, h: thickness });
+    drawMid(end, 0, mid, thickness, end, 0, dmid, thickness);
   } else {
     out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
     out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
-    out.copyBits(track, { x: 0, y: end, w: thickness, h: mid }, { x: 0, y: end, w: thickness, h: dmid });
+    drawMid(0, end, thickness, mid, 0, end, thickness, dmid);
   }
 
   // thumb: pick the state row from the sprite sheet, stamp at value
@@ -609,9 +642,10 @@ export interface TabOptions {
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
   const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
   let tab: PixelBuffer | null = null;
+  let pickedId = -1;
   for (const id of ids) {
     tab = await loadById(theme, id);
-    if (tab) break;
+    if (tab) { pickedId = id; break; }
   }
   if (!tab) return null;
   const b = opaqueBounds(tab);
@@ -635,14 +669,33 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
 
   const label = opts.label ?? '';
   const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(bh * 0.42)), fg) : null;
-  const cap = Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
+  // Prefer cinf-declared slice.corner for the end-cap thickness; fall back to the
+  // historical clamp when no cinf was shipped. Same shape as composeFaceButton /
+  // composeProgress — read the artist's authored answer rather than the heuristic.
+  const tabEl = elementById(theme, pickedId);
+  const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
   const outW = Math.max(bw, (glyphs ? glyphs.width : 0) + cap * 2 + 6);
   const out = PixelBuffer.alloc(outW, bh);
+  const tileMiddle = !!tabEl?.slice?.tile;
 
-  // 3-slice the tab box across its width: fixed ends 1:1, stretched middle.
+  // 3-slice the tab box across its width: fixed ends 1:1, stretched OR tiled middle
+  // depending on the cinf slice.tile flag. Crayon-os's tab cicns ship slice.tile:true
+  // so the artist's pixel-rate pattern is preserved instead of smeared.
   out.copyBits(tab, { x: b.x0, y: b.y0, w: cap, h: bh }, { x: 0, y: 0, w: cap, h: bh });
   out.copyBits(tab, { x: b.x1 - cap + 1, y: b.y0, w: cap, h: bh }, { x: outW - cap, y: 0, w: cap, h: bh });
-  out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w: bw - cap * 2, h: bh }, { x: cap, y: 0, w: outW - cap * 2, h: bh });
+  const midSrcW = bw - cap * 2;
+  const midDstW = outW - cap * 2;
+  if (midSrcW > 0 && midDstW > 0) {
+    if (tileMiddle) {
+      // Repeat the source middle band 1:1 across the destination.
+      for (let tx = 0; tx < midDstW; tx += midSrcW) {
+        const w = Math.min(midSrcW, midDstW - tx);
+        out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w, h: bh }, { x: cap + tx, y: 0, w, h: bh });
+      }
+    } else {
+      out.copyBits(tab, { x: b.x0 + cap, y: b.y0, w: midSrcW, h: bh }, { x: cap, y: 0, w: midDstW, h: bh });
+    }
+  }
   // The body label sits slightly below center (the trapezoid's top is the bevel).
   if (glyphs) out.drawOver(glyphs, Math.round((outW - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2) + 1);
   return out;
@@ -735,10 +788,14 @@ export async function composeProgress(
   const h = frame ? frame.height : track!.height;
   const out = PixelBuffer.alloc(length, h);
 
-  // The frame is a border ring with a transparent interior; its border
-  // thickness (the inset where alpha drops out) sets where the track/fill
-  // live and the 9-slice corner size. Measure it from the cicn itself.
-  const border = frame ? frameBorder(frame) : 1;
+  // The frame is a border ring with a transparent interior; its border thickness
+  // (the inset where alpha drops out) sets where the track/fill live. Prefer the
+  // cinf-decoded `slice.corner` when present (the artist's authored answer); fall
+  // back to the pixel-scan only when no cinf was shipped. Same shape as the just-
+  // landed `composeFaceButton` / `composeButton` ring fix — the cinf is the
+  // source of truth, the pixel scan is a heuristic that drifts from artist intent.
+  const frameEl = elementById(theme, active ? 10080 : 10077);
+  const border = frameEl?.slice?.corner ?? (frame ? frameBorder(frame) : 1);
   const ix = border;
   const iw = Math.max(0, length - border * 2);
   const iy = border;
@@ -754,7 +811,9 @@ export async function composeProgress(
   //    have a transparent interior (track shows through), others an opaque
   //    one (1984 is solid white) — either way the fill goes on TOP next.
   if (frame) {
-    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h });
+    // Honour the cinf-declared slice.tile (same as composeFaceButton / composeButton ring).
+    const frameMode = frameEl?.slice?.tile ? 'tile' : 'stretch';
+    out.nineSlice(frame, { x: 0, y: 0, w: frame.width, h: frame.height }, { l: border, t: border, r: border, b: border }, { x: 0, y: 0, w: length, h }, frameMode);
   }
 
   // 3) fill across 0..value of the interior, ON TOP of the frame — 3-slice

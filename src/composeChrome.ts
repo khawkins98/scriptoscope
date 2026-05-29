@@ -628,6 +628,14 @@ export interface ComposedChrome {
    * renderWindow.ts uses the declared header text colour in that case.
    */
   titleFillSrcX: number;
+  /**
+   * Sampled RGB at the kDEF title-text marker — the cicn pixel at
+   * (titleFillSrcX, midY-of-marker-band). Faithful per-scheme title colour;
+   * the `0x5530` mechanism the long-tracking title-colour note flags. Null when
+   * no marker (or the sampled pixel was transparent); renderWindow falls back
+   * to its luminance-contrast B/W pick in that case.
+   */
+  titleFillRgb?: { r: number; g: number; b: number; a: number } | null;
   /** Slice-by-slice placement map for the diagnostic inspector. */
   placement: PlacementSlice[];
   /**
@@ -794,5 +802,17 @@ export function composeWindowChrome(
       : {}),
   };
   const titleFillSrcX = cinf?.textPixel ? cinf.textPixel[0] : titleMarkerX;
-  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, placement };
+  // Sample the AUTHORED title-text RGB at the marker — `0x5530` in the kDEF: the
+  // cicn column at titleFillSrcX, the y in the middle of the marker band. Returned
+  // alongside the marker x so renderWindow can paint the title in the scheme's
+  // declared colour without going through the (lossy) composed-buffer luminance pick.
+  // Falls back to {-1, transparent} when no marker exists; callers keep their
+  // luminance-contrast fallback in that case.
+  let titleFillRgb: { r: number; g: number; b: number; a: number } | null = null;
+  if (titleFillSrcX >= 0 && titleMarkerY1 > titleMarkerY0 && titleFillSrcX < cicn.width) {
+    const sy = Math.max(0, Math.min(cicn.height - 1, Math.floor((titleMarkerY0 + titleMarkerY1) / 2)));
+    const [r, g, b, a] = cicn.getPixel(titleFillSrcX, sy);
+    if (a > 0) titleFillRgb = { r, g, b, a };
+  }
+  return { buffer: out, frame, fullWidth: fullW, fullHeight: fullH, titleRegion, titleFillSrcX, titleFillRgb, placement };
 }

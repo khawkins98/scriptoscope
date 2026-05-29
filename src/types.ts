@@ -133,6 +133,34 @@ export interface ChromeElement {
    * in-memory load path; see controls.ts:elementById).
    */
   sourceCicnId?: number;
+  /**
+   * Peer of `sourceCicnId`: the cinf RESOURCE ID this element's slice / anchor /
+   * bgPattern metadata decoded from. Lets the runtime jump from a chromeElement to
+   * its sibling cinf for spec lookups without re-scanning the manifest. Decoded by
+   * `tools/theme-loader/buildThemeJson.js`.
+   */
+  sourceCinfId?: number;
+  /**
+   * The scheme-author-declared background pattern for this chromeElement, as a key
+   * into `manifest.patterns`. Example: cinf -9567 (finder-header) carries
+   * `bgPattern: 'ppat--9567'` or `'ppat-129'` depending on the scheme (monkey-paradise
+   * points at its custom positive-id ppat). The runtime resolves to `patterns[key].asset`.
+   */
+  bgPattern?: string | null;
+  /**
+   * The cinf-declared `(x, y)` anchor for tiling this element's bgPattern (TMPL 129
+   * `bgPixel`). Tile origin offsets propagate when a scheme wants the ppat to align
+   * to a specific feature of the cicn (e.g. a list-header's column seam). Default
+   * is `(0, 0)` — that's what unconsumed callsites currently assume.
+   */
+  bgAnchor?: [number, number] | null;
+  /**
+   * The cinf-declared `(x, y)` anchor for embossing this element's label highlight /
+   * shadow (TMPL 129 `embossPixel`). Used by labelled controls whose label sits over
+   * a beveled surface (the bevel buttons + list-header cells). Today no consumer
+   * reads it; an embossed-label scheme would render flat without it.
+   */
+  embossAnchor?: [number, number] | null;
 }
 
 export interface Palette {
@@ -172,6 +200,15 @@ export interface ThemeManifest {
    * runtime tiles behind window content. Absent → OS default (white).
    */
   bodyBackground?: { pattern?: string };
+  /**
+   * Catalog of every decoded ppat the scheme ships, keyed by SLUG (e.g.
+   * `'desktop-pattern'`, `'utility-pattern'`, `'manilla-for-everything'`) or by
+   * `ppat-<id>` for unnamed entries (`'ppat--9567'`, `'ppat-129'`). Each value's
+   * `asset` is the bundle-relative path the runtime tiles. Chromeelements'
+   * `bgPattern` field references these keys; the demo + future per-slot lookups
+   * resolve through this map. Always present (may be empty for slim schemes).
+   */
+  patterns?: Record<string, { asset: string }>;
 }
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */
