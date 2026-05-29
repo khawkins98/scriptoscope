@@ -77,11 +77,11 @@ const CANONICAL_ID_TO_SLUG: Record<number, string> = {
   [-14324]: 'movable-modal',
   [-14322]: 'movable-alert',
   [-14304]: 'titled-utility-window',
-  [-14300]: 'collapsed-titled-utility',
+  [-14300]: 'collapsed-titled-utility-window',
   [-14296]: 'side-floating-utility-window',
-  [-14292]: 'collapsed-side-utility',
+  [-14292]: 'collapsed-side-floating-utility-window',
   [-14288]: 'no-title-utility-window',
-  [-14284]: 'collapsed-no-title-utility',
+  [-14284]: 'collapsed-no-title-utility-window',
   [-12320]: 'popup-window',
 };
 

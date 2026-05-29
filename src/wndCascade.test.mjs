@@ -50,17 +50,17 @@ test('cascadeFallbackIds: non-canonical id (e.g. -9999) drops out with whatever 
 
 // ── Slug-space landings (the runtime's resolver consumes these) ─────────────
 
-test('cascadeFallbackSlugs: collapsed-side-utility → [side-floating-utility, titled-utility]', () => {
+test('cascadeFallbackSlugs: collapsed-side-floating-utility-window → [side-floating-utility-window, titled-utility-window]', () => {
   assert.deepEqual(
-    cascadeFallbackSlugs('collapsed-side-utility'),
+    cascadeFallbackSlugs('collapsed-side-floating-utility-window'),
     ['side-floating-utility-window', 'titled-utility-window'],
   );
 });
 
-test('cascadeFallbackSlugs: collapsed-no-title-utility unrolls the full utility chain', () => {
+test('cascadeFallbackSlugs: collapsed-no-title-utility-window unrolls the full utility chain', () => {
   assert.deepEqual(
-    cascadeFallbackSlugs('collapsed-no-title-utility'),
-    ['no-title-utility-window', 'collapsed-titled-utility', 'titled-utility-window'],
+    cascadeFallbackSlugs('collapsed-no-title-utility-window'),
+    ['no-title-utility-window', 'collapsed-titled-utility-window', 'titled-utility-window'],
   );
 });
 
