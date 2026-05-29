@@ -161,6 +161,16 @@ When asked for an icon at a destination rectangle, PlotIconID picks **WITHIN fam
 
 This means our codex tier hierarchies that fall back "from -3790 to -14336" have **no Apple precedent** — they were our invention to cover slots Apple's Finder source would have filled by other means we don't have access to. The reference-image pixel-probe (`scripts/probe-reference-slot.mjs`) is the way to verify what the Finder actually did.
 
+## Local primary-source decompile work
+
+Three companion docs in `docs/spec/` cover the Apple-side reverse-engineering already done locally:
+
+- **`apple-appearancelib-spike.md`** — AppearanceLib container located in `85-System.bin` (offset 2428848). `DrawThemeButton` decompiled (TVector → code @ 0x2ee4): it's a THIN DISPATCHER on a theme-provider object's vtable +0xCC. Confirms Apple's data/drawer split — exactly the architecture our Phase-B procedural control generator mirrors.
+- **`apple-cdef-geometry.md`** — Apple Mac OS 8.5 CDEF -63 (track family) decoded geometry.
+- **`apple-cdef-button-geometry.md`** — Apple Mac OS 8.5 CDEF -1 (button family) decoded geometry.
+
+These are the **on-disk Apple-side decompile artifacts** from prior reverse-engineering sessions (May 2026). The raw binaries live in `.scratch/iso-recon/` (gitignored): `code-out/CDEF-n1.asm`, `code-out/WDEF-125.asm`, `wdef125_decomp.c`, `pef-decompress.py` (the PEF data-section decompressor), `85-System.bin` extracted via `macbin-resfork.mjs`.
+
 ## Citation sources
 
 The constants in this file are verifiable in primary-source code:

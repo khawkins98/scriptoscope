@@ -598,6 +598,11 @@ authoritative role label for cross-talk with Inside Macintosh / Carbon docs.
 - **`docs/spec/kaleidoscope-author-docs.md`** — surviving public-web
   Kaleidoscope-era community docs (Companion / FAQ / Scheme Factory tutorial)
   with archived Wayback URLs.
+- **`docs/spec/kdef182-disassembly-findings.md`** — the 1.8.2 binary
+  archaeology pass (May 2026). Establishes the structural facts that hold
+  across 1.8.2 + 2.3.1: QuickDraw + CopyBits (no custom blitter); Kaleidoscope
+  themes the surroundings, the OS Appearance Manager draws controls; only 4
+  hardcoded `_GetResource` calls in the kDEF (the rest are table-driven).
 - **`scripts/dump-author-hints.mjs`** — regenerates the corpus table.
 - **`scripts/probe-reference-slot.mjs`** — pixel-matches bundle reference
   PNGs against candidate icons. The verification mechanism for Finder UI

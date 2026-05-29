@@ -327,16 +327,19 @@
       folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
     };
 
-    // The Finder volume-header grid/proxy glyph for schemes that don't bundle -3790
-    // (system7-nostalgia-silver / apple-platinum-2 / platinum-8 expect a built-in
-    // Finder icon they don't ship). SLICED from the system7-nostalgia-silver REFERENCE
-    // screenshot (the real Platinum-era grid: 13×13 gray frame, cells made transparent
-    // so it composites onto any info-bar colour) rather than hand-drawn — owner-directed.
+    // The Finder window-header badge (system default — "Snap-To-Grid" / "Arrange By"
+    // pictogram) for schemes that don't ship -3790. SLICED from the system7-nostalgia-
+    // silver REFERENCE screenshot (the real Platinum-era grid: 13×13 gray frame, cells
+    // made transparent so it composites onto any info-bar colour). NOT a volume icon —
+    // -3790 is the Finder header's snap-to-grid badge (corpus authors label it
+    // "Snap-To-Grid" / "Grid Arrangement"; see docs/spec/corpus-corroborated-ids.md +
+    // docs/scene-slot-spec.md `finder-header-badge`).
     const FINDER_GRID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANAgAAAAAdMKMBAAAAAnRSTlMAA++anIIAAAABb3JOVAHPoneaAAAAFUlEQVQI12NYtWpVA8P+/fuRCVLEAGm6Ip4agi9NAAAAAElFTkSuQmCC';
 
-    // The volume-header grid/proxy icon: the scheme's OWN -3790 (16px ics4/ics8)
-    // where it ships one, else the grid sliced from the reference screenshot
-    // (FINDER_GRID_PNG). Returns an element ready to drop into the Finder info bar.
+    // The Finder window-header leading-edge badge: the scheme's OWN -3790
+    // (16px ics4/ics8) where it ships one, else the grid sliced from the
+    // reference screenshot (FINDER_GRID_PNG). Returns an element ready to
+    // drop into the Finder info bar.
     // Resolve the scheme's icon catalog — prefers the in-memory inspector data
     // attached by loadKaleidoscopeScheme (Option A), falls back to a network
     // fetch of icons/index.json for legacy/pre-extracted bundles. Returns rows
@@ -355,21 +358,24 @@
       return [];
     }
 
-    // Picks the 16px icon to show in the info bar's "volume" slot. Lookup order:
-    //   1. ics4/ics8 -3790 — the Mac OS "volume info" icon (12 of 18 corpus
-    //      themes ship one).
+    // Picks the 16px icon to show in the Finder window-header's leading-edge slot.
+    // The slot is the "Snap-To-Grid" / "Arrange By" badge — NOT a volume icon
+    // (mis-labeled in our docs for two months before the corpus author labels +
+    // mollusc Companion + Apple IconsCore.h cross-source surfaced the truth on
+    // 2026-05-29; see docs/spec/corpus-corroborated-ids.md + docs/spec/kaleidoscope-
+    // author-docs.md + LEARNINGS).
+    //
+    // Lookup order:
+    //   1. ics4/ics8 -3790 — the scheme's own snap-to-grid pictogram (12 of 18
+    //      corpus themes ship one; author labels "Snap-To-Grid" / "Grid Arrangement").
     //   2. The neutral FINDER_GRID_PNG (Platinum-era grid, sliced from the
     //      reference screenshot) — for the 6 themes that don't ship -3790.
     //
-    // An earlier iteration of this slot promoted ics4/8 -14336 as a T2 fallback
-    // for corner-sprite schemes, on the hypothesis that "schemes that don't
-    // theme -3790 typically draw their mark on -14336." Wrong: -14336 is the
-    // document-window CLOSE/COLLAPSE widget — drawn at the title bar's left
-    // edge, not a volume-icon slot. Owner-surfaced 2026-05-29 (apple-platinum-2
-    // showed a close-box where the reference shows a grid). The references for
-    // all 4 corner-sprite schemes (apple-platinum-2, platinum-8, slimes,
-    // system7-nostalgia-silver) show the system-default grid for the volume
-    // icon; let them fall through to FINDER_GRID_PNG.
+    // An earlier iteration promoted ics4/8 -14336 as a T2 fallback for corner-
+    // sprite schemes; wrong — -14336 is the document-window CLOSE/COLLAPSE
+    // widget (drawn at title-bar widget positions, not in the header-badge slot).
+    // Verified 18/18 by scripts/probe-reference-slot.mjs: every corner-sprite
+    // reference shows the system-default grid in this slot.
     const _gridCache = new Map();
     async function gridProxyIcon(theme) {
       if (!_gridCache.has(theme.baseUrl)) {
@@ -384,7 +390,7 @@
       if (hit) {
         const img = document.createElement('img');
         img.src = hit.url;
-        img.title = `${hit.id} (scheme volume icon)`;
+        img.title = `${hit.id} (scheme Finder-header badge)`;
         Object.assign(img.style, { width: '16px', height: '16px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (ics4/ics8 16px)
         return img;
       }

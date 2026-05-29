@@ -11,7 +11,7 @@ See [docs/scene-slot-spec.md](./scene-slot-spec.md) for the hand-authored contra
 
 ## Slot resolution per theme
 
-| theme | info-bar-bg | volume-icon | window-body-bg | desktop-bg | dialog-body-bg | info-bar-text-color | progress-bar-hue | title-widget-glyph | scroll-arrow-glyph | folder-scene-icons |
+| theme | info-bar-bg | finder-header-badge | window-body-bg | desktop-bg | dialog-body-bg | info-bar-text-color | progress-bar-hue | title-widget-glyph | scroll-arrow-glyph | folder-scene-icons |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1138 | T3 · headerFill | T1 · ics4/8 -3790 | T2 · white | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T2 · contrast-pick → black | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
 | 1984 | T2 · bodyBackground | T1 · ics4/8 -3790 | T1 · bodyBackground | T1 · desktop-pattern key | T1 · ppat-42 (utility-window canonical) | T1 · contrast-pick → white | T2 · role-3-part frame/fill/track | T1 · baked into chrome cicn (native recipe) | T1 · baked into scrollbar cicn (native recipe) | T1 · FINDER_CONTENT_ICON_IDS (folder-priority) |
@@ -45,14 +45,14 @@ Resolved in: `demo/index.html buildScene`
 | T3 | `headerFill` | solid colour from the active title-bar fill — for schemes shipping no ppat | 1138, apple-lisa, apple-platinum-2, beos-r503, black-platinum, platinum-8, slimes, system7-nostalgia-silver, windows-31, windows-95 |
 | T4 | `flat #e6e6e6` | hard fallback | — |
 
-### Volume icon (info-bar leading slot)  `volume-icon`
+### Finder window-header badge (info-bar leading slot)  `finder-header-badge`
 
 Resolved in: `demo/index.html gridProxyIcon`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
-| T1 | `ics4/8 -3790` | Mac OS volume info icon — the canonical Finder slot for this position | 1138, 1984, 1990, animals, apple-lisa, beos-r503, black-platinum, crayon-os, dolphin-som, evolution, monkey-paradise, windows-31, windows-95 |
-| T2 | `FINDER_GRID_PNG` | period system-default grid — the right answer for schemes that ship no -3790 | apple-platinum-2, floppies, platinum-8, slimes, system7-nostalgia-silver |
+| T1 | `ics4/8 -3790` | Finder window-header "Snap-To-Grid" / "Grid Arrangement" badge (corpus author-labels confirm — see docs/spec/corpus-corroborated-ids.md). Shown when "Always Snap To Grid" is enabled. NOT the volume info icon as our LEARNINGS / spec / demo prose had claimed for two months — Apple's actual volume-icon path is GetIconRef('macs','hdsk') → kGenericHardDiskIconResource=-3995; -3790 is a separate Finder-header layer. | 1138, 1984, 1990, animals, apple-lisa, beos-r503, black-platinum, crayon-os, dolphin-som, evolution, monkey-paradise, windows-31, windows-95 |
+| T2 | `FINDER_GRID_PNG` | period system-default grid — the right answer for schemes that ship no -3790. Confirmed via scripts/probe-reference-slot.mjs against per-bundle reference images. | apple-platinum-2, floppies, platinum-8, slimes, system7-nostalgia-silver |
 
 ### Window body background  `window-body-bg`
 
