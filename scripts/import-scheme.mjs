@@ -21,31 +21,38 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const slug = process.argv[2];
-const rsrcArg = process.argv[3];
+const srcArg = process.argv[3];
 
 if (!slug || slug.startsWith('-')) {
-  console.error('Usage: node scripts/import-scheme.mjs <slug> [path/to/scheme.rsrc]');
+  console.error('Usage: node scripts/import-scheme.mjs <slug> [path/to/scheme.{sit,rsrc}]');
   process.exit(2);
 }
 
 const dir = resolve(root, 'themes', slug);
+const sit = resolve(dir, 'scheme.sit');
 const rsrc = resolve(dir, 'scheme.rsrc');
 
-// ── 0. Get the raw fork in place ────────────────────────────────────────────
-if (rsrcArg) {
-  if (!existsSync(rsrcArg)) { console.error(`scheme.rsrc not found: ${rsrcArg}`); process.exit(1); }
+// ── 0. Get the source archive in place — .sit preferred (the upstream StuffIt is the
+// most palatable redistribution form), .rsrc fallback for wayback-recovered schemes.
+if (srcArg) {
+  if (!existsSync(srcArg)) { console.error(`source archive not found: ${srcArg}`); process.exit(1); }
   mkdirSync(dir, { recursive: true });
-  copyFileSync(rsrcArg, rsrc);
-  console.log(`· copied ${rsrcArg} → themes/${slug}/scheme.rsrc`);
+  // Honour the file extension of the source arg. Default to .sit if extensionless.
+  const ext = (srcArg.match(/\.([a-z]+)$/i)?.[1] ?? '').toLowerCase();
+  const dst = ext === 'rsrc' ? rsrc : sit;
+  copyFileSync(srcArg, dst);
+  console.log(`· copied ${srcArg} → themes/${slug}/${dst.split('/').pop()}`);
 }
-if (!existsSync(rsrc)) {
-  console.error(`No themes/${slug}/scheme.rsrc. Put the raw resource fork there first`);
+const sourcePath = existsSync(sit) ? sit : existsSync(rsrc) ? rsrc : null;
+if (!sourcePath) {
+  console.error(`No themes/${slug}/scheme.sit or scheme.rsrc. Put the source archive there first`);
   console.error(`(see docs/porting-a-kaleidoscope-scheme.md §1-2), or pass its path as the 2nd arg.`);
   process.exit(1);
 }
-const forkKB = (statSync(rsrc).size / 1024).toFixed(0);
-if (statSync(rsrc).size < 4096) {
-  console.error(`⚠ scheme.rsrc is only ${forkKB} KB — the resource fork was likely stripped in transit.`);
+const sourceKind = sourcePath === sit ? 'sit' : 'rsrc';
+const sourceKB = (statSync(sourcePath).size / 1024).toFixed(0);
+if (sourceKind === 'rsrc' && statSync(sourcePath).size < 4096) {
+  console.error(`⚠ scheme.rsrc is only ${sourceKB} KB — the resource fork was likely stripped in transit.`);
   console.error(`  Re-extract the .sit with \`unar\` and copy the ..namedfork/rsrc stream. Aborting.`);
   process.exit(1);
 }
@@ -64,7 +71,7 @@ const step = (label, script, args = [slug]) => {
   }
 };
 
-console.log(`\nImporting "${slug}" (scheme.rsrc ${forkKB} KB)\n`);
+console.log(`\nImporting "${slug}" (scheme.${sourceKind} ${sourceKB} KB)\n`);
 const scheme = step('extract chrome (cicn/ppat/wnd#/clut → theme.json)', 'extract-scheme.mjs');
 if (!scheme.ok) { console.error('\n✗ extract-scheme failed (theme.json did not validate). Fix and re-run.'); process.exit(1); }
 const icons = step('extract icons (icl/ics + masks)', 'extract-icons.mjs');

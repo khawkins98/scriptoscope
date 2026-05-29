@@ -205,6 +205,14 @@ export interface LoadedTheme {
    * Demo panels prefer this over fetch() when present.
    */
   inspector?: ThemeInspector;
+  /**
+   * Revokes every `blob:` URL minted during this theme's decode (~500 per scheme
+   * for asset rasters + glyphs). Call after the theme is unmounted to release the
+   * pinned ImageBitmap memory — without it, switching themes 50× across a session
+   * leaves 25k blob URLs alive until tab unload. Idempotent; absent on pre-extracted
+   * (file-fetched) themes since they don't own any blob: URLs.
+   */
+  dispose?: () => void;
 }
 
 /** Inspector catalog returned by an in-memory decode — the source of truth for the demo's

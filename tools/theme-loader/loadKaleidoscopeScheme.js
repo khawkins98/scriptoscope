@@ -59,7 +59,13 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   });
   // convertScheme already validated the theme (convertChrome → validateTheme).
 
-  const encodeAssets = options.encodeAssets ?? (typeof OffscreenCanvas !== 'undefined');
+  // Default: encode if EITHER OffscreenCanvas (fast path) OR document/HTMLCanvasElement
+  // (main-thread fallback for Safari 16.0–16.3) is reachable. A bare Node environment
+  // hits the else-branch (raw assets), which is what convert.test.mjs and the lint
+  // pipeline want.
+  const canEncode = typeof OffscreenCanvas !== 'undefined'
+    || (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined');
+  const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
     return { manifest: theme, assets, iconIndex };
@@ -93,7 +99,21 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // can swap fetch() → theme.inspector.* with no other change.
   const inspector = buildInspector(theme, assets, iconIndex, urlByPath, options.meta?.name);
 
-  return { manifest: theme, baseUrl: '', inspector, ...(Object.keys(glyphs).length ? { glyphs } : {}) };
+  // dispose() revokes every blob: URL this decode minted (~500 per scheme). Without
+  // it, an app that switches themes 50× across a session leaks 25k blob URLs — each
+  // pins a decoded ImageBitmap in WebKit until the tab unloads. Idempotent + safe
+  // to call before the theme is rendered (the consumer accepts the references go bad).
+  const dispose = () => {
+    for (const url of urlByPath.values()) {
+      if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+    }
+    urlByPath.clear();
+  };
+
+  return {
+    manifest: theme, baseUrl: '', inspector, dispose,
+    ...(Object.keys(glyphs).length ? { glyphs } : {}),
+  };
 }
 
 /** Build the inspector catalog from the decode output. Mirrors the on-disk JSON
@@ -172,15 +192,38 @@ async function toUint8Array(input) {
 
 /** Default RGBA→URL encoder: a PNG blob URL via OffscreenCanvas. Browser-only; Node
  *  callers pass their own assetUrlFactory (or encodeAssets:false). */
+/** Default RGBA→URL encoder. `OffscreenCanvas` is the fast path (parallel + off the
+ *  main thread); a fallback to the main-thread `<canvas>` covers Safari 16.0–16.3 +
+ *  iOS WebView pre-16.4, where `OffscreenCanvas` is undefined. Without the fallback,
+ *  loadTheme would have silently produced a broken theme on a meaningful slice of
+ *  iOS traffic — every render fetched `bundleUrl/<bundle-relative-path>` and 404'd.
+ *  Node callers without DOM globals still need to pass `assetUrlFactory` or
+ *  `encodeAssets:false`. */
 async function defaultAssetUrlFactory(rgba, width, height) {
-  if (typeof OffscreenCanvas === 'undefined') {
-    throw new Error('defaultAssetUrlFactory: OffscreenCanvas required (browser only) — pass assetUrlFactory or encodeAssets:false');
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(width, height);
+    imgData.data.set(rgba);
+    ctx.putImageData(imgData, 0, 0);
+    const blob = await canvas.convertToBlob({ type: 'image/png' });
+    return URL.createObjectURL(blob);
   }
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  const imgData = ctx.createImageData(width, height);
-  imgData.data.set(rgba);
-  ctx.putImageData(imgData, 0, 0);
-  const blob = await canvas.convertToBlob({ type: 'image/png' });
-  return URL.createObjectURL(blob);
+  if (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined') {
+    // Main-thread <canvas> fallback. The detached element is GC'd as soon as the
+    // returned Promise resolves; the encoded blob URL owns its own bytes.
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.createImageData(width, height);
+    imgData.data.set(rgba);
+    ctx.putImageData(imgData, 0, 0);
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('canvas.toBlob returned null'));
+        resolve(URL.createObjectURL(blob));
+      }, 'image/png');
+    });
+  }
+  throw new Error('defaultAssetUrlFactory: no canvas API available (need OffscreenCanvas or document.createElement) — pass assetUrlFactory or encodeAssets:false');
 }
