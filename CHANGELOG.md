@@ -52,6 +52,20 @@ share the same shape: **read the manifest field instead**. Captured in
   `interactive.titleStripCache` — 1138's folder icons leaked into 1984's
   Scene preview.
 
+### Fixed (controls — push-button face resolves by manifest role, 2026-05-29)
+
+- `composeButton` now resolves the push-button face via the manifest's
+  STRUCTURED chromeElement key (`push-button-active` / `active-push-button`
+  / `active-button` / `push-button`) first; falls back to id-based lookup
+  that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`).
+  When no active face exists, substitutes the pressed face — the
+  AppearanceManager's documented "empty state slot" fallback. Resolves the
+  long-deferred **monkey-paradise + animals** misroute: both bundles assign
+  id -10239 to `solo-menu-background-2` and ship NO active push-button cicn
+  (only pressed + inactive). Their OK button slot rendered menu wallpaper;
+  it now renders the pressed-button face the author shipped. Logged in the
+  kdef faithfulness ledger as an Accepted Divergence.
+
 ### Fixed (Scene composition — `demo/index.html` + slot wiring)
 
 - Info bar lookup: `chromeElement(-9567).bgPattern` → `bodyBackground.pattern`

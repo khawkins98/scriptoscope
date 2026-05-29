@@ -122,6 +122,64 @@ async function loadByKeySelf(theme: LoadedTheme, key: string): Promise<PixelBuff
   return asset ? loadCicnBuffer(assetUrl(theme, asset)) : null;
 }
 
+/** Canonical bundle-author role names for the push-button face, by state. The
+ *  list captures the synonyms different Kaleidoscope authoring tools emitted
+ *  (`push-button-active` / `active-push-button` / `active-button` / bare
+ *  `push-button`). Used by {@link loadPushButtonFace} to resolve via the
+ *  manifest's STRUCTURED role instead of trusting the raw kDEF id slot — the
+ *  monkey-paradise + animals fix (both authored `solo-menu-background-2` onto
+ *  id -10239 leaving no active push-button cicn, just inactive + pressed). */
+const PUSH_BUTTON_FACE_KEYS = {
+  active: ['push-button-active', 'active-push-button', 'active-button', 'push-button'],
+  pressed: ['push-button-pressed', 'pressed-push-button', 'pressed-button'],
+  inactive: ['push-button-inactive', 'inactive-push-button', 'inactive-button'],
+} as const;
+
+/** Anti-roles for the push-button face: when a bundle ships id -10239/-10238/-10240
+ *  under one of these keys, the author repurposed the kDEF slot for an unrelated
+ *  resource (menu wallpaper, tab pane, popup background). Loading it as a button
+ *  face produces the "menu cicn in the OK slot" misrender. */
+const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab-pane|pull-down|popup|window|dialog|scroll/;
+
+/** Resolve a push-button face for a given state via the manifest's STRUCTURED
+ *  role names first, then falling back to id-based lookup that REJECTS the
+ *  anti-role keys (so a misrouted -10239 doesn't sneak in). Walks the base
+ *  chain on both passes — same semantics as {@link loadById}.
+ *
+ *  Period-faithful in spirit: the kDEF dispatched on `kButtonFaceActive` as a
+ *  logical role; the id was an encoding of that role. Reading the role from
+ *  the manifest's named slot honors the AUTHOR's tagged intent, which is more
+ *  faithful than blindly trusting an id slot the author repurposed. The
+ *  fallback to pressed (handled by composeButton) substitutes the author's
+ *  shipped art when they ship no active face — same fallback AppearanceManager
+ *  used when a state slot was empty. */
+async function loadPushButtonFace(
+  theme: LoadedTheme,
+  state: keyof typeof PUSH_BUTTON_FACE_KEYS,
+): Promise<PixelBuffer | null> {
+  // Pass 1: by manifest role name (the structured answer).
+  const byRole = resolveInChain(theme, (t) => {
+    const ce = t.manifest.chromeElements ?? {};
+    for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
+      if (ce[k]?.asset) return { theme: t, asset: ce[k]!.asset };
+    }
+    return null;
+  });
+  if (byRole) return loadCicnBuffer(assetUrl(byRole.theme, byRole.asset));
+  // Pass 2: by id, but reject anti-role keys (the monkey-paradise/animals case).
+  const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
+  const byId = resolveInChain(theme, (t) => {
+    const ces = t.manifest.chromeElements ?? {};
+    for (const [k, v] of Object.entries(ces)) {
+      if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
+      if (PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) return null;
+      return { theme: t, asset: v.asset };
+    }
+    return null;
+  });
+  return byId ? loadCicnBuffer(assetUrl(byId.theme, byId.asset)) : null;
+}
+
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
  *  Uses the explicit `sourceCicnId` field the decoder writes on every chromeElement
  *  (matched against |id| — the same id can appear with either sign in different
@@ -942,7 +1000,18 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
  */
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
-  const face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239));
+  const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
+  // Resolve the face via the manifest's STRUCTURED role first (handles
+  // animals + monkey-paradise, which repurpose id -10239 to
+  // `solo-menu-background-2` and ship NO active push-button cicn — only
+  // inactive + pressed). When no active cicn exists, fall back to the
+  // pressed face: the AppearanceManager's documented behaviour when an
+  // active-state slot was empty, and what the bundle author was clearly
+  // aiming at (they shipped pressed + inactive + ring; the missing active
+  // slot is a bundle-side gap, not a kDEF requirement to render menu wallpaper).
+  let face = await loadPushButtonFace(theme, state);
+  if (!face && state === 'active') face = await loadPushButtonFace(theme, 'pressed');
+  if (!face) face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239)); // last-resort id path
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(theme, face, faceId, opts);
   // Probe the active ring REGARDLESS of `opts.default` so plain buttons reserve the same outer

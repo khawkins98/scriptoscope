@@ -85,6 +85,20 @@ to a bug class we hit reactively before the linter existed:
   faithful to the engine, divergent from that one scheme's shipped image. s7-nostalgia-
   silver + apple-platinum-2 match the 2.3.1 convention. (Owner decision 2026-05-26.)
 
+- **Push-button face resolves by manifest role name first, then by id.** The 2.3.1
+  kDEF asked for cicn id `-10239` (active) / `-10238` (pressed) / `-10240` (inactive)
+  and blitted whatever sat there. Two corpus bundles — **monkey-paradise** + **animals**
+  — repurpose id `-10239` for `solo-menu-background-2` and ship no active push-button
+  cicn at all (only pressed + inactive). A faithful runtime would render menu wallpaper
+  in the OK button slot for both schemes. Instead, `loadPushButtonFace` (`src/controls.ts`)
+  reads the manifest's STRUCTURED chromeElement key (`push-button-active` /
+  `active-push-button` / `active-button` / `push-button`) first; falls back to id-based
+  lookup that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`);
+  finally, when no active face exists, substitutes the pressed face (the AppearanceManager's
+  documented "empty state slot" fallback). Codex pattern: the manifest carries the
+  structured answer, the runtime was guessing from an id collision. (Owner decision
+  2026-05-29; previously deferred in LEARNINGS as "non-canonical authoring".)
+
 ## References
 - `compositor-spec.md` — the model these routines implement.
 - `kdef231-recipe-walk.md` — the part-code / draw decode (the source behind the spec).
