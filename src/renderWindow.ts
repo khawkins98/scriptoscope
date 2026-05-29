@@ -232,7 +232,10 @@ export async function renderWindow(
   // Options windows all had labels. side-floating-utility / no-title-utility / mini / palette
   // types stay headless (they either have a vertical side strip with no room for horizontal text,
   // or are named "no-title" for a reason).
-  const isUtility = /utility|mini|floating|palette/.test(slug);
+  // The showTitle gate uses the SAME predicate as bodyBackgroundStyle's slug check —
+  // see UTILITY_SLUG_RE below. Two definitions of "utility-ish" silently drifting
+  // was the bug class the title-bar + body-bg regressions split into.
+  const isUtility = UTILITY_SLUG_RE.test(slug);
   const isTitledUtility = /^titled-utility-window/.test(slug);
   const showTitle = !!title && (!isUtility || isTitledUtility);
 
@@ -620,21 +623,32 @@ function buildBaselineWindow(
   return win;
 }
 
+/** Canonical "this windowType is a utility / dialog / palette" predicate, shared
+ *  by `isUtility` (showTitle gate) and `bodyBackgroundStyle` (Icon-View ppat gate)
+ *  so the two never drift. Extended over the previous narrower set to also catch
+ *  `movable-modal` and `popup-window` — those windowTypes ship in the corpus and
+ *  also wanted the utility body treatment (the prior regex left them painting
+ *  the Finder Icon-View ppat as their body, same regression class as the
+ *  Options dialog before the slug gate landed). */
+const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/;
+
 /**
- * Content-area background style. For Finder document windows: tile the
- * scheme's Icon-View body pattern (`bodyBackground.pattern` — decoded from
- * cinf -9551's bgPatternId). For utility windows / dialogs / palettes: use
- * a flat fill — the Mac convention was that the Finder Icon-View pattern
- * doesn't apply to modal dialogs (they used a system platinum grey). Applying
- * bodyBackground to a no-title-utility-window was demo-visible on every
- * textured-body theme (the Options dialog filled with the army camo, aqua,
- * etc instead of a flat utility-platinum). The slug is the windowType key
- * the consumer requested.
+ * Content-area background style. Finder document windows tile the scheme's
+ * Icon-View body pattern (`bodyBackground.pattern` — decoded from cinf -9551's
+ * bgPatternId). Modal-style windows (utility / dialog / palette / mini /
+ * floating / movable-modal / popup) use a flat white fill — the period Mac
+ * convention used a system platinum grey for these, NOT a textured ppat
+ * (visually verified against the references for 1990 / animals / crayon-os /
+ * monkey-paradise / evolution where the Options dialog body sits flat over
+ * the textured desktop).
+ *
+ * The codex previously hypothesised a `utility-pattern → -9568 → headerFill`
+ * tier hierarchy for dialogs; the visual audit confirmed the references show
+ * FLAT bodies. The hypothesis was wrong; the runtime is right. Codex slot
+ * updated to match.
  */
 function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
-  // Utility / palette / floating / mini / no-title windows don't get the
-  // Icon-View body ppat — they're modal-style surfaces, not Finder windows.
-  const isUtility = !!slug && /utility|mini|floating|palette|dialog|alert/.test(slug);
+  const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
   if (isUtility) return { background: '#ffffff' };
   const pat = theme.manifest.bodyBackground?.pattern;
   if (!pat) return { background: '#ffffff' };

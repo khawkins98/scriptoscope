@@ -797,10 +797,16 @@ export async function composeProgress(
   const frameEl = elementById(theme, active ? 10080 : 10077);
   const border = frameEl?.slice?.corner ?? (frame ? frameBorder(frame) : 1);
   const borderV = frameEl?.slice?.side ?? border;
+  // Track + fill placement use the SAME pair of insets the frame's 9-slice does
+  // — horizontal corner width for x, vertical side thickness for y. Mixing
+  // border for y (the prior code) misaligned the interior against the frame
+  // when corner ≠ side, leaving the track/fill drawn outside the visible
+  // frame bands. Latent today (all corpus -10080 ship symmetric), exposed the
+  // moment a future scheme imports an asymmetric authoring.
   const ix = border;
   const iw = Math.max(0, length - border * 2);
-  const iy = border;
-  const ih = Math.max(0, h - border * 2);
+  const iy = borderV;
+  const ih = Math.max(0, h - borderV * 2);
 
   // 1) unfilled track stretched across the interior (the empty look for
   //    schemes whose frame has a transparent interior, e.g. 1990).
@@ -912,8 +918,14 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
   out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
   if (ca > 0) {
-    const cw = innerW - fIns * 2, ch = innerH - fIns * 2;
-    if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fIns, w: cw, h: ch }, cr, cg, cb, 255);
+    // Flatten the centre INSIDE the 9-slice corner blocks — x bounds use the
+    // horizontal corner width (fIns), y bounds use the vertical side
+    // thickness (fSide). Mismatching the y bound with fIns left bands at the
+    // top/bottom of the button still showing the tiled/stretched cicn art
+    // (when fSide < fIns) or painted over the artist's authored bevel
+    // (when fSide > fIns). Same Pass C contract as the frame's faceIns.
+    const cw = innerW - fIns * 2, ch = innerH - fSide * 2;
+    if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fSide, w: cw, h: ch }, cr, cg, cb, 255);
   }
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);

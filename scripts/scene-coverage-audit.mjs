@@ -128,24 +128,20 @@ const SLOTS = [
   },
   {
     key: 'dialog-body-bg',
-    label: 'Dialog (no-title-utility-window) body background',
-    where: 'demo/index.html buildScene Options dialog',
-    terminalIsAcceptable: true, // flat fill is a fine default for a utility dialog
+    label: 'Dialog / utility window body background',
+    where: 'src/renderWindow.ts bodyBackgroundStyle (utility-slug branch)',
+    terminalIsAcceptable: true, // flat white IS the period-faithful answer for modal dialogs
     tiers: [
-      {
-        name: 'utility-pattern',
-        why: 'ppat -9568 / utility-pattern slug — the classic Mac utility-window tile',
-        resolve: (m) => {
-          const p = m.patterns?.['utility-pattern']?.asset ?? m.patterns?.['ppat--9568']?.asset;
-          return p ? `utility-pattern → ${p}` : null;
-        },
-      },
-      {
-        name: 'headerFill',
-        why: 'solid colour from the active title-bar fill — for schemes shipping no utility ppat',
-        resolve: (m) => m.headerColors?.active?.fill ? `headerColors.active.fill → ${m.headerColors.active.fill}` : null,
-      },
-      { name: 'flat #ececec', why: 'neutral fallback', resolve: () => 'flat #ececec' },
+      // The runtime returns flat #ffffff for every windowType matching
+      // UTILITY_SLUG_RE (utility|mini|floating|palette|dialog|alert|modal|popup).
+      // The classic Mac convention used a system platinum grey for modal-style
+      // surfaces, NOT a textured ppat (visually verified against the period
+      // references; the Options dialog body is flat across every textured
+      // scheme). Earlier codex iterations hypothesised utility-pattern → -9568
+      // → headerFill tiers — that turned out to wrap the dialog in the same
+      // Icon-View ppat the main window uses, which is wrong. The hypothesis
+      // was retired after the visual baseline showed the regression.
+      { name: 'flat #ffffff', why: 'period-faithful modal/utility body fill — every theme lands here', resolve: () => 'flat #ffffff' },
     ],
   },
   {
@@ -166,22 +162,29 @@ const SLOTS = [
     key: 'progress-bar-hue',
     label: 'Progress-bar accent hue',
     where: 'src/controls.ts composeProgress (currently always lavender / role-3-part)',
-    terminalIsAcceptable: true, // lavender canonical is a fine default
+    terminalIsAcceptable: false, // a theme with no progress art is a coverage gap, not a deliberate fallback
     tiers: [
-      {
-        name: 'role-3-part frame/fill/track',
-        why: 'schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar',
-        resolve: (m) => {
-          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
-          return (has(-10080) && has(-10079) && has(-10078)) ? 'role-3-part (-10080/-10079/-10078)' : null;
-        },
-      },
+      // Audit tier order MUST mirror composeProgress's runtime lookup order:
+      // -10223 lavender check fires FIRST (controls.ts ~L711); only when that
+      // misses does the role-3-part branch take over. Previous tier order
+      // (role-3-part as T1, lavender as T2) reported wrong tiers for the 5
+      // themes that ship BOTH (apple-platinum-2 / black-platinum / system7-
+      // nostalgia-silver / windows-31 / windows-95). Reviewer-flagged in the
+      // framework-architecture pass.
       {
         name: 'lavender 2-part canonical',
-        why: 'shipped -10223 / -10224 — the kDEF default lavender progress',
+        why: 'shipped -10223 — the kDEF default lavender progress (composeProgress checks this first)',
         resolve: (m) => {
           const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
           return has(-10223) ? 'lavender canonical (-10223)' : null;
+        },
+      },
+      {
+        name: 'role-3-part frame/fill/track',
+        why: 'schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar; runtime fallback when -10223 absent',
+        resolve: (m) => {
+          const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
+          return (has(-10080) && has(-10079) && has(-10078)) ? 'role-3-part (-10080/-10079/-10078)' : null;
         },
       },
       {

@@ -97,11 +97,23 @@ export class PixelBuffer {
     dr: PixRect,
     mode: 'stretch' | 'tile' = 'stretch',
   ): void {
-    const { l, t, r, b } = ins;
-    const smx = sr.w - l - r;
-    const smy = sr.h - t - b;
-    const dmx = dr.w - l - r;
-    const dmy = dr.h - t - b;
+    // Clamp insets so the FOUR CORNERS NEVER OVERLAP — when (l+r) > sr.w or
+    // (t+b) > sr.h, an unclamped 9-slice silently corrupts: the corner blits
+    // overdraw each other AND the middle/side spans early-return (their srcLen
+    // goes negative). The first known failure (commit 0bfe533) was 1990 + evolution
+    // shipping rings at 21×21 with slice.side=14 → smy = 21−14−14 = −7. The middle
+    // band never drew, the two horizontal corner halves stacked on top of each
+    // other, and the buggy render got baselined. Clamp to a hard ceiling so the
+    // worst case is a degraded-but-consistent render that the eyeball + visual
+    // baselines can catch on first sight.
+    const _l = Math.max(0, Math.min(ins.l, Math.floor(sr.w / 2)));
+    const _r = Math.max(0, Math.min(ins.r, sr.w - _l));
+    const _t = Math.max(0, Math.min(ins.t, Math.floor(sr.h / 2)));
+    const _b = Math.max(0, Math.min(ins.b, sr.h - _t));
+    const smx = sr.w - _l - _r;
+    const smy = sr.h - _t - _b;
+    const dmx = dr.w - _l - _r;
+    const dmy = dr.h - _t - _b;
     const cp = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
       if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
       this.copyBits(src, { x: sr.x + sx, y: sr.y + sy, w: sw, h: sh }, { x: dr.x + dx, y: dr.y + dy, w: dw, h: dh });
@@ -121,18 +133,19 @@ export class PixelBuffer {
         }
       }
     };
-    // Corners always copy 1:1.
-    cp(0, 0, l, t, 0, 0, l, t); // TL
-    cp(sr.w - r, 0, r, t, dr.w - r, 0, r, t); // TR
-    cp(0, sr.h - b, l, b, 0, dr.h - b, l, b); // BL
-    cp(sr.w - r, sr.h - b, r, b, dr.w - r, dr.h - b, r, b); // BR
+    // Corners always copy 1:1 — using clamped insets so we don't read past
+    // the source bitmap when the cinf overdeclared the band thickness.
+    cp(0, 0, _l, _t, 0, 0, _l, _t); // TL
+    cp(sr.w - _r, 0, _r, _t, dr.w - _r, 0, _r, _t); // TR
+    cp(0, sr.h - _b, _l, _b, 0, dr.h - _b, _l, _b); // BL
+    cp(sr.w - _r, sr.h - _b, _r, _b, dr.w - _r, dr.h - _b, _r, _b); // BR
     // Edges + center — stretch or tile per mode.
     const span = mode === 'tile' ? tile : cp;
-    span(l, 0, smx, t, l, 0, dmx, t); // top
-    span(l, sr.h - b, smx, b, l, dr.h - b, dmx, b); // bottom
-    span(0, t, l, smy, 0, t, l, dmy); // left
-    span(sr.w - r, t, r, smy, dr.w - r, t, r, dmy); // right
-    span(l, t, smx, smy, l, t, dmx, dmy); // center
+    span(_l, 0, smx, _t, _l, 0, dmx, _t); // top
+    span(_l, sr.h - _b, smx, _b, _l, dr.h - _b, dmx, _b); // bottom
+    span(0, _t, _l, smy, 0, _t, _l, dmy); // left
+    span(sr.w - _r, _t, _r, smy, dr.w - _r, _t, _r, dmy); // right
+    span(_l, _t, smx, smy, _l, _t, dmx, dmy); // center
   }
 
   /** Fill a rectangle with a solid RGBA color (srcCopy). */
