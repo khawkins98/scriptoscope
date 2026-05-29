@@ -122,6 +122,30 @@ Each entry below tags its divergence direction explicitly:
   compositor for one theme" norm in CLAUDE.md. (Owner decision 2026-05-29; previously
   deferred in LEARNINGS as "non-canonical authoring".)
 
+- **Default-button ring outset reads the author-shipped cicn, not Apple's
+  standard `kThemeMetricFocusRectOutset = 4 px`.** Two models:
+    - OUTSET: `outset = (ring.width − face.width) / 2` when the artist drew the
+      ring larger than the face (crayon-os: 80 ring around 74 face → 3 px).
+    - OVERLAY: `outset = max(3, round(ring.width / 4))` heuristic when ring ≤
+      face (apple-platinum-2, beos-r503, etc.).
+  Plain (non-default) buttons reserve the same outer rect so a row of default
+  + plain buttons aligns. Rationale: the ring is shipped art (cicn -10231
+  active / -10232 inactive); the cicn IS the author's declared outset; Apple's
+  4 px metric is the standard-metrics fallback when no ring ships. References:
+  `src/controls.ts:1034-1057` + `docs/spec/apple-cdef-button-vs-our-compose.md`
+  row 2 + Apple `kThemeMetricFocusRectOutset` per `apple-primary-source.md`.
+  (Owner decision 2026-05-29.)
+
+- **Push-button label size is `max(8, round(faceHeight × 0.6))`, not Apple's
+  fixed `kThemeSystemFont = 12 pt`.** Rationale: corpus authors shipped faces
+  ranging 16 → 74 px tall (apple-platinum-2 ring 16 px through crayon-os
+  74 px). A fixed 12-pt size would either overflow short buttons or look
+  comical on tall faces. The 0.6 ratio yields 12 pt for the canonical 20-px
+  button (Platinum match) and scales gracefully elsewhere. References:
+  `src/controls.ts:990` + `docs/spec/apple-cdef-button-vs-our-compose.md`
+  row 5 + Apple `kThemeSystemFont` per `apple-primary-source.md`.
+  (Owner decision 2026-05-29.)
+
 ## References
 - `compositor-spec.md` — the model these routines implement.
 - `kdef231-recipe-walk.md` — the part-code / draw decode (the source behind the spec).

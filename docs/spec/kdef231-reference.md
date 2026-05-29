@@ -121,7 +121,7 @@ table bytes). Standard CDEF message numbers in parens:
 
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
-| `0x356c`-`0x367e` | **wnd# loader** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe | `d3`=window variation code | `$A9A0` GetResource | recipe handle in `a2` |
+| `0x356c`-`0x367e` | **wnd# loader + 12-step fallback ladder** | `GetResource('wnd#', id)` then progressive low-bit masks (`&-2,-3,-4,-5,-6,-15,-16,-17,-18,-21,-22`) as fallbacks → loads the per-window-type recipe; full decode + landing table in §3.4.1 | `d3`=window variation code | `$A9A0` GetResource | recipe handle in `a2` |
 | `0x3680`-`0x38c8` | recipe install / resize | copy rect-list → `a4@(1938)`, 4 source side-lists → `a4@(2788/2950/3112/3274)` (162 B stride); loop `s=0..3` calling `0x4a64` | rect-list count `a4@(1938)`; stride = `10*count+12` bytes | `0x4a64` | — |
 | `0x487e` | zoom/grow widget predicate | "is there a usable zoom/grow widget" = `a4@(500) && a4@(0x1f9) && !a4@(0x1f0)` | cinf widget flags | — | bool in `d0` |
 | `0x49d6` | **part-code jump table** | classify a part code → stretch(1)/fixed(0); see §4 | `fp@(8)`=partCode, `fp@(10)`=caller flag byte | helper `0x148`; `0x487e` | byte `d0` |
@@ -388,6 +388,89 @@ by `4*i`. Walking gives cells **`[border[i-1], border[i])` tagged `part[i]`**
 `[0, border[0])` is the fixed leading **corner** (drawn 1:1), and
 `[border[N-1], srcExtent)` the trailing corner. SOURCE borders are cicn-template
 coords; DEST borders are window-relative (filled by `0x5178`).
+
+#### 3.4.1 wnd# fallback ladder (`0x356c..0x367e`)
+
+**Decoded 2026-05-29** against `.scratch/k231-kdef/kDEF/k231-kdef0.asm`. The
+kDEF doesn't give up when `GetResource('wnd#', d3)` returns NULL — it walks a
+12-step degraded-id cascade, ANDing `d3` against a fixed mask sequence and
+re-attempting until a handle resolves. The asm pattern repeats per step:
+
+```
+35xx  594f             subqw #4,%sp                ; reserve return-handle slot
+35xx  2f3c 776e 6423   movel #'wnd#',%sp@-         ; push FourCC 0x776e6423
+35xx  3003             movew %d3,%d0               ; copy raw window id
+35xx  0240 ffff        andiw #MASK,%d0             ; strip variant bits
+35xx  3f00             movew %d0,%sp@-             ; push degraded id
+35xx  a9a0             .short 0xa9a0               ; _GetResource
+35xx  245f             moveal %sp@+,%a2            ; pop handle
+35xx  200a             movel %a2,%d0
+35xx  6614             bnes 0x35xx                 ; non-null → SKIP rest of cascade
+```
+
+Decoded mask sequence (step `i` ends at the `_GetResource` trap on the cited
+addr; "bits cleared" is the bitmask interpretation — what each AND strips from
+the 16-bit unsigned `d3`):
+
+| step | addr | mask (hex) | bits cleared | role |
+|---:|---|---|---|---|
+| 0 | `0x3574` | `0xFFFF` | none | raw `d3` (no degradation) |
+| 1 | `0x358c` | `0xFFFE` (`& -2`) | bit 0 | strip bit 0 |
+| 2 | `0x35a4` | `0xFFFD` (`& -3`) | bit 1 | strip bit 1 |
+| 3 | `0x35bc` | `0xFFFC` (`& -4`) | bits 0–1 | strip bits 0+1 |
+| 4 | `0x35d4` | `0xFFFB` (`& -5`) | bit 2 | strip bit 2 |
+| 5 | `0x35ec` | `0xFFFA` (`& -6`) | bits 0+2 | strip bits 0+2 |
+| 6 | `0x3604` | `0xFFF1` (`& -15`) | bits 1–3 | strip bits 1+2+3 |
+| 7 | `0x361c` | `0xFFF0` (`& -16`) | bits 0–3 | strip bits 0+1+2+3 |
+| 8 | `0x3634` | `0xFFEF` (`& -17`) | bit 4 | strip bit 4 |
+| 9 | `0x364c` | `0xFFEE` (`& -18`) | bits 0+4 | strip bits 0+4 |
+| 10 | `0x3664` | `0xFFEB` (`& -21`) | bits 2+4 | strip bits 2+4 |
+| 11 | `0x367c` | `0xFFEA` (`& -22`) | bits 0+2+4 | strip bits 0+2+4 |
+
+After `0x367e` the code clears 5 work-struct fields
+(`a4@(0xae4/0xb86/0xc28/0xcca/0x792)` = the 4 side-list pointers + count) then
+tests `a2`; still-null at `0x36a0` branches to `0x373e` (the "no recipe"
+failure path).
+
+**Translated to canonical wnd# slugs** (the kDEF id grid — see §2.1 / Apple
+`MacWindows.h` defProcID conventions):
+
+| id | slug | cascade landing (unique steps after raw) |
+|---:|---|---|
+| `-14336` | document-window | (terminal) |
+| `-14332` | collapsed-document-window | → `-14336` |
+| `-14328` | dialog | → `-14336` |
+| `-14326` | alert | → `-14328` → `-14336` |
+| `-14324` | movable-modal | → `-14328` → `-14336` |
+| `-14322` | movable-alert | → `-14324` → `-14326` → `-14336` |
+| `-14304` | titled-utility-window | (terminal — utility family) |
+| `-14300` | collapsed-titled-utility | → `-14304` |
+| `-14296` | side-floating-utility-window | → `-14304` |
+| `-14292` | collapsed-side-utility | → `-14296` → `-14304` |
+| `-14288` | no-title-utility-window | → `-14304` |
+| `-14284` | collapsed-no-title-utility | → `-14288` → `-14300` → `-14304` |
+| `-12320` | popup-window | (terminal — no canonical landing on the mask grid) |
+
+The cascade encodes two structural decisions: **document-family ids degrade to
+`-14336`** and **utility-family ids degrade to `-14304`**. `popup-window`
+(`-12320 = 0xCFE0`) is intentionally OUTSIDE the mask grid — none of the strips
+produce another canonical id, so a missing popup is a genuine miss.
+
+**2.3.1-only enhancement.** The 1.8.2 kDEF (`.scratch/k182-kdef/kDEF/`,
+60,732 B) has **zero** `'wnd#'` FourCC literals anywhere in `kDEF 0`
+(cross-checked by binary grep on both extracted blobs); the cascade — and the
+wnd# resource model itself — were introduced in 2.3.1.
+
+**Runtime mirror.** `src/wndCascade.ts` is the clean-room replay; consulted by
+`src/renderWindow.ts:resolveWindowType` immediately after exact-slug match.
+Audited corpus impact (verified by running `loadKaleidoscopeScheme` over each
+bundle's source archive and diffing the old heuristic resolver against the
+cascade): 16 of 18 bundles ship at least one missing canonical collapsed-* /
+no-title-utility slug that the cascade resolves into the bundle's structurally-
+compatible parent. Concrete deltas the cascade corrects (the three visual
+baselines that shifted when the helper landed):
+- `crayon-os` · `collapsed-no-title-utility` was falling to `titled-utility-window`; now resolves to `collapsed-titled-utility` (preserves the windowshade state)
+- `windows-31` + `windows-95` · all four utility-family slugs were falling to `movable-modal` (a dialog!); now resolve into the utility family (`titled-utility-window` / `side-floating-utility-window`) per the kDEF's cascade
 
 ### 3.5 cinf byte layout (`0x108a0` + `0x116f8`)
 

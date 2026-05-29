@@ -316,7 +316,13 @@ function pickIconRgba(scheme, id, size = 16) {
 
 // ─── PROBES PER SLOT ───────────────────────────────────────────────────────
 
-// finder-header-badge — kept from the original probe.
+// finder-header-badge — kept from the original probe. Its winning match is also
+// the ANCHOR that calibrates every other slot's sampling region — the badge
+// sits at the leading edge of the info bar, so its (x, y, scale) gives us the
+// info-bar's vertical band + horizontal start without depending on raw image
+// fractions (which break for refs where the title bar is oversized — windows-31
+// has a 95px title bar in a 500px tall ref, blowing the y=10-17% assumption).
+//
 const HEADER_BADGE_CANDIDATE_IDS = [-3790, -14336];
 
 function runtimePicksHeaderBadge(scheme) {
@@ -332,7 +338,7 @@ function probeHeaderBadge(scheme, ref) {
   candidates.push({ ...loadFinderGrid(), name: 'FINDER_GRID' });
   const matches = candidates.map((c) => {
     const m = searchBestMatch(ref, c);
-    return { name: c.name, ...m };
+    return { name: c.name, ...m, candWidth: c.width, candHeight: c.height };
   }).sort((a, b) => a.distance - b.distance);
   const best = matches[0];
   const runtime = runtimePicksHeaderBadge(scheme);
@@ -342,12 +348,19 @@ function probeHeaderBadge(scheme, ref) {
   const ru = matches[1];
   const distMargin = ru ? ru.distance - best.distance : Infinity;
   const lowConfidence = xPct > 25 || best.distance > 100 || distMargin < 10;
+  // Export the anchor for downstream slot probes. Even when confidence=low,
+  // the anchor is usually still in the right NEIGHBOURHOOD — downstream slots
+  // tolerate ±20% offset because they sample relative regions, not exact pixels.
   return {
     runtime_tier: runtime,
     verified_tier: best.name,
     agree,
     confidence: lowConfidence ? 'low' : 'ok',
     notes: `d=${best.distance.toFixed(1)} @${best.x},${best.y} ${best.scale}x; ru=${ru ? ru.name + '/d=' + ru.distance.toFixed(1) : '-'}`,
+    anchor: {
+      x: best.x, y: best.y, scale: best.scale,
+      w: best.candWidth * best.scale, h: best.candHeight * best.scale,
+    },
   };
 }
 
@@ -360,17 +373,23 @@ function probeHeaderBadge(scheme, ref) {
 // grid badge (leading edge) and the volume-name text — gives the cleanest
 // pattern read.
 //
-function probeInfoBarBg(scheme, ref) {
-  // Region: inside the main window, below the title bar. The grid badge sits at
-  // the leading edge, the volume name to the right of it. To avoid sampling the
-  // BADGE itself (which is icon pixels, not the bar bg), skip the leftmost ~14%
-  // (≈ 27px native, ≈ 140px on a 1024-wide). The text starts soon after, so
-  // sample the BAR INTERIOR in a narrow vertical band that's mostly bg+text.
-  // y: 11% → 16% of ref height puts us in the bar interior on every reference.
-  // Cross-checked: at 200×134 (1138/apple-platinum-2), y=15..21 hits the strip;
-  // at 1024×856 (dolphin-som), y=94..137 hits the strip.
-  const xa = ref.width * 0.18, xb = ref.width * 0.34;
-  const ya = ref.height * 0.11, yb = ref.height * 0.16;
+function probeInfoBarBg(scheme, ref, anchor) {
+  // ANCHOR-RELATIVE sampling: the badge sits at the info bar's leading edge.
+  // Its bounding box (anchor.x..x+w, anchor.y..y+h) IS the strip's vertical
+  // band — sample THE BAR's bg in the gap between the badge's right edge and
+  // the volume-name text (~3-5 badge-widths to the right). This locks the
+  // probe to the correct row even when the title bar is oversized (windows-31
+  // has a 95px tall title bar in a 500-tall reference — fixed-fraction y was
+  // landing INSIDE the title bar, sampling the blue title fill instead).
+  if (!anchor) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no badge anchor (badge probe failed)' };
+  const padX = anchor.w * 0.4; // small horizontal gap past the badge edge
+  const xa = anchor.x + anchor.w + padX;
+  const xb = Math.min(ref.width, anchor.x + anchor.w * 6); // a couple of badge-widths of strip
+  // Sample the FULL vertical band of the badge (anchor.y..anchor.y+anchor.h) —
+  // the bar background occupies the same row. Shrink slightly to avoid edge
+  // anti-aliasing.
+  const ya = anchor.y + anchor.h * 0.2;
+  const yb = anchor.y + anchor.h * 0.8;
   const sampled = meanRgbOfRegion(ref, xa, ya, xb, yb);
   if (!sampled) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no opaque pixels in sample region' };
 
@@ -440,9 +459,25 @@ function probeInfoBarBg(scheme, ref) {
 // Empirical region (verified against monkey-paradise 844×596, 1990 225×175,
 // apple-platinum-2 195×127, slimes 780×508): y=33-44%, x=68-82%.
 //
-function probeDialogBodyBg(scheme, ref) {
+function probeDialogBodyBg(scheme, ref, anchor) {
+  // The Options dialog sits TOP-RIGHT, overlapping into the main window. The
+  // dialog's interior is below its own top edge (which aligns with the main
+  // window's info-bar top, give or take) and above the OK button + grow box.
+  // Use the anchor's vertical band as the reference scale: the dialog's
+  // interior is roughly 3-6 info-bar-heights tall and starts ~1 info-bar-
+  // height below the dialog top. We sample the gap between the On/Off toggle
+  // and the OK button by going from y = anchor.y + 3*anchor.h to
+  // y = anchor.y + 5*anchor.h.
+  // Horizontally, the dialog sits in the RIGHT half of the ref; its body
+  // interior is near x = 70-85% of ref width. The dialog's footprint isn't
+  // anchored to the badge, so we keep an x-fraction here.
+  if (!anchor) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no badge anchor (badge probe failed)' };
   const xa = ref.width * 0.68, xb = ref.width * 0.82;
-  const ya = ref.height * 0.33, yb = ref.height * 0.44;
+  const ya = anchor.y + anchor.h * 3.0;
+  const yb = anchor.y + anchor.h * 4.5;
+  // Clamp to image bounds; if the dialog's expected region falls outside the
+  // ref (tightly cropped refs without a tall dialog), this slot can't verify.
+  if (yb > ref.height) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'dialog body region outside reference bounds' };
   const sampled = meanRgbOfRegion(ref, xa, ya, xb, yb);
   if (!sampled) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no opaque pixels in sample region' };
 
@@ -498,12 +533,17 @@ function probeDialogBodyBg(scheme, ref) {
 // the folder icons start). For some scaled references the icons start very
 // near the left edge (slimes), so the band is narrow.
 //
-function probeWindowBodyBg(scheme, ref) {
-  // Use a narrow band right at the main-window body's LEFT margin, between the
-  // info bar and any folder icons. y=21..25% safely above icons in every
-  // reference (folder rows sit at y=29-44% across the corpus).
-  const xa = ref.width * 0.02, xb = ref.width * 0.10;
-  const ya = ref.height * 0.21, yb = ref.height * 0.27;
+function probeWindowBodyBg(scheme, ref, anchor) {
+  // Sample IMMEDIATELY below the info bar (anchor.y + anchor.h + tiny gap),
+  // at the main-window's left margin (a few px right of the chrome border —
+  // approximate via anchor.x - anchor.w * 0.5 ... + anchor.w * 0.5).
+  // This is the small wedge of body BG just above the folder icons.
+  if (!anchor) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no badge anchor (badge probe failed)' };
+  const xa = Math.max(0, anchor.x - anchor.w * 0.5);
+  const xb = anchor.x + anchor.w * 0.5;
+  const ya = anchor.y + anchor.h * 1.05;
+  const yb = anchor.y + anchor.h * 1.5;
+  if (yb > ref.height) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'body region outside reference bounds' };
   const sampled = meanRgbOfRegion(ref, xa, ya, xb, yb);
   if (!sampled) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no opaque pixels in sample region' };
 
@@ -572,9 +612,11 @@ function sampleCorner(ref, corner) {
   return { mean: [sr / n, sg / n, sb / n], range, n };
 }
 
-function probeDesktopBg(scheme, ref) {
+function probeDesktopBg(scheme, ref, _anchor) {
   // Pick the corner with the LOWEST range — that's likely the cleanest read of
-  // the desktop pattern (uniform fill or a tightly-repeating ppat).
+  // the desktop pattern (uniform fill or a tightly-repeating ppat). Anchor-
+  // independent because the desktop sits OUTSIDE the chrome — corner sampling
+  // is the natural strategy.
   const corners = ['tl', 'tr', 'bl', 'br']
     .map((c) => ({ c, ...sampleCorner(ref, c) }))
     .filter((s) => s.mean);
@@ -641,7 +683,7 @@ function runtimePicksFolderIcons(scheme) {
   return hit ? `icl ${hit}` : 'neutral SVG';
 }
 
-function probeFolderIcons(scheme, ref) {
+function probeFolderIcons(scheme, ref, anchor) {
   const candidates = [];
   for (const id of FINDER_CONTENT_ICON_IDS) {
     const e = pickIconRgba(scheme, id, 32);
@@ -656,9 +698,24 @@ function probeFolderIcons(scheme, ref) {
       notes: 'bundle ships none of FINDER_CONTENT_ICON_IDS at size=32',
     };
   }
-  // Search a region matching the folder row: y=22-50%, x=2-30%.
-  // The icons sit closer to the top-left than the header badge does.
-  const region = { x0: 0.02, y0: 0.22, x1: 0.30, y1: 0.50 };
+  // Anchor-relative region: folder icons sit BELOW the info bar in the body of
+  // the main window. The first folder is approximately at:
+  //   x ≈ anchor.x - anchor.w   (slightly left of the badge)
+  //   y ≈ anchor.y + anchor.h * 1.3
+  // and the row extends ~6 badge-widths to the right + 3 badge-heights down.
+  // This is approximate — the runtime's Scene composer uses left=8px / top=22px
+  // CSS positioning so the badge anchor's "info bar height" doesn't directly
+  // correspond, but it's enough to scope the search to the body area.
+  let region;
+  if (anchor) {
+    const x0 = Math.max(0, (anchor.x - anchor.w * 1.5)) / ref.width;
+    const y0 = (anchor.y + anchor.h * 1.0) / ref.height;
+    const x1 = Math.min(ref.width, (anchor.x + anchor.w * 8)) / ref.width;
+    const y1 = Math.min(ref.height, (anchor.y + anchor.h * 5)) / ref.height;
+    region = { x0, y0, x1, y1 };
+  } else {
+    region = { x0: 0.02, y0: 0.22, x1: 0.30, y1: 0.50 };
+  }
   const matches = candidates.map((c) => {
     const m = searchBestMatch(ref, c, { region });
     return { name: c.name, ...m };
@@ -666,9 +723,23 @@ function probeFolderIcons(scheme, ref) {
   const best = matches[0];
   const ru = matches[1];
   const runtime = runtimePicksFolderIcons(scheme);
+  // The runtime shows the FIRST N icons in priority order (currently N=2). So
+  // the "verified" agreement question is whether the runtime's top-priority
+  // pick (which the runtime renders FIRST, at the left of the row) matches
+  // any of the strong icon hits at the leftmost position. Per-bundle visual
+  // inspection of references shows the runtime's choice is usually fine BUT
+  // the painterly large refs (monkey-paradise, slimes, animals, dolphin-som)
+  // show artwork that doesn't pixel-match the bundle's ics4/ics8 icons at any
+  // scale — those refs are NOT renders of the actual scheme but artist-
+  // produced sampler images. So template-match-by-pixel is unreliable here.
+  // Confidence is intentionally LOW for these cases; we flag any
+  // disagreement as "needs human eye" rather than "runtime is wrong".
   const agree = best.name === runtime;
   const distMargin = ru ? ru.distance - best.distance : Infinity;
-  const lowConf = best.distance > 100 || distMargin < 10;
+  // Strict confidence: only "ok" when the match is very tight (<60) and the
+  // margin is decisive (>30). Painterly refs never qualify, which is correct
+  // — the painterly art isn't the bundle's icon set.
+  const lowConf = best.distance > 60 || distMargin < 30;
   return {
     runtime_tier: runtime,
     verified_tier: best.name,
@@ -678,66 +749,89 @@ function probeFolderIcons(scheme, ref) {
   };
 }
 
-// info-bar-text-color — verify the contrast pick by sampling the info-bar
-// strip's extreme luminance pixels (the text should be the extreme one).
-function probeInfoBarTextColor(scheme, ref) {
-  // Same vertical band as info-bar-bg, but wider horizontally so we catch the
-  // volume-name text region (which sits to the right of the badge).
-  const xa = ref.width * 0.16, xb = ref.width * 0.42;
-  const ya = ref.height * 0.10, yb = ref.height * 0.17;
-  const xa0 = Math.max(0, Math.floor(xa));
-  const ya0 = Math.max(0, Math.floor(ya));
-  const xb0 = Math.min(ref.width, Math.ceil(xb));
-  const yb0 = Math.min(ref.height, Math.ceil(yb));
+// info-bar-text-color — sample the volume-name text region in the bar; pick
+// whichever extreme luminance (dark or light) is more populous; that's the
+// text colour.
+function probeInfoBarTextColor(scheme, ref, anchor) {
+  if (!anchor) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no badge anchor' };
+  // Sample the text-bearing strip: just to the right of the badge, in the
+  // badge's vertical band. Extend ~6 badge-widths right (where the volume
+  // name sits) — clamp to image bounds.
+  const padX = anchor.w * 0.4;
+  const xa0 = Math.max(0, Math.floor(anchor.x + anchor.w + padX));
+  const xb0 = Math.min(ref.width, Math.ceil(anchor.x + anchor.w * 7));
+  const ya0 = Math.max(0, Math.floor(anchor.y));
+  const yb0 = Math.min(ref.height, Math.ceil(anchor.y + anchor.h));
+  if (xb0 - xa0 < 4 || yb0 - ya0 < 4) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'text region too small' };
 
-  // Histogram by luminance; find the dominant cluster (background) and the
-  // extremes (likely text pixels).
-  let bgR = 0, bgG = 0, bgB = 0, bgN = 0;
-  let darkLumSum = 0, darkN = 0, lightLumSum = 0, lightN = 0;
+  // Three buckets: dark (lum<60), light (lum>200), mid (the bg).
+  let darkN = 0, lightN = 0;
+  let midR = 0, midG = 0, midB = 0, midN = 0;
   for (let y = ya0; y < yb0; y++) {
     for (let x = xa0; x < xb0; x++) {
       const o = (y * ref.width + x) * 4;
       if (ref.rgba[o + 3] < 128) continue;
       const r = ref.rgba[o], g = ref.rgba[o + 1], b = ref.rgba[o + 2];
       const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      bgR += r; bgG += g; bgB += b; bgN++;
-      if (lum < 40) { darkLumSum += lum; darkN++; }
-      else if (lum > 215) { lightLumSum += lum; lightN++; }
+      if (lum < 60) darkN++;
+      else if (lum > 200) lightN++;
+      else { midR += r; midG += g; midB += b; midN++; }
     }
   }
-  if (bgN === 0) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'no opaque sample pixels' };
-  const bgMeanLum = luminance([bgR / bgN, bgG / bgN, bgB / bgN]);
+  const totalN = darkN + lightN + midN;
+  if (totalN < 10) return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: 'too few sampled pixels' };
+  const bgLum = midN > 0 ? luminance([midR / midN, midG / midN, midB / midN]) : null;
 
-  // The text pixels are whichever cluster is FARTHER from bg luminance and has
-  // a non-trivial count (≥0.5% of sampled).
-  const minCluster = Math.max(8, bgN * 0.005);
-  let textColor = '?';
-  if (lightN >= minCluster && darkN < minCluster) textColor = 'white';
-  else if (darkN >= minCluster && lightN < minCluster) textColor = 'black';
-  else if (lightN >= minCluster && darkN >= minCluster) {
-    // Both clusters present — pick whichever has more contrast vs bg.
-    textColor = Math.abs(bgMeanLum - 255) > Math.abs(bgMeanLum - 0) ? 'white' : 'black';
+  // The text is the MINORITY extreme cluster (text occupies ~10-20% of a text-
+  // bar region; bg occupies the rest). Pick whichever of dark/light has more
+  // pixels than the OTHER extreme — that's the text.
+  // If both are present in significant numbers, the text is the cluster on
+  // the OPPOSITE side of the bg luminance (text contrasts AGAINST bg).
+  let textColor;
+  const minCluster = Math.max(4, totalN * 0.003);
+  if (darkN >= minCluster && lightN < minCluster) textColor = 'black';
+  else if (lightN >= minCluster && darkN < minCluster) textColor = 'white';
+  else if (darkN >= minCluster && lightN >= minCluster) {
+    // Both extremes present (e.g. white bg with black text + some specular
+    // highlights, OR dark bg with white text + some shadow accents). The text
+    // sits on the side OPPOSITE the bg luminance.
+    if (bgLum === null) textColor = darkN > lightN ? 'black' : 'white';
+    else textColor = bgLum < 128 ? 'white' : 'black';
   } else {
-    return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: `no high-contrast text cluster found (bgLum=${bgMeanLum.toFixed(0)})` };
+    return { runtime_tier: '?', verified_tier: '?', agree: false, confidence: 'low', notes: `no text cluster (darkN=${darkN}, lightN=${lightN}, mid=${midN})` };
   }
 
-  // Runtime: mirror demo's contrast pick — texture present → black, else
-  // luminance-threshold against headerColors.active.fill.
+  // Runtime: mirror demo's contrast pick exactly.
+  // 1. Resolve which info-bar bg fires: T1 cinf bgPattern → T2 bodyBackground
+  //    → T3 headerFill. The `_infoPatUrl` is set to T1 or T2 (a texture URL);
+  //    when present, runtime forces BLACK regardless of fill luminance ("we
+  //    leave the textured info-bar at black until a per-element textColor
+  //    field exists" — see demo/index.html line 871-872).
+  // 2. Else luminance-pick against `_infoFillColor` (headerColors.active.fill
+  //    falling through to #e6e6e6 default).
   const m = scheme.manifest;
   const hdrCe = Object.values(m.chromeElements ?? {}).find((v) => v.sourceCicnId === -9567);
-  const hasTexture = (hdrCe?.bgPattern && m.patterns?.[hdrCe.bgPattern]?.asset) || m.bodyBackground?.pattern;
-  const fillRgb = hexToRgb(m.headerColors?.active?.fill);
+  const t1Texture = hdrCe?.bgPattern && m.patterns?.[hdrCe.bgPattern]?.asset;
+  const t2Texture = m.bodyBackground?.pattern;
+  const hasTexture = t1Texture || t2Texture;
+  const fillHex = m.headerColors?.active?.fill ?? '#e6e6e6';
+  const fillRgb = hexToRgb(fillHex);
   let runtime;
   if (hasTexture) runtime = 'black';
   else if (fillRgb) runtime = luminance(fillRgb) < 128 ? 'white' : 'black';
   else runtime = 'black';
 
+  // Confidence: low when both extreme clusters are close in count (ambiguous
+  // — could be either) OR when the minority is tiny.
+  const ratio = Math.max(darkN, lightN) / Math.max(1, Math.min(darkN, lightN));
+  const lowConf = (darkN > minCluster && lightN > minCluster && ratio < 2) || (darkN + lightN < totalN * 0.01);
+
   return {
     runtime_tier: runtime,
     verified_tier: textColor,
     agree: runtime === textColor,
-    confidence: 'ok',
-    notes: `bgLum=${bgMeanLum.toFixed(0)} darkN=${darkN} lightN=${lightN}`,
+    confidence: lowConf ? 'low' : 'ok',
+    notes: `bgLum=${bgLum?.toFixed(0) ?? '?'} darkN=${darkN} lightN=${lightN} mid=${midN}`,
   };
 }
 
@@ -767,15 +861,24 @@ async function probeOne(slug, slotKeys) {
   let scheme;
   try { scheme = await loadBundle(slug); }
   catch (e) { return { slug, refPath, error: `decode failed: ${e.message}` }; }
+  // Pre-compute the badge anchor — every other slot's sampling is calibrated
+  // against it. This is the cheapest reliable way to handle scale variability
+  // across the corpus (refs span 195×127 native to 1024×856 painterly).
+  let anchor = null;
+  const badgeResult = probeHeaderBadge(scheme, ref);
+  anchor = badgeResult.anchor;
   const slotResults = {};
   for (const k of slotKeys) {
-    try { slotResults[k] = SLOTS[k](scheme, ref); }
-    catch (e) { slotResults[k] = { error: e.message }; }
+    try {
+      if (k === 'finder-header-badge') slotResults[k] = badgeResult;
+      else slotResults[k] = SLOTS[k](scheme, ref, anchor);
+    } catch (e) { slotResults[k] = { error: e.message }; }
   }
   return {
     slug,
     refPath,
     refDims: `${ref.width}x${ref.height}`,
+    anchor,
     slots: slotResults,
   };
 }

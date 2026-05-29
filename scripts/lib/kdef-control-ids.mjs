@@ -98,3 +98,13 @@ export const KDEF_UTIL_WIDGET_IDS = [-14320, -14319, -14318];
 export const KDEF_SCROLL_ARROW_IDS = [
   -10197, -10198, -10199, -10200, -10201, -10202, -10203, -10204,
 ];
+
+/** Finder window-header badge — the "Snap-To-Grid" / "Grid Arrangement"
+ *  pictogram that sits at the leading edge of the Finder window's info bar.
+ *  Corroborated by 3 corpus author labels (`docs/spec/corpus-corroborated-ids.md`).
+ *  NOT a volume icon — Apple's volume icon path is
+ *  `GetIconRef('macs','hdsk') → kGenericHardDiskIconResource = -3995`
+ *  (`docs/spec/apple-primary-source.md` "Apple Finder system icons"). The
+ *  finder-header-badge name was the source of two months of confusion before
+ *  the rename in commit 8424a00. */
+export const KDEF_FINDER_HEADER_BADGE_ID = -3790;

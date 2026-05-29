@@ -61,11 +61,13 @@ At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x11
 
 At `0x1171a`: `pea 'cinf', movw d7,-(sp), GetResource` (id from d7). Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a `pWin` back-patch (byte 18) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
 
-### 4. `wnd#` fallback ladder (NEW)
+### 4. `wnd#` fallback ladder — **DECODED 2026-05-29**
 
-At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, then ANDs with `-2, -3, -4, -5, -6, -15, -16, -17, -18, -21, -22` in sequence until one resolves.
+At `0x356c..0x367e` — 12-step degraded-id fallback. Tries the requested id, then ANDs with `-2, -3, -4, -5, -6, -15, -16, -17, -18, -21, -22` in sequence until one resolves. Each step pushes `'wnd#'` (FourCC `0x776e6423`) then the masked id, traps `_GetResource` (`0xA9A0`), and `bnes` past the rest of the cascade once a non-null handle returns.
 
-**Implication for our runtime:** `composeChrome.ts` looks up an EXACT id from the bundle's `wnd#` index. The 2.3.1 binary walks a FALLBACK CHAIN. Hits we currently treat as "no recipe for this id" would have resolved to a stripped variant. **Worth modeling explicitly** — `docs/spec/kdef231-reference.md` §7 lists this as a still-open question.
+**Per-step asm pattern + the full landing table** (which canonical slugs degrade into which) live in `docs/spec/kdef231-reference.md §3.4.1`. **Runtime mirror**: `src/wndCascade.ts` (clean-room) + integration at `src/renderWindow.ts:resolveWindowType`. Corpus impact: 16 of 18 bundles ship at least one canonical slug the cascade resolves; three baselines (`crayon-os`, `windows-31`, `windows-95`) drifted into period-faithful resolutions when the helper landed.
+
+**1.8.2 cross-check.** `grep -c "wnd#"` over both binaries: 1.8.2 returns **0**, 2.3.1 returns **17** matches (12 cascade attempts + 5 outside refs). The wnd# resource model + cascade were a 2.3.1-only addition.
 
 ### 5. FourCC vocabulary
 

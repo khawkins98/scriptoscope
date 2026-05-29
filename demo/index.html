@@ -1382,17 +1382,26 @@
       // (`wnd--14288`) rather than a friendly slug — map those ids to the
       // canonical kind (matches the extractor's CANONICAL_WNDTYPE_SLUGS) for a
       // readable, consistently-ordered dropdown without touching the bundle.
+      // Sourced from docs/spec/scheme-factory-vocabulary.md §4 (STR# 128
+      // entries 2-14, the canonical 13-id window-type catalogue). Three
+      // collapsed-utility variants added 2026-05-29 from the holistic audit
+      // (F1) — they were shipped by 1138 + crayon-os but sorted to the
+      // bottom of the dropdown as raw `wnd--14300` keys.
       const WND_ID_SLUG = {
         '-14336': 'document-window', '-14335': 'document-window', '-14332': 'collapsed-document-window',
         '-14328': 'dialog', '-14326': 'alert', '-14324': 'movable-modal', '-14322': 'movable-alert',
-        '-14304': 'titled-utility-window', '-14296': 'side-floating-utility-window', '-14288': 'no-title-utility-window',
+        '-14304': 'titled-utility-window', '-14300': 'collapsed-titled-utility-window',
+        '-14296': 'side-floating-utility-window', '-14292': 'collapsed-side-floating-utility-window',
+        '-14288': 'no-title-utility-window', '-14284': 'collapsed-no-title-utility-window',
         '-12320': 'popup-window',
       };
       const canonSlug = (k) => { const m = /^wnd-(-?\d+)$/.exec(k); return m && WND_ID_SLUG[m[1]] ? WND_ID_SLUG[m[1]] : k; };
       const prettyWindowType = (k) => canonSlug(k).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       // Designer-first order: main window, then modal dialogs, then floating
-      // utility palettes, then collapsed/popup oddments.
-      const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window'];
+      // utility palettes, then collapsed/popup oddments. The collapsed-utility
+      // siblings sort alongside collapsed-document-window at the tail per the
+      // same convention.
+      const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window', 'collapsed-titled-utility-window', 'collapsed-side-floating-utility-window', 'collapsed-no-title-utility-window'];
       const populateWindowTypes = (theme) => {
         const wts = theme.manifest.windowTypes || {};
         wtypeSel.innerHTML = '';
