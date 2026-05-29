@@ -26,6 +26,9 @@ import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+import {
+  KDEF_CONTROL_IDS, KDEF_DOC_WIDGET_IDS, KDEF_UTIL_WIDGET_IDS, KDEF_SCROLL_ARROW_IDS,
+} from './lib/kdef-control-ids.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const themesRoot = resolve(repoRoot, 'themes');
@@ -208,7 +211,7 @@ const SLOTS = [
         why: 'shipped -10223 — the kDEF default lavender progress (composeProgress checks this first)',
         resolve: (m) => {
           const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
-          return has(-10223) ? 'lavender canonical (-10223)' : null;
+          return has(-KDEF_CONTROL_IDS.progress.lavenderCanonical) ? `lavender canonical (-${KDEF_CONTROL_IDS.progress.lavenderCanonical})` : null;
         },
       },
       {
@@ -216,16 +219,18 @@ const SLOTS = [
         why: 'schemes shipping -10080/-10079/-10078 carry the artist-painted progress bar; runtime fallback when -10223 absent',
         resolve: (m) => {
           const has = (id) => Object.values(m.chromeElements ?? {}).some((v) => v.sourceCicnId === id);
-          return (has(-10080) && has(-10079) && has(-10078)) ? 'role-3-part (-10080/-10079/-10078)' : null;
+          const { frame, fill, track } = KDEF_CONTROL_IDS.progress;
+          return (has(-frame) && has(-fill) && has(-track)) ? `role-3-part (-${frame}/-${fill}/-${track})` : null;
         },
       },
       {
         name: 'multi-hue',
         why: 'scheme ships 3+ alternate hues — runtime could expose a picker, currently picks default',
         resolve: (m) => {
+          const [lo, hi] = KDEF_CONTROL_IDS.progress.familyRanges[0]; // role-3-part hue range
           const ids = Object.values(m.chromeElements ?? {})
             .map((v) => v.sourceCicnId)
-            .filter((id) => typeof id === 'number' && Math.abs(id) >= 10071 && Math.abs(id) <= 10080);
+            .filter((id) => typeof id === 'number' && Math.abs(id) >= lo && Math.abs(id) <= hi);
           return ids.length >= 3 ? `${ids.length} hue cicns shipped (variant picker candidate)` : null;
         },
       },
@@ -259,7 +264,9 @@ const SLOTS = [
         why: 'corner-sprite schemes ship ics4/ics8 -14336 family for doc windows',
         resolve: (_m, ii) => {
           const has = (id) => ii.some((e) => e.id === id && e.size === 16);
-          return has(-14336) ? `ics -14336/-14335/-14334 shipped (${[-14336,-14335,-14334].filter(has).length}/3)` : null;
+          return has(KDEF_DOC_WIDGET_IDS[0])
+            ? `ics ${KDEF_DOC_WIDGET_IDS.join('/')} shipped (${KDEF_DOC_WIDGET_IDS.filter(has).length}/3)`
+            : null;
         },
       },
       {
@@ -267,7 +274,9 @@ const SLOTS = [
         why: 'ics4/ics8 -14320 family — utility-window widgets where docs are absent',
         resolve: (_m, ii) => {
           const has = (id) => ii.some((e) => e.id === id && e.size === 16);
-          return has(-14320) ? `ics -14320/-14319/-14318 shipped (${[-14320,-14319,-14318].filter(has).length}/3)` : null;
+          return has(KDEF_UTIL_WIDGET_IDS[0])
+            ? `ics ${KDEF_UTIL_WIDGET_IDS.join('/')} shipped (${KDEF_UTIL_WIDGET_IDS.filter(has).length}/3)`
+            : null;
         },
       },
       { name: 'procedural box', why: 'composeCornerSpriteChrome stamps a 1px outline — no scheme art to draw', resolve: () => 'procedural box' },
@@ -289,27 +298,26 @@ const SLOTS = [
         resolve: (m) => {
           const wt = m.windowTypes?.['document-window'];
           if (!wt) return null;
+          const [sbLo, sbHi] = KDEF_CONTROL_IDS.scrollbar.familyRanges[0];
           const hasScrollbarCicn = Object.values(m.chromeElements ?? {})
-            .some((v) => typeof v.sourceCicnId === 'number' && Math.abs(v.sourceCicnId) >= 8277 && Math.abs(v.sourceCicnId) <= 8288);
-          return (wt.model !== 'corner-sprite' && hasScrollbarCicn) ? 'scrollbar cicn (-827x family, arrow baked)' : null;
+            .some((v) => typeof v.sourceCicnId === 'number' && Math.abs(v.sourceCicnId) >= sbLo && Math.abs(v.sourceCicnId) <= sbHi);
+          return (wt.model !== 'corner-sprite' && hasScrollbarCicn) ? `scrollbar cicn (-${sbLo}..-${sbHi} family, arrow baked)` : null;
         },
       },
       {
         name: 'full 8-glyph set (-10197..-10204)',
         why: 'four directions × raised+pressed — the canonical kDEF231 CDEF arrow map (asm 9f0e-9f38)',
         resolve: (_m, ii) => {
-          const ids = [-10197,-10198,-10199,-10200,-10201,-10202,-10203,-10204];
-          const got = ids.filter((id) => ii.some((e) => e.id === id && e.size === 16));
-          return got.length === 8 ? 'all 8 glyphs (4 dir × raised+pressed)' : null;
+          const got = KDEF_SCROLL_ARROW_IDS.filter((id) => ii.some((e) => e.id === id && e.size === 16));
+          return got.length === KDEF_SCROLL_ARROW_IDS.length ? 'all 8 glyphs (4 dir × raised+pressed)' : null;
         },
       },
       {
         name: 'partial set (≥4 glyphs)',
         why: 'four directions covered, may be missing pressed variants',
         resolve: (_m, ii) => {
-          const ids = [-10197,-10198,-10199,-10200,-10201,-10202,-10203,-10204];
-          const got = ids.filter((id) => ii.some((e) => e.id === id && e.size === 16));
-          return got.length >= 4 ? `${got.length}/8 glyphs shipped` : null;
+          const got = KDEF_SCROLL_ARROW_IDS.filter((id) => ii.some((e) => e.id === id && e.size === 16));
+          return got.length >= 4 ? `${got.length}/${KDEF_SCROLL_ARROW_IDS.length} glyphs shipped` : null;
         },
       },
       { name: 'procedural arrows', why: 'platinumScrollbar draws CSS-procedural arrows', resolve: () => 'procedural' },

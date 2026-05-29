@@ -37,6 +37,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+import { KDEF_CONTROL_IDS, KDEF_GLYPH_FAMILIES } from './lib/kdef-control-ids.mjs';
 
 // PixelBuffer is only needed by the SLOW path (--update / single-slug mode that re-runs
 // the full lint). Verify mode (the default) only computes sha256 of the source archive
@@ -263,16 +264,12 @@ async function lintBundle(slug) {
   );
   const hasAny = (ids) => ids.some((id) => cicnIds.has(id));
   const inFamily = (fams) => [...cicnIds].some((id) => fams.some(([lo, hi]) => id >= lo && id <= hi));
-  const CONTROLS = [
-    { n: 'button',    ids: [10239, 10238, 10240],                              fam: [[10238, 10240]] },
-    { n: 'checkbox',  ids: [9500, 9503, 9501, 9504],                           fam: [[9500, 9504]] },
-    { n: 'radio',     ids: [9488, 9491, 9489, 9492],                           fam: [[9488, 9492]] },
-    { n: 'slider',    ids: [10205, 10206, 10207, 10208],                       fam: [[10205, 10208]] },
-    { n: 'scrollbar', ids: [8277, 8278, 8279, 8280, 8285, 8286, 8287, 8288],   fam: [[8277, 8288]] },
-    { n: 'progress',  ids: [10075, 10076, 10077, 10078, 10079, 10080, 10223, 10224], fam: [[10075, 10080], [10223, 10224]] },
-    { n: 'tab',       ids: [9972, 9975, 9980, 9983],                           fam: [[9969, 9984]] },
-    { n: 'growbox',   ids: [14330, 14333, 14334],                             fam: [[14330, 14334]] },
-  ];
+  // Sourced from scripts/lib/kdef-control-ids.mjs (shared with audit:scenes).
+  // Adding a new control id means updating ONE catalogue; the lint's family
+  // check + the codex's per-tier resolvers automatically pick it up.
+  const CONTROLS = Object.entries(KDEF_CONTROL_IDS).map(([n, c]) => ({
+    n, ids: c.lookupIds, fam: c.familyRanges,
+  }));
   const cwarn = [];
   for (const c of CONTROLS) {
     if (inFamily(c.fam) && !hasAny(c.ids))
@@ -285,13 +282,8 @@ async function lintBundle(slug) {
   }
 
   // ── glyph orphans (iconIndex from the in-memory decode) ────────────────
-  const GLYPH_FAMILIES = [
-    [-10208, -10197, 'scroll/slider-arrow'],
-    [-10224, -10214, 'radio'],
-    [-10240, -10229, 'checkbox'],
-    [-14336, -14331, 'doc-widget'],
-    [-14320, -14315, 'util-widget'],
-  ];
+  // Sourced from scripts/lib/kdef-control-ids.mjs (shared with audit:scenes).
+  const GLYPH_FAMILIES = KDEF_GLYPH_FAMILIES.map((f) => [f.lo, f.hi, f.label]);
   if (iconIndex?.length) {
     const counts = {};
     const unmapped = [];
