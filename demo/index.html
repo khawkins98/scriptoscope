@@ -164,25 +164,58 @@
        (the "Powers behind Mac OS" page). Times-set body, two-column feature
        cards, marketing voice, mauve-blue link colour, modest leading. This is
        the BARE look — when the skinning toggle is OFF, the page looks like a
-       1999 Apple marketing page. When ON (default), mountDeclarative skins the
-       intro's interactive widgets (button, checkboxes) with whatever
-       Kaleidoscope theme the ribbon shows. */
+       1999 Apple marketing page. When ON (default), mountDeclarative promotes
+       each card to a FLOATING Mac window (data-scriptoscope-window attrs),
+       skins the demo widgets, and the section becomes a desktop. */
     #powers { background: #ffffff; color: #2a2a2a; padding: 40px 24px 48px; border-bottom: 1px solid #d0d0d0; }
-    #powers .powers-inner { max-width: 920px; margin: 0 auto; font: 14px/1.55 Georgia, "Times New Roman", Times, serif; }
+    #powers .powers-inner { max-width: 960px; margin: 0 auto; font: 14px/1.55 Georgia, "Times New Roman", Times, serif; }
     #powers h2 { font: 34px/1.1 Georgia, "Times New Roman", Times, serif; margin: 0 0 14px; font-weight: 400; letter-spacing: -0.01em; }
-    #powers > .powers-inner > p { font-size: 15px; line-height: 1.5; margin: 0 0 28px; max-width: 64ch; }
-    #powers .powers-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; margin: 0 0 30px; background: #f3f3f3; border: 1px solid #c0c0c0; border-radius: 3px; font: 12px/1.2 Georgia, "Times New Roman", Times, serif; cursor: pointer; user-select: none; }
+    #powers > .powers-inner > p.powers-lede { font-size: 15px; line-height: 1.5; margin: 0 0 22px; max-width: 64ch; }
+    #powers .powers-bar { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin: 0 0 24px; }
+    #powers .powers-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: #f3f3f3; border: 1px solid #c0c0c0; border-radius: 3px; font: 12px/1.2 Georgia, "Times New Roman", Times, serif; cursor: pointer; user-select: none; }
     #powers .powers-toggle:hover { background: #ececec; }
     #powers .powers-toggle input { margin: 0; }
     #powers .powers-toggle strong { font-weight: 700; color: #3859b3; }
+    /* The folder-icon theme picker — a horizontal scrollable strip of each
+       theme's own folder cicn (`icl4`/`icl8` -3983 = System Folder, -3999 =
+       Generic Folder, etc.). Click to switch the active scheme. NOT skinned
+       by mountDeclarative — the icons ARE the theme art; clicking them is
+       what triggers re-theming. The OFF look (pre-mount) shows them as plain
+       img elements in a row; mount changes nothing because they're already
+       authentic period-Mac folders. */
+    #powers .powers-folders { display: flex; gap: 8px; align-items: center; overflow-x: auto; padding: 4px; max-width: 100%; }
+    #powers .powers-folder { flex: 0 0 auto; display: grid; gap: 2px; justify-items: center; padding: 6px 8px; border: 1px solid transparent; cursor: pointer; border-radius: 4px; min-width: 60px; }
+    #powers .powers-folder:hover { background: #f0f0f0; }
+    #powers .powers-folder.active { border-color: #3859b3; background: #e8efff; }
+    #powers .powers-folder img { width: 32px; height: 32px; image-rendering: pixelated; display: block; }
+    #powers .powers-folder .placeholder { width: 32px; height: 32px; background: linear-gradient(#f4d985, #e3c265); border: 1px solid #97772a; }
+    #powers .powers-folder span { font: 9px/1.1 Georgia, serif; color: #2a2a2a; text-align: center; max-width: 62px; }
+    /* The grid container. UNSKINNED: 2-column flow grid (cards lay out
+       statically). SKINNED: position: relative + a min-height so the data-
+       scriptoscope-x/y values position the cards as floating windows. The
+       cards themselves keep the .card class so they look sane in both states. */
     #powers .powers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 36px; margin: 0; }
+    #powers .powers-grid.skinned { display: block; position: relative; min-height: 620px; }
     #powers .powers-card { display: grid; grid-template-columns: 56px 1fr; gap: 16px; }
+    /* When skinned, the card style is overridden by mountDeclarative's window
+       wrapper — but we DO need the inner content to flow nicely inside the
+       window's body region. Drop the icon-left grid + go single-column. */
+    #powers .powers-grid.skinned .powers-card { display: block; }
+    #powers .powers-grid.skinned .powers-card .powers-glyph { display: none; }
     #powers .powers-card .powers-glyph { width: 48px; height: 48px; border: 1px solid #c0c0c0; background: #fafafa; display: grid; place-items: center; font: 28px/1 Georgia, serif; color: #888; image-rendering: pixelated; }
     #powers .powers-card h3 { margin: 0 0 4px; font: 14px/1.2 Georgia, "Times New Roman", Times, serif; font-weight: 700; }
     #powers .powers-card h3 a, #powers a { color: #3859b3; text-decoration: underline; }
     #powers .powers-card h3 a:hover, #powers a:hover { color: #1a3580; }
-    #powers .powers-card p { margin: 0; font-size: 13.5px; line-height: 1.5; }
-    #powers .powers-card .powers-widget-row { margin: 8px 0 0; display: flex; gap: 8px; align-items: center; }
+    #powers .powers-card p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.5; }
+    #powers .powers-card .powers-widget-row { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #powers .powers-card .powers-field { display: flex; flex-direction: column; gap: 3px; margin: 4px 0 8px; }
+    #powers .powers-card .powers-field input[type=text] { font: 12px Georgia, serif; padding: 3px 6px; border: 1px solid #888; background: #fff; }
+    #powers .powers-card .powers-field label { font: 11px Georgia, serif; color: #555; }
+    #powers .powers-card pre.powers-code {
+      font: 11px/1.4 ui-monospace, Menlo, monospace; background: #f3f3f3;
+      border: 1px solid #d0d0d0; border-radius: 2px; padding: 6px 8px;
+      margin: 4px 0 8px; overflow-x: auto; color: #1a1a1a;
+    }
     /* Buttons in the cards. When skinning is OFF this is what users see — a plain
        1999-style flat button. When ON, mountDeclarative replaces with themed chrome. */
     #powers button.powers-demo-btn {
@@ -191,6 +224,7 @@
       border-radius: 3px; cursor: pointer; color: #2a2a2a;
     }
     #powers button.powers-demo-btn:hover { background: linear-gradient(#fefefe, #c8c8c8); }
+    #powers label.powers-checkable { font: 12px Georgia, serif; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
     #powers .powers-divider { margin-top: 28px; padding-top: 18px; border-top: 1px solid #d0d0d0; font-size: 12px; color: #666; }
     #powers .powers-divider a { color: #3859b3; }
     @media (max-width: 720px) {
@@ -210,41 +244,85 @@
   <section id="powers" aria-label="What is Scriptoscope">
     <div class="powers-inner">
       <h2>The powers behind Scriptoscope</h2>
-      <p>A web-native runtime for classic Mac <em>Kaleidoscope</em> themes — Sherlock-shaped File menus, BeOS pinstripes, the unmistakable Apple Platinum bevel — rendered pixel-faithfully in your browser from their original binary resources.</p>
-      <label class="powers-toggle" for="powers-skin-toggle" title="Toggle the Kaleidoscope chrome on the demo widgets below. Off = bare 1999 HTML; on = themed.">
-        <input type="checkbox" id="powers-skin-toggle" checked />
-        <span><strong>Skin this page</strong> with the active scheme</span>
-      </label>
-      <div class="powers-grid">
-        <article class="powers-card">
+      <p class="powers-lede">A web-native runtime for classic Mac <em>Kaleidoscope</em> themes — Sherlock-shaped File menus, BeOS pinstripes, the unmistakable Apple Platinum bevel — rendered pixel-faithfully in your browser from their original binary resources.</p>
+      <div class="powers-bar">
+        <label class="powers-toggle" for="powers-skin-toggle" title="Toggle the Kaleidoscope chrome on the cards below. Off = bare 1999 HTML in two columns; on = each card floats as a draggable Mac window.">
+          <input type="checkbox" id="powers-skin-toggle" checked />
+          <span><strong>Skin this page</strong> with the active scheme</span>
+        </label>
+        <!-- Folder-icon theme picker. Populated by the boot script with each
+             theme's own -3983 System Folder cicn (or -3999 Generic Folder
+             fallback). Click an icon = call activate(slug), which reskins the
+             whole page. The icons ARE the theme art — no scripted styling
+             needed; the bundle's authored 32×32 folder appears. -->
+        <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
+      </div>
+      <div class="powers-grid" id="powers-grid">
+        <!-- Each card carries data-scriptoscope-window so mountDeclarative
+             promotes it to a draggable, themed Mac window. When unmounted the
+             cards lay out as a 2-column grid (the original 1999-Apple-page
+             look). Position/size only apply once the skin is on. -->
+        <article class="powers-card" data-scriptoscope-window
+                 data-scriptoscope-title="Pixel-perfect" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-x="20" data-scriptoscope-y="20"
+                 data-scriptoscope-width="290" data-scriptoscope-height="180">
           <div class="powers-glyph" aria-hidden="true">⌘</div>
           <div>
             <h3><a href="#detail">Pixel-perfect Kaleidoscope.</a></h3>
-            <p>Every <code>cicn</code> nine-sliced and every <code>wnd#</code> recipe replayed from the binary the Mac OS ran. The compositor mimics the 2.3.1 kDEF's part-code jump table verbatim. Your favourite 1999 scheme looks exactly as it did in 1999.</p>
-            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></div>
+            <p>Every <code>cicn</code> nine-sliced and every <code>wnd#</code> recipe replayed from the same binary the Mac OS ran. The compositor mimics the 2.3.1 kDEF's part-code jump table verbatim.</p>
+            <div class="powers-widget-row">
+              <button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button>
+              <button class="powers-demo-btn" data-scriptoscope-button>Cancel</button>
+              <label class="powers-checkable"><input type="checkbox" data-scriptoscope-checkbox checked /> Crisp</label>
+            </div>
           </div>
         </article>
-        <article class="powers-card">
+        <article class="powers-card" data-scriptoscope-window
+                 data-scriptoscope-title="Bring your own" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-x="330" data-scriptoscope-y="20"
+                 data-scriptoscope-width="290" data-scriptoscope-height="180">
           <div class="powers-glyph" aria-hidden="true">↘</div>
           <div>
             <h3><a href="#byo">Bring your own theme.</a></h3>
-            <p>Drop a <code>.sit</code> file. Decoded in your browser — nothing uploaded, nothing stored. The same StuffIt + resource-fork pipeline classic Mac OS used, transliterated to WebAssembly + JavaScript.</p>
-            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>Choose…</button></div>
+            <p>Drop a <code>.sit</code> file. Decoded in your browser — nothing uploaded. The same StuffIt + resource-fork pipeline the Mac OS used, transliterated to WebAssembly.</p>
+            <div class="powers-field">
+              <label for="powers-name">Scheme name</label>
+              <input id="powers-name" type="text" value="My new theme" data-scriptoscope-field />
+            </div>
+            <div class="powers-widget-row">
+              <button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>Choose…</button>
+            </div>
           </div>
         </article>
-        <article class="powers-card">
+        <article class="powers-card" data-scriptoscope-window
+                 data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-x="20" data-scriptoscope-y="240"
+                 data-scriptoscope-width="330" data-scriptoscope-height="220">
           <div class="powers-glyph" aria-hidden="true">✎</div>
           <div>
             <h3><a href="./declarative-site.html">Skin any HTML.</a></h3>
-            <p>Add one attribute and your page wears a Kaleidoscope title bar. Buttons, scrollbars, dropdowns — all dressed without rewriting them. Try it: <code>&lt;button data-scriptoscope-button&gt;</code> on the demo widgets here, toggled by the box above.</p>
-            <div class="powers-widget-row"><button class="powers-demo-btn" data-scriptoscope-button>Open</button><button class="powers-demo-btn" data-scriptoscope-button>Save</button></div>
+            <p>One attribute and your page wears Kaleidoscope chrome:</p>
+            <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
+&lt;input type="text" data-scriptoscope-field /&gt;
+&lt;article data-scriptoscope-window
+         data-scriptoscope-title="Hello!"&gt;
+  …</pre>
+            <div class="powers-widget-row">
+              <button class="powers-demo-btn" data-scriptoscope-button>Open</button>
+              <button class="powers-demo-btn" data-scriptoscope-button>Save</button>
+              <label class="powers-checkable"><input type="radio" name="powers-fmt" data-scriptoscope-radio checked /> .rsrc</label>
+              <label class="powers-checkable"><input type="radio" name="powers-fmt" data-scriptoscope-radio /> .sit</label>
+            </div>
           </div>
         </article>
-        <article class="powers-card">
+        <article class="powers-card" data-scriptoscope-window
+                 data-scriptoscope-title="Schemes" data-scriptoscope-window-type="titled-utility-window"
+                 data-scriptoscope-x="370" data-scriptoscope-y="240"
+                 data-scriptoscope-width="260" data-scriptoscope-height="220">
           <div class="powers-glyph" aria-hidden="true">✦</div>
           <div>
             <h3><a href="#ribbon">Eighteen schemes ready.</a></h3>
-            <p>From System 7's <em>1138</em> through Mac OS 8.5 Apple Platinum to <em>BeOS R5.0.3</em>, <em>Crayon OS</em>, and <em>Monkey Paradise</em> — every popular scheme of the era, rendered to the pixel. Pick one from the ribbon below and watch every widget on this page re-skin.</p>
+            <p>From System 7's <em>1138</em> through <em>Apple Platinum</em> to <em>BeOS R5.0.3</em>, <em>Crayon OS</em>, and <em>Monkey Paradise</em> — every popular scheme of the era. Pick a folder above to switch the whole page.</p>
           </div>
         </article>
       </div>
@@ -2019,20 +2097,27 @@
     }
     setupByo();
 
-    // ── "Powers" intro: declarative skinning toggle ─────────────────────────
-    // The intro section above the ribbon shows feature cards with demo buttons
-    // marked `data-scriptoscope-button`. By default we mount the declarative
-    // skinner scoped to the #powers section so those buttons render in the
-    // currently-active Kaleidoscope chrome. Toggling the checkbox unmounts to
-    // reveal the bare 1999-Apple-page-style serif HTML underneath — that's the
-    // demonstration: same DOM, opt-in skinning. Theme follows the ribbon.
+    // ── "Powers" intro: declarative skinning toggle + folder theme picker ──
+    // The intro section above the ribbon shows feature cards that are also
+    // tagged data-scriptoscope-window. By default we mount the declarative
+    // skinner scoped to the #powers section — the cards float as Mac
+    // windows, the buttons / inputs / checkboxes wear period chrome.
+    // Toggling the checkbox unmounts to reveal the bare 1999-Apple-page
+    // serif HTML underneath (cards revert to a 2-column grid).
+    //
+    // The folder strip is the theme picker: each theme's authentic 32×32
+    // System Folder icon, lined up in a scrollable row. Click = switch
+    // scheme (activate() reflows the whole page including this section).
     {
       const { mountDeclarative } = await import('../src/declarative/index.ts');
       const powersSection = document.getElementById('powers');
+      const powersGrid = document.getElementById('powers-grid');
       const toggle = document.getElementById('powers-skin-toggle');
+      const foldersEl = document.getElementById('powers-folders');
       let powersHandle = null;
       const mountPowers = async () => {
         if (powersHandle) return;
+        powersGrid.classList.add('skinned');
         powersHandle = await mountDeclarative({
           root: powersSection,
           themeBaseUrl: `${import.meta.env.BASE_URL ?? '/'}themes`.replace(/\/+$/, ''),
@@ -2043,11 +2128,55 @@
         if (!powersHandle) return;
         try { powersHandle.disconnect(); } catch { /* tolerate */ }
         powersHandle = null;
+        powersGrid.classList.remove('skinned');
       };
       toggle.addEventListener('change', () => { toggle.checked ? mountPowers() : unmountPowers(); });
-      // Follow the ribbon's active theme — when the user picks a new scheme,
-      // retheme the intro too if it's currently skinned.
-      syncHooks.push(async (slug) => { if (powersHandle) { try { await powersHandle.retheme(slug); } catch { /* */ } } });
+
+      // ── Folder strip: lazy-load each theme's authentic System Folder
+      // (icl4/8 -3983) or Generic Folder (-3999), shown as 32×32 native art.
+      // We don't await every theme upfront (would block boot); each tile starts
+      // with a placeholder + fills in when its theme's icons are decoded.
+      const folderTiles = new Map(); // slug → tile element
+      for (const t of THEMES) {
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'powers-folder';
+        tile.dataset.slug = t.slug;
+        tile.title = t.label;
+        tile.role = 'tab';
+        tile.setAttribute('aria-label', `Switch to ${t.label}`);
+        const ph = document.createElement('span'); ph.className = 'placeholder'; ph.setAttribute('aria-hidden', 'true');
+        const lbl = document.createElement('span'); lbl.textContent = t.label.length > 12 ? t.label.slice(0, 11) + '…' : t.label;
+        tile.append(ph, lbl);
+        tile.onclick = () => activate(t.slug);
+        foldersEl.appendChild(tile);
+        folderTiles.set(t.slug, tile);
+      }
+      // Fill each tile's real folder icon in the background (best-effort —
+      // some bundles ship no -3983/-3999, which is fine; the placeholder stays).
+      (async () => {
+        for (const t of THEMES) {
+          try {
+            const theme = await loadWithBase(t.slug);
+            const icons = await schemeIcons(theme, 1);
+            if (!icons.length) continue;
+            const url = icons[0].url;
+            const tile = folderTiles.get(t.slug);
+            if (!tile) continue;
+            const img = document.createElement('img');
+            img.src = url; img.alt = '';
+            const ph = tile.querySelector('.placeholder');
+            if (ph) tile.replaceChild(img, ph);
+          } catch { /* tolerate per-theme failures */ }
+        }
+      })();
+
+      // Follow the ribbon's active theme — retheme the intro AND highlight the
+      // active folder tile in the strip whenever the active scheme changes.
+      syncHooks.push(async (slug) => {
+        for (const [s, el] of folderTiles) el.classList.toggle('active', s === slug);
+        if (powersHandle) { try { await powersHandle.retheme(slug); } catch { /* */ } }
+      });
       // Mount once on boot (default = checked). Defer to next tick so the
       // ribbon's first `activate(slug)` has set `activeSlug` first.
       queueMicrotask(() => { if (toggle.checked) mountPowers(); });
