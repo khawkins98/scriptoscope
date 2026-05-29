@@ -406,7 +406,7 @@ coords; DEST borders are window-relative (filled by `0x5178`).
 | `[12..13]` | **Text Pixel x** (DWRD) | text marker | TMPL 129 |
 | `[14..15]` | **Embossing Pixel y** (DWRD) | embossing marker | TMPL 129 |
 | `[16..17]` | **Embossing Pixel x** (DWRD) | embossing marker | TMPL 129 |
-| `[18..]` | present only when resource size > 18 (`0x1173e` `cmpl #18`); size==56 ⇒ ext'd colour-pixel record | size checks at `0x11740`/`0x11796` |
+| `[18..]` | binary-internal pixel-sample cache, NOT on-disk data: byte[18] = pWin-back-patched word (for cinf ids in `-12240..-12225`); bytes[20..55] = 6 × `RGBColor` slots (active bg/text/emboss + inactive bg/text/emboss) written by `0xfc5c` at load. The kDEF grows the handle to 56 bytes via `_SetHandleSize` regardless of disk size and never reads bytes 20..55 from disk. Scheme Factory STR# 135 entries 8/9 ("Translucency / Opacity Percentage") are editor-UI controls the 2.3.1 binary does NOT consume — verified by full-binary grep + 1032/1033 corpus cinfs ship 18 bytes. Full trace + corpus survey: `docs/spec/cinf-extended-decode.md`. | size checks at `0x11740`/`0x11796` |
 
 The TMPL is **shipped in 16 of 18 corpus bundles** — recoverable any time via `scripts/dump-author-hints.mjs` (`TMPL` resource id 129). The recipe-walk's `cinf` summary in `compositor-spec.md` (`cornerSize`/`sideThickness`/`tileSides`/`patternAnchor`/`textPixel`) is the loader's decoded field names; the TMPL 129 names above are the kDEF developer's own.
 

@@ -55,11 +55,11 @@ Plus per-installer dumps of every WDEF / CDEF / MDEF / LDEF / cdev / PACH / Zoom
 
 ### 2. Master service-handler table
 
-At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x118b8, 0x1525a, 0x8d36, 0x28e0, 0x1d3e, 0x17452`. `0x118b8` is the cinf consumer.
+At `0x1c7c`, 9 internal-service function pointers: `0x6688, 0x997e, 0xdd22, 0x118b8, 0x1525a, 0x8d36, 0x28e0, 0x1d3e, 0x17452`. `0x118b8` is the **wnd# dispatcher** entry (loads `'wnd#'` at `0x118e4`, then `'WDEF'` at `0x11918`, then dispatches to the renderer at `0x28e0`). The cinf consumer is `0x116f8` (see § 3).
 
 ### 3. cinf load site (2.3.1)
 
-At `0x1171a`: `pea 'cinf', movw d7,-(sp), GetResource` (id from d7). New-format-vs-old-format discriminator: `GetHandleSize > 18`.
+At `0x1171a`: `pea 'cinf', movw d7,-(sp), GetResource` (id from d7). Inside the routine at `0x116f8`. New-format-vs-old-format discriminator: `GetHandleSize > 18` at `0x11740`. The corpus ships 1032/1033 cinfs at exactly 18 bytes (old format); the binary's 20-byte and 56-byte paths are populated at load via a `pWin` back-patch (byte 18) and `0xfc5c` pixel-sample cache (bytes 20..55) respectively, never read from disk. Full trace + decision: `docs/spec/cinf-extended-decode.md`.
 
 ### 4. `wnd#` fallback ladder (NEW)
 
