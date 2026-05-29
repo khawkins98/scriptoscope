@@ -52,8 +52,15 @@ export async function loadTheme(
     source: `${slug}/${fileBytes.filename}`,
   });
 
+  // Preserve the bundle URL as the LoadedTheme's `baseUrl`. The decoder default is
+  // `''` (asset refs are already blob: URLs — assetUrl() passes them through
+  // unchanged), but consumers use `baseUrl` as an IDENTITY key for per-theme caches
+  // (the demo's icon / desktop-pattern memoisation, the WindowManager's theme tag).
+  // Leaving it `''` meant every theme shared the same key → the FIRST theme's icons
+  // leaked into every other theme's Scene preview (the 1138-folders-in-1984 bug).
   return {
     ...loaded,
+    baseUrl,
     ...(opts.base ? { base: opts.base } : {}),
   };
 }
