@@ -981,14 +981,31 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
-    const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
-    const rSide = ringEl?.slice?.side ?? rIns;
+    // Use the cicn's VISIBLE-ART bounds as the 9-slice source, not the raw raster.
+    // Floppies + windows-95 + windows-31 author their 16×16 ring with a 3px
+    // TRANSPARENT outer rim around the visible black border (rows 0–2 + 13–15 are
+    // alpha=0); 9-slicing the raw raster preserved the rim, so the visible ring
+    // sat INSIDE the canvas with empty borders. Period-faithful behaviour: the
+    // kDEF 0x???? routines blit the visible art around the button, not the raster
+    // bounds — same trick composeTab already uses (controls.ts:651). For rings
+    // authored with no transparent rim (apple-platinum-2, 1138, 1990, etc) the
+    // opaque bounds equal the raster bounds; no change.
+    const rb = opaqueBounds(ring);
+    const srcX = Math.max(0, rb.x0);
+    const srcY = Math.max(0, rb.y0);
+    const srcW = Math.max(1, rb.x1 - rb.x0 + 1);
+    const srcH = Math.max(1, rb.y1 - rb.y0 + 1);
+    // The slice corner / side were authored against the raster, so cap them at
+    // half the visible bounds to keep the 9-slice math healthy (the pixelBuffer
+    // clamp would catch a runaway value, but better to ask for the right answer).
+    const rIns = Math.min(Math.floor(srcW / 2), ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height));
+    const rSide = Math.min(Math.floor(srcH / 2), ringEl?.slice?.side ?? rIns);
     // Honour the artist-declared resize behaviour: `slice.tile: true` (apple-lisa,
     // windows-31, crayon-os, …) means the side bands carry a pixel-rate border
     // pattern that must be repeated, not stretched. Stretching it smears the
     // thickness signal and the ring looks faint at button-display size.
     const ringMode = ringEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rSide, r: rIns, b: rSide }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
+    out.nineSlice(ring, { x: srcX, y: srcY, w: srcW, h: srcH }, { l: rIns, t: rSide, r: rIns, b: rSide }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
   }
   out.drawOver(faceBuf, outset, outset);
   return out;

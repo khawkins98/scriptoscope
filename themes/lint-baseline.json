@@ -1,7 +1,7 @@
 {
   "_generator": "scripts/lint-themes.mjs --update",
   "_note": "Fingerprint baseline for `npm run lint:themes`: sha256 of each bundle's source archive + the lint outcome from the maintainer's last full run. Default `npm run lint:themes` is a fast verify pass (hash + report stored result); the slow decode-and-rule-walk only runs on `--update` or when the hash drifts. Keep this file in git; let CI run `--strict` to fail on drift.",
-  "ranAt": "2026-05-29T16:38:13.530Z",
+  "ranAt": "2026-05-29T16:46:13.431Z",
   "themes": {
     "1138": {
       "source": "scheme.rsrc",

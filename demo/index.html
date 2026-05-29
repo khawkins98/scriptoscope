@@ -920,7 +920,16 @@
       // Top offset = mainTop + 2 so the dialog DOESN'T cover the main title bar
       // (windows-31's title was entirely hidden when dlgTop equaled mainTop = 0).
       const dlgLeft = Math.max(0, mainW - dlgW - 6);
-      const dlgTop = Math.max(mainTop + 2, Math.min(mainH - dlgH - 4, mainTop + 2));
+      const dlgTop = mainTop + 2;
+      // Grow the desk to fit BOTH the main window AND the dialog footprint —
+      // dolphin-som + animals + 1138 + others have a main-window height that's
+      // shorter than the dialog's footprint at dlgTop+dlgH, so the dialog's
+      // bottom (OK button + grow box) used to be clipped by desk's overflow:hidden.
+      // The reference compositions match this — the desktop extends past the main
+      // window to contain the floating dialog. Period-faithful: in classic Mac,
+      // windows weren't constrained to each other; the desktop accommodated them.
+      const deskFitH = Math.max(mainH, dlgTop + dlgH + 4);
+      desk.style.height = `${deskFitH}px`;
       Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
       const dc = dlg.querySelector('.scriptoscope-content');
       if (dc) {
