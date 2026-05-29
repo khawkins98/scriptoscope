@@ -832,7 +832,10 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
-  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH });
+  // Honour the face cinf's slice.tile (crayon-os, beos-r503, several others) for
+  // the same reason as the ring — the side bands carry artist-baked detail.
+  const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
+  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
   if (ca > 0) {
     const cw = innerW - fIns * 2, ch = innerH - fIns * 2;
     if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fIns, w: cw, h: ch }, cr, cg, cb, 255);
@@ -893,7 +896,12 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   if (ring) {
     const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
     const rIns = ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height);
-    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height });
+    // Honour the artist-declared resize behaviour: `slice.tile: true` (apple-lisa,
+    // windows-31, crayon-os, …) means the side bands carry a pixel-rate border
+    // pattern that must be repeated, not stretched. Stretching it smears the
+    // thickness signal and the ring looks faint at button-display size.
+    const ringMode = ringEl?.slice?.tile ? 'tile' : 'stretch';
+    out.nineSlice(ring, { x: 0, y: 0, w: ring.width, h: ring.height }, { l: rIns, t: rIns, r: rIns, b: rIns }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
   }
   out.drawOver(faceBuf, outset, outset);
   return out;

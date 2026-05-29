@@ -79,15 +79,23 @@ export class PixelBuffer {
 
   /**
    * 9-slice blit `src` (region `sr`) into dest rect `dr`: the four
-   * corners (inset `ins` px) copy 1:1, the four edges stretch along one
-   * axis, the center stretches both. This is how the kDEF scales control
-   * cicns — buttons, progress frames (docs/spec/kdef231-reference.md §5).
+   * corners (inset `ins` px) copy 1:1, the four edges and center span the
+   * gaps. Two span modes — kDEF cinfs declare which one the artist intended:
+   *   `mode: 'stretch'` (default) — copyBits scales the source segment to fit.
+   *   `mode: 'tile'` — repeats the source segment 1:1 across the destination,
+   *     preserving the artist's pixel-rate border pattern. This is what
+   *     `slice.tile: true` / `resizeBehavior: 'repeat-whole'` on a cinf calls
+   *     for (apple-lisa rings, windows-31 rings, crayon-os faces — they all
+   *     bake the border thickness into the pixel pattern; stretching it
+   *     blurs the artist's intent).
+   * See docs/spec/kdef231-reference.md §5.
    */
   nineSlice(
     src: PixelBuffer,
     sr: PixRect,
     ins: { l: number; t: number; r: number; b: number },
     dr: PixRect,
+    mode: 'stretch' | 'tile' = 'stretch',
   ): void {
     const { l, t, r, b } = ins;
     const smx = sr.w - l - r;
@@ -98,15 +106,33 @@ export class PixelBuffer {
       if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
       this.copyBits(src, { x: sr.x + sx, y: sr.y + sy, w: sw, h: sh }, { x: dr.x + dx, y: dr.y + dy, w: dw, h: dh });
     };
+    /** Repeat `src[sx..sx+sw, sy..sy+sh]` into `dest[dx..dx+dw, dy..dy+dh]` at
+     *  native pixel rate (no scaling). Tile-aware fallback for the 9-slice
+     *  side bands + center when `mode === 'tile'`. Hands the rightmost /
+     *  bottom-most cells a clipped final tile when dw / dh aren't multiples
+     *  of the source size. */
+    const tile = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
+      if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
+      for (let ty = 0; ty < dh; ty += sh) {
+        const rh = Math.min(sh, dh - ty);
+        for (let tx = 0; tx < dw; tx += sw) {
+          const rw = Math.min(sw, dw - tx);
+          cp(sx, sy, rw, rh, dx + tx, dy + ty, rw, rh);
+        }
+      }
+    };
+    // Corners always copy 1:1.
     cp(0, 0, l, t, 0, 0, l, t); // TL
     cp(sr.w - r, 0, r, t, dr.w - r, 0, r, t); // TR
     cp(0, sr.h - b, l, b, 0, dr.h - b, l, b); // BL
     cp(sr.w - r, sr.h - b, r, b, dr.w - r, dr.h - b, r, b); // BR
-    cp(l, 0, smx, t, l, 0, dmx, t); // top
-    cp(l, sr.h - b, smx, b, l, dr.h - b, dmx, b); // bottom
-    cp(0, t, l, smy, 0, t, l, dmy); // left
-    cp(sr.w - r, t, r, smy, dr.w - r, t, r, dmy); // right
-    cp(l, t, smx, smy, l, t, dmx, dmy); // center
+    // Edges + center — stretch or tile per mode.
+    const span = mode === 'tile' ? tile : cp;
+    span(l, 0, smx, t, l, 0, dmx, t); // top
+    span(l, sr.h - b, smx, b, l, dr.h - b, dmx, b); // bottom
+    span(0, t, l, smy, 0, t, l, dmy); // left
+    span(sr.w - r, t, r, smy, dr.w - r, t, r, dmy); // right
+    span(l, t, smx, smy, l, t, dmx, dmy); // center
   }
 
   /** Fill a rectangle with a solid RGBA color (srcCopy). */
