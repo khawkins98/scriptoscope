@@ -133,18 +133,31 @@ const SLOTS = [
     key: 'dialog-body-bg',
     label: 'Dialog / utility window body background',
     where: 'src/renderWindow.ts bodyBackgroundStyle (utility-slug branch)',
-    terminalIsAcceptable: true, // flat white IS the period-faithful answer for modal dialogs
+    terminalIsAcceptable: true, // flat white is acceptable when no utility ppat is shipped
     tiers: [
-      // The runtime returns flat #ffffff for every windowType matching
-      // UTILITY_SLUG_RE (utility|mini|floating|palette|dialog|alert|modal|popup).
-      // The classic Mac convention used a system platinum grey for modal-style
-      // surfaces, NOT a textured ppat (visually verified against the period
-      // references; the Options dialog body is flat across every textured
-      // scheme). Earlier codex iterations hypothesised utility-pattern → -9568
-      // → headerFill tiers — that turned out to wrap the dialog in the same
-      // Icon-View ppat the main window uses, which is wrong. The hypothesis
-      // was retired after the visual baseline showed the regression.
-      { name: 'flat #ffffff', why: 'period-faithful modal/utility body fill — every theme lands here', resolve: () => 'flat #ffffff' },
+      // The runtime walks a structured hierarchy in bodyBackgroundStyle:
+      //   T1 → patterns['utility-pattern']  (author-declared utility interior;
+      //                                      shipped by monkey-paradise + animals
+      //                                      + crayon-os as ppat-42).
+      //   T2 → patterns['ppat--9568']       (canonical kDEF utility-window cinf
+      //                                      slot; shipped by 1990 + others).
+      //   T3 → flat #ffffff                 (period default for schemes that ship
+      //                                      no utility pattern — 1984, the
+      //                                      corner-sprite themes, etc.).
+      // The Icon-View ppat (bodyBackground.pattern) is NEVER reused for utility
+      // bodies — that's the army-camo-wrapping-the-Options-dialog regression
+      // class; the document-window's body texture isn't meant for modal interiors.
+      {
+        name: 'patterns.utility-pattern',
+        why: 'author-declared utility-window interior (the structured answer the manifest carries)',
+        resolve: (m) => m.patterns?.['utility-pattern']?.asset ? 'utility-pattern (author-declared)' : null,
+      },
+      {
+        name: 'patterns.ppat--9568',
+        why: 'canonical kDEF utility-window cinf slot — shipped under the negative-id key',
+        resolve: (m) => m.patterns?.['ppat--9568']?.asset ? 'ppat--9568 (canonical utility slot)' : null,
+      },
+      { name: 'flat #ffffff', why: 'period default for schemes that ship no utility pattern', resolve: () => 'flat #ffffff' },
     ],
   },
   {

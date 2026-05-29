@@ -484,7 +484,7 @@ export async function renderWindow(
     zIndex: '1',
     ...bodyBackgroundStyle(owner, slug),
   } satisfies Partial<CSSStyleDeclaration>);
-  scaleBodyPattern(content, owner, scale);
+  scaleBodyPattern(content, owner, scale, slug);
   content.appendChild(document.createElement('slot'));
 
   win.append(canvas, content);
@@ -643,23 +643,47 @@ function buildBaselineWindow(
 const UTILITY_SLUG_RE = /utility|mini|floating|palette|dialog|alert|modal|popup/;
 
 /**
- * Content-area background style. Finder document windows tile the scheme's
- * Icon-View body pattern (`bodyBackground.pattern` — decoded from cinf -9551's
- * bgPatternId). Modal-style windows (utility / dialog / palette / mini /
- * floating / movable-modal / popup) use a flat white fill — the period Mac
- * convention used a system platinum grey for these, NOT a textured ppat
- * (visually verified against the references for 1990 / animals / crayon-os /
- * monkey-paradise / evolution where the Options dialog body sits flat over
- * the textured desktop).
+ * Content-area background style. Two paths:
  *
- * The codex previously hypothesised a `utility-pattern → -9568 → headerFill`
- * tier hierarchy for dialogs; the visual audit confirmed the references show
- * FLAT bodies. The hypothesis was wrong; the runtime is right. Codex slot
- * updated to match.
+ *   - Document windows tile the scheme's Icon-View body pattern
+ *     (`bodyBackground.pattern` — decoded from cinf -9551's bgPatternId).
+ *
+ *   - Utility / dialog / palette / mini / floating / movable-modal / popup
+ *     windows walk a separate UTILITY hierarchy:
+ *       T1  `patterns['utility-pattern']`  — explicit author-declared utility
+ *                                            interior (monkey-paradise +
+ *                                            animals ship `ppat-42`).
+ *       T2  `patterns['ppat--9568']`       — canonical kDEF utility-window
+ *                                            cinf slot.
+ *       T3  flat `#ffffff`                 — period default for schemes that
+ *                                            ship no utility pattern.
+ *
+ * The earlier "flat white for everything utility-ish" rule was over-applied:
+ * verified against the user's reference screenshots, monkey-paradise + animals
+ * SHOW themed beige/cream utility-pattern bodies, not flat white. Reading
+ * `utility-pattern` from the manifest's `patterns` map is the codex move:
+ * the bundle author declared the slot explicitly; the runtime was ignoring it.
+ *
+ * The Icon-View ppat (`bodyBackground.pattern`) is STILL kept off utility
+ * windows even when it's the only candidate left — that one was the
+ * army-camo-wrapping-the-Options-dialog regression class; document-window
+ * texture was never meant for utility interiors.
  */
 function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyleDeclaration> {
   const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
-  if (isUtility) return { background: '#ffffff' };
+  if (isUtility) {
+    const patterns = theme.manifest.patterns ?? {};
+    const utilPat = patterns['utility-pattern']?.asset
+      ?? patterns['ppat--9568']?.asset
+      ?? null;
+    if (!utilPat) return { background: '#ffffff' };
+    return {
+      backgroundColor: '#ffffff',
+      backgroundImage: `url("${assetUrl(theme, utilPat)}")`,
+      backgroundRepeat: 'repeat',
+      imageRendering: 'pixelated',
+    };
+  }
   const pat = theme.manifest.bodyBackground?.pattern;
   if (!pat) return { background: '#ffffff' };
   return {
@@ -679,8 +703,15 @@ function bodyBackgroundStyle(theme: LoadedTheme, slug?: string): Partial<CSSStyl
  * `background-size` to native × scale (still pixelated, so it stays crisp).
  * No-op at 1× (native tiling already matches) and outside the browser.
  */
-function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number): void {
-  const pat = theme.manifest.bodyBackground?.pattern;
+function scaleBodyPattern(el: HTMLElement, theme: LoadedTheme, scale: number, slug?: string): void {
+  // For utility-style slugs, use the same hierarchy bodyBackgroundStyle picked
+  // (utility-pattern → -9568) so the scale-fix tracks the resolved asset, not
+  // the document-window default.
+  const isUtility = !!slug && UTILITY_SLUG_RE.test(slug);
+  const patterns = theme.manifest.patterns ?? {};
+  const pat = isUtility
+    ? (patterns['utility-pattern']?.asset ?? patterns['ppat--9568']?.asset ?? null)
+    : (theme.manifest.bodyBackground?.pattern ?? null);
   if (!pat || scale <= 1 || typeof Image === 'undefined') return;
   const img = new Image();
   img.onload = () => {

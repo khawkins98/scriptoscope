@@ -102,9 +102,13 @@ The content area behind the Options dialog (`no-title-utility-window`).
 
 | Tier | Source field | Why |
 |---|---|---|
-| T1 | `flat #ffffff` | Period-faithful: the classic Mac convention used a system platinum grey for modal-style surfaces, NOT a textured ppat. Visually verified against the corpus references — every theme's Options dialog body is flat. |
+| T1 | `patterns['utility-pattern']` | The bundle author's explicit utility-window interior. monkey-paradise / animals / crayon-os ship `ppat-42-utility-pattern.png` here. Reading this slot is the codex move: the manifest carries the structured answer, the runtime was returning flat white instead. |
+| T2 | `patterns['ppat--9568']` | Canonical kDEF utility-window cinf slot — schemes that don't use the friendly `utility-pattern` key still ship the pattern under the raw negative-id key (1990 + others). |
+| T3 | `flat #ffffff` | Period default for schemes that ship no utility pattern at all (1984, the corner-sprite Platinums, the Windows ports). |
 
-An earlier iteration of this slot hypothesised `patterns['utility-pattern']` → `ppat--9568` → `headerColors.active.fill` tiers. The visual baselines showed that hypothesis was wrong: the Finder Icon-View ppat wrapped the dialog (1990 / animals / etc.), where the reference shows flat. The hypothesis was retired; the slot now has one tier matching what `bodyBackgroundStyle` (`src/renderWindow.ts`) actually returns for `UTILITY_SLUG_RE` matches.
+The Finder Icon-View ppat (`bodyBackground.pattern`, cinf -9551) is **never** reused for utility bodies — that's the army-camo-wrapping-the-Options-dialog regression class (the document-window's body texture isn't meant for modal interiors).
+
+An earlier iteration retired the hierarchy after a visual misread that thought all the references showed flat. The user's screenshot review on 2026-05-29 surfaced that monkey-paradise / 1990 / etc. references actually show a themed utility body; reinstated the structured-field walk.
 
 Implemented in: `src/renderWindow.ts:bodyBackgroundStyle` (utility-slug branch).
 
