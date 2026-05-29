@@ -522,12 +522,24 @@ function buildBaselineWindow(
   const text = fillLum < 128 ? '#ffffff' : '#000000';
   const frameC = hc.frame ?? '#555555';
   // Active titlebar shows the Platinum racing-stripe pinstripe; inactive is
-  // flat (the OS active/inactive cue). The stripe is the scheme's darkTinge
-  // when it actually differs from the fill, else a darkened fill so it stays
-  // visible (apple-platinum's darkTinge == fill, which read as inactive).
+  // flat (the OS active/inactive cue). The faithful classic-Platinum bar is a
+  // three-tone gradient: lightTinge highlight → fill mid → darkTinge shadow,
+  // which gives the bar its "polished metal" depth. Previously we only used
+  // darkTinge — a flatter two-tone bar. Read both when they differ from fill;
+  // fall back to the two-tone (and finally a single darkenHex'd fill) when the
+  // scheme didn't ship distinct tinges (apple-platinum-2: darkTinge == fill).
   const active = state !== 'inactive';
   const stripe = hc.darkTinge && hc.darkTinge !== fill ? hc.darkTinge : darkenHex(fill, 0.14);
-  const barBg = active ? `repeating-linear-gradient(0deg, ${fill} 0 1px, ${stripe} 1px 2px)` : fill;
+  const highlight = hc.lightTinge && hc.lightTinge !== fill ? hc.lightTinge : null;
+  const barBg = active
+    ? (highlight
+        // 3-tone pinstripe: highlight on top, fill mid, darkTinge below — repeats
+        // every 3px (1px highlight + 1px fill + 1px stripe), matching the classic
+        // Platinum metal grain. Visible on every theme whose clut ships a distinct
+        // lightTinge (most do per the codex header-state-variants flag).
+        ? `repeating-linear-gradient(0deg, ${highlight} 0 1px, ${fill} 1px 2px, ${stripe} 2px 3px)`
+        : `repeating-linear-gradient(0deg, ${fill} 0 1px, ${stripe} 1px 2px)`)
+    : fill;
   const titleH = 19;
 
   const win = document.createElement('div');
