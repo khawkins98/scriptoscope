@@ -412,13 +412,21 @@
     // then the neutral SVG folders only when a theme themes no folders at all
     // (1990, apple-platinum-2). Non-folder roles (trash -3984/-3993, app -3970,
     // item -16455, Finder -16482) are last-resort fallbacks, never preferred.
+    // FOLDER-ONLY priority list: the standard Mac system folder ids. When a theme
+    // ships none of these (apple-platinum-2 / system7-nostalgia-silver / animals
+    // / others ship clipping/document/app glyphs but no folder art), the picker
+    // falls through to the coverage-rank pool (filtered by DOC_BLOCKLIST), and
+    // if THAT empties too, the caller draws neutral SVG folders. The earlier list
+    // included -3970/-3984/-4000/-16455/-16482 as "last resorts" but those ARE
+    // non-folder Finder/system glyphs — picking them as folder content reads as
+    // visibly wrong (apple-platinum-2 shows the App-badge Earth icon where the
+    // reference shows neutral folders).
     const FINDER_CONTENT_ICON_IDS = [
       -3983, // System Folder (the iconic Mac-badged folder — lead icon)
       -3999, // Generic Folder (closed)
       -3997, // Open Folder
       -3994, // Generic/Private Folder
       -3976, // Control Panels Folder
-      -3970, -3984, -4000, -16455, -16482, // last resorts (app/trash/item/Finder)
     ];
     const _iconCache = new Map();
     async function schemeIcons(theme, n) {
