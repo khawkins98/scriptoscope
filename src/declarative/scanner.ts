@@ -11,7 +11,8 @@ import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
 import { promoteIcon } from './icon.js';
-import { promoteThemePicker, syncThemePickerActive, type PickerThemeEntry } from './themePicker.js';
+import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
+import type { ThemeEntry } from './theme.js';
 import { promoteTabs } from './tabs.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
@@ -59,10 +60,18 @@ export interface MountOptions extends ThemeBootstrapOpts {
    *  See "Common pitfall — silent partial-success" in the README. */
   rejectOnEmptyMount?: boolean;
   /** The catalog of themes that `<div data-scriptoscope-theme-picker>`
-   *  elements render tiles for. Each entry: `{ slug, name?, author?, year? }`.
-   *  Shape mirrors `demo/themes-manifest.json` so a consumer can pass the
-   *  imported manifest directly. Default: no themes → pickers stay empty. */
-  themes?: readonly PickerThemeEntry[];
+   *  elements render tiles for AND that the loader takes hints from.
+   *  Each entry: `{ slug, name?, author?, year?, source? }` —
+   *  `source: 'scheme.rsrc'` on `.rsrc`-only bundles saves a 580ms wasted
+   *  `.sit` 404 RTT per bundle. Shape mirrors `demo/themes-manifest.json`
+   *  so a consumer can pass the imported manifest directly. Default: no
+   *  themes → pickers stay empty AND loader uses default cascade. */
+  themes?: readonly ThemeEntry[];
+  /** Cap on concurrent icon decodes inside `<div data-scriptoscope-theme-picker>`
+   *  promotion. Default 2 — calibrated for HTTP/1.1 + main-thread decode
+   *  contention on mid-range mobile. Lift to 4-6 for desktop wifi kiosks
+   *  with a large picker; drop to 1 for very low-end devices. */
+  pickerDecodeConcurrency?: number;
   /** Auto-cycle through registered `themes` every N milliseconds until the
    *  first user interaction (`pointerdown`/`keydown`/`wheel` anywhere in
    *  the root). Use on landing pages where "show the breadth, not assert
@@ -249,6 +258,19 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const skinnedIcons: (HTMLImageElement | HTMLElement)[] = []; // [data-scriptoscope-icon] elements; re-resolved on retheme
   const skinnedPickers: HTMLElement[] = []; // [data-scriptoscope-theme-picker] elements; aria-selected synced on retheme
   const pickerTeardowns: (() => void)[] = []; // IO disconnect + queue clear, run on handle.disconnect() — lib reviewer P1 fix 2026-05-30
+  // Elements we set `inert` on during the boot wipe so a fast tab can't
+  // land focus on a clipped, visually-invisible widget. Cleared in the
+  // ready microtask. Tracked explicitly so we only remove `inert` we
+  // added (a consumer marking their own element inert pre-mount keeps it).
+  // A11y reviewer P1 2026-05-30; pairs with the clip-path animation in
+  // scriptoscope.css scoped on [data-scriptoscope-loading].
+  const inertDuringWipe = new Set<Element>();
+  const markInertIfWiping = (el: Element): void => {
+    if (!loadingEl?.hasAttribute(SCRIPTOSCOPE_LOADING_ATTR)) return;
+    if (el.hasAttribute('inert')) return; // consumer-set inert: leave alone
+    el.setAttribute('inert', '');
+    inertDuringWipe.add(el);
+  };
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -354,6 +376,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       aw.host.dataset.scriptoscopeTheme = ref;
       if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
+      markInertIfWiping(aw.host);
       stats.windows += 1;
       debug('promote', `window: ${el.dataset.scriptoscopeTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
       // Bubbling DOM event so consumers can listen anywhere (e.g.
@@ -374,6 +397,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     try {
       const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
       skinnedButtons.push({ el, skinned });
+      markInertIfWiping(skinned);
       stats.buttons += 1;
       debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
     } catch (err) {
@@ -389,6 +413,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     try {
       await promoteTabs(el, await resolver.load(refForEl(el)));
       skinnedTabs.push(el);
+      markInertIfWiping(el);
       stats.tabs += 1;
     } catch (err) {
       reportPromoteError('tabs', el, err);
@@ -414,7 +439,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (el.dataset.scriptoscopeIconPromoted != null) return;
     try {
       const theme = await resolver.load(refForEl(el));
-      if (promoteIcon(el, theme)) skinnedIcons.push(el);
+      if (promoteIcon(el, theme)) { skinnedIcons.push(el); markInertIfWiping(el); }
     } catch (err) {
       reportPromoteError('icon', el, err);
     }
@@ -428,10 +453,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         loadTheme: (slug) => resolver.load(slug),
         switchTheme: (slug) => retheme(slug),
         initialSlug: lastThemeRef ?? pageDefault,
+        // Omit when undefined so exactOptionalPropertyTypes:true accepts it.
+        ...(opts.pickerDecodeConcurrency != null ? { decodeConcurrency: opts.pickerDecodeConcurrency } : {}),
       });
       if (result) {
         skinnedPickers.push(result.el);
         pickerTeardowns.push(result.teardown);
+        markInertIfWiping(result.el);
       }
     } catch (err) {
       reportPromoteError('control', el, err); // no 'picker' kind; reuse 'control' (kept tight for now)
@@ -445,6 +473,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       const skinned = await promoteControl(el, await resolver.load(refForEl(el)));
       if (skinned) {
         skinnedControls.push({ el, skinned });
+        markInertIfWiping(skinned);
         stats.controls += 1;
       }
       debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
@@ -676,6 +705,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // disconnect() on) and the CSS hooks fire on any subsequent DOM
     // promote. Lib reviewer 2026-05-30 P1; convergent with a11y reviewer.
     if (loadingEl && wantsAffordance) loadingEl.removeAttribute(SCRIPTOSCOPE_LOADING_ATTR);
+    for (const el of inertDuringWipe) el.removeAttribute('inert');
+    inertDuringWipe.clear();
     if (key) mountedRoots.delete(key);
     throw new Error(
       `[scriptoscope] mountDeclarative: scan found ${initialTargets} promotable target(s) but ZERO succeeded. ` +
@@ -735,7 +766,16 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       try { await retheme(next.slug); } catch { /* tolerate one bad theme */ }
       if (!cycleStopped) cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
     };
-    armAutoCycle = () => { cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle); };
+    // Re-check cycleStopped at arm time — an edge case the lib reviewer
+    // caught 2026-05-30: a consumer that `await mountDeclarative(...)`s
+    // and synchronously calls `handle.disconnect()` would race the ready
+    // microtask. By the time armAutoCycle ran, cycleStopped was true, but
+    // we still scheduled a setTimeout whose closure tick() then no-op'd.
+    // Cheap to skip the dangling timer outright.
+    armAutoCycle = () => {
+      if (cycleStopped) return;
+      cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
+    };
   }
 
   // 'ready' fires after the initial scan + .scriptoscope-ready marker.
@@ -750,6 +790,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // the moment it's removed. Consumer's CSS sees `data-scriptoscope-ready`
     // (the class) and the absence of `data-scriptoscope-loading` together.
     if (loadingEl && wantsAffordance) loadingEl.removeAttribute(SCRIPTOSCOPE_LOADING_ATTR);
+    // Lift the wipe-window `inert` so promoted hosts become interactive
+    // again. Pairs with markInertIfWiping above; only removes inert we
+    // added (the Set tracks them). Runs in the same microtask as the
+    // loading-attr removal so the keyboard-focus race window closes
+    // synchronously with the visual wipe ending. A11y reviewer P1.
+    for (const el of inertDuringWipe) el.removeAttribute('inert');
+    inertDuringWipe.clear();
     dispatch('ready', { stats });
     if (armAutoCycle) armAutoCycle();
   });
@@ -818,6 +865,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // 2026-05-30. Errors don't propagate — a flaky teardown shouldn't
       // block the rest of disconnect.
       for (const t of pickerTeardowns.splice(0)) { try { t(); } catch { /* swallow */ } }
+      // Lift any wipe-window inert that's still active (the edge: consumer
+      // disconnect()s before the ready microtask runs, e.g. aborted boot).
+      for (const el of inertDuringWipe) el.removeAttribute('inert');
+      inertDuringWipe.clear();
       for (const w of mounted.splice(0)) w.unmount();
       dispatch('unmounted');
       // Restore inline min-height on every ancestor we pinned during scan.

@@ -22,17 +22,13 @@
 // themes-manifest.json ({ slug, name, author?, year? }).
 
 import type { LoadedTheme } from '../types.js';
+import type { ThemeEntry } from './theme.js';
 import { ICON_NAMES } from './icon.js';
 
-/** One theme as the picker needs it. Mirrors demo/themes-manifest.json's
- *  emitted shape (with `label` retained for back-compat for now). */
-export interface PickerThemeEntry {
-  slug: string;
-  name?: string;
-  author?: string;
-  year?: number;
-  label?: string; // back-compat: if name/author missing, this is parsed
-}
+/** @deprecated 2026-05-30 — use {@link ThemeEntry} from `./theme.js` (now
+ *  the single shape both the loader and the picker consume). Kept as a
+ *  type alias so consumer imports still resolve through one release. */
+export type PickerThemeEntry = ThemeEntry;
 
 /** What the picker needs to drive: a theme loader + a switcher. The scanner
  *  passes adapters that wrap its own resolver + handle.retheme. */
@@ -44,6 +40,12 @@ export interface PickerDeps {
   switchTheme(slug: string): Promise<void> | void;
   /** Initial active slug (highlights the matching tile + sets tabindex=0). */
   initialSlug: string;
+  /** Cap on concurrent icon decodes inside the picker's lazy IO queue.
+   *  Default 2 — the right ballpark for HTTP/1.1 + main-thread decode
+   *  contention on mid-range mobile. Lift to 4-6 for desktop wifi kiosks
+   *  with a big picker; drop to 1 for very low-end devices. P2 from the
+   *  lib reviewer 2026-05-30. */
+  decodeConcurrency?: number;
 }
 
 /** Result returned by {@link promoteThemePicker} on successful promotion. */
@@ -63,7 +65,7 @@ export interface PromotedPicker {
  *  Returns `{ el, teardown }` or null if the element was already promoted or
  *  themes is empty. */
 export async function promoteThemePicker(
-  el: HTMLElement, themes: readonly PickerThemeEntry[], deps: PickerDeps,
+  el: HTMLElement, themes: readonly ThemeEntry[], deps: PickerDeps,
 ): Promise<PromotedPicker | null> {
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
@@ -154,11 +156,17 @@ export async function promoteThemePicker(
   // between to keep the main thread responsive on mobile scrolling.
   const decoded = new Set<string>();
   let inFlight = 0;
-  const queue: string[] = [];
+  // Insertion-ordered queue + parallel Set for O(1) membership checks.
+  // Sets preserve insertion order, so `[...queued][0]` is the head.
+  // Replacing the previous `string[]` + `queue.includes()` scan — lib
+  // reviewer P2 2026-05-30. Negligible at 18 themes; matters at 100+.
+  const queued = new Set<string>();
+  const concurrencyCap = Math.max(1, deps.decodeConcurrency ?? 2);
   const drain = (): void => {
-    while (inFlight < 2 && queue.length) {
-      const slug = queue.shift();
-      if (!slug || decoded.has(slug)) continue;
+    while (inFlight < concurrencyCap && queued.size > 0) {
+      const slug = queued.values().next().value as string;
+      queued.delete(slug);
+      if (decoded.has(slug)) continue;
       decoded.add(slug);
       inFlight += 1;
       void (async () => {
@@ -192,7 +200,7 @@ export async function promoteThemePicker(
   };
   const requestDecode = (slug: string): void => {
     if (decoded.has(slug)) return;
-    if (!queue.includes(slug)) queue.push(slug);
+    queued.add(slug); // Set.add is no-op on duplicate; O(1) membership
     drain();
   };
   // The active tile: decode eagerly. Its theme is the page default + the
@@ -237,7 +245,7 @@ export async function promoteThemePicker(
   // `tile?.` guards inside drain() already handle that case. Idempotent.
   const teardown = (): void => {
     if (io) { io.disconnect(); io = null; }
-    queue.length = 0;
+    queued.clear();
   };
   return { el, teardown };
 }

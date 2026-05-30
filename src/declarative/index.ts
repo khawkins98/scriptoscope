@@ -11,7 +11,12 @@ export {
   SCRIPTOSCOPE_PROMOTED_ATTR, SCRIPTOSCOPE_LOADING_ATTR,
 } from './markers.js';
 export { ScriptoscopeWindow, type ScriptoscopeWindowDeps } from './ScriptoscopeWindow.js';
-export { createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts } from './theme.js';
+export {
+  createThemeResolver,
+  type ThemeResolver, type ThemeBootstrapOpts,
+  type ThemeEntry,
+  /** @deprecated use {@link ThemeEntry} */ type ThemeHint,
+} from './theme.js';
 export { promoteButton } from './button.js';
 export { promoteField, isFieldEligible } from './field.js';
 export { promoteIcon, ICON_NAMES } from './icon.js';

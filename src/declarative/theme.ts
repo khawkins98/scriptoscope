@@ -8,24 +8,40 @@ import type { LoadedTheme } from '../types.js';
 import { loadTheme } from '../loadTheme.js';
 import { themeRefToUrl } from './parse.js';
 
-/** Optional per-theme hints the consumer's manifest already knows. The
- *  resolver indexes these by slug so loadTheme can skip work it doesn't
- *  need to do (e.g. the .sit → .rsrc cascade for bundles where the
- *  consumer knows the source file already; the meta.json fetch for
- *  bundles where the consumer has the metadata). Mirror the shape of
- *  PickerThemeEntry — same object passes through both surfaces. */
-export interface ThemeHint {
+/** One theme as both the picker and the loader need it. Single source of
+ *  truth for the consumer-facing manifest shape — the same object passes
+ *  through `MountOptions.themes` (where it drives picker tiles AND seeds
+ *  loader hints). Lib reviewer P1 convergence 2026-05-30: the previous
+ *  ThemeHint (loader-side) and PickerThemeEntry (picker-side) types were
+ *  the same shape minus their `source`/`label` extras; consumers passing
+ *  the manifest got no TS warning for omitting `source` and silently
+ *  paid the 580ms wasted `.rsrc` 404 RTT. Aliased below so any consumer
+ *  with `import type { ThemeHint }` or `import type { PickerThemeEntry }`
+ *  still compiles. */
+export interface ThemeEntry {
+  /** Bundle directory slug — `themes/<slug>/` resolves from this. */
   slug: string;
+  /** Display name — used by picker tiles. Falls back to a `label` parse,
+   *  then to slug. */
+  name?: string;
+  /** Display author/origin attribution — picker tile subtitle. */
+  author?: string;
+  /** Release year — picker tile subtitle suffix. */
+  year?: number;
   /** Which file in the bundle dir to fetch — `scheme.sit` or `scheme.rsrc`.
    *  When set, loadTheme skips the .sit→.rsrc fallback (saves a 580ms
    *  wasted 404 RTT per `.rsrc`-only theme; perf finding 2026-05-30 P1). */
   source?: string;
-  /** Author + year — used to short-circuit the meta.json fetch (perf P1
-   *  #2). When present, loadTheme skips the network call entirely. */
-  name?: string;
-  author?: string;
-  year?: number;
+  /** Picker-side back-compat: pre-name/author/year manifests stored a
+   *  single combined `label`. The picker parses it if `name` is absent.
+   *  New consumers should use `name` + `author` + `year` directly. */
+  label?: string;
 }
+
+/** @deprecated 2026-05-30 — use {@link ThemeEntry}. Kept as a type alias
+ *  so `import type { ThemeHint }` still resolves; removable on the next
+ *  consumer-API sweep. */
+export type ThemeHint = ThemeEntry;
 
 export interface ThemeBootstrapOpts {
   /** Base dir the bundle slugs resolve under (a standalone consumer points this at its themes/). */
@@ -37,7 +53,7 @@ export interface ThemeBootstrapOpts {
    *  path segment. Without this, loadTheme falls back to its default
    *  cascade behavior. Typically passed as the same `themes` array as
    *  MountOptions.themes (the manifest). */
-  themes?: readonly ThemeHint[];
+  themes?: readonly ThemeEntry[];
 }
 
 export interface ThemeResolver {
@@ -60,7 +76,7 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
   // Per-slug hint index from the consumer's manifest. Reads zero on the
   // happy path (loadTheme defaults work); reads on the slow path (.rsrc-
   // only themes, themes whose metadata is already on disk via manifest).
-  const hintBySlug = new Map<string, ThemeHint>(
+  const hintBySlug = new Map<string, ThemeEntry>(
     (opts.themes ?? []).map((t) => [t.slug, t]),
   );
   // Recover the slug from a resolved URL — last path segment, trailing
