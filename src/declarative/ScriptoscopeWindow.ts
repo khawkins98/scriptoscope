@@ -236,15 +236,29 @@ export class ScriptoscopeWindow {
         host.setAttribute(a.name, a.value);
       }
     }
-    // Lock down layout-critical properties AFTER inheriting the consumer's
-    // classes — inline styles override class-based CSS via specificity.
-    // Without this, a `.powers-card { display: grid; grid-template-columns:
-    // 56px 1fr }` consumer class would collapse the host's box to ~100px
-    // while the chrome canvas still rendered at its natural ~450px. Demo
-    // reviewer 2026-05-30: cards showed the canvas overflowing a tiny
-    // host box, breaking hit detection + sibling flow.
-    host.style.display = 'block';
-    host.style.boxSizing = 'border-box';
+    // Lock down layout + decoration properties AFTER inheriting the
+    // consumer's classes — inline styles override class-based CSS via
+    // specificity. Without these, consumer styling intended for the
+    // bare-HTML state of the source element bleeds onto the host where
+    // it no longer makes sense:
+    //   - `display: grid/flex` collapses the host's box, decoupling it
+    //     from the chrome canvas it's supposed to wrap.
+    //   - `padding` offsets the canvas inside the host's box, leaving
+    //     stripes of host-background showing around the chrome edges.
+    //   - `border` draws a second frame around the canvas — the chrome
+    //     IS the intended visual frame; the consumer's border was for
+    //     the bare HTML, not the chromed state.
+    //   - `background` paints under the chrome — invisible if chrome is
+    //     opaque, ugly if chrome has any transparent corners.
+    // Consumer styles for color, font, position offsets, custom
+    // properties, etc. still apply (they're not in this lockdown set).
+    Object.assign(host.style, {
+      display: 'block',
+      boxSizing: 'border-box',
+      padding: '0',
+      border: '0',
+      background: 'transparent',
+    });
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
