@@ -9,6 +9,8 @@ import { ScriptoscopeWindow, findPositionedAncestor } from './ScriptoscopeWindow
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
+import { promoteIcon } from './icon.js';
+import { promoteThemePicker, syncThemePickerActive, type PickerThemeEntry } from './themePicker.js';
 import { promoteTabs } from './tabs.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
@@ -24,7 +26,7 @@ import {
  *  field while alerting on window failures). `cause` is the raw thrown
  *  value — usually an Error but typed `unknown` for honesty. */
 export interface PromoteError {
-  kind: 'window' | 'button' | 'control' | 'tabs' | 'field';
+  kind: 'window' | 'button' | 'control' | 'tabs' | 'field' | 'icon';
   el: Element;
   cause: unknown;
 }
@@ -55,6 +57,23 @@ export interface MountOptions extends ThemeBootstrapOpts {
    *  windows promoted, and the consumer has to probe the DOM to detect it.
    *  See "Common pitfall — silent partial-success" in the README. */
   rejectOnEmptyMount?: boolean;
+  /** The catalog of themes that `<div data-scriptoscope-theme-picker>`
+   *  elements render tiles for. Each entry: `{ slug, name?, author?, year? }`.
+   *  Shape mirrors `demo/themes-manifest.json` so a consumer can pass the
+   *  imported manifest directly. Default: no themes → pickers stay empty. */
+  themes?: readonly PickerThemeEntry[];
+  /** Auto-cycle through registered `themes` every N milliseconds until the
+   *  first user interaction (`pointerdown`/`keydown`/`wheel` anywhere in
+   *  the root). Use on landing pages where "show the breadth, not assert
+   *  it" matters. Respects `prefers-reduced-motion` (suspends entirely).
+   *  Suppressed when `syncToUrlParam` boots with a deep-link present.
+   *  Default: undefined → no auto-cycle. */
+  autoCycle?: number;
+  /** Read at boot to choose the initial theme (overrides `pageThemeDefault`
+   *  if the param matches a registered theme slug). On every `retheme()`,
+   *  `history.replaceState` mirrors the new slug back to the URL so the
+   *  page stays shareable. Default: undefined → no URL sync. */
+  syncToUrlParam?: string;
 }
 
 /** Counts of successfully-promoted targets by kind, exposed on MountHandle.
@@ -123,6 +142,11 @@ const CONTROL_SEL = [
   'input[type=range]:not([data-scriptoscope-control=off])',
   'select:not([data-scriptoscope-control=off])',
 ].join(', ');
+// Scheme-resolved Finder icons. `<img data-scriptoscope-icon="folder">` (named
+// key) or `<img data-scriptoscope-icon-id="-3999">` (raw Apple resource id).
+// Re-resolves src on retheme so the icon follows the active scheme.
+const ICON_SEL = '[data-scriptoscope-icon], [data-scriptoscope-icon-id]';
+const THEME_PICKER_SEL = '[data-scriptoscope-theme-picker]';
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
 export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHandle> {
@@ -140,7 +164,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   }
   const manager = new WindowManager();
   const resolver = createThemeResolver(opts);
-  const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
+  // syncToUrlParam (T2.3): if the URL carries ?<param>=<slug> AND it matches
+  // a registered theme, that's the initial theme. Falls back to
+  // pageThemeDefault → baseSlug → '1138' otherwise. Deep-link awareness
+  // also gates the autoCycle below (we don't cycle if the user came in on
+  // a specific scheme).
+  const themesBySlug = new Map((opts.themes ?? []).map((t) => [t.slug, t]));
+  const urlSlug = (opts.syncToUrlParam && typeof location !== 'undefined')
+    ? new URLSearchParams(location.search).get(opts.syncToUrlParam)
+    : null;
+  const cameViaDeepLink = !!(urlSlug && themesBySlug.has(urlSlug));
+  const pageDefault = (cameViaDeepLink ? urlSlug! : null) ?? opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
   const inFlight = new Set<Element>();
   // Live stats — exposed on MountHandle; mutated by every successful promote.
   const stats: MountStats = { windows: 0, buttons: 0, controls: 0, tabs: 0, fields: 0 };
@@ -162,6 +196,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
   const skinnedTabs: HTMLElement[] = []; // tablist wrappers (re-promoted on retheme to swap faces)
+  const skinnedIcons: (HTMLImageElement | HTMLElement)[] = []; // [data-scriptoscope-icon] elements; re-resolved on retheme
+  const skinnedPickers: HTMLElement[] = []; // [data-scriptoscope-theme-picker] elements; aria-selected synced on retheme
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -318,6 +354,31 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     }
   };
 
+  const promoteIco = async (el: HTMLImageElement | HTMLElement): Promise<void> => {
+    if (el.dataset.scriptoscopeIconPromoted != null) return;
+    try {
+      const theme = await resolver.load(refForEl(el));
+      if (promoteIcon(el, theme)) skinnedIcons.push(el);
+    } catch (err) {
+      reportPromoteError('icon', el, err);
+    }
+  };
+
+  const promotePicker = async (el: HTMLElement): Promise<void> => {
+    if (el.dataset.scriptoscopeThemePickerPromoted != null) return;
+    if (!opts.themes?.length) return; // no manifest → picker stays empty (consumer didn't opt in)
+    try {
+      const result = await promoteThemePicker(el, opts.themes, {
+        loadTheme: (slug) => resolver.load(slug),
+        switchTheme: (slug) => retheme(slug),
+        initialSlug: lastThemeRef ?? pageDefault,
+      });
+      if (result) skinnedPickers.push(el);
+    } catch (err) {
+      reportPromoteError('control', el, err); // no 'picker' kind; reuse 'control' (kept tight for now)
+    }
+  };
+
   const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
     if (isPromoted(el)) return;
     inFlight.add(el);
@@ -340,6 +401,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
   const retheme = async (ref: string): Promise<void> => {
     lastThemeRef = ref;
+    // syncToUrlParam (T2.3): mirror the new slug back to ?<param>=<slug>
+    // so the URL stays shareable. replaceState (not pushState) keeps the
+    // history clean. Only updates if the param's already there or the
+    // consumer opted in via syncToUrlParam.
+    if (opts.syncToUrlParam && typeof location !== 'undefined' && typeof history !== 'undefined') {
+      try {
+        const u = new URL(location.href);
+        u.searchParams.set(opts.syncToUrlParam, ref);
+        history.replaceState(null, '', u);
+      } catch { /* sandboxed contexts (some iframes) can't replaceState */ }
+    }
     const theme = await resolver.load(ref);
     await manager.retheme(theme);
     // Update each promoted host's `data-scriptoscope-theme` so consumers querying
@@ -391,6 +463,21 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         if (fresh) { c.skinned.remove(); c.skinned = fresh; }
       } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
     }
+    // Re-resolve every promoted icon's src from the new theme's iconIndex.
+    // Filter orphans (icon removed from DOM during retheme) before re-running.
+    const liveIcons = skinnedIcons.filter((el) => el.isConnected);
+    skinnedIcons.length = 0; skinnedIcons.push(...liveIcons);
+    for (const el of skinnedIcons) {
+      try { promoteIcon(el, theme); }
+      catch (err) { console.error('[scriptoscope] icon re-resolve failed:', err); }
+    }
+    // Sync every promoted theme picker's active-tile state. The picker
+    // itself didn't trigger the retheme (it could have been triggered by
+    // a different control or by handle.retheme directly) — this keeps
+    // every picker in lockstep with the live theme.
+    const livePickers = skinnedPickers.filter((el) => el.isConnected);
+    skinnedPickers.length = 0; skinnedPickers.push(...livePickers);
+    for (const el of skinnedPickers) syncThemePickerActive(el, ref);
   };
 
   // Windows in DOCUMENT ORDER, sequentially, so the first declared window becomes the active one
@@ -459,6 +546,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
       ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),
       ...Array.from(within.querySelectorAll(FIELD_SEL), (el) => promoteFld(el as HTMLInputElement | HTMLTextAreaElement)),
+      ...Array.from(within.querySelectorAll(ICON_SEL), (el) => promoteIco(el as HTMLImageElement | HTMLElement)),
+      ...Array.from(within.querySelectorAll(THEME_PICKER_SEL), (el) => promotePicker(el as HTMLElement)),
     ]);
   };
 
@@ -512,6 +601,45 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const readyEl = root instanceof Document ? root.body : root;
   if (readyEl) readyEl.classList.add(SCRIPTOSCOPE_READY_CLASS);
 
+  // ── autoCycle (T2.3) — step through themes on a timer until first user
+  // interaction. Demonstrate breadth instead of asserting it; matches the
+  // landing's previous self-rolled pattern. Suppressed when:
+  //   - opts.autoCycle is falsy (default)
+  //   - opts.themes is empty (nothing to cycle through)
+  //   - the user came in via a syncToUrlParam deep-link (they chose a scheme)
+  //   - prefers-reduced-motion (accessibility — we're a tool, not a slideshow)
+  //   - root is detached (no point cycling on an unmounted root)
+  let cycleTimer: ReturnType<typeof setTimeout> | null = null;
+  let cycleStopped = false;
+  const stopCycle = (): void => {
+    cycleStopped = true;
+    if (cycleTimer != null) { clearTimeout(cycleTimer); cycleTimer = null; }
+  };
+  if (opts.autoCycle && opts.themes?.length && !cameViaDeepLink && typeof matchMedia !== 'undefined') {
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reducedMotion) {
+      const cycleRoot = root instanceof Document ? root : root;
+      // Any of these means engagement — stop forever. once: true keeps the
+      // listener footprint zero after the first event.
+      const onInteract = (): void => stopCycle();
+      cycleRoot.addEventListener('pointerdown', onInteract, { once: true });
+      cycleRoot.addEventListener('keydown', onInteract, { once: true });
+      cycleRoot.addEventListener('wheel', onInteract, { once: true, passive: true });
+      const themes = opts.themes;
+      let idx = themes.findIndex((t) => t.slug === (lastThemeRef ?? pageDefault));
+      if (idx < 0) idx = 0;
+      const tick = async (): Promise<void> => {
+        if (cycleStopped) return;
+        idx = (idx + 1) % themes.length;
+        const next = themes[idx];
+        if (!next) return;
+        try { await retheme(next.slug); } catch { /* tolerate one bad theme */ }
+        if (!cycleStopped) cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
+      };
+      cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
+    }
+  }
+
   // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
   // idempotent (stamps), so we don't need to diff records precisely. Reset `scheduled` in a
   // .finally() so an unexpected throw from scanAndPromote/wireThemeSwitchers doesn't permanently
@@ -546,6 +674,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     disconnect: () => {
       teardownPersistence();
       obs.disconnect();
+      stopCycle();
       for (const w of mounted.splice(0)) w.unmount();
       // Restore inline min-height on every ancestor we pinned during scan.
       // Children are now back in flow (unmount moves them back), so the

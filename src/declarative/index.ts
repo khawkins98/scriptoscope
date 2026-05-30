@@ -13,6 +13,11 @@ export { ScriptoscopeWindow, type ScriptoscopeWindowDeps } from './ScriptoscopeW
 export { createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 export { promoteButton } from './button.js';
 export { promoteField, isFieldEligible } from './field.js';
+export { promoteIcon, ICON_NAMES } from './icon.js';
+export {
+  promoteThemePicker, syncThemePickerActive,
+  type PickerThemeEntry, type PickerDeps,
+} from './themePicker.js';
 export { promoteTabs } from './tabs.js';
 export {
   attachThemeDropZone,

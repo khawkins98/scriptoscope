@@ -119,21 +119,23 @@
       top: -10px; left: 12px; background: #ffffff; padding: 0 8px;
       font: italic 11px "Times New Roman", serif; color: #5a5a5a;
     }
-    #powers .powers-folders { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
-    /* When the folder strip lives inside the chrome's slot, drop the fade
-       mask (the chrome IS the boundary now). */
-    #powers .scriptoscope-slot .powers-folders { mask-image: none; -webkit-mask-image: none; padding: 4px; }
-    /* Folder tile: name on top (10px serif), author/year underneath
-       (9px italic in muted gray). Mac Themes Garden / Aaron's About
-       box convention — the scheme authors were the celebrities. */
-    #powers .powers-folder { flex: 0 0 auto; display: grid; gap: 2px; justify-items: center; padding: 8px 8px 6px; border: 1px solid transparent; cursor: pointer; min-width: 86px; max-width: 86px; background: transparent; }
-    #powers .powers-folder:hover { background: #f0f0f0; }
-    #powers .powers-folder:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
-    #powers .powers-folder.active { border-color: #4a4a4a; background: #efefef; }
-    #powers .powers-folder img { width: 32px; height: 32px; image-rendering: pixelated; display: block; margin-bottom: 2px; }
-    #powers .powers-folder .placeholder { width: 32px; height: 32px; background: linear-gradient(#f4d985, #e3c265); border: 1px solid #97772a; margin-bottom: 2px; }
-    #powers .powers-folder .name { font: 700 10.5px/1.1 "Times New Roman", serif; color: #1c1c1c; text-align: center; max-width: 80px; }
-    #powers .powers-folder .author { font: italic 9px/1.15 "Times New Roman", serif; color: #6a6a6a; text-align: center; max-width: 80px; }
+    /* The library promotes [data-scriptoscope-theme-picker] into a folder
+       strip with tile class `.scriptoscope-theme-picker-tile`. Consumer
+       CSS targets those classes — they're a stable part of the public
+       contract (T2.2). */
+    #powers [data-scriptoscope-theme-picker] { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
+    /* When the picker lives inside chrome (the picker IS a window), drop
+       the fade mask (chrome is the boundary). */
+    #powers .scriptoscope-slot [data-scriptoscope-theme-picker] { mask-image: none; -webkit-mask-image: none; padding: 4px; }
+    /* Folder tile: name on top, author/year underneath. Mac Themes Garden /
+       Aaron-About-box convention — the scheme authors were the celebrities. */
+    #powers .scriptoscope-theme-picker-tile { flex: 0 0 auto; display: grid; gap: 2px; justify-items: center; padding: 8px 8px 6px; border: 1px solid transparent; cursor: pointer; min-width: 86px; max-width: 86px; background: transparent; font: inherit; }
+    #powers .scriptoscope-theme-picker-tile:hover { background: #f0f0f0; }
+    #powers .scriptoscope-theme-picker-tile:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
+    #powers .scriptoscope-theme-picker-tile.active { border-color: #4a4a4a; background: #efefef; }
+    #powers .scriptoscope-theme-picker-icon { image-rendering: pixelated; display: block; margin-bottom: 2px; }
+    #powers .scriptoscope-theme-picker-tile .name { font: 700 10.5px/1.1 "Times New Roman", serif; color: #1c1c1c; text-align: center; max-width: 80px; }
+    #powers .scriptoscope-theme-picker-tile .author { font: italic 9px/1.15 "Times New Roman", serif; color: #6a6a6a; text-align: center; max-width: 80px; }
     /* Grid is ALWAYS position:relative so absolute-positioned window hosts
        have a stable coordinate system regardless of skinned state. When
        skinned, the cards become absolute-positioned by the WindowManager —
@@ -197,9 +199,9 @@
       0%, 100% { box-shadow: 0 0 0 0 #0000ee00; }
       50% { box-shadow: 0 0 12px 2px #0000ee33; }
     }
-    #powers .powers-folders.powers-pulse { animation: powers-pulse-glow 1.6s ease-in-out 2; }
+    #powers [data-scriptoscope-theme-picker].powers-pulse { animation: powers-pulse-glow 1.6s ease-in-out 2; }
     @media (prefers-reduced-motion: reduce) {
-      #powers .powers-folders.powers-pulse { animation: none; }
+      #powers [data-scriptoscope-theme-picker].powers-pulse { animation: none; }
     }
     @media (max-width: 720px) {
       #powers .powers-card-row.heavy, #powers .powers-card-row.minor { grid-template-columns: 1fr; }
@@ -230,7 +232,11 @@
       <div class="powers-picker-host" id="powers-picker-host">
         <article class="powers-picker" data-scriptoscope-window
                  data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window">
-          <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
+          <!-- The folder strip — one attribute. The library renders one tile
+               per registered theme (icon + name + author/year credit) with
+               full ARIA tab pattern + keyboard nav + retheme on click.
+               Themes come from the `themes` array passed to mountDeclarative. -->
+          <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
         </article>
       </div>
       <h2>Eighteen schemes. One runtime.</h2>
@@ -264,7 +270,7 @@
         <div class="powers-card-row heavy">
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-powers-icon="folder">⌘</div>
+            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="folder">⌘</div>
             <div>
               <h3><a href="./diagnostic.html#detail">kDEF Replay Engine</a></h3>
               <p>A clean-room reimplementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped — same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Every pixel of chrome is composited from the binary's own resources.</p>
@@ -272,7 +278,7 @@
           </article>
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-powers-icon="prefs">✎</div>
+            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="prefs">✎</div>
             <div>
               <h3><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
               <p>The attribute set that lets any element declare what it is — a window, a button, a checkbox, a slider — and wear the active scheme's chrome the instant the runtime mounts.</p>
@@ -285,7 +291,7 @@
         <div class="powers-card-row minor">
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-powers-icon="document">↘</div>
+            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="document">↘</div>
             <div>
               <h3><a href="./diagnostic.html#byo">ResourceForkLib</a></h3>
               <p>Reads any classic scheme — a StuffIt archive, a MacBinary wrapper, a raw <code>.rsrc</code> fork still warm from a System&nbsp;7 disk — directly in your browser. Nothing uploaded.</p>
@@ -293,7 +299,7 @@
           </article>
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window">
-            <div class="powers-glyph" aria-hidden="true" data-powers-icon="suitcase">✦</div>
+            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="suitcase">✦</div>
             <div>
               <h3><a href="./diagnostic.html#ribbon">The Scheme Library</a></h3>
               <p>Eighteen of the era's best — <em>1138</em>, <em>Apple Platinum</em>, <em>BeOS R5</em>, <em>Crayon OS</em>, <em>Monkey Paradise</em>, <em>Windows 95</em>, and twelve more. Decoded from archives the Macintosh Garden preserves.</p>
@@ -320,7 +326,7 @@
     // Imports use the bare `scriptoscope` specifier — same string a third-
     // party consumer would write. Vite (dev + prod) aliases it to
     // src/index.ts so the landing is a faithful consumer example.
-    import { mountDeclarative, loadTheme, VERSION } from 'scriptoscope';
+    import { mountDeclarative, VERSION } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
     // Preload Charcoal faces before any chrome render — rasterizeText (control
@@ -336,27 +342,15 @@
     // Theme bundles live under the deploy base: `/` in dev, `/aaron-ui/` on
     // GH Pages. BASE_URL carries the prefix + trailing slash.
     const BASE = import.meta.env.BASE_URL;
-    const themeUrl = (slug) => `${BASE}themes/${slug}`;
     const themeBaseUrl = `${BASE}themes`.replace(/\/+$/, '');
-    const themesBySlug = new Map(THEMES.map((t) => [t.slug, t]));
-
-    // Per-theme cache so we don't redecode on retheme. loadTheme returns a
-    // LoadedTheme with `.inspector.iconIndex` already populated by the
-    // browser-side decoder, so we can pull icons straight off it.
-    const themeCache = new Map();
-    const loadOnce = (slug) => {
-      if (!themeCache.has(slug)) {
-        const meta = themesBySlug.get(slug);
-        const opts = meta?.source ? { source: meta.source } : undefined;
-        themeCache.set(slug, loadTheme(themeUrl(slug), opts));
-      }
-      return themeCache.get(slug);
-    };
+    // (The loadOnce theme cache, themesBySlug map, and loadTheme import
+    // are GONE — the library's createThemeResolver caches per-mount
+    // internally; declarative theme-picker / icon promotions both use it.)
 
     // ── DOM handles ─────────────────────────────────────────────────────────
     const powersSection = document.getElementById('powers');
     const toggleBtn = document.getElementById('powers-skin-toggle');
-    const foldersEl = document.getElementById('powers-folders');
+    const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
     const verEl = document.getElementById('powers-ver');
 
     // Version sync — the meta line under the install snippet shows the live
@@ -375,12 +369,11 @@
     // ?theme= URL param: the landing is the shareable URL. Default 1138 if
     // absent or unknown. Source-of-truth flow: URL → activeSlug → switchTheme
     // mirrors slug back to URL via history.replaceState.
-    const themeFromURL = new URLSearchParams(location.search).get('theme');
-    const deepLinked = themesBySlug.has(themeFromURL); // user arrived at a specific scheme
-    let activeSlug = deepLinked ? themeFromURL : '1138';
+    // The library now owns ?theme= reading + auto-cycle's first-interaction
+    // detector — we just pass `syncToUrlParam: 'theme'` + `autoCycle: 4000`
+    // and `themes: THEMES` to mountDeclarative below.
     let mountToken = 0;
     let handle = null;
-    let userInteracted = false; // flips on first folder click / key / mouse — stops auto-cycle
 
     // Single state setter — toggle button only. The library auto-adds
     // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
@@ -403,13 +396,21 @@
         h = await mountDeclarative({
           root: powersSection,
           themeBaseUrl,
-          pageThemeDefault: activeSlug,
+          pageThemeDefault: '1138',
+          themes: THEMES,
+          // syncToUrlParam: '?theme=animals' on the URL sets the initial
+          // theme + history.replaceState mirrors every retheme back. The
+          // landing IS the shareable URL.
+          syncToUrlParam: 'theme',
+          // autoCycle: step through `themes` every 4s until first
+          // pointerdown/keydown/wheel. Suppressed if syncToUrlParam came
+          // in with a deep-link (the user chose a scheme) or if
+          // prefers-reduced-motion. Library owns all the bookkeeping.
+          autoCycle: 4000,
           // No persistKey: layout is dictated by CSS. Drag + resize work
-          // (WindowManager owns those); reload resets to CSS defaults —
-          // bare-HTML and skinned-chrome layouts stay identical at load.
+          // (WindowManager owns those); reload resets to CSS defaults.
           // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
-          // in ONE place instead of probing canvases post-mount with a
-          // 200ms timeout (the library now does this check itself).
+          // in ONE place — was a 16-line post-mount canvas probe before.
           rejectOnEmptyMount: true,
         });
       } catch (err) {
@@ -431,143 +432,33 @@
       syncToggleUI(false);
     };
     toggleBtn.addEventListener('click', () => {
-      userInteracted = true; // any toggle press counts as engagement; stop auto-cycle
+      // (Library already stops auto-cycle on any pointerdown in the root —
+      // clicking the toggle counts as engagement automatically.)
       const skinned = toggleBtn.getAttribute('aria-pressed') === 'true';
       skinned ? unmountPowers() : mountPowers();
     });
 
-    // ── Folder strip: one tile per theme with NAME + AUTHOR/YEAR ────────────
-    // The author credit is the Mac Themes Garden / Kaleidoscope.net 1998
-    // convention — scheme authors were the celebrities of this scene
-    // (Hayato Mori, Arlo Rose, Greg Landweber, Erik Ekengren, Jon Alexander).
-    // Two-line tile: name 10.5px bold, author/year 9px italic muted.
-    const folderTiles = new Map();
-    for (const t of THEMES) {
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'powers-folder';
-      tile.dataset.slug = t.slug;
-      tile.title = t.label;
-      tile.setAttribute('role', 'tab');
-      tile.setAttribute('aria-selected', t.slug === activeSlug ? 'true' : 'false');
-      tile.setAttribute('tabindex', t.slug === activeSlug ? '0' : '-1');
-      tile.setAttribute('aria-label', `Switch to ${t.label}`);
-      if (t.slug === activeSlug) tile.classList.add('active');
-      const ph = document.createElement('span'); ph.className = 'placeholder'; ph.setAttribute('aria-hidden', 'true');
-      const name = document.createElement('span'); name.className = 'name'; name.textContent = t.name ?? t.slug;
-      tile.append(ph, name);
-      if (t.author) {
-        const author = document.createElement('span'); author.className = 'author';
-        author.textContent = t.year ? `${t.author}, ${t.year}` : t.author;
-        tile.append(author);
-      }
-      tile.onclick = () => { userInteracted = true; switchTheme(t.slug); };
-      foldersEl.appendChild(tile);
-      folderTiles.set(t.slug, tile);
-    }
-    foldersEl.addEventListener('keydown', (e) => {
-      const tiles = [...foldersEl.querySelectorAll('.powers-folder')];
-      if (!tiles.length) return;
-      const i = tiles.findIndex((t) => t === document.activeElement);
-      let next = i;
-      if (e.key === 'ArrowRight') next = (i + 1 + tiles.length) % tiles.length;
-      else if (e.key === 'ArrowLeft') next = (i - 1 + tiles.length) % tiles.length;
-      else if (e.key === 'Home') next = 0;
-      else if (e.key === 'End') next = tiles.length - 1;
-      else return;
-      e.preventDefault();
-      userInteracted = true;
-      const target = tiles[next];
-      target.focus();
-      switchTheme(target.dataset.slug);
-    });
+    // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
+    // `<div data-scriptoscope-theme-picker>` in the markup + `themes: THEMES`
+    // passed to mountDeclarative covers it. The library handles tile
+    // building, name + author/year, ARIA tab pattern, keyboard nav,
+    // active-state sync on retheme. Pointerdown still counts as
+    // engagement (auto-cycle stops below), which the section-wide
+    // first-interaction listener picks up.)
 
-    // ── Auto-cycle scope-reveal: demonstrate breadth instead of asserting it.
-    // When the user lands without a deep-link (?theme=), step through schemes
-    // every 4 seconds so the chrome visibly morphs on its own — the
-    // "eighteen schemes" claim becomes self-evident rather than verbal.
-    // FIRST mouse/keyboard interaction stops the cycle (we're a tool, not
-    // a slideshow). Respects prefers-reduced-motion. Suspended while the
-    // toggle is in bare-HTML mode (no chrome to demonstrate).
-    const prefersReducedMotion = matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (!deepLinked && !prefersReducedMotion) {
-      const stopCycle = () => { userInteracted = true; };
-      // Any of these mean the visitor is engaging — stop the show.
-      powersSection.addEventListener('pointerdown', stopCycle, { once: true });
-      powersSection.addEventListener('keydown', stopCycle, { once: true });
-      powersSection.addEventListener('wheel', stopCycle, { once: true, passive: true });
-      let idx = THEMES.findIndex((t) => t.slug === activeSlug);
-      const tick = async () => {
-        if (userInteracted) return; // engagement wins; stop forever
-        if (toggleBtn.getAttribute('aria-pressed') !== 'true') {
-          // Bare-HTML mode — no chrome to demonstrate. Check back later.
-          setTimeout(tick, 4000);
-          return;
-        }
-        idx = (idx + 1) % THEMES.length;
-        await switchTheme(THEMES[idx].slug);
-        setTimeout(tick, 4000);
-      };
-      // Wait until after the initial mount before starting the show.
-      setTimeout(tick, 4000);
-    }
+    // (Auto-cycle, URL-sync, and the switchTheme orchestrator are GONE —
+    // all three are now mountDeclarative options:
+    //   - autoCycle: 4000        — library handles the timer + interaction
+    //                              stop + reduced-motion + deep-link suppress
+    //   - syncToUrlParam: 'theme'— library reads at boot + replaceState
+    //                              on every retheme
+    //   - themes: THEMES         — drives both autoCycle + the theme-picker
+    // Click handlers on the picker tiles call handle.retheme(slug)
+    // internally. No consumer-side switchTheme orchestrator needed.)
 
-    // ── Per-card glyphs — canonical Finder icon ids, decoded from the active
-    // scheme. Renders at NATIVE 32×32 (no upscale; the pitch is pixel-faithful).
-    const POWERS_GLYPH_IDS = { folder: -3999, document: -4000, prefs: -3974, suitcase: -3970 };
-    const refreshCardGlyphs = async (theme) => {
-      const idx = theme.inspector?.iconIndex ?? [];
-      const pick32 = (id) => idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
-      for (const glyph of powersSection.querySelectorAll('.powers-glyph[data-powers-icon]')) {
-        const hit = pick32(POWERS_GLYPH_IDS[glyph.dataset.powersIcon]);
-        if (!hit) continue;
-        let img = glyph.querySelector('img');
-        if (!img) { img = document.createElement('img'); img.alt = ''; glyph.replaceChildren(img); }
-        img.src = hit.url;
-      }
-    };
-
-    // ── theme-switch handler ────────────────────────────────────────────────
-    // Single source of truth: updates activeSlug, syncs the tab strip, calls
-    // handle.retheme (if mounted), refreshes the card glyphs.
-    const switchTheme = async (slug) => {
-      if (!slug || slug === activeSlug) return;
-      activeSlug = slug;
-      // Mirror the active scheme into ?theme= so the URL stays shareable
-      // without polluting history (each switch replaces, doesn't push).
-      try {
-        const u = new URL(location.href);
-        u.searchParams.set('theme', slug);
-        history.replaceState(null, '', u);
-      } catch {}
-      for (const [s, el] of folderTiles) {
-        const isActive = s === slug;
-        el.classList.toggle('active', isActive);
-        el.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        el.setAttribute('tabindex', isActive ? '0' : '-1');
-      }
-      if (handle) { try { await handle.retheme(slug); } catch {} }
-      try { const theme = await loadOnce(slug); await refreshCardGlyphs(theme); } catch {}
-    };
-
-    // ── Boot the folder-strip art in parallel + initial mount ───────────────
-    // Promise.allSettled: 18 tiny decodes finish in ~max(1) instead of
-    // sum(18). The System Folder icon is -3983; fallback to -3999.
-    (async () => {
-      await Promise.allSettled(THEMES.map(async (t) => {
-        const theme = await loadOnce(t.slug);
-        const idx = theme.inspector?.iconIndex ?? [];
-        const pick = (id) => idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
-        const hit = pick(-3983) ?? pick(-3999);
-        if (!hit) return;
-        const tile = folderTiles.get(t.slug);
-        if (!tile) return;
-        const img = document.createElement('img');
-        img.src = hit.url; img.alt = '';
-        const ph = tile.querySelector('.placeholder');
-        if (ph) tile.replaceChild(img, ph);
-      }));
-    })();
+    // (The parallel folder-icon preload Promise.allSettled is GONE — the
+    // library's promoteThemePicker fills tile icons concurrently on its
+    // own, harvesting each theme's -3983/-3999 from its iconIndex.)
 
     // (slider wire-up moved into the boot-init block below — needs to run
     // alongside syncToggleUI so the readout sync defends against the same
@@ -598,9 +489,10 @@
       // (The runtime now auto-reserves min-height on positioned ancestors
       // before lifting children out of flow — was a manual ~12-line dance
       // before T1.5. Layout-shift-free OFF↔ON toggle is now the default,
-      // no consumer code needed.)
+      // no consumer code needed. Per-card glyph resolution happens via
+      // <div data-scriptoscope-icon="..."> automatically — no boot-time
+      // refreshCardGlyphs call needed.)
       await mountPowers();
-      try { const theme = await loadOnce(activeSlug); await refreshCardGlyphs(theme); } catch {}
     });
   </script>
 </body>
