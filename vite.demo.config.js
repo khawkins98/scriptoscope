@@ -26,11 +26,14 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       input: {
-        // The runtime showcase (also serves as the contributor debugger via `?dev=1`).
+        // The consumer-facing LANDING page (2026-05-30 swap): the 1999-Apple-style
+        // pitch + install snippet + hero control strip + folder-icon theme picker +
+        // four named-technology cards as floating Mac windows.
         index: resolve(import.meta.dirname, 'demo/index.html'),
-        // A realistic vanilla page (article/form/list/gallery) with data-aaron-* hooks on real
-        // content — the North Star "skin an existing site" demo.
-        'declarative-site': resolve(import.meta.dirname, 'demo/declarative-site.html'),
+        // The developer / contributor diagnostic — was demo/index.html until the
+        // 2026-05-30 swap. Houses the ribbon, per-scheme scene + reference comparison,
+        // control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone.
+        diagnostic: resolve(import.meta.dirname, 'demo/diagnostic.html'),
         // Hostile-CSS regression page: aggressive host rules that would wreck light-DOM chrome.
         // Confirms ADR-0001 Decision 2 (Shadow DOM around the chrome) keeps doing its job.
         'declarative-hostile-css': resolve(import.meta.dirname, 'demo/declarative-hostile-css.html'),

@@ -235,8 +235,8 @@ npm install
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **runtime showcase**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
-- **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar** and North Star integration story: an ordinary article/form/list/gallery page with `data-scriptoscope-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-scriptoscope-button` / `data-scriptoscope-control` elements are skinned. Includes a page-level theme switcher that re-skins every promoted window live.
+- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, an authentic-folder-icon theme picker (click a folder = wear that scheme), and four named-technology cards (kDEF Replay Engine / ResourceForkLib / data-scriptoscope-* / The Scheme Library) that float as Mac windows. Top-right toggle reveals the bare HTML.
+- **[`demo/diagnostic.html`](./demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
 - **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 
 ## The runtime API
@@ -267,7 +267,7 @@ const theme = await loadTheme('/themes/1990', { source: 'scheme.rsrc' });
 
 The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs (~500 per scheme); call it when permanently unmounting to avoid pinning the decoded ImageBitmap memory.
 
-See [`demo/index.html`](./demo/index.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
+See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
 ### Declarative — `mountDeclarative()` + `data-scriptoscope-*`
 
@@ -299,7 +299,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
 
-Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/declarative-site.html>.
+Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/>.
 
 ### Bring your own theme (in-browser conversion)
 

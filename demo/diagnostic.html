@@ -1,0 +1,1956 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scriptoscope — runtime</title>
+  <style>
+    /* The window/control text stacks ask for "Charcoal" (the Mac OS 8.5/8.6 system
+       font) for period-accurate text. Apple's Charcoal is proprietary, so this
+       @font-face uses it when LOCALLY installed, else falls back to VIRTUE — Marty
+       P. Pfeiffer's free Charcoal recreation (Scooter Graphics, 1999), itself built
+       on Greg Landweber's reverse-engineered Charcoal from Aaron + Kaleidoscope.
+       Credit + terms: assets/fonts/VIRTUE-LICENSE.txt · scootergraphics.com/virtue
+       Stand-ins to try down the line:
+         • Inter — fonts.google.com/specimen/Inter (modern neutral UI sans)
+         • Charcoal 12 (bitmap) — fontstruct.com/fontstructions/show/2813611/charcoal-12 */
+    @font-face {
+      font-family: 'Charcoal';
+      src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff');
+      font-display: swap;
+    }
+    /* Charcoal 12 — Jeremy Sachs' CC BY-SA bitmap clone of Mac OS 8/9 Charcoal at
+       12px (fontstruct.com/fontstructions/show/2813611). A pixel font: only crisp
+       at its native grid size. Credit/terms: assets/fonts/charcoal-12-license.txt */
+    @font-face {
+      font-family: 'Charcoal 12';
+      src: url('assets/fonts/charcoal-12.woff') format('woff');
+      font-display: swap;
+    }
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      font: 14px/1.5 -apple-system, system-ui, sans-serif;
+      background: #b9b9b9;
+      color: #1a1a1a;
+    }
+    header { padding: 20px 24px 4px; }
+    header h1 { font-size: 18px; margin: 0; }
+    header p { margin: 4px 0 0; opacity: 0.65; font-size: 13px; max-width: 76ch; }
+    header p a { color: inherit; }
+    header p a.cta { color: #1a5fbf; opacity: 1; font-weight: 500; white-space: nowrap; }
+    header p a.cta:hover { text-decoration: underline; }
+
+    /* Developer tools disclosure — the dev-facing inspectors (geometry, slices,
+       icons, rasters, roles) fold behind this so the page leads with showcase. */
+    details.dev-tools { margin-top: 24px; padding: 0 24px; }
+    details.dev-tools > summary { cursor: pointer; padding: 10px 14px; background: #999; border-radius: 4px; font-weight: 600; font-size: 13px; opacity: 0.8; user-select: none; }
+    details.dev-tools > summary:hover { opacity: 1; }
+    details.dev-tools[open] > summary { margin-bottom: 8px; }
+    details.dev-tools .dsection { margin: 0; }
+
+    .theme-row { border-top: 1px solid #999; padding: 8px 24px 20px; }
+    .theme-row > h2 { font-size: 15px; margin: 8px 0 2px; }
+    .row { display: flex; flex-wrap: nowrap; gap: 20px; align-items: flex-start; overflow-x: auto; padding-bottom: 6px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .col h3 {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+      opacity: 0.5; margin: 0; font-weight: 700;
+    }
+    .frame {
+      background: #c8c8c8; padding: 14px; border: 1px solid #999;
+      box-shadow: inset 0 0 0 1px #fff6; overflow: hidden;
+    }
+    .frame img { image-rendering: pixelated; display: block; }
+    /* Reference screenshots are crops of different native resolutions (crayon-os /
+       animals / dolphin-som / evolution / floppies are 2–3× the typical scheme size).
+       Cap them to a consistent display width so the Scene + reference columns line up
+       across all 18 themes instead of one bundle pushing the layout much wider. */
+    .frame.reference img { max-width: 280px; height: auto; }
+    .ctl-stack { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+    .ctl-row { display: flex; gap: 12px; align-items: flex-start; }
+    .btn-stack { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+    /* ── Consolidated single-theme debug layout ──────────────────────────── */
+    /* A sticky theme RIBBON (a Kaleidoscope-style scheme picker as a film strip)
+       drives one active theme; the page below shows that theme's diagnostics. */
+    header { padding: 14px 20px 8px; }
+    #ribbon {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden;
+      padding: 9px 14px; background: linear-gradient(#3b3b3d, #29292b);
+      border-bottom: 2px solid #141416; box-shadow: 0 2px 8px #0004;
+      scrollbar-width: thin; scrollbar-color: #666 #2a2a2a;
+    }
+    .ribbon-item {
+      flex: 0 0 auto; width: 116px; cursor: pointer; appearance: none;
+      border: 0; background: transparent; padding: 4px 4px 6px; border-radius: 7px;
+      color: #c9c9cc; font: 10.5px/1.25 system-ui; opacity: .68;
+      transition: opacity .12s, background .12s; text-align: center;
+    }
+    .ribbon-item:hover { opacity: 1; background: #ffffff12; }
+    .ribbon-item.active { opacity: 1; background: #ffffff1c; box-shadow: inset 0 0 0 2px #6cc0ff; }
+    .ribbon-thumb {
+      width: 108px; height: 70px; display: block; margin: 0 auto;
+      object-fit: cover; object-position: 0 0; image-rendering: pixelated;
+      background: #c8c8c8; border-radius: 3px; box-shadow: 0 1px 3px #0007;
+      overflow: hidden;
+    }
+    .ribbon-thumb.scene { display: block; }
+    .ribbon-thumb.scene > * { transform-origin: top left; }
+    .ribbon-title { display: block; margin-top: 5px; white-space: normal; max-height: 26px; overflow: hidden; }
+    .ribbon-item.active .ribbon-title { color: #cfeaff; font-weight: 600; }
+    .ribbon-badge { display: inline-block; margin-left: 3px; font-size: 9px; opacity: .7; }
+
+    /* The single-theme detail view + its sticky section sub-nav. */
+    #detail { min-height: 60vh; }
+    .detail-head {
+      padding: 16px 24px 8px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    }
+    .detail-head h2 { font-size: 19px; margin: 0; }
+    .detail-head .meta { opacity: .58; font-size: 12px; }
+    .detail-toolbar { margin-left: auto; display: flex; gap: 14px; align-items: center; font: 12px system-ui; }
+    .detail-toolbar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+    .subnav {
+      position: sticky; top: var(--ribbon-h, 100px); z-index: 40;
+      display: flex; gap: 3px; flex-wrap: wrap; padding: 6px 22px;
+      background: #bdbdbde8; backdrop-filter: blur(5px); border-bottom: 1px solid #9a9a9a;
+    }
+    .subnav a {
+      font: 11px system-ui; color: #2b5070; text-decoration: none;
+      padding: 3px 9px; border-radius: 5px;
+    }
+    .subnav a:hover { background: #ffffffa0; color: #14304a; }
+    .dsection { border-top: 1px solid #a6a6a6; padding: 14px 24px 22px; scroll-margin-top: calc(var(--ribbon-h, 100px) + 40px); }
+    .dsection > h3 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .07em;
+      opacity: .5; margin: 0 0 12px; font-weight: 700;
+    }
+    /* resource-roles viewer */
+    .rr-summary { display: flex; gap: 18px; flex-wrap: wrap; margin: 0 0 10px; font: 12px system-ui; }
+    .rr-summary .card { background: #c8c8c8; border: 1px solid #999; border-radius: 5px; padding: 8px 11px; box-shadow: inset 0 0 0 1px #fff6; }
+    .rr-summary .card b { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; opacity: .6; }
+    .rr-table { border-collapse: collapse; font: 11.5px ui-monospace, Menlo, monospace; width: 100%; max-width: 760px; }
+    .rr-table th { text-align: left; font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; padding: 2px 8px; border-bottom: 1px solid #999; }
+    .rr-table td { padding: 1px 8px; border-bottom: 1px solid #c0c0c0; vertical-align: top; white-space: nowrap; }
+    .rr-table tr:hover td { background: #ffffff70; }
+    .rr-fam { display: inline-block; min-width: 8px; padding: 0 5px; border-radius: 3px; background: #5a6b8c; color: #fff; font-size: 10px; }
+    /* bring-your-own-theme drop-zone */
+    #byo { padding: 12px 24px; border-bottom: 1px solid #9a9a9a; }
+    #byo-drop {
+      border: 2px dashed #8a8a8a; border-radius: 8px; padding: 13px 18px; max-width: 720px;
+      background: #ffffff55; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+      transition: background .12s, border-color .12s;
+    }
+    #byo-drop.drag { border-color: #2b5070; background: #dbe7f5; }
+    #byo-drop:focus-visible { outline: 2px solid #2b5070; outline-offset: 2px; }
+    #byo-drop strong { font: 13px system-ui; }
+    #byo .byo-hint { font: 11.5px system-ui; opacity: .62; }
+    #byo .byo-hint code, #byo .byo-limits code { background: #0001; padding: 0 3px; border-radius: 3px; }
+    #byo .byo-limits { font: 10.5px system-ui; opacity: .5; margin-top: 2px; }
+    #byo-out { margin-top: 12px; }
+    #byo-out .byo-report { font: 12px system-ui; display: flex; gap: 13px; flex-wrap: wrap; align-items: center; margin-bottom: 11px; }
+    #byo-out .byo-note { opacity: .6; font-size: 11px; }
+    #byo-out .byo-err { color: #a01818; font: 12px system-ui; }
+    #byo-out .byo-err summary { cursor: pointer; opacity: .8; font-size: 11px; margin-top: 4px; }
+    #byo-out .byo-raw { font: 11.5px ui-monospace, Menlo, monospace; opacity: .85; margin-top: 3px; white-space: pre-wrap; }
+    #byo-out .byo-grid { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+    #byo-out .byo-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+    #byo-out .byo-cell .lbl { font: 10px system-ui; text-transform: uppercase; letter-spacing: .05em; opacity: .55; }
+    #byo-out .byo-sw { display: inline-block; width: 13px; height: 13px; border: 1px solid #0003; border-radius: 2px; }
+
+    /* The "Eighteen schemes. One runtime." landing intro used to live here
+       until 51e3569 (2026-05-30); it moved to demo/index.html when the
+       landing/diagnostic swap put the consumer-facing pitch on /index.html
+       and this developer showcase on /diagnostic.html. */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Scriptoscope <span id="ver"></span> — runtime diagnostics</h1>
+    <p>The developer / contributor diagnostic page. Pick a scheme from the ribbon to explore its scene + reference comparison, live themed controls, window-type playground, geometry inspector, slice viewer, icon inventory, raster foldout, and resource roles. Drop any <code>.sit</code> / <code>.hqx</code> / <code>.rsrc</code> Kaleidoscope archive on the BYO zone to decode it entirely in your browser. <a href="./" class="cta">← Back to the landing page</a></p>
+    <p style="margin: 6px 0 0; opacity: 0.55; font-size: 12px;">
+      <label style="cursor: pointer; user-select: none;">
+        <input type="checkbox" id="debug-toggle" style="vertical-align: middle; margin-right: 4px;">
+        Debug logging (console)
+      </label>
+      <span style="margin-left: 8px; opacity: 0.7;">— or visit with <code>?scriptoscope-debug=1</code> for all, or <code>?scriptoscope-debug=render,scrollbar,drag</code> to filter</span>
+    </p>
+  </header>
+  <section id="byo" aria-label="Bring your own theme">
+    <div id="byo-drop" tabindex="0" role="button" aria-label="Bring your own theme — drop a Kaleidoscope theme file, or click to choose one">
+      <strong>Bring your own theme</strong>
+      <span class="byo-hint">Drop a classic-Mac Kaleidoscope theme file here, or click to choose one — it's decoded and rendered <strong>entirely in your browser</strong> (nothing is uploaded). Accepts a <code>.sit</code> archive, a <code>.hqx</code> / MacBinary / AppleDouble wrapper, or a raw <code>.rsrc</code> resource fork. New to this? Grab a scheme from the <a href="https://macintoshgarden.org/apps/kaleidoscope" target="_blank" rel="noopener">Kaleidoscope archive</a>.</span>
+      <span class="byo-limits">Limits: <code>.sitx</code> (StuffIt X) isn't supported yet · a bundle containing several themes shows the largest · this is a <strong>preview</strong> — the converted theme isn't saved (it's gone on reload).</span>
+      <input id="byo-file" type="file" accept=".sit,.hqx,.bin,.rsrc,.as,.adf,.cpt" hidden>
+    </div>
+    <div id="byo-out" role="status" aria-live="polite"></div>
+  </section>
+  <nav id="ribbon" aria-label="Theme selector"></nav>
+  <main id="detail" aria-live="polite"></main>
+  <div id="rows"></div>
+
+  <script type="module">
+    import {
+      VERSION, loadTheme, assetUrl, renderWindow,
+      composeScrollbar, composeSlider, composeDisclosure, composeProgress, composeTab,
+      composeButton, composeBevelButton, composeListHeader, composeCheckable, composeGrowBox,
+      baselineButton, bufferToCanvas,
+      platinumCheckable, platinumSlider, platinumButton, platinumScrollbar, platinumDisclosure,
+      platinumBevelButton, platinumMenuBar, platinumMenu, platinumPopupMenu, platinumListHeader,
+      interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
+      interactiveSlider, interactiveScrollbar, WindowManager,
+      promoteField,
+      setDebug,
+    } from '../src/index.ts';
+
+    // ── Debug logging — URL ?scriptoscope-debug=1 (or =category,category) flips the runtime's
+    //    setDebug(); a checkbox in the header keeps the UI honest. Persists in localStorage
+    //    so the next page load remembers. Off by default.
+    {
+      const stored = localStorage.getItem('scriptoscope-debug') || '';
+      const urlParam = new URLSearchParams(location.search).get('scriptoscope-debug');
+      const initial = urlParam ?? stored;
+      const isOn = initial && initial !== '0' && initial !== 'false' && initial !== 'off';
+      if (initial === '1' || initial === 'true' || initial === 'on') setDebug(true);
+      else if (isOn) setDebug({ categories: initial.split(',').map((s) => s.trim()).filter(Boolean) });
+      // Wire the header checkbox (deferred to next tick so the DOM is parsed).
+      queueMicrotask(() => {
+        const cb = document.getElementById('debug-toggle');
+        if (!cb) return;
+        cb.checked = !!isOn;
+        cb.addEventListener('change', () => {
+          if (cb.checked) {
+            setDebug(true);
+            localStorage.setItem('scriptoscope-debug', '1');
+            console.log('[scriptoscope] debug logging ENABLED — interact with the playgrounds + scheme switcher to see events');
+          } else {
+            setDebug(false);
+            localStorage.removeItem('scriptoscope-debug');
+            console.log('[scriptoscope] debug logging disabled');
+          }
+        });
+      });
+    }
+    import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
+    // The BROWSER conversion shell over the portable core: a dropped resource fork →
+    // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
+    import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
+    document.getElementById('ver').textContent = `v${VERSION}`;
+    const rows = document.getElementById('rows');
+
+    // Preload the bundled Charcoal faces before any rendering. rasterizeText (control
+    // labels) + rasterizeTitleFont are sync canvas draws — if the face isn't loaded
+    // yet the canvas silently falls back to sans, so the FIRST paint can flash the
+    // wrong font. Top-level await (this is a module) gates rendering on the faces.
+    try { await Promise.all([
+      document.fonts.load('16px "Charcoal 12"'),
+      document.fonts.load('13px Charcoal'),
+      document.fonts.load('11px Charcoal'),
+    ]); } catch { /* face optional — falls back to the system stack */ }
+
+    // Scrollbar thumb sizing: proportional (OS 8 Appearance, default) vs fixed
+    // (System 7). Toggle hook for an eventual user preference — for now `?fixedthumbs`
+    // in the URL flips it, threaded into every scrollbar's `proportional` option.
+    const SCROLL_PROPORTIONAL = !/fixed-?thumbs?/i.test(location.search);
+
+    // Theme bundles live under the deploy base: `/` in dev (vite middleware
+    // serves repo-root themes/ at /themes/) but `/scriptoscope/` on GitHub Pages.
+    // BASE_URL carries that prefix (and a trailing slash) in both, so theme
+    // fetches resolve in either — a bare `/themes/…` 404s on Pages.
+    const themeUrl = (slug) => `${import.meta.env.BASE_URL}themes/${slug}`;
+
+    // Themes load standalone — no universal base. Any chrome/control a scheme
+    // doesn't ship falls through to the procedural Platinum fallback in
+    // src/platinum.ts. (The earlier `apple-platinum-replica` base was retired
+    // 2026-05-28: its sliced Apple-screenshot art carried a redistribution
+    // concern its theme.json origin string didn't reflect, and `platinum.ts`
+    // already covered every control kind procedurally.)
+    const themeCache = new Map();
+    // themesBySlug carries the catalog metadata (source filename, label, ref image…).
+    // We pass `source` into loadTheme so the runtime can skip the .sit ↔ .rsrc cascade
+    // and avoid the dev-console 404 noise on bundles whose first-try is missing.
+    const themesBySlugForLoad = new Map(THEMES.map((t) => [t.slug, t]));
+    const loadWithBase = (slug) => {
+      if (!themeCache.has(slug)) {
+        const meta = themesBySlugForLoad.get(slug);
+        const opts = meta?.source ? { source: meta.source } : undefined;
+        themeCache.set(slug, loadTheme(themeUrl(slug), opts));
+      }
+      return themeCache.get(slug);
+    };
+
+    // Active/inactive toggle — our scene renderer can show BOTH window states
+    // live (the reference screenshots are frozen in one state). The per-theme
+    // detail header owns the toggle (see buildThemeDetail's rerenderScenes).
+    let sceneState = 'active';
+    // ── Single-theme debugger orchestration ─────────────────────────────────
+    // The ribbon selects ONE active theme; #detail renders every diagnostic for it
+    // (lazily, on activation); the playground + interactive tools register sync
+    // hooks so they follow the active theme. activeSlug is persisted in ?theme=.
+    const detailEl = document.getElementById('detail');
+    let activeSlug = null;
+    const syncHooks = []; // (slug) => void | Promise<void>
+
+    // THEMES is the AUTO-GENERATED gallery list (demo/themes-manifest.json, imported
+    // at the top of this module) — derived from each bundle's meta.json + reference by
+    // scripts/gen-themes-manifest.mjs (run in build:themes + after `npm run import`), so
+    // a freshly-imported scheme appears here with no hand-edit. Don't hardcode the list.
+
+    function colEl(label) {
+      const c = document.createElement('div'); c.className = 'col';
+      const h = document.createElement('h3'); h.textContent = label;
+      const frame = document.createElement('div'); frame.className = 'frame';
+      // Tag the frame so reference-image columns get the 280px width cap (see .frame.reference img CSS).
+      if (label === 'reference') frame.classList.add('reference');
+      c.append(h, frame);
+      return { c, frame };
+    }
+    const add = (frame, buf) => { if (buf) frame.appendChild(bufferToCanvas(buf, 1)); };
+
+    // Checkbox/radio: themed (scheme cicns, label baked in) where shipped,
+    // else a procedural gray-Platinum glyph + DOM label.
+    async function checkableEl(theme, kind, label, o = {}) {
+      const buf = await composeCheckable(theme, kind, { label, ...o });
+      if (buf) return bufferToCanvas(buf, 1);
+      const row = document.createElement('label');
+      row.style.cssText = 'display:inline-flex;align-items:center;gap:5px;font:12px Charcoal,Geneva,sans-serif;color:' + (o.disabled ? '#9a9a9a' : '#000');
+      row.appendChild(bufferToCanvas(platinumCheckable(kind, o), 1));
+      if (label) { const t = document.createElement('span'); t.textContent = label; row.appendChild(t); }
+      return row;
+    }
+    // Slider: themed where shipped, else procedural gray-Platinum.
+    async function sliderEl(theme, o = {}) {
+      const buf = (await composeSlider(theme, o)) ?? platinumSlider(o);
+      return bufferToCanvas(buf, 1);
+    }
+
+    // Folder icons for the Finder window content — neutral SVGs (OS icons,
+    // not scheme chrome).
+    const ICON_SVG = {
+      folder: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#dccfa3" stroke="#7a6a3a" stroke-width="1"/><path d="M2 9 h32 v13 h-32 z" fill="#e8dcb6" stroke="#7a6a3a" stroke-width="1"/></svg>',
+      folderOpen: '<svg width="36" height="27" viewBox="0 0 36 27"><path d="M2 6 h11 l3 3 h18 v15 h-32 z" fill="#cdbf90" stroke="#7a6a3a"/><path d="M6 11 h30 l-4 11 h-30 z" fill="#efe4bd" stroke="#7a6a3a"/></svg>',
+    };
+
+    // The Finder window-header badge (system default — "Snap-To-Grid" / "Arrange By"
+    // pictogram) for schemes that don't ship -3790. SLICED from the system7-nostalgia-
+    // silver REFERENCE screenshot (the real Platinum-era grid: 13×13 gray frame, cells
+    // made transparent so it composites onto any info-bar colour). NOT a volume icon —
+    // -3790 is the Finder header's snap-to-grid badge (corpus authors label it
+    // "Snap-To-Grid" / "Grid Arrangement"; see docs/spec/corpus-corroborated-ids.md +
+    // docs/scene-slot-spec.md `finder-header-badge`).
+    const FINDER_GRID_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANAgAAAAAdMKMBAAAAAnRSTlMAA++anIIAAAABb3JOVAHPoneaAAAAFUlEQVQI12NYtWpVA8P+/fuRCVLEAGm6Ip4agi9NAAAAAElFTkSuQmCC';
+
+    // The Finder window-header leading-edge badge: the scheme's OWN -3790
+    // (16px ics4/ics8) where it ships one, else the grid sliced from the
+    // reference screenshot (FINDER_GRID_PNG). Returns an element ready to
+    // drop into the Finder info bar.
+    // Resolve the scheme's icon catalog — prefers the in-memory inspector data
+    // attached by loadKaleidoscopeScheme (Option A), falls back to a network
+    // fetch of icons/index.json for legacy/pre-extracted bundles. Returns rows
+    // shaped { id, type, size, depth, file, url, name, coverage }.
+    async function getIcons(theme) {
+      if (theme.inspector?.iconIndex) return theme.inspector.iconIndex;
+      try {
+        const r = await fetch(`${theme.baseUrl}/icons/index.json`);
+        if (r.ok) {
+          const idx = await r.json();
+          // Synthesise the `url` field the inspector path provides so panels
+          // can do `i.url` uniformly.
+          return idx.map((i) => ({ ...i, url: `${theme.baseUrl}/icons/${i.file}` }));
+        }
+      } catch {}
+      return [];
+    }
+
+    // Picks the 16px icon to show in the Finder window-header's leading-edge slot.
+    // The slot is the "Snap-To-Grid" / "Arrange By" badge — NOT a volume icon
+    // (mis-labeled in our docs for two months before the corpus author labels +
+    // mollusc Companion + Apple IconsCore.h cross-source surfaced the truth on
+    // 2026-05-29; see docs/spec/corpus-corroborated-ids.md + docs/spec/kaleidoscope-
+    // author-docs.md + LEARNINGS).
+    //
+    // Lookup order:
+    //   1. ics4/ics8 -3790 — the scheme's own snap-to-grid pictogram (12 of 18
+    //      corpus themes ship one; author labels "Snap-To-Grid" / "Grid Arrangement").
+    //   2. The neutral FINDER_GRID_PNG (Platinum-era grid, sliced from the
+    //      reference screenshot) — for the 6 themes that don't ship -3790.
+    //
+    // An earlier iteration promoted ics4/8 -14336 as a T2 fallback for corner-
+    // sprite schemes; wrong — -14336 is the document-window CLOSE/COLLAPSE
+    // widget (drawn at title-bar widget positions, not in the header-badge slot).
+    // Verified 18/18 by scripts/probe-reference-slot.mjs: every corner-sprite
+    // reference shows the system-default grid in this slot.
+    const _gridCache = new Map();
+    async function gridProxyIcon(theme) {
+      if (!_gridCache.has(theme.baseUrl)) {
+        _gridCache.set(theme.baseUrl, (async () => {
+          const icons = await getIcons(theme);
+          const at = (id) => icons.find((i) => i.id === id && i.size === 16);
+          const e = at(-3790);
+          return e ? { url: e.url, id: e.id } : null;
+        })());
+      }
+      const hit = await _gridCache.get(theme.baseUrl);
+      if (hit) {
+        const img = document.createElement('img');
+        img.src = hit.url;
+        img.title = `${hit.id} (scheme Finder-header badge)`;
+        Object.assign(img.style, { width: '16px', height: '16px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (ics4/ics8 16px)
+        return img;
+      }
+      const img = document.createElement('img');
+      img.src = FINDER_GRID_PNG;
+      img.title = '-3790 grid (sliced from the reference screenshot)';
+      Object.assign(img.style, { width: '13px', height: '13px', imageRendering: 'pixelated', display: 'block', flex: '0 0 auto' }); // 1x native (13px reference slice)
+      return img;
+    }
+
+    // The scheme's OWN icons (decoded icl4 → themes/<slug>/icons/), shown as the
+    // Finder-window content. Match what the REFERENCE screenshots show — they all
+    // feature the scheme's themed FOLDER icons — by selecting the well-known
+    // standard FOLDER icon IDs in priority order, rather than whatever sorts first
+    // by coverage (which gave arbitrary system folders like "Internet Search
+    // Sites"). Folders first (the references rarely show documents); -3984 is a
+    // document/trash glyph in some schemes, so it's a last resort. Falls back to
+    // coverage-ranked icons to fill, then to the SVG folders when a scheme ships
+    // no icl4 at all (e.g. 1990).
+    // SYSTEMATIC icon selection — works for ANY loaded theme, not just our corpus.
+    // Kaleidoscope themes the standard Mac System-icon suite by FIXED resource ids
+    // (Generic Folder is always -3999, System Folder -3983, Open Folder -3997,
+    // Finder -16482, …), so the id tells us each icon's ROLE regardless of theme.
+    // The scene mocks a FINDER WINDOW, whose contents are FOLDERS (the Finder app
+    // icon -16482 lives on the desktop, not inside a window — which is why every
+    // reference shows folders). So request the standard FOLDER icons in role order
+    // and take whichever the theme ships; fall through to coverage-ranked icons,
+    // then the neutral SVG folders only when a theme themes no folders at all
+    // (1990, apple-platinum-2). Non-folder roles (trash -3984/-3993, app -3970,
+    // item -16455, Finder -16482) are last-resort fallbacks, never preferred.
+    // FOLDER-ONLY priority list: the standard Mac system folder ids. When a theme
+    // ships none of these (apple-platinum-2 / system7-nostalgia-silver / animals
+    // / others ship clipping/document/app glyphs but no folder art), the picker
+    // falls through to the coverage-rank pool (filtered by DOC_BLOCKLIST), and
+    // if THAT empties too, the caller draws neutral SVG folders. The earlier list
+    // included -3970/-3984/-4000/-16455/-16482 as "last resorts" but those ARE
+    // non-folder Finder/system glyphs — picking them as folder content reads as
+    // visibly wrong (apple-platinum-2 shows the App-badge Earth icon where the
+    // reference shows neutral folders).
+    const FINDER_CONTENT_ICON_IDS = [
+      -3983, // System Folder (the iconic Mac-badged folder — lead icon)
+      -3999, // Generic Folder (closed)
+      -3997, // Open Folder
+      -3994, // Generic/Private Folder
+      -3976, // Control Panels Folder
+    ];
+    const _iconCache = new Map();
+    async function schemeIcons(theme, n) {
+      if (!_iconCache.has(theme.baseUrl)) {
+        _iconCache.set(theme.baseUrl, (async () => {
+          const idx = await getIcons(theme);
+          if (!idx.length) return [];
+          const all32 = idx.filter((i) => i.size === 32); // 32px scene icons (icl4 + icl8)
+          // Prefer the HIGHEST depth per id (icl8 over icl4), matching the
+          // renderer's glyph policy (loadTheme.loadGlyphMap). The scene picker
+          // used to keep whichever sorted last in index.json, so an 8-bit-rich
+          // scheme (BeOS ships both for every folder) could fall back to its
+          // flatter 4-bit art.
+          const depthOf = (i) => i.depth ?? (i.type === 'icl8' ? 8 : 4);
+          const byId = new Map();
+          for (const i of all32) { const c = byId.get(i.id); if (!c || depthOf(i) > depthOf(c)) byId.set(i.id, i); }
+          const uniq = [...byId.values()];
+          const picked = [];
+          for (const id of FINDER_CONTENT_ICON_IDS) { const i = byId.get(id); if (i) picked.push(i); }
+          const seen = new Set(picked.map((i) => i.id));
+          // Document blocklist: when a theme ships no folder ids, the coverage-rank
+          // fallback would happily return Edition File (-3989), Clipping files
+          // (-3800..-3803), App badge (-16455), Generic Document (-3984) — all
+          // 79%/58%-coverage glyphs the Finder reference NEVER puts inside a
+          // window (apple-platinum-2 + system7-nostalgia-silver were the visible
+          // regression). Filter those out of the coverage pool so what remains
+          // is folder-ish or genuinely scene-appropriate. If the pool empties,
+          // the caller falls through to the neutral SVG folders.
+          const DOC_BLOCKLIST = new Set([-3800, -3801, -3802, -3803, -3984, -3989, -16455]);
+          const cov = uniq.filter((i) =>
+            i.coverage > 0.18 && i.coverage < 0.95
+            && !seen.has(i.id)
+            && !DOC_BLOCKLIST.has(i.id),
+          );
+          return picked.concat(cov).slice(0, 8);
+        })());
+      }
+      const list = await _iconCache.get(theme.baseUrl);
+      return list.slice(0, n).map((i) => {
+        const img = document.createElement('img');
+        img.src = i.url;
+        img.title = `${i.type} ${i.id} — scheme icon`;
+        Object.assign(img.style, { width: '32px', height: '32px', imageRendering: 'pixelated', display: 'block' }); // 1x native (icl4/icl8 32px)
+        return img;
+      });
+    }
+
+    // DIAGNOSTIC: a collapsible inventory of EVERY decoded icon a theme ships —
+    // both icl4 (32px scene icons) AND ics4 (16px pictograms: scroll-arrow
+    // buttons -10197..-10204, window-corner proxies -14336.., control glyphs),
+    // used and unused. Shows the full art set so we can see exactly which
+    // pictograms exist and which the renderer wires (the scroll arrows now do).
+    // Grouped by family (icl4 then ics4); within a group named icons sort first.
+    async function iconInventory(theme) {
+      const det = document.createElement('details');
+      det.style.cssText = 'margin:4px 24px 16px; font:11px system-ui; color:#444';
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer; color:#555; font-weight:600; padding:4px 0';
+      det.appendChild(sum);
+      const all = await getIcons(theme);
+      // Group by SIZE, not type, so 8-bit families show too: 16px = ics4 ∪ ics8,
+      // 32px = icl4 ∪ icl8 (a scheme like Black Platinum / 1990 ships only 8-bit).
+      const bySize = (px) => all.filter((i) => i.size === px)
+        .sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || a.id - b.id);
+      const icl4 = bySize(32); // 32px scene icons (icl4 + icl8)
+      const ics4 = bySize(16); // 16px pictograms (ics4 + ics8)
+      const fam = (list) => [...new Set(list.map((i) => i.type))].join('+');
+      sum.textContent = `Icon inventory — ${all.length} icons (${icl4.length} ${fam(icl4) || '32px'} · ${ics4.length} ${fam(ics4) || '16px'}) — click to expand`;
+      const slug = (theme.baseUrl || '').split('/').pop();
+      // Pictogram ID rubric — the canonical Kaleidoscope control/widget id map,
+      // verified against the actual cicn/ics4 pixels + docs/spec/kdef231-reference.md.
+      // The "glyphs" column shows THIS scheme's real ics4 per range. KEY GOTCHA: a
+      // negative id usually carries BOTH a cicn (body raster) and an ics4 (overlay)
+      // with different roles — e.g. -10239 cicn = push-button face, ics4 = checkbox.
+      const RUBRIC = [
+        { lo: -10208, hi: -10197, family: 'Scroll / slider arrows', ics4: 'directional arrow ▶ ◀ ▼ ▲', cicn: 'slider thumb / track (v+h)', states: 'R,L,D,U × normal · pressed · inactive' },
+        { lo: -10224, hi: -10214, family: 'Radio button', ics4: 'radio off / on / mixed ○ ● ⊟', cicn: 'progress / control body', states: 'off·on·mixed × active·pressed·disabled' },
+        { lo: -10240, hi: -10229, family: 'Checkbox  ⚠ shares IDs with push-button', ics4: 'checkbox empty / ✓ / – / ✕', cicn: 'push-button face (-238/-239/-240) + ring (-230/-231/-232)', states: 'mark × active · pressed · disabled' },
+        { lo: -14320, hi: -14315, family: 'Utility-window widgets', ics4: 'float/tool title-bar widget box', cicn: 'utility / floating window chrome', states: 'active · inactive' },
+        { lo: -14336, hi: -14331, family: 'Document-window widgets', ics4: 'close / zoom / collapse / grow box', cicn: 'doc frame (-335/-336) · grow (-333/-334) · collapsed (-331/-332)', states: 'active · inactive' },
+        { ids: [-16455, -16386], family: 'App / scheme icon', ics4: 'scheme badge · Apple logo', cicn: '—', states: '—' },
+        { ids: [3060, 3061], family: 'Disclosure', ics4: 'disclosure triangle ▶ ▼', cicn: '—', states: '—' },
+      ];
+      const matchRow = (r, id) => (r.lo != null ? id >= r.lo && id <= r.hi : r.ids.includes(id));
+      const rdet = document.createElement('details');
+      rdet.style.cssText = 'margin:2px 0 8px';
+      const rsum = document.createElement('summary');
+      rsum.style.cssText = 'cursor:pointer; color:#777; font-weight:600; padding:2px 0';
+      rsum.textContent = 'Pictogram ID rubric (Kaleidoscope resource-id map) — click to expand';
+      rdet.appendChild(rsum);
+      const thS = 'text-align:left;padding:3px 6px;border:1px solid #ddd;background:#ececec;font-weight:600';
+      const tdS = 'padding:3px 6px;border:1px solid #eee;vertical-align:top';
+      const tbl = document.createElement('table');
+      tbl.style.cssText = 'border-collapse:collapse; margin:4px 0 6px; font:10px/1.3 system-ui; color:#444';
+      const cap = document.createElement('caption');
+      cap.style.cssText = 'text-align:left;color:#777;padding:2px 0 4px;font-style:italic';
+      cap.innerHTML = 'A negative id can be a <b>cicn</b> (body) AND an <b>ics4</b> (overlay) with different roles — see -10229..-10240. Other negative ids (-3800..-20800) are the Finder/system icon suite (Apple Icon Services ids), shown in the grids below.';
+      tbl.appendChild(cap);
+      const hr = document.createElement('tr');
+      ['ID range', 'Family', 'glyphs (this scheme)', 'ics4 pictogram', 'cicn at same id', 'states'].forEach((h) => { const th = document.createElement('th'); th.style.cssText = thS; th.textContent = h; hr.appendChild(th); });
+      tbl.appendChild(hr);
+      for (const r of RUBRIC) {
+        const tr = document.createElement('tr');
+        const rangeLbl = r.lo != null ? `${r.lo} .. ${r.hi}` : r.ids.join(', ');
+        const matches = ics4.filter((i) => matchRow(r, i.id)).sort((a, b) => a.id - b.id);
+        const glyphCell = document.createElement('td');
+        glyphCell.style.cssText = tdS;
+        const strip = document.createElement('div');
+        strip.style.cssText = 'display:flex; flex-wrap:wrap; gap:2px; max-width:220px';
+        for (const m of matches.slice(0, 16)) {
+          const im = document.createElement('img');
+          im.src = m.url; im.loading = 'lazy';
+          im.title = `${m.type} ${m.id} @ ${slug}`;
+          Object.assign(im.style, { width: '16px', height: '16px', imageRendering: 'pixelated', background: '#fff', border: '1px solid #ddd' });
+          strip.appendChild(im);
+        }
+        if (matches.length > 16) { const more = document.createElement('span'); more.textContent = `+${matches.length - 16}`; more.style.cssText = 'color:#999;align-self:center'; strip.appendChild(more); }
+        if (!matches.length) strip.textContent = '—';
+        glyphCell.appendChild(strip);
+        [rangeLbl, r.family, null, r.ics4, r.cicn, r.states].forEach((c, idx) => {
+          if (idx === 2) { tr.appendChild(glyphCell); return; }
+          const td = document.createElement('td'); td.style.cssText = tdS;
+          if (idx === 0) td.innerHTML = `<code>${c}</code>`; else td.textContent = c;
+          tr.appendChild(td);
+        });
+        tbl.appendChild(tr);
+      }
+      rdet.appendChild(tbl);
+      det.appendChild(rdet);
+      const section = (label, list, px) => {
+        if (!list.length) return;
+        const head = document.createElement('div');
+        head.textContent = `${label} — ${list.length}`;
+        head.style.cssText = 'margin:8px 0 2px; font-weight:600; color:#555';
+        det.appendChild(head);
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:4px 0';
+        for (const i of list) {
+          const code = `${i.type} ${i.id}`;
+          const path = `themes/${slug}/icons/${i.file}`;
+          const copyText = `${code} @ ${slug} — ${path}`;
+          const cell = document.createElement('div');
+          cell.style.cssText = 'width:86px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
+          cell.title = `Click to copy:\n${copyText}`;
+          const img = document.createElement('img');
+          img.src = i.url; img.loading = 'lazy';
+          // Render at 2× native with pixelated scaling: a dense 8-bit icon is unreadable
+          // at 16px (reads as "corrupted" noise); 2× makes the real detail legible with no
+          // distortion (each source pixel = a crisp 2×2 block).
+          Object.assign(img.style, { width: `${px * 2}px`, height: `${px * 2}px`, imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
+          const lab = document.createElement('div');
+          // Show the DEPTH so the high-colour 8-bit (ics8/icl8) icons are visible +
+          // distinct from the 4-bit (ics4/icl4) variant at the same id: 8-bit shown
+          // green/bold, 4-bit dimmed gray. (We render the highest depth; the gallery
+          // shows every depth available.)
+          const hiDepth = i.type === 'ics8' || i.type === 'icl8';
+          const labText = `${i.id} ${i.type}${i.name ? '\n' + i.name.trim() : ''}`;
+          lab.textContent = labText;
+          lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word'
+            + (hiDepth ? '; color:#1a7f37; font-weight:600' : '; color:#aaa');
+          cell.append(img, lab);
+          cell.onclick = async () => {
+            try { await navigator.clipboard.writeText(copyText); }
+            catch {
+              const ta = document.createElement('textarea');
+              ta.value = copyText; ta.style.position = 'fixed'; ta.style.opacity = '0';
+              document.body.appendChild(ta); ta.select();
+              try { document.execCommand('copy'); } catch {}
+              ta.remove();
+            }
+            lab.textContent = '✓ copied'; lab.style.color = '#0a7d00';
+            setTimeout(() => { lab.textContent = labText; lab.style.color = ''; }, 900);
+          };
+          grid.appendChild(cell);
+        }
+        det.appendChild(grid);
+      };
+      section('32px scene icons (icl4 / icl8)', icl4, 32);
+      section('16px pictograms (ics4 / ics8)', ics4, 16); // native size — don't upscale pixel art
+      return det;
+    }
+
+    // DIAGNOSTIC: a collapsible dump of EVERY raster a theme ships — the chrome &
+    // control cicns (themes/<slug>/cicns/, enumerated via rasters.json), the decoded
+    // icons (icons/index.json), and the patterns (ppats/). The icon inventory above
+    // adds the pictogram-id rubric; this is the raw asset view, so we can eyeball
+    // exactly what a scheme carries (e.g. the default-button ring cicn -10231/-10232,
+    // or whether a new import is missing art). Native-size pixelated thumbnails,
+    // id/name labels, click-to-copy of "<code> @ <slug> — <path>". Grids build LAZILY
+    // on first open so 10 themes' worth of rasters don't bloat the initial DOM.
+    async function rasterInventory(theme) {
+      const det = document.createElement('details');
+      det.style.cssText = 'margin:4px 24px 16px; font:11px system-ui; color:#444';
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer; color:#555; font-weight:600; padding:4px 0';
+      det.appendChild(sum);
+      const slug = (theme.baseUrl || '').split('/').pop() || (theme.manifest?.name ?? 'theme');
+      // Inspector data (Option A: in-memory decode) is preferred; fall back to fetched
+      // rasters.json + icons/index.json for legacy/pre-extracted bundles.
+      let rasters = { cicns: [], ppats: [] };
+      if (theme.inspector?.cicns) {
+        rasters = { cicns: theme.inspector.cicns, ppats: theme.inspector.ppats ?? [] };
+      } else {
+        try { const r = await fetch(`${theme.baseUrl}/rasters.json`); if (r.ok) rasters = await r.json(); } catch {}
+      }
+      const icons = await getIcons(theme);
+      sum.textContent = `All rasters — ${rasters.cicns.length} cicns · ${icons.length} icons · ${rasters.ppats.length} patterns — click to expand`;
+      const cell = (code, dir, file, urlOverride, label) => {
+        const path = `themes/${slug}/${dir}/${file}`;
+        const copyText = `${code} @ ${slug} — ${path}`;
+        const c = document.createElement('div');
+        c.style.cssText = 'width:96px; text-align:center; font:9px/1.15 system-ui; color:#555; cursor:pointer';
+        c.title = `Click to copy:\n${copyText}`;
+        const img = document.createElement('img');
+        img.src = urlOverride || `${theme.baseUrl}/${dir}/${file}`; img.loading = 'lazy';
+        Object.assign(img.style, { maxWidth: '88px', maxHeight: '72px', imageRendering: 'pixelated', display: 'block', margin: '0 auto', background: '#fff', border: '1px solid #ddd' });
+        const lab = document.createElement('div');
+        lab.textContent = label;
+        lab.style.cssText = 'margin-top:2px; white-space:pre-line; word-break:break-word';
+        c.append(img, lab);
+        c.onclick = async () => {
+          try { await navigator.clipboard.writeText(copyText); }
+          catch { const ta = document.createElement('textarea'); ta.value = copyText; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove(); }
+          const o = lab.textContent; lab.textContent = '✓ copied'; lab.style.color = '#0a7d00';
+          setTimeout(() => { lab.textContent = o; lab.style.color = ''; }, 900);
+        };
+        return c;
+      };
+      const group = (label, items) => {
+        if (!items.length) return;
+        const head = document.createElement('div');
+        head.textContent = `${label} — ${items.length}`;
+        head.style.cssText = 'margin:8px 0 2px; font-weight:600; color:#555';
+        det.appendChild(head);
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px; padding:4px 0; align-items:flex-end';
+        for (const it of items) grid.appendChild(it);
+        det.appendChild(grid);
+      };
+      let built = false;
+      det.addEventListener('toggle', () => {
+        if (!det.open || built) return;
+        built = true;
+        group('Chrome & control cicns', rasters.cicns.slice()
+          .sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || (a.id ?? 0) - (b.id ?? 0))
+          .map((c) => cell(`cicn ${c.id ?? '?'}`, 'cicns', c.file, c.url, `${c.id ?? '?'}${c.name ? '\n' + c.name : ''}`)));
+        group('Icons (ics4/8 · icl4/8)', icons.slice()
+          .sort((a, b) => a.size - b.size || a.id - b.id)
+          .map((i) => cell(`${i.type} ${i.id}`, 'icons', i.file, i.url, `${i.id}${i.name ? '\n' + i.name.trim() : ''}`)));
+        group('Patterns (ppat)', rasters.ppats
+          .map((p) => cell(`ppat ${p.label}`, 'ppats', p.file, p.url, p.label)));
+      });
+      return det;
+    }
+
+    // A segmented TAB control (e.g. On | Off), tinted with the scheme's
+    // header colors. Selected cell uses the header fill/text; others a light
+    // Platinum face. Reads as tabs rather than two separate push buttons.
+    // Tab strip from the scheme's popup-window tab cicn (-12319) where it
+    // ships one; the selected tab sits flush, the others recessed 2px. Falls
+    // back to the CSS segmented control for schemes with no tab cicn.
+    async function tabStrip(theme, labels, selectedIdx) {
+      const tabs = await Promise.all(labels.map((l, i) => composeTab(theme, { label: l, selected: i === selectedIdx })));
+      if (tabs.some((t) => !t)) return segmentedTabs(theme, labels, selectedIdx);
+      const h = Math.max(...tabs.map((t) => t.height));
+      const wrap = document.createElement('div');
+      // Bottom-align: the selected "front" tab cicn is taller, so it pokes up
+      // above the shorter "rear" (unselected) tabs — the classic tab look. The
+      // cicns already encode the selected/unselected appearance.
+      Object.assign(wrap.style, { display: 'inline-flex', alignItems: 'flex-end', height: `${h}px` });
+      tabs.forEach((t, i) => {
+        const c = bufferToCanvas(t, 1);
+        c.style.marginRight = i < tabs.length - 1 ? '-1px' : '0'; // tabs share an edge
+        wrap.appendChild(c);
+      });
+      return wrap;
+    }
+
+    function segmentedTabs(theme, labels, selectedIdx) {
+      const hc = theme.manifest?.headerColors?.active ?? {};
+      const frame = hc.frame ?? '#555555';
+      // Selected tab is the depressed/active one: the scheme's (dark) frame
+      // color with light text — matches the classic Mac tab look and stays
+      // high-contrast even when the header FILL is light (e.g. Platinum gray).
+      const selBg = hc.darkTinge && hc.darkTinge !== hc.fill ? hc.darkTinge : frame;
+      // A BEVELED segmented toggle matching the references' On/Off: a recessed
+      // outer well (1px scheme-frame border + top inset shadow), the selected
+      // cell in the scheme's dark header colour with a PRESSED/recessed bevel,
+      // the unselected cells a light face with a RAISED bevel. The 3-D treatment
+      // (not a flat colour fill) is the thing the references have and a flat
+      // segmented control lacks.
+      const wrap = document.createElement('div');
+      Object.assign(wrap.style, {
+        display: 'flex', border: `1px solid ${frame}`,
+        font: '11px Charcoal, Geneva, sans-serif',
+        boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.28)',
+      });
+      labels.forEach((label, i) => {
+        const cell = document.createElement('div');
+        const sel = i === selectedIdx;
+        Object.assign(cell.style, {
+          flex: '1', textAlign: 'center', padding: '2px 8px',
+          borderLeft: i > 0 ? `1px solid ${frame}` : 'none',
+          background: sel ? selBg : 'linear-gradient(180deg,#fcfcfc,#d4d4d4)',
+          color: sel ? '#ffffff' : '#000', fontWeight: sel ? '700' : '400',
+          boxShadow: sel
+            ? 'inset 1px 1px 1px rgba(0,0,0,0.5)'        // selected → pressed/recessed
+            : 'inset 1px 1px 0 rgba(255,255,255,0.9)',   // unselected → raised highlight
+        });
+        cell.textContent = label;
+        wrap.appendChild(cell);
+      });
+      return wrap;
+    }
+
+    // Compose the canonical Kaleidoscope scheme-preview layout: a "Hello!"
+    // Finder window (scheme-name info bar, two folders, a radio/checkbox row,
+    // edge scrollbars + grow box) with an overlapping "On/Off" modal dialog
+    // (segmented buttons, a progress bar, a disclosure + default OK) — the
+    // same arrangement the reference screenshots use, so the live render is
+    // directly comparable.
+    async function buildScene(theme, state = 'active') {
+      const cv = (buf) => bufferToCanvas(buf, 1);
+      const place = (buf, css) => { if (!buf) return; const c = cv(buf); Object.assign(c.style, { position: 'absolute', ...css }); return c; };
+
+      // The legacy raster previews show the document window FILLING the canvas
+      // (minimal desktop margin) with the Options dialog overlapping the right
+      // half from the title-bar line down. So size the desk to the main
+      // window's footprint and place the dialog top-right.
+      const desk = document.createElement('div');
+      // Use the scheme's OWN desktop pattern (1138/1984/beos ship one — keys vary:
+      // desktop-pattern / blue-desktop / desktop-background) tiled at native px,
+      // not a generic checkerboard. Fall back to the checkerboard for schemes that
+      // ship no desktop ppat (1990/evolution/apple-platinum).
+      // Lookup hierarchy for the desktop pattern:
+      //   T1. A pattern keyed with /desktop/i in its slug (1138 / 1984 /
+      //       apple-lisa / beos-r503 — schemes that explicitly named it).
+      //   T2. `ppat-17` — the Mac OS canonical desktop ppat id (Apple-reserved
+      //       slot, the system Finder's built-in desktop pattern). Five corpus
+      //       themes ship this (1990, animals, monkey-paradise, evolution,
+      //       crayon-os); before this pickup they fell to the CSS checkerboard.
+      //   T3. CSS checkerboard fallback.
+      const _pats = theme.manifest.patterns || {};
+      const _deskKey = Object.keys(_pats).find((k) => /desktop/i.test(k))
+        ?? (_pats['ppat-17'] ? 'ppat-17' : null);
+      // In Option A the asset is already an absolute blob: URL (rewritten by
+      // loadKaleidoscopeScheme); for legacy bundles it's a relative path the
+      // baseUrl resolves. The /^(?:blob|https?|data):/ check mirrors assetUrl().
+      const _deskRef = _deskKey ? _pats[_deskKey].asset : null;
+      const _deskUrl = !_deskRef ? null
+        : /^(?:blob:|https?:|data:)/.test(_deskRef) ? _deskRef
+        : `${theme.baseUrl.replace(/\/$/, '')}/${_deskRef}`;
+      Object.assign(desk.style, {
+        position: 'relative', overflow: 'hidden', background: '#9d9d9d',
+        ...(_deskUrl
+          ? { backgroundImage: `url("${_deskUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated' }
+          : { backgroundImage: 'repeating-conic-gradient(#9a9a9a 0 25%, #a4a4a4 0 50%)', backgroundSize: '4px 4px' }),
+      });
+
+      // ── main "Hello!" Finder window — fills the preview ──
+      // winW widened from 178 → 220 to fit longer volume names without truncation
+      // (every theme's "Apple Lisa Office System" / "BeOS R5.0.3" / "Windows 3.1"
+      // truncated in the info bar at 178) AND to leave more body area visible
+      // alongside the overlapping Options dialog. 10 themes had the volume name
+      // truncated, 6 had their body content clipped, and windows-31 had its title
+      // bar entirely covered by the dialog before this change.
+      const winW = 220, winH = 98;
+      const win = await renderWindow(theme, { title: 'Hello!', width: winW, height: winH, scale: 1, state });
+      // The window root carries its full footprint (cicn path sets width/height;
+      // baseline window is sized by content + a ~19px title bar + 1px borders).
+      const mainW = parseInt(win.style.width) || (winW + 4);
+      const mainH = parseInt(win.style.height) || (winH + 22);
+      const contentEl = win.querySelector('.scriptoscope-content');
+      const mainTop = contentEl && parseInt(contentEl.style.top) ? parseInt(contentEl.style.top) : 19;
+      Object.assign(desk.style, { width: `${mainW}px`, height: `${mainH}px` });
+      Object.assign(win.style, { position: 'absolute', left: '0', top: '0' });
+      const content = win.querySelector('.scriptoscope-content');
+      if (content) {
+        Object.assign(content.style, { overflow: 'hidden' });
+        // scheme-name info bar (the Finder window's volume header): a grid/proxy
+        // icon + the volume name. Taller than before (~18px) and in a LIGHT face
+        // (Geneva, regular weight) — the heavy Charcoal/Chicago is the window TITLE
+        // font, not the Finder body text.
+        //
+        // Background lookup hierarchy (matches classic Mac Finder rendering):
+        //   1. chromeElement(sourceCicnId=-9567).bgPattern → manifest.patterns[…].asset
+        //      — the SCHEME-DECODED choice. The finder-header cinf carries the
+        //      bgPatternId the scheme author wired in; for some themes that's
+        //      ppat -9567 itself (1990, animals, evolution), for crayon-os it
+        //      points at ppat-17 ("manilla-for-everything"), for monkey-paradise
+        //      it points at ppat-129. Reading the structured field beats guessing
+        //      ids: 5 of 18 corpus themes carry this.
+        //   2. theme.bodyBackground.pattern — the body / Icon-View ppat (from
+        //      cinf -9551). Fallback for textured schemes that ship a body
+        //      pattern but no header cinf (1984, dolphin-som, floppies).
+        //   3. headerColors.active.fill — the title-bar fill colour, used as a
+        //      SOLID fallback for schemes that ship no ppat but DO carry header
+        //      colours (slimes' bright #d6ff76, the Platinum-family grays, etc).
+        //      10 of 18 corpus themes land here.
+        //   4. Flat #e6e6e6 — no theme currently lands here; kept as a safety net.
+        const info = document.createElement('div');
+        const _patterns = theme.manifest?.patterns ?? {};
+        const _hdrCe = Object.values(theme.manifest?.chromeElements ?? {})
+          .find((v) => v.sourceCicnId === -9567);
+        const _hdrPatKey = _hdrCe?.bgPattern; // key into manifest.patterns, e.g. "ppat--9567" or "ppat-129"
+        const _infoPat = (_hdrPatKey && _patterns[_hdrPatKey]?.asset)
+          ?? theme.manifest?.bodyBackground?.pattern
+          ?? null;
+        const _infoPatUrl = !_infoPat ? null
+          : /^(?:blob:|https?:|data:)/.test(_infoPat) ? _infoPat
+          : `${theme.baseUrl.replace(/\/$/, '')}/${_infoPat}`;
+        const _infoFillColor = theme.manifest?.headerColors?.active?.fill ?? '#e6e6e6';
+        Object.assign(info.style, {
+          position: 'absolute', left: '0', top: '0', right: '0', height: '18px',
+          boxSizing: 'border-box', padding: '0 4px',
+          borderBottom: '1px solid #aaa',
+          ...(_infoPatUrl
+            ? { backgroundImage: `url("${_infoPatUrl}")`, backgroundRepeat: 'repeat', imageRendering: 'pixelated', backgroundColor: _infoFillColor }
+            : { background: _infoFillColor }),
+          display: 'flex', alignItems: 'center', gap: '4px',
+          whiteSpace: 'nowrap', overflow: 'hidden',
+        });
+        info.appendChild(await gridProxyIcon(theme));
+        const vol = document.createElement('span');
+        vol.textContent = theme.manifest?.name ?? '';
+        // Contrast-pick the label colour against the resolved info-bar bg. When the
+        // bar resolves to a dark headerColors.active.fill (slimes' #d6ff76 is light,
+        // but black-platinum / windows-31 / monkey-paradise's headerFill is dark
+        // enough to make black text unreadable), pick white. Same trick the
+        // composeCornerSpriteChrome path uses for the title bar. The pattern case
+        // is harder — patterns vary in luminance across pixels — so we leave the
+        // textured info-bar at black until a per-element textColor field exists.
+        const _infoTextColor = (() => {
+          if (_infoPatUrl) return '#000'; // textured bg: keep black (best reading vs varied luminance)
+          const h = _infoFillColor.replace('#', '');
+          if (h.length !== 6) return '#000';
+          const r = parseInt(h.slice(0, 2), 16);
+          const g = parseInt(h.slice(2, 4), 16);
+          const b = parseInt(h.slice(4, 6), 16);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          return lum < 128 ? '#fff' : '#000';
+        })();
+        Object.assign(vol.style, { font: '400 10px Geneva, "Lucida Grande", Tahoma, sans-serif', color: _infoTextColor, overflow: 'hidden', textOverflow: 'ellipsis' });
+        info.appendChild(vol);
+        content.appendChild(info);
+        // content icons — the scheme's OWN icons where it ships them, else
+        // the neutral folder SVGs.
+        const folders = document.createElement('div');
+        Object.assign(folders.style, { position: 'absolute', left: '8px', top: '22px', display: 'flex', gap: '10px' });
+        const icons = await schemeIcons(theme, 2);
+        if (icons.length) {
+          icons.forEach((ic) => folders.appendChild(ic));
+        } else {
+          const f1 = document.createElement('div'); f1.innerHTML = ICON_SVG.folderOpen;
+          const f2 = document.createElement('div'); f2.innerHTML = ICON_SVG.folder;
+          folders.append(f1.firstChild, f2.firstChild);
+        }
+        content.appendChild(folders);
+        // radio / checkbox control row
+        const chk = (kind, o) => checkableEl(theme, kind, '', o);
+        const ctlRow = document.createElement('div');
+        Object.assign(ctlRow.style, { position: 'absolute', left: '8px', top: '58px', display: 'flex', gap: '7px', alignItems: 'center' });
+        ctlRow.append(await chk('radio', {}), await chk('radio', { checked: true }), await chk('checkbox', { checked: true }), await chk('checkbox', {}));
+        content.appendChild(ctlRow);
+        // edge scrollbars + grow box (Finder window furniture)
+        const vsb = await composeScrollbar(theme, { orientation: 'vertical', length: winH - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
+        const vc = place(vsb, { right: '0', top: '0' }); if (vc) content.appendChild(vc);
+        const hsb = await composeScrollbar(theme, { orientation: 'horizontal', length: winW - 15, value: 0.25, proportional: SCROLL_PROPORTIONAL });
+        const hc = place(hsb, { left: '0', bottom: '0' }); if (hc) content.appendChild(hc);
+        // grow box: the scheme's actual bottom-right resize cicn where shipped,
+        // else a plain Platinum-gray corner.
+        const growBuf = await composeGrowBox(theme, { state });
+        if (growBuf) {
+          const gc = place(growBuf, { right: '0', bottom: '0' }); if (gc) content.appendChild(gc);
+        } else {
+          const grow = document.createElement('div');
+          Object.assign(grow.style, { position: 'absolute', right: '0', bottom: '0', width: '15px', height: '15px', background: '#e6e6e6', borderLeft: '1px solid #999', borderTop: '1px solid #999' });
+          content.appendChild(grow);
+        }
+      }
+      desk.appendChild(win);
+
+      // ── "On/Off" Options dialog — utility window, overlapping top-right ──
+      const DLG_W = 108, DLG_PAD = 5, DLG_INNER = DLG_W - DLG_PAD * 2; // content + usable width
+      // No-title utility window — the references' "On/Off" floater has no title bar.
+      const dlg = await renderWindow(theme, { windowType: 'no-title-utility-window', title: 'Options', width: DLG_W, height: 84, scale: 1, state });
+      const dlgW = parseInt(dlg.style.width) || (DLG_W + 4);
+      const dlgH = parseInt(dlg.style.height) || (84 + 22);
+      // Right-aligned (small margin), top below the main window's title bar —
+      // the placement the legacy previews use. Clamped to stay inside the desk.
+      // Top offset = mainTop + 2 so the dialog DOESN'T cover the main title bar
+      // (windows-31's title was entirely hidden when dlgTop equaled mainTop = 0).
+      const dlgLeft = Math.max(0, mainW - dlgW - 6);
+      const dlgTop = mainTop + 2;
+      // Grow the desk to fit BOTH the main window AND the dialog footprint —
+      // dolphin-som + animals + 1138 + others have a main-window height that's
+      // shorter than the dialog's footprint at dlgTop+dlgH, so the dialog's
+      // bottom (OK button + grow box) used to be clipped by desk's overflow:hidden.
+      // The reference compositions match this — the desktop extends past the main
+      // window to contain the floating dialog. Period-faithful: in classic Mac,
+      // windows weren't constrained to each other; the desktop accommodated them.
+      const deskFitH = Math.max(mainH, dlgTop + dlgH + 4);
+      desk.style.height = `${deskFitH}px`;
+      Object.assign(dlg.style, { position: 'absolute', left: `${dlgLeft}px`, top: `${dlgTop}px`, zIndex: '5' });
+      const dc = dlg.querySelector('.scriptoscope-content');
+      if (dc) {
+        Object.assign(dc.style, { padding: `${DLG_PAD}px`, display: 'flex', flexDirection: 'column', gap: '4px', boxSizing: 'border-box' });
+        // height: 22 — match the segmented On/Off tab height (same reason: themes that
+        // ship oversized face cicns like crayon-os's 74×74 would otherwise render the OK
+        // button at ~80px tall, eating the dialog). Other themes' 16×16 face cicns
+        // 9-slice up to 22px tall without distortion.
+        const btn = async (label, o) => { const b = await composeButton(theme, { label, minWidth: o.minWidth, height: 22, ...o }); return b ? cv(b) : baselineButton(label, o); };
+        // On/Off is a flat 2-SEGMENT TOGGLE, not tabs: the references draw it as
+        // a flat rectangular pair (beos: dark "On" / light "Off"; 1984: two flat
+        // blue cells), NOT the trapezoidal tab shape — and the scheme's actual
+        // "Tabs" cicns (-998x, see composeTab) are gray trapezoids that don't
+        // match. So render the header-tinted segmented control directly.
+        // On/Off from the scheme's OWN raster: a segmented pair of push-button
+        // cicns (9-sliced via their cinf), "On" = the PRESSED face (selected),
+        // "Off" = the NORMAL face — the scheme's textured button art, not a CSS
+        // approximation. Full-bleed to the dialog's inner edges. Falls back to
+        // the beveled CSS segmented toggle when the scheme ships no button cicn.
+        const segW = Math.floor(DLG_INNER / 2);
+        // height: 22 — segmented On/Off should read as a TAB, not as a full push button.
+        // Without it, themes that ship a 74×74 face cicn (crayon-os) render the segmented
+        // toggle at the cicn's native height (~80px), eating the whole dialog. The
+        // composeFaceButton honours opts.height when present; 9-slice + slice.tile
+        // preserves the artist's border pattern at the shrunken size.
+        const onB = await composeButton(theme, { label: 'On', pressed: true, minWidth: segW, height: 22 });
+        const offB = await composeButton(theme, { label: 'Off', minWidth: segW, height: 22 });
+        const onoff = document.createElement('div');
+        Object.assign(onoff.style, { display: 'flex', flexShrink: '0', margin: `-${DLG_PAD}px -${DLG_PAD}px 4px` });
+        if (onB && offB) {
+          const oc = cv(onB); oc.style.marginRight = '-1px'; // abut (share the seam)
+          onoff.append(oc, cv(offB));
+        } else {
+          onoff.appendChild(segmentedTabs(theme, ['On', 'Off'], 0));
+        }
+        dc.appendChild(onoff);
+        const pg = await composeProgress(theme, { length: DLG_INNER, value: 0.45 });
+        if (pg) dc.appendChild(cv(pg));
+        const foot = document.createElement('div'); foot.style.cssText = 'display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:auto';
+        const disc = (await composeDisclosure(theme, { direction: 'right' })) ?? platinumDisclosure({ direction: 'right' });
+        foot.appendChild(cv(disc));
+        foot.appendChild(await btn('OK', { default: true }));
+        dc.appendChild(foot);
+      }
+      desk.appendChild(dlg);
+      return desk;
+    }
+
+    // Per-theme diagnostic: the top-edge recipe as a color-coded strip, so we
+    // can SEE each segment's part-code role (corner / border / widget / the
+    // p5/p6 "title region" / p8 fill) and where the title region sits.
+    async function diagnosticStrip(theme) {
+      const ROLE = { 0: ['#cfcfcf', 'corner'], 1: ['#9a9a9a', 'border'], 2: ['#dd3366', 'close'], 3: ['#dd8800', 'zoom'], 4: ['#33aa88', 'shade'], 5: ['#3cb043', 'TITLE'], 6: ['#3cb043', 'TITLE'], 8: ['#3f7fd0', 'fill'], 10: ['#aa00aa', 'piece'] };
+      const pc = (s) => { const m = /^part-(\d+)$/.exec(s || ''); return m ? +m[1] : -1; };
+      const wrap = document.createElement('div');
+      Object.assign(wrap.style, { margin: '8px 0 0', font: '10px ui-monospace, Menlo, monospace', color: '#333' });
+      const wts = theme.manifest.windowTypes || {};
+      const wt = wts['document-window'] || Object.values(wts).find((w) => w.edges && w.edges.top && w.edges.top.length);
+      const hd = document.createElement('div'); hd.style.cssText = 'opacity:.6;text-transform:uppercase;letter-spacing:.05em;font-size:9px;font-weight:700';
+      hd.textContent = 'window geometry — top-edge recipe (part roles)';
+      wrap.appendChild(hd);
+      if (!wt || !wt.edges || !wt.edges.top || !wt.edges.top.length) {
+        // No wnd# recipe → a corner-sprite PROCEDURAL scheme (apple-platinum-2,
+        // system7-nostalgia-silver, platinum-8, black-platinum). These have no
+        // x-segmented recipe in the manifest, but composeCornerSprite returns a
+        // `placement` (racing-stripe title fill, widgets, frame) at render time —
+        // so render the window and build the strip by projecting those top-edge
+        // regions onto X. Now these schemes show their region geometry like 1138.
+        let cwin = null;
+        try { cwin = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 1, state: 'active' }); } catch { /* render may fail offline */ }
+        const comp = cwin && cwin._scriptoscopeComposed;
+        if (!comp || !comp.placement || !comp.placement.length) {
+          const e = document.createElement('div'); e.textContent = '(no wnd# recipe — default/baseline window)'; e.style.opacity = '.6'; wrap.appendChild(e); return wrap;
+        }
+        const fullW = comp.fullWidth, titleH = comp.frame.top, SC = 3;
+        // Title-bar art (the live chrome), clipped to the bar height, at ×SC + the
+        // same x-origin as the strip — so each segment lines up under the art it maps.
+        const artWrap = document.createElement('div');
+        Object.assign(artWrap.style, { width: `${fullW * SC}px`, height: `${titleH * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
+        try { const cv = bufferToCanvas(comp.buffer, SC); cv.style.cssText = 'display:block;image-rendering:pixelated'; artWrap.appendChild(cv); } catch { /* */ }
+        wrap.appendChild(artWrap);
+        // Project regions onto X: widget (drawn on top) > racing-stripe fill > frame.
+        const col = new Array(fullW).fill(1); // border (gray)
+        for (let x = 0; x < fullW; x++) if (x < comp.frame.left || x >= fullW - comp.frame.right) col[x] = 0; // corner
+        for (const s of comp.placement) if (s.role === 'title pinstripe')
+          for (const r of s.rects) for (let x = r.x; x < r.x + r.w; x++) if (x >= 0 && x < fullW) col[x] = 8; // racing-stripe fill
+        for (const s of comp.placement) if (s.edge === 'widget' && s.role !== 'grow box') {
+          const roles = (s.role || '').split('/'); // matches rects order (close/zoom/collapse)
+          s.rects.forEach((r, i) => { const rc = roles[i] === 'close' ? 2 : roles[i] === 'zoom' ? 3 : 4;
+            for (let x = r.x; x < r.x + r.w; x++) if (x >= 0 && x < fullW) col[x] = rc; });
+        }
+        const bar = document.createElement('div');
+        Object.assign(bar.style, { display: 'flex', width: `${fullW * SC}px`, height: '20px', border: '1px solid #888', boxSizing: 'border-box', marginTop: '3px' });
+        let bi = 0;
+        while (bi < fullW) {
+          let bj = bi; while (bj < fullW && col[bj] === col[bi]) bj++;
+          const code = col[bi], role = ROLE[code] || ['#ffaa00', 'p' + code];
+          const seg = document.createElement('div');
+          Object.assign(seg.style, { width: `${(bj - bi) * SC}px`, background: role[0], borderRight: '1px solid rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '8px', overflow: 'hidden' });
+          seg.textContent = code === 8 ? '≡' : String(code);
+          seg.title = `${code === 8 ? 'racing-stripe title fill' : role[1]} — x${bi}–${bj} (${bj - bi}px)`;
+          bar.appendChild(seg); bi = bj;
+        }
+        wrap.appendChild(bar);
+        const leg = document.createElement('div'); leg.style.cssText = 'margin-top:3px;font-size:9px';
+        leg.innerHTML = [['racing stripes (fill)', '#3f7fd0'], ['close', '#dd3366'], ['zoom', '#dd8800'], ['shade', '#33aa88'], ['corner', '#cfcfcf'], ['border', '#9a9a9a']]
+          .map(([k, c]) => `<span style="display:inline-block;width:9px;height:9px;background:${c};vertical-align:middle;margin:0 3px 0 8px;border:1px solid #aaa"></span>${k}`).join('');
+        wrap.appendChild(leg);
+        const note = document.createElement('div'); note.style.cssText = 'opacity:.55;font-size:9px;margin-top:2px';
+        note.textContent = 'procedural (WDEF 125) — regions read from the live render, not a wnd# recipe';
+        wrap.appendChild(note);
+        return wrap;
+      }
+      const ce = Object.values(theme.manifest.chromeElements || {}).find((v) => v.asset === wt.chrome.active);
+      const cicnW = ce ? ce.width : 100;
+      const SC = 3;
+      const top = [...wt.edges.top].sort((a, b) => a.at - b.at);
+      const lastAt = Math.max(...top.map((s) => s.at));
+      // The ACTUAL window cicn art (title-bar region), at the same ×SC scale +
+      // x-origin as the recipe strip below — so each part-role segment lines up
+      // under the sprite art it samples (you can see the title region's box
+      // sit under the green p5/p6 segment).
+      if (ce) {
+        const ftop = (wt.parts['part-0'] && wt.parts['part-0'].rect[1]) || 20;
+        const artWrap = document.createElement('div');
+        Object.assign(artWrap.style, { width: `${cicnW * SC}px`, height: `${ftop * SC}px`, overflow: 'hidden', border: '1px solid #888', boxSizing: 'border-box', background: '#fff', marginTop: '3px' });
+        const img = document.createElement('img');
+        // ce.asset is already an absolute URL under the in-memory load path (rewritten
+        // to a blob: by loadKaleidoscopeScheme). assetUrl() passes those through, only
+        // prefixing baseUrl for legacy relative paths.
+        img.src = assetUrl(theme, ce.asset);
+        img.title = `${ce.asset} (${ce.width}×${ce.height}) — active document window cicn`;
+        Object.assign(img.style, { width: `${cicnW * SC}px`, imageRendering: 'pixelated', display: 'block' });
+        artWrap.appendChild(img);
+        wrap.appendChild(artWrap);
+      }
+      const bar = document.createElement('div');
+      Object.assign(bar.style, { display: 'flex', width: `${cicnW * SC}px`, height: '20px', border: '1px solid #888', boxSizing: 'border-box', marginTop: '3px' });
+      for (let i = 0; i < top.length; i++) {
+        const x0 = top[i].at, x1 = i + 1 < top.length ? top[i + 1].at : lastAt, w = x1 - x0;
+        if (w <= 0) continue;
+        const code = pc(top[i].part), role = ROLE[code] || ['#ffaa00', 'p' + code];
+        const seg = document.createElement('div');
+        Object.assign(seg.style, { width: `${w * SC}px`, background: role[0], borderRight: '1px solid rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontSize: '8px', overflow: 'hidden' });
+        seg.textContent = String(code); seg.title = `${role[1]} — part code ${code}, cicn x${x0}–${x1} (${w}px)`;
+        bar.appendChild(seg);
+      }
+      wrap.appendChild(bar);
+      const leg = document.createElement('div'); leg.style.cssText = 'margin-top:3px;font-size:9px';
+      leg.innerHTML = [['TITLE (p5/p6)', '#3cb043'], ['fill (p8)', '#3f7fd0'], ['corner (p0)', '#cfcfcf'], ['border (p1)', '#9a9a9a'], ['widget (p2/3/4)', '#dd8800']]
+        .map(([k, c]) => `<span style="display:inline-block;width:9px;height:9px;background:${c};vertical-align:middle;margin:0 3px 0 8px;border:1px solid #aaa"></span>${k}`).join('');
+      wrap.appendChild(leg);
+      return wrap;
+    }
+
+    function docWindowCicn(theme) {
+      const wts = theme.manifest.windowTypes || {};
+      const wt = wts['document-window'] || Object.values(wts).find((w) => w.edges && w.edges.top && w.edges.top.length);
+      return wt && wt.chrome ? wt.chrome.active : null;
+    }
+    function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
+
+    // The chrome cicn asset for a given window-type key (for slice thumbnails).
+    function windowCicn(theme, key) {
+      const wt = (theme.manifest.windowTypes || {})[key];
+      return wt && wt.chrome ? (wt.chrome.active || wt.chrome.inactive) : null;
+    }
+    // Load with a few retries: the dev server can briefly 404 an asset during
+    // an HMR reload, and a single failed load would otherwise leave a slice
+    // thumbnail (or the reference) permanently blank until the next rerender.
+    // The `?retry=` query busts a cached failure so the re-fetch actually hits.
+    async function loadImgSafe(theme, asset) {
+      if (!asset) return null;
+      // assetUrl handles both legacy relative paths and the in-memory blob: URLs.
+      // The `?retry=` cache-bust only makes sense for fetched URLs (http(s)); blob:
+      // URLs are content-stable and don't need busting.
+      const url = assetUrl(theme, asset);
+      const isBlob = /^blob:/.test(url);
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try { return await loadImg(attempt && !isBlob ? `${url}?retry=${attempt}` : url); }
+        catch { await new Promise((r) => setTimeout(r, 150)); }
+      }
+      return null;
+    }
+
+    // The reusable slice VIEW: given a rendered window (with _scriptoscopeComposed) + the
+    // source cicn image + scale, build the window-with-overlay + the slice list.
+    // Hover/click a slice to highlight EVERY output region it produced (tiled
+    // slices light up N times); hover the window to read off the slice under the
+    // cursor. Shared by the per-theme foldout and the interactive playground.
+    // Build a labelled "reference screenshot" column (the legacy raster preview)
+    // for side-by-side comparison. Returns null when no ref is given.
+    function refColumn(refSrc) {
+      if (!refSrc) return null;
+      const col = document.createElement('div'); col.style.cssText = 'flex:0 0 auto';
+      const cap = document.createElement('div'); cap.textContent = 'reference'; cap.style.cssText = 'font:9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-bottom:2px';
+      const img = document.createElement('img'); img.src = refSrc; img.alt = 'reference screenshot';
+      img.onerror = () => { if (!img._retried) { img._retried = 1; img.src = refSrc + (refSrc.includes('?') ? '&' : '?') + 'retry=1'; } };
+      img.style.cssText = 'display:block;image-rendering:pixelated;border:1px solid #ccc;max-width:320px;height:auto';
+      col.append(cap, img);
+      return col;
+    }
+
+    function buildSliceView(win, cicnImg, SC, refSrc, ctx = {}) {
+      const placement = win._scriptoscopeComposed.placement;
+      const winH = (parseInt(win.style.height) || 200);
+      const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
+      const winCol = document.createElement('div'); winCol.style.cssText = 'flex:0 0 auto';
+      const winBox = document.createElement('div'); winBox.style.cssText = 'position:relative;cursor:crosshair;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
+      win.style.position = 'relative';
+      winBox.appendChild(win);
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:50';
+      winBox.appendChild(overlay);
+      const readout = document.createElement('div');
+      readout.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.75;margin-top:4px;min-height:13px';
+      // Caption above the window, mirroring the reference column's caption (same
+      // height/style), so the rendered window and the reference image sit at the
+      // SAME vertical position on the page for pixel-on-pixel comparison. Only when
+      // a reference is shown alongside (foldout thumbnails without a ref skip it).
+      if (refSrc) {
+        const wcap = document.createElement('div'); wcap.textContent = 'playground';
+        wcap.style.cssText = 'font:9px ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-bottom:2px';
+        winCol.appendChild(wcap);
+      }
+      winCol.append(winBox, readout);
+      wrap.appendChild(winCol);
+      const refCol = refColumn(refSrc);
+      if (refCol) wrap.appendChild(refCol);
+
+      let sticky = null;
+      const show = (s) => {
+        overlay.innerHTML = '';
+        if (!s) return;
+        for (const r of s.rects) {
+          const b = document.createElement('div');
+          b.style.cssText = `position:absolute;border:1.5px solid #ff2d55;background:rgba(255,45,85,.28);box-sizing:border-box;left:${r.x * SC}px;top:${r.y * SC}px;width:${r.w * SC}px;height:${r.h * SC}px`;
+          overlay.appendChild(b);
+        }
+      };
+      // Clipboard copy: a self-contained DIAGNOSTIC BLOCK — theme, window type,
+      // render params, the slice (edge/part/role/mode/src/out), plus a legend +
+      // doc pointers so whoever reads the paste knows what the fields mean and
+      // where to dig in. Shared by the list rows AND clicking the window.
+      const usageOf = (s) => (s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode);
+      const shortInfo = (s) => `${s.edge} p${s.code} (${s.role}) · ${usageOf(s)} · src ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`;
+      const infoBlock = (s) => [
+        'Scriptoscope — window-chrome slice diagnostic',
+        `theme:   ${ctx.themeName ?? '?'} (${ctx.slug ?? '?'})`,
+        `window:  ${ctx.windowType ?? '?'} · ${ctx.w ?? '?'}×${ctx.h ?? '?'} content @${ctx.scale ?? 1}× · ${ctx.state ?? 'active'}`,
+        `slice:   ${s.edge} edge · part ${s.code} "${s.role}" · render=${usageOf(s)}`,
+        `source:  cicn rect ${s.src.x},${s.src.y} ${s.src.w}×${s.src.h}`,
+        `output:  ${s.rects.map((r) => `${r.x},${r.y} ${r.w}×${r.h}`).join(' | ')}`,
+        'legend:  edge=window side · part=wnd# part code (role) · render: fixed/stretch/tile/gradient/clean(bg under widget)/plate(title)/stamp(widget) · source=cicn pixels sampled · output=pixels drawn (one per tile).',
+        'docs:    docs/diagnostic-tooling.md (the inspector) · docs/spec/kdef-architecture.md (the slice/grow model) · docs/spec/kdef231-reference.md §4 (part codes).',
+      ].join('\n');
+      const doCopy = async (s) => {
+        try { await navigator.clipboard.writeText(infoBlock(s)); readout.style.color = '#0a7d2c'; readout.textContent = '✓ copied diagnostic: ' + shortInfo(s); }
+        catch { readout.style.color = '#b00'; readout.textContent = '(clipboard blocked) ' + shortInfo(s); }
+        clearTimeout(readout._t); readout._t = setTimeout(() => { readout.style.color = ''; }, 1600);
+      };
+      const sliceAt = (nx, ny) => { let hit = null; for (const s of placement) for (const rc of s.rects) if (nx >= rc.x && nx < rc.x + rc.w && ny >= rc.y && ny < rc.y + rc.h) hit = s; return hit; };
+
+      const list = document.createElement('div');
+      list.style.cssText = `flex:1 1 300px;min-width:260px;max-height:${Math.max(160, winH + 24)}px;overflow:auto;border:1px solid #ddd;background:#fafafa`;
+      let activeEdge = 'all';
+      const rowsWrap = document.createElement('div');
+
+      // A canvas of the ACTUAL RENDERED chrome, so each row's thumbnail shows the
+      // real PLACED pixels (the positioned glyph / title), not the raw cicn
+      // source — that's what lets the owner eyeball "this icon is 2px too high".
+      let chromeCanvas = null;
+      try { if (win._scriptoscopeComposed.buffer) chromeCanvas = bufferToCanvas(win._scriptoscopeComposed.buffer, 1); } catch { /* fall back to cicn src */ }
+      const frame = win._scriptoscopeComposed.frame || { top: 0 };
+
+      // Expand the placement into INSPECTABLE items: each widget rect is its OWN
+      // item (close / zoom / collapse individually), every other slice stays one,
+      // and a synthetic "title string" item is prepended so the title position is
+      // clickable too. Each item carries its own output rect for highlight + crop.
+      const items = [];
+      const titleReg = win._scriptoscopeComposed.titleRegion;
+      if (titleReg && frame.top > 6) {
+        items.push({ edge: 'title', code: -1, role: 'title string', mode: 'text',
+          src: { x: 0, y: 0, w: titleReg.w, h: frame.top },
+          rects: [{ x: titleReg.x, y: 0, w: titleReg.w, h: frame.top }] });
+      }
+      for (const s of placement) {
+        const names = (s.edge === 'widget' && s.role.includes('/')) ? s.role.split('/').map((n) => n.trim()) : null;
+        if (names && s.rects.length === names.length && names.length > 1) {
+          s.rects.forEach((r, i) => items.push({ edge: 'widget', code: s.code, role: names[i], mode: s.mode, src: s.src, rects: [r] }));
+        } else {
+          items.push(s);
+        }
+      }
+
+      // Thumbnail: crop the rendered chrome at the item's OUTPUT rect (the placed
+      // art). Falls back to the raw cicn source crop when no rendered buffer.
+      const makeThumb = (item) => {
+        const r = item.rects[0] || item.src;
+        const cw = Math.max(1, Math.round(r.w)), ch = Math.max(1, Math.round(r.h));
+        const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+        const cx = c.getContext('2d');
+        if (chromeCanvas) { try { cx.drawImage(chromeCanvas, r.x, r.y, cw, ch, 0, 0, cw, ch); } catch { /* oob */ } }
+        else if (cicnImg) { try { cx.drawImage(cicnImg, item.src.x, item.src.y, Math.max(1, item.src.w), Math.max(1, item.src.h), 0, 0, cw, ch); } catch { /* oob */ } }
+        const m = Math.max(cw, ch);
+        const z = m > 44 ? 44 / m : Math.max(1, Math.min(6, Math.floor(44 / m)));
+        c.style.cssText = `width:${Math.round(cw * z)}px;height:${Math.round(ch * z)}px;image-rendering:pixelated;border:1px solid #ccc;flex:0 0 auto;background:#fff`;
+        return c;
+      };
+      const renderRows = () => {
+        rowsWrap.innerHTML = '';
+        items.forEach((s) => {
+          if (activeEdge !== 'all' && s.edge !== activeEdge) return;
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;gap:6px;align-items:center;padding:3px 5px;cursor:pointer;border-bottom:1px solid #eee';
+          const th = makeThumb(s);
+          const r0 = s.rects[0] || { x: 0, y: 0, w: 0, h: 0 };
+          const usage = s.mode === 'tile' ? `tiled ×${s.rects.length}` : s.mode === 'stamp' ? 'stamped' : s.mode;
+          const lbl = document.createElement('div'); lbl.style.cssText = 'flex:1;line-height:1.3';
+          lbl.innerHTML = `<b>${s.edge}</b>${s.code >= 0 ? ' p' + s.code : ''} · ${s.role}<br><span style="opacity:.6">at ${Math.round(r0.x)},${Math.round(r0.y)} ${Math.round(r0.w)}×${Math.round(r0.h)} — ${usage}</span>`;
+          row.append(th, lbl);
+          row.title = 'click to highlight + copy this element’s info';
+          row.onmouseenter = () => show(s);
+          row.onmouseleave = () => show(sticky);
+          row.onclick = () => {
+            sticky = sticky === s ? null : s; show(sticky);
+            [...rowsWrap.children].forEach((c) => (c.style.background = ''));
+            if (sticky === s) row.style.background = '#ffe8ee';
+            doCopy(s);
+          };
+          rowsWrap.appendChild(row);
+        });
+      };
+      const filterRow = document.createElement('div');
+      filterRow.style.cssText = 'display:flex;gap:3px;flex-wrap:wrap;padding:4px;position:sticky;top:0;background:#f0f0f0;border-bottom:1px solid #ddd';
+      ['all', 'title', 'top', 'bottom', 'left', 'right', 'widget'].forEach((e) => {
+        const btn = document.createElement('button'); btn.textContent = e;
+        btn.style.cssText = 'font:9px ui-monospace,monospace;padding:2px 6px;cursor:pointer;border:1px solid #bbb;background:#fff;border-radius:3px';
+        btn.onclick = () => { activeEdge = e; renderRows(); };
+        filterRow.appendChild(btn);
+      });
+      list.append(filterRow, rowsWrap);
+      renderRows();
+      wrap.appendChild(list);
+
+      // INVERSE lookup: hover the window → which slice made that pixel (topmost
+      // / last-drawn wins).
+      const pointAt = (ev) => { const r = winBox.getBoundingClientRect(); return [(ev.clientX - r.left) / SC, (ev.clientY - r.top) / SC]; };
+      winBox.addEventListener('mousemove', (ev) => {
+        readout.style.color = '';
+        const [nx, ny] = pointAt(ev);
+        const hit = sliceAt(nx, ny);
+        if (hit) {
+          show(hit);
+          readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → ${hit.edge} p${hit.code} ${hit.role} · ${usageOf(hit)} · src ${hit.src.x},${hit.src.y} ${hit.src.w}×${hit.src.h}  (click to copy)`;
+        } else { readout.textContent = `@${Math.floor(nx)},${Math.floor(ny)} → (content area / no chrome slice)`; }
+      });
+      // Click the WINDOW itself → copy the slice under the cursor (same as
+      // clicking its row), and sticky-highlight it.
+      winBox.addEventListener('click', (ev) => {
+        const [nx, ny] = pointAt(ev);
+        const hit = sliceAt(nx, ny);
+        sticky = hit; show(sticky);
+        [...rowsWrap.children].forEach((c) => (c.style.background = ''));
+        if (hit) doCopy(hit);
+      });
+      winBox.addEventListener('mouseleave', () => { show(sticky); readout.textContent = ''; });
+      return wrap;
+    }
+
+    // Per-theme foldout: render the document window + the slice view.
+    async function sliceInspector(theme) {
+      const details = document.createElement('details');
+      details.style.cssText = 'margin:12px 0 4px;font:11px ui-monospace,Menlo,monospace';
+      const summary = document.createElement('summary');
+      summary.textContent = 'slice inspector — window chrome (hover/click a slice to highlight its usages)';
+      summary.style.cssText = 'cursor:pointer;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.05em;opacity:.7';
+      details.appendChild(summary);
+      let win;
+      try { win = await renderWindow(theme, { title: 'Hello!', width: 172, height: 88, scale: 2, state: 'active' }); }
+      catch (e) { const d = document.createElement('div'); d.textContent = '(render failed: ' + e + ')'; details.appendChild(d); return details; }
+      if (!win._scriptoscopeComposed || !win._scriptoscopeComposed.placement || !win._scriptoscopeComposed.placement.length) {
+        const d = document.createElement('div'); d.textContent = '(no wnd# recipe — baseline window has no slices)'; d.style.cssText = 'opacity:.6;margin-top:6px'; details.appendChild(d); return details;
+      }
+      const cicnImg = await loadImgSafe(theme, docWindowCicn(theme));
+      const slug = (theme.baseUrl || '').split('/').pop();
+      const ctx = { themeName: theme.manifest.name || slug, slug, windowType: 'document-window', w: 172, h: 88, scale: 2, state: 'active' };
+      details.appendChild(buildSliceView(win, cicnImg, 2, undefined, ctx));
+      return details;
+    }
+
+    // ── Interactive window playground ──────────────────────────────────────
+    // Pick any theme + window type, set the title/size/state/scale, render LIVE,
+    // and inspect slices — all in the browser, no CLI.
+    {
+      const section = document.createElement('div'); section.className = 'theme-row';
+      const h2 = document.createElement('h2'); h2.textContent = 'Window playground';
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font:11px system-ui;opacity:.6;margin:-4px 0 8px';
+      sub.textContent = 'Render any window type live. Hover the window to identify the slice under the cursor; click a slice in the list to highlight its usages and copy its info to the clipboard.';
+      const ctrls = document.createElement('div');
+      ctrls.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;font:12px system-ui;margin-bottom:4px';
+      const out = document.createElement('div');
+      section.append(h2, sub, ctrls, out);
+      rows.appendChild(section);
+
+      const field = (labelText, el) => { const w = document.createElement('label'); w.style.cssText = 'display:flex;flex-direction:column;gap:2px;font-size:11px'; const s = document.createElement('span'); s.textContent = labelText; s.style.opacity = '.65'; w.append(s, el); return w; };
+      const sel = (opts) => { const s = document.createElement('select'); s.style.cssText = 'font:12px system-ui;padding:2px;max-width:240px'; for (const o of opts) { const op = document.createElement('option'); op.value = o.value; op.textContent = o.label; s.appendChild(op); } return s; };
+      const num = (v, min, max) => { const i = document.createElement('input'); i.type = 'number'; i.value = v; i.min = min; i.max = max; i.style.cssText = 'width:64px;font:12px system-ui;padding:2px'; return i; };
+
+      const themeSel = sel(THEMES.map((t) => ({ value: t.slug, label: t.label })));
+      const wtypeSel = sel([]);
+      const titleIn = document.createElement('input'); titleIn.type = 'text'; titleIn.value = 'Hello!'; titleIn.style.cssText = 'width:120px;font:12px system-ui;padding:2px';
+      const wIn = num(220, 40, 600), hIn = num(120, 30, 400);
+      const stateSel = sel([{ value: 'active', label: 'active' }, { value: 'inactive', label: 'inactive' }]);
+      const scaleSel = sel([{ value: '1', label: '1×' }, { value: '2', label: '2×' }, { value: '3', label: '3×' }]); scaleSel.value = '2';
+      const resetBtn = document.createElement('button'); resetBtn.type = 'button'; resetBtn.textContent = 'Reset';
+      resetBtn.style.cssText = 'font:12px system-ui;padding:3px 12px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff';
+
+      // ── prev/next steppers so you can arrow through themes / window types /
+      // titles without opening a dropdown. The title also gets a shuffle button
+      // that jumps to a random sample title, for quickly eyeballing how chrome
+      // handles short vs. long titles (plate growth, centring, clipping). ──
+      const miniBtn = (txt, tip) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.title = tip; b.setAttribute('aria-label', tip); b.style.cssText = 'font:12px system-ui;padding:2px 7px;cursor:pointer;border:1px solid #999;border-radius:4px;background:#fff;line-height:1.2'; return b; };
+      const withSteppers = (el, onPrev, onNext, ...extra) => { const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:4px;align-items:center'; const p = miniBtn('‹', 'previous'), n = miniBtn('›', 'next'); p.onclick = onPrev; n.onclick = onNext; row.append(p, el, n, ...extra); return row; };
+      const cycleSel = (s, dir) => { const len = s.options.length; if (len) s.selectedIndex = (s.selectedIndex + dir + len) % len; };
+      const themeStep = (dir) => async () => { cycleSel(themeSel, dir); populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
+      const wtypeStep = (dir) => () => { cycleSel(wtypeSel, dir); writeHash(); rerender(); };
+      const SAMPLE_TITLES = ['Hello!', 'Untitled', 'README', 'Macintosh HD', 'System Folder', 'untitled folder', 'A', 'My Long Window Title Goes On And On', '404 Not Found', 'Résumé', 'kaleidoscope', 'New Document', 'iMovie', 'Get Info'];
+      const setTitle = (v) => { titleIn.value = v; writeHash(); rerender(); };
+      const titleIdxOf = () => { const i = SAMPLE_TITLES.indexOf(titleIn.value); return i < 0 ? 0 : i; };
+      const titleStep = (dir) => () => setTitle(SAMPLE_TITLES[(titleIdxOf() + dir + SAMPLE_TITLES.length) % SAMPLE_TITLES.length]);
+      const randomBtn = miniBtn('rand', 'random title');
+      randomBtn.onclick = () => { let i; do { i = Math.floor(Math.random() * SAMPLE_TITLES.length); } while (SAMPLE_TITLES.length > 1 && SAMPLE_TITLES[i] === titleIn.value); setTitle(SAMPLE_TITLES[i]); };
+      // The theme is driven by the ribbon; themeSel stays in the DOM but hidden so
+      // the hash/reset logic that reads themeSel.value keeps working.
+      themeSel.style.display = 'none';
+      ctrls.append(field('window type', withSteppers(wtypeSel, wtypeStep(-1), wtypeStep(1))), field('title', withSteppers(titleIn, titleStep(-1), titleStep(1), randomBtn)), field('width', wIn), field('height', hIn), field('state', stateSel), field('scale', scaleSel), field(' ', resetBtn));
+
+      // Some bundles key window types by the raw wnd# resource id
+      // (`wnd--14288`) rather than a friendly slug — map those ids to the
+      // canonical kind (matches the extractor's CANONICAL_WNDTYPE_SLUGS) for a
+      // readable, consistently-ordered dropdown without touching the bundle.
+      // Sourced from docs/spec/scheme-factory-vocabulary.md §4 (STR# 128
+      // entries 2-14, the canonical 13-id window-type catalogue). Three
+      // collapsed-utility variants added 2026-05-29 from the holistic audit
+      // (F1) — they were shipped by 1138 + crayon-os but sorted to the
+      // bottom of the dropdown as raw `wnd--14300` keys.
+      const WND_ID_SLUG = {
+        '-14336': 'document-window', '-14335': 'document-window', '-14332': 'collapsed-document-window',
+        '-14328': 'dialog', '-14326': 'alert', '-14324': 'movable-modal', '-14322': 'movable-alert',
+        '-14304': 'titled-utility-window', '-14300': 'collapsed-titled-utility-window',
+        '-14296': 'side-floating-utility-window', '-14292': 'collapsed-side-floating-utility-window',
+        '-14288': 'no-title-utility-window', '-14284': 'collapsed-no-title-utility-window',
+        '-12320': 'popup-window',
+      };
+      const canonSlug = (k) => { const m = /^wnd-(-?\d+)$/.exec(k); return m && WND_ID_SLUG[m[1]] ? WND_ID_SLUG[m[1]] : k; };
+      const prettyWindowType = (k) => canonSlug(k).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      // Designer-first order: main window, then modal dialogs, then floating
+      // utility palettes, then collapsed/popup oddments. The collapsed-utility
+      // siblings sort alongside collapsed-document-window at the tail per the
+      // same convention.
+      const WT_ORDER = ['document-window', 'dialog', 'alert', 'movable-modal', 'movable-alert', 'titled-utility-window', 'side-floating-utility-window', 'no-title-utility-window', 'popup-window', 'collapsed-document-window', 'collapsed-titled-utility-window', 'collapsed-side-floating-utility-window', 'collapsed-no-title-utility-window'];
+      const populateWindowTypes = (theme) => {
+        const wts = theme.manifest.windowTypes || {};
+        wtypeSel.innerHTML = '';
+        const keys = Object.keys(wts).sort((a, b) => {
+          const ia = WT_ORDER.indexOf(canonSlug(a)), ib = WT_ORDER.indexOf(canonSlug(b));
+          return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || prettyWindowType(a).localeCompare(prettyWindowType(b));
+        });
+        for (const k of keys) {
+          const wt = wts[k]; const ok = wt.edges && wt.edges.top && wt.edges.top.length && wt.chrome && wt.chrome.active;
+          const op = document.createElement('option'); op.value = k; op.textContent = prettyWindowType(k) + (ok ? '' : ' (baseline)');
+          wtypeSel.appendChild(op);
+        }
+        if (!keys.length) { const op = document.createElement('option'); op.value = ''; op.textContent = '(no wnd# — baseline only)'; wtypeSel.appendChild(op); }
+        if (wts['document-window']) wtypeSel.value = 'document-window';
+      };
+
+      let token = 0;
+      const rerender = async () => {
+        const my = ++token;
+        out.textContent = 'rendering…';
+        let theme; try { theme = await loadWithBase(themeSel.value); } catch (e) { out.textContent = `failed to load ${themeSel.value}: ${e}`; return; }
+        if (my !== token) return;
+        const SC = +scaleSel.value;
+        let win;
+        try { win = await renderWindow(theme, { windowType: wtypeSel.value || undefined, title: titleIn.value, width: +wIn.value, height: +hIn.value, scale: SC, state: stateSel.value }); }
+        catch (e) { out.textContent = `render failed: ${e}`; return; }
+        if (my !== token) return;
+        // Demonstration content: populate the window body with a control set (progress,
+        // radio/checkbox, edge scrollbars, grow handle) so the playground shows controls
+        // in a real window context — handy for checking control + frame placement.
+        // Scaled to the window (SC); robust to small windows (skips what won't fit).
+        const body = win.querySelector('.scriptoscope-content');
+        if (body) {
+          const cw = +wIn.value, ch = +hIn.value;
+          body.style.overflow = 'hidden';
+          const at = (buf, x, y) => { if (!buf) return; const k = bufferToCanvas(buf, SC); Object.assign(k.style, { position: 'absolute', left: `${x * SC}px`, top: `${y * SC}px` }); body.appendChild(k); };
+          try {
+            if (cw >= 90) at(await composeProgress(theme, { length: Math.min(cw - 16, 120), value: 0.6 }), 8, 8);
+            let rx = 8;
+            for (const [k, o] of [['radio', { checked: true }], ['radio', {}], ['checkbox', { checked: true }], ['checkbox', {}]]) {
+              const g = (await composeCheckable(theme, k, o)) ?? platinumCheckable(k, o);
+              at(g, rx, 28); rx += (g.width || 14) + 6;
+            }
+            if (ch >= 60) at(await composeScrollbar(theme, { orientation: 'vertical', length: ch - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), cw - 16, 0);
+            if (cw >= 60) at(await composeScrollbar(theme, { orientation: 'horizontal', length: cw - 16, value: 0.3, proportional: SCROLL_PROPORTIONAL }), 0, ch - 16);
+            at(await composeGrowBox(theme, { state: stateSel.value }), cw - 16, ch - 16);
+          } catch { /* a control a scheme can't compose — skip it */ }
+        }
+        out.textContent = '';
+        const refMeta = THEMES.find((t) => t.slug === themeSel.value);
+        const refSrc = refMeta ? `./assets/references/${refMeta.ref}` : null;
+        const ctx = { themeName: refMeta ? refMeta.label : themeSel.value, slug: themeSel.value, windowType: wtypeSel.value || '(default)', w: +wIn.value, h: +hIn.value, scale: SC, state: stateSel.value };
+        if (win._scriptoscopeComposed && win._scriptoscopeComposed.placement && win._scriptoscopeComposed.placement.length) {
+          const cicnImg = await loadImgSafe(theme, windowCicn(theme, wtypeSel.value));
+          if (my !== token) return;
+          out.appendChild(buildSliceView(win, cicnImg, SC, refSrc, ctx));
+        } else {
+          const wrap = document.createElement('div'); wrap.style.cssText = 'display:flex;gap:16px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
+          const box = document.createElement('div'); box.style.cssText = 'flex:0 0 auto;display:inline-block;background:repeating-conic-gradient(#e8e8e8 0 25%,#f4f4f4 0 50%) 0/12px 12px';
+          win.style.position = 'relative'; box.appendChild(win);
+          const col = document.createElement('div'); col.style.cssText = 'flex:0 0 auto';
+          const note = document.createElement('div'); note.style.cssText = 'font:10px ui-monospace,Menlo,monospace;opacity:.6;margin-top:4px'; note.textContent = '(baseline / no wnd# recipe — no slices to inspect)';
+          col.append(box, note);
+          wrap.appendChild(col);
+          const refCol = refColumn(refSrc); if (refCol) wrap.appendChild(refCol);
+          out.appendChild(wrap);
+        }
+      };
+
+      // ── URL-hash state: the controls serialize to location.hash so a refresh
+      // restores them; Reset clears it back to defaults. ──
+      // Default to a recipe theme (1138) so the playground opens showing slices,
+      // not the baseline (no-wnd#) Apple Platinum.
+      const DEFAULTS = { theme: '1138', wt: 'document-window', title: 'Hello!', w: '150', h: '98', state: 'active', scale: '1' };
+      const writeHash = () => {
+        const p = new URLSearchParams({ theme: themeSel.value, wt: wtypeSel.value, title: titleIn.value, w: wIn.value, h: hIn.value, state: stateSel.value, scale: scaleSel.value });
+        history.replaceState(null, '', '#' + p.toString());
+      };
+      const applyControls = (st) => {
+        if (st.theme) themeSel.value = st.theme;
+        // window types depend on the theme — populate, then apply wt if valid
+        return loadWithBase(themeSel.value).then((theme) => {
+          populateWindowTypes(theme);
+          if (st.wt && [...wtypeSel.options].some((o) => o.value === st.wt)) wtypeSel.value = st.wt;
+          if (st.title !== undefined) titleIn.value = st.title;
+          if (st.w) wIn.value = st.w;
+          if (st.h) hIn.value = st.h;
+          if (st.state) stateSel.value = st.state;
+          if (st.scale) scaleSel.value = st.scale;
+        });
+      };
+
+      themeSel.onchange = async () => { populateWindowTypes(await loadWithBase(themeSel.value)); writeHash(); rerender(); };
+      for (const el of [wtypeSel, stateSel, scaleSel]) el.onchange = () => { writeHash(); rerender(); };
+      for (const el of [titleIn, wIn, hIn]) el.oninput = () => { clearTimeout(el._t); el._t = setTimeout(() => { writeHash(); rerender(); }, 250); };
+      resetBtn.onclick = async () => { await applyControls(DEFAULTS); history.replaceState(null, '', location.pathname + location.search); rerender(); };
+
+      (async () => {
+        const h = location.hash.replace(/^#/, '');
+        const st = h ? Object.fromEntries(new URLSearchParams(h)) : DEFAULTS;
+        await applyControls(st);
+        if (h) writeHash(); // normalize
+        rerender();
+      })();
+
+      // Follow the ribbon's active theme (window type / title / size stay put).
+      syncHooks.push(async (slug) => { themeSel.value = slug; populateWindowTypes(await loadWithBase(slug)); rerender(); });
+    }
+
+    const themeBySlug = new Map(THEMES.map((t) => [t.slug, t]));
+
+    // ── resource-roles viewer: the generated themes/<slug>/resource-roles.json,
+    //    as a foldout with the progress + scroll-arrow summary cards and a
+    //    filterable id → role table (the dual-channel cicn/ics4 mapping). ───────
+    async function resourceRoles(theme) {
+      const det = document.createElement('details');
+      const sum = document.createElement('summary');
+      sum.style.cssText = 'cursor:pointer;color:#555;font-weight:600;padding:4px 0';
+      det.appendChild(sum);
+      // Inspector data (Option A: in-memory decode) is preferred; fall back to the
+      // pre-extracted resource-roles.json for legacy/pre-extracted bundles.
+      let data = theme.inspector?.resourceRoles ?? null;
+      if (!data) {
+        try { const r = await fetch(`${theme.baseUrl}/resource-roles.json`); if (r.ok) data = await r.json(); } catch { /* */ }
+      }
+      if (!data) { sum.textContent = 'Resource roles — (manifest not found)'; return det; }
+      sum.textContent = `Resource roles — ${data.resources.length} resources · progress=${data.progress?.model ?? '?'}${data.scrollArrows ? ' · scroll-arrows mapped' : ''} — click to expand`;
+      const body = document.createElement('div'); body.style.cssText = 'padding:8px 0';
+      const cards = document.createElement('div'); cards.className = 'rr-summary';
+      if (data.progress) {
+        const c = document.createElement('div'); c.className = 'card';
+        const p = data.progress;
+        const detail = p.model === 'lavender-2-part' ? `fill ${p.fill} · track ${p.track}`
+          : p.model === 'role-3-part' ? `frame ${p.frame} · fill ${p.fill} · track ${p.track}` : '—';
+        c.innerHTML = `<b>progress</b><br>${p.model}<br>${detail}`;
+        cards.appendChild(c);
+      }
+      if (data.scrollArrows) {
+        const c = document.createElement('div'); c.className = 'card'; const a = data.scrollArrows;
+        c.innerHTML = `<b>scroll arrows</b><br>raised L${a.raised.left} R${a.raised.right} U${a.raised.up} D${a.raised.down}<br>pressed L${a.pressed.left} R${a.pressed.right}`;
+        cards.appendChild(c);
+      }
+      body.appendChild(cards);
+      const filter = document.createElement('input'); filter.type = 'search'; filter.placeholder = 'filter id / family / role / slug…';
+      filter.style.cssText = 'font:12px system-ui;padding:3px 7px;margin:0 0 6px;width:280px';
+      body.appendChild(filter);
+      const wrap = document.createElement('div'); wrap.style.cssText = 'max-height:360px;overflow:auto;border:1px solid #999;background:#d6d6d6';
+      const table = document.createElement('table'); table.className = 'rr-table';
+      table.innerHTML = '<thead><tr><th>id</th><th>type</th><th>family</th><th>role</th><th>slug</th></tr></thead>';
+      const tb = document.createElement('tbody');
+      const esc = (s) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const sorted = data.resources.slice().sort((a, b) => (a.family < b.family ? -1 : a.family > b.family ? 1 : (a.id ?? 0) - (b.id ?? 0)));
+      for (const r of sorted) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${esc(r.id)}</td><td>${esc(r.type)}</td><td><span class="rr-fam">${esc(r.family)}</span></td><td style="white-space:normal">${esc(r.role)}</td><td>${esc(r.slug)}</td>`;
+        tb.appendChild(tr);
+      }
+      table.appendChild(tb); wrap.appendChild(table); body.appendChild(wrap);
+      filter.oninput = () => { const q = filter.value.toLowerCase(); for (const tr of tb.children) tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none'; };
+      det.appendChild(body);
+      return det;
+    }
+
+    // ── buildThemeDetail: every diagnostic for ONE theme, in jump-linked sections.
+    async function buildThemeDetail(theme, meta) {
+      const frag = document.createElement('div');
+      const m = theme.manifest || {};
+
+      const head = document.createElement('div'); head.className = 'detail-head';
+      const h2 = document.createElement('h2'); h2.textContent = meta.label;
+      const metaEl = document.createElement('span'); metaEl.className = 'meta';
+      // author/origin are STRUCTURED objects in theme.json (e.g. author {name, year}; origin
+      // {kind, originalFormat, originalSchemeId, …}) — render them readably instead of letting
+      // String() emit "[object Object]". Tolerates plain-string values too (older bundles).
+      const fmtAuthor = (a) => (!a ? '' : typeof a === 'string' ? a : [a.name, a.year].filter(Boolean).join(', '));
+      const fmtOrigin = (o) => (!o ? '' : typeof o === 'string' ? o
+        : [o.kind && o.kind.replace(/-/g, ' '), o.originalFormat, o.originalSchemeId != null ? `#${o.originalSchemeId}` : '']
+          .filter(Boolean).join(' '));
+      metaEl.textContent = [fmtAuthor(m.author), fmtOrigin(m.origin), m.source].filter(Boolean).join(' · ');
+      const toolbar = document.createElement('div'); toolbar.className = 'detail-toolbar';
+      const lab = document.createElement('label');
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = sceneState === 'inactive';
+      const sceneFrames = [];
+      const rerenderScenes = async () => { for (const f of sceneFrames) { f.replaceChildren(); try { f.appendChild(await buildScene(theme, sceneState)); } catch (e) { f.textContent = String(e); } } };
+      cb.onchange = () => { sceneState = cb.checked ? 'inactive' : 'active'; rerenderScenes(); };
+      lab.append(cb, document.createTextNode('inactive windows'));
+      toolbar.appendChild(lab);
+      head.append(h2, metaEl, toolbar);
+      frag.appendChild(head);
+
+      const subnav = document.createElement('nav'); subnav.className = 'subnav';
+      frag.appendChild(subnav);
+      const navItems = [];
+      // The dev inspectors (geometry, slices, icons, rasters, roles) live inside a
+      // disclosure so the page leads with the showcase. Open by default when the URL
+      // carries `?dev=1` so a contributor's workflow isn't a click slower.
+      const devDetails = document.createElement('details'); devDetails.className = 'dev-tools';
+      if (new URLSearchParams(location.search).get('dev') === '1') devDetails.open = true;
+      const devSummary = document.createElement('summary');
+      devSummary.textContent = 'Developer tools — geometry · slice inspector · icon inventory · all rasters · resource roles';
+      devDetails.appendChild(devSummary);
+      const dsection = (id, label, opts = {}) => {
+        const s = document.createElement('section'); s.className = 'dsection'; s.id = 'd-' + id;
+        const h = document.createElement('h3'); h.textContent = label; s.appendChild(h);
+        navItems.push([id, label]);
+        if (opts.dev) devDetails.appendChild(s);
+        else frag.appendChild(s);
+        return s;
+      };
+
+      // 1. scene + reference (the key comparison)
+      {
+        const s = dsection('scene', 'Scene · reference');
+        const row = document.createElement('div'); row.className = 'row';
+        const { c: sc, frame: sceneFrame } = colEl('scene'); sceneFrames.push(sceneFrame);
+        try { sceneFrame.appendChild(await buildScene(theme, sceneState)); } catch (e) { sceneFrame.textContent = String(e); }
+        row.appendChild(sc);
+        if (meta.ref) { const { c: rc, frame: rf } = colEl('reference'); const img = document.createElement('img'); img.src = `./assets/references/${meta.ref}`; rf.appendChild(img); row.appendChild(rc); }
+        s.appendChild(row);
+      }
+
+      // 2. controls + buttons
+      {
+        const s = dsection('controls', 'Controls · buttons');
+        const row = document.createElement('div'); row.className = 'row';
+        // controls
+        {
+          const { c, frame } = colEl('controls');
+          const stack = document.createElement('div'); stack.className = 'ctl-stack';
+          const r1 = document.createElement('div'); r1.className = 'ctl-row';
+          const r2 = document.createElement('div'); r2.className = 'ctl-row';
+          add(r1, await composeScrollbar(theme, { orientation: 'horizontal', length: 140, value: 0.35, proportional: SCROLL_PROPORTIONAL }));
+          add(r1, await composeScrollbar(theme, { orientation: 'vertical', length: 90, value: 0.5, proportional: SCROLL_PROPORTIONAL }));
+          r2.appendChild(await sliderEl(theme, { orientation: 'horizontal', length: 120, value: 0.4 }));
+          add(r2, await composeProgress(theme, { length: 110, value: 0.6 }));
+          add(r2, await composeDisclosure(theme, { direction: 'right' }));
+          add(r2, await composeDisclosure(theme, { direction: 'down' }));
+          stack.append(r1, r2);
+          if (!r1.childElementCount && !r2.childElementCount) frame.textContent = '(no themed control cicns — baseline)';
+          else frame.appendChild(stack);
+          row.appendChild(c);
+        }
+        // buttons
+        {
+          const { c, frame } = colEl('buttons');
+          const stack = document.createElement('div'); stack.className = 'btn-stack';
+          const brow = document.createElement('div'); brow.style.cssText = 'display:flex;gap:6px;align-items:center';
+          // Same height: 22 cap as the dialog buttons — keeps the Cancel/OK/Help row at
+          // a consistent size across themes whose face cicns range from 5×6 (windows-95)
+          // to 74×74 (crayon-os).
+          const btn = async (label, o) => { const buf = await composeButton(theme, { label, height: 22, ...o }); return buf ? bufferToCanvas(buf, 1) : baselineButton(label, o); };
+          brow.append(await btn('Cancel', {}), await btn('OK', { default: true }), await btn('Help', { disabled: true }));
+          const bevelRow = document.createElement('div'); bevelRow.style.cssText = 'display:flex;gap:6px;align-items:center;margin-top:6px';
+          const bevel = async (o) => bufferToCanvas((await composeBevelButton(theme, o)) ?? platinumBevelButton(o), 1);
+          bevelRow.append(await bevel({ label: 'On', on: true }), await bevel({ label: 'Off' }), await bevel({ label: 'Aa', small: true }), await bevel({ label: 'Off', disabled: true }));
+          const cols = [{ label: 'Name', width: 96 }, { label: 'Size', width: 44 }, { label: 'Kind', width: 56 }];
+          // height: 22 cap — crayon-os ships its finder-header cicn (-9567) at
+          // 70×70, blowing up the list header to ~70 px tall without an explicit
+          // cap (vs Math.max(16, cell.height) which would just expand to 70).
+          // Matches the bevel + Cancel/OK/Help row's 22 px cap so the Controls
+          // panel reads as a coherent UI strip across themes.
+          const listHdr = (await composeListHeader(theme, { columns: cols, height: 22 })) ?? platinumListHeader({ columns: cols });
+          stack.append(brow, bevelRow, bufferToCanvas(listHdr, 1), await checkableEl(theme, 'checkbox', 'Show invisibles', { checked: true }), await checkableEl(theme, 'radio', 'On', { checked: true }));
+          frame.appendChild(stack); row.appendChild(c);
+        }
+        s.appendChild(row);
+      }
+
+      // 3–7. window geometry, slice inspector, icons, rasters, resource-roles
+      dsection('geometry', 'Window geometry', { dev: true }).appendChild(await diagnosticStrip(theme));
+      dsection('slices', 'Slice inspector', { dev: true }).appendChild(await sliceInspector(theme));
+      dsection('icons', 'Icon inventory', { dev: true }).appendChild(await iconInventory(theme));
+      dsection('rasters', 'All rasters', { dev: true }).appendChild(await rasterInventory(theme));
+      dsection('roles', 'Resource roles', { dev: true }).appendChild(await resourceRoles(theme));
+      frag.appendChild(devDetails);
+
+      for (const [id, label] of navItems) { const a = document.createElement('a'); a.href = '#d-' + id; a.textContent = label; subnav.appendChild(a); }
+      return frag;
+    }
+
+    // ── the theme RIBBON (a Kaleidoscope-style scheme picker as a film strip) ──
+    const ribbonEl = document.getElementById('ribbon');
+    async function buildRibbon() {
+      for (const t of THEMES) {
+        const item = document.createElement('button'); item.type = 'button'; item.className = 'ribbon-item'; item.dataset.slug = t.slug;
+        item.onclick = () => activate(t.slug);
+        if (t.ref) {
+          const img = document.createElement('img'); img.className = 'ribbon-thumb'; img.loading = 'lazy'; img.alt = ''; img.src = `./assets/references/${t.ref}`;
+          item.appendChild(img);
+        } else {
+          // No reference screenshot (generated bundle) → a scaled live scene as the thumb.
+          const box = document.createElement('div'); box.className = 'ribbon-thumb scene';
+          try { const sc = await buildScene(await loadWithBase(t.slug), 'active'); sc.style.transform = 'scale(0.56)'; box.appendChild(sc); } catch { /* */ }
+          item.appendChild(box);
+        }
+        const title = document.createElement('span'); title.className = 'ribbon-title';
+        title.textContent = t.label.replace(/\s*✦.*$/, '');
+        if (/✦/.test(t.label)) { const b = document.createElement('span'); b.className = 'ribbon-badge'; b.textContent = '✦'; b.title = '✦ ' + t.label.replace(/^.*✦\s*/, ''); title.appendChild(b); }
+        item.append(title);
+        ribbonEl.appendChild(item);
+      }
+      requestAnimationFrame(() => document.documentElement.style.setProperty('--ribbon-h', ribbonEl.offsetHeight + 'px'));
+    }
+
+    // ── activate: render the single-theme detail + sync the tools to it ───────
+    let activateToken = 0;
+    async function activate(slug) {
+      const my = ++activateToken;
+      activeSlug = slug;
+      for (const b of ribbonEl.children) b.classList.toggle('active', b.dataset.slug === slug);
+      const active = ribbonEl.querySelector('.ribbon-item.active');
+      if (active) active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+      try { const u = new URL(location.href); u.searchParams.set('theme', slug); history.replaceState(null, '', u); } catch { /* */ }
+      detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: 'loading…', style: 'padding:28px;opacity:.55' }));
+      let theme;
+      try { theme = await loadWithBase(slug); }
+      catch (e) { if (my === activateToken) detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: `failed to load ${slug}: ${e}`, style: 'padding:28px;color:#900' })); return; }
+      if (my !== activateToken) return;
+      let detail;
+      try { detail = await buildThemeDetail(theme, themeBySlug.get(slug)); }
+      catch (e) { if (my === activateToken) detailEl.replaceChildren(Object.assign(document.createElement('div'), { textContent: `render error: ${e}`, style: 'padding:28px;color:#900' })); return; }
+      if (my !== activateToken) return;
+      detailEl.replaceChildren(detail);
+      for (const hook of syncHooks) { try { await hook(slug); } catch { /* tool sync best-effort */ } }
+    }
+
+    // ── Interactive playground (Phase 1) ─────────────────────────────────────
+    // Live interaction on the themed chrome: buttons depress on press,
+    // checkbox/radio toggle, disclosure expands, and clicking a window focuses
+    // it (active↔inactive chrome). All from src/interactive.ts.
+    {
+      const section = document.createElement('div'); section.className = 'theme-row';
+      const h2 = document.createElement('h2'); h2.textContent = 'Interactive playground — live';
+      const intro = document.createElement('p');
+      intro.style.cssText = 'margin:2px 0 10px;opacity:.6;font-size:12px';
+      intro.textContent = 'Press the buttons, toggle the checkbox/radio, expand the disclosure, drag the slider/scrollbars, click a window to focus it, and click its title-bar widgets — rendered in the theme selected in the ribbon above.';
+      const host = document.createElement('div');
+      section.append(h2, intro, host);
+      rows.appendChild(section);
+
+      async function buildInteractive(slug) {
+        host.replaceChildren();
+        const status = document.createElement('div');
+        status.style.cssText = 'font:12px Charcoal,Geneva,sans-serif;min-height:16px;margin:0 0 10px;color:#333';
+        status.textContent = 'ready — interact with the controls';
+        host.appendChild(status);
+        const theme = await loadWithBase(slug);
+        const say = (m) => { status.textContent = m; };
+
+        const ctrls = document.createElement('div');
+        ctrls.style.cssText = 'display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px';
+
+        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:8px;align-items:center';
+        btns.append(
+          await interactiveButton(theme, { label: 'Cancel', onClick: () => say('Cancel clicked') }),
+          await interactiveButton(theme, { label: 'OK', default: true, onClick: () => say('OK clicked') }),
+          await interactiveButton(theme, { label: 'Help', disabled: true, onClick: () => say('(disabled)') }),
+        );
+
+        const toggles = document.createElement('div'); toggles.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+        toggles.append(
+          await interactiveCheckbox(theme, { label: 'Show invisibles', checked: true, onChange: (c) => say('Show invisibles: ' + c) }),
+          await radioGroup(theme, { items: [{ label: 'On', value: 'on' }, { label: 'Off', value: 'off' }], value: 'on', onChange: (v) => say('radio → ' + v) }),
+        );
+
+        const discWrap = document.createElement('div');
+        const discRow = document.createElement('div'); discRow.style.cssText = 'display:flex;gap:6px;align-items:center;font:12px Charcoal,Geneva,sans-serif';
+        const content = document.createElement('div');
+        content.textContent = 'Disclosed details — toggled by the triangle.';
+        content.style.cssText = 'font:11px Charcoal,Geneva,sans-serif;margin:5px 0 0 18px;display:none;color:#555';
+        const disc = await interactiveDisclosure(theme, { open: false, onToggle: (open) => { content.style.display = open ? 'block' : 'none'; say('disclosure ' + (open ? 'open' : 'closed')); } });
+        const lbl = document.createElement('span'); lbl.textContent = 'Details';
+        discRow.append(disc, lbl); discWrap.append(discRow, content);
+
+        const drag = document.createElement('div'); drag.style.cssText = 'display:flex;gap:16px;align-items:flex-start';
+        const dragCol = document.createElement('div'); dragCol.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+        dragCol.append(
+          await interactiveSlider(theme, { length: 120, value: 0.4, onChange: (v) => say('slider → ' + Math.round(v * 100) + '%') }),
+          await interactiveScrollbar(theme, { orientation: 'horizontal', length: 120, value: 0.3, onChange: (v) => say('h-scroll → ' + Math.round(v * 100) + '%') }),
+        );
+        drag.append(
+          dragCol,
+          await interactiveScrollbar(theme, { orientation: 'vertical', length: 96, value: 0.3, onChange: (v) => say('v-scroll → ' + Math.round(v * 100) + '%') }),
+        );
+
+        // Text fields — themed via promoteField() (the imperative path the declarative
+        // [data-scriptoscope-field] scanner ultimately calls). Demonstrates the Mac OS 8 sunken-bevel
+        // chrome over native <input> + <textarea>: native selection/IME/autofill/a11y stays,
+        // only the box gets period-correct (#888 top/left + #fff bottom/right + inset shadow).
+        const fields = document.createElement('div');
+        fields.style.cssText = 'display:flex;flex-direction:column;gap:6px;min-width:160px';
+        const fieldLabel = (txt) => { const l = document.createElement('label'); l.textContent = txt; l.style.cssText = 'font:11px Charcoal,Geneva,sans-serif;display:block'; return l; };
+        const textIn = document.createElement('input'); textIn.type = 'text'; textIn.placeholder = 'Type here…'; textIn.value = 'Hello, world';
+        const emailIn = document.createElement('input'); emailIn.type = 'email'; emailIn.placeholder = 'you@example.com';
+        const ta = document.createElement('textarea'); ta.rows = 2; ta.placeholder = 'Multiline…';
+        const disIn = document.createElement('input'); disIn.type = 'text'; disIn.value = 'disabled'; disIn.disabled = true;
+        const wrap = (lblTxt, el) => { const w = document.createElement('div'); w.append(fieldLabel(lblTxt), el); return w; };
+        fields.append(wrap('Name', textIn), wrap('Email', emailIn), wrap('Notes', ta), wrap('Disabled', disIn));
+        // Promote each — opt-in, mirrors the declarative [data-scriptoscope-field] path.
+        for (const el of [textIn, emailIn, ta, disIn]) promoteField(el, theme);
+
+        ctrls.append(btns, toggles, discWrap, drag, fields);
+        host.appendChild(ctrls);
+
+        const deskLabel = document.createElement('div');
+        deskLabel.textContent = 'Drag a title bar to MOVE a window; drag the grow box (bottom-right) to RESIZE it. Click a window to focus it (active vs. inactive chrome). Click a title-bar widget (close/zoom/collapse) to fire its handler — and HOLD it to see the pressed state (real pressed art where the scheme ships it; a darkened press otherwise):';
+        deskLabel.style.cssText = 'font:11px system-ui;opacity:.6;margin-bottom:4px';
+        const desk = document.createElement('div');
+        desk.style.cssText = 'position:relative;height:280px;max-width:560px;background:#9a9a9a;border:1px solid #888;overflow:hidden';
+        host.append(deskLabel, desk);
+        try {
+          const wm = new WindowManager();
+          // Both windows render at native 1×. Handlers just report (no hide) so the windows persist
+          // for move/resize/press exploration.
+          const w1 = await wm.add(theme, { title: 'Document', width: 190, height: 104 }, {
+            onClose: () => say('Document — close clicked'),
+            onZoom: () => say('Document — zoom clicked'),
+            onCollapse: () => say('Document — collapse clicked'),
+          });
+          const w2 = await wm.add(theme, { title: 'Options', windowType: 'no-title-utility-window', width: 168, height: 84 }, {
+            onClose: () => say('Options — close clicked'),
+          });
+          w1.style.left = '14px'; w1.style.top = '12px';
+          w2.style.left = '120px'; w2.style.top = '160px';
+          desk.append(w1, w2);
+        } catch (e) { say('window render failed: ' + (e && e.message || e)); }
+      }
+      // Follow the ribbon's active theme — the first render fires from activate().
+      syncHooks.push((slug) => buildInteractive(slug));
+    }
+
+    // ── Bring-your-own-theme drop-zone ──────────────────────────────────────
+    // Exercises the in-browser conversion path END TO END, no build step, no upload:
+    // a dropped Kaleidoscope resource fork → loadKaleidoscopeScheme → convertScheme
+    // (decode cicn/ppat/cinf/wnd# + gamma + headerColors + icons) → OffscreenCanvas
+    // blob-URL assets + glyph map → the SAME renderWindow the gallery uses. This is
+    // the debug layer driving the browser shell over the conversion core; the only
+    // bit that can't run in Node (OffscreenCanvas) and so the real proof of the path.
+    function setupByo() {
+      const zone = document.getElementById('byo-drop');
+      const fileIn = document.getElementById('byo-file');
+      const out = document.getElementById('byo-out');
+      if (!zone || !out) return;
+
+      const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+      zone.addEventListener('click', () => fileIn.click());
+      zone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
+      ['dragenter', 'dragover'].forEach((t) => zone.addEventListener(t, (e) => { stop(e); zone.classList.add('drag'); }));
+      ['dragleave', 'drop'].forEach((t) => zone.addEventListener(t, (e) => { stop(e); zone.classList.remove('drag'); }));
+      zone.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) convertAndRender(f); });
+      fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; if (f) convertAndRender(f); });
+
+      let token = 0;
+      async function convertAndRender(file) {
+        const my = ++token;
+        out.innerHTML = '';
+        const status = document.createElement('div');
+        status.className = 'byo-report';
+        status.textContent = `Converting ${file.name}…`;
+        out.appendChild(status);
+        zone.setAttribute('aria-busy', 'true'); // announce the in-flight decode to AT
+
+        const name = file.name.replace(/\.[^.]+$/, '') || file.name;
+        let loaded;
+        try {
+          // The whole conversion runs HERE in the browser (OffscreenCanvas encodes the
+          // RGBA assets to blob: URLs); anything the scheme doesn't ship falls through
+          // to the procedural Platinum fallback in src/platinum.ts.
+          loaded = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+        } catch (err) {
+          if (my !== token) return;
+          zone.removeAttribute('aria-busy');
+          // Human top line; raw decoder text tucked behind a disclosure (it's diagnostic, not
+          // for the user — e.g. munbox "header2 out of range" or a fork-parser overrun).
+          status.className = 'byo-err';
+          status.innerHTML = '';
+          const top = document.createElement('div');
+          top.textContent = `Couldn't read “${file.name}” as a Kaleidoscope theme — it may not be a theme file, or it's a format we don't support yet (e.g. StuffIt X .sitx).`;
+          const det = document.createElement('details');
+          const sum = document.createElement('summary'); sum.textContent = 'Technical detail';
+          const raw = document.createElement('div'); raw.className = 'byo-raw'; raw.textContent = (err && err.message) || String(err);
+          det.append(sum, raw);
+          status.append(top, det);
+          return;
+        }
+        if (my !== token) return;
+        zone.removeAttribute('aria-busy');
+
+        const wtypes = Object.keys(loaded.manifest.windowTypes || {});
+        const glyphCount = Object.keys(loaded.glyphs || {}).length;
+        const fill = loaded.manifest.headerColors && loaded.manifest.headerColors.active && loaded.manifest.headerColors.active.fill;
+
+        status.className = 'byo-report';
+        status.innerHTML = '';
+        const tick = document.createElement('span'); tick.textContent = `✓ ${name} converted in-browser`; tick.style.fontWeight = '600';
+        const counts = document.createElement('span'); counts.style.opacity = '.7';
+        counts.textContent = `${wtypes.length} window type${wtypes.length === 1 ? '' : 's'} · ${glyphCount} glyph${glyphCount === 1 ? '' : 's'}`;
+        status.append(tick, counts);
+        if (fill) { const sw = document.createElement('span'); sw.className = 'byo-sw'; sw.style.background = fill; sw.title = `headerColors.active.fill ${fill}`; status.appendChild(sw); }
+        // Set the expectation at the moment of success: this is a preview, not a save.
+        const note = document.createElement('span'); note.className = 'byo-note'; note.textContent = 'Preview only — not saved (gone on reload).';
+        status.appendChild(note);
+
+        // Lead render: the default document window at 2× so the chrome is legible.
+        const big = document.createElement('div'); big.className = 'byo-cell';
+        const blbl = document.createElement('div'); blbl.className = 'lbl'; blbl.textContent = 'default window · 2×'; big.appendChild(blbl);
+        try { big.appendChild(await renderWindow(loaded, { title: name, width: 200, height: 120, scale: 2, state: 'active' })); }
+        catch (err) { const e = document.createElement('div'); e.className = 'byo-err'; e.textContent = `render failed: ${(err && err.message) || err}`; big.appendChild(e); }
+        out.appendChild(big);
+        if (my !== token) return;
+
+        // Every converted window type at 1×, active — proves the WHOLE convertChrome
+        // output renders, not just the lead type.
+        const grid = document.createElement('div'); grid.className = 'byo-grid';
+        for (const wt of wtypes) {
+          const cell = document.createElement('div'); cell.className = 'byo-cell';
+          const l = document.createElement('div'); l.className = 'lbl'; l.textContent = wt; cell.appendChild(l);
+          try { cell.appendChild(await renderWindow(loaded, { windowType: wt, title: name, width: 150, height: 96, scale: 1, state: 'active' })); }
+          catch { const e = document.createElement('div'); e.className = 'byo-err'; e.textContent = '— (type skipped)'; cell.appendChild(e); }
+          if (my !== token) return;
+          grid.appendChild(cell);
+        }
+        out.appendChild(grid);
+      }
+    }
+    setupByo();
+
+    // (The "Powers" intro + folder-strip theme picker that used to live here
+    // moved to demo/index.html with the 2026-05-30 landing/diagnostic swap.)
+
+    // ── boot: build the ribbon, then activate the theme from ?theme= (or the first).
+    await buildRibbon();
+    {
+      const want = new URL(location.href).searchParams.get('theme');
+      activate(THEMES.some((t) => t.slug === want) ? want : THEMES[0].slug);
+    }
+  </script>
+  <footer style="font:11px system-ui;color:#555;padding:14px 24px;border-top:1px solid #aaa;margin-top:24px">
+    Window <strong>titles</strong> render in <a href="https://fontstruct.com/fontstructions/show/2813611" style="color:#357">Charcoal&nbsp;12</a>,
+    Jeremy&nbsp;Sachs' bitmap clone of Mac&nbsp;OS&nbsp;8/9 Charcoal (CC&nbsp;BY-SA&nbsp;3.0).
+    Other UI text uses <a href="http://www.scootergraphics.com/virtue/" style="color:#357">Virtue</a>,
+    Marty&nbsp;P.&nbsp;Pfeiffer's free Charcoal recreation (Scooter&nbsp;Graphics, 1999) —
+    itself built on Greg&nbsp;Landweber's reverse-engineered Charcoal from Aaron + Kaleidoscope.
+    Used with credit; see <code>demo/assets/fonts/charcoal-12-license.txt</code> + <code>VIRTUE-LICENSE.txt</code>.
+  </footer>
+</body>
+</html>
