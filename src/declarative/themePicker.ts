@@ -121,18 +121,87 @@ export async function promoteThemePicker(
     if (slug) void deps.switchTheme(slug);
   });
 
-  // Fill each tile's folder icon CONCURRENTLY (Mac scheme bundles are tiny;
-  // 18 parallel decodes wall-time ≈ max(1) instead of sum(18)).
-  void Promise.allSettled(themes.map(async (t) => {
-    const theme = await deps.loadTheme(t.slug);
-    const idx = theme.inspector?.iconIndex ?? [];
-    const pick = (id: number) => idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
-    const hit = pick(primaryId) ?? pick(fallbackId);
-    if (!hit?.url) return;
-    const tile = tiles.get(t.slug);
-    const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
-    if (icon) icon.src = hit.url;
-  }));
+  // Lazy icon decode (perf finding 2026-05-30 P0): the eager "all 18 in
+  // parallel" preload was 6.7MB of background traffic + ~30s of main-thread
+  // decode on mid-range mobile, mostly to fill 32×32 icons users never
+  // looked at. Now we:
+  //   1. Show a placeholder (CSS dotted outline — already in scriptoscope.css)
+  //   2. Decode a tile's theme only when it intersects the viewport
+  //   3. Decode-on-click as the synchronous fallback (intersection might
+  //      not fire if the user tabs to the tile keyboard-only)
+  // The active tile is decoded eagerly because its icon is the FIRST one
+  // visible + it's already being loaded by the page-default mount.
+  // Concurrency is capped at 2 and decodes yield via requestIdleCallback
+  // between to keep the main thread responsive on mobile scrolling.
+  const decoded = new Set<string>();
+  let inFlight = 0;
+  const queue: string[] = [];
+  const drain = (): void => {
+    while (inFlight < 2 && queue.length) {
+      const slug = queue.shift();
+      if (!slug || decoded.has(slug)) continue;
+      decoded.add(slug);
+      inFlight += 1;
+      void (async () => {
+        try {
+          const theme = await deps.loadTheme(slug);
+          const idx = theme.inspector?.iconIndex ?? [];
+          const pick = (id: number) => idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
+          const hit = pick(primaryId) ?? pick(fallbackId);
+          if (hit?.url) {
+            const tile = tiles.get(slug);
+            const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
+            if (icon) icon.src = hit.url;
+          }
+        } catch { /* tolerate per-theme failures */ } finally {
+          inFlight -= 1;
+          // Yield to the main thread between decodes — requestIdleCallback
+          // when available (Chrome/Firefox), setTimeout fallback (Safari).
+          const yieldFn: (cb: () => void) => void =
+            typeof requestIdleCallback === 'function'
+              ? (cb) => { requestIdleCallback(cb); }
+              : (cb) => { setTimeout(cb, 0); };
+          yieldFn(drain);
+        }
+      })();
+    }
+  };
+  const requestDecode = (slug: string): void => {
+    if (decoded.has(slug)) return;
+    if (!queue.includes(slug)) queue.push(slug);
+    drain();
+  };
+  // The active tile: decode eagerly. Its theme is the page default + the
+  // first icon a user will see; it's also already being loaded by mount.
+  if (deps.initialSlug) requestDecode(deps.initialSlug);
+  // The other 17: decode on intersection (tile scrolls into view) OR on
+  // click (keyboard nav / direct interaction). IntersectionObserver is
+  // ubiquitous (Chrome 51+, Firefox 55+, Safari 12.1+).
+  if (typeof IntersectionObserver === 'function') {
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const slug = (entry.target as HTMLButtonElement).dataset.slug;
+        if (slug) requestDecode(slug);
+        io.unobserve(entry.target); // one-shot per tile
+      }
+    }, { rootMargin: '50px' }); // start the decode shortly before tile enters
+    for (const tile of tiles.values()) io.observe(tile);
+  } else {
+    // No IntersectionObserver (very old browsers) — decode on hover/focus
+    // instead of preloading everything.
+    for (const [slug, tile] of tiles) {
+      tile.addEventListener('mouseenter', () => requestDecode(slug), { once: true });
+      tile.addEventListener('focus', () => requestDecode(slug), { once: true });
+    }
+  }
+  // Click is the universal fallback — even with IntersectionObserver, a
+  // user might tab to a tile keyboard-only (no hover) and click before
+  // the IO fires. switchTheme already calls deps.loadTheme so the icon
+  // resolves through the cache; this just ensures the tile's icon paints.
+  for (const [slug, tile] of tiles) {
+    tile.addEventListener('click', () => requestDecode(slug));
+  }
 
   return el;
 }

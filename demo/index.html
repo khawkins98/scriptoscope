@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scriptoscope — eighteen schemes, one runtime</title>
   <meta name="description" content="Render any classic-Mac Kaleidoscope theme pixel-faithfully in the browser. Drop a script tag, add a few attributes, ship 1997 to production." />
+  <!-- Font preloads: start the woff fetches in parallel with the JS
+       download instead of waiting until the module evaluates and the
+       @font-face rules trigger discovery. Without these, on Fast 3G,
+       the fonts didn't start loading until ~2s into the page life;
+       with them, the network kicks them off at <100ms (same time as
+       the JS chunks). Perf agent finding 2026-05-30. -->
+  <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff" />
+  <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/virtue.woff" />
   <style>
     /* ── Font stack ─────────────────────────────────────────────────────────
        The window/control text stacks ask for "Charcoal" (Mac OS 8.5/8.6 system
@@ -373,15 +381,12 @@
     import { mountDeclarative, VERSION } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
-    // Preload Charcoal faces before any chrome render — rasterizeText (control
-    // labels) + rasterizeTitleFont are sync canvas draws; if the face isn't
-    // loaded the canvas silently falls back to sans and FIRST paint flashes
-    // the wrong font. Top-level await is the gate.
-    try { await Promise.all([
-      document.fonts.load('16px "Charcoal 12"'),
-      document.fonts.load('13px Charcoal'),
-      document.fonts.load('11px Charcoal'),
-    ]); } catch { /* face optional — falls back to system stack */ }
+    // (Removed: the inline `await Promise.all(document.fonts.load(...))`
+    // that used to gate this whole module — perf agent caught ~700ms of
+    // wasted blocking on Fast 3G because the library's own preloadFonts()
+    // gate runs inside mountDeclarative anyway. The script-tag preload
+    // links in <head> below let the browser start the woff fetches in
+    // parallel with the JS download instead of after it.)
 
     // Theme bundles live under the deploy base: `/` in dev, `/aaron-ui/` on
     // GH Pages. BASE_URL carries the prefix + trailing slash.

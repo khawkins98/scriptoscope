@@ -18,7 +18,7 @@ import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeSc
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: Record<string, unknown> } = {},
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
@@ -37,14 +37,19 @@ export async function loadTheme(
     throw new Error(`loadTheme: ${baseUrl} — no ${candidates.join(' or ')} found`);
   }
 
-  // Fetch meta.json if present (author/license/provenance — merged into the
-  // decoded manifest's `name` / `author` / `origin` fields). Missing is OK
-  // for a freshly-imported scheme that hasn't had its provenance scaffolded.
-  let meta: Record<string, unknown> = {};
-  try {
-    const metaRes = await fetch(`${baseUrl}/meta.json`);
-    if (metaRes.ok) meta = await metaRes.json() as Record<string, unknown>;
-  } catch { /* network error / not present — silently degrade */ }
+  // meta.json: consumer can pass `opts.meta` (the resolver does this when a
+  // PickerThemeEntry has the data already on disk via themes-manifest.json,
+  // avoiding a ~660ms wasted round-trip per theme — perf finding 2026-05-30 P1).
+  // Falls back to fetching `meta.json` directly when no hint is provided.
+  // Missing is OK for a freshly-imported scheme that hasn't had its
+  // provenance scaffolded yet.
+  let meta: Record<string, unknown> = opts.meta ?? {};
+  if (!opts.meta) {
+    try {
+      const metaRes = await fetch(`${baseUrl}/meta.json`);
+      if (metaRes.ok) meta = await metaRes.json() as Record<string, unknown>;
+    } catch { /* network error / not present — silently degrade */ }
+  }
 
   const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
   const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
