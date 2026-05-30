@@ -76,9 +76,18 @@
     #powers .powers-hero-strip select { font: 12px Georgia, serif; padding: 2px 6px; border: 1px solid #888; background: #fff; }
     /* Folder-icon theme picker. Each tile is the authentic -3983 System Folder
        cicn (or -3999 Generic Folder fallback) from that bundle's resource fork
-       — the icons ARE the demo. Right-edge mask-image hints at the off-screen
-       tiles so the "eighteen" promise reads visually, not just verbally. */
+       — the icons ARE the demo. When skinned, the strip lives INSIDE a Mac
+       window (data-scriptoscope-window on .powers-picker below), so the
+       window chrome supplies the visual boundary and the WindowManager wires
+       a themed scrollbar on overflow. OFF mode falls back to the gradient
+       fade hint so the "eighteen" promise still reads visually. */
     #powers .powers-folders { display: flex; gap: 8px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
+    /* When skinned, the picker becomes a Mac window — drop the mask gradient
+       (chrome is the boundary now) and let the strip flow into the window body. */
+    #powers .powers-grid.skinned .powers-folders { mask-image: none; -webkit-mask-image: none; padding: 4px; }
+    /* OFF mode: picker spans both grid columns so the strip stays full-width. */
+    #powers .powers-picker { grid-column: 1 / -1; }
+    #powers .powers-grid.skinned .powers-picker { display: block; filter: drop-shadow(2px 3px 0 #00000028); }
     #powers .powers-folder { flex: 0 0 auto; display: grid; gap: 3px; justify-items: center; padding: 8px 6px 6px; border: 1px solid transparent; cursor: pointer; border-radius: 4px; min-width: 72px; max-width: 72px; background: transparent; }
     #powers .powers-folder:hover { background: #f0f0f0; }
     #powers .powers-folder:focus-visible { outline: 2px solid #3859b3; outline-offset: 1px; }
@@ -169,13 +178,21 @@
         <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
         <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
       </div>
-      <div class="powers-bar">
-        <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
-      </div>
       <div class="powers-grid" id="powers-grid">
+        <!-- The PICKER WINDOW. When skinned, the folder strip lives inside a
+             Mac window — doubles down on the "open the folder = wear the
+             scheme" metaphor (the picker IS a Finder folder full of folders).
+             Wide + short geometry mimics a list-view Finder window; the
+             WindowManager auto-wires a themed scrollbar for the overflow. -->
+        <article class="powers-picker" data-scriptoscope-window
+                 data-scriptoscope-title="Schemes" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-x="10" data-scriptoscope-y="10"
+                 data-scriptoscope-width="900" data-scriptoscope-height="120">
+          <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
+        </article>
         <article class="powers-card" data-scriptoscope-window
                  data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="10" data-scriptoscope-y="10"
+                 data-scriptoscope-x="10" data-scriptoscope-y="150"
                  data-scriptoscope-width="320" data-scriptoscope-height="200">
           <div class="powers-glyph" aria-hidden="true" data-powers-icon="folder">⌘</div>
           <div>
@@ -185,7 +202,7 @@
         </article>
         <article class="powers-card" data-scriptoscope-window
                  data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="350" data-scriptoscope-y="40"
+                 data-scriptoscope-x="350" data-scriptoscope-y="180"
                  data-scriptoscope-width="320" data-scriptoscope-height="200">
           <div class="powers-glyph" aria-hidden="true" data-powers-icon="document">↘</div>
           <div>
@@ -195,7 +212,7 @@
         </article>
         <article class="powers-card" data-scriptoscope-window
                  data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="40" data-scriptoscope-y="270"
+                 data-scriptoscope-x="40" data-scriptoscope-y="400"
                  data-scriptoscope-width="360" data-scriptoscope-height="240">
           <div class="powers-glyph" aria-hidden="true" data-powers-icon="prefs">✎</div>
           <div>
@@ -207,8 +224,8 @@
           </div>
         </article>
         <article class="powers-card" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes" data-scriptoscope-window-type="titled-utility-window"
-                 data-scriptoscope-x="430" data-scriptoscope-y="310"
+                 data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window"
+                 data-scriptoscope-x="430" data-scriptoscope-y="450"
                  data-scriptoscope-width="260" data-scriptoscope-height="200">
           <div class="powers-glyph" aria-hidden="true" data-powers-icon="suitcase">✦</div>
           <div>
