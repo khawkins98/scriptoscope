@@ -10,6 +10,7 @@ import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
+import { consumeInheritedRect } from './inheritedRect.js';
 
 export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
@@ -20,13 +21,8 @@ const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for con
 const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40;
 
-/** Parse a string to number, or null when the input is missing or NaN. Used to read the
- *  scanner's pre-captured rect seam values from the dataset. */
-function numOrNull(s: string | undefined): number | null {
-  if (s == null) return null;
-  const n = parseFloat(s);
-  return Number.isFinite(n) ? n : null;
-}
+// (numOrNull was the parser for the dataset-based pre-captured rect seam;
+// retired with the WeakMap migration in T3.2.)
 
 /** Walk up the DOM to find the nearest positioned ancestor (the one the host's absolute
  *  positioning will resolve against). Returns null when no positioned ancestor exists
@@ -94,23 +90,17 @@ export class ScriptoscopeWindow {
     // harness, programmatic AaronWindow.promote calls, etc.).
     const ancestor = findPositionedAncestor(el);
     const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
-    const preLeft = numOrNull(el.dataset.scriptoscopeInheritedLeft);
-    const preTop = numOrNull(el.dataset.scriptoscopeInheritedTop);
-    const preW = numOrNull(el.dataset.scriptoscopeInheritedWidth);
-    const preH = numOrNull(el.dataset.scriptoscopeInheritedHeight);
-    const elRect = (preLeft != null && preTop != null && preW != null && preH != null)
-      ? { left: preLeft, top: preTop, width: preW, height: preH }
-      : el.getBoundingClientRect();
+    // Pre-captured rect from the scanner lives on a WeakMap (T3.2 — was
+    // dataset attributes before; the dataset version leaked to consumer
+    // DevTools + CSS attribute selectors). consume() reads-and-clears in
+    // one call so the entry doesn't outlive its single intended use.
+    const pre = consumeInheritedRect(el);
+    const elRect = pre ?? el.getBoundingClientRect();
     const naturalX = Math.round(elRect.left - ancRect.left);
     const naturalY = Math.round(elRect.top - ancRect.top);
     const naturalW = Math.round(elRect.width);
     const naturalH = Math.round(elRect.height);
     const hasNaturalRect = naturalW > 0 && naturalH > 0;
-    // Clean up the seam values once consumed.
-    delete el.dataset.scriptoscopeInheritedLeft;
-    delete el.dataset.scriptoscopeInheritedTop;
-    delete el.dataset.scriptoscopeInheritedWidth;
-    delete el.dataset.scriptoscopeInheritedHeight;
     el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.

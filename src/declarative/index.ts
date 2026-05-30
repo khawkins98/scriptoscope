@@ -4,7 +4,7 @@
 
 export {
   mountDeclarative,
-  type MountOptions, type MountHandle, type MountStats, type PromoteError,
+  type MountOptions, type MountHandle, type MountStats, type PromoteError, type MountEventMap,
 } from './scanner.js';
 export {
   SCRIPTOSCOPE_SLOT_CLASS, SCRIPTOSCOPE_READY_CLASS, SCRIPTOSCOPE_PROMOTED_ATTR,

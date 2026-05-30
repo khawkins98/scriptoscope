@@ -6,6 +6,7 @@
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow, findPositionedAncestor } from './ScriptoscopeWindow.js';
+import { setInheritedRect } from './inheritedRect.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
@@ -88,9 +89,30 @@ export interface MountStats {
   fields: number;
 }
 
+/** Events dispatched on the MountHandle. Use `handle.addEventListener('ready', cb)`.
+ *  All events bubble through the handle itself (it's an EventTarget); promoted
+ *  windows ALSO dispatch a `scriptoscope:promoted` CustomEvent on the original
+ *  consumer element (bubbles up the DOM) so consumers can listen anywhere
+ *  without holding the handle.
+ *
+ * - `ready`         — initial scan completed; stats reflect first-pass counts.
+ * - `retheme`       — handle.retheme resolved; .detail is the new ref.
+ * - `promoteError`  — single-target promotion failed; .detail is { kind, el, cause }.
+ * - `unmounted`     — disconnect() ran; handle is now inert.
+ */
+export type MountEventMap = {
+  ready: CustomEvent<{ stats: MountStats }>;
+  retheme: CustomEvent<{ ref: string }>;
+  promoteError: CustomEvent<PromoteError>;
+  unmounted: CustomEvent<undefined>;
+};
+
 /** Public handle returned by mountDeclarative. Exported so consumers can type
- *  refs (`const handle: MountHandle = await mountDeclarative(...)`). */
-export interface MountHandle {
+ *  refs (`const handle: MountHandle = await mountDeclarative(...)`). Extends
+ *  EventTarget so consumers can subscribe to lifecycle events via the standard
+ *  addEventListener / removeEventListener; cast the CustomEvent.detail per
+ *  the MountEventMap above. */
+export interface MountHandle extends EventTarget {
   disconnect(): void;
   retheme(ref: string): Promise<void>;
   registerTheme(ref: string, theme: LoadedTheme): void;
@@ -187,8 +209,20 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // console.error by returning false (matches the addEventListener cancel
   // pattern). Routing all 5 promote*'s catch blocks through this keeps the
   // surface uniform — useful when we later add lifecycle events (T3.1).
+  // Lifecycle event bus — the MountHandle below extends EventTarget so
+  // consumers can addEventListener('ready'|'retheme'|'promoteError'|
+  // 'unmounted'). All four routed through here for one consistent shape.
+  const events = new EventTarget();
+  const dispatch = <T>(type: string, detail?: T): void => {
+    events.dispatchEvent(new CustomEvent(type, detail !== undefined ? { detail } : undefined));
+  };
   const reportPromoteError = (kind: PromoteError['kind'], el: Element, cause: unknown): void => {
-    const handled = opts.onPromoteError?.({ kind, el, cause });
+    const err: PromoteError = { kind, el, cause };
+    dispatch('promoteError', err);
+    // Also fire a bubbling DOM event on the original element so consumers
+    // can listen anywhere without holding the handle.
+    el.dispatchEvent(new CustomEvent('scriptoscope:promoteError', { bubbles: true, detail: err }));
+    const handled = opts.onPromoteError?.(err);
     if (handled === false) return;
     console.error(`[scriptoscope] ${kind} promote failed:`, cause);
   };
@@ -305,6 +339,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       mounted.push(aw);
       stats.windows += 1;
       debug('promote', `window: ${el.dataset.scriptoscopeTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
+      // Bubbling DOM event so consumers can listen anywhere (e.g.
+      // delegated from document.body) without holding the handle. Fired
+      // on the HOST (the still-attached node post-promote) since the
+      // original `el` was just removed from DOM by ScriptoscopeWindow.
+      aw.host.dispatchEvent(new CustomEvent('scriptoscope:promoted', { bubbles: true, detail: { kind: 'window', host: aw.host } }));
     } catch (err) {
       reportPromoteError('window', el, err);
     } finally {
@@ -401,6 +440,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
   const retheme = async (ref: string): Promise<void> => {
     lastThemeRef = ref;
+    // Fire retheme AT END (after manager.retheme resolves) so subscribers
+    // see committed state; see below.
     // syncToUrlParam (T2.3): mirror the new slug back to ?<param>=<slug>
     // so the URL stays shareable. replaceState (not pushState) keeps the
     // history clean. Only updates if the param's already there or the
@@ -478,6 +519,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     const livePickers = skinnedPickers.filter((el) => el.isConnected);
     skinnedPickers.length = 0; skinnedPickers.push(...livePickers);
     for (const el of skinnedPickers) syncThemePickerActive(el, ref);
+    dispatch('retheme', { ref });
   };
 
   // Windows in DOCUMENT ORDER, sequentially, so the first declared window becomes the active one
@@ -496,16 +538,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     for (const el of windowTargets) {
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0) {
-        // The host's positioned ancestor — same one ScriptoscopeWindow.promote will resolve —
-        // is the SAME ancestor we should subtract here. But the host doesn't exist yet; it'll
-        // share the element's parent chain, so the right offset is what ScriptoscopeWindow
-        // computes itself. We just record the viewport-relative rect here; the promote()
-        // method handles the conversion. The keys mirror dataset.scriptoscope* shape for
-        // consistency — they're internal seam values, not part of the public attribute set.
-        el.dataset.scriptoscopeInheritedLeft = String(r.left);
-        el.dataset.scriptoscopeInheritedTop = String(r.top);
-        el.dataset.scriptoscopeInheritedWidth = String(r.width);
-        el.dataset.scriptoscopeInheritedHeight = String(r.height);
+        // Stash on a WeakMap (T3.2) instead of the dataset — keeps the
+        // transient handoff invisible to consumer DevTools, MutationObservers,
+        // and CSS attribute selectors. ScriptoscopeWindow.promote consumes it.
+        setInheritedRect(el, { left: r.left, top: r.top, width: r.width, height: r.height });
       }
     }
     // ── Auto-reserve min-height on the positioned ancestors that will host
@@ -600,6 +636,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // Removed in disconnect().
   const readyEl = root instanceof Document ? root.body : root;
   if (readyEl) readyEl.classList.add(SCRIPTOSCOPE_READY_CLASS);
+  // 'ready' fires after the initial scan + .scriptoscope-ready marker.
+  // Subscribers get the final first-pass stats; later scans (observer-
+  // driven) increment stats without firing 'ready' again.
+  queueMicrotask(() => dispatch('ready', { stats }));
 
   // ── autoCycle (T2.3) — step through themes on a timer until first user
   // interaction. Demonstrate breadth instead of asserting it; matches the
@@ -647,12 +687,28 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   let scheduled = false;
   const obs = new MutationObserver((records) => {
     if (scheduled) return;
-    const relevant = records.some((r) =>
-      Array.from(r.addedNodes).some((n) => n instanceof Element && !n.closest('.scriptoscope-window')));
-    if (!relevant) return; // ignore our own churn inside the chrome
+    // Walk records and collect ONLY the added Element subtrees (not the
+    // whole root). On a busy host page — CMS with rotating banners,
+    // tooltips, modals — the prior "rescan root" path triggered the
+    // entire promote pipeline on every unrelated DOM mutation, doing
+    // ~free work via stamps but burning a measurable querySelectorAll
+    // budget per mutation. Scoped rescan: do work proportional to what
+    // actually changed (T3.3 from the lib-reviewer audit).
+    const subtrees: Element[] = [];
+    for (const r of records) {
+      for (const n of Array.from(r.addedNodes)) {
+        if (!(n instanceof Element)) continue;
+        if (n.closest('.scriptoscope-window')) continue; // our own chrome churn
+        subtrees.push(n);
+      }
+    }
+    if (subtrees.length === 0) return;
     scheduled = true;
     queueMicrotask(() => {
-      void scanAndPromote(root)
+      // Promise.all rather than sequential — each subtree scan is
+      // independent. wireThemeSwitchers still runs at root because the
+      // theme-switcher binding is page-scope (only one usually).
+      void Promise.all(subtrees.map((s) => scanAndPromote(s)))
         .then(() => wireThemeSwitchers(root))
         .finally(() => { scheduled = false; });
     });
@@ -670,12 +726,18 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     manager.setChangeListener(undefined);
   };
 
-  const handle: MountHandle = {
+  // MountHandle IS the EventTarget instance with the extra methods spliced
+  // onto it. Cleaner than Object.create + proto juggling — the addEventListener
+  // / dispatchEvent already exist on `events`; we add disconnect/retheme/etc.
+  // and cast. Consumers can `handle.addEventListener('ready', cb)` directly.
+  const handle = events as unknown as MountHandle;
+  Object.assign(handle, {
     disconnect: () => {
       teardownPersistence();
       obs.disconnect();
       stopCycle();
       for (const w of mounted.splice(0)) w.unmount();
+      dispatch('unmounted');
       // Restore inline min-height on every ancestor we pinned during scan.
       // Children are now back in flow (unmount moves them back), so the
       // ancestor's natural height returns — releasing the pin lets the
@@ -694,9 +756,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     /** Pre-seed the resolver cache so a subsequent `retheme(ref)` (incl. via
      *  `<select data-scriptoscope-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
      *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
-    registerTheme: (ref, theme) => resolver.register(ref, theme),
+    registerTheme: (ref: string, theme: LoadedTheme) => resolver.register(ref, theme),
     stats,
-  };
+  });
   if (key) mountedRoots.set(key, handle);
   return handle;
 }

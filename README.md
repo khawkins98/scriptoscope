@@ -99,6 +99,48 @@ Good — scope CSS off the runtime's structural marker `.scriptoscope-slot` (add
 
 Or: keep custom `.skinned`-style classes for **visual** changes only (filter, mask, border, background). Never let them change `display`, `grid-template`, `max-width`, `padding`, `margin`, or anything that moves siblings.
 
+#### Shadow DOM — what's reachable from your CSS, what isn't
+
+Each promoted window's CHROME (the canvas, the scrollbars, the title-bar widgets, the inner `.scriptoscope-window` / `.scriptoscope-content` wrappers) lives inside a **shadow root** attached to the window host. That shadow is opened-mode but isolated from page CSS — selectors like `.scriptoscope-window { box-shadow: ... }` or `canvas { … }` from your stylesheet will **not** reach inside. Your consumer content moved into the slot (`.scriptoscope-slot > .scriptoscope-fit > your children`) stays in the LIGHT DOM, so your normal styling still applies to it.
+
+Practical rules:
+- Restyle the **host** (the absolute-positioned `<div>` mountDeclarative inserted): `.scriptoscope-ready [data-scriptoscope-window] { filter: drop-shadow(…) }`. The host is light-DOM and reachable.
+- Restyle your CONTENT (`h3`, `p`, your custom classes): works normally — content's in light DOM.
+- Do NOT try to style chrome (canvas, scrollbar art, title bar): the shadow root quarantines them by design (ADR-0001 Decision 2). If you need a chrome tweak, file an issue — the right answer is usually a runtime knob, not consumer CSS.
+
+#### Promotion is destructive — your original element is moved + removed
+
+`ScriptoscopeWindow.promote` takes your `<article data-scriptoscope-window>` (or whatever element), moves its CHILDREN into the runtime's slot wrapper, then removes the original element from the DOM. The host is inserted where the original sat. Two consequences:
+- Refs to the original element (from your framework's binding, jQuery cache, etc.) are now pointing at a detached node.
+- Event listeners on **children** survive (the nodes themselves moved); listeners on the **wrapper element** are lost (that element is gone).
+
+If your framework expects to manage the lifecycle of the wrapper (React owns the DOM, Vue mounts here), promote AFTER the framework has rendered + use the `scriptoscope:promoted` event on `document` to react to the swap.
+
+#### Known incompatibilities
+
+Things that work in the lab but bite once integrated:
+
+- **`* { box-sizing: content-box }` global resets** — the WindowManager's width math is based on content-box content sizes. Most CSS frameworks already set `border-box`, which we expect; flipping global box-sizing on `*` for `<div>` or `canvas` will produce windows wider than declared geometry by `padding + border`.
+- **`* { transform: translateZ(0) }` iOS scroll-perf hacks** — `transform` on any element creates a CSS containing block, breaking `findPositionedAncestor`'s walk. Windows position relative to the wrong ancestor, usually the nearest hacked element instead of your intended container.
+- **`body { overflow: hidden }` from modal libraries** — promoted windows use viewport-coordinate drag handlers. Freezing scroll while drag is in progress means the pointer/window math diverges; release works but the visual lags. Toggle this off while a Scriptoscope window has focus.
+- **`position: fixed` on consumer content INSIDE a promoted window** — the inner fixed element now anchors to the window host's transformed ancestor (if any), not the viewport. The runtime doesn't warn; this is a CSS spec edge that breaks consumers' assumptions.
+- **Heavy CSS reset on `<button>` and `<input>` (Tailwind preflight, Bootstrap reset)** — generally OK because we set chrome inside the shadow root. The HOST checkbox/select gets the reset normally, which is what you want.
+
+If you hit one of these and the fix isn't obvious, the diagnostic page at `/diagnostic.html` has DOM inspectors that surface the actual measured rects.
+
+#### Internal stamps — don't set these yourself
+
+The runtime uses these DOM attributes as re-entrancy guards. Consumers should not set them; SSR / static-render consumers should specifically AVOID emitting them:
+
+- `data-scriptoscope-promoted` (on windows, buttons, controls — "I've processed this")
+- `data-scriptoscope-tabs-promoted`, `data-scriptoscope-field-promoted`, `data-scriptoscope-icon-promoted`, `data-scriptoscope-theme-picker-promoted` (per-kind stamps)
+- `data-scriptoscope-switcher-wired` (on `<select data-scriptoscope-theme-switcher>`)
+- `data-scriptoscope-current-state="active|inactive"` (on the inner `.scriptoscope-window`, indicates focus state)
+- `data-scriptoscope-theme="<slug>"` (on each window host, indicates which theme is painted)
+- (Transient pre-mount-rect stamps used to live here but moved to a WeakMap in 2026-05-30; the dataset is now clean.)
+
+`SCRIPTOSCOPE_PROMOTED_ATTR` is exported as a constant for SSR setups that need to assert the attribute is absent.
+
 #### Available theme slugs
 
 The live list (with display labels and reference renders) is served at <https://khawkins98.github.io/aaron-ui/themes-manifest.json> and rendered visually at <https://khawkins98.github.io/aaron-ui/> (the demo page's theme switcher). Current bundled corpus:
