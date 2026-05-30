@@ -31,4 +31,5 @@ for an automated pixel diff:
 
 For the full analysis of this oracle-trust problem and what a properly
 version-matched ground truth would require, see
-[`../../../docs/spec/golden-reference-todo.md`](../../../docs/spec/golden-reference-todo.md).
+[#190](https://github.com/khawkins98/aaron-ui/issues/190) (design context archived at
+[`../../../docs/archive/golden-reference-todo.md`](../../../docs/archive/golden-reference-todo.md)).

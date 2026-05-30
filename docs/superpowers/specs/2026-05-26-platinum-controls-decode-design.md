@@ -79,7 +79,7 @@ Seeded sibling to `kdef-faithfulness-ledger.md`: one row per control kind × fea
 
 ## Clean-room guardrails (every task)
 
-Inherited verbatim from the WDEF decode plan (`docs/superpowers/plans/2026-05-24-platinum-wdef125-decode.md`):
+Inherited verbatim from the WDEF decode plan (`docs/archive/2026-05-24-platinum-wdef125-decode.md`):
 1. **Mimic, never execute.** Disassembly/decompilation is for understanding only.
 2. **Record facts, not Apple's code text.** Committed docs cite `0xADDR`/offsets and describe the algorithm; no runs of Apple's listing in git.
 3. **All binaries + raw disassembly stay in `.scratch/iso-recon/`** (already git-ignored).

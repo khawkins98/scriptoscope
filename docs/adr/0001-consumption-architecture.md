@@ -1,6 +1,6 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
-- **Status:** Partially Accepted — Decision 3 (front door) shipped 2026-05-28; Decision 4 (ingestion) shipped 2026-05-27; Decision 2 (Shadow DOM) still open; **Decision 1 REVISED 2026-05-28** — the CSS `border-image` emitter is retired after three rounds of spike couldn't reach fidelity for the exotic schemes ([`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md)). The architecture is now explicitly "DOM structure + canvas decoration" — what the existing implementation already does. See §Spike result and the revised §Decision 1 below.
+- **Status:** Partially Accepted — Decision 3 (front door) shipped 2026-05-28; Decision 4 (ingestion) shipped 2026-05-27; Decision 2 (Shadow DOM) still open; **Decision 1 REVISED 2026-05-28** — the CSS `border-image` emitter is retired after three rounds of spike couldn't reach fidelity for the exotic schemes ([`docs/archive/2026-05-28-css-emitter-spike.md`](../archive/2026-05-28-css-emitter-spike.md)). The architecture is now explicitly "DOM structure + canvas decoration" — what the existing implementation already does. See §Spike result and the revised §Decision 1 below.
 - **Date:** 2026-05-25 (reviewed 2026-05-26, 2026-05-27, 2026-05-28 — see §Update + §Spike result)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
@@ -43,7 +43,7 @@ representability classifier (`scripts/lint-css-emit.mjs`), and the PC phase as
 originally defined are dropped from the phase map. The spike file is deleted.
 
 Full retrospective writeup:
-[`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md).
+[`docs/archive/2026-05-28-css-emitter-spike.md`](../archive/2026-05-28-css-emitter-spike.md).
 TL;DR:
 
 - **Corner-sprite path** (apple-platinum-2, platinum-8, system7-nostalgia-silver, black-platinum):
@@ -164,7 +164,7 @@ Skinning a **third-party** page means CSS fights in both directions (host resets
 
 Originally framed as a binary pass/fail on the CSS `border-image` emitter. After three iterations (Round 1: pure CSS; Round 2: synthesized source images; Round 3: DOM-measured frame + canvas-title overlay), the spike **concluded that the question itself was wrong**. The actual architecture — DOM structure + canvas decoration — was already shipping and was the right answer all along; the spike was repeatedly trying to push chrome rendering into CSS at cost the project's faithful-to-the-decode posture wouldn't accept.
 
-Retrospective + per-round findings: [`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`](../superpowers/specs/2026-05-28-css-emitter-spike.md). Two associated LEARNINGS entries (the 2026-05-28 "topology vs fidelity" entry from Round 1 + the "three rounds of premature verdicts" entry from the conclusion).
+Retrospective + per-round findings: [`docs/archive/2026-05-28-css-emitter-spike.md`](../archive/2026-05-28-css-emitter-spike.md). Two associated LEARNINGS entries (the 2026-05-28 "topology vs fidelity" entry from Round 1 + the "three rounds of premature verdicts" entry from the conclusion).
 
 Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 
@@ -210,5 +210,5 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 - Engine: `src/composeChrome.ts` (the slice recipe that drives the canvas compositor), `src/renderWindow.ts` (canvas + inset model + a11y wiring), `src/interactive.ts` (WindowManager + focusable DOM twins for widgets), `src/declarative/` (the `data-scriptoscope-*` scanner + ScriptoscopeWindow).
 - Ingestion: `tools/theme-loader/loadKaleidoscopeScheme.js`, `tools/theme-loader/resource-fork.js`, `src/cicnImage.ts`, `src/loadTheme.ts` (the `assetUrl` blob passthrough).
 - Spec: `docs/spec/compositor-spec.md`; bundle: `docs/theme-bundle-layout.md`.
-- Spike retrospective: `docs/superpowers/specs/2026-05-28-css-emitter-spike.md` (three rounds + conclusion).
+- Spike retrospective: `docs/archive/2026-05-28-css-emitter-spike.md` (three rounds + conclusion; archived 2026-05-30).
 - External precedent: jQuery UI ThemeRoller (downloadable theme bundle + class/state framework); 98.css/XP.css (CSS-class fidelity floor — the look without the runtime); React95 (theme-as-data swapping, rejected authoring model).

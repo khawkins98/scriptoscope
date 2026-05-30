@@ -21,7 +21,7 @@ Our Platinum is the **clean-room procedural engine fallback** (`src/platinum.ts`
 So most "Platinum theme" projects fail on (1), (2), or both. They remain useful
 as **visual references** to tune our own procedural/bitmap rendering against (look,
 don't ingest) — the same posture as the emulator-capture idea in
-`golden-reference-todo.md`.
+[#190](https://github.com/khawkins98/aaron-ui/issues/190) (design context: `../archive/golden-reference-todo.md`).
 
 ## Catalog
 
@@ -82,6 +82,6 @@ GTK/Kvantum reinterpretation.
 - **OFL / explicitly-free lookalike fonts** for the typography (see `mac-fonts-todo.md`).
 
 ## Related
-- `golden-reference-todo.md` — the same "reference, don't ingest" logic for ground truth.
+- [#190](https://github.com/khawkins98/aaron-ui/issues/190) — the same "reference, don't ingest" logic for ground truth (design context: `../archive/golden-reference-todo.md`).
 - `mac-fonts-todo.md` — the Chicago/Charcoal/Geneva typography ticket.
 - `src/platinum.ts` — the procedural Platinum (and the `platinum-fidelity` branch's `platinumWindow`).

@@ -8,7 +8,7 @@
 > handling + trailing-over-run fix landed. So the "WASM-port plan (gated on emscripten)" and
 > "method 15 not yet exercised" notes in the lower half are now **historical** — read them as the
 > pre-build plan. Current state + remaining work: the design doc's Status/Next-steps and
-> `docs/tracking/byo-theme-todo.md`.
+> `byo-theme-todo.md` (sibling in this archive — work since completed).
 
 Lets a user drop a real downloaded Kaleidoscope theme (`.sit`) and have it decode to a
 resource fork entirely client-side — the last input format the pure-JS unwrappers

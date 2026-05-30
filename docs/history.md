@@ -144,7 +144,7 @@ API-compatible mimic**), we added two nets:
   skipped, with how it's verified and the divergences in writing.
 
 A third net — a golden render-vs-reference diff — is deferred because our reference
-images aren't a trustworthy oracle (see `golden-reference-todo.md`).
+images aren't a trustworthy oracle (tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190); design context at `docs/archive/golden-reference-todo.md`).
 
 ## The architecture we landed on
 
@@ -203,7 +203,7 @@ piece, blocked on ground truth.
 - `spec/kdef231-recipe-walk.md` — the part-code / draw decode (the deep derivation behind the reference + spec).
 - `spec/kdef-faithfulness-ledger.md` — routine → our impl, with divergences.
 - `spec/glitch-punchlist.md` — per-scheme render-quality status.
-- `spec/golden-reference-todo.md` — the deferred golden-diff net + its blocker.
+- [#190](https://github.com/khawkins98/aaron-ui/issues/190) — the deferred golden-diff net + its blocker (design context: `archive/golden-reference-todo.md`).
 - `diagnostic-tooling.md` — the Playground + `diag:render` / `diag:audit` CLIs.
 - `kaleidoscope-asset-catalog.md`, `porting-a-kaleidoscope-scheme.md`,
   `theme-bundle-layout.md` — reference material. (The old 1.8.2-era

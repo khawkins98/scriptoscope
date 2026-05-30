@@ -45,7 +45,7 @@ The repos that surfaced this are NOT a usable source:
   `Charcoal_10.11/*.ttf` are renamed **Apple San Francisco** (`SFNSDisplay`)
   binaries, not the real bitmap Charcoal. Can't ship.
 - `JohnDDuncanIII/platinum` — likewise unlicensed + Apple-derived (see
-  `golden-reference-todo.md` / the Platinum discussion).
+  `../archive/golden-reference-todo.md` / the Platinum discussion).
 - **Credit ≠ a license.** Attribution doesn't grant redistribution rights; any
   third-party font needs an actual web-embedding/redistribution license.
 - Kaleidoscope schemes don't ship fonts (the OS supplied them), so the corpus

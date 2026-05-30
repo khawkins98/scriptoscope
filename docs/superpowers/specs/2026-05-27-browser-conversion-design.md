@@ -124,7 +124,7 @@ it converts + renders entirely client-side — no build, no upload, no server:
   blob-URL assets + glyphs; `assetUrl` passes absolute URLs through. (5afd70b)
 - **Input decoders:** raw `.rsrc`; `.hqx` / MacBinary / AppleSingle·Double (pure JS,
   `tools/theme-loader/containers.js`, ba7514e); StuffIt `.sit` (munbox→WASM, `tools/sit-wasm/`,
-  8cb79ef + abcb0e8 — see `2026-05-27-sit-decoder-spike.md`).
+  8cb79ef + abcb0e8 — see `../archive/2026-05-27-sit-decoder-spike.md`).
 - **Drop-zone UI** in the demo (b7d9cac).
 
 Validated on real archives: classic `SIT!` method 13 byte-identical to corpus; SIT5 method 15

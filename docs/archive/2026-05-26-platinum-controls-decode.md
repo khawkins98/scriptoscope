@@ -4,7 +4,7 @@
 
 **Goal:** Recover — clean-room — the geometry, drawing model, and color data needed to render Mac OS 8.5/8.6 Platinum standard controls faithfully, into spec docs + a palette artifact that a later Phase-B reimplement/generate plan builds against.
 
-**Architecture:** Pure decode/derivation, mirroring the WDEF playbook (`docs/superpowers/plans/2026-05-24-platinum-wdef125-decode.md`). Three streams feed a single assembly: (A) `CDEF-n63` 68k geometry, (C) color-data extraction — both parallelizable subagent work — and (B) the `AppearanceLib` PPC `DrawThemeButton` **spike gate**, owned by the lead. Parallel streams write to private findings artifacts; the lead assembles + cross-checks every constant before commit. No code ships in this phase; the deliverables are spec docs + a palette JSON/PNG.
+**Architecture:** Pure decode/derivation, mirroring the WDEF playbook (`2026-05-24-platinum-wdef125-decode.md` — sibling in this archive). Three streams feed a single assembly: (A) `CDEF-n63` 68k geometry, (C) color-data extraction — both parallelizable subagent work — and (B) the `AppearanceLib` PPC `DrawThemeButton` **spike gate**, owned by the lead. Parallel streams write to private findings artifacts; the lead assembles + cross-checks every constant before commit. No code ships in this phase; the deliverables are spec docs + a palette JSON/PNG.
 
 **Tech Stack:** `m68k-elf-objdump` (installed, for the 68k CDEF), a PowerPC disassembler for the PEF (`llvm-objdump`/`otool -tV`/`powerpc-*-objdump` — Task 4 confirms), the existing JS resource toolchain in `.scratch/iso-recon/` + `tools/theme-loader/resource-fork.js`, Node 20.
 

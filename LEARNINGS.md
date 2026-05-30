@@ -1722,7 +1722,7 @@ server, no build. The conversion core (`tools/theme-loader/convert.js`) stayed p
 shell (`loadKaleidoscopeScheme`) runs it and emits OffscreenCanvas blob-URL assets. Container
 unwrappers (`containers.js`) are pure JS; StuffIt is a separate MIT artifact, `tools/sit-wasm/`
 (munbox C lib → WASM). Design/status: `docs/superpowers/specs/2026-05-27-browser-conversion-design.md`;
-remaining work: `docs/tracking/byo-theme-todo.md`.
+remaining work (since completed and archived): `docs/archive/byo-theme-todo.md`.
 
 **The 64 KB WASM stack overflow — "works native, breaks in WASM."** The single biggest time-sink.
 munbox decoded our `.sit` perfectly when compiled natively, but the *same source* compiled to
@@ -1799,7 +1799,7 @@ design/spec doc *before* finishing the implementation, schedule a reconciliation
 The multi-persona review was a cheap, effective catch — and **convergence was the signal**: all three
 independently flagged the same top gap (a converted theme renders but can't be saved — the
 preview-only dead-end). Review findings were filed as tracked work in
-`docs/tracking/byo-theme-todo.md` so they became a to-do list, not a lost transcript.
+`docs/archive/byo-theme-todo.md` (the to-do list, since completed and archived 2026-05-30).
 
 **Application:** keep one portable core + thin platform shells, and gate any core refactor on a
 byte-identity diff. After shipping a feature you spec'd earlier the same day, grep the spec/comments
@@ -2042,7 +2042,7 @@ was DOM-structure-canvas-decoration all along.
 ADR-0001 §Decision 1 retired in its CSS-first-hybrid form, replaced with the
 explicit hybrid framing. The CSS emitter + representability classifier + PC's
 border-image work are dropped from the phase map. Full retrospective:
-`docs/superpowers/specs/2026-05-28-css-emitter-spike.md`.
+`docs/archive/2026-05-28-css-emitter-spike.md` (archived 2026-05-30).
 
 **Lessons:**
 
@@ -2641,6 +2641,6 @@ Running a citation-coherence pass after a big batch caught 9 fixes out of 15 fin
 3. **Spot-check `kdef-faithfulness-ledger.md` rows** — every divergence row needs `asm address + file:line + "why we diverge"` all present.
 4. **Spot-check the newly-added docs for asm-address citations on every "the kDEF does X" claim** — new docs are most likely to have the unsourced assertions that grow into folklore.
 
-The fix surface was exclusively human-readable comment + table-cell text (no runtime behavior); `npm run gates` stays green throughout. The worked example was in `docs/spec/overnight-coherence-review.md` (archived 2026-05-30 — see `docs/archive/`); the checklist above is what survives.
+The fix surface was exclusively human-readable comment + table-cell text (no runtime behavior); `npm run gates` stays green throughout. The worked example is at `docs/archive/overnight-coherence-review.md`; the checklist above is what survives.
 
 **Application.** After any batch ≥ ~10 commits that touches `docs/spec/` or renames slugs, run the four-step check before declaring the batch done. Most of the time it finds nothing; when it finds something, it's a 5-minute fix that would have cost an hour for someone tracking down the wrong address two months later.
