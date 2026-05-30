@@ -629,7 +629,25 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const bootAffordance = opts.bootAffordance;
   const wantsAffordance = bootAffordance !== 'none' && bootAffordance !== false;
   const loadingEl = root instanceof Document ? root.body : root;
-  if (loadingEl && wantsAffordance) loadingEl.setAttribute(SCRIPTOSCOPE_LOADING_ATTR, '');
+  if (loadingEl && wantsAffordance) {
+    loadingEl.setAttribute(SCRIPTOSCOPE_LOADING_ATTR, '');
+    // Silent-fail defense (a11y reviewer 2026-05-30): if the consumer
+    // opted into the affordance but didn't link scriptoscope.css, the
+    // attribute does nothing and the visible effect is invisible to
+    // everyone — most insidiously to the developer who set the option,
+    // because the page LOOKS the same as before. Probe a custom property
+    // that only resolves when the stylesheet's :root block was loaded;
+    // warn once per mount.
+    if (typeof getComputedStyle === 'function') {
+      const probe = getComputedStyle(loadingEl).getPropertyValue('--scriptoscope-wipe-duration').trim();
+      if (!probe) {
+        console.warn(
+          '[scriptoscope] bootAffordance is enabled but scriptoscope.css is not loaded — the affordance will not render. ' +
+          'Link it via <link rel="stylesheet" href="…/scriptoscope.css"> or set { bootAffordance: "none" } to suppress this warning.',
+        );
+      }
+    }
+  }
 
   // Pre-scan target count for the rejectOnEmptyMount check. Counts what's
   // SCANNABLE before any promote runs (later observer churn doesn't affect
@@ -649,6 +667,12 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // but ZERO succeeded, reject so the consumer's await catches it.
   const promotedTotal = stats.windows + stats.buttons + stats.controls + stats.tabs + stats.fields;
   if (opts.rejectOnEmptyMount && initialTargets > 0 && promotedTotal === 0) {
+    // Clean up the loading affordance BEFORE throwing — without this, the
+    // attribute stays on body forever (consumer has no handle to call
+    // disconnect() on) and the CSS hooks fire on any subsequent DOM
+    // promote. Lib reviewer 2026-05-30 P1; convergent with a11y reviewer.
+    if (loadingEl && wantsAffordance) loadingEl.removeAttribute(SCRIPTOSCOPE_LOADING_ATTR);
+    if (key) mountedRoots.delete(key);
     throw new Error(
       `[scriptoscope] mountDeclarative: scan found ${initialTargets} promotable target(s) but ZERO succeeded. ` +
       'Common causes: misconfigured themeBaseUrl, theme bundle 404s, or a decoder error. ' +

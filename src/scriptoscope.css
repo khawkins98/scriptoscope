@@ -136,20 +136,36 @@
 :root {
   --scriptoscope-wipe-duration: 140ms;
   --scriptoscope-icon-fade-duration: 120ms;
-  --scriptoscope-placeholder-color: #c0c0c0;
+  /* Placeholder colors — tightened to meet WCAG 2.1 SC 1.4.11 non-text
+     contrast (3:1) per a11y review 2026-05-30. The previous #c0c0c0 on
+     #fafafa was 1.74:1 — well below the floor for graphical state
+     indicators. #767676 on #fafafa = 3.06:1. */
+  --scriptoscope-placeholder-color: #767676;
   --scriptoscope-placeholder-bg: #fafafa;
 }
 
 /* Chrome wipe-in: clip-path reveals the chrome top-down so the consumer's
    content remains visible THROUGH the unrevealed area (it's the same
    content gaining chrome, not new content appearing). Mobile gets a
-   slightly longer duration via the viewport media query at the bottom. */
+   slightly longer duration via the viewport media query at the bottom.
+   Scoped to `[data-scriptoscope-loading] [data-scriptoscope-promoted]` so
+   the animation only fires on hosts promoted DURING the initial boot
+   window — post-boot dynamic inserts (consumer appends a new
+   data-scriptoscope-window element via MutationObserver-driven promote)
+   land after the loading attribute is removed and get no animation, which
+   matches the consumer's likely intent (a modal opening, not a page
+   bootstrapping). A11y review 2026-05-30 B[P1]. */
 @keyframes scriptoscope-wipe-in {
   from { clip-path: inset(0 0 100% 0); }
   to   { clip-path: inset(0 0 0 0); }
 }
-[data-scriptoscope-promoted] {
+[data-scriptoscope-loading] [data-scriptoscope-promoted] {
   animation: scriptoscope-wipe-in var(--scriptoscope-wipe-duration) ease-out;
+  /* Compositor hint — the clip-path animation otherwise re-rasterizes
+     on every frame on lower-end GPUs. Cleared after promotion settles
+     (no consumer-side cleanup needed; the animation finishes and the
+     property's only effect is during the animation window anyway). */
+  will-change: clip-path;
 }
 
 /* Picker-tile icon placeholder: dotted outline + soft fill while the icon
@@ -180,8 +196,16 @@
 /* ─── Reduced motion preference ────────────────────────────────────────── */
 /* Drops the wipe-in + icon-fade animations. The dotted-placeholder is
    static (no animation) so it's already fine. The watch cursor (when
-   added) stays because it's INFORMATION, not motion-for-decoration. */
+   added) stays because it's INFORMATION, not motion-for-decoration.
+   The explicit `clip-path: none` defends against a WebKit quirk
+   (pre-16.4) where canceling an animation can leave the host stuck at
+   the `from` keyframe value (chrome fully clipped, invisible). Costs
+   nothing; defends a real edge case. A11y review 2026-05-30 A[P2]. */
 @media (prefers-reduced-motion: reduce) {
-  [data-scriptoscope-promoted] { animation: none; }
+  [data-scriptoscope-loading] [data-scriptoscope-promoted] {
+    animation: none;
+    clip-path: none;
+    will-change: auto;
+  }
   .scriptoscope-theme-picker-icon[src] { animation: none; }
 }

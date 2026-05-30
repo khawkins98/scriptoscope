@@ -81,6 +81,13 @@ export async function promoteThemePicker(
     tile.setAttribute('aria-selected', t.slug === deps.initialSlug ? 'true' : 'false');
     tile.setAttribute('tabindex', t.slug === deps.initialSlug ? '0' : '-1');
     tile.setAttribute('aria-label', `Switch to ${t.name ?? t.slug}`);
+    // aria-busy: signal to assistive tech that the tile's content (its
+    // folder icon) is still loading. Flipped to 'false' in the decode
+    // success branch below when icon.src lands. Without this, screen-
+    // reader users hear "tab, N of 18" with no indication that 17/18
+    // are still arriving and the visual placeholder is undiscoverable.
+    // A11y review 2026-05-30 A[P1].
+    tile.setAttribute('aria-busy', 'true');
     if (t.slug === deps.initialSlug) tile.classList.add('active');
     // Author credit underneath the name — the Mac Themes Garden / Aaron-
     // About-box convention that surfaces the scheme author (the celebrities
@@ -152,6 +159,11 @@ export async function promoteThemePicker(
             const tile = tiles.get(slug);
             const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
             if (icon) icon.src = hit.url;
+            // Icon arrived → drop aria-busy so AT announces the tile as
+            // settled. Stays set to 'true' if no icon was found (the
+            // dotted-outline placeholder remains; that IS the correct
+            // state to communicate).
+            tile?.setAttribute('aria-busy', 'false');
           }
         } catch { /* tolerate per-theme failures */ } finally {
           inFlight -= 1;

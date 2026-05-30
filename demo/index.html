@@ -13,6 +13,14 @@
        the JS chunks). Perf agent finding 2026-05-30. -->
   <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff" />
   <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/virtue.woff" />
+  <!-- Runtime affordance stylesheet — drop-shadow, focus rings, the boot-
+       affordance CSS (chrome wipe-in, dotted picker placeholders). The a11y
+       reviewer (2026-05-30) caught that omitting this link silently kills
+       the entire boot-affordance system; the runtime now also warns on
+       mount when the stylesheet isn't reachable. Path is relative — works
+       both in `npm run dev` (Vite resolves through the alias) and in the
+       prod bundle (where `scriptoscope.css` is copied next to the HTML). -->
+  <link rel="stylesheet" href="scriptoscope.css" />
   <style>
     /* ── Font stack ─────────────────────────────────────────────────────────
        The window/control text stacks ask for "Charcoal" (Mac OS 8.5/8.6 system
