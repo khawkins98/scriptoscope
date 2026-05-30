@@ -155,8 +155,13 @@
     <div class="powers-tab right">
       <!-- Opt the skin-toggle OUT of mountDeclarative's auto-promotion: the
            scanner skins any input[type=checkbox] by default; we don't want
-           the toggle THAT controls skinning to itself wear a themed face. -->
-      <input type="checkbox" id="powers-skin-toggle" data-scriptoscope-control="off" checked />
+           the toggle THAT controls skinning to itself wear a themed face.
+           autocomplete="off" is a SOFT HINT browsers may ignore (old Safari);
+           the real defence is the boot's syncToggleUI(true) which forces
+           both .checked AND the visible label to the on-state on every load,
+           regardless of what the form-state cache restored. -->
+
+      <input type="checkbox" id="powers-skin-toggle" data-scriptoscope-control="off" autocomplete="off" checked />
       <label for="powers-skin-toggle" title="Off shows the bare 1999-period HTML; on (the default) wears the active scheme's chrome.">skinned: on</label>
       <span class="sep">·</span>
       <a href="./diagnostic.html" title="Runtime diagnostics — per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
@@ -169,14 +174,19 @@
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
       <!-- HERO CONTROL STRIP — one of every promotable control. The breadth
            proof in the first viewport. -->
+      <!-- HERO CONTROL STRIP. autocomplete="off" on every form input defends
+           against Firefox/Safari restoring form-state from cache across
+           reload — same bug class as the skin-toggle. Without it, the demo
+           controls can boot in a state that doesn't match what the visible
+           labels/readouts claim. -->
       <div class="powers-hero-strip" aria-label="Live themed controls — one of each kind">
         <span class="hs-label">live demo:</span>
         <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
-        <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
-        <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
-        <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
+        <span class="hs-group"><label class="powers-checkable"><input type="checkbox" autocomplete="off" checked /> Themed</label></span>
+        <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" autocomplete="off" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" autocomplete="off" /> B</label></span>
+        <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" autocomplete="off" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
+        <span class="hs-group"><input type="text" value="A theme name" autocomplete="off" aria-label="Text input" /></span>
+        <span class="hs-group"><select aria-label="Format" autocomplete="off"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
       </div>
       <div class="powers-grid" id="powers-grid">
         <!-- The PICKER WINDOW. When skinned, the folder strip lives inside a
@@ -306,29 +316,73 @@
     let activeSlug = themesBySlug.has(themeFromURL) ? themeFromURL : '1138';
     let mountToken = 0;
     let handle = null;
+
+    // The display state has ONE setter — toggle.checked + the visible label
+    // are derived together so neither can lie about the actual skinning
+    // state. Every state transition (mount success, mount failure, unmount,
+    // race-loss) routes through here so the label can never desync (the
+    // post-mortem on the 2026-05-30 silent-prod failure).
+    const syncToggleUI = (on) => {
+      toggle.checked = on;
+      if (toggleLabel) toggleLabel.textContent = on ? 'skinned: on' : 'skinned: off';
+    };
+
     const mountPowers = async () => {
       if (handle) return;
       const my = ++mountToken;
-      const h = await mountDeclarative({
-        root: powersSection,
-        themeBaseUrl,
-        pageThemeDefault: activeSlug,
-        // persistKey: this landing is the playground for resizing windows;
-        // a user dragging the four cards around expects their layout to
-        // come back on reload. The WindowManager debounces state into
-        // localStorage.scriptoscope:layout:<key>.
-        persistKey: 'scriptoscope-landing',
-      });
-      if (my !== mountToken || !toggle.checked) { try { h.disconnect(); } catch {} return; }
+      let h;
+      try {
+        h = await mountDeclarative({
+          root: powersSection,
+          themeBaseUrl,
+          pageThemeDefault: activeSlug,
+          // persistKey: this landing is the playground for resizing windows;
+          // a user dragging the four cards around expects their layout to
+          // come back on reload. The WindowManager debounces state into
+          // localStorage.scriptoscope:layout:<key>.
+          persistKey: 'scriptoscope-landing',
+        });
+      } catch (err) {
+        // mountDeclarative threw (network failure on a .sit/.rsrc fetch, decoder
+        // error, bad themeBaseUrl). Without this catch, the label stays "skinned:
+        // on" optimistically while no chrome painted — the exact "label lies"
+        // failure mode the syncToggleUI helper exists to prevent.
+        if (my === mountToken) syncToggleUI(false);
+        console.warn('[scriptoscope] mountDeclarative failed:', err);
+        return;
+      }
+      if (my !== mountToken || !toggle.checked) {
+        // Token race OR user toggled off mid-mount. Drop the in-flight handle.
+        // syncToggleUI is NOT called here for the toggled-off path because the
+        // toggle 'change' handler already called unmountPowers (which did sync).
+        // For the token race path, the newer mount will sync on its success.
+        try { h.disconnect(); } catch {}
+        return;
+      }
       handle = h;
       powersGrid.classList.add('skinned');
-      if (toggleLabel) toggleLabel.textContent = 'skinned: on';
+      syncToggleUI(true);
+      // Post-mount sanity: mountDeclarative doesn't throw on inner promote
+      // failures (e.g. a .sit 404 — themeBaseUrl misconfigured, or a CDN
+      // hiccup). It logs and returns a valid handle anyway. Without this
+      // check the page would still claim "skinned: on" with bare-HTML
+      // windows. Verify a chrome canvas actually painted in at least one
+      // host; if zero, treat as failure and revert to unskinned state.
+      await new Promise((r) => setTimeout(r, 200)); // give the chrome promotions a chance to settle
+      if (my === mountToken && handle === h) {
+        const anyChrome = [...powersGrid.children].some((host) =>
+          host.shadowRoot?.querySelector('canvas.scriptoscope-chrome'));
+        if (!anyChrome) {
+          console.warn('[scriptoscope] mountDeclarative reported success but no chrome canvases painted — reverting to unskinned. Check themeBaseUrl + that .sit/.rsrc bundles are reachable.');
+          unmountPowers();
+        }
+      }
     };
     const unmountPowers = () => {
       mountToken++;
       if (handle) { try { handle.disconnect(); } catch {} handle = null; }
       powersGrid.classList.remove('skinned');
-      if (toggleLabel) toggleLabel.textContent = 'skinned: off';
+      syncToggleUI(false);
     };
     toggle.addEventListener('change', () => { toggle.checked ? mountPowers() : unmountPowers(); });
 
@@ -426,10 +480,9 @@
       }));
     })();
 
-    // Live slider readout — the hero-strip slider's value follows the input.
-    const slider = document.getElementById('powers-hero-vol');
-    const sliderOut = document.getElementById('powers-hero-vol-out');
-    if (slider && sliderOut) slider.addEventListener('input', () => { sliderOut.textContent = `${slider.value}%`; });
+    // (slider wire-up moved into the boot-init block below — needs to run
+    // alongside syncToggleUI so the readout sync defends against the same
+    // form-state-cache restore class as the toggle.)
 
     // First-load pulse on the folder strip — directs the eye, cancellable on
     // hover OR keyboard focus, respects prefers-reduced-motion (CSS @media).
@@ -440,6 +493,23 @@
     setTimeout(dropPulse, 1600 * 2 + 200);
 
     // Initial mount + load the active theme's glyphs.
+    // Defend against Firefox/Safari restoring the checkbox state across
+    // reload from form-state cache: autocomplete="off" on the input is a
+    // soft hint browsers may ignore (old Safari), so the real fix is the
+    // boot-time `syncToggleUI(true)` which forces both the checkbox AND
+    // the label to the on-state. The label resync inside mountPowers's
+    // success branch is the ultimate source of truth, but priming it here
+    // means a slow mount doesn't visually flash "skinned: off" first.
+    syncToggleUI(true);
+    // Hero-strip slider readout — same form-cache bug class for <input
+    // type="range">: browser may restore a value the span doesn't know
+    // about. Sync the readout to whatever the input actually shows at boot.
+    const slider = document.getElementById('powers-hero-vol');
+    const sliderOut = document.getElementById('powers-hero-vol-out');
+    if (slider && sliderOut) {
+      sliderOut.textContent = `${slider.value}%`;
+      slider.addEventListener('input', () => { sliderOut.textContent = `${slider.value}%`; });
+    }
     queueMicrotask(async () => {
       if (toggle.checked) await mountPowers();
       try { const theme = await loadOnce(activeSlug); await refreshCardGlyphs(theme); } catch {}

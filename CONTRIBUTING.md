@@ -19,6 +19,7 @@ Scriptoscope is plain TypeScript with no framework dependency.
 2. **Start the dev server.**
    ```sh
    npm run dev        # http://localhost:5173 — opens demo/index.html (the consumer landing); the dev/contributor showcase + per-scheme inspectors live at /diagnostic.html
+   npm run preview:demo # serve the PROD bundle at http://localhost:4173/aaron-ui/ — use before push to catch bundling/minification regressions the dev server hides
    ```
 
 3. **Check your work.** In prototype mode the project leans on the type checker and the render/audit diagnostics rather than a unit/e2e suite:

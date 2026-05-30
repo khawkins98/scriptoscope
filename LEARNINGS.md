@@ -2644,3 +2644,20 @@ Running a citation-coherence pass after a big batch caught 9 fixes out of 15 fin
 The fix surface was exclusively human-readable comment + table-cell text (no runtime behavior); `npm run gates` stays green throughout. The worked example is at `docs/archive/overnight-coherence-review.md`; the checklist above is what survives.
 
 **Application.** After any batch ≥ ~10 commits that touches `docs/spec/` or renames slugs, run the four-step check before declaring the batch done. Most of the time it finds nothing; when it finds something, it's a 5-minute fix that would have cost an hour for someone tracking down the wrong address two months later.
+
+## 2026-05-30 — Silent prod-skinning failure: Firefox/Safari restored `<input type="checkbox" checked>` as unchecked
+
+**The symptom.** User reported the GH Pages landing rendering with no chrome on the cards — toggle showed "skinned: on", but the four feature windows came up as plain HTML with light borders. No console errors. Folder strip + `?theme=` URL parsing still worked, so the boot script did run partly. Owner's screenshot caught the smoking gun: the checkbox itself was visibly UNCHECKED next to a label that said "skinned: on".
+
+**The cause.** Firefox + Safari preserve user-modified `<input>` state across reload — even when the HTML attribute says `checked`. If the user ever toggled OFF and refreshed, the box came back off. My boot's `if (toggle.checked) await mountPowers()` skipped the mount; nothing else painted chrome. The label stayed "skinned: on" because it was set ONCE in the static HTML and only re-set inside mountPowers/unmountPowers, so it could lie about reality. A pure form-state-restoration interaction — no bundle drift, no env diff between dev and prod (local `vite preview --config vite.demo.config.js` reproduced the working render fine until the cache was simulated).
+
+**Fix.** Three defensive layers, all in `demo/index.html`:
+1. `autocomplete="off"` on the input (works in Chrome, partial in Safari < 16, ignored by old Firefox).
+2. Programmatically `toggle.checked = true` on boot — overrides whatever the browser restored.
+3. Sync the label to actual state on boot AND on every change — `toggleLabel.textContent = toggle.checked ? 'skinned: on' : 'skinned: off'` — so the label can never desync from reality.
+
+The 3-layer defense matters: each individual mechanism has browser/version gaps; together they catch the cache override regardless of which browser engine quirk is in play.
+
+**Tooling that surfaced this faster.** Added `npm run preview:demo` (a `vite preview --config vite.demo.config.js` wrapper at `/aaron-ui/` base path) so we can hit the actual minified bundle locally before push. Cuts the diagnosis loop from push-deploy-wait to a 3-second restart. The bug wasn't bundling-deterministic, but the workflow is the right one for the next time something IS.
+
+**Generalisable lesson.** When skin/render state is derived from a form control's `.checked`, never trust it on boot. Always read the state from a source of truth you OWN (URL, dataset attribute, application state object), and force the form control to match. Visible labels must follow the same rule — derive from the source-of-truth at update time, never set-once-then-forgotten.
