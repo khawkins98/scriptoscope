@@ -624,6 +624,58 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       anc.style.minHeight = `${Math.round(h)}px`;
     }
     for (const el of windowTargets) await promoteWindow(el);
+    // Post-promote layout pass: the pre-promote capture above used each
+    // consumer element's PRE-CHROME height. But the runtime-created host
+    // adds title bar + frame borders (~22-50px depending on theme + window-
+    // type), so two layout artifacts surface:
+    //   1. Pinned ancestors are too short — the absolute host overflows
+    //      below the reserved in-flow space, overlapping the next sibling
+    //   2. Absolute hosts that came AFTER a pinned ancestor in flow were
+    //      positioned at their pre-chrome natural Y — they need to shift
+    //      down by the ancestor's chrome growth
+    // Both are demo-reviewer 2026-05-30 finds; same chrome-vs-natural delta
+    // is the root cause.
+    //
+    // Pass A: grow each pinned ancestor to fit its actual outer hosts.
+    const ancestorGrowth = new Map<HTMLElement, number>(); // anc → pixels grown
+    for (const [anc] of pinnedAncestors) {
+      const oldH = parseFloat(anc.style.minHeight) || 0;
+      const ancTop = anc.getBoundingClientRect().top;
+      let maxBottom = 0;
+      for (const m of mounted) {
+        if (!anc.contains(m.host)) continue;
+        const r = m.host.getBoundingClientRect();
+        const bottomRel = r.bottom - ancTop;
+        if (bottomRel > maxBottom) maxBottom = bottomRel;
+      }
+      if (maxBottom > oldH) {
+        ancestorGrowth.set(anc, maxBottom - oldH);
+        anc.style.minHeight = `${Math.round(maxBottom)}px`;
+      }
+    }
+    // Pass B: shift each absolute host down by the cumulative growth of
+    // pinned ancestors that came BEFORE it in document order AND share
+    // its positioned ancestor (i.e. that grew its flow context).
+    for (const m of mounted) {
+      const hostAnc = findPositionedAncestor(m.host);
+      if (!hostAnc) continue;
+      let shift = 0;
+      for (const [grownAnc, delta] of ancestorGrowth) {
+        if (grownAnc === hostAnc) continue;
+        // The grown ancestor must be a DOM-preceding sibling-or-cousin in
+        // the same positioned-ancestor flow as our host.
+        const grownInSameFlow = findPositionedAncestor(grownAnc) === hostAnc;
+        if (!grownInSameFlow) continue;
+        const pos = grownAnc.compareDocumentPosition(m.host);
+        // Host is FOLLOWING grownAnc (not contained, since grownAnc isn't host's flow ancestor here)
+        const follows = !!(pos & Node.DOCUMENT_POSITION_FOLLOWING) && !(pos & Node.DOCUMENT_POSITION_CONTAINED_BY);
+        if (follows) shift += delta;
+      }
+      if (shift > 0) {
+        const cur = parseFloat(m.host.style.top) || 0;
+        m.host.style.top = `${Math.round(cur + shift)}px`;
+      }
+    }
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
     for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);

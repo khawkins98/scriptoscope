@@ -106,6 +106,17 @@
        it's a footnote, not a callout. */
     #powers .powers-meta-aaron { margin: -8px 0 22px 0; padding: 8px 0 0 12px; font: italic 13px/1.5 "Times New Roman", Times, serif; color: #5a5a5a; max-width: 64ch; border-top: 1px dotted #c8c8c8; }
     #powers .powers-meta-aaron strong { font-style: normal; font-weight: 700; color: #1c1c1c; }
+    /* READ ME window — the lede wears chrome. Custom content padding
+       (Apple HIG Read Me's typically used ~16-20px inside the frame).
+       Stays IN FLOW (position:static !important on the promoted host)
+       so the install snippet + meta line + cards below it don't collapse
+       into the void the absolute-positioned host would otherwise leave.
+       The runtime carries the original element's classList onto the
+       host post-promote (the 2026-05-30 layer-bridge fix), so this
+       selector reaches both the pre- and post-mount element. */
+    #powers .powers-readme { --scriptoscope-content-padding: 18px 22px 14px; margin: 0 0 22px; position: static !important; left: auto !important; top: auto !important; }
+    #powers .powers-readme h2 { margin-top: 0; }
+    #powers .powers-readme > .powers-meta-aaron { margin-bottom: 0; }
     /* HERO CONTROL STRIP — one row of every promotable control, themed live
        by the active scheme. The breadth proof in the first viewport. */
     /* Hero window — wraps the controls strip. OFF mode wears a labeled
@@ -274,21 +285,36 @@
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
         <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window">
+                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-extra-height="100">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
-               Themes come from the `themes` array passed to mountDeclarative. -->
+               Themes come from the `themes` array passed to mountDeclarative.
+               extra-height="100": the bare-HTML strip is empty (~8px tall) and
+               grows to ~116px once the runtime populates tiles, so we pad
+               the auto-captured rect so the slot accommodates the final
+               content WITHOUT nested vertical scrolling. The strip's own
+               overflow-x:auto handles horizontal — slot stays clean. See
+               ScriptoscopeWindow.promote for the extra-height semantics. -->
           <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
         </article>
       </div>
-      <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
-      <p class="powers-lede">Kaleidoscope was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
-      <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
-      <p class="powers-lede">A Kaleidoscope scheme is a Mac resource fork: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
-      <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-      <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>
-      <p class="powers-meta-aaron">P.S. The repo is named <em>aaron-ui</em> because <strong>Aaron</strong> was Landweber's <em>earlier</em> extension — the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people will catch that. Hello, three people.</p>
+      <!-- READ ME window — the lede prose itself wears chrome. Period
+           shareware convention: every download came with a "Read Me" you
+           opened before installing. The window-type is document-window
+           so it shares the same pinstripe title bar as the cards below;
+           reading the page IS the demo of a document window. -->
+      <article class="powers-readme" data-scriptoscope-window
+               data-scriptoscope-title="Read Me" data-scriptoscope-window-type="document-window">
+        <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
+        <p class="powers-lede">Kaleidoscope was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
+        <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
+        <p class="powers-lede">A Kaleidoscope scheme is a Mac resource fork: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
+        <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
+        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>
+        <p class="powers-meta-aaron">P.S. The repo is named <em>aaron-ui</em> because <strong>Aaron</strong> was Landweber's <em>earlier</em> extension — the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people will catch that. Hello, three people.</p>
+      </article>
       <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>

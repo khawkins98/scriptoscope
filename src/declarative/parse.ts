@@ -13,6 +13,13 @@ export interface ParsedWindow {
   y?: number;
   width?: number; // CONTENT width (px)
   height?: number; // CONTENT height (px)
+  /** Additive padding on the auto-captured natural rect — `data-scriptoscope-extra-width`
+   *  / `data-scriptoscope-extra-height`. Use when the consumer's element will GROW after
+   *  promote (e.g. a theme-picker whose tiles are populated by the runtime, so the bare-
+   *  HTML rect doesn't represent the final content size). Ignored when explicit
+   *  `width` / `height` is set (the consumer already specified absolute dimensions). */
+  extraWidth?: number;
+  extraHeight?: number;
   /** 'fit' when BOTH width and height are omitted → size to the content; else 'declared'. */
   sizeMode: SizeMode;
   /** Initial z-order — `data-scriptoscope-z`. Higher = closer to the front. Lets the page DECLARE which
@@ -44,6 +51,8 @@ const present = (v: string | undefined): boolean => v != null && v !== 'false';
 export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedWindow {
   const width = num(d.scriptoscopeWidth);
   const height = num(d.scriptoscopeHeight);
+  const extraWidth = num(d.scriptoscopeExtraWidth);
+  const extraHeight = num(d.scriptoscopeExtraHeight);
   const x = num(d.scriptoscopeX);
   const y = num(d.scriptoscopeY);
   const z = num(d.scriptoscopeZ);
@@ -57,6 +66,8 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
     ...(y !== undefined ? { y } : {}),
     ...(width !== undefined ? { width } : {}),
     ...(height !== undefined ? { height } : {}),
+    ...(extraWidth !== undefined ? { extraWidth } : {}),
+    ...(extraHeight !== undefined ? { extraHeight } : {}),
     ...(z !== undefined ? { z } : {}),
   };
 }

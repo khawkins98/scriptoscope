@@ -132,10 +132,17 @@ export class ScriptoscopeWindow {
 
     const restore = { parent: el.parentNode, next: el.nextSibling, el };
     // Initial size: declared > inherited from DOM rect > content-fit default.
+    // `extraWidth` / `extraHeight` pad the auto-captured rect for the
+    // "runtime adds content after promote" case (e.g. a theme-picker whose
+    // tiles are populated by the runtime itself — bare-HTML rect doesn't
+    // reflect the final content size). Skipped when explicit width/height
+    // is set (declared dimensions are absolute by definition). Parse: see
+    // `data-scriptoscope-extra-width` / `-extra-height` in parse.ts. Added
+    // 2026-05-30 for the picker overlap / nested-scroll edge case.
     const w0 = Math.max(MIN_W,
-      parsed.width ?? (hasNaturalRect ? naturalW : FIT_DEFAULT.w));
+      parsed.width ?? ((hasNaturalRect ? naturalW : FIT_DEFAULT.w) + (parsed.extraWidth ?? 0)));
     const h0 = Math.max(MIN_H,
-      parsed.height ?? (hasNaturalRect ? naturalH : FIT_DEFAULT.h));
+      parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
 
     let inst: ScriptoscopeWindow | undefined;
     const host = await deps.manager.add(
@@ -157,6 +164,13 @@ export class ScriptoscopeWindow {
     // page position > fallback (24,24 for detached / display:none elements).
     host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
     host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
+    // Carry the original element's className onto the host so consumer CSS
+    // that targeted the source element (e.g. `.powers-readme`) keeps
+    // working post-promote. The host is otherwise a bare runtime <div>;
+    // without this, any consumer style was orphaned when the original was
+    // removed below. Demo-reviewer 2026-05-30. (Re-promotion + unmount
+    // preserves these classes — they're written once at this seam.)
+    if (el.className) host.className = el.className;
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
