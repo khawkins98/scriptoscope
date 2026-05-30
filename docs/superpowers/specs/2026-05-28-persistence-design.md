@@ -1,7 +1,9 @@
 # Persistence — design proposal
 
+> ✅ **SHIPPED 2026-05-28** as `src/declarative/persistence.ts` (closes #165). The minimal-viable surface (opt-in `mountDeclarative({ persistKey })` + `data-scriptoscope-window-id` for stable identity + `data-scriptoscope-persist="off"` opt-out + `localStorage` storage with the schema below + cross-tab sync via the `storage` event) matches what the §"Recommendation summary" section pinned. This doc is kept in place as the design reference (cited from `src/declarative/persistence.ts` + `src/declarative/scanner.ts`); the "Questions for owner" section at the end is historical context, not open work.
+
 **Date:** 2026-05-28
-**Status:** Proposal (no code) — open for owner review.
+**Status (original):** Proposal (no code) — open for owner review.
 **Scope:** ADR-0001 phase map's outstanding "persistence" line (under PB / PC). Window position, size, collapsed state, theme, and per-window state across page reloads.
 
 ## What the problem actually is

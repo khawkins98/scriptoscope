@@ -1,5 +1,7 @@
 # Window-chrome glitch punch-list — v3-reset compositor QA
 
+> ✅ **MODEL ALIGNMENT COMPLETE.** The blockers documented below are resolved (all five model-alignment fixes committed against the 2.3.1 kDEF decode). The two benign `diag:audit` warnings noted in the summary table are accepted divergences (recorded in `kdef-faithfulness-ledger.md`), not bugs. This doc is kept as the **glossary of the gotchas that were caught** — useful when the next render regression looks familiar, and cited from CONTRIBUTING.md + multiple spec docs as the QA worked-example for the v3 reset.
+
 QA pass on the v3-reset window-chrome compositor (`src/composeChrome.ts`), after
 the source-of-truth alignment to the 2.3.1 kDEF decode. Native-res frame renders
 (`npm run diag:render -- <slug> <wt> --w … --h …`) eyeballed against the period

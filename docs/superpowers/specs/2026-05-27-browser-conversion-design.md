@@ -1,5 +1,7 @@
 # Browser conversion: a single portable conversion core
 
+> ✅ **SHIPPED 2026-05-27.** The drop-zone path, the conversion core (`tools/theme-loader/loadKaleidoscopeScheme.js`), and the StuffIt WASM decoder (`tools/sit-wasm/`) all ship. The 2026-05-29 "Option A" migration generalised the conversion core into the runtime path — `loadTheme()` now decodes archives in-browser on every bundle load, not just for the drop-zone. This doc is kept in place as the design reference behind that code (and is cited from `tools/theme-loader/loadKaleidoscopeScheme.js` + the ADR-0001 + the sit-decoder spike retrospective); the design rationale here informed the shipped architecture.
+
 **Goal:** make "drop a Kaleidoscope resource fork → fully converted, render-ready theme"
 work **client-side in the browser**, producing a theme **byte-equivalent** to what the
 Node build pipeline produces — by collapsing today's two conversion implementations into
