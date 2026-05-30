@@ -54,14 +54,33 @@ export class ScriptoscopeWindow {
   private observing = false;
   private rafId = 0;
   private rendering = false;
+  /** Most-recent content size set on the chrome — also the FLOOR for the
+   *  observer-driven auto-resize. Re-fits only grow past `last`, never
+   *  shrink below it: stops transient layout collapses (e.g. image
+   *  flicker during reflow) from yanking the chrome smaller mid-life,
+   *  and preserves `data-scriptoscope-extra-height` baselines. */
   private last = { w: 0, h: 0 };
   private unmounted = false;
+
+  /** Consumer-declared dimensions, preserved across observer-driven re-fits so
+   *  a `data-scriptoscope-width="400"` window doesn't shrink to its content
+   *  if the un-declared `height` happens to trigger a re-fit. */
+  private readonly declaredW?: number;
+  private readonly declaredH?: number;
 
   private constructor(
     host: HTMLElement, fit: HTMLElement, deps: ScriptoscopeWindowDeps,
     restore: { parent: ParentNode | null; next: Node | null; el: HTMLElement },
+    declared: { w?: number; h?: number } = {},
+    initial: { w: number; h: number } = { w: 0, h: 0 },
   ) {
     this.host = host; this.fit = fit; this.deps = deps; this.restore = restore;
+    if (declared.w !== undefined) this.declaredW = declared.w;
+    if (declared.h !== undefined) this.declaredH = declared.h;
+    // Seed `last` so the floor-only auto-fit doesn't shrink below what the
+    // manager just rendered. Without this seed, `last={0,0}` and the first
+    // scheduleFit would happily shrink the chrome to the inner content size.
+    this.last = { w: initial.w, h: initial.h };
   }
 
   /** Promote `el` into a window. When position attrs (`data-scriptoscope-x`/`-y`) are omitted,
@@ -158,19 +177,44 @@ export class ScriptoscopeWindow {
         ...(parsed.collapsed ? { collapsed: true } : {}),
       },
     );
-    inst = new ScriptoscopeWindow(host, fit, deps, restore);
+    inst = new ScriptoscopeWindow(
+      host, fit, deps, restore,
+      // Spread to omit undefined fields — exactOptionalPropertyTypes:true.
+      {
+        ...(parsed.width !== undefined ? { w: parsed.width } : {}),
+        ...(parsed.height !== undefined ? { h: parsed.height } : {}),
+      },
+      { w: w0, h: h0 },
+    );
 
     // Place the host where the original element was. Priority: declared x/y > inherited
     // page position > fallback (24,24 for detached / display:none elements).
     host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
     host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
-    // Carry the original element's className onto the host so consumer CSS
-    // that targeted the source element (e.g. `.powers-readme`) keeps
-    // working post-promote. The host is otherwise a bare runtime <div>;
-    // without this, any consumer style was orphaned when the original was
-    // removed below. Demo-reviewer 2026-05-30. (Re-promotion + unmount
-    // preserves these classes — they're written once at this seam.)
-    if (el.className) host.className = el.className;
+    // Carry consumer-side identity from the source element to the runtime
+    // host so CSS / JS / AT that targeted the source (`.my-class`,
+    // `#my-id`, `[data-foo]`, `aria-label`, etc.) keeps working post-
+    // promote. Without this, any consumer style/script was orphaned when
+    // the original was removed below.
+    //
+    // `classList.add` (not `host.className = el.className`) so runtime-
+    // added classes survive — assignment was a latent clobber bug. ID is
+    // only copied if the host doesn't already have one; ARIA + non-
+    // scriptoscope `data-*` + `lang` / `dir` / `title` likewise. Lib-
+    // reviewer follow-up 2026-05-30.
+    if (el.id && !host.id) host.id = el.id;
+    for (const cls of el.classList) host.classList.add(cls);
+    for (const attr of ['lang', 'dir', 'title']) {
+      const v = el.getAttribute(attr);
+      if (v != null && !host.hasAttribute(attr)) host.setAttribute(attr, v);
+    }
+    for (const a of Array.from(el.attributes)) {
+      if (host.hasAttribute(a.name)) continue;
+      if (a.name.startsWith('aria-')) host.setAttribute(a.name, a.value);
+      else if (a.name.startsWith('data-') && !a.name.startsWith('data-scriptoscope-')) {
+        host.setAttribute(a.name, a.value);
+      }
+    }
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
@@ -179,15 +223,68 @@ export class ScriptoscopeWindow {
     // pass would override it with content's max-content size (often smaller than the
     // visually-occupied element). When the natural rect is missing (display:none, etc.),
     // fall back to content-fit so the window at least picks up the body's intrinsic size.
-    if (parsed.sizeMode === 'fit' && !hasNaturalRect) await inst.fitToContent(true);
+    if (parsed.sizeMode === 'fit' && !hasNaturalRect) {
+      await inst.fitToContent(true);
+    } else if (parsed.width === undefined || parsed.height === undefined) {
+      // The window was sized from a natural rect (or partly-declared), AND
+      // at least one dimension is open. Observe `fit` for post-promote
+      // growth — the picker case (runtime populates tiles after promote)
+      // and the "image loaded inside content" case both get auto-resized
+      // without consumer intervention. Declared dimensions are preserved
+      // inside fitToContent (declaredW / declaredH). FE-reviewer follow-up
+      // 2026-05-30 P1.
+      inst.startGrowthObserver({
+        initialH: h0, initialW: w0,
+        ...(parsed.title !== undefined ? { title: parsed.title } : {}),
+      });
+    }
     return inst;
   }
 
-  /** Measure the content and re-render the chrome to fit it; optionally start observing reflow. */
+  /** Wire the shared ResizeObserver on `fit` so post-promote content growth
+   *  (e.g. theme-picker tiles populated by the runtime; images that finish
+   *  loading; async-rendered child components) auto-resizes the chrome
+   *  without consumer intervention. Emits a single console.warn at the 500ms
+   *  deadline if the content grew SIGNIFICANTLY — informs the dev they could
+   *  pre-declare the size to avoid the visual pop. Threshold tuned to skip
+   *  routine browser settling (scrollbar gutters, sub-pixel rounding, grid
+   *  layout finalisation) and only surface cases worth acting on. */
+  private startGrowthObserver(opts: { initialW: number; initialH: number; title?: string }): void {
+    if (this.observing || this.unmounted) return;
+    sharedRO.observe(this.fit, () => this.scheduleFit());
+    this.observing = true;
+    // One-shot growth diagnostic. 30px threshold filters out browser
+    // settling noise (we routinely see 5-25px width/height shifts from
+    // grid/flex layout finalising); anything past that is consumer-
+    // visible and worth a hint.
+    setTimeout(() => {
+      if (this.unmounted) return;
+      const grewH = this.last.h - opts.initialH;
+      const grewW = this.last.w - opts.initialW;
+      const EPS = 30;
+      if (grewH < EPS && grewW < EPS) return;
+      const title = opts.title ?? this.host.id ?? '(untitled)';
+      const hint: string[] = [];
+      if (grewH > EPS) hint.push(`data-scriptoscope-extra-height="${Math.ceil(grewH)}"`);
+      if (grewW > EPS) hint.push(`data-scriptoscope-extra-width="${Math.ceil(grewW)}"`);
+      console.warn(
+        `[scriptoscope] Window "${title}" content grew past its bare-HTML measurement ` +
+        `(captured ${opts.initialW}×${opts.initialH}px → settled ${this.last.w}×${this.last.h}px). ` +
+        `The runtime auto-resized; to avoid the visual pop, pre-declare via ${hint.join(' / ')} ` +
+        `on the source element.`
+      );
+    }, 500);
+  }
+
+  /** Measure the content and re-render the chrome to fit it; optionally start observing reflow.
+   *  Declared dimensions (`data-scriptoscope-width` / `-height`) are preserved — a window with
+   *  `width="400"` but no declared height keeps its width and only fits the height. */
   private async fitToContent(startObserving: boolean): Promise<void> {
     this.rendering = true;
-    const w = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
-    const h = Math.max(MIN_H, this.fit.scrollHeight);
+    const measuredW = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
+    const measuredH = Math.max(MIN_H, this.fit.scrollHeight);
+    const w = this.declaredW ?? measuredW;
+    const h = this.declaredH ?? measuredH;
     this.last = { w, h };
     await this.deps.manager.setContentSize(this.host, w, h);
     this.rendering = false;
@@ -199,15 +296,19 @@ export class ScriptoscopeWindow {
 
   /** Debounced, loop-guarded re-fit on content reflow. Observes the max-content `fit` wrapper (whose
    *  natural size is independent of the `.scriptoscope-content` box we resize), with an epsilon + re-entrancy
-   *  flag + disconnect-during-render so our own size changes can't re-trigger it. */
+   *  flag + disconnect-during-render so our own size changes can't re-trigger it.
+   *  Only GROWS — never shrinks past the captured/declared baseline — so transient layout
+   *  collapses (e.g. images flickering during reflow) don't yank the chrome smaller. */
   private scheduleFit(): void {
     if (this.rendering || this.rafId) return;
     this.rafId = requestAnimationFrame(() => {
       void (async () => {
         this.rafId = 0;
         if (this.unmounted) return;
-        const w = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
-        const h = Math.max(MIN_H, this.fit.scrollHeight);
+        const measuredW = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
+        const measuredH = Math.max(MIN_H, this.fit.scrollHeight);
+        const w = this.declaredW ?? Math.max(measuredW, this.last.w);
+        const h = this.declaredH ?? Math.max(measuredH, this.last.h);
         if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) return;
         this.rendering = true;
         // Unobserve ONLY this window's fit (not the whole shared observer) so OUR own

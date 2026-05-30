@@ -285,18 +285,16 @@
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
         <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-extra-height="100">
+                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
                Themes come from the `themes` array passed to mountDeclarative.
-               extra-height="100": the bare-HTML strip is empty (~8px tall) and
-               grows to ~116px once the runtime populates tiles, so we pad
-               the auto-captured rect so the slot accommodates the final
-               content WITHOUT nested vertical scrolling. The strip's own
-               overflow-x:auto handles horizontal — slot stays clean. See
-               ScriptoscopeWindow.promote for the extra-height semantics. -->
+               No `data-scriptoscope-extra-height` needed — the runtime's
+               ResizeObserver auto-resizes the chrome once the tiles populate
+               (the strip grows from ~8px empty to ~116px). For consumers who
+               want to AVOID the brief visual pop on first paint, set
+               data-scriptoscope-extra-height="100" to pre-reserve the space. -->
           <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
         </article>
       </div>
