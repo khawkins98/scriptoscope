@@ -14,6 +14,13 @@ export default defineConfig({
   // separate concerns and can pivot independently.
   base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/aaron-ui/',
   publicDir: false,
+  // Same `scriptoscope` alias as the dev config — keeps the prod bundle
+  // using the same import path the landing models for consumers.
+  resolve: {
+    alias: {
+      scriptoscope: resolve(import.meta.dirname, 'src/index.ts'),
+    },
+  },
   build: {
     outDir: '../dist/demo',
     emptyOutDir: true,

@@ -82,6 +82,38 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
   }
   skinned.dataset.scriptoscopePromoted = '';
   if (kind === 'radio' && input.name) syncRadioGroup(input.name);
+  // ── bfcache defense ────────────────────────────────────────────────────────
+  // Firefox + Safari restore <input> state across reload from form-state cache
+  // WITHOUT firing change/input. The skinned face mirrors the native input
+  // only via change/input handlers — so after a bfcache restore, the face
+  // shows the OLD value while the native input has the restored one. Two
+  // defences:
+  //   1. autocomplete="off" — soft hint browsers MAY ignore (old Safari),
+  //      so necessary-but-insufficient.
+  //   2. pageshow.persisted=true — fires on bfcache restore. Re-read the
+  //      native input's current state and push to the skinned face via the
+  //      published `_scriptoscopeSetChecked` (checkbox/radio) /
+  //      `_scriptoscopeSetValue` (range) setters.
+  // Without this, every consumer hits the bug; the 2026-05-30 silent-prod
+  // post-mortem traces the failure mode to exactly this gap.
+  if (!input.hasAttribute('autocomplete')) input.setAttribute('autocomplete', 'off');
+  const onBfcacheRestore = (e: PageTransitionEvent): void => {
+    if (!e.persisted) return;
+    if (kind === 'checkbox' || kind === 'radio') {
+      const setter = (skinned as unknown as { _scriptoscopeSetChecked?: (v: boolean) => void })._scriptoscopeSetChecked;
+      setter?.(input.checked);
+      if (kind === 'radio' && input.name) syncRadioGroup(input.name);
+    } else if (kind === 'range') {
+      const min = numOr(input.min, 0), max = numOr(input.max, 100);
+      const range = max - min;
+      const v = range > 0 ? clamp01((numOr(input.value, min) - min) / range) : 0;
+      const setter = (skinned as unknown as { _scriptoscopeSetValue?: (v: number) => void })._scriptoscopeSetValue;
+      setter?.(v);
+    }
+  };
+  window.addEventListener('pageshow', onBfcacheRestore);
+  // Stash so retheme / unmount can clean up.
+  (skinned as unknown as { _scriptoscopePageshow?: typeof onBfcacheRestore })._scriptoscopePageshow = onBfcacheRestore;
   return skinned;
 }
 
@@ -145,11 +177,17 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
   // Scope the change listener to a fresh AbortController so the next retheme can abort it cleanly.
   const ac = new AbortController();
   selectChangeAborts.set(el, ac);
-  el.addEventListener('change', async () => {
+  const rerenderFromNative = async (): Promise<void> => {
     const fresh = await renderBtn();
     const cur = wrap.querySelector(':scope > .scriptoscope-button');
     cur?.replaceWith(fresh);
-  }, { signal: ac.signal });
+  };
+  el.addEventListener('change', rerenderFromNative, { signal: ac.signal });
+  // bfcache defense — same rationale as the input branch above. Browser may
+  // restore the select's value silently; the themed button label goes stale.
+  // autocomplete="off" + pageshow.persisted re-render.
+  if (!el.hasAttribute('autocomplete')) el.setAttribute('autocomplete', 'off');
+  window.addEventListener('pageshow', (e) => { if (e.persisted) void rerenderFromNative(); }, { signal: ac.signal });
 
   wrap.dataset.scriptoscopePromoted = '';
   return wrap;

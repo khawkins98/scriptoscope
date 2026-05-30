@@ -239,17 +239,17 @@
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
       <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in any modern browser <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() — Chrome/Edge 105+, Firefox 121+, Safari 15.4+ (roughly 2022 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(2022+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/aaron-ui">view source</a></p>
-      <!-- HERO CONTROL STRIP. autocomplete="off" on every form input defends
-           against Firefox/Safari restoring form-state from cache across
-           reload — same bug class as the skin-toggle. -->
+      <!-- HERO CONTROL STRIP. The runtime auto-sets autocomplete="off" on
+           promoted inputs and re-syncs them on pageshow.persisted (T1.4),
+           so consumers don't need to spray defenses across their markup. -->
       <div class="powers-hero-strip" aria-label="Live themed controls — one of each kind">
         <span class="hs-label">live demo:</span>
         <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="checkbox" autocomplete="off" checked /> Themed</label></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" autocomplete="off" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" autocomplete="off" /> B</label></span>
-        <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" autocomplete="off" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
-        <span class="hs-group"><input type="text" value="A theme name" autocomplete="off" aria-label="Text input" /></span>
-        <span class="hs-group"><select aria-label="Format" autocomplete="off"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
+        <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
+        <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
+        <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
+        <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
+        <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
       </div>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
            actually reads), 2-up minor row below (footnotes). NO explicit
@@ -316,8 +316,11 @@
     // no per-scheme inspectors. Just enough to (a) mount the #powers section's
     // chrome, (b) light up the folder strip with each theme's authentic folder
     // icon, (c) re-skin everything on folder click, (d) wire the toggle.
-    import { mountDeclarative } from '../src/declarative/index.ts';
-    import { loadTheme } from '../src/index.ts';
+    //
+    // Imports use the bare `scriptoscope` specifier — same string a third-
+    // party consumer would write. Vite (dev + prod) aliases it to
+    // src/index.ts so the landing is a faithful consumer example.
+    import { mountDeclarative, loadTheme, VERSION } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
     // Preload Charcoal faces before any chrome render — rasterizeText (control
@@ -352,8 +355,6 @@
 
     // ── DOM handles ─────────────────────────────────────────────────────────
     const powersSection = document.getElementById('powers');
-    const powersGrid = document.getElementById('powers-grid');
-    const pickerHost = document.getElementById('powers-picker-host');
     const toggleBtn = document.getElementById('powers-skin-toggle');
     const foldersEl = document.getElementById('powers-folders');
     const verEl = document.getElementById('powers-ver');
@@ -361,10 +362,7 @@
     // Version sync — the meta line under the install snippet shows the live
     // package version (period Mac shareware convention: "Version x.y.z" was
     // the FIRST line of every Read Me).
-    try {
-      const { VERSION } = await import('../src/index.ts');
-      if (verEl) verEl.textContent = VERSION;
-    } catch { /* version optional — falls back to '0.x' placeholder */ }
+    if (verEl) verEl.textContent = VERSION;
 
     // ── Skinning state ──────────────────────────────────────────────────────
     // The toggle is a real button with aria-pressed (was a checkbox before
@@ -384,21 +382,17 @@
     let handle = null;
     let userInteracted = false; // flips on first folder click / key / mouse — stops auto-cycle
 
-    // Single state setter — aria-pressed + label text + arrow + container
-    // class. After moving .skinned-conditional layout rules out of the CSS
-    // (the 2026-05-30 'cards stacked' dogfooding fix), this can safely run
-    // at boot AND on every state transition without affecting mount
-    // measurement. The `.scriptoscope-mounted` class on the containers
-    // is decorative (drop-shadow on cards, no-op otherwise) — it never
-    // changes child display/size, so the runtime's pre-capture sees
-    // identical geometry regardless.
+    // Single state setter — toggle button only. The library auto-adds
+    // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
+    // resolves and removes it on disconnect, so any consumer CSS that
+    // wants "is the runtime live?" scopes off `#powers.scriptoscope-ready`
+    // instead of a class our code juggles. Keeps boot + library state in
+    // lockstep without needing a separate setter.
     const syncToggleUI = (skinned) => {
       toggleBtn.setAttribute('aria-pressed', String(skinned));
       toggleBtn.firstChild.textContent = skinned ? 'See the bare HTML ' : 'Restore the chrome ';
       const arrow = toggleBtn.querySelector('.arrow');
       if (arrow) arrow.textContent = skinned ? '→' : '←';
-      powersGrid.classList.toggle('scriptoscope-mounted', skinned);
-      pickerHost.classList.toggle('scriptoscope-mounted', skinned);
     };
 
     const mountPowers = async () => {
@@ -410,11 +404,13 @@
           root: powersSection,
           themeBaseUrl,
           pageThemeDefault: activeSlug,
-          // No persistKey: the layout is dictated by CSS. Drag + resize still
-          // work (WindowManager owns those), but reload resets to the CSS-
-          // defined position — the bare-HTML and skinned-chrome layouts stay
-          // identical at load time, which is what makes the chrome-on/off
-          // toggle land as a pure visual swap with no layout shift.
+          // No persistKey: layout is dictated by CSS. Drag + resize work
+          // (WindowManager owns those); reload resets to CSS defaults —
+          // bare-HTML and skinned-chrome layouts stay identical at load.
+          // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
+          // in ONE place instead of probing canvases post-mount with a
+          // 200ms timeout (the library now does this check itself).
+          rejectOnEmptyMount: true,
         });
       } catch (err) {
         if (my === mountToken) syncToggleUI(false);
@@ -428,22 +424,6 @@
       }
       handle = h;
       syncToggleUI(true);
-      // Post-mount sanity: mountDeclarative doesn't throw on inner promote
-      // failures. Verify a chrome canvas painted somewhere in the section;
-      // if zero, treat as failure and revert. Picker lives in pickerHost,
-      // cards live in powersGrid → check both.
-      await new Promise((r) => setTimeout(r, 200));
-      if (my === mountToken && handle === h) {
-        // mountDeclarative STRIPS data-scriptoscope-window during promotion;
-        // the original attribute won't find anything. Probe shadow roots
-        // directly — the chrome canvas lives in each window host's shadow.
-        const anyChrome = [...powersSection.querySelectorAll('*')].some((el) =>
-          el.shadowRoot?.querySelector('canvas.scriptoscope-chrome'));
-        if (!anyChrome) {
-          console.warn('[scriptoscope] mountDeclarative reported success but no chrome canvases painted — reverting to unskinned. Check themeBaseUrl + that .sit/.rsrc bundles are reachable.');
-          unmountPowers();
-        }
-      }
     };
     const unmountPowers = () => {
       mountToken++;
@@ -606,25 +586,19 @@
     // Safe to call any time now that .scriptoscope-mounted is a decorative
     // class with no layout-affecting CSS rules tied to it.
     syncToggleUI(true);
-    // Hero-strip slider readout — same form-cache bug class for <input
-    // type="range">: browser may restore a value the span doesn't know
-    // about. Sync the readout to whatever the input actually shows at boot.
+    // Slider readout — just mirror the live value to the % span. The
+    // library auto-resyncs the slider's themed face from native state on
+    // pageshow.persisted (T1.4), and the input event fires whenever the
+    // user moves either the themed face OR the native input — so no
+    // boot-time sync is needed for the readout to stay honest.
     const slider = document.getElementById('powers-hero-vol');
     const sliderOut = document.getElementById('powers-hero-vol-out');
-    if (slider && sliderOut) {
-      sliderOut.textContent = `${slider.value}%`;
-      slider.addEventListener('input', () => { sliderOut.textContent = `${slider.value}%`; });
-    }
+    slider?.addEventListener('input', () => { if (sliderOut) sliderOut.textContent = `${slider.value}%`; });
     queueMicrotask(async () => {
-      // BEFORE mount: capture the natural pre-mount heights of the picker
-      // host + cards grid. Once mountDeclarative absolutes the children,
-      // the parents would collapse — set min-height so the section reserves
-      // their space. (Layout shift is the disbelief beat's enemy; this
-      // keeps bare HTML and skinned chrome at IDENTICAL positions.)
-      const naturalPickerH = pickerHost.getBoundingClientRect().height;
-      const naturalGridH = powersGrid.getBoundingClientRect().height;
-      if (naturalPickerH > 0) pickerHost.style.minHeight = `${naturalPickerH}px`;
-      if (naturalGridH > 0) powersGrid.style.minHeight = `${naturalGridH}px`;
+      // (The runtime now auto-reserves min-height on positioned ancestors
+      // before lifting children out of flow — was a manual ~12-line dance
+      // before T1.5. Layout-shift-free OFF↔ON toggle is now the default,
+      // no consumer code needed.)
       await mountPowers();
       try { const theme = await loadOnce(activeSlug); await refreshCardGlyphs(theme); } catch {}
     });

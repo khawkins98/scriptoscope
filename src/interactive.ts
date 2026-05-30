@@ -383,6 +383,15 @@ async function buildDraggable(
     el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
   };
   await repaint();
+  // Exposed visual setter — mirrors `_scriptoscopeSetChecked` on toggles.
+  // Used by `promoteControl`'s bfcache resync (pageshow.persisted) to push
+  // the restored native input value back into the themed face when the
+  // browser silently rehydrated form state. Sync (returns immediately;
+  // repaint is rAF-scheduled).
+  (el as unknown as { _scriptoscopeSetValue: (v: number) => void })._scriptoscopeSetValue = (v: number) => {
+    value = clamp01(v);
+    schedule();
+  };
 
   // Map pointer→value against the CANVAS rect (the actual visual surface), not the element rect.
   // The element can be stretched by a parent layout; the canvas always reflects what the user sees.

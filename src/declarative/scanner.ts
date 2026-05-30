@@ -5,7 +5,7 @@
 
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
-import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
+import { ScriptoscopeWindow, findPositionedAncestor } from './ScriptoscopeWindow.js';
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
@@ -13,10 +13,21 @@ import { promoteTabs } from './tabs.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
+import { SCRIPTOSCOPE_READY_CLASS } from './markers.js';
 import {
   readLayout, createDebouncedWriter, onCrossTabUpdate, windowIdFor,
   readHostPosition, type PersistedLayout,
 } from './persistence.js';
+
+/** Per-target promotion outcome, passed to `onPromoteError`. `kind` lets the
+ *  consumer's handler discriminate (e.g. ignore a known-flaky third-party
+ *  field while alerting on window failures). `cause` is the raw thrown
+ *  value — usually an Error but typed `unknown` for honesty. */
+export interface PromoteError {
+  kind: 'window' | 'button' | 'control' | 'tabs' | 'field';
+  el: Element;
+  cause: unknown;
+}
 
 export interface MountOptions extends ThemeBootstrapOpts {
   /** Where to scan (default `document`). */
@@ -27,10 +38,67 @@ export interface MountOptions extends ThemeBootstrapOpts {
    *  window positions/sizes/collapsed state from `localStorage.scriptoscope:layout:<persistKey>` on
    *  promotion, then saves on every state change. Cross-tab sync via the `storage` event.
    *  Window identity comes from `data-scriptoscope-window-id` (stable) or DOM ordinal (fallback).
-   *  Default `undefined` = persistence disabled (current behavior). Schema details:
+   *  Default `undefined` = persistence disabled (current behavior). When NOT set, reload resets
+   *  windows to their CSS-defined positions. Schema details:
    *  `docs/superpowers/specs/2026-05-28-persistence-design.md`. */
   persistKey?: string;
+  /** Per-target promotion failure hook. Called once per element whose promote
+   *  throws (network failure fetching a theme, decoder error, malformed
+   *  attrs). Default behavior: `console.error`. Return `false` to suppress
+   *  the default log. Useful for routing errors to your app's telemetry
+   *  without console noise. */
+  onPromoteError?: (err: PromoteError) => void | false;
+  /** When `true` (default `false`), mountDeclarative REJECTS its returned
+   *  promise if the initial scan found promotable targets but ZERO of them
+   *  succeeded — typically a misconfigured `themeBaseUrl` or unreachable
+   *  bundles. Without this, the runtime returns a "valid" handle with no
+   *  windows promoted, and the consumer has to probe the DOM to detect it.
+   *  See "Common pitfall — silent partial-success" in the README. */
+  rejectOnEmptyMount?: boolean;
 }
+
+/** Counts of successfully-promoted targets by kind, exposed on MountHandle.
+ *  Reflects the initial scan + every subsequent observer-driven re-scan.
+ *  `windows` includes the picker if one is on the page; `controls` is the
+ *  sum of promoted checkboxes + radios + range sliders + selects. */
+export interface MountStats {
+  windows: number;
+  buttons: number;
+  controls: number;
+  tabs: number;
+  fields: number;
+}
+
+/** Public handle returned by mountDeclarative. Exported so consumers can type
+ *  refs (`const handle: MountHandle = await mountDeclarative(...)`). */
+export interface MountHandle {
+  disconnect(): void;
+  retheme(ref: string): Promise<void>;
+  registerTheme(ref: string, theme: LoadedTheme): void;
+  /** Live promotion counts. Mutable: re-scans (observer-driven) add to these.
+   *  Lets consumers gate UI on "is the runtime alive" without DOM probing. */
+  readonly stats: MountStats;
+}
+
+/**
+ * Re-entrant mount guard. A SPA consumer that idempotently calls
+ * `mountDeclarative({ root })` (e.g. inside a React useEffect, or after a
+ * route change) would otherwise spin up a second WindowManager + observer
+ * pair on the same root, both racing to promote the same elements. The
+ * second WindowManager won't see the first's promoted hosts as its own,
+ * and `disconnect()` on the first handle yanks windows out from under the
+ * second. Diagnosing this is brutal because there's no error — just
+ * intermittent layout glitches.
+ *
+ * Defence: WeakMap keyed on the actual `root` Element (Document maps to its
+ * documentElement). If a mount already exists, log once and return the
+ * existing handle. That's friendlier than rejecting because consumers using
+ * React StrictMode (double-invocation in dev) won't get a noisy error.
+ * Cleared in disconnect() so a remount after teardown works.
+ */
+const mountedRoots = new WeakMap<Element, MountHandle>();
+const rootKey = (r: Document | Element): Element | null =>
+  r instanceof Document ? r.documentElement : r;
 
 const WINDOW_SEL = '[data-scriptoscope-window], .scriptoscope-window-fallback';
 const BUTTON_SEL = '[data-scriptoscope-button], .scriptoscope-button-fallback';
@@ -57,16 +125,39 @@ const CONTROL_SEL = [
 ].join(', ');
 
 /** Scan `root` and promote every declarative element; watch for more. Returns a handle to stop. */
-export async function mountDeclarative(opts: MountOptions = {}): Promise<{
-  disconnect(): void;
-  retheme(ref: string): Promise<void>;
-  registerTheme(ref: string, theme: LoadedTheme): void;
-}> {
+export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHandle> {
+  const root: Document | Element = opts.root ?? document;
+  // Re-entrant mount guard (see mountedRoots above). Return the existing
+  // handle instead of double-mounting; warn once so the consumer notices
+  // in dev but doesn't get console-spammed (React StrictMode etc).
+  const key = rootKey(root);
+  if (key) {
+    const existing = mountedRoots.get(key);
+    if (existing) {
+      console.warn('[scriptoscope] mountDeclarative called on a root that is already mounted; returning the existing handle. Call handle.disconnect() before remounting.');
+      return existing;
+    }
+  }
   const manager = new WindowManager();
   const resolver = createThemeResolver(opts);
   const pageDefault = opts.pageThemeDefault ?? opts.baseSlug ?? '1138';
-  const root: Document | Element = opts.root ?? document;
   const inFlight = new Set<Element>();
+  // Live stats — exposed on MountHandle; mutated by every successful promote.
+  const stats: MountStats = { windows: 0, buttons: 0, controls: 0, tabs: 0, fields: 0 };
+  // Positioned ancestors we've pinned an inline min-height onto (so absolute
+  // window-host children don't collapse them). Map<ancestor, priorMinHeight>
+  // so disconnect() can restore the original inline value (consumer's own
+  // CSS still applies if they had a stylesheet min-height).
+  const pinnedAncestors = new Map<HTMLElement, string>();
+  // Single-pipe failure reporter. Consumer hook can suppress the default
+  // console.error by returning false (matches the addEventListener cancel
+  // pattern). Routing all 5 promote*'s catch blocks through this keeps the
+  // surface uniform — useful when we later add lifecycle events (T3.1).
+  const reportPromoteError = (kind: PromoteError['kind'], el: Element, cause: unknown): void => {
+    const handled = opts.onPromoteError?.({ kind, el, cause });
+    if (handled === false) return;
+    console.error(`[scriptoscope] ${kind} promote failed:`, cause);
+  };
   const mounted: ScriptoscopeWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
@@ -176,9 +267,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
       aw.host.dataset.scriptoscopeTheme = ref;
       if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
+      stats.windows += 1;
       debug('promote', `window: ${el.dataset.scriptoscopeTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
     } catch (err) {
-      console.error('[scriptoscope] window promote failed:', err);
+      reportPromoteError('window', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -190,9 +282,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     try {
       const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
       skinnedButtons.push({ el, skinned });
+      stats.buttons += 1;
       debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
     } catch (err) {
-      console.error('[scriptoscope] button promote failed:', err);
+      reportPromoteError('button', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -204,8 +297,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     try {
       await promoteTabs(el, await resolver.load(refForEl(el)));
       skinnedTabs.push(el);
+      stats.tabs += 1;
     } catch (err) {
-      console.error('[scriptoscope] tabs promote failed:', err);
+      reportPromoteError('tabs', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -216,8 +310,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     inFlight.add(el);
     try {
       promoteField(el, await resolver.load(refForEl(el)));
+      stats.fields += 1;
     } catch (err) {
-      console.error('[scriptoscope] field promote failed:', err);
+      reportPromoteError('field', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -228,10 +323,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     inFlight.add(el);
     try {
       const skinned = await promoteControl(el, await resolver.load(refForEl(el)));
-      if (skinned) skinnedControls.push({ el, skinned });
+      if (skinned) {
+        skinnedControls.push({ el, skinned });
+        stats.controls += 1;
+      }
       debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
     } catch (err) {
-      console.error('[scriptoscope] control promote failed:', err);
+      reportPromoteError('control', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -323,6 +421,36 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
         el.dataset.scriptoscopeInheritedHeight = String(r.height);
       }
     }
+    // ── Auto-reserve min-height on the positioned ancestors that will host
+    // the absolute-positioned window hosts. WITHOUT this, the parent
+    // collapses to 0 the moment we lift its children out of flow, and the
+    // rest of the page reflows up. WITH it, the bare-HTML layout and the
+    // skinned-chrome layout reserve identical space. THIS was the single
+    // most-likely-to-be-filed bug per the 2026-05-30 demo-reviewer audit:
+    // every consumer with a flex/grid layout containing data-scriptoscope-
+    // window children would hit it.
+    //
+    // Heuristic: for each unique positioned ancestor of a window target,
+    // capture its current rendered height and set as inline min-height.
+    // SKIP if the ancestor already has an inline min-height (consumer
+    // explicitly set one; respect it) OR if the ancestor isn't going to
+    // collapse (has other in-flow children — checked by counting non-
+    // promotable children). Track pinned ancestors so disconnect() can
+    // restore them.
+    const seenAncestors = new Set<HTMLElement>();
+    for (const el of windowTargets) {
+      const anc = findPositionedAncestor(el);
+      if (!anc || anc === document.documentElement) continue;
+      if (seenAncestors.has(anc)) continue;
+      seenAncestors.add(anc);
+      if (anc.style.minHeight) continue; // consumer pinned it — respect
+      const h = anc.getBoundingClientRect().height;
+      if (h <= 0) continue;
+      // Remember the prior inline value so disconnect() restores faithfully
+      // (the consumer's CSS might still apply a non-inline min-height).
+      pinnedAncestors.set(anc, anc.style.minHeight);
+      anc.style.minHeight = `${Math.round(h)}px`;
+    }
     for (const el of windowTargets) await promoteWindow(el);
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
@@ -352,8 +480,37 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     }
   };
 
+  // Pre-scan target count for the rejectOnEmptyMount check. Counts what's
+  // SCANNABLE before any promote runs (later observer churn doesn't affect
+  // the initial-mount-failed signal). Sum across all promotable kinds.
+  const initialTargets =
+    root.querySelectorAll(WINDOW_SEL).length +
+    root.querySelectorAll(BUTTON_SEL).length +
+    root.querySelectorAll(CONTROL_SEL).length +
+    root.querySelectorAll(TABS_SEL).length +
+    root.querySelectorAll(FIELD_SEL).length;
   await scanAndPromote(root);
   wireThemeSwitchers(root);
+  // Promotion-failure detector. mountDeclarative's old behavior was to log
+  // per-target failures and resolve a "valid" handle anyway — consumers had
+  // to probe the DOM (post-mount canvas-existence check) to learn the mount
+  // was hollow. Opt in via rejectOnEmptyMount: if the scan found targets
+  // but ZERO succeeded, reject so the consumer's await catches it.
+  const promotedTotal = stats.windows + stats.buttons + stats.controls + stats.tabs + stats.fields;
+  if (opts.rejectOnEmptyMount && initialTargets > 0 && promotedTotal === 0) {
+    throw new Error(
+      `[scriptoscope] mountDeclarative: scan found ${initialTargets} promotable target(s) but ZERO succeeded. ` +
+      'Common causes: misconfigured themeBaseUrl, theme bundle 404s, or a decoder error. ' +
+      'Check the network tab + console errors above. (Use { rejectOnEmptyMount: false } to suppress this throw.)'
+    );
+  }
+  // Add the .scriptoscope-ready class to the consumer's root (or document body
+  // for the default no-`root` case). Consumer CSS can scope off this to hide
+  // bare-HTML pre-mount fallbacks without managing a custom class:
+  //   .scriptoscope-ready .pre-mount-loading { display: none; }
+  // Removed in disconnect().
+  const readyEl = root instanceof Document ? root.body : root;
+  if (readyEl) readyEl.classList.add(SCRIPTOSCOPE_READY_CLASS);
 
   // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
   // idempotent (stamps), so we don't need to diff records precisely. Reset `scheduled` in a
@@ -385,11 +542,23 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
     manager.setChangeListener(undefined);
   };
 
-  return {
+  const handle: MountHandle = {
     disconnect: () => {
       teardownPersistence();
       obs.disconnect();
       for (const w of mounted.splice(0)) w.unmount();
+      // Restore inline min-height on every ancestor we pinned during scan.
+      // Children are now back in flow (unmount moves them back), so the
+      // ancestor's natural height returns — releasing the pin lets the
+      // consumer's stylesheet take over again.
+      for (const [anc, prior] of pinnedAncestors) anc.style.minHeight = prior;
+      pinnedAncestors.clear();
+      // Drop the published ready marker before releasing the guard so
+      // consumer CSS sees the un-ready state during teardown.
+      if (readyEl) readyEl.classList.remove(SCRIPTOSCOPE_READY_CLASS);
+      // Release the re-entrant guard so the consumer can mountDeclarative
+      // again on the same root (intentional teardown + remount pattern).
+      if (key) mountedRoots.delete(key);
     },
     /** Switch the whole desktop (all windows + skinned buttons) to a theme ref at runtime. */
     retheme,
@@ -397,5 +566,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<{
      *  `<select data-scriptoscope-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
      *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
     registerTheme: (ref, theme) => resolver.register(ref, theme),
+    stats,
   };
+  if (key) mountedRoots.set(key, handle);
+  return handle;
 }

@@ -9,6 +9,7 @@ import type { WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
+import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
 
 export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
@@ -33,7 +34,7 @@ function numOrNull(s: string | undefined): number | null {
  *  "containing block for absolute positioning" algorithm: any element whose computed
  *  `position` is `relative`/`absolute`/`fixed`/`sticky`, OR a `transform`/`filter`/`perspective`
  *  that creates a containing block, OR `<html>`. */
-function findPositionedAncestor(el: HTMLElement): HTMLElement | null {
+export function findPositionedAncestor(el: HTMLElement): HTMLElement | null {
   let node: HTMLElement | null = el.parentElement;
   while (node && node !== document.documentElement) {
     const cs = getComputedStyle(node);
@@ -113,8 +114,10 @@ export class ScriptoscopeWindow {
     el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.
+    // SCRIPTOSCOPE_SLOT_CLASS is the published structural marker — consumer
+    // CSS scopes off it to tell "is this content currently inside chrome?".
     const slot = document.createElement('div');
-    slot.className = 'scriptoscope-slot';
+    slot.className = SCRIPTOSCOPE_SLOT_CLASS;
     Object.assign(slot.style, { width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'auto' });
     const fit = document.createElement('div');
     fit.className = 'scriptoscope-fit';
