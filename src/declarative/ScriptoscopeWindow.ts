@@ -141,7 +141,20 @@ export class ScriptoscopeWindow {
     // so the scrollbar (when content overflows) appears OUTSIDE the padded
     // area, not inside it — matches Finder window behavior.
     const padding = 'var(--scriptoscope-content-padding, 6px 8px)';
-    if (parsed.sizeMode === 'fit') {
+    // Two modes for the fit wrapper:
+    //   - `max-content` only when we have NO natural rect to anchor against
+    //     (display:none + no declared dims). In that case fit shrink-wraps
+    //     its content; the OUTSIDE world (slot, host, chrome) then sizes
+    //     to it. Pre-2026-05-30 we used this whenever sizeMode==='fit',
+    //     which silently meant `fit.scrollWidth` returned the longest
+    //     unwrapped line of consumer prose — the auto-resize observer
+    //     then grew the card to that width, overflowing its grid cell.
+    //   - `100%/100%` whenever there IS a natural rect (or any declared
+    //     dimension). fit fills the slot; scrollHeight reflects content
+    //     overflow within the bounded width; scrollWidth doesn't shoot
+    //     past slot.clientWidth on long prose lines.
+    const useContentFit = parsed.sizeMode === 'fit' && !hasNaturalRect;
+    if (useContentFit) {
       Object.assign(fit.style, { width: 'max-content', maxWidth: `${FIT_MAX_W}px`, height: 'max-content', padding, boxSizing: 'border-box' });
     } else {
       Object.assign(fit.style, { width: '100%', minHeight: '100%', padding, boxSizing: 'border-box' });
@@ -202,6 +215,14 @@ export class ScriptoscopeWindow {
     // only copied if the host doesn't already have one; ARIA + non-
     // scriptoscope `data-*` + `lang` / `dir` / `title` likewise. Lib-
     // reviewer follow-up 2026-05-30.
+    //
+    // CAVEAT: consumer classes carry their CSS verbatim, including
+    // LAYOUT-affecting properties (display:grid on `.powers-card`,
+    // flex/contain/etc). Those would re-size the host's box and break
+    // the host↔chrome-canvas correspondence. So we force the layout-
+    // critical properties on the host directly — these win over inherited
+    // class CSS via inline-style specificity. Consumer styles for color,
+    // font, position offsets, custom properties, etc. all still apply.
     if (el.id && !host.id) host.id = el.id;
     for (const cls of el.classList) host.classList.add(cls);
     for (const attr of ['lang', 'dir', 'title']) {
@@ -215,6 +236,15 @@ export class ScriptoscopeWindow {
         host.setAttribute(a.name, a.value);
       }
     }
+    // Lock down layout-critical properties AFTER inheriting the consumer's
+    // classes — inline styles override class-based CSS via specificity.
+    // Without this, a `.powers-card { display: grid; grid-template-columns:
+    // 56px 1fr }` consumer class would collapse the host's box to ~100px
+    // while the chrome canvas still rendered at its natural ~450px. Demo
+    // reviewer 2026-05-30: cards showed the canvas overflowing a tiny
+    // host box, breaking hit detection + sibling flow.
+    host.style.display = 'block';
+    host.style.boxSizing = 'border-box';
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
@@ -298,7 +328,11 @@ export class ScriptoscopeWindow {
    *  natural size is independent of the `.scriptoscope-content` box we resize), with an epsilon + re-entrancy
    *  flag + disconnect-during-render so our own size changes can't re-trigger it.
    *  Only GROWS — never shrinks past the captured/declared baseline — so transient layout
-   *  collapses (e.g. images flickering during reflow) don't yank the chrome smaller. */
+   *  collapses (e.g. images flickering during reflow) don't yank the chrome smaller.
+   *  Respects consumer-imposed CSS max-width / max-height on the host: when the
+   *  consumer set those (e.g. `.powers-card-row.heavy .powers-card { max-height: 280px }`),
+   *  they explicitly opted in to slot-scrolling for overflow — auto-grow would fight
+   *  the intent and visually overflow the host's box. */
   private scheduleFit(): void {
     if (this.rendering || this.rafId) return;
     this.rafId = requestAnimationFrame(() => {
@@ -307,8 +341,22 @@ export class ScriptoscopeWindow {
         if (this.unmounted) return;
         const measuredW = Math.min(FIT_MAX_W, Math.max(MIN_W, this.fit.scrollWidth));
         const measuredH = Math.max(MIN_H, this.fit.scrollHeight);
-        const w = this.declaredW ?? Math.max(measuredW, this.last.w);
-        const h = this.declaredH ?? Math.max(measuredH, this.last.h);
+        // Cap grow by consumer-imposed PIXEL max-width / max-height. Only px
+        // values cap — percentages, em, vh/vw, calc(), none, etc. all leave
+        // the cap at Infinity. (parseFloat('100%') returns 100, not NaN, so
+        // a unit check is required — losing this bit collapsed Read Me's
+        // host to 100px wide because `.powers-inner > * { max-width: 100% }`
+        // applied via inheritance.)
+        const cs = getComputedStyle(this.host);
+        const pxCap = (v: string): number => {
+          if (!v.endsWith('px')) return Infinity;
+          const n = parseFloat(v);
+          return isNaN(n) || n <= 0 ? Infinity : n;
+        };
+        const capW = pxCap(cs.maxWidth);
+        const capH = pxCap(cs.maxHeight);
+        const w = this.declaredW ?? Math.min(capW, Math.max(measuredW, this.last.w));
+        const h = this.declaredH ?? Math.min(capH, Math.max(measuredH, this.last.h));
         if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) return;
         this.rendering = true;
         // Unobserve ONLY this window's fit (not the whole shared observer) so OUR own
