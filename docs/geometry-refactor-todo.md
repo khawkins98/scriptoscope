@@ -1,11 +1,20 @@
 # Geometry & Wiring Refactor — Working TODO + Context
 
-**Status:** in progress · **Last updated:** 2026-05-26 · **Branch:** main (HEAD `ae303df`)
+**Status:** in progress · **Last updated:** 2026-05-30 · **Branch:** main (HEAD `feb0be2`)
 
 A living doc for the effort to move the System 7/8 (Platinum-family) window/control
 **geometry + pictogram wiring** from hand-tuned guesses to **decode-grounded data**,
 and to settle the rendering model so it stops accreting special cases. Read this
 before continuing — it captures what we're doing, how, why, what's done, and what's left.
+
+> **2026-05-30 context refresh.** Some sections below reference the `apple-platinum-replica`
+> bundle + the `scripts/generate-platinum/` toolchain. **Both were retired on 2026-05-28**
+> (commits `c7ab49d` "defer to platinum-8 as the Platinum authority" + `c935e4c` "retire
+> apple-platinum-replica"). The "SLICED_BARH exception" in §1 and the "Phase-B procedural
+> control generator" in §5 are therefore mooted — there is no replica left to feed.
+> §2 (platinum-8 pinstripe contrast), §3 (decode-grounded values), and §4 (title text on
+> the plate) remain active work against the live `platinum-8` bundle. The unification
+> insight in §1 — `titleHeight = ascent + descent + 2`, font-derived — stays canonical.
 
 ---
 
