@@ -221,7 +221,7 @@
       <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
-      <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; runs in any browser &nbsp;·&nbsp; <a href="https://github.com/khawkins98/aaron-ui">view source</a></p>
+      <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in any modern browser <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() — Chrome/Edge 105+, Firefox 121+, Safari 15.4+ (roughly 2022 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(2022+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/aaron-ui">view source</a></p>
       <!-- HERO CONTROL STRIP. autocomplete="off" on every form input defends
            against Firefox/Safari restoring form-state from cache across
            reload — same bug class as the skin-toggle. -->
@@ -367,17 +367,33 @@
     let handle = null;
     let userInteracted = false; // flips on first folder click / key / mouse — stops auto-cycle
 
-    // Single setter for derived display: aria-pressed + label text + .skinned
-    // on both containers. Every state transition routes through here so
-    // nothing can desync (the 2026-05-30 silent-prod post-mortem lesson).
-    const syncToggleUI = (skinned) => {
+    // TWO setters, separately:
+    //
+    // syncToggleButton — owns the visible TOGGLE state only (aria-pressed +
+    // label text + arrow). Safe to call at boot before measurement; doesn't
+    // touch .skinned on the containers.
+    //
+    // syncSkinnedClass — owns the container .skinned class. ONLY called
+    // after mountPowers's success branch confirms chrome painted. The
+    // .skinned class fires CSS that overrides .powers-card-row display:grid
+    // → display:block; if it fires BEFORE mountDeclarative pre-captures
+    // card rects, the cards measure at full row width and stack on top of
+    // each other (the 2026-05-30 'cards stacked' regression).
+    //
+    // Both still route through a unified state transition (the caller pairs
+    // them when needed). Splitting kept the bfcache defence cheap (boot only
+    // calls syncToggleButton) without coupling it to layout-affecting CSS.
+    const syncToggleButton = (skinned) => {
       toggleBtn.setAttribute('aria-pressed', String(skinned));
       toggleBtn.firstChild.textContent = skinned ? 'See the bare HTML ' : 'Restore the chrome ';
       const arrow = toggleBtn.querySelector('.arrow');
       if (arrow) arrow.textContent = skinned ? '→' : '←';
+    };
+    const syncSkinnedClass = (skinned) => {
       powersGrid.classList.toggle('skinned', skinned);
       pickerHost.classList.toggle('skinned', skinned);
     };
+    const syncToggleUI = (skinned) => { syncToggleButton(skinned); syncSkinnedClass(skinned); };
 
     const mountPowers = async () => {
       if (handle) return;
@@ -581,9 +597,13 @@
 
     // Initial mount. The toggle is a <button> with aria-pressed; HTML
     // declares aria-pressed="true" as the default, but we force it here
-    // for the same form-state-cache defence we used for the prior
-    // checkbox (some browsers may restore aria attributes on bfcache restore).
-    syncToggleUI(true);
+    // (syncToggleButton — NOT syncToggleUI; we MUST NOT add .skinned to
+    // the containers yet because doing so flips the .powers-card-row CSS
+    // override from display:grid → display:block BEFORE mountDeclarative
+    // pre-captures the cards' grid-cell rects, causing them to measure
+    // at full row width and stack on top of each other. .skinned only
+    // goes on AFTER mountPowers's success branch fires.
+    syncToggleButton(true);
     // Hero-strip slider readout — same form-cache bug class for <input
     // type="range">: browser may restore a value the span doesn't know
     // about. Sync the readout to whatever the input actually shows at boot.
