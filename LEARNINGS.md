@@ -2727,3 +2727,26 @@ The "fix" attempt that didn't fix: I removed the example code and wrote a warnin
 3. **A noisy-but-survivable warning is worth its weight.** The silent-fail defense added on 2026-05-30 didn't prevent the bug, but it surfaced it the next time anyone ran a Playwright probe with console capture. Without the warning, the boot affordance could have stayed broken for months — visually fine, functionally degraded, no signal. Build that pattern into any feature whose failure mode is "still kind of works."
 
 **The discovery path was also worth recording.** Code-split work (#191 P5: dynamic-import the corner-sprite compositor) required a Playwright probe to verify the chunk loaded for some themes and not others. That probe captured `console` output. The warning surfaced; the corner-sprite verification became secondary. Tooling built for one purpose surfacing an unrelated bug is a sign the tooling has the right granularity.
+
+## 2026-05-30 — Post-P5 + CSS-fix perf re-measurement
+
+Re-ran the live Pixel 5 + Fast 3G + CPU 4× harness against the production
+GH Pages bundle at commit `330443e` (P5 corner-sprite code-split + the
+boot-affordance CSS bug fix described in the previous entry). Numbers vs
+the perf-batch end measurement (3044ms local, post-P3..P6):
+
+| metric                          | this run (live) | prev (local) |
+|---------------------------------|-----------------|--------------|
+| First window painted            | 3247ms          | 3044ms       |
+| Theme archives in first 10s     | 4               | 4            |
+| Total bytes in first 10s        | 1144 KB         | ~750 KB      |
+| meta.json fetches in first 10s  | 0               | 0            |
+| Wasted `.sit` 404s              | 0               | 0            |
+
+The first-window-painted variance (~200ms) is within CDN/3G simulation noise — the live run rides through GH Pages' real geographic RTT on top of the synthetic Fast 3G latency. The byte difference is a similar story (the production CDN's headers, fingerprinting params, and theme tile ordering vary).
+
+P5's expected savings (~8KB code-split chunk for the 14 non-corner-sprite themes) is ~40ms on Fast 3G — below measurement floor. The win is structural rather than wall-clock-visible at this connection profile: a future heavier corner-sprite compositor would have grown the main chunk; this isolates that risk to the four themes that actually need it.
+
+**The bigger qualitative change isn't in these numbers.** Before the CSS fix, the boot affordance's wipe-in + icon-fade + placeholder-dot animations had `var(--undefined)` references → invalid property values → silently disabled. The page reached "first window painted" in the same ~3s but with a popcorn-like rendering — chrome appearing instantly when its texture finished decoding, no transition cover. Post-fix, the wipe reveals the chrome smoothly over the consumer's already-visible markup; perceived perf at the same 3s wall-clock improves a level. The metric-vs-feel gap matters here.
+
+**Generalisable lesson.** Numerical perf tracking measures the timing axis; it cannot distinguish "renders fine" from "renders fine with a smooth transition." When fixing a feature that's only visible during the loading window, re-measure the metric, but ALSO eyeball the deployed bundle on the slowest profile you intend to serve. Some "wins" don't move the chart and some chart-flat changes are felt.
