@@ -111,10 +111,21 @@ export class ScriptoscopeWindow {
     Object.assign(slot.style, { width: '100%', height: '100%', boxSizing: 'border-box', overflow: 'auto' });
     const fit = document.createElement('div');
     fit.className = 'scriptoscope-fit';
+    // Content padding — classic Mac windows always had a small inset before
+    // the body content, so the text/widgets didn't butt against the chrome.
+    // Default 6px vertical / 8px horizontal (the Apple Human Interface
+    // Guidelines 1989 default for window content). Consumers can override
+    // via the custom property at any scope:
+    //   :root { --scriptoscope-content-padding: 12px 16px; }
+    //   .scriptoscope-fit { padding: 0; }  /* opt out entirely */
+    // Padding lives on `.scriptoscope-fit` rather than `.scriptoscope-slot`
+    // so the scrollbar (when content overflows) appears OUTSIDE the padded
+    // area, not inside it — matches Finder window behavior.
+    const padding = 'var(--scriptoscope-content-padding, 6px 8px)';
     if (parsed.sizeMode === 'fit') {
-      Object.assign(fit.style, { width: 'max-content', maxWidth: `${FIT_MAX_W}px`, height: 'max-content' });
+      Object.assign(fit.style, { width: 'max-content', maxWidth: `${FIT_MAX_W}px`, height: 'max-content', padding, boxSizing: 'border-box' });
     } else {
-      Object.assign(fit.style, { width: '100%', minHeight: '100%' });
+      Object.assign(fit.style, { width: '100%', minHeight: '100%', padding, boxSizing: 'border-box' });
     }
     fit.append(...Array.from(el.childNodes)); // MOVE children (identity + listeners preserved)
     slot.append(fit);

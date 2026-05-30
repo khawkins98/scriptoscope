@@ -42,6 +42,14 @@
      browser blue. */
   --scriptoscope-focus-color: rgb(0 95 204);
   --scriptoscope-focus-width: 2px;
+
+  /* Inner content padding inside every promoted window's body. Classic Mac
+     windows always had a small inset so text/widgets didn't butt against
+     the chrome — Apple HIG 1989 default ~6px vertical / 8px horizontal.
+     Set to `0` to opt out entirely; widen to `12px 16px` for spacier feel.
+     The runtime applies this directly via inline style on `.scriptoscope-fit`,
+     reading the var at promotion time. */
+  --scriptoscope-content-padding: 6px 8px;
 }
 
 /* ─── Drop shadow on window hosts ──────────────────────────────────────── */

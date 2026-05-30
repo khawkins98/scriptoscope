@@ -148,6 +148,12 @@
     #powers .powers-card-row.heavy { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 0 0 14px; }
     #powers .powers-card-row.minor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0; }
     #powers .powers-card { display: grid; grid-template-columns: 56px 1fr; gap: 14px; padding: 12px 14px; border: 1px solid #c0c0c0; background: #ffffff; }
+    /* Heavy-row cards get a fixed max-height so the ResourceForkLib long-
+       form body actually overflows — that's the scrollbar demo. The runtime
+       inherits this height into the chrome via getBoundingClientRect, then
+       paints themed scrollbars around the overflow. OFF mode falls back to
+       native browser scrollbars; either way, the content reads as scrollable. */
+    #powers .powers-card-row.heavy .powers-card { max-height: 280px; overflow: auto; }
     #powers .powers-card-row.minor .powers-card { background: #fafafa; }
     /* When promoted, the card's children move into the window's content
        slot. The glyph (an OFF-mode-only affordance — chrome itself signals
@@ -239,8 +245,8 @@
           <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
         </article>
       </div>
-      <h2>Eighteen schemes. One runtime.</h2>
-      <p class="powers-lede">Scriptoscope plays <em>Kaleidoscope</em> schemes — the 1997–2003 Mac OS theming format — the way an emulator plays a ROM: pixel-faithfully, in your browser, from the original binary resources their authors shipped. Drop a script tag on any page, add a few attributes, and ship 1997 to production.</p>
+      <h2>Eighteen schemes. One runtime. On the web, in 2026.</h2>
+      <p class="powers-lede">Kaleidoscope was a control panel a few of us couldn't stop fiddling with — Greg Landweber and Arlo Rose's thing, with a scheme folder you'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format vanished. Scriptoscope renders those same <code>.sit</code> and <code>.rsrc</code> bundles, untouched, into a <code>&lt;canvas&gt;</code> in your browser. Same <code>cicn</code> artwork, same <code>wnd#</code> rect lists, same nine-slice the original <code>WDEF</code> did — replayed by a clean-room reimplementation of the decompiled 2.3.1 kDEF. Drop a script tag, sprinkle a few attributes, and the page wears 1999.</p>
       <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
@@ -267,34 +273,50 @@
            still work — WindowManager owns those; reload resets to CSS
            defaults because no persistKey on the mount.) -->
       <div class="powers-grid" id="powers-grid">
+        <!-- HEAVY row: kDEF Replay Engine + ResourceForkLib (the long-form
+             card). ResourceForkLib carries ~360 words deliberately so the
+             card is tall enough to demo the runtime's themed scrollbars
+             with real content (per the 2026-05-30 writer's recommendation:
+             "yes, real windows scroll, real chrome paints around real
+             content"). The card-row.heavy max-height constraint in CSS
+             forces the overflow + scrollbar reveal. -->
         <div class="powers-card-row heavy">
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="folder">⌘</div>
             <div>
               <h3><a href="./diagnostic.html#detail">kDEF Replay Engine</a></h3>
-              <p>A clean-room reimplementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped — same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Every pixel of chrome is composited from the binary's own resources.</p>
+              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped: same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
             </div>
           </article>
-          <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="prefs">✎</div>
-            <div>
-              <h3><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
-              <p>The attribute set that lets any element declare what it is — a window, a button, a checkbox, a slider — and wear the active scheme's chrome the instant the runtime mounts.</p>
-              <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
-&lt;input type=&quot;range&quot; data-scriptoscope-slider /&gt;
-&lt;article data-scriptoscope-window&gt;…&lt;/article&gt;</pre>
-            </div>
-          </article>
-        </div>
-        <div class="powers-card-row minor">
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="document">↘</div>
             <div>
               <h3><a href="./diagnostic.html#byo">ResourceForkLib</a></h3>
-              <p>Reads any classic scheme — a StuffIt archive, a MacBinary wrapper, a raw <code>.rsrc</code> fork still warm from a System&nbsp;7 disk — directly in your browser. Nothing uploaded.</p>
+              <p>A Kaleidoscope scheme is a Mac resource fork: a tiny relational database of typed records (<code>cicn</code>, <code>ppat</code>, <code>wnd#</code>, <code>cinf</code>, <code>Colr</code>, <code>clut</code>, <code>ics4</code>, <code>ics8</code>) authored against a Mac OS that hasn't shipped since 2001. To get one onto the web you have to read it the way the Finder read it.</p>
+              <p>So that's what this does. Drop a <code>.sit</code> on the page — say, the original <code>beosr503.sit</code> Jon Alexander uploaded in 2002 — and the runtime hands the bytes to a WebAssembly StuffIt decoder, lifts the resource fork out of the unpacked MacBinary wrapper, walks the resource map, and pulls each typed record into memory. The 8-bit <code>cicn</code> color icons get their CLUTs applied and Mac 1.8 → sRGB 2.2 gamma-corrected; the <code>wnd#</code> rect list becomes the four-sided recipe the compositor walks part-code by part-code; the <code>ppat</code> patterns become tile sources for the desktop and the dialog grays. All of it in your browser — no upload, no server, no telemetry, no account. Refresh the tab and the bytes are gone.</p>
+              <p>Two things this enables that nothing else does. First: the eighteen bundled schemes ship as their <em>original archives</em> — <code>scheme.sit</code> straight from kaleidoscope.net's 1999 mirror, or <code>scheme.rsrc</code> recovered from a Wayback crawl when the StuffIt is no longer reachable — with a <code>meta.json</code> that records who made it and where it came from. Nothing's been re-encoded or &ldquo;cleaned up.&rdquo; If a 1998 byte was wrong, it's wrong here.</p>
+              <p>Second: the demo's drop zone is the same code path as the bundled corpus. Drag any of the 3,000-plus schemes from the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a> onto the page and watch it render — the runtime doesn't know or care that you didn't ship it.</p>
+              <p>The decoder lives in <a href="https://github.com/khawkins98/aaron-ui/tree/main/tools/theme-loader"><code>tools/theme-loader/</code></a> and has no dependency on the renderer, the DOM, Node, or anything else app-specific. If you want to read resource forks in a browser for some other reason — a Mac archaeology project, a Hypercard stack viewer, a Mac OS save-game inspector — it's MIT licensed and it'll work.</p>
+            </div>
+          </article>
+        </div>
+        <!-- MINOR row: short footnotes. data-scriptoscope-* keeps its code
+             snippet (the API surface in 12 chars — kept verbatim per the
+             writer's "do not change" note). About the Library names real
+             authors where credit's known; preserves the period-Mac
+             "schemes were signed" convention. -->
+        <div class="powers-card-row minor">
+          <article class="powers-card" data-scriptoscope-window
+                   data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
+            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="prefs">✎</div>
+            <div>
+              <h3><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
+              <p>Tag an element, tell the runtime what it is — window, button, checkbox, slider, scrollbar — and it wears the current scheme. No React, no Web Components dependency, no build step required. The children stay live HTML; only the chrome is canvas.</p>
+              <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
+&lt;input type=&quot;range&quot; data-scriptoscope-slider /&gt;
+&lt;article data-scriptoscope-window&gt;…&lt;/article&gt;</pre>
             </div>
           </article>
           <article class="powers-card" data-scriptoscope-window
@@ -302,7 +324,7 @@
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="suitcase">✦</div>
             <div>
               <h3><a href="./diagnostic.html#ribbon">The Scheme Library</a></h3>
-              <p>Eighteen of the era's best — <em>1138</em>, <em>Apple Platinum</em>, <em>BeOS R5</em>, <em>Crayon OS</em>, <em>Monkey Paradise</em>, <em>Windows 95</em>, and twelve more. Decoded from archives the Macintosh Garden preserves.</p>
+              <p>Eighteen schemes, each loaded from the original archive its author posted: Erik Ekengren's <em>1138</em>, Jon Alexander's <em>BeOS R5.0.3</em>, Karl von Laudermann's <em>Crayon OS</em>, R. Bensam &amp; E. Deans' <em>Apple Lisa for K2.1</em>, plus <em>Apple Platinum 2</em>, <em>Monkey Paradise</em>, <em>Windows 95</em>, and eleven more — preserved by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>, credited where credit's known.</p>
             </div>
           </article>
         </div>
