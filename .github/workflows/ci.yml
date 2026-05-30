@@ -51,6 +51,14 @@ jobs:
       - name: Bake theme derivatives (required by audit:scenes)
         run: npm run build:themes
 
+      # Build the library FIRST. `lint:themes --strict` re-decodes every
+      # bundle and imports PixelBuffer from `dist/scriptoscope.js` to do
+      # so — on a fresh CI checkout, dist/ does not exist yet. Locally the
+      # maintainer's pre-push `npm run gates` works because they typically
+      # have a stale `dist/` from prior dev. Order matters on a clean tree.
+      - name: Library build
+        run: npm run build
+
       # The maintainer-defined pre-push umbrella — typecheck + test +
       # lint:themes --strict + audit:scenes --check. All four are pure
       # Node (no browser / canvas / Puppeteer), so they're CI-safe as-is
@@ -60,6 +68,3 @@ jobs:
       # Mirrors `npm run gates` locally — see CLAUDE.md "Commands".
       - name: Gates (typecheck + test + lint --strict + audit --check)
         run: npm run gates
-
-      - name: Library build
-        run: npm run build
