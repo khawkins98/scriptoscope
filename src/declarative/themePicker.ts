@@ -23,6 +23,7 @@
 
 import type { LoadedTheme } from '../types.js';
 import type { ThemeEntry } from './theme.js';
+import { resolveInChain } from '../baseChain.js';
 import { ICON_NAMES } from './icon.js';
 
 /** @deprecated 2026-05-30 — use {@link ThemeEntry} from `./theme.js` (now
@@ -171,6 +172,41 @@ export async function promoteThemePicker(
   // reviewer P2 2026-05-30. Negligible at 18 themes; matters at 100+.
   const queued = new Set<string>();
   const concurrencyCap = Math.max(1, deps.decodeConcurrency ?? 2);
+  // Shared lookup: 32px preferred, else any size with the requested id.
+  const pickIn = (t: LoadedTheme, id: number) => {
+    const idx = t.inspector?.iconIndex ?? [];
+    return idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
+  };
+  const pickInChain = (t: LoadedTheme) =>
+    resolveInChain(t, (x) => pickIn(x, primaryId) ?? pickIn(x, fallbackId));
+  // Memoised fallback URL — the first valid folder icon found among
+  // initialSlug / themes[]. Single search, reused for every sparse tile.
+  // We don't fire this eagerly; it triggers lazily on the first sparse
+  // miss, by which point most non-sparse themes are already cache-warm
+  // (loaded by their own IO firings + the page chrome). Sparse-bundle
+  // base-chain walk + last-resort theme walk — lib reviewer P2 2026-05-30.
+  let cachedFallbackUrl: string | null = null;
+  let fallbackSearch: Promise<string | null> | null = null;
+  const findFallbackIcon = (excludeSlug: string): Promise<string | null> => {
+    if (cachedFallbackUrl) return Promise.resolve(cachedFallbackUrl);
+    if (fallbackSearch) return fallbackSearch;
+    // Try initialSlug first (usually cache-warm), then themes[] in order.
+    // dedup + drop the slug we already know lacks icons.
+    const candidates = [...new Set([deps.initialSlug, ...themes.map((t) => t.slug)])]
+      .filter((c) => c && c !== excludeSlug);
+    fallbackSearch = (async () => {
+      for (const c of candidates) {
+        try {
+          const t = await deps.loadTheme(c);
+          const hit = pickInChain(t);
+          if (hit?.url) { cachedFallbackUrl = hit.url; return hit.url; }
+        } catch { /* try next candidate */ }
+      }
+      return null;
+    })();
+    void fallbackSearch.finally(() => { fallbackSearch = null; });
+    return fallbackSearch;
+  };
   const drain = (): void => {
     while (inFlight < concurrencyCap && queued.size > 0) {
       const slug = queued.values().next().value as string;
@@ -181,19 +217,27 @@ export async function promoteThemePicker(
       void (async () => {
         try {
           const theme = await deps.loadTheme(slug);
-          const idx = theme.inspector?.iconIndex ?? [];
-          const pick = (id: number) => idx.find((i) => i.id === id && i.size === 32) ?? idx.find((i) => i.id === id);
-          const hit = pick(primaryId) ?? pick(fallbackId);
-          if (hit?.url) {
+          const hit = pickInChain(theme);
+          let resolvedUrl: string | null = hit?.url ?? null;
+          if (resolvedUrl) {
+            // Seed the fallback cache from the FIRST successful resolution
+            // so subsequent sparse tiles short-circuit without re-walking.
+            cachedFallbackUrl ??= resolvedUrl;
+          } else {
+            // Sparse theme — borrow a folder icon from any candidate that
+            // has one. Search runs once per picker, memoised. Most tiles
+            // hit the cache on the second-or-later sparse decode.
+            resolvedUrl = await findFallbackIcon(slug);
+          }
+          if (resolvedUrl) {
             const tile = tiles.get(slug);
             const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
-            if (icon) icon.src = hit.url;
-            // Icon arrived → drop aria-busy so AT announces the tile as
-            // settled. Stays set to 'true' if no icon was found (the
-            // dotted-outline placeholder remains; that IS the correct
-            // state to communicate).
-            tile?.setAttribute('aria-busy', 'false');
+            if (icon) icon.src = resolvedUrl;
           }
+          // Either way — icon found or not — the tile has settled. The
+          // dotted-outline placeholder remains if no icon was found
+          // anywhere in the corpus, which IS the correct visual state.
+          tiles.get(slug)?.setAttribute('aria-busy', 'false');
         } catch { /* tolerate per-theme failures */ } finally {
           inFlight -= 1;
           // Yield to the main thread between decodes — requestIdleCallback
