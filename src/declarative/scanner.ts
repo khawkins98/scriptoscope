@@ -248,6 +248,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const skinnedTabs: HTMLElement[] = []; // tablist wrappers (re-promoted on retheme to swap faces)
   const skinnedIcons: (HTMLImageElement | HTMLElement)[] = []; // [data-scriptoscope-icon] elements; re-resolved on retheme
   const skinnedPickers: HTMLElement[] = []; // [data-scriptoscope-theme-picker] elements; aria-selected synced on retheme
+  const pickerTeardowns: (() => void)[] = []; // IO disconnect + queue clear, run on handle.disconnect() — lib reviewer P1 fix 2026-05-30
   let cascade = 0;
   let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
 
@@ -428,7 +429,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         switchTheme: (slug) => retheme(slug),
         initialSlug: lastThemeRef ?? pageDefault,
       });
-      if (result) skinnedPickers.push(el);
+      if (result) {
+        skinnedPickers.push(result.el);
+        pickerTeardowns.push(result.teardown);
+      }
     } catch (err) {
       reportPromoteError('control', el, err); // no 'picker' kind; reuse 'control' (kept tight for now)
     }
@@ -806,6 +810,14 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       teardownPersistence();
       obs.disconnect();
       stopCycle();
+      // Picker teardowns: disconnect every promoted picker's IntersectionObserver
+      // + clear its in-flight decode queue. Before this, an SPA that
+      // mount/unmount-cycled leaked one IO + N tile refs per cycle (the IO
+      // pinned the tile DOM nodes the picker had built, even after the
+      // consumer ripped the picker out of the document). Lib reviewer P1
+      // 2026-05-30. Errors don't propagate — a flaky teardown shouldn't
+      // block the rest of disconnect.
+      for (const t of pickerTeardowns.splice(0)) { try { t(); } catch { /* swallow */ } }
       for (const w of mounted.splice(0)) w.unmount();
       dispatch('unmounted');
       // Restore inline min-height on every ancestor we pinned during scan.

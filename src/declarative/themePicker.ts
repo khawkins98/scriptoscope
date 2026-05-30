@@ -46,13 +46,25 @@ export interface PickerDeps {
   initialSlug: string;
 }
 
+/** Result returned by {@link promoteThemePicker} on successful promotion. */
+export interface PromotedPicker {
+  /** The host element, now populated with tiles. */
+  el: HTMLElement;
+  /** Teardown for SPA unmount: disconnects the IntersectionObserver so the
+   *  observer no longer pins the (possibly already-removed) tile nodes,
+   *  and clears the in-flight decode queue. Called by the scanner's
+   *  `handle.disconnect()` in 2026-05-30's IO-leak fix. Safe to call
+   *  multiple times. Lib reviewer P1. */
+  teardown: () => void;
+}
+
 /** Promote a `<div data-scriptoscope-theme-picker>` into a folder-strip
  *  switcher. Idempotent (stamped via data-scriptoscope-theme-picker-promoted).
- *  Returns the host (now populated) or null if the element was already promoted
- *  or themes is empty. */
+ *  Returns `{ el, teardown }` or null if the element was already promoted or
+ *  themes is empty. */
 export async function promoteThemePicker(
   el: HTMLElement, themes: readonly PickerThemeEntry[], deps: PickerDeps,
-): Promise<HTMLElement | null> {
+): Promise<PromotedPicker | null> {
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
   el.dataset.scriptoscopeThemePickerPromoted = '';
@@ -189,13 +201,14 @@ export async function promoteThemePicker(
   // The other 17: decode on intersection (tile scrolls into view) OR on
   // click (keyboard nav / direct interaction). IntersectionObserver is
   // ubiquitous (Chrome 51+, Firefox 55+, Safari 12.1+).
+  let io: IntersectionObserver | null = null;
   if (typeof IntersectionObserver === 'function') {
-    const io = new IntersectionObserver((entries) => {
+    io = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const slug = (entry.target as HTMLButtonElement).dataset.slug;
         if (slug) requestDecode(slug);
-        io.unobserve(entry.target); // one-shot per tile
+        io?.unobserve(entry.target); // one-shot per tile
       }
     }, { rootMargin: '50px' }); // start the decode shortly before tile enters
     for (const tile of tiles.values()) io.observe(tile);
@@ -215,7 +228,18 @@ export async function promoteThemePicker(
     tile.addEventListener('click', () => requestDecode(slug));
   }
 
-  return el;
+  // Teardown closure: SPA unmount path. IO disconnect releases the
+  // tile-node refs the observer held (in a long-lived SPA where mount/
+  // unmount cycles, each cycle leaked one IO + N tiles before this).
+  // Clearing the queue drops any in-flight decodes still pending — the
+  // already-fired async decode IIFEs will run to completion harmlessly
+  // because the DOM nodes they target may be gone; the `if (icon)` and
+  // `tile?.` guards inside drain() already handle that case. Idempotent.
+  const teardown = (): void => {
+    if (io) { io.disconnect(); io = null; }
+    queue.length = 0;
+  };
+  return { el, teardown };
 }
 
 /** Sync the picker's active state when a retheme happened elsewhere (e.g. via
