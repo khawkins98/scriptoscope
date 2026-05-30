@@ -348,7 +348,7 @@ hi=-8271). They reveal the control families the kDEF expects:
 >   glyphs. These are the scheme-supplied control *pictograms*.
 > `-9488..-9504` are still derived consumer-side (not kDEF immediates). The full
 > two-channel id→role map is the **pictogram ID rubric** rendered in
-> `demo/index.html` `iconInventory` (and reproduced for authoring in the asset catalog).
+> `demo/diagnostic.html` `iconInventory` (and reproduced for authoring in the asset catalog).
 >
 > **GENERATED MANIFEST:** the decoded id→role for EVERY resource a theme ships is now
 > emitted per-theme to `themes/<slug>/resource-roles.json` (`scripts/gen-resource-roles.mjs`,

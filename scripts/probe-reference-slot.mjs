@@ -646,7 +646,7 @@ function probeDesktopBg(scheme, ref, _anchor) {
     const mean = meanRgbOfAsset(asset);
     if (mean) candidates.push({ name: `T2 ppat-17 (canonical)`, mean, tier: 'T2' });
   }
-  // The checkerboard fallback in demo/index.html is `repeating-conic-gradient`
+  // The checkerboard fallback in demo/diagnostic.html is `repeating-conic-gradient`
   // of #9a9a9a / #a4a4a4 — mean ~0xa0/0xa0/0xa0.
   candidates.push({ name: 'T3 CSS checkerboard (~#a0a0a0)', mean: [0xa0, 0xa0, 0xa0], tier: 'T3' });
 
@@ -827,7 +827,7 @@ function probeInfoBarTextColor(scheme, ref, anchor) {
   //    → T3 headerFill. The `_infoPatUrl` is set to T1 or T2 (a texture URL);
   //    when present, runtime forces BLACK regardless of fill luminance ("we
   //    leave the textured info-bar at black until a per-element textColor
-  //    field exists" — see demo/index.html line 871-872).
+  //    field exists" — see demo/diagnostic.html `_infoFillColor` / `_infoTextColor` logic).
   // 2. Else luminance-pick against `_infoFillColor` (headerColors.active.fill
   //    falling through to #e6e6e6 default).
   const m = scheme.manifest;

@@ -36,7 +36,7 @@ See [docs/scene-slot-spec.md](./scene-slot-spec.md) for the hand-authored contra
 
 ### Info-bar background  `info-bar-bg`
 
-Resolved in: `demo/index.html buildScene`
+Resolved in: `demo/diagnostic.html buildScene`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
@@ -47,7 +47,7 @@ Resolved in: `demo/index.html buildScene`
 
 ### Finder window-header badge (info-bar leading slot)  `finder-header-badge`
 
-Resolved in: `demo/index.html gridProxyIcon`
+Resolved in: `demo/diagnostic.html gridProxyIcon`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
@@ -65,7 +65,7 @@ Resolved in: `src/renderWindow.ts bodyBackgroundStyle`
 
 ### Desktop background (Scene canvas)  `desktop-bg`
 
-Resolved in: `demo/index.html buildScene desk`
+Resolved in: `demo/diagnostic.html buildScene desk`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
@@ -85,7 +85,7 @@ Resolved in: `src/renderWindow.ts bodyBackgroundStyle (utility-slug branch)`
 
 ### Info-bar volume-label text color  `info-bar-text-color`
 
-Resolved in: `demo/index.html buildScene volume span`
+Resolved in: `demo/diagnostic.html buildScene volume span`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|
@@ -128,7 +128,7 @@ Resolved in: `src/controls.ts composeScrollbar (arrow lookup by id family)`
 
 ### Folder/scene icons inside the body  `folder-scene-icons`
 
-Resolved in: `demo/index.html schemeIcons`
+Resolved in: `demo/diagnostic.html schemeIcons`
 
 | Tier | Field | Why | Themes |
 |---|---|---|---|

@@ -1277,7 +1277,7 @@ export class WindowManager {
     // Per-widget action: an explicit handler wins; otherwise collapse/zoom get a built-in (window-shade
     // / zoom-to-fit) so the widgets work out of the box. Close has no built-in (the manager doesn't own
     // what "close" means — the declarative layer wires onClose=unmount), so a close widget without a
-    // handler stays inert. Existing callers that pass handlers (demo/index.html) keep their behavior.
+    // handler stays inert. Existing callers that pass handlers (demo/diagnostic.html) keep their behavior.
     const builtin: Partial<Record<TitleWidget, () => void>> = {
       collapse: () => { void this.toggleCollapse(entry); },
       zoom: () => { void this.toggleZoom(entry); },

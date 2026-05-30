@@ -48,9 +48,12 @@
     #powers .powers-tab.left { left: calc(50% - 480px + 24px); }
     #powers .powers-tab.left b { color: #2a2a2a; font-weight: 700; }
     #powers .powers-tab.left .sep { color: #c0c0c0; padding: 0 6px; }
-    #powers .powers-tab.right { right: calc(50% - 480px + 24px); display: inline-flex; align-items: center; gap: 6px; font-style: italic; }
+    #powers .powers-tab.right { right: calc(50% - 480px + 24px); display: inline-flex; align-items: center; gap: 10px; font-style: italic; }
     #powers .powers-tab.right input { margin: 0; vertical-align: middle; }
     #powers .powers-tab.right label { cursor: pointer; user-select: none; color: #3859b3; }
+    #powers .powers-tab.right .sep { font-style: normal; color: #c0c0c0; }
+    #powers .powers-tab.right a { font-style: normal; color: #3859b3; text-decoration: underline; }
+    #powers .powers-tab.right a:hover { color: #1a3580; }
     #powers .powers-inner { max-width: 960px; margin: 0 auto; font: 14px/1.55 Georgia, "Times New Roman", Times, serif; }
     /* OFF-state width hold — without max-width:100% on inner blocks the
        cards collapse to a narrow sidebar when no chrome is mounted. */
@@ -141,8 +144,13 @@
   <section id="powers" aria-label="Scriptoscope">
     <div class="powers-tab left"><b>/aaron-ui</b><span class="sep">›</span>Scriptoscope</div>
     <div class="powers-tab right">
-      <input type="checkbox" id="powers-skin-toggle" checked />
+      <!-- Opt the skin-toggle OUT of mountDeclarative's auto-promotion: the
+           scanner skins any input[type=checkbox] by default; we don't want
+           the toggle THAT controls skinning to itself wear a themed face. -->
+      <input type="checkbox" id="powers-skin-toggle" data-scriptoscope-control="off" checked />
       <label for="powers-skin-toggle" title="Off shows the bare 1999-period HTML; on (the default) wears the active scheme's chrome.">skinned: on</label>
+      <span class="sep">·</span>
+      <a href="./diagnostic.html" title="Runtime diagnostics — per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
     </div>
     <div class="powers-inner">
       <h2>Eighteen schemes. One runtime.</h2>
@@ -271,9 +279,16 @@
     // its token invalidated and its handle is .disconnect()-ed instead of
     // leaked. `.skinned` flips AFTER the mount resolves so we don't strand
     // a window of display:block cards with no chrome.
+    //
+    // ?theme= URL param: the landing is the shareable URL, so deep-linking
+    // to a specific scheme is a real consumer need. Default 1138 if absent
+    // or unknown. The URL value is the source of truth at boot AND when
+    // switchTheme runs (it pushReplaceState's the new slug back so the URL
+    // stays in sync without polluting history).
+    const themeFromURL = new URLSearchParams(location.search).get('theme');
+    let activeSlug = themesBySlug.has(themeFromURL) ? themeFromURL : '1138';
     let mountToken = 0;
     let handle = null;
-    let activeSlug = '1138';
     const mountPowers = async () => {
       if (handle) return;
       const my = ++mountToken;
@@ -281,6 +296,11 @@
         root: powersSection,
         themeBaseUrl,
         pageThemeDefault: activeSlug,
+        // persistKey: this landing is the playground for resizing windows;
+        // a user dragging the four cards around expects their layout to
+        // come back on reload. The WindowManager debounces state into
+        // localStorage.scriptoscope:layout:<key>.
+        persistKey: 'scriptoscope-landing',
       });
       if (my !== mountToken || !toggle.checked) { try { h.disconnect(); } catch {} return; }
       handle = h;
@@ -353,6 +373,13 @@
     const switchTheme = async (slug) => {
       if (!slug || slug === activeSlug) return;
       activeSlug = slug;
+      // Mirror the active scheme into ?theme= so the URL stays shareable
+      // without polluting history (each switch replaces, doesn't push).
+      try {
+        const u = new URL(location.href);
+        u.searchParams.set('theme', slug);
+        history.replaceState(null, '', u);
+      } catch {}
       for (const [s, el] of folderTiles) {
         const isActive = s === slug;
         el.classList.toggle('active', isActive);

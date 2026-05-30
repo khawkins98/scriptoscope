@@ -60,4 +60,4 @@ warnings, so it can gate CI. Checks:
 - `src/composeChrome.ts` — `placement` model + `partRole`.
 - `scripts/render-window.mjs`, `scripts/audit-placement.mjs`, `scripts/diag-lib.mjs`
   (shared minimal PNG codec + cicn loader + window resolver).
-- `demo/index.html` — `sliceInspector()`.
+- `demo/diagnostic.html` — `sliceInspector()`.

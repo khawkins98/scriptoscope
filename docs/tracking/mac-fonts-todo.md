@@ -79,6 +79,6 @@ The repos that surfaced this are NOT a usable source:
 
 ## Pointers
 - `src/textRaster.ts` — the compositor glyph rasterizer (the main seam).
-- Font stacks: `demo/index.html`, `src/renderWindow.ts`, `src/platinum.ts`
+- Font stacks: `demo/index.html` + `demo/diagnostic.html`, `src/renderWindow.ts`, `src/platinum.ts`
   (`platinumWindow` title), `src/controls.ts` (button/tab labels).
 - `README.md` "what loaded themes carry" — notes schemes don't bring fonts.

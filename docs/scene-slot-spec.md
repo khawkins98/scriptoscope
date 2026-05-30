@@ -54,7 +54,7 @@ content area (the strip showing `slimes 1.5` / `1990` / etc.).
 | T3 | `headerColors.active.fill` | Solid colour from the active title-bar fill. Reads as a "this scheme is themed even if the artist didn't make a separate info-bar texture" choice. |
 | T4 | `flat #e6e6e6` | Hard fallback. No corpus theme lands here at HEAD. |
 
-Implemented in: `demo/index.html buildScene`.
+Implemented in: `demo/diagnostic.html buildScene`.
 
 ### `finder-header-badge` — Info-bar leading slot
 
@@ -65,7 +65,7 @@ The small (16px) icon that sits left of the title text in the Finder window head
 | T1 | `ics4/ics8 -3790` | Finder window-header snap-to-grid badge — author-labeled "Snap-To-Grid" / "Grid Arrangement" by corpus authors. Apple's actual volume-icon path is a separate slot (`GetIconRef('macs', 'hdsk') → kGenericHardDiskIconResource = -3995`). |
 | T2 | `FINDER_GRID_PNG` | Period system-default grid. The right answer for schemes that don't ship -3790; the reference image's header badge in every such case IS this grid. |
 
-Implemented in: `demo/index.html gridProxyIcon`.
+Implemented in: `demo/diagnostic.html gridProxyIcon`.
 
 The icon's transparency is preserved — placing the `<img>` on a coloured info bar lets the bar fill show through the icon's transparent pixels.
 
@@ -95,7 +95,7 @@ size; not a window contents background.
 | T1 | `patterns[<key matching /desktop/i>].asset` | The scheme's own desktop ppat — 1138, 1984, beos-r503, apple-lisa ship one with an explicit `desktop-pattern` / `blue-desktop` / `desktop-background` key. |
 | T2 | `repeating-conic-gradient` CSS checkerboard | Neutral fallback for schemes that don't ship a desktop ppat. |
 
-Implemented in: `demo/index.html buildScene` (the `desk` element).
+Implemented in: `demo/diagnostic.html buildScene` (the `desk` element).
 
 ### `dialog-body-bg` — Dialog / utility window body background
 
@@ -125,7 +125,7 @@ The label colour applied to the volume name in the Scene's Finder info bar.
 | T2 | contrast-pick → `#000` (when fill ≥ 128 OR a textured ppat is in play) | Light fills + textured backgrounds keep black text |
 | T3 | `flat #000` | Hardcoded fallback for schemes with malformed headerColors (none in corpus) |
 
-Implemented in: `demo/index.html` buildScene's volume span — luminance threshold mirrors the trick `composeCornerSpriteChrome` uses for the title bar.
+Implemented in: `demo/diagnostic.html` buildScene's volume span — luminance threshold mirrors the trick `composeCornerSpriteChrome` uses for the title bar.
 
 ### `progress-bar-hue` — Progress-bar accent
 
@@ -174,7 +174,7 @@ Up to 8 32px icons rendered as the Finder window's "contents" in the Scene.
 | T2 | Coverage-ranked icl4/8 at `size=32` with 18–95% opaque pixels | A scheme themes scene icons under non-folder ids; fall back to the most coverage-rich ones (skip near-blank and full-bleed). |
 | T3 | Neutral SVG folders | Fall-through for schemes that theme NO icl/icl8 icons at all (1990 used to land here; apple-platinum-2, system7-nostalgia-silver still do). |
 
-Implemented in: `demo/index.html schemeIcons`. Prefer the HIGHEST depth per id
+Implemented in: `demo/diagnostic.html schemeIcons`. Prefer the HIGHEST depth per id
 (icl8 over icl4) — matches the renderer's glyph policy in
 `src/loadTheme.loadGlyphMap`.
 

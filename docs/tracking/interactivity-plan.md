@@ -69,11 +69,11 @@ Callbacks: `onClick`, `onChange(value)`, `onToggle(open)`, `onClose/Zoom/Collaps
 ## Existing plumbing to build on
 The playground already re-renders on `<select>` change and the slice inspector
 already wires `mousemove`/`click` on the window canvas + a placement-based
-hit-test (`demo/index.html` ~L579–621). The WindowManager + widget hit-testing
+hit-test (`demo/diagnostic.html` ~L579–621). The WindowManager + widget hit-testing
 extend that pattern.
 
 ## Conflict avoidance (sibling agent on Platinum-replica)
-A sibling is editing `renderWindow.ts` / `controls.ts` / `demo/index.html` /
+A sibling is editing `renderWindow.ts` / `controls.ts` / `demo/diagnostic.html` /
 `scripts/generate-platinum*` for the Platinum-replica sub-project. To avoid
 collisions:
 - Put the logic in the NEW `src/interactive.ts` (no overlap).

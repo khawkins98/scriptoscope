@@ -7,7 +7,7 @@ cinf-resize-behavior, apple-cdef-button-vs-our-compose, kaleidoscope-author-docs
 
 **Method.** Read every spec doc in the citation chain, then sweep `src/composeChrome.ts`,
 `src/composeCornerSprite.ts`, `src/renderWindow.ts`, `src/controls.ts`,
-`src/platinum.ts`, `src/baseChain.ts`, `src/loadTheme.ts`, `demo/index.html`,
+`src/platinum.ts`, `src/baseChain.ts`, `src/loadTheme.ts`, `demo/diagnostic.html`,
 and `scripts/scene-coverage-audit.mjs`. For each heuristic / inference / friendly-
 key lookup, ask: does a primary source now offer a structured-field replacement?
 
@@ -29,7 +29,7 @@ the gaps.
 
 ### [F1] `WND_ID_SLUG` table misses three collapsed-utility variants
 
-**File:** `demo/index.html:1385–1390`
+**File:** `demo/diagnostic.html:1385–1390`
 **Current:** The `WND_ID_SLUG` map covers 11 wnd# resource ids and translates
 the raw-key form (`wnd--14336`) into a friendly slug for the window-type
 dropdown. The map omits `-14300` (Collapsed Utility Window), `-14292`
@@ -53,7 +53,7 @@ Also add the three slugs to `WT_ORDER` at line 1395.
 
 ### [F2] Scene-codex `finder-header-badge` slot description still calls it the volume icon in code comments
 
-**File:** `demo/index.html:402` (cache var name `_gridCache` is fine; the doc-
+**File:** `demo/diagnostic.html:402` (cache var name `_gridCache` is fine; the doc-
 comment block at 339–378 is accurate). The lingering risk is in `scripts/scene-coverage-audit.mjs:81–98`
 and the per-slot tier resolver — both correctly cite "Snap-To-Grid". But
 the live codebase still has `gridProxyIcon` named for what looks like a grid,

@@ -1,7 +1,7 @@
 # Reference preview images
 
-Per-scheme reference images used inside the demo (`demo/index.html`) for
-side-by-side comparison against our live rendering. One PNG per corpus scheme,
+Per-scheme reference images used inside the diagnostic page (`demo/diagnostic.html`)
+for side-by-side comparison against our live rendering. One PNG per corpus scheme,
 keyed by slug.
 
 | File | Scheme |

@@ -86,9 +86,10 @@ needs human eyes for layout decisions.
 
 ### Loading the result into Scriptoscope
 
-Drop the `.rsrc` onto the demo at `demo/index.html` (the BYO drop-zone) — the
+Drop the `.rsrc` onto the BYO drop-zone at `demo/diagnostic.html#byo` — the
 in-browser decoder will run the same conversion pipeline as the Node CLI and
-render your scheme live.
+render your scheme live. (Before 2026-05-30 this lived at `demo/index.html`,
+which is now the consumer-facing landing.)
 
 For a permanent bundle, copy the `.rsrc` to `themes/<your-slug>/scheme.rsrc`
 and run:

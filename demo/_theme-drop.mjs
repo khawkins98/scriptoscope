@@ -4,7 +4,7 @@
 // Layer separation: this lives in demo/ on purpose. The runtime ships attachThemeDropZone (UX
 // glue, no decoder dep) and handle.registerTheme (resolver-cache seed). The decoder
 // (`loadKaleidoscopeScheme`) lives in tools/theme-loader/ and is imported here at the demo
-// layer. Same pattern the main demo (demo/index.html #byo-drop) already uses.
+// layer. Same pattern the diagnostic page (demo/diagnostic.html #byo-drop) already uses.
 //
 // Usage:
 //

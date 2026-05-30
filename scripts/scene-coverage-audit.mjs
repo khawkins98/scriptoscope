@@ -38,7 +38,7 @@ const themeArg = process.argv.find((a) => a.startsWith('--theme='))?.slice('--th
 
 // ── slot definitions ──────────────────────────────────────────────────────
 // Each slot has a list of tiers; the resolver walks them in order and returns
-// the first that hits. The Scene's actual demo code in demo/index.html follows
+// the first that hits. The Scene's actual demo code in demo/diagnostic.html follows
 // the SAME order — keep these in sync (if you add a tier in one place, mirror it).
 // `terminalIsAcceptable: true` flags slots whose last tier is a legitimate
 // answer (white body bg, checkerboard desk) rather than a regression-candidate
@@ -48,7 +48,7 @@ const SLOTS = [
   {
     key: 'info-bar-bg',
     label: 'Info-bar background',
-    where: 'demo/index.html buildScene',
+    where: 'demo/diagnostic.html buildScene',
     terminalIsAcceptable: false,
     tiers: [
       {
@@ -77,7 +77,7 @@ const SLOTS = [
   {
     key: 'finder-header-badge',
     label: 'Finder window-header badge (info-bar leading slot)',
-    where: 'demo/index.html gridProxyIcon',
+    where: 'demo/diagnostic.html gridProxyIcon',
     terminalIsAcceptable: true, // FINDER_GRID_PNG IS the right answer for schemes that don't ship -3790
     tiers: [
       {
@@ -115,7 +115,7 @@ const SLOTS = [
   {
     key: 'desktop-bg',
     label: 'Desktop background (Scene canvas)',
-    where: 'demo/index.html buildScene desk',
+    where: 'demo/diagnostic.html buildScene desk',
     terminalIsAcceptable: true, // checkerboard is a deliberate "no themed desktop" choice
     tiers: [
       {
@@ -174,7 +174,7 @@ const SLOTS = [
   {
     key: 'info-bar-text-color',
     label: 'Info-bar volume-label text color',
-    where: 'demo/index.html buildScene volume span',
+    where: 'demo/diagnostic.html buildScene volume span',
     terminalIsAcceptable: false, // hard-coded black is a regression risk on dark info bars
     tiers: [
       // The runtime contrast-picks against the resolved info-bar bg luminance —
@@ -350,7 +350,7 @@ const SLOTS = [
   {
     key: 'folder-scene-icons',
     label: 'Folder/scene icons inside the body',
-    where: 'demo/index.html schemeIcons',
+    where: 'demo/diagnostic.html schemeIcons',
     terminalIsAcceptable: false, // a scheme falling to neutral SVG folders is a coverage gap
     tiers: [
       {

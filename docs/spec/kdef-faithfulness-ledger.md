@@ -20,7 +20,7 @@ ledger is how we keep our own code a faithful mimic and make every divergence
 > cicn `-10239` is a push-button face, while ics4 `-10239` is a checkbox (on). This
 > was the source of repeated checkbox/radio misreads. The full two-channel control
 > id→role map is resolved in [`kdef231-reference.md` §2.4](./kdef231-reference.md)
-> and rendered live as the pictogram rubric in `demo/index.html` `iconInventory`.
+> and rendered live as the pictogram rubric in `demo/diagnostic.html` `iconInventory`.
 
 How to use it:
 - **Adding/changing compose logic?** Find the routine here first; the asm address
