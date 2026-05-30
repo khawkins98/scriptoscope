@@ -2627,3 +2627,20 @@ probe-reference-slot.mjs     (pixel-match against bundle reference PNG)    ← v
 ```
 
 Each layer is a separate primary-source channel. The earlier layers are higher-authority. Guessing is now the last resort, properly.
+
+---
+
+## 2026-05-30 — Post-batch citation-coherence pass: a reusable checklist
+
+After a big batch lands (the 2026-05-29/30 overnight pass was 30+ commits + 8 new spec docs), the failure modes that creep in aren't decode errors — they're **drift in human-readable references**: a slug rename that updated the canonical doc but not the half-dozen cross-references, a new spec doc added without an entry in `docs/spec/README.md`, a CLAUDE.md pointer to a section that got moved. None of these break the runtime; all of them make the next person (or agent) chase a wrong lead.
+
+Running a citation-coherence pass after a big batch caught 9 fixes out of 15 findings on that batch. The methodology is mechanical enough to be checklist-able:
+
+1. **Cross-grep the "high-risk" identifiers the user flagged in the batch** — addresses (`0x...`), enum values, slug names, role labels. Anything the maintainer corrected partway through is at risk of remaining stale in docs that mention it.
+2. **Cross-reference every `docs/spec/<name>.md` mention against `ls docs/spec/`** — broken links to renamed/deleted files surface here.
+3. **Spot-check `kdef-faithfulness-ledger.md` rows** — every divergence row needs `asm address + file:line + "why we diverge"` all present.
+4. **Spot-check the newly-added docs for asm-address citations on every "the kDEF does X" claim** — new docs are most likely to have the unsourced assertions that grow into folklore.
+
+The fix surface was exclusively human-readable comment + table-cell text (no runtime behavior); `npm run gates` stays green throughout. The worked example was in `docs/spec/overnight-coherence-review.md` (archived 2026-05-30 — see `docs/archive/`); the checklist above is what survives.
+
+**Application.** After any batch ≥ ~10 commits that touches `docs/spec/` or renames slugs, run the four-step check before declaring the batch done. Most of the time it finds nothing; when it finds something, it's a 5-minute fix that would have cost an hour for someone tracking down the wrong address two months later.
