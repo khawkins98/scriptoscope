@@ -8,10 +8,14 @@
 //   node scripts/gen-themes-manifest.mjs
 // Runs at the tail of build:themes and after `npm run import`.
 //
-// Label format (mirrors the ribbon's `name ✦ badge` parsing): real ported schemes
-// get "<name> (<author>, <year>) ✦ real scheme"; generated bundles "<name> ✦ generated".
-// Order: real schemes first (alphabetical by slug), generated bundles last — so a new
-// import slots in deterministically and THEMES[0] (the ribbon's no-hash default) is stable.
+// Label format (mirrors the ribbon's `name ✦ badge` parsing): ported schemes
+// get "<name> (<author>, <year>)" — the corpus is 18-for-18 ported as of
+// 2026-05-30, so no badge is needed to disambiguate (the "✦ real scheme"
+// suffix was meaningful only when first-party-generated bundles like the
+// retired apple-platinum-replica also lived in the corpus). Any future
+// generated bundle gets "<name> ✦ generated" so the partition stays visible.
+// Order: ported first (alphabetical by slug), generated last — keeps
+// THEMES[0] (the ribbon's no-hash default) stable as new imports land.
 
 import { readdirSync, existsSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -36,7 +40,7 @@ for (const slug of readdirSync(themesDir).sort()) {
   const credit = ported && meta.author?.name
     ? ` (${meta.author.name}${meta.author.year ? `, ${meta.author.year}` : ''})`
     : '';
-  const badge = ported ? ' ✦ real scheme' : generated ? ' ✦ generated' : '';
+  const badge = generated ? ' ✦ generated' : '';
   const label = `${name}${credit}${badge}`;
   const ref = existsSync(resolve(refsDir, `${slug}.png`)) ? `${slug}.png` : null;
   // Source-of-truth hint: which file the runtime should fetch (scheme.sit > scheme.rsrc).

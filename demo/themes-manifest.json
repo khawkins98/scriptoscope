@@ -1,126 +1,126 @@
 [
   {
     "slug": "1138",
-    "label": "1138 (Erik Ekengren, 1998) ✦ real scheme",
+    "label": "1138 (Erik Ekengren, 1998)",
     "source": "scheme.rsrc",
     "sourceBytes": 724796,
     "ref": "1138.png"
   },
   {
     "slug": "1984",
-    "label": "1984 (Geoffrey Hamilton, 1999) ✦ real scheme",
+    "label": "1984 (Geoffrey Hamilton, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 476921,
     "ref": "1984.png"
   },
   {
     "slug": "1990",
-    "label": "1990 (SHIOCOP, 1999) ✦ real scheme",
+    "label": "1990 (SHIOCOP, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 584178,
     "ref": "1990.png"
   },
   {
     "slug": "animals",
-    "label": "Animals (Masashi Ichikawa, 1999) ✦ real scheme",
+    "label": "Animals (Masashi Ichikawa, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 202349,
     "ref": "animals.png"
   },
   {
     "slug": "apple-lisa",
-    "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans) ✦ real scheme",
+    "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans)",
     "source": "scheme.sit",
     "sourceBytes": 75263,
     "ref": "apple-lisa.png"
   },
   {
     "slug": "apple-platinum-2",
-    "label": "Apple Platinum 2 (Orion Dimitrakopoulos, 1999) ✦ real scheme",
+    "label": "Apple Platinum 2 (Orion Dimitrakopoulos, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 81472,
     "ref": "apple-platinum-2.png"
   },
   {
     "slug": "beos-r503",
-    "label": "BeOS R5.0.3 (Jon Alexander, 2002) ✦ real scheme",
+    "label": "BeOS R5.0.3 (Jon Alexander, 2002)",
     "source": "scheme.sit",
     "sourceBytes": 121497,
     "ref": "beos-r503.png"
   },
   {
     "slug": "black-platinum",
-    "label": "Black Platinum (Daisuke Yamashita, 1999) ✦ real scheme",
+    "label": "Black Platinum (Daisuke Yamashita, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 435125,
     "ref": "black-platinum.png"
   },
   {
     "slug": "crayon-os",
-    "label": "Crayon OS (Karl von Laudermann, 2000) ✦ real scheme",
+    "label": "Crayon OS (Karl von Laudermann, 2000)",
     "source": "scheme.sit",
     "sourceBytes": 515058,
     "ref": "crayon-os.png"
   },
   {
     "slug": "dolphin-som",
-    "label": "Dolphin SOM (dsom) (unknown) ✦ real scheme",
+    "label": "Dolphin SOM (dsom) (unknown)",
     "source": "scheme.sit",
     "sourceBytes": 437325,
     "ref": "dolphin-som.png"
   },
   {
     "slug": "evolution",
-    "label": "1991 evolution (SHIOCOP, 1999) ✦ real scheme",
+    "label": "1991 evolution (SHIOCOP, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 1650192,
     "ref": "evolution.png"
   },
   {
     "slug": "floppies",
-    "label": "Floppies! (unknown) ✦ real scheme",
+    "label": "Floppies! (unknown)",
     "source": "scheme.sit",
     "sourceBytes": 461286,
     "ref": "floppies.png"
   },
   {
     "slug": "monkey-paradise",
-    "label": "Monkey Paradise (Masashi Ichikawa, 1998) ✦ real scheme",
+    "label": "Monkey Paradise (Masashi Ichikawa, 1998)",
     "source": "scheme.sit",
     "sourceBytes": 241823,
     "ref": "monkey-paradise.png"
   },
   {
     "slug": "platinum-8",
-    "label": "Platinum 8 (Russell Silver Jr., 1998) ✦ real scheme",
+    "label": "Platinum 8 (Russell Silver Jr., 1998)",
     "source": "scheme.sit",
     "sourceBytes": 31363,
     "ref": "platinum-8.png"
   },
   {
     "slug": "slimes",
-    "label": "slimes 1.5 (JUN, 1998) ✦ real scheme",
+    "label": "slimes 1.5 (JUN, 1998)",
     "source": "scheme.sit",
     "sourceBytes": 59206,
     "ref": "slimes.png"
   },
   {
     "slug": "system7-nostalgia-silver",
-    "label": "System 7 Nostalgia Silver (mollusc, 1997) ✦ real scheme",
+    "label": "System 7 Nostalgia Silver (mollusc, 1997)",
     "source": "scheme.rsrc",
     "sourceBytes": 130067,
     "ref": "system7-nostalgia-silver.png"
   },
   {
     "slug": "windows-31",
-    "label": "Windows 3.1 (Scott Naness) ✦ real scheme",
+    "label": "Windows 3.1 (Scott Naness)",
     "source": "scheme.sit",
     "sourceBytes": 73915,
     "ref": "windows-31.png"
   },
   {
     "slug": "windows-95",
-    "label": "Windows 95 (Scott Naness) ✦ real scheme",
+    "label": "Windows 95 (Scott Naness)",
     "source": "scheme.sit",
     "sourceBytes": 78087,
     "ref": "windows-95.png"
