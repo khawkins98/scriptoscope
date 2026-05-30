@@ -87,8 +87,24 @@
     #powers .powers-meta a { color: #0000EE; }
     /* HERO CONTROL STRIP — one row of every promotable control, themed live
        by the active scheme. The breadth proof in the first viewport. */
-    #powers .powers-hero-strip { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; margin: 0 0 22px; padding: 12px 14px; background: #f4f0e8; border: 1px solid #c0b89a; font: 13px "Times New Roman", Times, serif; }
-    #powers .powers-hero-strip .hs-label { color: #5a5a5a; font-style: italic; padding-right: 6px; border-right: 1px solid #c0b89a; margin-right: 4px; }
+    /* Hero window — wraps the controls strip. OFF mode wears a labeled
+       bordered box (same Finder-window-y treatment the picker uses);
+       the structural marker that flips it is `:not(:has(.scriptoscope-slot))`,
+       so the box styling disappears the moment the runtime promotes
+       the element into chrome. */
+    #powers .powers-hero-window { margin: 0 0 22px; position: relative; }
+    #powers .powers-hero-window:not(:has(.scriptoscope-slot)) {
+      border: 1px solid #b8b8b8; background: #ffffff;
+      padding: 12px 14px 10px; position: relative; display: block;
+    }
+    #powers .powers-hero-window:not(:has(.scriptoscope-slot))::before {
+      content: "Controls — drag, click, type"; position: absolute;
+      top: -10px; left: 12px; background: #ffffff; padding: 0 8px;
+      font: italic 11px "Times New Roman", serif; color: #5a5a5a;
+    }
+    /* Strip layout — transparent (chrome provides the frame in ON mode;
+       the .powers-hero-window box above provides it in OFF mode). */
+    #powers .powers-hero-strip { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font: 13px "Times New Roman", Times, serif; background: transparent; }
     #powers .powers-hero-strip .hs-group { display: inline-flex; align-items: center; gap: 6px; }
     #powers .powers-hero-strip input[type=range] { width: 110px; }
     #powers .powers-hero-strip input[type=text] { font: 12px "Times New Roman", serif; padding: 2px 6px; border: 1px solid #888; background: #fff; width: 120px; }
@@ -251,18 +267,24 @@
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
       <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in any modern browser <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() — Chrome/Edge 105+, Firefox 121+, Safari 15.4+ (roughly 2022 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(2022+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/aaron-ui">view source</a></p>
-      <!-- HERO CONTROL STRIP. The runtime auto-sets autocomplete="off" on
-           promoted inputs and re-syncs them on pageshow.persisted (T1.4),
-           so consumers don't need to spray defenses across their markup. -->
-      <div class="powers-hero-strip" aria-label="Live themed controls — one of each kind">
-        <span class="hs-label">live demo:</span>
-        <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
-        <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
-        <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
-        <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
-        <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
-      </div>
+      <!-- HERO CONTROL STRIP — wrapped in a titled-utility window so it
+           demonstrates a SECOND window-type alongside the document-windows
+           and the About utility. titled-utility is the classic Mac tools-
+           palette type (slimmer title bar, designed for floating widget
+           sets). The strip's controls themselves are unchanged — runtime
+           auto-sets autocomplete="off" + re-syncs on pageshow.persisted
+           (T1.4), so consumers don't need defenses in markup. -->
+      <article class="powers-hero-window" data-scriptoscope-window
+               data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
+        <div class="powers-hero-strip" aria-label="Live themed controls — one of each kind">
+          <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
+          <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
+          <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
+          <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
+          <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
+          <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
+        </div>
+      </article>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
            actually reads), 2-up minor row below (footnotes). NO explicit
            x/y/width/height on any card: mountDeclarative reads each card's
