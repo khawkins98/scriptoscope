@@ -97,7 +97,10 @@
        author/year in 9px italic under the name. Both modes scope styles
        off `.powers-picker-host` (the picker is no longer inside the cards
        grid as of iteration 5). */
-    #powers .powers-picker-host { margin: 0 0 22px; position: relative; min-height: 156px; }
+    /* Always position:relative for the stable coordinate system (see grid
+       comment above); min-height is set inline from boot to the captured
+       natural pre-mount height so absolute children don't collapse it. */
+    #powers .powers-picker-host { margin: 0 0 22px; position: relative; }
     /* OFF mode: thin border + floating top-label that reads as a
        Finder-window-y container without faking Mac chrome. */
     #powers .powers-picker-host:not(.skinned) .powers-picker { border: 1px solid #b8b8b8; background: #ffffff; padding: 12px 14px 10px; position: relative; }
@@ -120,10 +123,12 @@
     #powers .powers-folder .placeholder { width: 32px; height: 32px; background: linear-gradient(#f4d985, #e3c265); border: 1px solid #97772a; margin-bottom: 2px; }
     #powers .powers-folder .name { font: 700 10.5px/1.1 "Times New Roman", serif; color: #1c1c1c; text-align: center; max-width: 80px; }
     #powers .powers-folder .author { font: italic 9px/1.15 "Times New Roman", serif; color: #6a6a6a; text-align: center; max-width: 80px; }
-    /* The grid container. SKINNED: position:relative + min-height so the
-       data-scriptoscope-x/y values position the cards as floating windows. */
-    #powers .powers-grid { display: block; margin: 0; }
-    #powers .powers-grid.skinned { display: block; position: relative; min-height: 600px; }
+    /* Grid is ALWAYS position:relative so absolute-positioned window hosts
+       have a stable coordinate system regardless of skinned state. When
+       skinned, the cards become absolute-positioned by the WindowManager —
+       boot.js captures the natural pre-mount grid height into min-height
+       so the container reserves space for the now-out-of-flow children. */
+    #powers .powers-grid { display: block; margin: 0; position: relative; }
     /* Card row: heavy ribbon at top (one full-width card prominent), then
        a 2-up demoted row underneath. OFF mode shows this hierarchy directly;
        SKINNED uses absolute positions from data-scriptoscope-x/y. */
@@ -207,9 +212,7 @@
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
         <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-x="0" data-scriptoscope-y="0"
-                 data-scriptoscope-width="912" data-scriptoscope-height="148">
+                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window">
           <div class="powers-folders" id="powers-folders" role="tablist" aria-label="Theme picker"></div>
         </article>
       </div>
@@ -232,16 +235,18 @@
         <span class="hs-group"><select aria-label="Format" autocomplete="off"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
       </div>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
-           actually reads), 2-up minor row below (footnotes). In SKINNED
-           mode each card is a floating Mac window per its x/y; the
-           .powers-card-row wrappers go display:block so the absolute
-           positioning of children works against the shared grid context. -->
+           actually reads), 2-up minor row below (footnotes). NO explicit
+           x/y/width/height on any card: mountDeclarative reads each card's
+           getBoundingClientRect() at promotion time, so the chrome wraps
+           IN PLACE — bare HTML and skinned chrome occupy IDENTICAL
+           positions. The "wait, that's HTML?" disbelief beat lands as a
+           pure chrome-on/off swap with no layout shift. (Drag + resize
+           still work — WindowManager owns those; reload resets to CSS
+           defaults because no persistKey on the mount.) -->
       <div class="powers-grid" id="powers-grid">
         <div class="powers-card-row heavy">
           <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window"
-                   data-scriptoscope-x="10" data-scriptoscope-y="10"
-                   data-scriptoscope-width="440" data-scriptoscope-height="200">
+                   data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-powers-icon="folder">⌘</div>
             <div>
               <h3><a href="./diagnostic.html#detail">kDEF Replay Engine</a></h3>
@@ -249,9 +254,7 @@
             </div>
           </article>
           <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window"
-                   data-scriptoscope-x="470" data-scriptoscope-y="40"
-                   data-scriptoscope-width="440" data-scriptoscope-height="240">
+                   data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-powers-icon="prefs">✎</div>
             <div>
               <h3><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
@@ -264,9 +267,7 @@
         </div>
         <div class="powers-card-row minor">
           <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window"
-                   data-scriptoscope-x="40" data-scriptoscope-y="320"
-                   data-scriptoscope-width="380" data-scriptoscope-height="180">
+                   data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-powers-icon="document">↘</div>
             <div>
               <h3><a href="./diagnostic.html#byo">ResourceForkLib</a></h3>
@@ -274,9 +275,7 @@
             </div>
           </article>
           <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window"
-                   data-scriptoscope-x="450" data-scriptoscope-y="350"
-                   data-scriptoscope-width="380" data-scriptoscope-height="180">
+                   data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window">
             <div class="powers-glyph" aria-hidden="true" data-powers-icon="suitcase">✦</div>
             <div>
               <h3><a href="./diagnostic.html#ribbon">The Scheme Library</a></h3>
@@ -389,9 +388,11 @@
           root: powersSection,
           themeBaseUrl,
           pageThemeDefault: activeSlug,
-          // persistKey: the landing IS the playground for resizing windows;
-          // drag/resize/zoom state should survive reload.
-          persistKey: 'scriptoscope-landing',
+          // No persistKey: the layout is dictated by CSS. Drag + resize still
+          // work (WindowManager owns those), but reload resets to the CSS-
+          // defined position — the bare-HTML and skinned-chrome layouts stay
+          // identical at load time, which is what makes the chrome-on/off
+          // toggle land as a pure visual swap with no layout shift.
         });
       } catch (err) {
         if (my === mountToken) syncToggleUI(false);
@@ -593,6 +594,15 @@
       slider.addEventListener('input', () => { sliderOut.textContent = `${slider.value}%`; });
     }
     queueMicrotask(async () => {
+      // BEFORE mount: capture the natural pre-mount heights of the picker
+      // host + cards grid. Once mountDeclarative absolutes the children,
+      // the parents would collapse — set min-height so the section reserves
+      // their space. (Layout shift is the disbelief beat's enemy; this
+      // keeps bare HTML and skinned chrome at IDENTICAL positions.)
+      const naturalPickerH = pickerHost.getBoundingClientRect().height;
+      const naturalGridH = powersGrid.getBoundingClientRect().height;
+      if (naturalPickerH > 0) pickerHost.style.minHeight = `${naturalPickerH}px`;
+      if (naturalGridH > 0) powersGrid.style.minHeight = `${naturalGridH}px`;
       await mountPowers();
       try { const theme = await loadOnce(activeSlug); await refreshCardGlyphs(theme); } catch {}
     });
