@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   test:
-    name: Typecheck + build
+    name: Gates + build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -43,8 +43,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck
-        run: npm run typecheck
+      # Bake the gitignored per-theme derivatives (theme.json + cicns/ +
+      # ppats/ + icons/ + resource-roles.json + extraction-manifest.json).
+      # Bundles ship source-of-truth only (.sit/.rsrc + meta.json); the
+      # derivatives are produced on-demand and consumed by `audit:scenes`.
+      # All pure Node — see the "Option A" block in CLAUDE.md Architecture.
+      - name: Bake theme derivatives (required by audit:scenes)
+        run: npm run build:themes
+
+      # The maintainer-defined pre-push umbrella — typecheck + test +
+      # lint:themes --strict + audit:scenes --check. All four are pure
+      # Node (no browser / canvas / Puppeteer), so they're CI-safe as-is
+      # and catch what's statically detectable: TS errors, decoder
+      # regressions, re-decode drift against the source-archive sha256
+      # baseline, and any Scene slot dropping to its hard fallback.
+      # Mirrors `npm run gates` locally — see CLAUDE.md "Commands".
+      - name: Gates (typecheck + test + lint --strict + audit --check)
+        run: npm run gates
 
       - name: Library build
         run: npm run build
