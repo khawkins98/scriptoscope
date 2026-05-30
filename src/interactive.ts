@@ -1142,6 +1142,26 @@ export class WindowManager {
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
       e.preventDefault();
       void this.focus(entry);
+      // Posture B handoff: declaratively-promoted windows default to
+      // `position: static` (in flow). To drag them, we need absolute
+      // positioning. Capture the current page rect, compute the relative
+      // offset against the nearest positioned ancestor, and flip the host
+      // to absolute at that exact spot — the user perceives no jump.
+      // Subsequent drags skip this since the host stays absolute after the
+      // first conversion.
+      if (host.style.position !== 'absolute' && host.style.position !== 'fixed') {
+        const hr = host.getBoundingClientRect();
+        let ancL = 0, ancT = 0;
+        let anc: HTMLElement | null = host.parentElement;
+        while (anc && anc !== document.body) {
+          const cs = getComputedStyle(anc);
+          if (cs.position !== 'static') { const ar = anc.getBoundingClientRect(); ancL = ar.left; ancT = ar.top; break; }
+          anc = anc.parentElement;
+        }
+        host.style.left = `${Math.round(hr.left - ancL)}px`;
+        host.style.top = `${Math.round(hr.top - ancT)}px`;
+        host.style.position = 'absolute';
+      }
       const sx = e.clientX, sy = e.clientY;
       const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
       const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
@@ -1186,6 +1206,23 @@ export class WindowManager {
       else return;
       e.preventDefault();
       void this.focus(entry);
+      // Posture B handoff (same shape as the pointer-drag handler above):
+      // in-flow windows convert to absolute on the first move so the keyboard
+      // step has somewhere to write top/left. The handoff captures the host's
+      // current page position and pins it before applying the step.
+      if (host.style.position !== 'absolute' && host.style.position !== 'fixed') {
+        const hr = host.getBoundingClientRect();
+        let ancL = 0, ancT = 0;
+        let anc: HTMLElement | null = host.parentElement;
+        while (anc && anc !== document.body) {
+          const cs = getComputedStyle(anc);
+          if (cs.position !== 'static') { const ar = anc.getBoundingClientRect(); ancL = ar.left; ancT = ar.top; break; }
+          anc = anc.parentElement;
+        }
+        host.style.left = `${Math.round(hr.left - ancL)}px`;
+        host.style.top = `${Math.round(hr.top - ancT)}px`;
+        host.style.position = 'absolute';
+      }
       const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
       host.style.left = `${x0 + dx}px`;
       host.style.top = `${Math.max(0, y0 + dy)}px`;

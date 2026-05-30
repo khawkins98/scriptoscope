@@ -5,8 +5,10 @@
 
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
-import { ScriptoscopeWindow, findPositionedAncestor } from './ScriptoscopeWindow.js';
-import { setInheritedRect } from './inheritedRect.js';
+import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
+// inheritedRect.ts: dead after Posture B 2026-05-30. Kept as a file so callers
+// importing `consumeInheritedRect` from outside the scanner still resolve; the
+// scanner no longer writes rects since hosts are in-flow and don't need them.
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
@@ -225,11 +227,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const inFlight = new Set<Element>();
   // Live stats — exposed on MountHandle; mutated by every successful promote.
   const stats: MountStats = { windows: 0, buttons: 0, controls: 0, tabs: 0, fields: 0 };
-  // Positioned ancestors we've pinned an inline min-height onto (so absolute
-  // window-host children don't collapse them). Map<ancestor, priorMinHeight>
-  // so disconnect() can restore the original inline value (consumer's own
-  // CSS still applies if they had a stylesheet min-height).
-  const pinnedAncestors = new Map<HTMLElement, string>();
+  // (Posture B 2026-05-30: removed `pinnedAncestors` map. Hosts default to
+  // in-flow positioning, so ancestors don't collapse and don't need pinning.
+  // The absolute-opt-in path via `-x`/`-y` lifts ONE host out of flow per
+  // declaration; consumer is responsible for reserving the space if they
+  // care, which is the standard CSS overlay pattern.)
   // Single-pipe failure reporter. Consumer hook can suppress the default
   // console.error by returning false (matches the addEventListener cancel
   // pattern). Routing all 5 promote*'s catch blocks through this keeps the
@@ -576,106 +578,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
   // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
-    // Capture every window-target's bounding rect BEFORE we start promoting. Sequential
-    // promotion removes each element from the document, reflowing the page; if we measured
-    // each rect just-in-time, sibling inline-block windows would collapse onto each other
-    // (right card measured AFTER left card was removed → both end up at x=0). Pre-capturing
-    // gives every window its true natural position relative to its positioned ancestor.
-    // Stored on the dataset so ScriptoscopeWindow.promote (which reads its own dataset) sees
-    // them naturally — keeps the helper API uncluttered.
+    // Posture B (2026-05-30 refactor): hosts default to `position: static`
+    // and sit in flow at the source element's DOM position. The browser's
+    // own layout engine places + sizes them; we don't need to pre-capture
+    // rects, pin ancestor min-heights, or shift subsequent hosts by chrome
+    // growth. All of that was scaffolding for the old absolute-by-default
+    // posture (which had to mimic flow with `position: absolute`). The
+    // absolute path is still available for overlay use cases via the
+    // `-x`/`-y` attributes, and ScriptoscopeWindow.promote measures the
+    // source element JIT for THAT path's positioning.
     const windowTargets = Array.from(within.querySelectorAll(WINDOW_SEL)) as HTMLElement[];
-    for (const el of windowTargets) {
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) {
-        // Stash on a WeakMap (T3.2) instead of the dataset — keeps the
-        // transient handoff invisible to consumer DevTools, MutationObservers,
-        // and CSS attribute selectors. ScriptoscopeWindow.promote consumes it.
-        setInheritedRect(el, { left: r.left, top: r.top, width: r.width, height: r.height });
-      }
-    }
-    // ── Auto-reserve min-height on the positioned ancestors that will host
-    // the absolute-positioned window hosts. WITHOUT this, the parent
-    // collapses to 0 the moment we lift its children out of flow, and the
-    // rest of the page reflows up. WITH it, the bare-HTML layout and the
-    // skinned-chrome layout reserve identical space. THIS was the single
-    // most-likely-to-be-filed bug per the 2026-05-30 demo-reviewer audit:
-    // every consumer with a flex/grid layout containing data-scriptoscope-
-    // window children would hit it.
-    //
-    // Heuristic: for each unique positioned ancestor of a window target,
-    // capture its current rendered height and set as inline min-height.
-    // SKIP if the ancestor already has an inline min-height (consumer
-    // explicitly set one; respect it) OR if the ancestor isn't going to
-    // collapse (has other in-flow children — checked by counting non-
-    // promotable children). Track pinned ancestors so disconnect() can
-    // restore them.
-    const seenAncestors = new Set<HTMLElement>();
-    for (const el of windowTargets) {
-      const anc = findPositionedAncestor(el);
-      if (!anc || anc === document.documentElement) continue;
-      if (seenAncestors.has(anc)) continue;
-      seenAncestors.add(anc);
-      if (anc.style.minHeight) continue; // consumer pinned it — respect
-      const h = anc.getBoundingClientRect().height;
-      if (h <= 0) continue;
-      // Remember the prior inline value so disconnect() restores faithfully
-      // (the consumer's CSS might still apply a non-inline min-height).
-      pinnedAncestors.set(anc, anc.style.minHeight);
-      anc.style.minHeight = `${Math.round(h)}px`;
-    }
     for (const el of windowTargets) await promoteWindow(el);
-    // Post-promote layout pass: the pre-promote capture above used each
-    // consumer element's PRE-CHROME height. But the runtime-created host
-    // adds title bar + frame borders (~22-50px depending on theme + window-
-    // type), so two layout artifacts surface:
-    //   1. Pinned ancestors are too short — the absolute host overflows
-    //      below the reserved in-flow space, overlapping the next sibling
-    //   2. Absolute hosts that came AFTER a pinned ancestor in flow were
-    //      positioned at their pre-chrome natural Y — they need to shift
-    //      down by the ancestor's chrome growth
-    // Both are demo-reviewer 2026-05-30 finds; same chrome-vs-natural delta
-    // is the root cause.
-    //
-    // Pass A: grow each pinned ancestor to fit its actual outer hosts.
-    const ancestorGrowth = new Map<HTMLElement, number>(); // anc → pixels grown
-    for (const [anc] of pinnedAncestors) {
-      const oldH = parseFloat(anc.style.minHeight) || 0;
-      const ancTop = anc.getBoundingClientRect().top;
-      let maxBottom = 0;
-      for (const m of mounted) {
-        if (!anc.contains(m.host)) continue;
-        const r = m.host.getBoundingClientRect();
-        const bottomRel = r.bottom - ancTop;
-        if (bottomRel > maxBottom) maxBottom = bottomRel;
-      }
-      if (maxBottom > oldH) {
-        ancestorGrowth.set(anc, maxBottom - oldH);
-        anc.style.minHeight = `${Math.round(maxBottom)}px`;
-      }
-    }
-    // Pass B: shift each absolute host down by the cumulative growth of
-    // pinned ancestors that came BEFORE it in document order AND share
-    // its positioned ancestor (i.e. that grew its flow context).
-    for (const m of mounted) {
-      const hostAnc = findPositionedAncestor(m.host);
-      if (!hostAnc) continue;
-      let shift = 0;
-      for (const [grownAnc, delta] of ancestorGrowth) {
-        if (grownAnc === hostAnc) continue;
-        // The grown ancestor must be a DOM-preceding sibling-or-cousin in
-        // the same positioned-ancestor flow as our host.
-        const grownInSameFlow = findPositionedAncestor(grownAnc) === hostAnc;
-        if (!grownInSameFlow) continue;
-        const pos = grownAnc.compareDocumentPosition(m.host);
-        // Host is FOLLOWING grownAnc (not contained, since grownAnc isn't host's flow ancestor here)
-        const follows = !!(pos & Node.DOCUMENT_POSITION_FOLLOWING) && !(pos & Node.DOCUMENT_POSITION_CONTAINED_BY);
-        if (follows) shift += delta;
-      }
-      if (shift > 0) {
-        const cur = parseFloat(m.host.style.top) || 0;
-        m.host.style.top = `${Math.round(cur + shift)}px`;
-      }
-    }
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
     for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);
@@ -923,12 +836,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       inertDuringWipe.clear();
       for (const w of mounted.splice(0)) w.unmount();
       dispatch('unmounted');
-      // Restore inline min-height on every ancestor we pinned during scan.
-      // Children are now back in flow (unmount moves them back), so the
-      // ancestor's natural height returns — releasing the pin lets the
-      // consumer's stylesheet take over again.
-      for (const [anc, prior] of pinnedAncestors) anc.style.minHeight = prior;
-      pinnedAncestors.clear();
+      // (Posture B 2026-05-30: no ancestor min-height pins to restore.
+      // Hosts were in flow during their life, so ancestors never lost
+      // their natural height in the first place.)
       // Drop the published ready marker + loading attribute before
       // releasing the guard so consumer CSS sees the un-ready state
       // during teardown. (Loading attr is normally cleared in the ready

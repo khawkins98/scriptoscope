@@ -10,7 +10,8 @@ import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
-import { consumeInheritedRect } from './inheritedRect.js';
+// inheritedRect.ts is dead after Posture B 2026-05-30 — hosts are in flow,
+// no pre-capture handoff needed. Import removed.
 
 export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
@@ -91,35 +92,39 @@ export class ScriptoscopeWindow {
     el: HTMLElement, deps: ScriptoscopeWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
   ): Promise<ScriptoscopeWindow> {
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
-    // ── INHERIT FROM DOM RECT (when attrs are omitted) ─────────────────────────
-    // Capture the element's natural position + size in the document BEFORE we move
-    // its children into the slot. Subtract the positioned ancestor's offset so the
-    // host (which is absolute-positioned) lands at the same visual spot.
-    // - Position: omitted x/y default to the element's current page position.
-    // - Size: omitted width/height default to the element's rendered size (one-shot
-    //   capture at promotion time; if the consumer wants content-fit reflow, they
-    //   can omit both AND keep the children sized by content — the runtime keeps the
-    //   fit ResizeObserver wired in that case).
-    // Edge case: an element with `display:none` or detached has a 0-rect; fall through
-    // to the legacy `fallbackPos` (24,24) + `FIT_DEFAULT` (260x150).
+    // ── POSTURE B: in-flow host by default; absolute opt-in via -x/-y ─────────
+    // The host is created as a `position: static` block element sitting in the
+    // same DOM position the source element occupied. The browser's own layout
+    // engine places it correctly (CSS grid/flex/normal flow all respected), and
+    // siblings push down naturally without any min-height pin / cumulative-shift
+    // gymnastics in the scanner.
     //
-    // The scanner pre-captures rects for ALL window targets before any promotion runs
-    // (so sibling reflows don't corrupt later measurements). We prefer those when
-    // present, and fall back to measuring `el` ourselves when called directly (test
-    // harness, programmatic AaronWindow.promote calls, etc.).
-    const ancestor = findPositionedAncestor(el);
-    const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
-    // Pre-captured rect from the scanner lives on a WeakMap (T3.2 — was
-    // dataset attributes before; the dataset version leaked to consumer
-    // DevTools + CSS attribute selectors). consume() reads-and-clears in
-    // one call so the entry doesn't outlive its single intended use.
-    const pre = consumeInheritedRect(el);
-    const elRect = pre ?? el.getBoundingClientRect();
-    const naturalX = Math.round(elRect.left - ancRect.left);
-    const naturalY = Math.round(elRect.top - ancRect.top);
+    // When the consumer declares `data-scriptoscope-x` or `data-scriptoscope-y`,
+    // they're explicitly opting INTO an absolute-positioned floater (overlay
+    // windows, Mac-style desktop scatters, etc.) and the runtime switches the
+    // host to `position: absolute` at those coordinates. The drag handler also
+    // flips host → absolute lazily on the first drag (it captures the current
+    // page rect and converts), so a window that started in-flow becomes a
+    // floater once the user yanks it.
+    //
+    // Width/height still come from the source element's bounding rect (JIT
+    // measure — no scanner pre-capture needed because we're not racing absolute
+    // positioning of siblings any more). Edge case: an element with display:none
+    // or 0-rect falls through to FIT_DEFAULT.
+    const wantsAbsolute = parsed.x !== undefined || parsed.y !== undefined;
+    const elRect = el.getBoundingClientRect();
     const naturalW = Math.round(elRect.width);
     const naturalH = Math.round(elRect.height);
     const hasNaturalRect = naturalW > 0 && naturalH > 0;
+    // Only computed when absolute mode is requested — it's the only path that
+    // needs them. Default in-flow positioning is the browser's job.
+    let naturalX = 0, naturalY = 0;
+    if (wantsAbsolute) {
+      const ancestor = findPositionedAncestor(el);
+      const ancRect = ancestor?.getBoundingClientRect() ?? { left: 0, top: 0 };
+      naturalX = Math.round(elRect.left - ancRect.left);
+      naturalY = Math.round(elRect.top - ancRect.top);
+    }
     el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.
@@ -200,10 +205,28 @@ export class ScriptoscopeWindow {
       { w: w0, h: h0 },
     );
 
-    // Place the host where the original element was. Priority: declared x/y > inherited
-    // page position > fallback (24,24 for detached / display:none elements).
-    host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
-    host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
+    // Position handling — Posture B.
+    //   - Absolute opt-in (consumer declared -x or -y): use the declared
+    //     coordinates, falling back to the captured natural position for
+    //     whichever axis the consumer omitted, falling back further to
+    //     fallbackPos for the display:none / detached case.
+    //   - Default (no -x/-y): leave the host as a normal in-flow block.
+    //     The browser's own layout puts it where the source element was —
+    //     no top/left needed, no flow disruption, no pin/shift gymnastics.
+    //     (See WindowManager.add — it sets position:absolute initially;
+    //     we override here for the in-flow case.)
+    if (wantsAbsolute) {
+      host.style.position = 'absolute';
+      host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
+      host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
+    } else {
+      // Browser-default static; no top/left. Inherited consumer CSS for
+      // `position`, `top`, `left` still applies (lockdown only covers
+      // layout-decoration props, see below). A consumer who wants their
+      // own absolute positioning via class CSS can do that. Drag handler
+      // flips to absolute on first drag (interactive.ts).
+      host.style.position = 'static';
+    }
     // Carry consumer-side identity from the source element to the runtime
     // host so CSS / JS / AT that targeted the source (`.my-class`,
     // `#my-id`, `[data-foo]`, `aria-label`, etc.) keeps working post-

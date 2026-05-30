@@ -108,13 +108,10 @@
     #powers .powers-meta-aaron strong { font-style: normal; font-weight: 700; color: #1c1c1c; }
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
-       Stays IN FLOW (position:static !important on the promoted host)
-       so the install snippet + meta line + cards below it don't collapse
-       into the void the absolute-positioned host would otherwise leave.
-       The runtime carries the original element's classList onto the
-       host post-promote (the 2026-05-30 layer-bridge fix), so this
-       selector reaches both the pre- and post-mount element. */
-    #powers .powers-readme { --scriptoscope-content-padding: 18px 22px 14px; margin: 0 0 22px; position: static !important; left: auto !important; top: auto !important; }
+       Sits in flow automatically (Posture B 2026-05-30: hosts default
+       to `position: static`; the position:static!important workaround
+       this rule once carried has been retired). */
+    #powers .powers-readme { --scriptoscope-content-padding: 18px 22px 14px; margin: 0 0 22px; }
     #powers .powers-readme h2 { margin-top: 0; }
     #powers .powers-readme > .powers-meta-aaron { margin-bottom: 0; }
     /* HERO CONTROL STRIP — one row of every promotable control, themed live
