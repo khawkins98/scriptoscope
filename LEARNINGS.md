@@ -2661,3 +2661,37 @@ The 3-layer defense matters: each individual mechanism has browser/version gaps;
 **Tooling that surfaced this faster.** Added `npm run preview:demo` (a `vite preview --config vite.demo.config.js` wrapper at `/aaron-ui/` base path) so we can hit the actual minified bundle locally before push. Cuts the diagnosis loop from push-deploy-wait to a 3-second restart. The bug wasn't bundling-deterministic, but the workflow is the right one for the next time something IS.
 
 **Generalisable lesson.** When skin/render state is derived from a form control's `.checked`, never trust it on boot. Always read the state from a source of truth you OWN (URL, dataset attribute, application state object), and force the form control to match. Visible labels must follow the same rule — derive from the source-of-truth at update time, never set-once-then-forgotten.
+
+## 2026-05-30 — Mobile perf audit: 6.7MB of theme archives loading on first paint for icons users hadn't looked at
+
+**The symptom.** Owner reported the landing page had performance issues loading on mobile and asked for runtime-slotting focus (the .sit decompression cost being a known constraint they'd already accepted). Dispatched a network/runtime perf reviewer with a Playwright harness emulating Pixel 5 + Fast 3G (1.6 Mbps / 562ms RTT) + CPU 4× throttle. First-window-painted measured at ~8300ms; time-to-interactive at ~38 seconds.
+
+**The cause.** `themePicker.ts:126` was firing `Promise.allSettled` on all 18 themes at mount with a comment promising "18 parallel decodes wall-time ≈ max(1)". On a desktop with wifi + an idle 8-core CPU that's true. On mobile, all 18 contend for the 6-connection HTTP/1.1 budget AND for the main thread for decode (StuffIt unwrap + resource-fork walk + cicn rasterise + Mac 1.8 → sRGB 2.2 gamma transform). Each finished archive (some up to 1.65MB for evolution) blocked the main thread for ~400ms during decode. The output was 32×32 folder-icon srcs for tiles the user might never look at.
+
+Compounding the picker preload: (a) the demo had a top-level `await Promise.all(document.fonts.load(...))` blocking the entry chunk for ~700ms while the library's own `preloadFonts()` gate inside mountDeclarative would have covered it anyway; (b) every `.rsrc`-only theme (5 of 18, including the page default `1138`) ate a wasted ~580ms `.sit` 404 because `loadTheme`'s source hint wasn't being threaded from the manifest the resolver already had; (c) every theme then fetched its own `meta.json` (18 × ~660ms RTT) even though the manifest already carried name/author/year.
+
+**Fix.** Five-part landing in commit `6f1d6fc`:
+
+1. **Lazy picker decode via IntersectionObserver** — placeholder shown immediately (the dotted-outline CSS shipped in the boot affordance pass), decode triggered only when a tile intersects viewport (or on click). Active tile decoded eagerly (it's already being loaded for the page chrome). Decode queue capped at 2 concurrent + yields via `requestIdleCallback` between decodes.
+2. **Drop demo's inline font-await + `<link rel=preload>` in `<head>`** — the woff fetches now start in parallel with JS download instead of after it.
+3. **Thread `source` hint manifest → resolver → loadTheme** — the resolver builds a `slug → ThemeHint` index at construction time; `loadByUrl` looks up the hint and passes `source` through. Kills the wasted `.sit` 404 RTT for `.rsrc`-only themes.
+4. **`opts.meta` short-circuits loadTheme's `meta.json` fetch** when the manifest already has the data. Resolver passes through automatically.
+5. **The post-mount canvas-existence sanity check became deletable** in the demo's boot script because `MountHandle.stats` from the earlier reviewer-audit landing already covers that signal — same code, but now consumed via the published API surface rather than a probe.
+
+**Measured result.** Same Pixel 5 + Fast 3G + CPU 4× harness:
+- First window painted: 8300ms → **3044ms** (-63%)
+- Theme archives loaded in first 10s: 18 (6.7MB) → **4** (~750KB)
+- meta.json fetches in first 10s: 18 → **0**
+- Wasted .sit 404s on .rsrc-only themes: 2 → **0**
+
+The 4 themes that load are exactly the tiles intersecting the default viewport (1138 / 1984 / 1990 / animals). The other 14 wait for scroll or click. New ceiling: ~3s, gated by 1138's 725KB `.rsrc` download — the perf agent's exact architectural prediction.
+
+**Generalisable lesson.** "Preload everything in parallel" performance reasoning is desktop-shaped. Mobile pricing is different along all three axes:
+- **Network**: connection-pool contention (HTTP/1.1's 6-connection cap turns 18 parallel into 3 waves of serialized fetches; each wave is RTT-bound)
+- **CPU**: a 400ms decode on a desktop core is ~2s on a mid-range ARM core, and contends with the main thread the user is trying to scroll on
+- **Battery**: every byte downloaded and decoded is unsubsidized by user attention
+
+The cheaper pattern, when work can be deferred without affecting first paint: show the structural placeholder synchronously, decode on demand. IntersectionObserver + a small concurrency cap + yields cover almost all "preload N things" cases. Comment claims about "wall-time ≈ max(1)" should be measured on the slowest device profile you intend to serve, not the development machine.
+
+The 2-reviewer pattern (perf + UX in parallel) paid off again here: the UX reviewer's "dotted-outline placeholder" CSS work (in `87b30f9`) was already in place when the perf reviewer's "lazy-load" recommendation landed — the visual affordance for the now-deferred work was already shipped. Convergent design.
+
