@@ -114,12 +114,74 @@
   }
 }
 
+/* ─── Boot affordance ──────────────────────────────────────────────────── */
+/* The runtime adds `data-scriptoscope-loading` to the root from
+   mountDeclarative() invocation until the `ready` event fires (typically
+   100–2000ms). This block paints the loading state without requiring any
+   consumer JS:
+     1. Promoted windows wipe in top-down via clip-path (chrome appears
+        AROUND the consumer's already-readable content — no skeleton over
+        working text)
+     2. Theme-picker tiles whose icon hasn't loaded get a dotted-outline
+        placeholder (System 7's "empty icon slot" convention)
+     3. Newly-arrived icons crossfade in over 120ms (no jump)
+   The UX reviewer (2026-05-30) called this the "reveal IS the affordance"
+   approach — better than skeleton because the bare HTML is already content.
+   Consumer override path:
+     :root { --scriptoscope-wipe-duration: 200ms; }
+     /* opt out an element entirely */
+     .my-window { animation: none !important; } */
+
+/* Per-affordance CSS custom-property API. */
+:root {
+  --scriptoscope-wipe-duration: 140ms;
+  --scriptoscope-icon-fade-duration: 120ms;
+  --scriptoscope-placeholder-color: #c0c0c0;
+  --scriptoscope-placeholder-bg: #fafafa;
+}
+
+/* Chrome wipe-in: clip-path reveals the chrome top-down so the consumer's
+   content remains visible THROUGH the unrevealed area (it's the same
+   content gaining chrome, not new content appearing). Mobile gets a
+   slightly longer duration via the viewport media query at the bottom. */
+@keyframes scriptoscope-wipe-in {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+[data-scriptoscope-promoted] {
+  animation: scriptoscope-wipe-in var(--scriptoscope-wipe-duration) ease-out;
+}
+
+/* Picker-tile icon placeholder: dotted outline + soft fill while the icon
+   has no src. Once src lands, the [src] selector matches → outline drops →
+   icon crossfades in. The outline-offset negative pulls the dots flush
+   with the icon's edge. */
+.scriptoscope-theme-picker-icon:not([src]) {
+  outline: 1px dotted var(--scriptoscope-placeholder-color);
+  outline-offset: -1px;
+  background: var(--scriptoscope-placeholder-bg);
+}
+.scriptoscope-theme-picker-icon[src] {
+  animation: scriptoscope-icon-fade var(--scriptoscope-icon-fade-duration) ease-out;
+}
+@keyframes scriptoscope-icon-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Mobile (≤720px): amplify the wipe-in to cover the larger blank gap
+   (slower CPU + slower network = longer mount). Same affordance, more
+   coverage. Don't ship a SECOND mobile system — that's two surfaces to
+   maintain and one will rot. */
+@media (max-width: 720px) {
+  :root { --scriptoscope-wipe-duration: 200ms; }
+}
+
 /* ─── Reduced motion preference ────────────────────────────────────────── */
-/* Scriptoscope's runtime currently has no animated transitions (windowshade is
-   instant; theme switch is instant; drag is direct). This media query is
-   forward-looking: if future versions add an animation (CSS transitions on
-   window-shade collapse, say), they should be gated on this preference.
-   Reserved here so consumers know we honor it. */
+/* Drops the wipe-in + icon-fade animations. The dotted-placeholder is
+   static (no animation) so it's already fine. The watch cursor (when
+   added) stays because it's INFORMATION, not motion-for-decoration. */
 @media (prefers-reduced-motion: reduce) {
-  /* (No animations to disable yet — reserved for future use.) */
+  [data-scriptoscope-promoted] { animation: none; }
+  .scriptoscope-theme-picker-icon[src] { animation: none; }
 }

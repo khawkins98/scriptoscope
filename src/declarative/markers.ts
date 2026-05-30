@@ -30,3 +30,10 @@ export const SCRIPTOSCOPE_READY_CLASS = 'scriptoscope-ready';
  *  stamp, exported here only so a consumer doing static SSR can avoid
  *  accidentally setting it. */
 export const SCRIPTOSCOPE_PROMOTED_ATTR = 'data-scriptoscope-promoted';
+
+/** Added by mountDeclarative to the `root` element from invocation until the
+ *  `ready` event fires. CSS hooks in scriptoscope.css scope off this attr to
+ *  paint loading affordances (chrome wipe-in, dotted picker-tile placeholders,
+ *  watch cursor). Removed once the page is settled. Suppressed entirely when
+ *  the consumer passes `{ bootAffordance: 'none' }`. */
+export const SCRIPTOSCOPE_LOADING_ATTR = 'data-scriptoscope-loading';

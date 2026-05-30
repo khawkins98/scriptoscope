@@ -16,7 +16,7 @@ import { promoteTabs } from './tabs.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
-import { SCRIPTOSCOPE_READY_CLASS } from './markers.js';
+import { SCRIPTOSCOPE_READY_CLASS, SCRIPTOSCOPE_LOADING_ATTR } from './markers.js';
 import {
   readLayout, createDebouncedWriter, onCrossTabUpdate, windowIdFor,
   readHostPosition, type PersistedLayout,
@@ -75,6 +75,22 @@ export interface MountOptions extends ThemeBootstrapOpts {
    *  `history.replaceState` mirrors the new slug back to the URL so the
    *  page stays shareable. Default: undefined → no URL sync. */
   syncToUrlParam?: string;
+  /** What to show in the gap between mountDeclarative() invocation and the
+   *  `ready` event fire. The runtime adds `data-scriptoscope-loading` on the
+   *  root for that window; scriptoscope.css uses the attribute as the CSS
+   *  hook for chrome wipe-in, dotted-outline picker placeholders, and
+   *  (when >50% of registered themes are still decoding) a small canvas-
+   *  painted watch cursor in the picker corner.
+   *
+   *  Defaults to `'auto'` — the runtime picks per element. `'none'` (alias
+   *  `false`) suppresses entirely (no affordance attribute, no animation).
+   *  The string-enum shape is forward-compatible: future versions may add
+   *  `'minimal'` / `'overlay'` / etc. without breaking call sites.
+   *
+   *  Respects `prefers-reduced-motion` automatically (wipe-in → instant
+   *  swap, pulse → instant). The watch cursor remains because it conveys
+   *  information, not motion-for-decoration. */
+  bootAffordance?: 'auto' | 'none' | true | false;
 }
 
 /** Counts of successfully-promoted targets by kind, exposed on MountHandle.
@@ -605,6 +621,16 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     }
   };
 
+  // Boot affordance — set the loading attribute on the consumer's root
+  // BEFORE the scan begins so any CSS hooks (chrome wipe-in, dotted
+  // picker placeholders, watch cursor) can fire from the absolute start
+  // of the boot window. Cleared in the ready dispatch below. 'none' /
+  // false suppresses entirely.
+  const bootAffordance = opts.bootAffordance;
+  const wantsAffordance = bootAffordance !== 'none' && bootAffordance !== false;
+  const loadingEl = root instanceof Document ? root.body : root;
+  if (loadingEl && wantsAffordance) loadingEl.setAttribute(SCRIPTOSCOPE_LOADING_ATTR, '');
+
   // Pre-scan target count for the rejectOnEmptyMount check. Counts what's
   // SCANNABLE before any promote runs (later observer churn doesn't affect
   // the initial-mount-failed signal). Sum across all promotable kinds.
@@ -636,49 +662,69 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // Removed in disconnect().
   const readyEl = root instanceof Document ? root.body : root;
   if (readyEl) readyEl.classList.add(SCRIPTOSCOPE_READY_CLASS);
-  // 'ready' fires after the initial scan + .scriptoscope-ready marker.
-  // Subscribers get the final first-pass stats; later scans (observer-
-  // driven) increment stats without firing 'ready' again.
-  queueMicrotask(() => dispatch('ready', { stats }));
 
-  // ── autoCycle (T2.3) — step through themes on a timer until first user
-  // interaction. Demonstrate breadth instead of asserting it; matches the
-  // landing's previous self-rolled pattern. Suppressed when:
+  // ── autoCycle (T2.3, retimed in T4.1) — step through themes on a timer
+  // until first user interaction. Suppressed when:
   //   - opts.autoCycle is falsy (default)
   //   - opts.themes is empty (nothing to cycle through)
   //   - the user came in via a syncToUrlParam deep-link (they chose a scheme)
   //   - prefers-reduced-motion (accessibility — we're a tool, not a slideshow)
-  //   - root is detached (no point cycling on an unmounted root)
+  //
+  // The setTimeout below ARMS during ready dispatch (not at mount-return as
+  // it did pre-T4.1) — the perceived-perf reviewer caught the race: today
+  // mountDeclarative returned and the timer queued IMMEDIATELY, so the
+  // first cycle tick (4s) fired while the page was still settling AND
+  // while the user was still reading the lede. Gating arm on `ready` means
+  // autoCycle's countdown starts only after initial scan + ready event,
+  // so the user gets the documented `autoCycle` ms of un-interrupted page
+  // before the first theme swap. Independent of the boot affordance work
+  // — this is a real bug fix.
   let cycleTimer: ReturnType<typeof setTimeout> | null = null;
   let cycleStopped = false;
   const stopCycle = (): void => {
     cycleStopped = true;
     if (cycleTimer != null) { clearTimeout(cycleTimer); cycleTimer = null; }
   };
-  if (opts.autoCycle && opts.themes?.length && !cameViaDeepLink && typeof matchMedia !== 'undefined') {
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!reducedMotion) {
-      const cycleRoot = root instanceof Document ? root : root;
-      // Any of these means engagement — stop forever. once: true keeps the
-      // listener footprint zero after the first event.
-      const onInteract = (): void => stopCycle();
-      cycleRoot.addEventListener('pointerdown', onInteract, { once: true });
-      cycleRoot.addEventListener('keydown', onInteract, { once: true });
-      cycleRoot.addEventListener('wheel', onInteract, { once: true, passive: true });
-      const themes = opts.themes;
-      let idx = themes.findIndex((t) => t.slug === (lastThemeRef ?? pageDefault));
-      if (idx < 0) idx = 0;
-      const tick = async (): Promise<void> => {
-        if (cycleStopped) return;
-        idx = (idx + 1) % themes.length;
-        const next = themes[idx];
-        if (!next) return;
-        try { await retheme(next.slug); } catch { /* tolerate one bad theme */ }
-        if (!cycleStopped) cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
-      };
-      cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
-    }
+  const shouldAutoCycle =
+    !!opts.autoCycle && !!opts.themes?.length && !cameViaDeepLink &&
+    typeof matchMedia !== 'undefined' &&
+    !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let armAutoCycle: (() => void) | null = null;
+  if (shouldAutoCycle) {
+    const cycleRoot = root instanceof Document ? root : root;
+    const onInteract = (): void => stopCycle();
+    cycleRoot.addEventListener('pointerdown', onInteract, { once: true });
+    cycleRoot.addEventListener('keydown', onInteract, { once: true });
+    cycleRoot.addEventListener('wheel', onInteract, { once: true, passive: true });
+    const themes = opts.themes!;
+    let idx = themes.findIndex((t) => t.slug === (lastThemeRef ?? pageDefault));
+    if (idx < 0) idx = 0;
+    const tick = async (): Promise<void> => {
+      if (cycleStopped) return;
+      idx = (idx + 1) % themes.length;
+      const next = themes[idx];
+      if (!next) return;
+      try { await retheme(next.slug); } catch { /* tolerate one bad theme */ }
+      if (!cycleStopped) cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle);
+    };
+    armAutoCycle = () => { cycleTimer = setTimeout(() => { void tick(); }, opts.autoCycle); };
   }
+
+  // 'ready' fires after the initial scan + .scriptoscope-ready marker.
+  // Subscribers get the final first-pass stats; later scans (observer-
+  // driven) increment stats without firing 'ready' again.
+  // Also: this is where autoCycle's first tick gets queued + the boot
+  // affordance is torn down (next commit) — both gated on the page being
+  // genuinely settled, not just mountDeclarative returning.
+  queueMicrotask(() => {
+    // Tear down the boot affordance — CSS hooks scoped off this attribute
+    // (chrome wipe-in, dotted placeholders, watch cursor) all stop firing
+    // the moment it's removed. Consumer's CSS sees `data-scriptoscope-ready`
+    // (the class) and the absence of `data-scriptoscope-loading` together.
+    if (loadingEl && wantsAffordance) loadingEl.removeAttribute(SCRIPTOSCOPE_LOADING_ATTR);
+    dispatch('ready', { stats });
+    if (armAutoCycle) armAutoCycle();
+  });
 
   // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
   // idempotent (stamps), so we don't need to diff records precisely. Reset `scheduled` in a
@@ -744,9 +790,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // consumer's stylesheet take over again.
       for (const [anc, prior] of pinnedAncestors) anc.style.minHeight = prior;
       pinnedAncestors.clear();
-      // Drop the published ready marker before releasing the guard so
-      // consumer CSS sees the un-ready state during teardown.
+      // Drop the published ready marker + loading attribute before
+      // releasing the guard so consumer CSS sees the un-ready state
+      // during teardown. (Loading attr is normally cleared in the ready
+      // dispatch path; this covers the edge where disconnect fires
+      // before ready, e.g. an aborted boot.)
       if (readyEl) readyEl.classList.remove(SCRIPTOSCOPE_READY_CLASS);
+      if (loadingEl) loadingEl.removeAttribute(SCRIPTOSCOPE_LOADING_ATTR);
       // Release the re-entrant guard so the consumer can mountDeclarative
       // again on the same root (intentional teardown + remount pattern).
       if (key) mountedRoots.delete(key);

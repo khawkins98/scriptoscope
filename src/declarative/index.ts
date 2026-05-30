@@ -7,7 +7,8 @@ export {
   type MountOptions, type MountHandle, type MountStats, type PromoteError, type MountEventMap,
 } from './scanner.js';
 export {
-  SCRIPTOSCOPE_SLOT_CLASS, SCRIPTOSCOPE_READY_CLASS, SCRIPTOSCOPE_PROMOTED_ATTR,
+  SCRIPTOSCOPE_SLOT_CLASS, SCRIPTOSCOPE_READY_CLASS,
+  SCRIPTOSCOPE_PROMOTED_ATTR, SCRIPTOSCOPE_LOADING_ATTR,
 } from './markers.js';
 export { ScriptoscopeWindow, type ScriptoscopeWindowDeps } from './ScriptoscopeWindow.js';
 export { createThemeResolver, type ThemeResolver, type ThemeBootstrapOpts } from './theme.js';
