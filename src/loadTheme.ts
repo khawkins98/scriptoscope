@@ -2,6 +2,35 @@ import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
 /**
+ * The shape of `themes/<slug>/meta.json` — author + provenance metadata
+ * for a bundle. Surfaces on `LoadedTheme.manifest.meta`. Fields are
+ * loose (consumers may extend with their own keys via the catch-all);
+ * the named ones are what the loader and the inspector actually read.
+ *
+ * Lib reviewer P2 2026-05-30: previously typed as `Record<string, unknown>`
+ * on the `opts.meta` short-circuit path, which gave consumers no IDE
+ * autocomplete for the canonical fields and no warning if they passed
+ * something the manifest never reads.
+ */
+export interface ThemeMeta {
+  /** Display name. Falls back to slug. */
+  name?: string;
+  /** Author / origin attribution. */
+  author?: { name?: string; year?: number };
+  /** Provenance — where the bundle came from, what it was, original license. */
+  origin?: {
+    kind?: 'kaleidoscope-port' | 'platinum-replica' | string;
+    originalFormat?: string;
+    originalSchemeId?: number;
+    originalLicense?: string;
+    sourceUrl?: string;
+    sourceArchive?: string;
+  };
+  /** Consumers can attach their own keys (display tags, internal ids). */
+  [extra: string]: unknown;
+}
+
+/**
  * Fetch and decode a theme bundle. The bundle is a directory containing a
  * single source-of-truth file — `scheme.rsrc`, the original Kaleidoscope
  * scheme resource fork — alongside optional `meta.json` for author /
@@ -18,7 +47,7 @@ import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeSc
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: Record<string, unknown> } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta } = {},
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
@@ -38,22 +67,22 @@ export async function loadTheme(
   }
 
   // meta.json: consumer can pass `opts.meta` (the resolver does this when a
-  // PickerThemeEntry has the data already on disk via themes-manifest.json,
+  // ThemeEntry has the data already on disk via themes-manifest.json,
   // avoiding a ~660ms wasted round-trip per theme — perf finding 2026-05-30 P1).
   // Falls back to fetching `meta.json` directly when no hint is provided.
   // Missing is OK for a freshly-imported scheme that hasn't had its
   // provenance scaffolded yet.
-  let meta: Record<string, unknown> = opts.meta ?? {};
+  let meta: ThemeMeta = opts.meta ?? {};
   if (!opts.meta) {
     try {
       const metaRes = await fetch(`${baseUrl}/meta.json`);
-      if (metaRes.ok) meta = await metaRes.json() as Record<string, unknown>;
+      if (metaRes.ok) meta = await metaRes.json() as ThemeMeta;
     } catch { /* network error / not present — silently degrade */ }
   }
 
   const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
   const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
-    meta: { name: (meta.name as string) ?? slug, ...meta },
+    meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
   });
 

@@ -29,7 +29,7 @@ export type {
   ThemeProgressModel,
   ThemeScrollArrowMap,
 } from './types.js';
-export { loadTheme, assetUrl, findChromeElement } from './loadTheme.js';
+export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTheme.js';
 // In-browser .sit/.rsrc decoder — exposed so consumers can decode a dropped File / fetched
 // bytes (the BYO theme path) without going through `loadTheme(url)`. Same code `loadTheme`
 // runs internally; surfaced here so an npm consumer can reach it without importing a

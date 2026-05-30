@@ -71,7 +71,16 @@ export async function promoteThemePicker(
   if (!themes.length) return null;
   el.dataset.scriptoscopeThemePickerPromoted = '';
   el.setAttribute('role', 'tablist');
-  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', 'Theme picker');
+  if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
+  // Per-tile aria-busy lifecycle (already in place 2026-05-30) tells AT
+  // when an individual tile's icon has decoded. The CONTAINER aria-busy
+  // is the complementary signal — flipped false once the initial active
+  // tile is settled (icons either painted or decoded-and-failed). AT
+  // clients honor a container's aria-busy transition as "this widget is
+  // now ready to interact with"; without it, an SR user reading the
+  // strip during the picker's first ~600ms boot saw inconsistent state.
+  // A11y reviewer P1 2026-05-30.
+  el.setAttribute('aria-busy', 'true');
 
   // Per-tile icon: default 'system-folder' → -3983 (the warm-beige System
   // Folder), fall back to 'folder' → -3999 if a scheme doesn't ship it.
@@ -205,7 +214,30 @@ export async function promoteThemePicker(
   };
   // The active tile: decode eagerly. Its theme is the page default + the
   // first icon a user will see; it's also already being loaded by mount.
-  if (deps.initialSlug) requestDecode(deps.initialSlug);
+  // Once it lands (decoded or failed), flip the container aria-busy so
+  // AT knows the picker is settled. Below-the-fold tiles don't gate this
+  // signal — they're lazy and may not decode at all this session.
+  if (deps.initialSlug) {
+    const initial = deps.initialSlug;
+    requestDecode(initial);
+    // Watch for the active tile's aria-busy transition (set to 'false' in
+    // drain()'s success branch above). Falls through to a timer fallback
+    // if the decode fails (no aria-busy flip).
+    const activeTile = tiles.get(initial);
+    if (activeTile) {
+      const settle = (): void => { el.setAttribute('aria-busy', 'false'); };
+      const mo = new MutationObserver(() => {
+        if (activeTile.getAttribute('aria-busy') === 'false') { settle(); mo.disconnect(); }
+      });
+      mo.observe(activeTile, { attributes: true, attributeFilter: ['aria-busy'] });
+      // Belt-and-braces fallback: if the active theme decode fails (e.g.
+      // 404), the per-tile aria-busy never flips. Cap the picker busy
+      // state at 3s so AT users aren't stranded.
+      setTimeout(() => { settle(); mo.disconnect(); }, 3000);
+    }
+  } else {
+    el.setAttribute('aria-busy', 'false'); // no active tile to wait on
+  }
   // The other 17: decode on intersection (tile scrolls into view) OR on
   // click (keyboard nav / direct interaction). IntersectionObserver is
   // ubiquitous (Chrome 51+, Firefox 55+, Safari 12.1+).
