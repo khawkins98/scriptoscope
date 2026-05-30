@@ -42,27 +42,35 @@ test('boot-affordance: scriptoscope.css is linked and resolves', async () => {
 test('boot-affordance: data-scriptoscope-loading attribute set + CSS hooks fire', async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
+  // We can't poll AFTER mountDeclarative resolves — by then the loading
+  // attribute has already been torn down (the teardown is in the same
+  // microtask as the resolve). Install a MutationObserver via an init
+  // script BEFORE navigation; the observer records every attribute add
+  // anywhere in the document so the test can verify the attribute was
+  // present at some moment, not at "now".
+  await page.addInitScript(() => {
+    window.__loadingAttrSeen = false;
+    const watcher = () => {
+      if (document.querySelector('[data-scriptoscope-loading]')) {
+        window.__loadingAttrSeen = true;
+      }
+    };
+    new MutationObserver(watcher).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-scriptoscope-loading'] });
+    watcher(); // initial check, in case the attribute is set before MO arms
+  });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  // Read state at first promote moment — the loading attribute should be
-  // on body, and at least one promoted host should have the wipe-in
-  // animation computed.
   await page.waitForSelector('[data-scriptoscope-promoted]', { timeout: 10000 });
   const state = await page.evaluate(() => {
-    const sec = document.getElementById('powers') ?? document.body;
     const promoted = document.querySelector('[data-scriptoscope-promoted]');
     return {
-      hasLoadingAttr: sec.hasAttribute('data-scriptoscope-loading'),
+      loadingAttrSeen: window.__loadingAttrSeen,
       promotedAnimName: promoted ? getComputedStyle(promoted).animationName : null,
-      hasReadyClass: sec.classList.contains('scriptoscope-ready'),
     };
   });
-  assert.equal(state.hasLoadingAttr, true, 'Expected data-scriptoscope-loading attribute on section at first promote');
-  // Animation name may have moved past `none` to `scriptoscope-wipe-in`
-  // OR may be `(none)` if the test caught the post-animation moment
-  // (Playwright timing is not real-time). The CSS hook is verified to
-  // EXIST in the test below; this assertion just confirms the selector
-  // chain `[data-scriptoscope-loading] [data-scriptoscope-promoted]`
-  // matches (animation isn't `none` due to CSS being missing).
+  assert.equal(state.loadingAttrSeen, true, 'Expected data-scriptoscope-loading attribute to appear at SOME point during mount (MutationObserver record)');
+  // Animation name may have moved past `scriptoscope-wipe-in` to `none` by
+  // the time we check. The CSS-loaded test covers the link; this assertion
+  // just sanity-checks the selector resolved to a computed style at all.
   assert.notEqual(state.promotedAnimName, '', 'animationName should not be empty (CSS not loaded?)');
 });
 

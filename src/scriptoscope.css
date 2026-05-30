@@ -128,9 +128,13 @@
    The UX reviewer (2026-05-30) called this the "reveal IS the affordance"
    approach — better than skeleton because the bare HTML is already content.
    Consumer override path:
-     :root { --scriptoscope-wipe-duration: 200ms; }
-     /* opt out an element entirely */
-     .my-window { animation: none !important; } */
+     :root with --scriptoscope-wipe-duration: 200ms;
+     .my-window with animation: none !important to opt out an element entirely.
+   NOTE: do not write a block-comment open or close marker anywhere inside
+   this header — CSS has no nested comments, so the first close marker ends
+   the outer comment and the rest leaks as CSS. This bit us once; see
+   LEARNINGS.md, the "CSS nested block comments silently break the file"
+   entry, for the full story. */
 
 /* Per-affordance CSS custom-property API. */
 :root {

@@ -2695,3 +2695,35 @@ The cheaper pattern, when work can be deferred without affecting first paint: sh
 
 The 2-reviewer pattern (perf + UX in parallel) paid off again here: the UX reviewer's "dotted-outline placeholder" CSS work (in `87b30f9`) was already in place when the perf reviewer's "lazy-load" recommendation landed — the visual affordance for the now-deferred work was already shipped. Convergent design.
 
+
+## 2026-05-30 — Two `:root` blocks, one stylesheet, and 80% of boot affordance silently never ran
+
+**The symptom.** Diagnostic Playwright probe spawned to verify the corner-sprite code-split (#191's P5) flagged a `console.warn` from the scanner — `"bootAffordance is enabled but scriptoscope.css is not loaded"` — even though the CSS file was returning HTTP 200 with 10869 bytes and `document.styleSheets` reported it loaded with 14 rules. Probing `getComputedStyle(document.body).getPropertyValue('--scriptoscope-wipe-duration')` on a fresh Chromium page returned empty string. The CSS file as served had the var declared on line 140 inside a `:root` block. The browser's CSSOM saw only ONE `:root` rule (the first block, at line 27) with five vars and none of the boot-affordance variables.
+
+**The cause.** A nested-comment trap that survived a "fix" that just moved it.
+
+`scriptoscope.css` had a documentation comment block opening at line 118 and closing at line 136. Inside it, two example lines:
+```
+     /* opt out an element entirely */
+     .my-window { animation: none !important; } */
+```
+CSS does not nest block comments. The first `*/` (on the "opt out" line) closes the outer comment early. The `.my-window` line then leaks into the stylesheet as a real CSS rule. The trailing `} */` produces a stray `*/` token that the parser is supposed to recover from by skipping to the next top-level recovery point — and in Chromium that recovery consumes the entire next `:root { ... }` block. Net effect: the second `:root` (containing `--scriptoscope-wipe-duration`, `--scriptoscope-icon-fade-duration`, `--scriptoscope-placeholder-color`, `--scriptoscope-placeholder-bg`) silently vanishes from the parsed CSSOM. Every rule that referenced those vars (the wipe-in animation, the icon-fade animation, the picker placeholder outline) had `var(--undefined)` with no fallback, which makes the property invalid → animation never runs, placeholder has no outline.
+
+The "fix" attempt that didn't fix: I removed the example code and wrote a warning comment saying "do not put `` `/* */` `` markers inside this comment." The backticks have no meaning in CSS — the literal `/* */` inside the warning IS a `/*` and a `*/`, which reintroduced the exact bug being warned against. Diagnostic probe still failed; second-pass fix had to spell out the markers without ever writing the literal characters.
+
+**The signal that almost caught it earlier.** The "scriptoscope.css is not loaded" `console.warn` shipped in the 2026-05-30 a11y audit (commit `2b2b0ff`) as a silent-fail defense for consumers who opted into the affordance but forgot the `<link>`. It worked as designed — the warning fires whenever `--scriptoscope-wipe-duration` doesn't resolve on the loading element, which is true whether the file is missing OR the file is loaded but the var declaration was lost in a parse error. The warning was firing in production from the day the file shipped, but on a page that visually looked fine (the chrome rendered, the picker worked, the boot affordance just didn't animate). It took dispatching a probe for an UNRELATED reason (verifying the corner-sprite code-split) and noticing the warning in console output to surface it.
+
+**Fix.** Three lines:
+1. Replace the example block-comment markers in the documentation with prose (`":root with --scriptoscope-wipe-duration: 200ms"` instead of `:root { --scriptoscope-wipe-duration: 200ms; }`).
+2. Replace the warning about block-comment markers with prose that names them by description rather than by character ("do not write a block-comment open or close marker anywhere inside this header").
+3. Rebuild the demo; the diagnostic probe now shows `--scriptoscope-wipe-duration: 140ms` resolved on `document.body`, 0 console errors, 0 warnings.
+
+**Generalisable lesson.** Three layers:
+
+1. **CSS parsers fail silently and locally.** A syntax error 20 lines from a `:root` block can drop the entire `:root` block from CSSOM without any console message, any compilation error, any tooling complaint. The browser is spec-compliant; the spec mandates skip-to-recovery on a token error. The only signal is "the var doesn't resolve" — and `var(--undefined)` is itself silent (the property becomes invalid; no warning).
+
+2. **Documentation about a footgun must not commit the footgun.** Writing about `/* */` inside a CSS comment is the same as writing `/* */` for the parser. The same shape applies in shell (`# don't use $(rm -rf)` in a heredoc), in regex (`# avoid .*?` inside a regex character class), in SQL (`-- don't write '; DROP TABLE` inside a string literal). When documenting a parser-level footgun, either use prose to describe the offending syntax without producing it, or use a parser-level escape mechanism (here: there is none for CSS comments). The "warn against the bug" comment is exactly where the bug hides.
+
+3. **A noisy-but-survivable warning is worth its weight.** The silent-fail defense added on 2026-05-30 didn't prevent the bug, but it surfaced it the next time anyone ran a Playwright probe with console capture. Without the warning, the boot affordance could have stayed broken for months — visually fine, functionally degraded, no signal. Build that pattern into any feature whose failure mode is "still kind of works."
+
+**The discovery path was also worth recording.** Code-split work (#191 P5: dynamic-import the corner-sprite compositor) required a Playwright probe to verify the chunk loaded for some themes and not others. That probe captured `console` output. The warning surfaced; the corner-sprite verification became secondary. Tooling built for one purpose surfacing an unrelated bug is a sign the tooling has the right granularity.

@@ -3,7 +3,12 @@ import { resolveInChain } from './baseChain.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
-import { composeCornerSpriteChrome } from './composeCornerSprite.js';
+// composeCornerSpriteChrome is dynamically imported below — see the
+// `wt.model === 'corner-sprite'` branch. Code-splitting the corner-sprite
+// compositor keeps ~12KB (post-minify) out of the first paint for the 14
+// themes that don't use it, at the cost of one extra round-trip when a
+// corner-sprite theme renders. The branch is already async (it awaits
+// widget-glyph loads), so the extra await is free.
 import { rasterizeText } from './textRaster.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { cascadeFallbackSlugs } from './wndCascade.js';
@@ -324,6 +329,7 @@ export async function renderWindow(
     // frame-extracted by the compositor into the scheme's own beveled frame + corners.
     const frameAsset = state === 'inactive' ? (wt.chrome?.inactive ?? wt.chrome?.active) : wt.chrome?.active;
     const frameCicn = frameAsset ? await loadCicnBuffer(assetUrl(owner, frameAsset)) : null;
+    const { composeCornerSpriteChrome } = await import('./composeCornerSprite.js');
     composed = composeCornerSpriteChrome(wt, contentW, contentH, {
       pinstripe, growBox, frameColor: hc.frame, fillColor: hc.fill,
       lightBevel: hc.lightBevel, darkBevel: hc.darkBevel,
