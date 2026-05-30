@@ -71,6 +71,34 @@ The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the 
 
 That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
+#### How positioning works
+
+`data-scriptoscope-window` elements **inherit their position and size from the DOM** at promotion time. If you don't specify `data-scriptoscope-x/y/width/height`, the runtime calls `getBoundingClientRect()` on the element and uses that — meaning whatever CSS you've written for the element (grid cell, flexbox child, absolute, or normal flow) is the source of truth. The chrome wraps **in place**. No new positioning vocabulary to learn.
+
+After mount, drag + resize update the host's inline `style.left/top/width/height` directly; CSS is the initial state, runtime owns runtime state. Reload restores CSS defaults (unless you pass `persistKey` — see below).
+
+#### Common pitfall — don't change child layout after mount class flips
+
+The runtime captures each window's `getBoundingClientRect()` at scan time. If your CSS reflows / hides / re-displays children based on a "mounted" or "ready" class your boot script adds, AND you add that class before `mountDeclarative()` runs, the runtime captures the **wrong** geometry — windows end up positioned and sized as if the page were already mid-mount.
+
+Bad:
+```css
+/* This rule changes display when .ready is added → cards stack on top of each other */
+.app.ready .card-row { display: block; }
+```
+```js
+container.classList.add('ready');           // ← layout changes here
+await mountDeclarative({ root: container }); // ← runtime sees the WRONG geometry
+```
+
+Good — scope CSS off the runtime's structural marker `.scriptoscope-slot` (added at promotion) instead of a custom class your code manages:
+```css
+/* Fires AFTER promotion → measurement already happened */
+.scriptoscope-slot .glyph { display: none; }
+```
+
+Or: keep custom `.skinned`-style classes for **visual** changes only (filter, mask, border, background). Never let them change `display`, `grid-template`, `max-width`, `padding`, `margin`, or anything that moves siblings.
+
 #### Available theme slugs
 
 The live list (with display labels and reference renders) is served at <https://khawkins98.github.io/aaron-ui/themes-manifest.json> and rendered visually at <https://khawkins98.github.io/aaron-ui/> (the demo page's theme switcher). Current bundled corpus:

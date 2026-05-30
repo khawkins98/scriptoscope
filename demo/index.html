@@ -53,13 +53,16 @@
        (the typical pre-CSS narrow-column homepage feel). SKINNED keeps
        the Mac-window playground at 960px wide so the floating cards
        have room to stagger. */
-    #powers .powers-inner { max-width: 720px; margin: 0 auto; font: 14.5px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; transition: max-width 200ms ease; }
+    /* ONE inner width across OFF + ON. The previous design widened from
+       720→960 on skinning, but that was a layout-affecting rule on the
+       .skinned class — exactly the foot-gun the runtime auto-position
+       documentation now warns against. The runtime captures each window's
+       getBoundingClientRect at scan time; if our CSS changes layout when
+       .skinned flips, the runtime captures the WRONG geometry. So .skinned
+       in this stylesheet only touches VISUAL chrome (filter, mask, border)
+       — never display/max-width/grid-template. */
+    #powers .powers-inner { max-width: 880px; margin: 0 auto; font: 14.5px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; }
     #powers .powers-inner > * { max-width: 100%; }
-    /* When anything in the section gets skinned (picker, cards), give the
-       inner column room to host floating windows. The :has fallback works
-       in all evergreen browsers; if it ever drops we'd toggle .skinned
-       on the powers-inner itself from boot. */
-    #powers:has(.skinned) .powers-inner { max-width: 960px; }
     /* H2: confident 36px Times for the OFF state period; survives skinned. */
     #powers h2 { font: 400 36px/1.05 "Times New Roman", Times, serif; margin: 14px 0 12px; letter-spacing: -0.005em; color: #1c1c1c; }
     #powers > .powers-inner > p.powers-lede { font-size: 15.5px; line-height: 1.55; margin: 0 0 18px; max-width: 64ch; }
@@ -102,16 +105,24 @@
        natural pre-mount height so absolute children don't collapse it. */
     #powers .powers-picker-host { margin: 0 0 22px; position: relative; }
     /* OFF mode: thin border + floating top-label that reads as a
-       Finder-window-y container without faking Mac chrome. */
-    #powers .powers-picker-host:not(.skinned) .powers-picker { border: 1px solid #b8b8b8; background: #ffffff; padding: 12px 14px 10px; position: relative; }
-    #powers .powers-picker-host:not(.skinned) .powers-picker::before {
+       Finder-window-y container without faking Mac chrome. Selector uses
+       `:not(:has(.scriptoscope-slot))` instead of a custom `.skinned` class
+       — that way the off/on state is tied to the RUNTIME's structural
+       marker (added by mountDeclarative at promotion), not to a separate
+       layout-affecting class our boot would have to manage carefully. */
+    #powers .powers-picker:not(:has(.scriptoscope-slot)) {
+      border: 1px solid #b8b8b8; background: #ffffff;
+      padding: 12px 14px 10px; position: relative; display: block;
+    }
+    #powers .powers-picker:not(:has(.scriptoscope-slot))::before {
       content: "Schemes Folder — pick one to wear"; position: absolute;
       top: -10px; left: 12px; background: #ffffff; padding: 0 8px;
       font: italic 11px "Times New Roman", serif; color: #5a5a5a;
     }
     #powers .powers-folders { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
-    #powers .powers-picker-host.skinned .powers-folders { mask-image: none; -webkit-mask-image: none; padding: 4px; }
-    #powers .powers-picker-host.skinned .powers-picker { display: block; filter: drop-shadow(2px 3px 0 #00000028); }
+    /* When the folder strip lives inside the chrome's slot, drop the fade
+       mask (the chrome IS the boundary now). */
+    #powers .scriptoscope-slot .powers-folders { mask-image: none; -webkit-mask-image: none; padding: 4px; }
     /* Folder tile: name on top (10px serif), author/year underneath
        (9px italic in muted gray). Mac Themes Garden / Aaron's About
        box convention — the scheme authors were the celebrities. */
@@ -134,11 +145,17 @@
        SKINNED uses absolute positions from data-scriptoscope-x/y. */
     #powers .powers-card-row.heavy { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 0 0 14px; }
     #powers .powers-card-row.minor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0; }
-    #powers .powers-grid.skinned .powers-card-row { display: block; margin: 0; }
     #powers .powers-card { display: grid; grid-template-columns: 56px 1fr; gap: 14px; padding: 12px 14px; border: 1px solid #c0c0c0; background: #ffffff; }
     #powers .powers-card-row.minor .powers-card { background: #fafafa; }
-    #powers .powers-grid.skinned .powers-card { display: block; padding: 0; border: none; background: transparent; filter: drop-shadow(2px 3px 0 #00000028); }
-    #powers .powers-grid.skinned .powers-card .powers-glyph { display: none; }
+    /* When promoted, the card's children move into the window's content
+       slot. The glyph (an OFF-mode-only affordance — chrome itself signals
+       what kind of thing the card is) should disappear inside the slot.
+       Scope this off `.scriptoscope-slot` rather than a custom `.skinned`
+       class — the runtime adds the slot wrapper structurally, no consumer
+       class management needed. Pure visual hide; doesn't affect parent
+       layout because the parent (the card content) was already measured
+       at promotion time. */
+    #powers .scriptoscope-slot .powers-glyph { display: none; }
     #powers .powers-card .powers-glyph { width: 48px; height: 48px; border: 1px solid #c0c0c0; background: #fafafa; display: grid; place-items: center; font: 26px/1 "Times New Roman", serif; color: #666; image-rendering: pixelated; }
     #powers .powers-card h3 { margin: 0 0 6px; font: 700 15px/1.2 "Times New Roman", Times, serif; color: #1c1c1c; }
     #powers .powers-card h3 a { color: #0000EE; text-decoration: underline; }
@@ -367,33 +384,22 @@
     let handle = null;
     let userInteracted = false; // flips on first folder click / key / mouse — stops auto-cycle
 
-    // TWO setters, separately:
-    //
-    // syncToggleButton — owns the visible TOGGLE state only (aria-pressed +
-    // label text + arrow). Safe to call at boot before measurement; doesn't
-    // touch .skinned on the containers.
-    //
-    // syncSkinnedClass — owns the container .skinned class. ONLY called
-    // after mountPowers's success branch confirms chrome painted. The
-    // .skinned class fires CSS that overrides .powers-card-row display:grid
-    // → display:block; if it fires BEFORE mountDeclarative pre-captures
-    // card rects, the cards measure at full row width and stack on top of
-    // each other (the 2026-05-30 'cards stacked' regression).
-    //
-    // Both still route through a unified state transition (the caller pairs
-    // them when needed). Splitting kept the bfcache defence cheap (boot only
-    // calls syncToggleButton) without coupling it to layout-affecting CSS.
-    const syncToggleButton = (skinned) => {
+    // Single state setter — aria-pressed + label text + arrow + container
+    // class. After moving .skinned-conditional layout rules out of the CSS
+    // (the 2026-05-30 'cards stacked' dogfooding fix), this can safely run
+    // at boot AND on every state transition without affecting mount
+    // measurement. The `.scriptoscope-mounted` class on the containers
+    // is decorative (drop-shadow on cards, no-op otherwise) — it never
+    // changes child display/size, so the runtime's pre-capture sees
+    // identical geometry regardless.
+    const syncToggleUI = (skinned) => {
       toggleBtn.setAttribute('aria-pressed', String(skinned));
       toggleBtn.firstChild.textContent = skinned ? 'See the bare HTML ' : 'Restore the chrome ';
       const arrow = toggleBtn.querySelector('.arrow');
       if (arrow) arrow.textContent = skinned ? '→' : '←';
+      powersGrid.classList.toggle('scriptoscope-mounted', skinned);
+      pickerHost.classList.toggle('scriptoscope-mounted', skinned);
     };
-    const syncSkinnedClass = (skinned) => {
-      powersGrid.classList.toggle('skinned', skinned);
-      pickerHost.classList.toggle('skinned', skinned);
-    };
-    const syncToggleUI = (skinned) => { syncToggleButton(skinned); syncSkinnedClass(skinned); };
 
     const mountPowers = async () => {
       if (handle) return;
@@ -595,15 +601,11 @@
     foldersEl.addEventListener('focusin', dropPulse, { once: true });
     setTimeout(dropPulse, 1600 * 2 + 200);
 
-    // Initial mount. The toggle is a <button> with aria-pressed; HTML
-    // declares aria-pressed="true" as the default, but we force it here
-    // (syncToggleButton — NOT syncToggleUI; we MUST NOT add .skinned to
-    // the containers yet because doing so flips the .powers-card-row CSS
-    // override from display:grid → display:block BEFORE mountDeclarative
-    // pre-captures the cards' grid-cell rects, causing them to measure
-    // at full row width and stack on top of each other. .skinned only
-    // goes on AFTER mountPowers's success branch fires.
-    syncToggleButton(true);
+    // Force the toggle state at boot — defends against Firefox/Safari
+    // bfcache restoring aria-pressed='false' even when HTML says true.
+    // Safe to call any time now that .scriptoscope-mounted is a decorative
+    // class with no layout-affecting CSS rules tied to it.
+    syncToggleUI(true);
     // Hero-strip slider readout — same form-cache bug class for <input
     // type="range">: browser may restore a value the span doesn't know
     // about. Sync the readout to whatever the input actually shows at boot.
