@@ -37,10 +37,15 @@ for (const slug of readdirSync(themesDir).sort()) {
   const kind = meta.origin?.kind;
   const ported = kind === 'kaleidoscope-port';
   const generated = kind === 'first-party-generated';
-  const credit = ported && meta.author?.name
-    ? ` (${meta.author.name}${meta.author.year ? `, ${meta.author.year}` : ''})`
-    : '';
+  // Author + year as STRUCTURED fields (was `label` substring before 2026-05-30
+  // designer pass). The folder tile renders `name` big + `author, year` in
+  // 9px italic underneath — the Mac Themes Garden / Kaleidoscope-era convention.
+  const author = ported && meta.author?.name ? meta.author.name : null;
+  const year = meta.author?.year ?? null;
+  const credit = author ? ` (${author}${year ? `, ${year}` : ''})` : '';
   const badge = generated ? ' ✦ generated' : '';
+  // `label` kept for back-compat with the diagnostic ribbon + anywhere that
+  // parses a single string. The landing's picker now uses name+author directly.
   const label = `${name}${credit}${badge}`;
   const ref = existsSync(resolve(refsDir, `${slug}.png`)) ? `${slug}.png` : null;
   // Source-of-truth hint: which file the runtime should fetch (scheme.sit > scheme.rsrc).
@@ -52,7 +57,7 @@ for (const slug of readdirSync(themesDir).sort()) {
   if (!source) continue;
   const sourceBytes = statSync(resolve(dir, source)).size;
 
-  entries.push({ slug, label, generated, source, sourceBytes, ...(ref ? { ref } : {}) });
+  entries.push({ slug, name, ...(author ? { author } : {}), ...(year ? { year } : {}), label, generated, source, sourceBytes, ...(ref ? { ref } : {}) });
 }
 
 // Real schemes first (already alpha from the sorted readdir), generated last.

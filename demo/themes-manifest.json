@@ -1,6 +1,9 @@
 [
   {
     "slug": "1138",
+    "name": "1138",
+    "author": "Erik Ekengren",
+    "year": 1998,
     "label": "1138 (Erik Ekengren, 1998)",
     "source": "scheme.rsrc",
     "sourceBytes": 724796,
@@ -8,6 +11,9 @@
   },
   {
     "slug": "1984",
+    "name": "1984",
+    "author": "Geoffrey Hamilton",
+    "year": 1999,
     "label": "1984 (Geoffrey Hamilton, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 476921,
@@ -15,6 +21,9 @@
   },
   {
     "slug": "1990",
+    "name": "1990",
+    "author": "SHIOCOP",
+    "year": 1999,
     "label": "1990 (SHIOCOP, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 584178,
@@ -22,6 +31,9 @@
   },
   {
     "slug": "animals",
+    "name": "Animals",
+    "author": "Masashi Ichikawa",
+    "year": 1999,
     "label": "Animals (Masashi Ichikawa, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 202349,
@@ -29,6 +41,8 @@
   },
   {
     "slug": "apple-lisa",
+    "name": "Apple Lisa for K2.1",
+    "author": "R. Bensam and E. Deans",
     "label": "Apple Lisa for K2.1 (R. Bensam and E. Deans)",
     "source": "scheme.sit",
     "sourceBytes": 75263,
@@ -36,6 +50,9 @@
   },
   {
     "slug": "apple-platinum-2",
+    "name": "Apple Platinum 2",
+    "author": "Orion Dimitrakopoulos",
+    "year": 1999,
     "label": "Apple Platinum 2 (Orion Dimitrakopoulos, 1999)",
     "source": "scheme.sit",
     "sourceBytes": 81472,
@@ -43,6 +60,9 @@
   },
   {
     "slug": "beos-r503",
+    "name": "BeOS R5.0.3",
+    "author": "Jon Alexander",
+    "year": 2002,
     "label": "BeOS R5.0.3 (Jon Alexander, 2002)",
     "source": "scheme.sit",
     "sourceBytes": 121497,
@@ -50,6 +70,9 @@
   },
   {
     "slug": "black-platinum",
+    "name": "Black Platinum",
+    "author": "Daisuke Yamashita",
+    "year": 1999,
     "label": "Black Platinum (Daisuke Yamashita, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 435125,
@@ -57,6 +80,9 @@
   },
   {
     "slug": "crayon-os",
+    "name": "Crayon OS",
+    "author": "Karl von Laudermann",
+    "year": 2000,
     "label": "Crayon OS (Karl von Laudermann, 2000)",
     "source": "scheme.sit",
     "sourceBytes": 515058,
@@ -64,6 +90,8 @@
   },
   {
     "slug": "dolphin-som",
+    "name": "Dolphin SOM (dsom)",
+    "author": "unknown",
     "label": "Dolphin SOM (dsom) (unknown)",
     "source": "scheme.sit",
     "sourceBytes": 437325,
@@ -71,6 +99,9 @@
   },
   {
     "slug": "evolution",
+    "name": "1991 evolution",
+    "author": "SHIOCOP",
+    "year": 1999,
     "label": "1991 evolution (SHIOCOP, 1999)",
     "source": "scheme.rsrc",
     "sourceBytes": 1650192,
@@ -78,6 +109,8 @@
   },
   {
     "slug": "floppies",
+    "name": "Floppies!",
+    "author": "unknown",
     "label": "Floppies! (unknown)",
     "source": "scheme.sit",
     "sourceBytes": 461286,
@@ -85,6 +118,9 @@
   },
   {
     "slug": "monkey-paradise",
+    "name": "Monkey Paradise",
+    "author": "Masashi Ichikawa",
+    "year": 1998,
     "label": "Monkey Paradise (Masashi Ichikawa, 1998)",
     "source": "scheme.sit",
     "sourceBytes": 241823,
@@ -92,6 +128,9 @@
   },
   {
     "slug": "platinum-8",
+    "name": "Platinum 8",
+    "author": "Russell Silver Jr.",
+    "year": 1998,
     "label": "Platinum 8 (Russell Silver Jr., 1998)",
     "source": "scheme.sit",
     "sourceBytes": 31363,
@@ -99,6 +138,9 @@
   },
   {
     "slug": "slimes",
+    "name": "slimes 1.5",
+    "author": "JUN",
+    "year": 1998,
     "label": "slimes 1.5 (JUN, 1998)",
     "source": "scheme.sit",
     "sourceBytes": 59206,
@@ -106,6 +148,9 @@
   },
   {
     "slug": "system7-nostalgia-silver",
+    "name": "System 7 Nostalgia Silver",
+    "author": "mollusc",
+    "year": 1997,
     "label": "System 7 Nostalgia Silver (mollusc, 1997)",
     "source": "scheme.rsrc",
     "sourceBytes": 130067,
@@ -113,6 +158,8 @@
   },
   {
     "slug": "windows-31",
+    "name": "Windows 3.1",
+    "author": "Scott Naness",
     "label": "Windows 3.1 (Scott Naness)",
     "source": "scheme.sit",
     "sourceBytes": 73915,
@@ -120,6 +167,8 @@
   },
   {
     "slug": "windows-95",
+    "name": "Windows 95",
+    "author": "Scott Naness",
     "label": "Windows 95 (Scott Naness)",
     "source": "scheme.sit",
     "sourceBytes": 78087,
