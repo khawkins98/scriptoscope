@@ -1,6 +1,8 @@
 # Platinum Theme Generator — Design (Sub-project ①: generator + window chrome)
 
-**Status:** Design (brainstormed 2026-05-24). Next step: implementation plan via writing-plans.
+> ⚠️ **SUPERSEDED — 2026-05-28.** This design was implemented (the generator + `apple-platinum-replica` theme bundle shipped via the sibling [implementation plan](../plans/2026-05-24-platinum-theme-generator.md)), then **retired**. The maintainer pivoted to deferring to the real 1998 freeware Kaleidoscope scheme [`platinum-8`](../../../themes/platinum-8/) as the Platinum authority (commit `c7ab49d`, 2026-05-25), and the generator + replica bundle were deleted in commit `c935e4c` (2026-05-28). This spec is kept as the historical record of the attempted approach and its architectural decisions; **the work is not active**. For the Platinum authority that ships today, see `themes/platinum-8/` + `src/baseChain.ts` (sparse bundles defer to it via `mountDeclarative({ baseSlug: 'platinum-8' })`).
+
+**Status (original):** Design (brainstormed 2026-05-24). Next step: implementation plan via writing-plans.
 
 ## Goal
 

@@ -1,5 +1,7 @@
 # Platinum Theme Generator (Sub-project ①) — Implementation Plan
 
+> ⚠️ **SUPERSEDED — 2026-05-28.** All 7 tasks below were executed and committed task-by-task (2026-05-24 → 2026-05-28), delivering `scripts/generate-platinum.mjs` + the `apple-platinum-replica` theme bundle. The maintainer then pivoted to deferring to the real 1998 freeware Kaleidoscope scheme [`platinum-8`](../../../themes/platinum-8/) as the Platinum authority (commit `c7ab49d`), and both the generator and replica bundle were retired in commit `c935e4c`. This plan is kept as a historical record; **the work is not active** and the bundle it produced no longer exists. The design spec is at [`../specs/2026-05-24-platinum-theme-generator-design.md`](../specs/2026-05-24-platinum-theme-generator-design.md) (carrying a matching superseded notice).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Generate the Apple Platinum document window as a normal Scriptoscope theme bundle (`themes/apple-platinum-replica/`), drawn clean-room from the WDEF decode, validated and rendered through the unmodified pipeline.
