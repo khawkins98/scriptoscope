@@ -228,7 +228,7 @@ Subpath available: `scriptoscope/declarative` exposes the focused declarative en
 
 ## Trying it locally
 
-Two demo pages sit on the same runtime, each showing a different integration path. Run them together:
+Three demo pages sit on the same runtime, each showing a different integration path. Run them together:
 
 ```sh
 npm install
@@ -237,6 +237,7 @@ npm run dev        # http://localhost:5173/
 
 - **[`demo/index.html`](./demo/index.html)** — the **runtime showcase**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
 - **[`demo/declarative-site.html`](./demo/declarative-site.html)** — the **"skin an existing site" exemplar** and North Star integration story: an ordinary article/form/list/gallery page with `data-scriptoscope-*` attributes sprinkled onto real content. The form's native `<input>`s stay native (accessible, real form values); only the explicit `data-scriptoscope-button` / `data-scriptoscope-control` elements are skinned. Includes a page-level theme switcher that re-skins every promoted window live.
+- **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 
 ## The runtime API
 
@@ -307,6 +308,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 ## Documents
 
 - **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
+- **[`docs/spec/README.md`](./docs/spec/README.md)** — the **index** of every primary-source decode under `docs/spec/` (the citation chain: corpus → Scheme Factory → Apple → kDEF 2.3.1 → kDEF 1.8.2). First stop when chasing "what does id/field/address X mean?". The spec tree has grown to 30+ docs and this index is kept current.
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
 - **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — the current window-chrome model (the implemented spec).
 - **[`docs/spec/kdef231-reference.md`](./docs/spec/kdef231-reference.md)** — the standing Kaleidoscope **2.3.1** kDEF reference: a lookup rubric of every routine address, resource id, struct offset, and coordinate mapping. The first stop for **"where is X?"**; it indexes the architecture tour, the compositor spec, the recipe-walk, and the faithfulness ledger.
@@ -397,7 +399,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 ### Adopter-facing extras
 
 - **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/aaron-ui/issues/29) — open decision).
-- **CSS `border-image` emitter** for the body-frame chrome — gated by a representability spike (ADR-0001 Decision 1, still open).
+- ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Spike result.
 - **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/aaron-ui/issues/79) closed but the framework would live here.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
 - **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.

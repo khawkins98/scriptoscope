@@ -103,5 +103,5 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - `docs/spec/apple-appearancelib-spike.md` + `apple-cdef-{geometry,button-geometry}.md` — Apple Mac OS 8.5 System file decompile. DrawThemeButton TVector decoded (thin dispatcher → theme-provider vtable +0xCC, data/drawer split).
 - `docs/theme-bundle-layout.md` — `theme.json` schema.
 - `docs/porting-a-kaleidoscope-scheme.md` — full porting walk-through.
-- `docs/adr/0001` — the consumption-layer architecture decision (CSS-first hybrid, Shadow DOM, `data-scriptoscope-*` front door).
+- `docs/adr/0001` — the consumption-layer architecture decision. **Decision 1 RETIRED (2026-05-28)** after three CSS-emitter spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, etc.); architecture is now explicitly "DOM structure + canvas decoration" — what already ships. Decisions 2 (Shadow DOM), 3 (`data-scriptoscope-*` front door), 4 (ingestion) all accepted/shipped.
 - `LEARNINGS.md` — running log of gotchas; the historical record matters, so mark superseded entries rather than deleting them.
