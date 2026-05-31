@@ -234,17 +234,17 @@
        CSS targets those classes — they're a stable part of the public
        contract (T2.2). */
     #powers [data-scriptoscope-theme-picker] { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
-    /* When the picker lives inside chrome (the picker IS a window), drop
-       the fade mask (chrome is the boundary) AND switch to wrapping so
-       tiles reflow when the window is dragged/resized narrow. Without
-       wrap, a dragged-narrow picker overflows horizontally + the bottom
-       half of its body sits empty. OFF mode keeps the horizontal strip
-       (its container width is fixed and the fade mask signals scroll). */
+    /* When the picker lives inside chrome (the picker IS a window), keep
+       the SAME single-row horizontal strip as OFF mode — the chrome edge
+       is the boundary so the OFF-mode fade mask is unneeded. Tiles
+       overflowing the chrome scroll horizontally (browser default + the
+       runtime's themed scrollbar where wired). Wrap was tried 2026-05-31
+       (commit d799b47) — looked busy + interacted poorly with the
+       resize feedback loop. Reverted to match consumer expectation
+       ("closer to normal default"). */
     #powers .scriptoscope-slot [data-scriptoscope-theme-picker] {
       mask-image: none; -webkit-mask-image: none;
       padding: 4px;
-      flex-wrap: wrap;
-      overflow-x: visible;
     }
     /* Folder tile: name on top, author/year underneath. Mac Themes Garden /
        Aaron-About-box convention — the scheme authors were the celebrities. */
