@@ -102,9 +102,14 @@ export function windowIdFor(el: HTMLElement, ordinal: number): string {
   return el.dataset.scriptoscopeWindowId || `dom-ordinal-${ordinal}`;
 }
 
-/** Read a host element's current geometry (position from host.style; size from entry.opts via
- *  the public manager API the caller passes in). */
-export function readHostPosition(host: HTMLElement): { x: number; y: number } {
+/** Read a host element's current geometry.
+ *  Returns `null` for in-flow hosts (Posture B's default `position: static`):
+ *  their `top`/`left` are not authoritative — the browser's layout engine is.
+ *  Persisting `(0, 0)` for those and replaying it on reload would force every
+ *  undragged window to viewport origin (the post-2026-05-31 P0 bug FE
+ *  reviewer caught). For absolute hosts, returns the inline style coords. */
+export function readHostPosition(host: HTMLElement): { x: number; y: number } | null {
+  if (host.style.position !== 'absolute' && host.style.position !== 'fixed') return null;
   return {
     x: Math.round(parseFloat(host.style.left) || 0),
     y: Math.round(parseFloat(host.style.top) || 0),

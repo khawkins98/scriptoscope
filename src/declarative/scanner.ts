@@ -6,9 +6,6 @@
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
-// inheritedRect.ts: dead after Posture B 2026-05-30. Kept as a file so callers
-// importing `consumeInheritedRect` from outside the scanner still resolve; the
-// scanner no longer writes rects since hosts are in-flow and don't need them.
 import { promoteButton } from './button.js';
 import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
@@ -292,7 +289,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       if (!id) continue;
       const desc = manager.describe(aw.host);
       const pos = readHostPosition(aw.host);
-      const entry: { x?: number; y?: number; w?: number; h?: number; collapsed?: boolean; z?: number } = { x: pos.x, y: pos.y };
+      // pos is null for in-flow hosts (Posture B default). Only persist x/y
+      // when the host is genuinely absolute — otherwise (0, 0) gets written
+      // and a future reload would force every window to viewport origin.
+      // 2026-05-31 P0 fix.
+      const entry: { x?: number; y?: number; w?: number; h?: number; collapsed?: boolean; z?: number } = pos ? { x: pos.x, y: pos.y } : {};
       if (desc?.width != null) entry.w = desc.width;
       if (desc?.height != null) entry.h = desc.height;
       if (desc?.collapsed) entry.collapsed = true;
@@ -320,6 +321,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         const w = layout.windows[id];
         if (!w) continue;
         if (w.x != null && w.y != null) {
+          // Post-Posture-B: cross-tab restore of an absolute position
+          // must also flip the host to absolute (it may currently be
+          // `position: static`, in which case top/left would have no
+          // effect). Mirrors the drag handoff in interactive.ts.
+          aw.host.style.position = 'absolute';
           aw.host.style.left = `${w.x}px`;
           aw.host.style.top = `${w.y}px`;
         }

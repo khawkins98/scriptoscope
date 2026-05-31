@@ -10,8 +10,6 @@ import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
 import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
-// inheritedRect.ts is dead after Posture B 2026-05-30 — hosts are in flow,
-// no pre-capture handoff needed. Import removed.
 
 export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
@@ -22,8 +20,6 @@ const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for con
 const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40;
 
-// (numOrNull was the parser for the dataset-based pre-captured rect seam;
-// retired with the WeakMap migration in T3.2.)
 
 /** Walk up the DOM to find the nearest positioned ancestor (the one the host's absolute
  *  positioning will resolve against). Returns null when no positioned ancestor exists
@@ -220,12 +216,16 @@ export class ScriptoscopeWindow {
       host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
       host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
     } else {
-      // Browser-default static; no top/left. Inherited consumer CSS for
-      // `position`, `top`, `left` still applies (lockdown only covers
-      // layout-decoration props, see below). A consumer who wants their
-      // own absolute positioning via class CSS can do that. Drag handler
-      // flips to absolute on first drag (interactive.ts).
-      host.style.position = 'static';
+      // In-flow path. WindowManager.add sets `position: absolute` inline
+      // unconditionally (line ~636 of interactive.ts — the historical
+      // default before Posture B). CLEAR the inline value so it falls
+      // back to consumer-class CSS (if any) or the UA default `static`.
+      // Setting `'static'` inline here would CLOBBER a consumer's class-
+      // based positioning intent (e.g. `.my-window { position: relative }`
+      // for stacking-context purposes); clearing the inline value lets
+      // that intent through. Drag handler flips to absolute on first
+      // drag/move (interactive.ts).
+      host.style.position = '';
     }
     // Carry consumer-side identity from the source element to the runtime
     // host so CSS / JS / AT that targeted the source (`.my-class`,
