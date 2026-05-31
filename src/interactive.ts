@@ -601,6 +601,27 @@ function collapsedSlugFor(theme: LoadedTheme, baseSlug: string): string | undefi
  * Title-bar widgets (close/zoom/collapse) are hit-tested from the chrome and
  * fire the matching handler when clicked.
  */
+
+// Shared stylesheet injected into every window host's shadow root via
+// adoptedStyleSheets. Provides a visible focus ring for the overlay
+// buttons (title widgets, move handle, grow box, scrollbar) — the host's
+// outer :focus-visible rule from scriptoscope.css doesn't reach inside
+// the shadow boundary. One sheet for all windows. a11y reviewer 2026-05-31.
+const shadowFocusSheet: CSSStyleSheet = (() => {
+  if (typeof CSSStyleSheet === 'undefined') return null as unknown as CSSStyleSheet;
+  const sheet = new CSSStyleSheet();
+  sheet.replaceSync(`
+    .scriptoscope-titlewidget:focus-visible,
+    .scriptoscope-movehandle:focus-visible,
+    .scriptoscope-growbox:focus-visible,
+    .scriptoscope-window-scrollbar:focus-visible {
+      outline: 2px solid Highlight;
+      outline-offset: 1px;
+    }
+  `);
+  return sheet;
+})();
+
 export class WindowManager {
   private windows: ManagedWindow[] = [];
   /** Monotonic stacking clock — each add/focus takes the next value so the most-recently-touched
@@ -656,6 +677,17 @@ export class WindowManager {
     // consumer's content lives in the host's LIGHT DOM (set below if extra.contentEl), where
     // host CSS still reaches it; renderWindow's <slot> inside .scriptoscope-content auto-renders it.
     host.attachShadow({ mode: 'open' });
+    // A11y: inject a focus-visible outline stylesheet into the shadow root so
+    // the chrome's overlay buttons (title widgets, move handle, grow box,
+    // scrollbar) show a visible focus ring on Tab. The host's outer
+    // :focus-visible rule (scriptoscope.css:86) doesn't reach inside the
+    // shadow — without this, keyboard users land on invisible focus targets.
+    // adoptedStyleSheets is the lowest-overhead path (shared between all
+    // window hosts, no per-host parse cost). a11y reviewer 2026-05-31.
+    if (host.shadowRoot && typeof CSSStyleSheet !== 'undefined') {
+      try { host.shadowRoot.adoptedStyleSheets = [shadowFocusSheet]; }
+      catch { /* older browsers may reject; the consumer's :focus default still applies */ }
+    }
     debug('shadow', `attached for ${opts.title ?? '(untitled)'}`, { hasContent: !!extra.contentEl });
     if (extra.contentEl) host.appendChild(extra.contentEl);  // light-DOM child → slotted into shadow
     // NB: role + aria-label live on the INNER `.scriptoscope-window` element built by renderWindow.ts (which

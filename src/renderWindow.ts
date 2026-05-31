@@ -239,7 +239,7 @@ export async function renderWindow(
   });
   if (!resolved) {
     const utility = /utility|mini|floating|palette/.test(slug);
-    return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility });
+    return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });
   }
   const { owner, wt, cicnPath } = resolved;
   // (chromeElement lookup kept for validation / future metadata use)
@@ -447,9 +447,15 @@ export async function renderWindow(
   win.dataset.scriptoscopeCurrentState = state;
   // The title is always exposed to assistive tech, even when it isn't drawn
   // (utility/mini windows show no visible label in a modern context).
+  // For modal-class window-types we add aria-modal="true" so SRs constrain
+  // virtual-cursor navigation (the keyboard focus trap in handle.openModal
+  // is the keyboard side; this is the AT side). UTILITY_SLUG_RE includes
+  // dialog/alert/modal/popup which all reasonably benefit from modal semantics
+  // when wrapped in handle.openModal — a11y reviewer 2026-05-31.
   if (title) {
     win.setAttribute('role', isUtility ? 'dialog' : 'group');
     win.setAttribute('aria-label', title);
+    if (isUtility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
   }
   Object.assign(win.style, {
     position: 'relative',
@@ -562,9 +568,9 @@ export async function renderWindow(
  */
 function buildBaselineWindow(
   theme: LoadedTheme,
-  opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean },
+  opts: { title: string; state: WindowState; contentW: number; contentH: number; scale: number; utility?: boolean; slug?: string },
 ): HTMLElement {
-  const { title, state, contentW, contentH, scale, utility } = opts;
+  const { title, state, contentW, contentH, scale, utility, slug = '' } = opts;
   const hc = (state === 'inactive' ? theme.manifest.headerColors?.inactive : theme.manifest.headerColors?.active) ?? {};
   const fill = hc.fill ?? '#cccccc';
   // Title text contrasts with the bar (white on a dark fill, else black). NOT
@@ -601,6 +607,9 @@ function buildBaselineWindow(
   if (title) {
     win.setAttribute('role', utility ? 'dialog' : 'group');
     win.setAttribute('aria-label', title);
+    // aria-modal for modal-class window-types — see the parallel block in the
+    // cicn-recipe path above for the rationale (a11y reviewer 2026-05-31).
+    if (utility && /modal|alert|dialog/.test(slug)) win.setAttribute('aria-modal', 'true');
   }
   // Explicit footprint (border-box) so callers can read the window's full size
   // — `width`/`height` match the cicn path, e.g. the scene sizes its desk to it.

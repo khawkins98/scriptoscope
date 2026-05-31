@@ -5,6 +5,8 @@ This is the long-form companion to the README's quick-start. It exists for the t
 If you only want to drop Scriptoscope onto a static HTML page and not touch it again, you probably don't need this doc. The defaults are tuned for the common case.
 
 **Contents**
+- [Mobile + responsive](#mobile--responsive)
+- [Content Security Policy](#content-security-policy)
 - [Controlling which widgets do something: `data-scriptoscope-widgets`](#controlling-which-widgets-do-something-data-scriptoscope-widgets)
 - [How positioning works](#how-positioning-works-posture-b-2026-05-31)
 - [Auto-resize: content growing after promote](#auto-resize-content-growing-after-promote)
@@ -15,6 +17,55 @@ If you only want to drop Scriptoscope onto a static HTML page and not touch it a
 - [Known incompatibilities](#known-incompatibilities)
 - [Internal stamps — don't set these yourself](#internal-stamps--dont-set-these-yourself)
 - [Framework integration notes](#framework-integration-notes)
+
+## Mobile + responsive
+
+Scriptoscope is **desktop windowing**. Classic Mac chrome assumes pointer + keyboard, multi-pixel-per-rem displays, and viewports wider than ~600px. There's no first-class touch redesign — what you get on a phone:
+
+- Drag still works via pointer events (touch fires `pointerdown`).
+- The chrome canvas is `image-rendering: pixelated`; on high-DPR displays the integer-upscale looks clean.
+- Window-types sized larger than the viewport overflow horizontally. There's no auto-shrink mode.
+
+Recommended pattern: hide the chrome below a breakpoint and let the bare HTML render naturally.
+
+```css
+@media (max-width: 600px) {
+  /* Chromed windows become bare blocks; chrome canvas hidden, content flows */
+  [data-scriptoscope-promoted] .scriptoscope-window > canvas { display: none; }
+  [data-scriptoscope-promoted] .scriptoscope-content { padding: 0; }
+}
+```
+
+Or, more aggressively, skip mounting entirely below the breakpoint:
+
+```js
+if (window.matchMedia('(max-width: 600px)').matches) {
+  // Don't call mountDeclarative — leave the bare HTML alone.
+} else {
+  await mountDeclarative({ ... });
+}
+```
+
+The library doesn't itself listen for viewport changes — if you want chrome to reappear when the user rotates to landscape, wire a `matchMedia` change listener that calls `handle.disconnect()` / re-mounts.
+
+## Content Security Policy
+
+The runtime touches a few CSP-restricted features:
+
+- **WebAssembly** for the `.sit` decoder (`tools/sit-wasm/`). Required if the consumer's themes ship as `scheme.sit`. Needs `script-src 'wasm-unsafe-eval'` in strict CSP.
+- **`blob:` URLs** for decoded chrome / pattern assets (`tools/theme-loader/loadKaleidoscopeScheme.js`). The runtime creates `URL.createObjectURL(blob)` and references those URLs from `<canvas>` draws and `<img>` swaps. Needs `blob:` in `img-src` and `connect-src` (or relaxed `default-src`).
+- **Inline-style writes** (`el.style.x = ...` throughout the codebase). These use the IDL setter, which CSP3 allows even under strict `style-src 'self'`. Older CSP-level-2 enforcement may complain about the resulting baked-in `style="..."` HTML; the impact is cosmetic (the styles still apply via the setter).
+
+Recommended CSP header for a site using Scriptoscope:
+
+```
+script-src 'self' https://khawkins98.github.io 'wasm-unsafe-eval';
+style-src  'self' https://khawkins98.github.io;
+img-src    'self' https://khawkins98.github.io blob: data:;
+connect-src 'self' https://khawkins98.github.io blob:;
+```
+
+**Strict-CSP escape hatch**: if you can't allow `wasm-unsafe-eval`, ship your themes as `scheme.rsrc` (the raw resource fork) instead of `scheme.sit`. The `.rsrc` path skips the WASM decoder entirely. The bundled themes folder ships both; the runtime races `.sit` → `.rsrc` and uses whichever resolves.
 
 ## Controlling which widgets do something: `data-scriptoscope-widgets`
 

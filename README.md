@@ -165,8 +165,9 @@ await mountDeclarative({
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
   root: document,                   // optional: scan a subtree instead of the whole page
   themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
-                                    //   ThemeEntry[] — { slug, label, author?, year? }. Imported from your
-                                    //   themes-manifest.json or hand-built.
+                                    //   ThemeEntry[] — { slug, name?, author?, year?, source? }. Imported from
+                                    //   your themes-manifest.json or hand-built. (Pre-2026-05 manifests used a
+                                    //   combined `label` field; still accepted as a fallback if `name` is absent.)
   autoCycle: 4000,                  // optional: ms between picker auto-cycle steps (suppressed when
                                     //   syncToUrlParam restored a deep-link or first user interaction fired).
   syncToUrlParam: 'theme',          // optional: mirror current theme to ?theme=<slug>; restored on load.
@@ -182,16 +183,20 @@ The call returns a `MountHandle` which extends `EventTarget`. Full API:
 ```ts
 const handle = await mountDeclarative({…});
 
-// Event API
+// Event API — four events on the handle
 handle.addEventListener('ready', (e) => { /* initial scan complete; e.detail.stats has counts */ });
-handle.addEventListener('promoted', (e) => { /* a window finished promoting; e.detail.host is the runtime host */ });
 handle.addEventListener('retheme', (e) => { /* theme just switched; e.detail.ref is the slug or URL */ });
 handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, err } */ });
 handle.addEventListener('unmounted', () => { /* disconnect() finished */ });
 
-// On a window host (not the handle): bubbling CustomEvent fired BEFORE teardown,
-// composed so it crosses the shadow boundary into your consumer wraps.
+// On the ORIGINAL consumer element (the <article> you tagged): bubbling DOM event
+// when the runtime promotes it. Listen at the element itself or any ancestor.
+sourceEl.addEventListener('scriptoscope:promoted', (e) => { /* e.detail.host is the runtime host */ });
+
+// On the runtime-inserted HOST element: bubbling + composed CustomEvents that cross
+// the shadow boundary into your consumer wraps (modal overlays, etc.).
 host.addEventListener('scriptoscope:close', () => { /* runtime is about to restore bare HTML */ });
+host.addEventListener('scriptoscope:userresize', (e) => { /* user finished grow-box drag; e.detail = { w, h } */ });
 
 // Methods
 handle.disconnect();                       // tear down observers + restore source elements
@@ -204,7 +209,7 @@ handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (i
                                            //   Returns { close() }. Idempotent on the same wrap.
 
 // Properties
-handle.stats;  // { windows, buttons, controls, fields, tabs, icons, pickers } — live counts updated on each promote
+handle.stats;  // { windows, buttons, controls, tabs, fields } — five numeric counts updated on each promote
 ```
 
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
@@ -306,7 +311,7 @@ npm install        # dev dependencies (vite, tsc, playwright) — NOT the librar
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, and an authentic-folder-icon theme picker (click a folder = wear that scheme) bracketed by two special tiles — **No theme** (⊘) unmounts the runtime to show the bare HTML; **Load your own** (↑) opens a themed `movable-modal` window with a drag-drop + file-picker for arbitrary `.sit` / `.rsrc` schemes. Four outcome-headlined cards ("One engine, eighteen looks" / "Bring your own scheme" / "data-scriptoscope-*" / "The Scheme Library" — chrome titlebars keep the architecture names `kDEF Replay Engine` / `ResourceForkLib` for tooling continuity) float as Mac windows. Re-skin from bare-HTML mode via the top-right "Restore the chrome ←" button.
+- **[`demo/index.html`](./demo/index.html)** — the **landing page** (showcase, not a minimal copy-paste recipe — for that, see "Five-minute setup" above). The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, and an authentic-folder-icon theme picker (click a folder = wear that scheme) bracketed by two special tiles — **No theme** (⊘) unmounts the runtime to show the bare HTML; **Load your own** (↑) opens a themed `movable-modal` window with a drag-drop + file-picker for arbitrary `.sit` / `.rsrc` schemes. Four outcome-headlined cards ("One engine, eighteen looks" / "Bring your own scheme" / "data-scriptoscope-*" / "The Scheme Library" — chrome titlebars keep the architecture names `kDEF Replay Engine` / `ResourceForkLib` for tooling continuity) float as Mac windows. Re-skin from bare-HTML mode via the top-right "Restore the chrome ←" button.
 - **[`demo/diagnostic.html`](./demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
 - **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 

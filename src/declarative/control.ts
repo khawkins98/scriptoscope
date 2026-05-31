@@ -70,15 +70,38 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
     });
   }
 
-  input.style.display = 'none';
+  // VISUALLY-HIDE the native input rather than `display: none`. `display: none`
+  // removes the input from the accessibility tree entirely — screen-reader users
+  // lose access AND `<label for="...">` click-to-toggle stops working (the click
+  // dispatches on the label but reaches no rendered input). The visually-hidden
+  // pattern keeps the input in the AT tree + focusable + label-click-target while
+  // making it visually disappear behind the skinned chrome. WCAG 1.3.1 + 2.5.5 +
+  // 4.1.2 compliance. (a11y reviewer 2026-05-31)
+  Object.assign(input.style, {
+    position: 'absolute',
+    width: '1px', height: '1px',
+    margin: '-1px', padding: '0', border: '0',
+    overflow: 'hidden', clip: 'rect(0,0,0,0)',
+    whiteSpace: 'nowrap',
+  });
   const lbl = kind !== 'range' ? associatedLabel(input) : null;
   const wrapping = lbl?.contains(input) ?? false;
   if (wrapping && lbl) {
     lbl.after(skinned);
-    if (label) lbl.style.display = 'none';
+    // Same visually-hidden treatment for the label (keeps `for` target intact +
+    // screen-readers still announce the labelled control).
+    if (label) Object.assign(lbl.style, {
+      position: 'absolute', width: '1px', height: '1px',
+      margin: '-1px', padding: '0', border: '0',
+      overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap',
+    });
   } else {
     input.after(skinned);
-    if (lbl && label) lbl.style.display = 'none';
+    if (lbl && label) Object.assign(lbl.style, {
+      position: 'absolute', width: '1px', height: '1px',
+      margin: '-1px', padding: '0', border: '0',
+      overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap',
+    });
   }
   skinned.dataset.scriptoscopePromoted = '';
   if (kind === 'radio' && input.name) syncRadioGroup(input.name);
