@@ -108,17 +108,29 @@
     @media (max-width: 700px) {
       #powers .powers-tools-row { grid-template-columns: 1fr; }
     }
-    /* Install snippet's copy button. Period-Mac "small action button"
-       look: thin black border, subtle background, no fancy hover.
-       Sits inline with the version meta line. */
-    #powers .powers-install-copy {
-      font: 11px Monaco, "Courier New", monospace;
-      padding: 1px 8px; border: 1px solid #888; background: #f4f4f4;
-      color: #1c1c1c; cursor: pointer; border-radius: 0;
+    /* Install meta footer. Extends the snippet's cream box (same
+       background + same border, minus the top edge so they read as
+       ONE block). Keeps the meta legible regardless of the active
+       theme's content-area chrome (a green/blue/dark theme would
+       otherwise wash out gray Monaco text on the slot background).
+       Flex layout with gap replaces the prior &nbsp;·&nbsp; HTML
+       separators. */
+    #powers .powers-install-meta {
+      margin: 0 0 6px; padding: 6px 12px 7px;
+      background: #fff9d6; border: 1px solid #d4c97a; border-top: 0;
+      color: #1c1c1c;
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 4px 12px;
+      font: 11.5px/1.5 Monaco, "Courier New", monospace;
+      max-width: 64ch;
     }
-    #powers .powers-install-copy:hover { background: #e8e8e8; }
-    #powers .powers-install-copy:active { background: #d8d8d8; }
-    #powers .powers-install-copy.copied { background: #d9f0d9; border-color: #5a9d5a; }
+    #powers .powers-install-meta a { color: #0000EE; text-decoration: underline; }
+    #powers .powers-install-meta .powers-install-version { color: #5a5a5a; }
+    /* Copy button is promoted to themed chrome via data-scriptoscope-
+       button. The auto-promotion wraps the native button; the native
+       sizing stays compact for inline use. .copied is the post-click
+       confirmation tint. */
+    #powers .powers-install-copy.copied { background: #d9f0d9 !important; }
     #powers .powers-install .c { color: #8b6914; }
     #powers .powers-install .a { color: #1c1c1c; }
     #powers .powers-install .s { color: #af1010; }
@@ -595,7 +607,18 @@
 <span class="a">&lt;link rel=</span><span class="s">"stylesheet"</span><span class="a"> href=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.css"</span><span class="a">&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>Hello world<span class="a">&lt;/article&gt;</span></pre>
-          <p class="powers-meta"><button type="button" class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button> &nbsp;·&nbsp; Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a> &nbsp;·&nbsp; <a href="./diagnostic.html" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a></p>
+          <!-- Install meta line. Styled as a footer continuation of the
+               snippet's cream box so it reads cleanly regardless of the
+               active theme's content-area chrome. Copy is a themed
+               `data-scriptoscope-button` so it picks up the scheme's
+               button art (consistent with the Controls strip's OK /
+               Cancel). User direction 2026-05-31. -->
+          <div class="powers-install-meta">
+            <button type="button" data-scriptoscope-button class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button>
+            <span class="powers-install-version">v<span id="powers-ver">0.x</span> · MIT · <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">mid-2023+</span></span>
+            <a href="https://github.com/khawkins98/scriptoscope">view source</a>
+            <a href="./diagnostic.html" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
+          </div>
         </article>
       </div>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
