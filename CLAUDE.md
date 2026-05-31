@@ -15,7 +15,7 @@ npm install
 npm run dev          # vite, http://localhost:5173 — opens demo/index.html (the consumer landing); the dev/contributor showcase + per-scheme inspectors live at /diagnostic.html
 npm run preview:demo # serve the PROD bundle locally at http://localhost:4173/aaron-ui/ — catches bundling/minification regressions before push (the dev server hides them, then GH Pages silently fails)
 npm run typecheck    # tsc --noEmit (the primary correctness gate in prototype mode)
-npm test             # node --test on tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs
+npm test             # node --test on tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs, src/*.test.mjs
 npm run build        # vite build + tsc -p tsconfig.build.json (library output to dist/)
 npm run build:demo   # builds the GitHub Pages demo
 

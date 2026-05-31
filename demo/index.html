@@ -106,6 +106,50 @@
        it's a footnote, not a callout. */
     #powers .powers-meta-aaron { margin: -8px 0 22px 0; padding: 8px 0 0 12px; font: italic 13px/1.5 "Times New Roman", Times, serif; color: #5a5a5a; max-width: 64ch; border-top: 1px dotted #c8c8c8; }
     #powers .powers-meta-aaron strong { font-style: normal; font-weight: 700; color: #1c1c1c; }
+    /* DROP-YOUR-OWN-SCHEME zone — period dashed-box style, fits the
+       schemes-folder strip's visual register without competing with it.
+       The button has zero browser chrome (background:none, border via
+       inline below) so it reads as a callout, not a UI button. Active
+       drag state lifts the border + background slightly. */
+    #powers .powers-byo { margin: 0 0 18px; }
+    #powers .powers-byo-zone {
+      display: flex; flex-direction: column; gap: 4px;
+      width: 100%; padding: 12px 16px;
+      border: 1.5px dashed #8a8a8a; border-radius: 0;
+      background: #ffffff66; color: #1c1c1c;
+      font-family: inherit; text-align: left;
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    #powers .powers-byo-zone:hover,
+    #powers .powers-byo-zone:focus-visible { background: #fafaf3; border-color: #5a5a5a; outline: none; }
+    #powers .powers-byo-zone.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
+    #powers .powers-byo-headline { font: 600 14.5px "Times New Roman", Times, serif; }
+    #powers .powers-byo-hint { font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; }
+    #powers .powers-byo-hint code { font-family: Monaco, "Courier New", monospace; font-style: normal; font-size: 11.5px; color: #444; }
+    #powers .powers-byo-hint a { color: #0000EE; }
+    #powers .powers-byo-out { margin-top: 6px; font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; min-height: 1em; }
+    #powers .powers-byo-out .ok { color: #1c5d1c; }
+    #powers .powers-byo-out .err { color: #a01818; }
+    /* Active-theme contrast defense — dark schemes (evolution, black-platinum)
+       paint a near-black body fill behind the slot's prose, dropping our
+       default #1c1c1c text to ~1.5:1 contrast. This isn't a library-side
+       concern (each scheme's body fill is faithful by design); it's a
+       page-author responsibility. We override locally inside #powers when
+       the runtime stamps one of those slugs onto a window host. UX review
+       2026-05-31. */
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit { color: #f0f0f0; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a { color: #87CEEB; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit em,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit em,
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit strong,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit strong { color: inherit; }
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
        Sits in flow automatically (Posture B 2026-05-30: hosts default
@@ -295,6 +339,21 @@
           <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
         </article>
       </div>
+      <!-- DROP-YOUR-OWN-SCHEME zone — surfaces the "any of the 3,000+
+           Kaleidoscope schemes can render here" pitch right on the
+           landing, not buried in /diagnostic.html. The runtime exposes
+           attachThemeDropZone (handles the click + drag-and-drop +
+           file-input plumbing); the onFile callback decodes via the
+           library's loadKaleidoscopeScheme, registers under a synthetic
+           ref, and rethemes the page. Nothing is uploaded. -->
+      <div class="powers-byo">
+        <button type="button" id="powers-drop" class="powers-byo-zone"
+                aria-label="Drop your own Kaleidoscope scheme — decoded entirely in your browser">
+          <span class="powers-byo-headline">Drop your own scheme →</span>
+          <span class="powers-byo-hint">Any <code>.sit</code>, <code>.rsrc</code>, <code>.hqx</code>, or MacBinary. Decoded in your browser; nothing uploaded. Grab one from the <a href="https://macthemes.garden/" target="_blank" rel="noopener">archive</a> if you don't have one handy.</span>
+        </button>
+        <div id="powers-drop-out" class="powers-byo-out" role="status" aria-live="polite"></div>
+      </div>
       <!-- READ ME window — the lede prose itself wears chrome. Period
            shareware convention: every download came with a "Read Me" you
            opened before installing. The window-type is document-window
@@ -303,11 +362,11 @@
       <article class="powers-readme" data-scriptoscope-window
                data-scriptoscope-title="Read Me" data-scriptoscope-window-type="document-window">
         <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
-        <p class="powers-lede">Kaleidoscope was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
+        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on <a href="https://en.wikipedia.org/wiki/Info-Mac">Info-Mac</a> had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
         <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
-        <p class="powers-lede">A Kaleidoscope scheme is a Mac resource fork: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
+        <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
         <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>
+        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. <em>(The <a href="https://macthemes.garden/">full corpus</a> — 4,400-plus themes from 900-plus authors — is still out there if you want to dig.)</em> This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>
         <p class="powers-meta-aaron">P.S. The repo is named <em>aaron-ui</em> because <strong>Aaron</strong> was Landweber's <em>earlier</em> extension — the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people will catch that. Hello, three people.</p>
       </article>
       <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
@@ -354,15 +413,15 @@
                    data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="folder">⌘</div>
             <div>
-              <h3><a href="./diagnostic.html#detail">kDEF Replay Engine</a></h3>
-              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped: same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
+              <h3><a href="./diagnostic.html#detail">One engine, eighteen looks</a></h3>
+              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped (the <strong>kDEF replay engine</strong>): same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
             </div>
           </article>
           <article class="powers-card" data-scriptoscope-window
                    data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="document">↘</div>
             <div>
-              <h3><a href="./diagnostic.html#byo">ResourceForkLib</a></h3>
+              <h3><a href="./diagnostic.html#byo">Bring your own scheme</a></h3>
               <p>A Kaleidoscope scheme is a Mac resource fork: a tiny relational database of typed records (<code>cicn</code>, <code>ppat</code>, <code>wnd#</code>, <code>cinf</code>, <code>Colr</code>, <code>clut</code>, <code>ics4</code>, <code>ics8</code>) authored against a Mac OS that hasn't shipped since 2001. To get one onto the web you have to read it the way the Finder read it.</p>
               <p>So that's what this does. Drop a <code>.sit</code> on the page — say, the original <code>beosr503.sit</code> Jon Alexander uploaded in 2002 — and the runtime hands the bytes to a WebAssembly StuffIt decoder, lifts the resource fork out of the unpacked MacBinary wrapper, walks the resource map, and pulls each typed record into memory. The 8-bit <code>cicn</code> color icons get their CLUTs applied and Mac 1.8 → sRGB 2.2 gamma-corrected; the <code>wnd#</code> rect list becomes the four-sided recipe the compositor walks part-code by part-code; the <code>ppat</code> patterns become tile sources for the desktop and the dialog grays. All of it in your browser — no upload, no server, no telemetry, no account. Refresh the tab and the bytes are gone.</p>
               <p>Two things this enables that nothing else does. First: the eighteen bundled schemes ship as their <em>original archives</em> — <code>scheme.sit</code> straight from kaleidoscope.net's 1999 mirror, or <code>scheme.rsrc</code> recovered from a Wayback crawl when the StuffIt is no longer reachable — with a <code>meta.json</code> that records who made it and where it came from. Nothing's been re-encoded or &ldquo;cleaned up.&rdquo; If a 1998 byte was wrong, it's wrong here.</p>
@@ -417,7 +476,7 @@
     // Imports use the bare `scriptoscope` specifier — same string a third-
     // party consumer would write. Vite (dev + prod) aliases it to
     // src/index.ts so the landing is a faithful consumer example.
-    import { mountDeclarative, VERSION } from 'scriptoscope';
+    import { mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme, VERSION } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
     // (Removed: the inline `await Promise.all(document.fonts.load(...))`
@@ -514,6 +573,53 @@
       handle = h;
       syncToggleUI(true);
     };
+
+    // Bring-your-own-scheme drop zone — wires the runtime's
+    // attachThemeDropZone onto the page's <button id="powers-drop">. The
+    // onFile callback decodes the dropped file via loadKaleidoscopeScheme
+    // (in-browser, no upload), registers under a synthetic ref tied to
+    // the file name so repeat drops re-render the same theme, then
+    // rethemes the page. The aria-live status region announces success
+    // / failure for AT. Attach once at module load — the drop zone
+    // outlives mount cycles so a consumer can drop while in OFF mode
+    // (we'll auto-flip to skinned).
+    {
+      const dropZone = document.getElementById('powers-drop');
+      const dropOut = document.getElementById('powers-drop-out');
+      if (dropZone) {
+        attachThemeDropZone(dropZone, {
+          accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
+          onFile: async (file) => {
+            const name = file.name.replace(/\.[^.]+$/, '') || file.name;
+            dropOut.className = 'powers-byo-out';
+            dropOut.textContent = `Decoding ${file.name}…`;
+            // If currently in OFF mode, mount first so we have a handle
+            // to register against.
+            if (!handle) await mountPowers();
+            if (!handle) {
+              dropOut.className = 'powers-byo-out err';
+              dropOut.textContent = `Couldn't bring up the runtime to render ${file.name}.`;
+              return;
+            }
+            try {
+              const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+              const ref = `dropped:${file.name}`;
+              handle.registerTheme(ref, theme);
+              await handle.retheme(ref);
+              dropOut.className = 'powers-byo-out ok';
+              dropOut.textContent = `Now wearing ${name} — preview only, gone on reload.`;
+            } catch (err) {
+              dropOut.className = 'powers-byo-out err';
+              dropOut.textContent = `Couldn't read ${file.name} as a Kaleidoscope theme (${(err && err.message) || err}).`;
+            }
+          },
+          onError: (err) => {
+            dropOut.className = 'powers-byo-out err';
+            dropOut.textContent = `Drop failed: ${(err && err.message) || err}`;
+          },
+        });
+      }
+    }
     const unmountPowers = () => {
       mountToken++;
       if (handle) { try { handle.disconnect(); } catch {} handle = null; }
