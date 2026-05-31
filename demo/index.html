@@ -234,17 +234,26 @@
        CSS targets those classes — they're a stable part of the public
        contract (T2.2). */
     #powers [data-scriptoscope-theme-picker] { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
-    /* When the picker lives inside chrome (the picker IS a window), keep
-       the SAME single-row horizontal strip as OFF mode — the chrome edge
-       is the boundary so the OFF-mode fade mask is unneeded. Tiles
-       overflowing the chrome scroll horizontally (browser default + the
-       runtime's themed scrollbar where wired). Wrap was tried 2026-05-31
-       (commit d799b47) — looked busy + interacted poorly with the
-       resize feedback loop. Reverted to match consumer expectation
-       ("closer to normal default"). */
+    /* When the picker lives inside chrome (the picker IS a window),
+       use CSS grid with auto-fill columns at the tile's fixed width
+       (86px from .scriptoscope-theme-picker-tile). Columns recompute
+       as the window resizes; rows flow naturally; vertical scroll
+       engages when more rows than fit. Cleaner alignment than
+       flex-wrap (grid aligns to the column grid; flex packs
+       greedily). Chrome edge is the boundary so the OFF-mode fade
+       mask stays off. The resize feedback loop this would otherwise
+       trigger (shrink → more rows → auto-fit grows back) was
+       neutralized by the userresize fix (commit beb78a4) — auto-fit
+       disconnects once the user manually sizes the window. */
     #powers .scriptoscope-slot [data-scriptoscope-theme-picker] {
       mask-image: none; -webkit-mask-image: none;
       padding: 4px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 86px);
+      gap: 10px;
+      justify-content: start;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     /* Folder tile: name on top, author/year underneath. Mac Themes Garden /
        Aaron-About-box convention — the scheme authors were the celebrities. */
