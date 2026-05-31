@@ -5,6 +5,7 @@ This is the long-form companion to the README's quick-start. It exists for the t
 If you only want to drop Scriptoscope onto a static HTML page and not touch it again, you probably don't need this doc. The defaults are tuned for the common case.
 
 **Contents**
+- [Close is universal: pick the right window-type](#close-is-universal-pick-the-right-window-type)
 - [How positioning works](#how-positioning-works-posture-b-2026-05-31)
 - [Auto-resize: content growing after promote](#auto-resize-content-growing-after-promote)
 - [Class inheritance and the locked-down properties](#class-inheritance-and-the-locked-down-properties)
@@ -14,6 +15,12 @@ If you only want to drop Scriptoscope onto a static HTML page and not touch it a
 - [Known incompatibilities](#known-incompatibilities)
 - [Internal stamps — don't set these yourself](#internal-stamps--dont-set-these-yourself)
 - [Framework integration notes](#framework-integration-notes)
+
+## Close is universal: pick the right window-type
+
+The chrome's close widget — when the scheme's cicn paints one — ALWAYS dismisses the window (runtime restores the bare HTML in its place). There's no per-window opt-out attribute; the universal Mac OS contract is "close means close."
+
+If you don't want a window dismissible, pick a window-type whose canonical Mac OS look has no close widget. `movable-modal` is the natural fit for "draggable content with no widgets" — the demo uses it for the Read Me and the Schemes Folder picker for exactly this reason. A handful of schemes paint close on movable-modal anyway (their cicn art differs from the Apple Appearance Manager default); in those, clicking close still works and the bare HTML article remains where the chrome was. The library's event listeners on children (picker tiles, buttons) survive unmount, so clicking BeOS in a "closed" Schemes Folder still rethemes the page.
 
 ## How positioning works (Posture B, 2026-05-31)
 

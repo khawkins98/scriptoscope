@@ -138,7 +138,6 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
 | `data-scriptoscope-z="…"` | a window | Initial stacking order. Higher = on top. |
 | `data-scriptoscope-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
-| `data-scriptoscope-no-close` | a window | Suppress the close-widget click handler. The widget art stays as the scheme's cicn drew it; clicking it does nothing. Pair with a window-type whose canonical Mac OS look has no close (e.g. `movable-modal` for non-closable main content); the attribute is the defensive backup for schemes whose cicn art for that type happens to include close anyway. The demo uses this on the Read Me and Schemes Folder windows. |
 | `data-scriptoscope-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
 | `data-scriptoscope-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
 | `data-scriptoscope-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |

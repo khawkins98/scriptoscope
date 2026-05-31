@@ -172,21 +172,23 @@ export class ScriptoscopeWindow {
       parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
 
     let inst: ScriptoscopeWindow | undefined;
-    // `data-scriptoscope-no-close` opt-out: omit onClose entirely. The
-    // runtime's widget-handler wiring (interactive.ts:1351) leaves the
-    // close widget INERT when the handler is undefined — the cicn art
-    // stays drawn (we don't paint over chrome), but the click does
-    // nothing. Pair this attribute with a window-type whose canonical
-    // Mac OS look has no close (e.g. `movable-modal` for non-closable
-    // main content); the attribute is the defensive backup for schemes
-    // whose cicn art for that type happens to include close.
+    // Close is universal: clicking the chrome's close widget ALWAYS
+    // restores the original element (the runtime's standard 'close =
+    // unmount this window' contract — matches the Mac OS convention
+    // where close means close). If a consumer doesn't want a window
+    // dismissible, they pick a window-type whose canonical cicn art
+    // has no close widget (e.g. `movable-modal` for non-closable
+    // content). The picker tile-handlers + library state survive
+    // unmount (the original article is restored intact with its event
+    // listeners), so clicking 'BeOS' on a closed Schemes Folder still
+    // calls retheme cleanly via the bare-HTML article's tiles.
     const host = await deps.manager.add(
       deps.theme,
       {
         windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
         ...(parsed.title != null ? { title: parsed.title } : {}),
       },
-      parsed.noClose ? {} : { onClose: () => inst?.unmount() },
+      { onClose: () => inst?.unmount() },
       {
         contentEl: slot,
         ...(parsed.z != null ? { z: parsed.z } : {}),

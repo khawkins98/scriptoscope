@@ -28,13 +28,6 @@ export interface ParsedWindow {
   /** Boot the window already window-shaded — `data-scriptoscope-collapsed`. Classic Mac users left
    *  Notepad / palettes rolled-up at startup; this restores that. Default false. */
   collapsed: boolean;
-  /** Suppress the close-widget click handler — `data-scriptoscope-no-close`. The widget art
-   *  remains as the scheme's cicn drew it (we don't paint over the chrome), but clicking does
-   *  nothing. Pair with a window-type whose canonical Mac OS look has no close widget (e.g.
-   *  `movable-modal` for non-closable main content) so the visual + functional contracts agree
-   *  in standard schemes. The attribute is the fallback defense for schemes whose cicn art
-   *  for that type happens to include close anyway. */
-  noClose: boolean;
 }
 
 /** A button's options parsed from `data-scriptoscope-button` + neighbours. */
@@ -68,7 +61,6 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
     state: d.scriptoscopeState === 'inactive' ? 'inactive' : 'active',
     sizeMode: width === undefined && height === undefined ? 'fit' : 'declared',
     collapsed: present(d.scriptoscopeCollapsed),
-    noClose: present(d.scriptoscopeNoClose),
     ...(d.scriptoscopeTitle != null ? { title: d.scriptoscopeTitle } : {}),
     ...(x !== undefined ? { x } : {}),
     ...(y !== undefined ? { y } : {}),
