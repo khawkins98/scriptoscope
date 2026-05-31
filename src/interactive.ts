@@ -682,12 +682,21 @@ export class WindowManager {
   }
 
   /** Stop managing a window (its host was/will be removed by the caller). Aborts its scrollbar
-   *  listeners and drops the entry so it's not re-rendered/re-themed later. Idempotent. */
+   *  listeners, removes any flow-slot placeholder that the drag handoff inserted, and drops
+   *  the entry so it's not re-rendered/re-themed later. Idempotent. */
   remove(host: HTMLElement): void {
     const i = this.windows.findIndex((w) => w.host === host);
     if (i < 0) return;
     this.windows[i]?.scrollAbort?.abort();
     this.windows.splice(i, 1);
+    // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
+    // page from shifting when an in-flow host lifts to absolute). Removed
+    // here so the flow slot closes back up when the window unmounts.
+    const placeholder = (host as unknown as { __scriptoscopePlaceholder?: HTMLElement }).__scriptoscopePlaceholder;
+    if (placeholder) {
+      placeholder.remove();
+      delete (host as unknown as { __scriptoscopePlaceholder?: HTMLElement }).__scriptoscopePlaceholder;
+    }
   }
 
   /** Set a window host's absolute-coordinate position. The chokepoint for ALL geometry
@@ -710,7 +719,13 @@ export class WindowManager {
    *  ancestor, and flips position + sets top/left so the user perceives no jump. Called by
    *  the drag + keyboard-move handlers on the first move of a Posture-B in-flow host;
    *  subsequent moves skip this since the host is already absolute. Returns the (x, y) it
-   *  applied so callers can start their drag math from a known baseline. */
+   *  applied so callers can start their drag math from a known baseline.
+   *
+   *  Also inserts a same-sized PLACEHOLDER `<div>` in the host's old flow position,
+   *  so siblings don't collapse upward into the vacated slot — the visible page-shift
+   *  on drag-start was worse than the dragability it bought (user-decided 2026-05-31).
+   *  Period-Mac analogy: a dragged window leaves a visible 'origin' gap on the desktop.
+   *  The placeholder is removed in WindowManager.remove (window unmount). */
   toAbsolute(host: HTMLElement): { x: number; y: number } {
     if (host.style.position === 'absolute' || host.style.position === 'fixed') {
       return { x: parseFloat(host.style.left) || 0, y: parseFloat(host.style.top) || 0 };
@@ -722,6 +737,25 @@ export class WindowManager {
       : { left: 0, top: 0 };
     const x = Math.round(hr.left - ancRect.left);
     const y = Math.round(hr.top - ancRect.top);
+    // Reserve the static slot BEFORE flipping position. Insert as a sibling
+    // immediately before the host so it sits in the same flow position.
+    // Block element matching the host's outer width/height; invisible +
+    // aria-hidden so AT skips it. Lifecycle: cleared in WindowManager.remove
+    // (single cleanup site, matches setPosition's single-mutation pattern).
+    const parent = host.parentNode;
+    const hasPlaceholder = (host as unknown as { __scriptoscopePlaceholder?: HTMLElement }).__scriptoscopePlaceholder;
+    if (parent && !hasPlaceholder) {
+      const placeholder = document.createElement('div');
+      placeholder.setAttribute('aria-hidden', 'true');
+      placeholder.dataset.scriptoscopePlaceholder = '';
+      Object.assign(placeholder.style, {
+        display: 'block', width: `${Math.round(hr.width)}px`, height: `${Math.round(hr.height)}px`,
+        margin: '0', padding: '0', border: '0', background: 'transparent',
+        pointerEvents: 'none', visibility: 'hidden',
+      } satisfies Partial<CSSStyleDeclaration>);
+      parent.insertBefore(placeholder, host);
+      (host as unknown as { __scriptoscopePlaceholder?: HTMLElement }).__scriptoscopePlaceholder = placeholder;
+    }
     host.style.position = 'absolute';
     host.style.left = `${x}px`;
     host.style.top = `${y}px`;

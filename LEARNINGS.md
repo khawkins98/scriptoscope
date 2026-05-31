@@ -3021,3 +3021,38 @@ The convergent P0s are landed. The forward-direction divergence is unresolved (p
 The takeaway for the meta-rule (architect's #9): when a demo-side pattern is correctness-orthogonal, demo-side wins (less API surface, smaller library). When it's correctness-load-bearing — reverse-engineering library internals, missing an a11y guarantee — promote to library. The `scriptoscope:close` event + `openModal` helper are both 'correctness was leaking into the consumer'; the picker special-tiles + the modal CSS shell are 'visual style is the consumer's job, library shouldn't care.'
 
 
+
+
+## 2026-05-31 (later still) — Drag-handoff page-shift fix: reserve the static slot with a placeholder
+
+User report: dragging an in-flow window made the page visibly shift the moment the host lifted to absolute — siblings collapsed upward into the host's vacated static slot. The drag was technically working but the page-shift was disorienting, especially because the eye was on the window being grabbed.
+
+### First attempt (wrong) — drop dragging for in-flow hosts entirely
+
+The natural read of "drop the reflow on static→floating" was "drop the static→floating conversion." I deleted toAbsolute + the drag/keyboard-move handlers' calls to it, made in-flow windows non-draggable, and asked consumers to opt into dragging via `data-scriptoscope-x`/`-y`. The user immediately came back with "but now I can't move the windows?" — confirmed the wrong axis. Reverted in one command.
+
+The lesson: my AskUserQuestion option labels conflated two different things. "Drop the static→absolute conversion (toAbsolute)" sounded like the right fix because it WAS what caused the page-shift, but the option's description said "in-flow hosts stay in-flow forever" — which the user read past. Either I should have labeled the option "Drop dragging entirely for in-flow hosts" OR (better) led with the placeholder option as recommended.
+
+### Second attempt (right) — placeholder reserves the static slot
+
+`WindowManager.toAbsolute(host)` now inserts a same-sized `<div data-scriptoscope-placeholder>` immediately before the host in its parent, then flips the host to absolute. The placeholder is display:block, width/height pulled from the pre-flip getBoundingClientRect, invisible + aria-hidden + pointer-events:none + zero margin/padding/border so it occupies exactly the host's footprint without leaving visible artifacts or absorbing clicks.
+
+Lifecycle is a single cleanup point in `WindowManager.remove` (called from `ScriptoscopeWindow.unmount` and the manager's own internal teardown paths). Stored on the host element as a JS property (`host.__scriptoscopePlaceholder`) — keeps the lookup O(1) without needing a WeakMap or a side-channel registry. The placeholder persists for the window's lifetime, matching the Mac OS desktop behavior where a dragged window leaves a visible 'origin' gap until you put it back.
+
+### Why a placeholder + not a ghost outline
+
+A ghost outline (visible dotted rectangle showing where the host was) is the period-Mac drag-resize pattern (CDEF-130 / WDEF-125 both draw outlines during interactive resize/move). But for STATIC→ABSOLUTE handoff specifically, the period reference is "window dragged off its static origin" — no ghost was drawn for that case in 1998 because Mac OS didn't have CSS-flow windows in the first place. The placeholder is the web-adaptation: it reserves the FLOW slot (a web concept that doesn't exist on the period Mac desktop), without drawing visible chrome (which would imply the window is still THERE, which it isn't).
+
+### Test
+
+Added `posture-b: drag-handoff inserts a placeholder so siblings do not collapse upward` to the spec battery. Drives a real pointer drag of the Read Me window 100px down, then asserts:
+  - The card directly below MUST NOT shift (cardShift <= 2px tolerance)
+  - A `[data-scriptoscope-placeholder]` element MUST exist
+  - The placeholder's width/height MUST match the pre-drag host rect (within 2px)
+
+Without the fix the card shifts ~696px upward (the height of the lifted Read Me). 8/8 posture-b spec passes with the fix.
+
+### Diff cost
+
+~20 LoC added to toAbsolute (the placeholder insertion + the stored reference). ~5 LoC added to WindowManager.remove (cleanup). One regression test (~30 LoC). No public API change; same MountHandle / WindowManager surface.
+

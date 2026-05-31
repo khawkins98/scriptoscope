@@ -78,6 +78,46 @@ test('posture-b: drag handoff converts in-flow → absolute on a REAL pointer dr
   await browser.close();
 });
 
+test('posture-b: drag-handoff inserts a placeholder so siblings do not collapse upward', async () => {
+  // 2026-05-31 (later) user fix: dragging an in-flow host previously caused
+  // a visible page-shift on drag-start — siblings collapsed upward into
+  // the host's vacated static slot. toAbsolute now inserts a same-sized
+  // placeholder where the host was, so the surrounding page stays put
+  // while the dragged window lifts. Placeholder persists for the
+  // window's lifetime, removed in WindowManager.remove on unmount.
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForFunction(() => !!document.querySelector('.powers-readme') && !!document.querySelector('.powers-card-row.heavy .powers-card'), { timeout: 15000 });
+  await page.waitForTimeout(1500);
+  const before = await page.evaluate(() => ({
+    readme: document.querySelector('.powers-readme').getBoundingClientRect(),
+    card: document.querySelector('.powers-card-row.heavy .powers-card').getBoundingClientRect(),
+  }));
+  // Drag the Read Me 100px down.
+  const startX = before.readme.left + 100;
+  const startY = before.readme.top + 11;
+  await page.mouse.move(startX, startY);
+  await page.mouse.down();
+  await page.mouse.move(startX + 60, startY + 100, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+  const after = await page.evaluate(() => ({
+    card: document.querySelector('.powers-card-row.heavy .powers-card').getBoundingClientRect(),
+    placeholder: document.querySelector('[data-scriptoscope-placeholder]')?.getBoundingClientRect() ?? null,
+  }));
+  // The card below MUST NOT shift upward — that's the whole point of the placeholder.
+  const cardShift = Math.abs(after.card.top - before.card.top);
+  assert.ok(cardShift <= 2, `Card below Read Me must not shift on drag-start; moved ${cardShift}px`);
+  // Placeholder must exist + be roughly the same size as the dragged host was.
+  assert.ok(after.placeholder, 'A [data-scriptoscope-placeholder] element must exist after drag-handoff');
+  const widthDiff = Math.abs(after.placeholder.width - before.readme.width);
+  const heightDiff = Math.abs(after.placeholder.height - before.readme.height);
+  assert.ok(widthDiff <= 2, `Placeholder width ${after.placeholder.width} should match pre-drag host width ${before.readme.width}`);
+  assert.ok(heightDiff <= 2, `Placeholder height ${after.placeholder.height} should match pre-drag host height ${before.readme.height}`);
+  await browser.close();
+});
+
 test('posture-b: persistence round-trip — in-flow window stays in-flow on reload', async () => {
   // The 2026-05-31 P0 (0652704): readHostPosition returned (0,0) for in-flow
   // hosts; persistence wrote that; reload restored data-scriptoscope-x="0"
