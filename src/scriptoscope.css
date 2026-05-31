@@ -220,19 +220,28 @@
   .scriptoscope-theme-picker-icon[src] { animation: none; }
 }
 
-/* ─── Hide native scrollbars on the runtime slot ───────────────────────── */
-/* The slot (.scriptoscope-slot, the light-DOM container the consumer's
-   content lives in) is `overflow: auto` so it scrolls when content
-   exceeds the chrome's content area. The runtime ALSO renders a themed
-   scrollbar inside the shadow DOM that drives the slot's scrollTop —
-   without this rule, BOTH visualizations appear, with the native bar
-   floating over the themed art (the 2026-05-31 user-reported regression
-   visible on the demo's ResourceForkLib card). Hide native;
-   themed-only is the intended UI. Consumer can opt out by overriding
-   `.scriptoscope-slot { scrollbar-width: auto; }` if they actively
-   want both. */
-.scriptoscope-slot {
+/* ─── Hide native scrollbars on runtime scroll containers ──────────────── */
+/* Two cases where a runtime element has its own `overflow: auto` and we
+   don't want the OS's native scrollbar painting over the period-correct
+   visual:
+     - `.scriptoscope-slot` — the light-DOM container the consumer's
+       window body lives in. The runtime renders a THEMED scrollbar
+       inside the shadow DOM that drives the slot's scrollTop; without
+       this rule both would appear at once (visible on the demo's
+       ResourceForkLib card under user-always-on macOS scrollbars).
+     - `[data-scriptoscope-theme-picker]` — the folder-strip tile
+       container. The consumer adds `overflow-x: auto` to make tiles
+       scroll horizontally past the visible strip width; the runtime
+       doesn't (yet) ship a themed horizontal scrollbar for this case,
+       so we hide the native one and rely on the demo's existing
+       mask-gradient at the right edge to signal scrollability. (A
+       proper themed horizontal scrollbar is a future feature; until
+       then, hiding the native bar at least keeps the visual register.)
+   Consumer can opt out with `scrollbar-width: auto` on either element. */
+.scriptoscope-slot,
+[data-scriptoscope-theme-picker] {
   scrollbar-width: none;     /* Firefox + modern Edge */
   -ms-overflow-style: none;  /* old Edge / IE10+ */
 }
-.scriptoscope-slot::-webkit-scrollbar { display: none; }
+.scriptoscope-slot::-webkit-scrollbar,
+[data-scriptoscope-theme-picker]::-webkit-scrollbar { display: none; }
