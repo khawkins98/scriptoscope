@@ -1189,16 +1189,21 @@ export class WindowManager {
       // transformed/filtered ancestors correctly — the duplicated ad-hoc
       // walker that lived here pre-2026-05-31 missed those cases),
       // returns the now-applied (x, y). No visual jump.
-      this.toAbsolute(host);
+      const { x: x0, y: y0 } = this.toAbsolute(host);
       const sx = e.clientX, sy = e.clientY;
-      const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
+      // Hot-loop bypass: pointermove writes left/top directly at 60Hz for
+      // smoothness. Calling setPosition() per move would fire onChange on
+      // every frame and thrash persistence + consumer listeners. Acceptable
+      // because pointerup commits through setPosition once below — the
+      // chokepoint's contract is "every COMMITTED move", not every frame.
       const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
-      const up = (): void => {
+      const up = (ev: PointerEvent): void => {
         document.removeEventListener('pointermove', mv);
         document.removeEventListener('pointerup', up);
-        // Fire the change listener after the drag commits — persistence saves the new position.
-        // (Drag itself is CSS-only and doesn't trigger render(); this is the dedicated commit point.)
-        if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
+        // Commit through the chokepoint so persistence + future v2 reflow
+        // features (snap-to-grid, collision) see the move. setPosition
+        // fires onChange for us; no explicit call needed.
+        this.setPosition(host, x0 + ev.clientX - sx, y0 + ev.clientY - sy);
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });

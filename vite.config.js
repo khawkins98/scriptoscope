@@ -54,7 +54,13 @@ const serveScriptoscopeCssPlugin = () => ({
   name: 'serve-scriptoscope-css',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      if (!req.url || !req.url.startsWith('/scriptoscope.css')) return next();
+      // Tight match: exact path or path with a query (e.g. ?v=12345 for
+      // cache-busting). Avoids accidentally serving src/scriptoscope.css
+      // for hypothetical `/scriptoscope.css.map` or `/scriptoscope.css.backup`
+      // requests that happen to share the prefix.
+      if (!req.url) return next();
+      const path = req.url.split('?')[0];
+      if (path !== '/scriptoscope.css') return next();
       const filepath = resolve(import.meta.dirname, 'src/scriptoscope.css');
       if (!existsSync(filepath)) { res.statusCode = 404; res.end(); return; }
       res.setHeader('Content-Type', 'text/css');

@@ -106,15 +106,20 @@ Past a 30 px / 500 ms growth threshold the runtime emits a one-shot `console.war
 
 #### Class inheritance and the locked-down properties
 
-The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Five layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
+The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Nine layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
 
 - `display: block` — your `.card { display: grid }` would collapse the host's box and decouple it from the chrome canvas.
 - `box-sizing: border-box`
 - `padding: 0` — padding pushes the canvas inside the host's box and leaves stripes of host-background showing around the chrome edges.
 - `border: 0` — your border was for the bare HTML; the chrome IS the intended frame.
 - `background: transparent` — paints under the chrome (invisible if chrome is opaque, ugly if chrome has transparent corners).
+- `overflow: visible` — the chrome canvas can extend 2-6px past the host's CSS box (depends on theme); a consumer `overflow: auto` would clip those edge pixels. The slot inside still has its own `overflow: auto` for content scrolling.
+- `margin: 0` — would shift the host away from its source DOM position.
+- `transform: none` / `filter: none` — would silently turn the host into the positioned ancestor for its own absolute descendants (CSS containing-block rule — the same iOS scroll-perf hack pattern that breaks naive `findPositionedAncestor` walks).
 
-Consumer styles for color, font, position (yes — `position: relative` from your class works), `max-width`/`max-height` (px caps), and custom properties still apply — they're not in the lockdown set.
+Consumer styles for color, font, position (yes — `position: relative` from your class works), `max-width`/`max-height` (px caps), and custom properties still apply — they're not in the lockdown set. The set grows monotonically as new consumer-CSS bleeds surface; see `LEARNINGS.md` "2026-05-31 — Two `:root` blocks" and "The layout-patch chain" entries for the history.
+
+**Native scrollbar hidden on slot + theme-picker.** The runtime's themed scrollbar drives `.scriptoscope-slot`'s scrollTop; without hiding the OS-painted native bar, both would appear at once (visible under macOS "always show scrollbars"). The theme-picker strip is similarly hidden — a themed horizontal scrollbar isn't yet shipped, so the demo's existing right-edge mask gradient signals scrollability. Opt out per-element with `scrollbar-width: auto` in your stylesheet.
 
 After mount, drag + resize update the host's inline `style.left/top/width/height` directly; CSS is the initial state, runtime owns runtime state. Reload restores CSS defaults (unless you pass `persistKey` — see below).
 
@@ -234,6 +239,9 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-panel="<id>"` | a `<div>` inside `data-scriptoscope-tabs` | A panel. Hidden unless its id matches the selected tab. |
 | `data-scriptoscope-selected` | a `<button data-scriptoscope-tab>` | Initial selected tab. Default: first tab. |
 | `data-scriptoscope-window-id="…"` | a window | Stable identity for layout persistence (see `persistKey` below). Without it, DOM ordinal is used. |
+| `data-scriptoscope-theme-picker` | a `<div>` | Promote into a folder-strip theme switcher. The runtime auto-populates one tile per entry in `mountOptions.themes` (icon + name + author/year). Full ARIA tab pattern + keyboard nav; clicking a tile calls `handle.retheme(slug)` internally. |
+| `data-scriptoscope-icon="<name>"` | `<img>` or `<span>` | Render a scheme-resolved Finder icon by named key (`folder`, `system-folder`, `document`, `prefs`, etc.). Re-resolves on every retheme so the icon follows the active scheme. |
+| `data-scriptoscope-icon-id="<id>"` | `<img>` or `<span>` | Raw Apple resource id (e.g. `-3999`) — bypasses the named-key lookup for power users. |
 
 ### `mountDeclarative()` options
 
@@ -244,10 +252,43 @@ await mountDeclarative({
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
   root: document,                   // optional: scan a subtree instead of the whole page
+  themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
+                                    //   ThemeEntry[] — { slug, label, author?, year? }. Imported from your
+                                    //   themes-manifest.json or hand-built.
+  pickerDecodeConcurrency: 2,       // optional: cap concurrent icon decodes (default unbounded — set this on
+                                    //   pages with many themes to spread the network burst).
+  autoCycle: 4000,                  // optional: ms between picker auto-cycle steps (suppressed when
+                                    //   syncToUrlParam restored a deep-link or first user interaction fired).
+  syncToUrlParam: 'theme',          // optional: mirror current theme to ?theme=<slug>; restored on load.
+                                    //   Makes the landing the shareable URL.
+  rejectOnEmptyMount: true,         // optional: throw if scan found data-scriptoscope-* targets but
+                                    //   ZERO promoted (catches theme-bundle 404s + decoder errors in one place).
+  onPromoteError: (err, ctx) => {…},// optional: hook per-target promotion failures (vs the rejectOnEmpty above).
 });
 ```
 
-The call returns `{ disconnect, retheme, registerTheme }` — `retheme(slug)` to switch programmatically, `registerTheme(ref, loadedTheme)` to register a runtime-decoded theme (used by drop-zones).
+The call returns a `MountHandle` which extends `EventTarget`. Full API:
+
+```ts
+const handle = await mountDeclarative({…});
+
+// Event API
+handle.addEventListener('ready', (e) => { /* initial scan complete; e.detail.stats has counts */ });
+handle.addEventListener('promoted', (e) => { /* a window finished promoting; e.detail.host is the runtime host */ });
+handle.addEventListener('retheme', (e) => { /* theme just switched; e.detail.ref is the slug or URL */ });
+handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, err } */ });
+handle.addEventListener('unmounted', () => { /* disconnect() finished */ });
+
+// Methods
+handle.disconnect();                      // tear down observers + restore source elements
+handle.retheme(slugOrUrl);                // programmatic theme switch (fires the 'retheme' event)
+handle.registerTheme(ref, loadedTheme);   // register a runtime-decoded theme (used by drop-zones)
+
+// Properties
+handle.stats;  // { windows, buttons, controls, fields, tabs, icons, pickers } — live counts updated on each promote
+```
+
+The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
 ### CSS classes (fallback if `data-scriptoscope-*` isn't an option)
 
@@ -347,7 +388,7 @@ npm install
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, an authentic-folder-icon theme picker (click a folder = wear that scheme), and four named-technology cards (kDEF Replay Engine / ResourceForkLib / data-scriptoscope-* / The Scheme Library) that float as Mac windows. Top-right toggle reveals the bare HTML.
+- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, an authentic-folder-icon theme picker (click a folder = wear that scheme), and four outcome-headlined cards ("One engine, eighteen looks" / "Bring your own scheme" / "data-scriptoscope-*" / "The Scheme Library" — chrome titlebars keep the architecture names `kDEF Replay Engine` / `ResourceForkLib` for tooling continuity) that float as Mac windows. Top-right toggle reveals the bare HTML.
 - **[`demo/diagnostic.html`](./demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
 - **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 

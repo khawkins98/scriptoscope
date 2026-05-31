@@ -81,11 +81,11 @@ Decision 3 (imperative + declarative front door) shipped on `main` (commits `2e2
 Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-design.md`.
 
 **Still NOT shipped** (this ADR's open work):
-- Decision 1 — CSS `border-image` emitter + representability classifier. Still spike-gated; the gating spike has not been run. **This is the next gate.** All chrome rendering today goes through the canvas compositor (per-window canvas; no SSR; canvas is invisible to AT — the accessibility motivation for Decision 1 stands).
+- ~~Decision 1 — CSS `border-image` emitter + representability classifier.~~ **RETIRED 2026-05-28** — see §Spike result at the top of this file. Three rounds of spike couldn't reach fidelity for exotic schemes; canvas-only is the shipped architecture. The accessibility motivation didn't disappear — it's now addressed via DOM-twin widgets in light DOM (buttons / checkboxes / slider / scrollbar are real focusable elements over the canvas chrome).
 - ~~Decision 2 — Shadow DOM around chrome.~~ **SHIPPED 2026-05-28** in `src/interactive.ts:642`. Every promoted window's host element gets an open-mode shadow root; chrome canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root. Consumer content lives in the host's light DOM (slotted into `.scriptoscope-content`). Validated under hostile consumer CSS via `demo/declarative-hostile-css.html`.
 - Phase map items PC (CSS emitter), PE (broader control decoration) — open. PD (ingestion) shipped 2026-05-27 (see below).
 
-**The ADR's central decision (CSS-first hybrid) is therefore still unproven.** Production chrome is canvas-only. The front door was built without prejudicing that decision: the renderer plumbing in `src/renderWindow.ts` is the canvas path; a future CSS emitter can be slotted behind the same `composeWindowChrome` recipe (see §1).
+**The ADR's central decision (CSS-first hybrid) was tested and retired** — see §Spike result at the top of this file. Production chrome is canvas-only by deliberate choice; the spike found three exotic schemes (BeOS asymmetric title bars, etc.) the CSS emitter couldn't reach fidelity on. The architecture is now explicitly "DOM structure + canvas decoration" (Decision 1 revised).
 
 ## Update — 2026-05-26 (engine deepened; decisions unchanged) — ⚠️ "still absent" list now SUPERSEDED by the 2026-05-28 update above
 
@@ -199,7 +199,7 @@ Spike file `demo/_spike-css-emitter.html` deleted with the retirement commit.
 
 - **P0 — Reconcile + decide:** PRD refresh (done alongside this ADR); spike concluded; Decision 1 revised. ✅
 - **PA — One front door:** `ScriptoscopeWindow` + `data-scriptoscope-window` scanner over the existing renderer. **SHIPPED 2026-05-28.**
-- **PB — WM behaviors:** drag / resize / z-order / shade / zoom / themed scrollbars / runtime theme switch. **SHIPPED 2026-05-28.** Persistence remains open.
+- **PB — WM behaviors:** drag / resize / z-order / shade / zoom / themed scrollbars / runtime theme switch. **SHIPPED 2026-05-28.** Persistence shipped via `persistKey` option on `mountDeclarative` (localStorage layout, debounced writes, cross-tab sync); in-flow Posture B hosts skip persistence intentionally per `0652704` so they don't reload as absolute at viewport origin.
 - **PC — Finish the hybrid (revised):** ~~CSS emitter / classifier~~ retired. New scope: (1) DOM-twin coverage audit (widgets, scrollbars, slider); (2) Shadow DOM wrapping (Decision 2); (3) canvas repaint efficiency audit; (4) shipped `scriptoscope.css` for outer-shell affordances; (5) a11y audit (axe + keyboard + screen reader).
 - **PD — In-browser ingestion:** drop zone + `assetUrl` passthrough + archive unpacking (`.sit`/`.hqx`/MacBinary). **SHIPPED 2026-05-27.** `.sitx` unsupported (unrelated).
 - **PE — Opt-in control decoration** (explicitly *not* native form-control reskin). **Partially shipped** via `data-scriptoscope-control` 2026-05-28; broader widget surfaces (menu, popup, list-header) remain open.

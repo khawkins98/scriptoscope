@@ -14,6 +14,10 @@ Status: prototype mode, pre-1.0. The maintainer commits directly to the working 
 npm install
 npm run dev          # vite, http://localhost:5173 — opens demo/index.html (the consumer landing); the dev/contributor showcase + per-scheme inspectors live at /diagnostic.html
 npm run preview:demo # serve the PROD bundle locally at http://localhost:4173/aaron-ui/ — catches bundling/minification regressions before push (the dev server hides them, then GH Pages silently fails)
+# Dev/prod CSS parity: vite.config.js's `serve-scriptoscope-css` middleware
+# serves src/scriptoscope.css at /scriptoscope.css in dev (matching prod's
+# build-time copy). Without it, every CSS rule silently fails in dev — see
+# LEARNINGS 2026-05-31 "Two :root blocks" for the prior failure mode.
 npm run typecheck    # tsc --noEmit (the primary correctness gate in prototype mode)
 npm test             # node --test on tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs, src/*.test.mjs
 npm run build        # vite build + tsc -p tsconfig.build.json (library output to dist/)
@@ -76,9 +80,11 @@ The consumption layer defaults to **in-flow hosts** (`position: static`, inline 
 
 A shared `ResizeObserver` is wired whenever at least one dimension is un-declared, so content growing after promote (picker tiles populated by the runtime, async-loaded images) auto-fits the chrome. The fit only GROWS past the captured baseline. A 30 px / 500 ms growth warning fires once per window with a copy-paste hint pointing at `data-scriptoscope-extra-width/-height`.
 
-Five host CSS properties are locked down via inline styles (`display`, `box-sizing`, `padding`, `border`, `background`) so inherited consumer classes can't break the host↔chrome box correspondence. Consumer styles for color/font/position/custom-properties still apply.
+Nine host CSS properties are locked down via inline styles (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`) so inherited consumer classes can't break the host↔chrome box correspondence. Consumer styles for color/font/position/custom-properties still apply. The set grows monotonically; see the Posture B LEARNINGS entry for the history.
 
-**Read `src/declarative/ScriptoscopeWindow.ts:promote` first when touching this layer** — the comment block at lines 95-230 is the authoritative narrative. The `LEARNINGS.md` "2026-05-31 — The layout-patch chain" entry has the design history (why Posture B exists, what got deleted, what stays).
+**Geometry mutation chokepoint:** all `host.style.left/top` changes route through `WindowManager.setPosition(host, x, y)` and `WindowManager.toAbsolute(host)` in `src/interactive.ts` (~lines 680-720). Drag commit, keyboard-arrow move, Posture-B handoff, cross-tab restore, and the initial absolute placement on promote all funnel through them. Don't introduce a new `host.style.left = …` site — reach for the chokepoint instead (it fires `onChange` for persistence + consumer event listeners, and is the seam future v2 reflow features intercept at).
+
+**Read `src/declarative/ScriptoscopeWindow.ts:promote` first when touching this layer** — the comment blocks at lines 85-103 (Posture B narrative) and 256-300 (lockdown rationale + chokepoint routing) are the authoritative narrative. The `LEARNINGS.md` "2026-05-31 — The layout-patch chain" and "2026-06-01 — Post-Posture-B polish" entries have the design history.
 
 ### Theme bundles (`themes/<slug>/`)
 

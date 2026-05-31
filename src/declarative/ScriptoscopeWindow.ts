@@ -206,9 +206,13 @@ export class ScriptoscopeWindow {
     //     (See WindowManager.add — it sets position:absolute initially;
     //     we override here for the in-flow case.)
     if (wantsAbsolute) {
-      host.style.position = 'absolute';
-      host.style.left = `${parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x)}px`;
-      host.style.top = `${parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y)}px`;
+      // Route initial absolute placement through the WindowManager chokepoint
+      // so v2 reflow features (snap-to-grid, collision detection) see boot
+      // positions too. Without this, persistence-restore positions skipped
+      // the seam future features intercept at. FE-reviewer 2026-06-01.
+      const x = parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x);
+      const y = parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y);
+      deps.manager.setPosition(host, x, y);
     } else {
       // In-flow path. WindowManager.add sets `position: absolute` inline
       // unconditionally (line ~636 of interactive.ts — the historical
@@ -285,6 +289,17 @@ export class ScriptoscopeWindow {
       // the canvas paints fully. The slot inside still has its own
       // overflow:auto for actual content scrolling.
       overflow: 'visible',
+      // The next-to-bite predictions from the 2026-06-01 FE review.
+      // `margin` on the consumer's source class would shift the host
+      // relative to its neighbours (DOM-position-respect contract);
+      // `transform`/`filter` would silently make the host its own
+      // containing block for absolute descendants (positioning.ts:28
+      // even calls this out as the iOS scroll-perf-hack pattern). The
+      // lockdown set grows monotonically as new consumer-CSS patterns
+      // emerge — same shape as the previous six properties.
+      margin: '0',
+      transform: 'none',
+      filter: 'none',
     });
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();

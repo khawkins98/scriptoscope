@@ -2902,3 +2902,41 @@ review surfaced before any user hit them:
   mutations remain scattered across `interactive.ts` drag/keyboard
   handlers, `scanner.ts` cross-tab restore, and `ScriptoscopeWindow.promote`'s
   absolute branch. Worth landing before v2 reflow features start.
+
+## 2026-06-01 — Post-Posture-B polish: the chokepoint, the ninth lockdown bit, the dev/prod CSS gap
+
+A 12-commit working day immediately after the Posture B refactor (entry above) filled in the architectural gaps the FE reviewer flagged but the refactor commit didn't itself close. The pattern is interesting on its own: a refactor surfaces its own follow-on work, and the follow-on work is uniformly smaller and more defensible than the original patches it replaced.
+
+### The chokepoint the Posture B entry said was "still un-built"
+
+Same day the entry was written, commit `6152f17` landed `WindowManager.setPosition(host, x, y)` and `WindowManager.toAbsolute(host)` in `src/interactive.ts:680-720`. Drag, keyboard-arrow, and the Posture-B handoff funnel through them; `setPosition` fires `onChange` so persistence + consumer event listeners see every commit from a single site. The previous state — `host.style.left = '…'` scattered across three handlers and the scanner — was the genuine v2-reflow blocker the entry called out. Closing it took ~60 lines.
+
+Follow-on (`2026-06-01`): the FE reviewer caught that the chokepoint had three remaining bypass paths — promote-time initial placement, pointer-drag mouseup commit, and cross-tab restore. Routed all three through `setPosition`. The chokepoint contract is now "every committed move" (the pointermove hot loop intentionally bypasses for 60Hz smoothness, then `setPosition` fires once on pointerup).
+
+### The lockdown set grew from 5 to 9 properties over 36 hours
+
+The Posture B entry predicted: *"extend it when a sixth property bites."* The sixth was `overflow` (`2fbe0b3`) — a consumer-class `overflow: auto` on a card row was clipping the chrome canvas's outer 2-6px edge. The FE reviewer then predicted the next bleeds: `margin`, `transform`, `filter`. All three landed in the lockdown set defensively. The current set is `display, box-sizing, padding, border, background, overflow, margin, transform, filter` — nine properties.
+
+Lesson: the prediction was right and the prediction's lead time was hours, not weeks. Layout-affecting consumer CSS bites in a long tail. The lockdown set is "current," not "complete." The next bleed will surface in real-consumer-CSS, not in our demo.
+
+### Dev served a different stylesheet than prod for ~36 hours
+
+The boot-affordance CSS warning (the noisy-but-survivable warning praised in the Posture B entry's lesson #5) fired in production from the day `scriptoscope.css` shipped, because the dev server didn't serve it at all — the `<link rel="stylesheet" href="scriptoscope.css">` in the demo 404'd silently in dev, while the prod GH-Pages bundle resolved it fine. Owner only noticed when a Playwright probe spawned for an unrelated reason caught the warning in console output.
+
+Fix (`2fbe0b3`): a 12-line Vite middleware (`vite.config.js` `serve-scriptoscope-css`) that serves `src/scriptoscope.css` at the same URL the prod build outputs. Dev and prod now serve byte-equivalent stylesheets. Same commit added the native-scrollbar hide on `.scriptoscope-slot` and `[data-scriptoscope-theme-picker]` so the period-correct themed scrollbar isn't visually doubled by the OS one (visible under macOS's always-show-scrollbars setting). Consumer opt-out: `scrollbar-width: auto` on either element.
+
+### The themed-horizontal-scrollbar-for-picker gap is now an acknowledged TODO with a workaround
+
+The picker strip uses a mask-gradient at the right edge to signal scrollability because no themed horizontal scrollbar exists yet. The in-CSS comment at `src/scriptoscope.css` is the authoritative record. When the gap closes (a real themed horizontal scrollbar that drives the picker's scrollLeft), drop the picker from the hide list.
+
+### Posture-B test battery now uses real pointer events
+
+The original drag-handoff test poked `host.style` directly to mimic what the handler does — would pass even if the handler was deleted. Tightened to use Playwright's `page.mouse.move/down/up` on the chrome's title-bar coordinates. Five tests now: inline-position-cleared, real-pointer drag-handoff, persistence round-trip on in-flow, no-ancestor-pin, max-height-respected. All pass against the production bundle.
+
+### Generalisable lessons
+
+1. **Refactor + follow-on is a unit.** The Posture B commit alone was half the work; the chokepoint, the sixth-through-ninth lockdown bits, the dev/prod parity middleware all landed in the next 24 hours. A retro that only looks at the refactor commit misses the cost.
+2. **Dev/prod stylesheet parity is its own gate.** The Vite middleware should have shipped with the original `scriptoscope.css` introduction; the only reason it didn't is the dev server's silent 404 looked like "working as intended" to a contributor who'd never visited the prod URL. Future first-party assets get the same treatment.
+3. **Acknowledge gaps in shipped comments, not TODO files.** The horizontal-scrollbar gap is in `scriptoscope.css` as a paragraph the next person opening that file will read. A separate TODO file would have rotted.
+4. **Tests must fire real events, not mimic them.** A test that pokes style directly to simulate a drag passes even if the handler is deleted. Same shape as the React "you forgot to call setState in your test" anti-pattern. Posture-B tests now drive real pointer events; the test fails if `toAbsolute` is removed from the handler.
+5. **Chokepoint compliance is a verifiable property, not a goal.** "All geometry mutations route through setPosition" is testable: grep for `host.style.left` outside the chokepoint helpers. If it's there, the chokepoint isn't one. The FE reviewer's audit found three bypass paths the refactor missed; the test gate that should exist is "interactive.ts + scanner.ts + ScriptoscopeWindow.ts contain zero `host.style.left` assignments outside `WindowManager.setPosition` / `toAbsolute`."
