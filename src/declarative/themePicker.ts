@@ -65,6 +65,17 @@ export async function promoteThemePicker(
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
   el.dataset.scriptoscopeThemePickerPromoted = '';
+  // Remove any STALE library-added tiles from a previous mount cycle.
+  // The teardown clears the stamp but intentionally leaves the tile DOM
+  // in place (consumer OFF-mode delegated handlers need the tiles
+  // present to read .closest('.scriptoscope-theme-picker-tile')). Here
+  // on re-entry, we drop the stale set + rebuild fresh so each tile's
+  // click handler binds to THIS mount's switchTheme. Pre-seeded
+  // consumer tiles (a different class, e.g. .powers-picker-special-
+  // tile) are preserved. The 2026-05-31 "half-stuck" bug fix pair.
+  for (const stale of Array.from(el.querySelectorAll('.scriptoscope-theme-picker-tile'))) {
+    stale.remove();
+  }
   el.setAttribute('role', 'tablist');
   if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', `Theme picker, ${themes.length} themes`);
   // Per-tile aria-busy lifecycle (already in place 2026-05-30) tells AT
@@ -322,6 +333,17 @@ export async function promoteThemePicker(
   const teardown = (): void => {
     if (io) { io.disconnect(); io = null; }
     queued.clear();
+    // Clear the promoted stamp so a subsequent mountDeclarative cycle
+    // re-runs promotion. Tiles themselves stay (consumer OFF-mode flows
+    // may delegate clicks on them — the demo's "click a theme tile to
+    // re-mount and retheme" path needs the tiles present in OFF mode).
+    // Re-promote replaces the tiles with fresh ones bound to the new
+    // mount's switchTheme. Without the stamp clear, re-promote would
+    // skip + tiles would retain their FIRST-mount click handlers
+    // pointing at the dead handle's retheme — picker active class +
+    // URL would update but the WindowManager wouldn't retheme. The
+    // 2026-05-31 "half-stuck" bug.
+    delete el.dataset.scriptoscopeThemePickerPromoted;
   };
   return { el, teardown };
 }

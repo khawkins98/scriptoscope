@@ -150,6 +150,58 @@ test('demo picker: click a theme tile in OFF mode → re-mounts + rethemes', asy
   await browser.close();
 });
 
+test('picker: re-mount rewires tile click handlers (the 2026-05-31 half-stuck bug)', async () => {
+  // The bug: after No theme → re-mount, the picker's promoted stamp +
+  // existing tiles survived but their click handlers were closed over
+  // the FIRST mount's retheme (dead handle). Clicking a tile in ON
+  // mode updated URL + active class but the windows never repainted.
+  // Fix: teardown clears the stamp; re-promote drops library-added
+  // tiles + rebuilds with fresh handlers. This test exercises the
+  // full chain and verifies the chrome canvas actually changes hue
+  // on a second-mount tile click.
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForFunction(() => document.querySelectorAll('.scriptoscope-theme-picker-tile').length >= 18, { timeout: 15000 });
+  await page.waitForTimeout(1500);
+
+  // Sample the Read Me's title-bar pixel as the chrome-identity fingerprint.
+  const sampleTitleBar = () => page.evaluate(() => {
+    const host = Array.from(document.querySelectorAll('div')).find((d) => d.shadowRoot?.querySelector('[aria-label="Read Me"]'));
+    const cvs = host?.shadowRoot?.querySelector('canvas');
+    if (!cvs) return null;
+    const data = cvs.getContext('2d').getImageData(80, 5, 1, 1).data;
+    return [data[0], data[1], data[2]];
+  });
+
+  // Phase 1: No theme → re-mount via windows-31 tile (uses demo's OFF-mode flow)
+  await page.evaluate(() => document.querySelector('[data-special="none"]')?.click());
+  await page.waitForTimeout(500);
+  await page.evaluate(() => {
+    const t = Array.from(document.querySelectorAll('.scriptoscope-theme-picker-tile')).find((x) => x.dataset.slug === 'windows-31');
+    t?.click();
+  });
+  await page.waitForTimeout(2000);
+  const winPx = await sampleTitleBar();
+  assert.ok(winPx, 'Read Me chrome canvas should exist after re-mount');
+
+  // Phase 2: while ON, click a different theme tile → chrome MUST repaint
+  await page.evaluate(() => {
+    const t = Array.from(document.querySelectorAll('.scriptoscope-theme-picker-tile')).find((x) => x.dataset.slug === 'evolution');
+    t?.click();
+  });
+  await page.waitForTimeout(2000);
+  const evoPx = await sampleTitleBar();
+  assert.ok(evoPx, 'Read Me chrome should still exist after second tile click');
+  // Evolution's dark title bar vs windows-31's light bar — pixel values must differ.
+  const same = winPx[0] === evoPx[0] && winPx[1] === evoPx[1] && winPx[2] === evoPx[2];
+  assert.equal(same, false,
+    `Tile click after re-mount didn't repaint chrome — half-stuck bug regression. ` +
+    `Read Me title bar pixel was ${winPx.join(',')} (windows-31), still ${evoPx.join(',')} after click evolution.`);
+
+  await browser.close();
+});
+
 test('posture-b: card grid honours its consumer max-height (no auto-grow past CSS cap)', async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
