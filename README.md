@@ -1,6 +1,6 @@
 # Scriptoscope
 
-Eighteen [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) schemes, running in a browser tab twenty-five years too late.
+A web-native re-implementation of Apple's Mac OS 8 [Appearance Manager](https://developer.apple.com/library/archive/documentation/Carbon/Reference/Appearance_Manager/index.html). Period Mac window-types (`kThemeDocumentWindow`, `kThemeUtilityWindow`, `kThemeMovableModalWindow`) are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources the [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) control panel read in 1998. Eighteen vintage schemes ship as evidence — running in a browser tab twenty-five years too late.
 
 Kaleidoscope was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format went quiet.
 
@@ -138,6 +138,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
 | `data-scriptoscope-z="…"` | a window | Initial stacking order. Higher = on top. |
 | `data-scriptoscope-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
+| `data-scriptoscope-widgets` | a window | Comma-separated subset of `close,zoom,collapse` whose click handlers wire up. Omitted widgets are still painted by the cicn art (we don't paint over chrome) but clicking does nothing. Default (attribute absent): every widget the type supports is wired. Pair with the type: e.g. `document-window` + `widgets="zoom,collapse"` for a Read Me that can't be closed; `titled-utility-window` + `widgets=""` for a non-dismissible picker palette. |
 | `data-scriptoscope-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
 | `data-scriptoscope-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
 | `data-scriptoscope-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |
@@ -166,8 +167,6 @@ await mountDeclarative({
   themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
                                     //   ThemeEntry[] — { slug, label, author?, year? }. Imported from your
                                     //   themes-manifest.json or hand-built.
-  pickerDecodeConcurrency: 2,       // optional: cap concurrent icon decodes (default unbounded — set this on
-                                    //   pages with many themes to spread the network burst).
   autoCycle: 4000,                  // optional: ms between picker auto-cycle steps (suppressed when
                                     //   syncToUrlParam restored a deep-link or first user interaction fired).
   syncToUrlParam: 'theme',          // optional: mirror current theme to ?theme=<slug>; restored on load.

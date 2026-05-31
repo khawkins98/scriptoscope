@@ -28,6 +28,17 @@ export interface ParsedWindow {
   /** Boot the window already window-shaded — `data-scriptoscope-collapsed`. Classic Mac users left
    *  Notepad / palettes rolled-up at startup; this restores that. Default false. */
   collapsed: boolean;
+  /** Opt-in widget subset — `data-scriptoscope-widgets`. Comma-separated list of
+   *  `close` / `zoom` / `collapse`. When set, ONLY the listed widgets wire their
+   *  click handlers; omitted widgets are visually painted by the scheme's cicn
+   *  (we never paint over chrome) but clicking them does nothing. Default
+   *  (attribute absent): every widget the type supports is enabled — the standard
+   *  Mac contract. Use cases: `widgets="zoom,collapse"` on a `document-window`
+   *  Read Me (close inert, can't be dismissed); `widgets=""` on a
+   *  `titled-utility-window` picker (no widgets fire). The right hand of the
+   *  "widget type + widget set" pair the consumer reaches for when the type
+   *  alone doesn't capture intent (architect-reviewer 2026-05-31). */
+  enabledWidgets?: ReadonlySet<string>;
 }
 
 /** A button's options parsed from `data-scriptoscope-button` + neighbours. */
@@ -56,11 +67,25 @@ export function parseWindowAttrs(d: Record<string, string | undefined>): ParsedW
   const x = num(d.scriptoscopeX);
   const y = num(d.scriptoscopeY);
   const z = num(d.scriptoscopeZ);
+  // `data-scriptoscope-widgets` parses to a Set of widget names. Empty
+  // string → empty set (opt-out of all). Attribute absent (undefined) →
+  // undefined (default behavior, all widgets enabled). Whitespace-tolerant,
+  // case-insensitive on the values to match HTML attribute conventions.
+  const widgetsAttr = d.scriptoscopeWidgets;
+  const enabledWidgets = widgetsAttr === undefined
+    ? undefined
+    : new Set(
+        widgetsAttr
+          .split(',')
+          .map((s) => s.trim().toLowerCase())
+          .filter((s) => s.length > 0),
+      );
   return {
     windowType: d.scriptoscopeWindowType?.trim() || 'document-window',
     state: d.scriptoscopeState === 'inactive' ? 'inactive' : 'active',
     sizeMode: width === undefined && height === undefined ? 'fit' : 'declared',
     collapsed: present(d.scriptoscopeCollapsed),
+    ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
     ...(d.scriptoscopeTitle != null ? { title: d.scriptoscopeTitle } : {}),
     ...(x !== undefined ? { x } : {}),
     ...(y !== undefined ? { y } : {}),

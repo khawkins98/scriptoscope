@@ -13,6 +13,7 @@ import { promoteIcon } from './icon.js';
 import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
 import type { ThemeEntry } from './theme.js';
 import { promoteTabs } from './tabs.js';
+import { openModal, type OpenModalOptions, type OpenModalHandle } from './openModal.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
@@ -66,11 +67,6 @@ export interface MountOptions extends ThemeBootstrapOpts {
    *  so a consumer can pass the imported manifest directly. Default: no
    *  themes → pickers stay empty AND loader uses default cascade. */
   themes?: readonly ThemeEntry[];
-  /** Cap on concurrent icon decodes inside `<div data-scriptoscope-theme-picker>`
-   *  promotion. Default 2 — calibrated for HTTP/1.1 + main-thread decode
-   *  contention on mid-range mobile. Lift to 4-6 for desktop wifi kiosks
-   *  with a large picker; drop to 1 for very low-end devices. */
-  pickerDecodeConcurrency?: number;
   /** Auto-cycle through registered `themes` every N milliseconds until the
    *  first user interaction (`pointerdown`/`keydown`/`wheel` anywhere in
    *  the root). Use on landing pages where "show the breadth, not assert
@@ -140,6 +136,17 @@ export interface MountHandle extends EventTarget {
   disconnect(): void;
   retheme(ref: string): Promise<void>;
   registerTheme(ref: string, theme: LoadedTheme): void;
+  /** Open `wrap` as a themed modal. Owns visibility toggle
+   *  (`data-scriptoscope-modal-open` attribute), backdrop click, Esc key,
+   *  focus trap (Tab/Shift+Tab cycles inside the wrap, including the
+   *  themed-window's shadow DOM), focus restore on close, and a bubbled
+   *  `scriptoscope:close` listener (so the chrome close widget also closes
+   *  the wrap). The wrap must contain a `[data-scriptoscope-window]`
+   *  article the runtime has already promoted. Replaces ~70 LoC of
+   *  consumer modal wiring + closes the focus-trap a11y gap that
+   *  hand-rolled modal recipes typically miss. Architect-reviewer
+   *  2026-05-31. */
+  openModal(wrap: HTMLElement, options?: OpenModalOptions): OpenModalHandle;
   /** Live promotion counts. Mutable: re-scans (observer-driven) add to these.
    *  Lets consumers gate UI on "is the runtime alive" without DOM probing. */
   readonly stats: MountStats;
@@ -461,8 +468,6 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         loadTheme: (slug) => resolver.load(slug),
         switchTheme: (slug) => retheme(slug),
         initialSlug: lastThemeRef ?? pageDefault,
-        // Omit when undefined so exactOptionalPropertyTypes:true accepts it.
-        ...(opts.pickerDecodeConcurrency != null ? { decodeConcurrency: opts.pickerDecodeConcurrency } : {}),
       });
       if (result) {
         skinnedPickers.push(result.el);
@@ -862,6 +867,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
      *  `<select data-scriptoscope-theme-switcher>`) finds the pre-loaded theme. Used by drop-zones
      *  to make a decoded `.sit`/`.rsrc` switchable as if it were a bundle on disk. */
     registerTheme: (ref: string, theme: LoadedTheme) => resolver.register(ref, theme),
+    openModal,
     stats,
   });
   if (key) mountedRoots.set(key, handle);

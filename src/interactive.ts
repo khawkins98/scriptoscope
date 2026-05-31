@@ -529,6 +529,14 @@ interface ManagedWindow {
    *  (collapsed window-type slug + zero-height body, content hidden). `opts.height` is left at the
    *  EXPANDED height, so un-shading just renders again — no separate stash needed. */
   collapsed?: boolean;
+  /** Subset of widgets whose click handlers ARE wired. Set to `undefined`
+   *  (the default) → every supported widget is enabled with the standard
+   *  handler chain (onClose, then onZoom + builtin zoom fallback, then
+   *  onCollapse + builtin collapse fallback). When set, widgets NOT in the
+   *  set are inert (cicn art still drawn — we don't paint over chrome — but
+   *  clicking does nothing). Honored in `overlayWidgets`. Plumbed from
+   *  `data-scriptoscope-widgets` via parse.ts + ScriptoscopeWindow.promote. */
+  enabledWidgets?: ReadonlySet<TitleWidget>;
   /** Zoom toggle: the user/declared size to restore when un-zooming (zoom grows to fit the content).
    *  Captures width/height INCLUDING undefined, so un-zooming a size-less window correctly restores it
    *  to size-less (not stuck at the zoomed size). */
@@ -631,7 +639,14 @@ export class WindowManager {
     theme: LoadedTheme,
     opts: RenderWindowOptions = {},
     handlers: TitleWidgetHandlers = {},
-    extra: { contentEl?: HTMLElement; z?: number; collapsed?: boolean } = {},
+    extra: {
+      contentEl?: HTMLElement;
+      z?: number;
+      collapsed?: boolean;
+      /** See ManagedWindow.enabledWidgets — opt-in widget subset. Plumbed
+       *  from `data-scriptoscope-widgets` for the declarative path. */
+      enabledWidgets?: ReadonlySet<TitleWidget>;
+    } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
     host.style.position = 'absolute';
@@ -656,6 +671,7 @@ export class WindowManager {
       z: extra.z ?? ++this.zClock,
       ...(extra.collapsed ? { collapsed: true } : {}),
       ...(extra.contentEl ? { contentEl: extra.contentEl } : {}),
+      ...(extra.enabledWidgets !== undefined ? { enabledWidgets: extra.enabledWidgets } : {}),
     };
     if (extra.z != null && extra.z > this.zClock) this.zClock = extra.z; // keep clock above declared
     this.windows.push(entry);
@@ -1347,10 +1363,17 @@ export class WindowManager {
       collapse: () => { void this.toggleCollapse(entry); },
       zoom: () => { void this.toggleZoom(entry); },
     };
+    // Widget gating: if `enabledWidgets` is set, only widgets in the set get
+    // a handler. Widgets NOT in the set are inert (no handler → no transparent
+    // overlay button → click does nothing; cicn art still painted). Default
+    // (no set) → every widget gets its handler — preserves the pre-2026-05-31
+    // behavior for callers that don't pass the option.
+    const isOn = (w: TitleWidget): boolean =>
+      entry.enabledWidgets === undefined || entry.enabledWidgets.has(w);
     const cb: Record<TitleWidget, (() => void) | undefined> = {
-      close: entry.handlers.onClose,
-      zoom: entry.handlers.onZoom ?? builtin.zoom,
-      collapse: entry.handlers.onCollapse ?? builtin.collapse,
+      close: isOn('close') ? entry.handlers.onClose : undefined,
+      zoom: isOn('zoom') ? (entry.handlers.onZoom ?? builtin.zoom) : undefined,
+      collapse: isOn('collapse') ? (entry.handlers.onCollapse ?? builtin.collapse) : undefined,
     };
     // To show the PRESSED state on mousedown we repaint the live chrome canvas with a pre-rendered
     // pressed variant (renderWindow's pressedWidget), then restore a snapshot of the normal chrome

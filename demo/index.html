@@ -349,10 +349,24 @@
     #powers .powers-picker-special-tile .author { font-size: 8.5px; font-style: italic; color: #5a5a5a; }
     #powers .powers-picker-special-tile[data-special="none"] { order: -1; }
     #powers .powers-picker-special-tile[data-special="load"] { order: 99; }
+    /* Author credit — period-correct in-place byline that updates on every
+       retheme. Sits inside the Schemes Folder window below the tile strip;
+       small, italic, deferential (the corpus authors are the people; the
+       picker just points). Empty by default (boot text written on first
+       retheme); hidden if it never gets populated. */
+    #powers .powers-credit {
+      margin: 6px 4px 0; padding: 0;
+      font: italic 11.5px/1.4 "Times New Roman", Times, serif;
+      color: #5a5a5a; min-height: 1em;
+    }
+    #powers .powers-credit:empty { display: none; }
+    #powers .powers-credit strong { font-style: normal; font-weight: 600; color: #1c1c1c; }
     /* BYO MODAL — fixed-position backdrop + themed modal window inside.
        Initially hidden (visibility + opacity for transition, pointer-events
-       off). On `.open`, all three flip on. Backdrop click closes; the
-       modal's own close widget also closes. */
+       off). On `[data-scriptoscope-modal-open]` (toggled by the library's
+       handle.openModal helper, 2026-05-31), all three flip on. The library
+       also owns backdrop click + Esc + focus trap + chrome-close — the
+       CSS just describes the visual state. */
     #powers-byo-modal-wrap {
       position: fixed; inset: 0; z-index: 9999;
       background: rgba(40, 40, 60, 0.42);
@@ -360,7 +374,7 @@
       visibility: hidden; opacity: 0; pointer-events: none;
       transition: opacity 140ms ease-out, visibility 0s linear 140ms;
     }
-    #powers-byo-modal-wrap.open { visibility: visible; opacity: 1; pointer-events: auto; transition-delay: 0s; }
+    #powers-byo-modal-wrap[data-scriptoscope-modal-open] { visibility: visible; opacity: 1; pointer-events: auto; transition-delay: 0s; }
     @media (prefers-reduced-motion: reduce) { #powers-byo-modal-wrap { transition: none; } }
     .powers-byo-modal-content { padding: 4px 4px 8px; font: 13px/1.5 "Times New Roman", Times, serif; color: #1c1c1c; max-width: 460px; }
     .powers-byo-modal-content p { margin: 0 0 10px; }
@@ -410,8 +424,20 @@
            user can drag/resize like any other; in OFF mode it's a
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
+        <!-- SCHEMES FOLDER — `kThemeUtilityWindow` is the period type for
+             "floating chooser of stuff you switch between" (Apple HIG: tool
+             palettes / floaters live above documents, smaller title bar,
+             don't take focus). Mac OS 9's Appearance control panel + the
+             real Kaleidoscope Scheme picker were both authored against
+             this exact type (period-historian-reviewer 2026-05-31).
+             `widgets=""` makes every painted widget inert — picker
+             shouldn't be dismissible (closing it leaves the user unable
+             to re-skin). The picker's interactive content is the tiles,
+             not the chrome. -->
         <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="movable-modal">
+                 data-scriptoscope-title="Schemes Folder"
+                 data-scriptoscope-window-type="titled-utility-window"
+                 data-scriptoscope-widgets="">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
@@ -435,6 +461,14 @@
               <span class="author">.sit · .rsrc</span>
             </button>
           </div>
+          <!-- AUTHOR CREDIT — updates on every retheme. The lightweight P0
+               version of period-historian-reviewer's "About this Scheme"
+               recommendation (#12, 2026-05-31): credits the corpus authors
+               in-place, period-correct (every Mac Read Me had its author's
+               name on the first line). The full About dialog awaits the
+               P1/P2 menu bar work (Apple menu → About this Scheme). Boot
+               text seeded by the first retheme event from the runtime. -->
+          <p class="powers-credit" id="powers-credit" aria-live="polite"></p>
         </article>
       </div>
       <!-- BYO modal — themed `movable-modal` window with the drop-zone UI
@@ -464,17 +498,19 @@
       </div>
       <!-- READ ME window — the lede prose itself wears chrome. Period
            shareware convention: every download came with a "Read Me" you
-           opened before installing. The window-type is `movable-modal`
-           (NOT document-window) — movable-modal's canonical cicn has no
-           widgets in standard schemes, which matches the intent: the
-           Read Me IS the page content; the type itself signals "don't
-           dismiss." In schemes whose movable-modal cicn DOES paint close
-           anyway, the close still works (universal Mac contract — close
-           always closes), and the bare HTML lede remains in the page
-           flow. The picker tile handlers survive unmount, so reading +
-           re-theming still works either way (user-decided 2026-06-01). -->
+           opened before installing. The PERIOD-CORRECT type is
+           `document-window` (TeachText/SimpleText shipped Read Mes in
+           `kThemeDocumentWindow` — closable, with the user re-opening from
+           the Apple menu when needed; per period-historian-reviewer
+           2026-05-31). The `widgets="zoom,collapse"` opt-out drops the
+           close widget's click handler — the cicn art still paints close
+           but it's inert. Until we ship a menu bar with "Open Read Me"
+           in the Apple menu (P1 candidate), this is the right shape:
+           visually period-correct, functionally non-dismissible. -->
       <article class="powers-readme" data-scriptoscope-window
-               data-scriptoscope-title="Read Me" data-scriptoscope-window-type="movable-modal">
+               data-scriptoscope-title="Read Me"
+               data-scriptoscope-window-type="document-window"
+               data-scriptoscope-widgets="zoom,collapse">
         <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
         <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on <a href="https://en.wikipedia.org/wiki/Info-Mac">Info-Mac</a> had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
         <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
@@ -690,12 +726,45 @@
       }
       handle = h;
       syncToggleUI(true);
+      // AUTHOR CREDIT — listen for retheme to update the in-place byline
+      // in the Schemes Folder window. The `ready` event fires once on
+      // initial promote BEFORE retheme fires for the boot theme, so we
+      // also seed off the resolved initial slug. Aligns with the period
+      // convention that the AUTHOR of a Mac scheme was visible — every
+      // Read Me's first line was the credit (P0-5, 2026-05-31).
+      const creditEl = document.getElementById('powers-credit');
+      const findEntry = (ref) => {
+        // The retheme ref may be a slug, a URL, or `dropped:<filename>`.
+        // Strip the dropped prefix; otherwise match by slug suffix.
+        if (typeof ref !== 'string') return null;
+        if (ref.startsWith('dropped:')) {
+          return { slug: ref.slice(8), name: ref.slice(8), author: null, year: null };
+        }
+        return THEMES.find((t) => t.slug === ref || ref.endsWith('/' + t.slug)) ?? null;
+      };
+      const renderCredit = (entry) => {
+        if (!creditEl) return;
+        if (!entry) { creditEl.textContent = ''; return; }
+        const bits = [];
+        bits.push(`Now wearing <strong>${entry.name ?? entry.slug}</strong>`);
+        if (entry.author) bits.push(`by ${entry.author}`);
+        if (entry.year) bits.push(`· ${entry.year}`);
+        creditEl.innerHTML = bits.join(' ');
+      };
+      // Seed off the URL param / page default — covers the boot render
+      // before the first retheme event fires.
+      const url = new URL(window.location.href);
+      const initialSlug = url.searchParams.get('theme') ?? '1138';
+      renderCredit(findEntry(initialSlug));
+      h.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
     };
 
     const unmountPowers = () => {
       mountToken++;
       if (handle) { try { handle.disconnect(); } catch {} handle = null; }
       syncToggleUI(false);
+      const credit = document.getElementById('powers-credit');
+      if (credit) credit.textContent = '';
     };
     toggleBtn.addEventListener('click', () => {
       // Toolbar button is only visible when un-skinned (syncToggleUI hides
@@ -704,17 +773,35 @@
     });
 
     // BYO MODAL — opened by the picker's 'Load your own' tile, hidden by
-    // backdrop click OR the modal's own close widget. The drop zone INSIDE
-    // the modal is wired via attachThemeDropZone. onFile decodes via
-    // loadKaleidoscopeScheme (no upload), registers under a synthetic ref,
-    // and rethemes the page. Modal stays open after a successful load so
-    // the user can see the status; they close it via backdrop or close
-    // widget when done.
+    // backdrop click OR the modal's own close widget. The library's
+    // `handle.openModal(wrap)` (architect-reviewer 2026-05-31) owns:
+    // visibility toggle (data-scriptoscope-modal-open attribute),
+    // backdrop click, Esc key, focus trap (cycles Tab/Shift+Tab inside
+    // including the shadow-DOM chrome buttons), focus restore on close,
+    // bubbled scriptoscope:close listener (so the chrome close widget
+    // also closes the wrap). The demo just OPENS and lets the library
+    // do the rest. The drop zone INSIDE the modal is wired via
+    // attachThemeDropZone. onFile decodes via loadKaleidoscopeScheme (no
+    // upload), registers under a synthetic ref, and rethemes the page.
+    // Modal stays open after a successful load so the user sees the
+    // status; they close it via backdrop / Esc / close widget.
     const modalWrap = document.getElementById('powers-byo-modal-wrap');
     const modalDrop = document.getElementById('powers-byo-modal-drop');
     const modalOut = document.getElementById('powers-byo-modal-out');
-    const openModal = () => modalWrap.classList.add('open');
-    const closeModal = () => modalWrap.classList.remove('open');
+    let modalHandle = null;
+    let modalTrigger = null; // captured by the picker click handler before openModal
+    const openModal = () => {
+      // Library helper needs a live mount handle. If we're in OFF mode,
+      // skip (the picker click handler awaits mountPowers first).
+      if (!handle || !modalWrap) return;
+      // Pass the trigger explicitly: mouse clicks on buttons don't reliably
+      // focus the button (Safari especially), so the library's
+      // activeElement-at-open-time auto-capture often catches BODY. The
+      // caller knows the trigger; pass it for accurate focus restore on
+      // close. Falls back to library auto-capture if undefined.
+      modalHandle = handle.openModal(modalWrap, modalTrigger ? { returnFocusTo: modalTrigger } : {});
+    };
+    const closeModal = () => { modalHandle?.close(); modalHandle = null; };
     if (modalDrop && modalOut) {
       attachThemeDropZone(modalDrop, {
         accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
@@ -748,39 +835,10 @@
         },
       });
     }
-    // Backdrop click closes the modal (clicks ON the modal article itself
-    // bubble up to the wrap; we only close when the target IS the wrap).
-    modalWrap?.addEventListener('click', (e) => {
-      if (e.target === modalWrap) closeModal();
-    });
-    // Esc key closes the modal.
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalWrap?.classList.contains('open')) closeModal();
-    });
-    // Chrome close widget — clicking the close box in the modal's title bar
-    // fires the runtime's onClose, which removes the modal host from the
-    // wrap and restores the bare `<article id="powers-byo-modal">` in its
-    // place. Without this listener, the backdrop would linger empty around
-    // a bare-HTML article. We watch for the runtime host (the div with a
-    // shadow root) being removed from the wrap; when it goes, close the
-    // wrap too. The scanner's own MutationObserver will re-promote the
-    // restored bare article shortly after — so re-opening the modal works
-    // again (with a brief flash of bare HTML on first reopen if scan
-    // hasn't completed; acceptable trade-off).
-    if (modalWrap) {
-      const closeOnHostRemoval = new MutationObserver((records) => {
-        if (!modalWrap.classList.contains('open')) return;
-        for (const r of records) {
-          for (const removed of r.removedNodes) {
-            if (removed instanceof HTMLElement && removed.shadowRoot) {
-              closeModal();
-              return;
-            }
-          }
-        }
-      });
-      closeOnHostRemoval.observe(modalWrap, { childList: true, subtree: true });
-    }
+    // (No backdrop / Esc / scriptoscope:close listeners here — the library's
+    // handle.openModal owns all three, plus the focus trap. That's why the
+    // helper exists: the demo's previous hand-rolled version was ~20 LoC of
+    // wiring AND was missing the focus trap, a real a11y gap.)
 
     // PICKER CLICK HANDLER — delegated, capture phase. Three cases:
     //   1. Special tile ('No theme' / 'Load your own') → demo-side action.
@@ -819,7 +877,10 @@
             toggleBtn.setAttribute('aria-pressed', 'true');
             await mountPowers();
           }
-          if (handle) openModal();
+          if (handle) {
+            modalTrigger = special; // captured before openModal for focus restore on close
+            openModal();
+          }
         }
         return;
       }

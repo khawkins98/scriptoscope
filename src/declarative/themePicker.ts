@@ -41,12 +41,6 @@ export interface PickerDeps {
   switchTheme(slug: string): Promise<void> | void;
   /** Initial active slug (highlights the matching tile + sets tabindex=0). */
   initialSlug: string;
-  /** Cap on concurrent icon decodes inside the picker's lazy IO queue.
-   *  Default 2 — the right ballpark for HTTP/1.1 + main-thread decode
-   *  contention on mid-range mobile. Lift to 4-6 for desktop wifi kiosks
-   *  with a big picker; drop to 1 for very low-end devices. P2 from the
-   *  lib reviewer 2026-05-30. */
-  decodeConcurrency?: number;
 }
 
 /** Result returned by {@link promoteThemePicker} on successful promotion. */
@@ -171,7 +165,13 @@ export async function promoteThemePicker(
   // Replacing the previous `string[]` + `queue.includes()` scan — lib
   // reviewer P2 2026-05-30. Negligible at 18 themes; matters at 100+.
   const queued = new Set<string>();
-  const concurrencyCap = Math.max(1, deps.decodeConcurrency ?? 2);
+  // Default 2 — calibrated for HTTP/1.1 + main-thread decode contention on
+  // mid-range mobile. Was exposed as `pickerDecodeConcurrency` option until
+  // 2026-05-31 (architect-reviewer #2: internal tuning knob that leaked
+  // through three layers of API surface; no caller could sensibly tune it
+  // without reading the original perf-thread comments). Hardcoded inline
+  // now; re-expose if a real consumer hits a perf cliff that needs it.
+  const concurrencyCap = 2;
   // Shared lookup: 32px preferred, else any size with the requested id.
   const pickIn = (t: LoadedTheme, id: number) => {
     const idx = t.inspector?.iconIndex ?? [];

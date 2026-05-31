@@ -30,6 +30,10 @@ export {
   type ThemeDropZoneOptions, type ThemeDropZoneHandle,
 } from './themeDropZone.js';
 export {
+  openModal,
+  type OpenModalOptions, type OpenModalHandle,
+} from './openModal.js';
+export {
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton, type SizeMode,
 } from './parse.js';

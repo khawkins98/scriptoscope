@@ -42,6 +42,20 @@ test('parseWindowAttrs: empty / NaN numbers → undefined', () => {
   assert.equal(p.sizeMode, 'fit'); // both dims unparseable ⇒ fit
 });
 
+test('parseWindowAttrs: enabledWidgets — undefined / empty / subset / whitespace', () => {
+  // Attribute absent → undefined (means "every widget enabled" downstream).
+  assert.equal(parseWindowAttrs({}).enabledWidgets, undefined);
+  // Empty string → empty set → all widgets inert.
+  const empty = parseWindowAttrs({ scriptoscopeWidgets: '' }).enabledWidgets;
+  assert.ok(empty instanceof Set);
+  assert.equal(empty.size, 0);
+  // Subset, with whitespace + case tolerance.
+  const subset = parseWindowAttrs({ scriptoscopeWidgets: ' Zoom , collapse ' }).enabledWidgets;
+  assert.ok(subset.has('zoom'));
+  assert.ok(subset.has('collapse'));
+  assert.equal(subset.has('close'), false);
+});
+
 test('parseButtonAttrs: presence flags + label trim', () => {
   assert.deepEqual(parseButtonAttrs({ scriptoscopeDefault: '' }, '  OK  '), { isDefault: true, disabled: false, label: 'OK' });
   assert.deepEqual(parseButtonAttrs({ scriptoscopeDisabled: '' }, ''), { isDefault: false, disabled: true });

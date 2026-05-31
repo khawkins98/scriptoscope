@@ -5,7 +5,7 @@
 // when the content reflows). Built on the WindowManager's contentEl re-slot hook.
 
 import type { LoadedTheme } from '../types.js';
-import type { WindowManager } from '../interactive.js';
+import type { TitleWidget, WindowManager } from '../interactive.js';
 import { parseWindowAttrs } from './parse.js';
 import { debug } from '../debug.js';
 import { sharedRO } from './sharedResizeObserver.js';
@@ -172,16 +172,18 @@ export class ScriptoscopeWindow {
       parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
 
     let inst: ScriptoscopeWindow | undefined;
-    // Close is universal: clicking the chrome's close widget ALWAYS
-    // restores the original element (the runtime's standard 'close =
-    // unmount this window' contract — matches the Mac OS convention
-    // where close means close). If a consumer doesn't want a window
-    // dismissible, they pick a window-type whose canonical cicn art
-    // has no close widget (e.g. `movable-modal` for non-closable
-    // content). The picker tile-handlers + library state survive
-    // unmount (the original article is restored intact with its event
-    // listeners), so clicking 'BeOS' on a closed Schemes Folder still
-    // calls retheme cleanly via the bare-HTML article's tiles.
+    // Close is universal in semantics: WHEN the close widget is wired (i.e.
+    // 'close' is in the enabled-widgets set), clicking it always restores
+    // the bare HTML — the runtime's standard 'close = unmount this window'
+    // contract, matching the Mac OS 'close means close' convention. The
+    // consumer narrows the wired set via `data-scriptoscope-widgets` (e.g.
+    // `widgets="zoom,collapse"` on a Read Me); widgets the cicn art still
+    // paints but that aren't in the set are inert. The pair (window-type +
+    // widget set) is the two-axis lever for "looks like X, behaves like Y."
+    // The `data-scriptoscope-no-close` attribute is NOT the way (briefly
+    // shipped 2026-05-31, reverted same day after the reviewer round
+    // surfaced the wider widget-subset need).
+    const enabledWidgets = (parsed.enabledWidgets as ReadonlySet<TitleWidget> | undefined);
     const host = await deps.manager.add(
       deps.theme,
       {
@@ -193,6 +195,7 @@ export class ScriptoscopeWindow {
         contentEl: slot,
         ...(parsed.z != null ? { z: parsed.z } : {}),
         ...(parsed.collapsed ? { collapsed: true } : {}),
+        ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
       },
     );
     inst = new ScriptoscopeWindow(
@@ -447,6 +450,16 @@ export class ScriptoscopeWindow {
   unmount(): void {
     if (this.unmounted) return; // idempotent: onClose AND disconnect() may both call this
     debug('unmount', `ScriptoscopeWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
+    // Dispatch the bubbling close event BEFORE teardown so handlers can
+    // still read host state (e.g. the modal wrap pattern uses this to
+    // close its backdrop without observing shadow-root removal). Per
+    // architect-reviewer 2026-05-31: deletes the consumer's
+    // MutationObserver-on-shadow-root recipe + closes a whole class of
+    // "close-button-doesn't-close-the-wrap" bugs. The event bubbles so
+    // consumers can listen on any ancestor (wrap, app root, document).
+    this.host.dispatchEvent(new CustomEvent('scriptoscope:close', {
+      bubbles: true, composed: true,
+    }));
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.growthTimer) { clearTimeout(this.growthTimer); this.growthTimer = 0; }

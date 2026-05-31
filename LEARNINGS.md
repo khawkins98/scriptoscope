@@ -2979,3 +2979,45 @@ Bundle-size claims also went from drift-prone hand-counts (187 KB) to actual mea
 2. **Modal-as-themed-window is the same trick** — the demo's `movable-modal` flow uses zero library API beyond what every promoted window uses. The wrap/visibility/`.open` plumbing is consumer-side. The runtime contract is: "you promote a window; you control visibility." Anything more elaborate (focus trap, autoclose-on-escape, backdrop-click-dismiss) is consumer wiring, not library wiring.
 3. **The async-await trap of "open a themed window from outside the lifecycle":** if the runtime might be disconnected when the gesture fires, mount-then-open is the pattern. Two lines; easy to miss; caught only on review. Worth a one-line warning in `docs/integration-edge-cases.md` framework section if any consumer reports it.
 4. **Drift-prone numeric claims need a CI gate.** Bundle sizes were stated three times in the README; the README slim updated two and missed the third. The same shape applies to "lockdown set is N properties" (changed 5 → 6 → 9 → 10 in five days; three docs to update each time). For these claims, source-of-truth should be runnable (`wc -c`, `lockdown.length`) and asserted in a doc-audit script.
+
+
+---
+
+## 2026-05-31 (later) — Three-reviewer lateral pass: widgets opt-in + scriptoscope:close event + openModal helper
+
+After landing the picker UX work, I dispatched three reviewer agents through different lenses — period-Mac historian (Mac OS 8.5 Appearance Manager + classic HIG), library architect (consumer-DX vs library API), and product strategist (lateral use cases). The reports converged in two specific places where my recent calls were wrong from two independent angles, and split in their forward-direction recommendations.
+
+### Convergence #1: the window-type pick yesterday was wrong twice over
+
+I had set Read Me + Schemes Folder to `movable-modal` window-type purely as a 'pick a type whose canonical cicn has no widgets' hint, then accepted that 'schemes whose movable-modal cicn DOES paint close still close' as 'graceful degradation.' Both reviewers independently flagged this as the wrong call:
+
+- **Period-historian lens**: `kThemeMovableModalWindow` (`movableDBoxProc`, def 5) was Apple's specific BLOCKING-but-draggable dialog type — Print options, registration, the modal-with-OK/Cancel that asks a question. A Read Me in 1998 was a SimpleText/TeachText document → `kThemeDocumentWindow`. A Kaleidoscope theme picker was a tool palette → `kThemeUtilityWindow` (slimmer title bar, persistent floater, doesn't take focus — Mac OS 9's actual Appearance CP was authored against this type).
+- **Architect lens**: 'movable-modal as a hint for please-no-close' is markup lying about intent. A consumer who wants doc-window LOOK without close has zero recourse. The right primitive is `data-scriptoscope-widgets="close,zoom,collapse"` — opt-in subset; omit a widget to leave its cicn art drawn but the click inert.
+
+The synthesis was clean and lands both fixes at once: ship the widgets attribute, revert the type picks. Read Me is now `document-window` + `widgets="zoom,collapse"`. Schemes Folder is now `titled-utility-window` + `widgets=""` (all painted widgets inert).
+
+### Convergence #2: surface scriptoscope:close, delete the MutationObserver
+
+Architect's #1 ROI call: the demo's modal had a `MutationObserver` watching for shadow-root-bearing elements being removed from the wrap — that was the close-detection signal. Reverse-engineering an internal lifecycle event from DOM removal is the smell. Fix: `ScriptoscopeWindow.unmount` dispatches a bubbling `scriptoscope:close` CustomEvent on the host BEFORE teardown. Demo modal listens at the wrap, removes 14 lines of observer. Every future consumer that wants 'do X on close' gets it free.
+
+### Convergence #3: delete `pickerDecodeConcurrency`
+
+Architect's #2: internal tuning knob that leaked through three layers of API surface. No consumer can sensibly tune it without reading the lib reviewer comment thread that calibrated it. Hardcoded inline at 2; re-expose if a real consumer hits a perf cliff.
+
+### Period-correct addition: author credit byline
+
+Period agent's #12 + strategist's authorship lens both surfaced 'corpus authors are invisible.' P0-light version: on every retheme, the Schemes Folder window shows 'Now wearing 1138 by Erik Ekengren · 1998' from the theme manifest's name/author/year fields (already there since the picker added them). Updates via the existing `retheme` event. Full About-this-Scheme dialog awaits the menu bar (P1 candidate) — needs a launch point.
+
+### P1: handle.openModal() helper with focusin-based trap
+
+Architect's #5: ~70 LoC of consumer modal wiring (visibility class, backdrop click, Esc, MutationObserver) compresses to one library call. Plus: the demo's hand-rolled modal was missing a focus trap, a real a11y bug. New `MountHandle.openModal(wrap, options?)` owns: attribute toggle (`data-scriptoscope-modal-open`), backdrop click, Esc key, focusin-based trap (cycles Tab/Shift+Tab inside, including shadow-DOM chrome buttons), focus restore on close, bubbled scriptoscope:close listener.
+
+First focus-trap attempt intercepted Tab keys directly + cycled through a focusables array. Caught the 'Tab from last' case but missed shadow-DOM focusables that my finder didn't enumerate — Tab would escape to a DOM-next focusable outside the wrap. Switched to the standard `focusin` redirect pattern (react-aria / focus-trap / dialog polyfill): listen for any focusin event document-wide; if the new target is outside the wrap, redirect to the wrap's first focusable. Catches Tab, mouse-click, and programmatic focus changes uniformly. Caveat: `document.activeElement` at modal-open time is BODY (not the trigger) when triggered from a mouse click — so the API takes an optional `returnFocusTo` for accurate focus restore. Documented.
+
+### What's left for the next pass
+
+The convergent P0s are landed. The forward-direction divergence is unresolved (period agent wants menu bar + snd ; architect wants per-window addressing API; strategist wants museum page). User picked openModal for P1; the menu bar + museum are next-pass calls. The 'no-close' attribute that I un-shipped yesterday + the type-as-hint pattern are both gone from the codebase — superseded by the widgets-opt-in API.
+
+The takeaway for the meta-rule (architect's #9): when a demo-side pattern is correctness-orthogonal, demo-side wins (less API surface, smaller library). When it's correctness-load-bearing — reverse-engineering library internals, missing an a11y guarantee — promote to library. The `scriptoscope:close` event + `openModal` helper are both 'correctness was leaking into the consumer'; the picker special-tiles + the modal CSS shell are 'visual style is the consumer's job, library shouldn't care.'
+
+
