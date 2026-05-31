@@ -2940,3 +2940,42 @@ The original drag-handoff test poked `host.style` directly to mimic what the han
 3. **Acknowledge gaps in shipped comments, not TODO files.** The horizontal-scrollbar gap is in `scriptoscope.css` as a paragraph the next person opening that file will read. A separate TODO file would have rotted.
 4. **Tests must fire real events, not mimic them.** A test that pokes style directly to simulate a drag passes even if the handler is deleted. Same shape as the React "you forgot to call setState in your test" anti-pattern. Posture-B tests now drive real pointer events; the test fails if `toAbsolute` is removed from the handler.
 5. **Chokepoint compliance is a verifiable property, not a goal.** "All geometry mutations route through setPosition" is testable: grep for `host.style.left` outside the chokepoint helpers. If it's there, the chokepoint isn't one. The FE reviewer's audit found three bypass paths the refactor missed; the test gate that should exist is "interactive.ts + scanner.ts + ScriptoscopeWindow.ts contain zero `host.style.left` assignments outside `WindowManager.setPosition` / `toAbsolute`."
+
+## 2026-06-01 (later) — Picker UX: special tiles + modal-as-themed-window
+
+User-driven UX restructure that nearly added a library API and ended up not needing one. Two demo-side affordances (top-right "See the bare HTML" toggle + dashed-box drop zone below the picker) moved INTO the theme picker as folder-style tiles, and the drop zone became a themed `movable-modal` window triggered by clicking its tile.
+
+### What was tempting: a library API for "special tiles"
+
+The picker's tile-rendering loop is library-owned (`data-scriptoscope-theme-picker` auto-populates from the `themes` array). The natural reflex was: extend the library API so consumers can pass "non-theme" tiles alongside themes, with their own click handlers. That would have meant a public type, a position knob, an a11y contract, a roving-tabindex carve-out for non-tile children — a real API surface to maintain.
+
+### What shipped instead: CSS `order` + a distinct CSS class
+
+The demo pre-seeds two `<button class="powers-picker-special-tile">` elements inside the picker container BEFORE `mountDeclarative` runs. The library's scanner only promotes elements matching the theme-tile selector — special-tile is a different class, so the library walks past them. CSS `order: -1` / `order: 99` places them at the strip ends without depending on DOM order. Event delegation on the picker container handles their clicks (one listener, two `data-special` branches).
+
+The library knows nothing. No API extension. No version-coupling between demo and library.
+
+### One real bug surfaced in review
+
+The picker's "Load your own" click handler opens the modal synchronously, but if the runtime is currently un-skinned, the modal article (a `data-scriptoscope-window`) was un-promoted by the prior `handle.disconnect()` — so opening the wrap would show bare HTML inside the backdrop until `mountPowers()` resolved later. Fix: `await mountPowers()` BEFORE `openModal()` in the click handler. Two-line guard, caught only on second-pass FE review.
+
+Generalisable: any "opens this themed window" gesture that fires while the runtime might be disconnected has to await re-mount first. Same pattern would bite any consumer wiring "open my themed modal" from outside the runtime's lifecycle.
+
+### Modal-as-themed-window: free demonstration of the third window-type
+
+The drop-zone modal is a real `data-scriptoscope-window-type="movable-modal"` — promoted at mount time like any other window. The demo wraps it in a `position: fixed; visibility: hidden; opacity: 0; pointer-events: none` container, then toggles a `.open` class on the wrap. Backdrop click + Escape close it.
+
+Free byproduct: the demo now exercises THREE window-types (document, titled-utility, movable-modal) where it previously exercised two. movable-modal had been runtime-supported but never demo-shown. The picker UX restructure surfaced it for free.
+
+### README slim — gotchas as their own doc
+
+Same-day docs reshape: the README's 200-line "Integration guide" extracted to `docs/integration-edge-cases.md`, with a 6-line "Three things to know up front" callout in the README pointing at it. The previous README read as "here are 200 lines of things that will break your page"; the new one reads as "drop these two URLs in, here's what you can tag — link to deeper docs when you hit something weird."
+
+Bundle-size claims also went from drift-prone hand-counts (187 KB) to actual measurements (220 KB raw, 66 KB gzip — the docs auditor's drift catch). Worth scripting before the next release: `node -e "console.log(require('fs').statSync('dist/scriptoscope.js').size)"` plus `gzip -c dist/scriptoscope.js | wc -c` baked into a `npm run audit:doc-claims` gate.
+
+### Generalisable lessons
+
+1. **When a demo wants something the library doesn't expose, ask first**: can I do it ENTIRELY in demo-side HTML/CSS/JS using existing library extension points (event delegation, distinct classes, opt-out stamps)? If yes, the demo absorbs the complexity and the library stays small. If no — if the demo would need to reach into library internals or duplicate library logic — then build the API. The picker tile case was the first; future cases (custom title-bar widgets, per-window menu hooks) should ask the same question.
+2. **Modal-as-themed-window is the same trick** — the demo's `movable-modal` flow uses zero library API beyond what every promoted window uses. The wrap/visibility/`.open` plumbing is consumer-side. The runtime contract is: "you promote a window; you control visibility." Anything more elaborate (focus trap, autoclose-on-escape, backdrop-click-dismiss) is consumer wiring, not library wiring.
+3. **The async-await trap of "open a themed window from outside the lifecycle":** if the runtime might be disconnected when the gesture fires, mount-then-open is the pattern. Two lines; easy to miss; caught only on review. Worth a one-line warning in `docs/integration-edge-cases.md` framework section if any consumer reports it.
+4. **Drift-prone numeric claims need a CI gate.** Bundle sizes were stated three times in the README; the README slim updated two and missed the third. The same shape applies to "lockdown set is N properties" (changed 5 → 6 → 9 → 10 in five days; three docs to update each time). For these claims, source-of-truth should be runnable (`wc -c`, `lockdown.length`) and asserted in a doc-audit script.

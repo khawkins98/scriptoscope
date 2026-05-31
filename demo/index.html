@@ -756,13 +756,29 @@
     // the modal. Event-delegated off the picker container so the tiles
     // work even though they're not promoted through the library's tile
     // wiring (deliberately — they're demo-side extras, not real themes).
-    foldersEl?.addEventListener('click', (e) => {
+    //
+    // 'Load your own' is also reachable from OFF mode: the picker isn't
+    // visible there (no chrome), but the click handler is delegated to
+    // foldersEl which only exists in skinned mode. In OFF mode the user
+    // has to first click 'Restore the chrome ←' (the toolbar button
+    // visible only when un-skinned). The reverse case — clicking the
+    // tile WHILE the runtime is mid-unmount — would race; the modal must
+    // wait for the runtime so the modal article is themed when shown
+    // (FE-reviewer 2026-06-01 P0).
+    foldersEl?.addEventListener('click', async (e) => {
       const tile = e.target.closest('.powers-picker-special-tile');
       if (!tile) return;
       e.stopPropagation();
       const kind = tile.dataset.special;
-      if (kind === 'none') unmountPowers();
-      else if (kind === 'load') openModal();
+      if (kind === 'none') {
+        unmountPowers();
+      } else if (kind === 'load') {
+        // Defensive: only open the modal if the runtime is mounted (the
+        // modal article needs to be a promoted themed window, not bare
+        // HTML). If mid-mount or pre-mount, await first.
+        if (!handle) await mountPowers();
+        if (handle) openModal();
+      }
     });
 
     // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —

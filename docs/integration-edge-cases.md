@@ -4,6 +4,17 @@ This is the long-form companion to the README's quick-start. It exists for the t
 
 If you only want to drop Scriptoscope onto a static HTML page and not touch it again, you probably don't need this doc. The defaults are tuned for the common case.
 
+**Contents**
+- [How positioning works](#how-positioning-works-posture-b-2026-05-31)
+- [Auto-resize: content growing after promote](#auto-resize-content-growing-after-promote)
+- [Class inheritance and the locked-down properties](#class-inheritance-and-the-locked-down-properties)
+- [Common pitfall — don't change child layout after mount-class flips](#common-pitfall--dont-change-child-layout-after-mount-class-flips)
+- [Shadow DOM — what's reachable from your CSS, what isn't](#shadow-dom--whats-reachable-from-your-css-what-isnt)
+- [Promotion is destructive](#promotion-is-destructive--your-original-element-is-moved--removed)
+- [Known incompatibilities](#known-incompatibilities)
+- [Internal stamps — don't set these yourself](#internal-stamps--dont-set-these-yourself)
+- [Framework integration notes](#framework-integration-notes)
+
 ## How positioning works (Posture B, 2026-05-31)
 
 Two postures, decided by whether you set `data-scriptoscope-x` or `data-scriptoscope-y`:
@@ -23,7 +34,7 @@ If you set a px-valued `max-width` / `max-height` on the host via CSS, the auto-
 
 ## Class inheritance and the locked-down properties
 
-The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Nine layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
+The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Ten layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
 
 - `display: block` — your `.card { display: grid }` would collapse the host's box and decouple it from the chrome canvas.
 - `box-sizing: border-box`
@@ -32,7 +43,7 @@ The runtime copies the source element's `id`, classes, ARIA attributes, non-`dat
 - `background: transparent` — paints under the chrome (invisible if chrome is opaque, ugly if chrome has transparent corners).
 - `overflow: visible` — the chrome canvas can extend 2-6 px past the host's CSS box (depends on theme); a consumer `overflow: auto` would clip those edge pixels. The slot inside still has its own `overflow: auto` for content scrolling.
 - `margin: 0` — would shift the host away from its source DOM position.
-- `transform: none` / `filter: none` — would silently turn the host into the positioned ancestor for its own absolute descendants (CSS containing-block rule — the same iOS scroll-perf hack pattern that breaks naive `findPositionedAncestor` walks).
+- `transform: none` / `filter: none` / `contain: none` — would silently turn the host into the positioned ancestor for its own absolute descendants (CSS containing-block rule — the same iOS scroll-perf hack pattern that breaks naive `findPositionedAncestor` walks). `contain: layout` / `contain: paint` create a containing block the same way; modern utility CSS frameworks (Material, Tailwind v4) ship `contain` rules.
 
 Consumer styles for color, font, `position` (yes — `position: relative` from your class works), `max-width`/`max-height` (px caps), and custom properties still apply — they're not in the lockdown set. The set grows monotonically as new consumer-CSS bleeds surface; see `LEARNINGS.md` for the history.
 

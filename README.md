@@ -86,8 +86,6 @@ A more complete page with the script wired in, one window, and a button:
 </html>
 ```
 
-That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
-
 **That's it.** The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
 ### Three things to know up front
@@ -95,7 +93,7 @@ That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-
 If you only need it to work, you can skip this section. If something looks slightly off after you've dropped Scriptoscope on your page, one of these is probably why:
 
 1. **Your element stays where you put it.** No `-x`/`-y` attributes = the runtime host sits in normal flow at the source element's DOM position (CSS Grid / Flex / normal flow all respected). Set `data-scriptoscope-x="N"` / `-y="N"` (px only, no `%` / `em` / `vh`) to opt into a floating overlay. Dragging an in-flow window converts it to a floater on the first drag.
-2. **Your `.my-class { display: grid }` won't reach the host.** Nine CSS properties (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`) are locked down inline on the runtime host so consumer-class CSS can't break the host ↔ chrome-canvas correspondence. Everything else — color, font, custom properties, your `position: relative` for stacking — still applies.
+2. **Your `.my-class { display: grid }` won't reach the host.** Ten CSS properties (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`, `contain`) are locked down inline on the runtime host so consumer-class CSS can't break the host ↔ chrome-canvas correspondence. Everything else — color, font, custom properties, your `position: relative` for stacking — still applies.
 3. **Promotion is destructive.** The runtime moves your element's children into its slot and removes the original element. Framework refs to the wrapper become detached. Mount Scriptoscope AFTER your framework's first paint (`useEffect(() => mountDeclarative(...), [])` in React; `onMounted` in Vue).
 
 The full set of behaviours, with the gotchas + framework integration notes + known incompatibilities ([`* { transform: translateZ(0) }`, `box-sizing: content-box`, `body { overflow: hidden }`, etc.), lives in **[docs/integration-edge-cases.md](./docs/integration-edge-cases.md)**. Open it when you hit a weird CSS issue and the cause isn't obvious; you don't need to read it first.
@@ -222,16 +220,18 @@ Selecting an option fires the existing `retheme()` flow; every promoted window f
 
 ### Bring your own theme — drop a `.sit` / `.rsrc` and see it render
 
-For a consumer-side "drop your Kaleidoscope scheme here" affordance, two extra modules ride on the same CDN URL:
+Two ways to wire it. The simpler one is a button or any element that doubles as a drop target:
 
 ```html
 <button id="byo">📂 Drop or pick a theme</button>
 <span id="byo-status" aria-live="polite"></span>
 
 <script type="module">
-  // Both `mountDeclarative` and `loadKaleidoscopeScheme` are exported from the same `scriptoscope`
-  // entry — npm consumers `import from 'scriptoscope'`; CDN consumers use the GH Pages URL below.
-  // The decoder is bundled into the main module; StuffIt WASM lazy-loads only when a .sit is decoded.
+  // mountDeclarative + attachThemeDropZone + loadKaleidoscopeScheme are all
+  // exported from the same module entry. The GH Pages URL below is the install
+  // path (no npm package — see the Install section above). The Kaleidoscope
+  // decoder is bundled into the main module; StuffIt WASM lazy-loads only when
+  // a .sit is decoded.
   import {
     mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
   } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
@@ -263,19 +263,19 @@ For a consumer-side "drop your Kaleidoscope scheme here" affordance, two extra m
 
 That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [Mac Themes Garden](https://macthemes.garden/) and [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/) archives ship (`.sit`, `.hqx`, `.bin`, AppleSingle/Double, raw `.rsrc`); the decode runs entirely client-side via the bundled StuffIt WASM. The dropped theme persists for the session; reload restores the default.
 
-For a richer "add the dropped theme to the switcher + remember across reload" wiring, see the demo source at [`demo/_theme-drop.mjs`](./demo/_theme-drop.mjs).
+**The richer pattern** (used by the demo's "Load your own" picker tile) opens a themed `movable-modal` window with the drop zone inside it. The drop-zone wiring is identical — `attachThemeDropZone` on a button inside the modal — but the modal lives in a `position: fixed` wrap that toggles visibility on click. The full markup + CSS + boot wiring for the modal pattern is in [`demo/index.html`](./demo/index.html) (search for `powers-byo-modal-wrap`); the structure: themed `<article data-scriptoscope-window data-scriptoscope-window-type="movable-modal">` inside a fixed-position wrap with `visibility: hidden; opacity: 0; pointer-events: none` until a `.open` class flips them on. Backdrop click + Escape close it.
 
 ### CDN paths reference
 
 | URL | What |
 |---|---|
-| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~187 KB raw / ~55 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
-| `https://khawkins98.github.io/aaron-ui/scriptoscope.css` | Optional outer-shell stylesheet (~6 KB) |
+| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~220 KB raw / 66 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
+| `https://khawkins98.github.io/aaron-ui/scriptoscope.css` | Optional outer-shell stylesheet (~13 KB raw / 5 KB gzip) |
 | `https://khawkins98.github.io/aaron-ui/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
 | `https://khawkins98.github.io/aaron-ui/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
 | `https://khawkins98.github.io/aaron-ui/sit-wasm/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
 
-For a versioned URL (locks to a specific release), use **unpkg** once the package is published: `https://unpkg.com/scriptoscope@0.0.1/dist/scriptoscope.js`. Until then, GH Pages tracks `main`.
+> **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
 
 ### Vendoring (if you don't want a third-party CDN dependency)
 
@@ -289,14 +289,16 @@ Same import path either way (ESM module from a URL), no bundler required.
 
 ## Trying it locally
 
-Three demo pages sit on the same runtime, each showing a different integration path. Run them together:
+Three demo pages sit on the same runtime, each showing a different integration path. To hack on them locally, clone the repo and run the dev server:
 
 ```sh
-npm install
+git clone https://github.com/khawkins98/aaron-ui.git
+cd aaron-ui
+npm install        # dev dependencies (vite, tsc, playwright) — NOT the library itself
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, an authentic-folder-icon theme picker (click a folder = wear that scheme), and four outcome-headlined cards ("One engine, eighteen looks" / "Bring your own scheme" / "data-scriptoscope-*" / "The Scheme Library" — chrome titlebars keep the architecture names `kDEF Replay Engine` / `ResourceForkLib` for tooling continuity) that float as Mac windows. Top-right toggle reveals the bare HTML.
+- **[`demo/index.html`](./demo/index.html)** — the **landing page**. The 1999-Apple-styled consumer pitch: "Eighteen schemes. One runtime." with a one-line install snippet, a hero control strip showing every promotable widget (button + checkbox + radio + slider + text + select) themed live, and an authentic-folder-icon theme picker (click a folder = wear that scheme) bracketed by two special tiles — **No theme** (⊘) unmounts the runtime to show the bare HTML; **Load your own** (↑) opens a themed `movable-modal` window with a drag-drop + file-picker for arbitrary `.sit` / `.rsrc` schemes. Four outcome-headlined cards ("One engine, eighteen looks" / "Bring your own scheme" / "data-scriptoscope-*" / "The Scheme Library" — chrome titlebars keep the architecture names `kDEF Replay Engine` / `ResourceForkLib` for tooling continuity) float as Mac windows. Re-skin from bare-HTML mode via the top-right "Restore the chrome ←" button.
 - **[`demo/diagnostic.html`](./demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
 - **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 
@@ -309,9 +311,9 @@ Two surfaces, same engine.
 A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. First per-bundle load is ~234 ms on a fast machine (browser decode + 500 OffscreenCanvas PNG encodes); subsequent calls hit the in-page cache.
 
 ```ts
-import { loadTheme, renderWindow } from 'scriptoscope';
+import { loadTheme, renderWindow } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
 
-const theme = await loadTheme('/themes/beos-r503');
+const theme = await loadTheme('https://khawkins98.github.io/aaron-ui/themes/beos-r503');
 const win = await renderWindow(theme, {
   title: 'Hello!',
   width: 320, height: 200,
@@ -346,8 +348,11 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
   </div>
 
   <script type="module">
-    import { mountDeclarative } from 'scriptoscope';
-    await mountDeclarative({ themeBaseUrl: '/themes', baseSlug: 'apple-platinum-2' });
+    import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+    await mountDeclarative({
+      themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+      baseSlug: 'apple-platinum-2',
+    });
   </script>
 </body>
 ```

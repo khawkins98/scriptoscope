@@ -300,6 +300,12 @@ export class ScriptoscopeWindow {
       margin: '0',
       transform: 'none',
       filter: 'none',
+      // `contain: layout` / `contain: paint` create a containing block
+      // the same way transform/filter do (per CSS Containment spec).
+      // Material + Tailwind v4 utilities both ship `contain` rules now —
+      // worth pre-empting before the bleed surfaces. FE-reviewer P1
+      // 2026-06-01.
+      contain: 'none',
     });
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
