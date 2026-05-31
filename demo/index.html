@@ -505,7 +505,7 @@
       <div id="powers-byo-modal-wrap" role="presentation">
         <article id="powers-byo-modal" class="powers-byo-modal" data-scriptoscope-window
                  data-scriptoscope-title="Bring your own theme"
-                 data-scriptoscope-window-type="movable-modal"
+                 data-scriptoscope-window-type="document-window"
                  data-scriptoscope-width="460" data-scriptoscope-height="220">
           <div class="powers-byo-modal-content">
             <p>Drop a Kaleidoscope scheme file here, or click to choose one. Decoded entirely in your browser — nothing uploaded; refreshing the page throws the bytes away.</p>
@@ -535,20 +535,30 @@
                data-scriptoscope-window-type="document-window"
                data-scriptoscope-widgets="zoom,collapse">
         <h2>Scriptoscope: Hundreds of Kaleidoscope schemes running on your site, twenty-five years too late.</h2>
-        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly — Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with thousands of schemes. Then OS X arrived in 2001 and the whole format went quiet.</p>
+        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly. Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with 4,400-plus schemes from 900-plus people, preserved today by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. Then OS X arrived in 2001 and the whole format went quiet.</p>
         <p class="powers-lede">There was hope for a while that Kaleidoscope might survive into the OS X era — but the refactor was enormous, and OS X's own theming layer was never as stable as classic Mac OS had been. The various third-party attempts that did ship (ShapeShifter, Magnifique, et al.) had a reputation for corrupting installs more often than they worked. A few macOS versions later, the platform was locked down enough that no third-party chrome layer could ever ship again.</p>
         <p class="powers-lede">Decades on, the schemes are remembered with nostalgia but largely unreachable — the only way to actually see them is through period Macintosh emulators, fun for archaeology but hardly practical. What if, through the beauty of JavaScript and a <code>&lt;canvas&gt;</code>, we could just apply them to our websites?</p>
         <p class="powers-lede">If you're in that very small Venn diagram overlap, behold: Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
         <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
         <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. <em>(The <a href="https://macthemes.garden/">full corpus</a> — 4,400-plus themes from 900-plus authors — is still out there if you want to dig.)</em> This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
+        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
         <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
         <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
       </article>
-      <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
+      <!-- INSTALL SNIPPET, wrapped in a titled-utility window so the
+           recipe reads as a Mac OS 8 code/source palette: slim title
+           bar, floating-tool feel. `widgets="zoom,collapse"` keeps
+           close inert; this is reference content for the page, not
+           dismissible. User direction 2026-05-31. -->
+      <article class="powers-install-host" data-scriptoscope-window
+               data-scriptoscope-title="Install"
+               data-scriptoscope-window-type="titled-utility-window"
+               data-scriptoscope-widgets="zoom,collapse">
+        <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
-      <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute — Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
+        <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute — Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
+      </article>
       <!-- HERO CONTROL STRIP — wrapped in a titled-utility window so it
            demonstrates a SECOND window-type alongside the document-windows
            and the About utility. titled-utility is the classic Mac tools-
@@ -634,7 +644,7 @@
         </div>
       </div>
       <div class="powers-divider">
-        <span>Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no original code is shipped or executed. Deliberate divergences are catalogued in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>.</span>
+        <span>Compatible with Kaleidoscope version 2. No original code shipped or executed.</span>
         <nav class="powers-footnav" aria-label="Section nav">
           <a href="./diagnostic.html#ribbon">Schemes</a><span>|</span><a href="./diagnostic.html#byo">Bring your own</a><span>|</span><a href="./diagnostic.html">Runtime diagnostics</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope">Source</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">Ledger</a>
         </nav>
