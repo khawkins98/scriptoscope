@@ -275,6 +275,16 @@ export class ScriptoscopeWindow {
       padding: '0',
       border: '0',
       background: 'transparent',
+      // The chrome canvas's outer dimensions can extend a pixel or two
+      // past the host's CSS box (chrome adds a frame; w0 vs fullWidth
+      // diverge by 2-6px depending on theme). A consumer-class
+      // `overflow: auto` (e.g. `.powers-card-row.heavy .powers-card`
+      // sets it for slot-scroll behaviour) would clip those edge
+      // pixels — visible as the chrome's right/bottom edge being
+      // 'sliced off' on the demo's heavy-row cards. Force visible so
+      // the canvas paints fully. The slot inside still has its own
+      // overflow:auto for actual content scrolling.
+      overflow: 'visible',
     });
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();

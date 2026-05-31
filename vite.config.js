@@ -42,12 +42,35 @@ const serveThemesPlugin = () => ({
   },
 });
 
+// Serve `src/scriptoscope.css` at `/scriptoscope.css` in dev. In production
+// the build copies the file into `dist/demo/` (via copy-demo-assets.mjs); the
+// demo's `<link rel='stylesheet' href='scriptoscope.css'>` then resolves
+// trivially. In dev mode without this plugin, the link 404s and EVERY rule
+// in scriptoscope.css fails silently — boot affordance, focus rings,
+// .scriptoscope-slot's scrollbar-hide, drop-shadow on hosts. That was the
+// 2026-05-31 user-reported 'native scrollbars on scroll' regression: the
+// hide-rule was committed in scriptoscope.css but only loaded in prod.
+const serveScriptoscopeCssPlugin = () => ({
+  name: 'serve-scriptoscope-css',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      if (!req.url || !req.url.startsWith('/scriptoscope.css')) return next();
+      const filepath = resolve(import.meta.dirname, 'src/scriptoscope.css');
+      if (!existsSync(filepath)) { res.statusCode = 404; res.end(); return; }
+      res.setHeader('Content-Type', 'text/css');
+      // No HMR (consumer stylesheet, not a JS module); a manual reload picks
+      // up changes. Fast-feedback dev tweaks the file directly anyway.
+      createReadStream(filepath).pipe(res);
+    });
+  },
+});
+
 export default defineConfig(({ command }) => {
   if (command === 'serve') {
     return {
       root: 'demo',
       publicDir: false, // demo/assets/ is already under root
-      plugins: [serveThemesPlugin()],
+      plugins: [serveThemesPlugin(), serveScriptoscopeCssPlugin()],
       server: {
         port: 5173,
         open: '/',
