@@ -235,8 +235,17 @@
        contract (T2.2). */
     #powers [data-scriptoscope-theme-picker] { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
     /* When the picker lives inside chrome (the picker IS a window), drop
-       the fade mask (chrome is the boundary). */
-    #powers .scriptoscope-slot [data-scriptoscope-theme-picker] { mask-image: none; -webkit-mask-image: none; padding: 4px; }
+       the fade mask (chrome is the boundary) AND switch to wrapping so
+       tiles reflow when the window is dragged/resized narrow. Without
+       wrap, a dragged-narrow picker overflows horizontally + the bottom
+       half of its body sits empty. OFF mode keeps the horizontal strip
+       (its container width is fixed and the fade mask signals scroll). */
+    #powers .scriptoscope-slot [data-scriptoscope-theme-picker] {
+      mask-image: none; -webkit-mask-image: none;
+      padding: 4px;
+      flex-wrap: wrap;
+      overflow-x: visible;
+    }
     /* Folder tile: name on top, author/year underneath. Mac Themes Garden /
        Aaron-About-box convention — the scheme authors were the celebrities. */
     #powers .scriptoscope-theme-picker-tile { flex: 0 0 auto; display: grid; gap: 2px; justify-items: center; padding: 8px 8px 6px; border: 1px solid transparent; cursor: pointer; min-width: 86px; max-width: 86px; background: transparent; font: inherit; }
