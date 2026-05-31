@@ -12,13 +12,19 @@
 // close) closes a real a11y gap the demo's hand-rolled modal had.
 
 /** Focusable elements per WAI-ARIA inert/focus management guidance. */
+// Each entry excludes [aria-hidden="true"] — promoted form controls
+// (control.ts) mark the native input aria-hidden + tabIndex=-1 to leave
+// the skinned face as the sole AT target. Without this exclusion the
+// `input:not([disabled])` selector still matches them, so a modal's
+// initial-focus or trap-redirect could land on the AT-invisible native
+// input. (Third-pass a11y reviewer 2026-05-31.)
 const FOCUSABLE_SEL = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
+  'a[href]:not([aria-hidden="true"])',
+  'button:not([disabled]):not([aria-hidden="true"])',
+  'input:not([disabled]):not([type="hidden"]):not([aria-hidden="true"])',
+  'select:not([disabled]):not([aria-hidden="true"])',
+  'textarea:not([disabled]):not([aria-hidden="true"])',
+  '[tabindex]:not([tabindex="-1"]):not([aria-hidden="true"])',
 ].join(',');
 
 /** Walk descendants of `root`, including any shadow roots. The themed-window
@@ -78,21 +84,28 @@ export function openModal(wrap: HTMLElement, options: OpenModalOptions = {}): Op
   // wrap is just the backdrop chrome).
   if (!wrap.hasAttribute('role')) wrap.setAttribute('role', 'presentation');
 
-  // A11y: `inert` siblings of the wrap so SR virtual-cursor / swipe-nav
-  // can't escape the modal. aria-modal on the dialog inside is the
-  // declarative half; `inert` on the background DOM is the actual
-  // constraint. Restored on close. Skip elements that already had
-  // `inert` set by the consumer (don't toggle their state on close).
-  // (a11y reviewer 2026-05-31 second pass.)
+  // A11y: `inert` the full subtree-above-wrap so SR virtual-cursor /
+  // swipe-nav can't escape the modal. aria-modal on the dialog inside
+  // is the declarative half; `inert` on the background DOM is the
+  // actual constraint. Walks UP from wrap to body, inerting siblings
+  // at every level — this handles the common case where the consumer
+  // nests the modal wrap inside a layout container (e.g.
+  // `<body><div class="app"><wrap>`) — inerting only wrap's siblings
+  // would leave `<header>`/`<nav>` outside `.app` reachable. Tracks
+  // every set element so close() can restore exactly what we changed.
+  // Skip elements that already had `inert` set by the consumer.
+  // (Third-pass a11y reviewer 2026-05-31.)
   const inertedSiblings: HTMLElement[] = [];
-  if (wrap.parentElement) {
-    for (const sibling of Array.from(wrap.parentElement.children)) {
-      if (sibling === wrap) continue;
+  let cursor: Element | null = wrap;
+  while (cursor && cursor.parentElement && cursor !== document.body) {
+    for (const sibling of Array.from(cursor.parentElement.children)) {
+      if (sibling === cursor) continue;
       if (!(sibling instanceof HTMLElement)) continue;
       if (sibling.hasAttribute('inert')) continue;
       sibling.setAttribute('inert', '');
       inertedSiblings.push(sibling);
     }
+    cursor = cursor.parentElement;
   }
 
   // Initial focus: first focusable inside the wrap (typically the close
