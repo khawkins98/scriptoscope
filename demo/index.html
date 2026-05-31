@@ -774,6 +774,15 @@
       toggleBtn.hidden = skinned;
     };
 
+    // Random default theme per page load — landing-page only. Picked
+    // ONCE per mount so it's stable across the various windows on the
+    // page (Read Me, Schemes Folder, cards, BYO modal all wear the
+    // same scheme). Overridden by `?theme=<slug>` via syncToUrlParam
+    // when the URL carries a deep-link. User direction 2026-05-31:
+    // the demo should surface different schemes on every visit, not
+    // park on 1138 as a permanent default.
+    const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
+
     const mountPowers = async () => {
       if (handle) return;
       const my = ++mountToken;
@@ -782,7 +791,7 @@
         h = await mountDeclarative({
           root: powersSection,
           themeBaseUrl,
-          pageThemeDefault: '1138',
+          pageThemeDefault: randomDefaultSlug,
           themes: THEMES,
           // syncToUrlParam: '?theme=animals' on the URL sets the initial
           // theme + history.replaceState mirrors every retheme back. The
@@ -839,7 +848,7 @@
       // Seed off the URL param / page default — covers the boot render
       // before the first retheme event fires.
       const url = new URL(window.location.href);
-      const initialSlug = url.searchParams.get('theme') ?? '1138';
+      const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
       renderCredit(findEntry(initialSlug));
       h.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
     };
