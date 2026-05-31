@@ -9,7 +9,7 @@
 //
 // Recommended by the a11y reviewer 2026-05-30. Run via:
 //   node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
-// Pre-req: dev server running on :5188 OR set BASE=http://localhost:4173/aaron-ui
+// Pre-req: dev server running on :5188 OR set BASE=http://localhost:4173/scriptoscope
 //
 // Total cost ~3 seconds; gate the PR on it.
 

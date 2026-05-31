@@ -34,7 +34,7 @@ await copy(
 );
 
 // themes-manifest.json — the canonical theme catalog the README's integration guide
-// publicizes at https://khawkins98.github.io/aaron-ui/themes-manifest.json. Vite bundles
+// publicizes at https://khawkins98.github.io/scriptoscope/themes-manifest.json. Vite bundles
 // it as a JSON import for the demos, but the published URL itself needs a static copy.
 if (await exists(resolve(root, 'demo/themes-manifest.json'))) {
   await copy(
@@ -45,7 +45,7 @@ if (await exists(resolve(root, 'demo/themes-manifest.json'))) {
 
 // llms.txt — the LLM-agent discovery file (https://llmstxt.org standard).
 // Lives at the repo root for humans + dev tools; copied to dist/demo so it's
-// also fetchable at https://khawkins98.github.io/aaron-ui/llms.txt for any
+// also fetchable at https://khawkins98.github.io/scriptoscope/llms.txt for any
 // LLM agent helping a consumer integrate Scriptoscope. The file curates
 // pointers to README + integration docs + recipes + API surface — gives an
 // agent a single canonical starting point instead of guessing across the repo.
@@ -99,7 +99,7 @@ for (const slug of await readdir(themesDir)) {
 // The published GH Pages deploy doubles as a stable URL host for the
 // runtime itself — consumers who want to integrate Scriptoscope into
 // their own page can `<script type="module">import from "https://
-// khawkins98.github.io/aaron-ui/scriptoscope.js"</script>` without
+// khawkins98.github.io/scriptoscope/scriptoscope.js"</script>` without
 // installing from npm. Copy the built library + CSS + the in-browser
 // theme decoder (for BYO theme uploads) so all the integration paths
 // the README documents resolve to real files.

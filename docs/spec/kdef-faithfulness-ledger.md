@@ -67,7 +67,7 @@ to a bug class we hit reactively before the linter existed:
 
 - Pixel-exact fidelity to the **reference images** — there is no golden render-vs-
   reference diff yet (the "Layer 2" net), and it's blocked on trustworthy ground
-  truth — tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190). The
+  truth — tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190). The
   structured-fill joints at extreme widths (M5) and the 1984 title-bar arch (V1b)
   live here.
 - Anything requiring the **per-edge title-fits flag** or the **widget-draw pass**

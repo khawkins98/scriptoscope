@@ -27,7 +27,7 @@ This bundle was ported from a `.sit` archive distributed via the **Mac Themes Ga
 
 ## Takedown / contact
 
-If you are Scott Naness, or otherwise hold rights to this scheme, and would like Scriptoscope to remove it from the bundled corpus, please open an issue at [github.com/khawkins98/aaron-ui/issues](https://github.com/khawkins98/aaron-ui/issues) — we will remove it promptly.
+If you are Scott Naness, or otherwise hold rights to this scheme, and would like Scriptoscope to remove it from the bundled corpus, please open an issue at [github.com/khawkins98/scriptoscope/issues](https://github.com/khawkins98/scriptoscope/issues) — we will remove it promptly.
 
 ## Acknowledgements
 

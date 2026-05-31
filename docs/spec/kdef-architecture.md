@@ -76,7 +76,7 @@ control vocabulary.
 every deliberate divergence) + the diagnostic CLIs / Playground
 ([`diagnostic-tooling.md`](../diagnostic-tooling.md)) for manual inspection. The
 one missing net is golden-vs-reference diffing — deferred, blocked on
-trustworthy ground truth (tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190)).
+trustworthy ground truth (tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190)).
 
 ## 3. How it maps to window management
 

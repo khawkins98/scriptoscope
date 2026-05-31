@@ -68,7 +68,7 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | `platinum-controls-faithfulness-ledger.md` | Companion ledger for the Platinum decode. |
 | `compositor-spec.md` | The runtime model the kDEF replays. The consumer of `kdef231-reference.md` §4. |
 | `glitch-punchlist.md` | A standing list of visual glitches per theme — kept as the v3-reset QA glossary; model alignment complete. |
-| ~~`golden-reference-todo.md`~~ | **Moved to [#190](https://github.com/khawkins98/aaron-ui/issues/190)** 2026-05-30 (forward-looking work belongs on the tracker; design context archived at `../archive/golden-reference-todo.md`). |
+| ~~`golden-reference-todo.md`~~ | **Moved to [#190](https://github.com/khawkins98/scriptoscope/issues/190)** 2026-05-30 (forward-looking work belongs on the tracker; design context archived at `../archive/golden-reference-todo.md`). |
 | `scheme-factory-vs-corpus.md` | Cross-correlation of the 127-entry Scheme Factory `STR# 128` role catalogue against the 6,842 corpus author labels: 12 canonical / 94 paraphrase / 15 weak / 12 invented; 52 of 120 SF slots are dead. |
 | `codebase-vs-primary-sources-audit.md` | 2026-05-29 holistic sweep of `src/` + scripts against the primary-source corpus. 12 findings (documentation, authorLabel adoption, unread decoded fields); nothing landed — gaps surfaced. |
 

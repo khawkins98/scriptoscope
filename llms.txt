@@ -2,25 +2,25 @@
 
 > A web-native re-implementation of Apple's Mac OS 8 Appearance Manager. Period Mac window-types are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources Kaleidoscope read in 1998. Eighteen vintage schemes ship as evidence. CDN-canonical install via GitHub Pages (no npm).
 
-Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-button` / `-control`, and the consumer's elements become draggable, themable Mac windows + widgets. No build step. Native form controls stay real (form submission, keyboard, a11y preserved); chrome is canvas. The library renders schemes 1:1 from their original `.sit` / `.rsrc` binary archives, decoded in-browser. Live demo: <https://khawkins98.github.io/aaron-ui/>.
+Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-button` / `-control`, and the consumer's elements become draggable, themable Mac windows + widgets. No build step. Native form controls stay real (form submission, keyboard, a11y preserved); chrome is canvas. The library renders schemes 1:1 from their original `.sit` / `.rsrc` binary archives, decoded in-browser. Live demo: <https://khawkins98.github.io/scriptoscope/>.
 
 ## Start here
 
-- [README](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + `mountDeclarative()` options + `MountHandle` API. This is the canonical integration reference.
-- [Live demo](https://khawkins98.github.io/aaron-ui/): the canonical consumer page; every documented feature exercised. View source = the recipe.
-- [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/aaron-ui/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.
-- [Themes manifest (JSON)](https://khawkins98.github.io/aaron-ui/themes-manifest.json): the catalog of bundled themes with author + year + license metadata. Pass to `mountDeclarative({ themes: THEMES })` for the picker + auto-cycle.
+- [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + `mountDeclarative()` options + `MountHandle` API. This is the canonical integration reference.
+- [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.
+- [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.
+- [Themes manifest (JSON)](https://khawkins98.github.io/scriptoscope/themes-manifest.json): the catalog of bundled themes with author + year + license metadata. Pass to `mountDeclarative({ themes: THEMES })` for the picker + auto-cycle.
 
 ## Integration patterns + edge cases
 
-- [Integration edge cases](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/integration-edge-cases.md): the long-form companion to README. Read when something is slightly off — widget gating (`data-scriptoscope-widgets`), positioning (Posture B in-flow vs absolute), auto-resize + user-resize handoff, host CSS lockdown + class inheritance, shadow-DOM scoping, internal stamps, framework integration notes (React/Vue/Svelte/Astro/SSR).
-- [Architecture decision: consumption layer (ADR-0001)](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/adr/0001-consumption-architecture.md): why `data-scriptoscope-*` attributes + Shadow DOM + canvas decoration. Read for "why does it work this way?" questions.
+- [Integration edge cases](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/integration-edge-cases.md): the long-form companion to README. Read when something is slightly off — widget gating (`data-scriptoscope-widgets`), positioning (Posture B in-flow vs absolute), auto-resize + user-resize handoff, host CSS lockdown + class inheritance, shadow-DOM scoping, internal stamps, framework integration notes (React/Vue/Svelte/Astro/SSR).
+- [Architecture decision: consumption layer (ADR-0001)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/adr/0001-consumption-architecture.md): why `data-scriptoscope-*` attributes + Shadow DOM + canvas decoration. Read for "why does it work this way?" questions.
 
 ## Common recipes (in README)
 
-- **Five-minute setup** (basic install): tag elements + drop two URLs. <https://raw.githubusercontent.com/khawkins98/aaron-ui/main/README.md#five-minute-setup>
-- **Theme switching at runtime**: `<div data-scriptoscope-theme-picker>` populated from `mountOptions.themes` + `handle.retheme(slug)`. <https://raw.githubusercontent.com/khawkins98/aaron-ui/main/README.md#theme-switching-at-runtime>
-- **Bring your own theme (drop `.sit` / `.rsrc`)**: `attachThemeDropZone()` decodes in-browser; `handle.registerTheme(ref, theme)` makes it switchable. <https://raw.githubusercontent.com/khawkins98/aaron-ui/main/README.md#bring-your-own-theme--drop-a-sit--rsrc-and-see-it-render>
+- **Five-minute setup** (basic install): tag elements + drop two URLs. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#five-minute-setup>
+- **Theme switching at runtime**: `<div data-scriptoscope-theme-picker>` populated from `mountOptions.themes` + `handle.retheme(slug)`. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#theme-switching-at-runtime>
+- **Bring your own theme (drop `.sit` / `.rsrc`)**: `attachThemeDropZone()` decodes in-browser; `handle.registerTheme(ref, theme)` makes it switchable. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#bring-your-own-theme--drop-a-sit--rsrc-and-see-it-render>
 - **Themed modal pattern**: `handle.openModal(wrap, { returnFocusTo })` — focus trap (including shadow-DOM chrome), Esc + backdrop, listens for `scriptoscope:close`. Same section as BYO above.
 - **Author-credit byline on retheme**: listen for `retheme` event + look up the entry from the themes manifest. See `demo/index.html` (search for `powers-credit`) for the live recipe.
 
@@ -28,7 +28,7 @@ Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-b
 
 - **Public exports from `scriptoscope` (the bare entry)**: `loadTheme`, `loadKaleidoscopeScheme`, `renderWindow`, `composeWindowChrome`, `PixelBuffer`, `loadCicnBuffer`, `rasterizeText`, `VERSION`, plus debug helpers.
 - **Public exports from `scriptoscope/declarative` (the declarative entry — most consumers use this)**: `mountDeclarative`, `attachThemeDropZone`, `openModal` (standalone), `parseWindowAttrs`, `parseButtonAttrs`, `ScriptoscopeWindow`, plus type exports. The CDN bundle includes both entries.
-- **CDN URLs**: `<script type="module">import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js'</script>` + `<link rel="stylesheet" href="https://khawkins98.github.io/aaron-ui/scriptoscope.css">`. Themes at `https://khawkins98.github.io/aaron-ui/themes/<slug>/scheme.sit` (or `.rsrc`). Manifest at `https://khawkins98.github.io/aaron-ui/themes-manifest.json`.
+- **CDN URLs**: `<script type="module">import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js'</script>` + `<link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">`. Themes at `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `.rsrc`). Manifest at `https://khawkins98.github.io/scriptoscope/themes-manifest.json`.
 - **`MountHandle` methods**: `disconnect()`, `retheme(slugOrUrl)` → `Promise<void>`, `registerTheme(ref, theme)`, `openModal(wrap, options)` → `{ close() }`, `stats` (live counts).
 - **`MountHandle` events** (handle.addEventListener): `ready`, `retheme`, `promoteError`, `unmounted`. (Four events, NOT `promoted` — see DOM-bubbling events below.)
 - **DOM-bubbling events** — fired on the runtime-inserted host element (the original consumer element is REMOVED at promote time; listen on a stable ancestor like `document.body`, NOT the original element which is detached). All bubble + are composed (cross the shadow boundary into consumer wraps): `scriptoscope:promoted` (`detail = { kind, host }`), `scriptoscope:close` (fires BEFORE teardown), `scriptoscope:userresize` (`detail = { w, h }`, after grow-box commit). The `scriptoscope:promoteError` event (`detail = { kind, el, cause }`) fires on the original consumer element BEFORE it's removed, so listen on an ancestor.
@@ -39,17 +39,17 @@ Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-b
 
 ## Project context (when answering "why" questions)
 
-- [CLAUDE.md (project guide)](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/CLAUDE.md): architecture overview + working norms. The 5-minute onboarding for a Claude session; read this if you're operating on the repo.
-- [LEARNINGS.md](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/LEARNINGS.md): historical log of decisions + gotchas. Append-only with `> ⚠️ Superseded` blockquotes pointing forward. Useful for "why does this work the way it does?" — entries are dated. Recent entries cover the Schemes Folder window-type churn, the grow-box resize feedback loop, the two false-starts pattern, and the doc-sweep recipe.
-- [Project history](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/history.md): the v1 → v2 → v3 arc plus the "Dead ends — don't relitigate these" list. Read before proposing structural changes.
-- [Doc-sweep recipe](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/doc-sweep.md): for keeping docs in sync after heavy iteration days.
+- [CLAUDE.md (project guide)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CLAUDE.md): architecture overview + working norms. The 5-minute onboarding for a Claude session; read this if you're operating on the repo.
+- [LEARNINGS.md](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LEARNINGS.md): historical log of decisions + gotchas. Append-only with `> ⚠️ Superseded` blockquotes pointing forward. Useful for "why does this work the way it does?" — entries are dated. Recent entries cover the Schemes Folder window-type churn, the grow-box resize feedback loop, the two false-starts pattern, and the doc-sweep recipe.
+- [Project history](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/history.md): the v1 → v2 → v3 arc plus the "Dead ends — don't relitigate these" list. Read before proposing structural changes.
+- [Doc-sweep recipe](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/doc-sweep.md): for keeping docs in sync after heavy iteration days.
 
 ## Optional
 
-- [CONTRIBUTING](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/CONTRIBUTING.md): how to land changes + port a new Kaleidoscope scheme into the corpus.
-- [CHANGELOG](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/CHANGELOG.md): release notes.
-- [Porting a Kaleidoscope scheme](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/porting-a-kaleidoscope-scheme.md): adding a new theme to the corpus.
-- [Theme bundle layout](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/theme-bundle-layout.md): the `themes/<slug>/` directory structure each bundle ships.
-- [Compositor spec](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/spec/compositor-spec.md): the authoritative window-chrome model — for compositor-level work, not consumer integration.
-- [Apple Appearance Manager primary source](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/docs/spec/apple-primary-source.md): the kThemeBrush*, kThemeWindowType* enum tables Kaleidoscope schemes were authored against.
-- [License (MIT)](https://raw.githubusercontent.com/khawkins98/aaron-ui/main/LICENSE): library code. Bundled third-party material (font glyphs, sit-wasm) keeps its own terms — see README's License section for details.
+- [CONTRIBUTING](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CONTRIBUTING.md): how to land changes + port a new Kaleidoscope scheme into the corpus.
+- [CHANGELOG](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CHANGELOG.md): release notes.
+- [Porting a Kaleidoscope scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/porting-a-kaleidoscope-scheme.md): adding a new theme to the corpus.
+- [Theme bundle layout](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/theme-bundle-layout.md): the `themes/<slug>/` directory structure each bundle ships.
+- [Compositor spec](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/spec/compositor-spec.md): the authoritative window-chrome model — for compositor-level work, not consumer integration.
+- [Apple Appearance Manager primary source](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/spec/apple-primary-source.md): the kThemeBrush*, kThemeWindowType* enum tables Kaleidoscope schemes were authored against.
+- [License (MIT)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LICENSE): library code. Bundled third-party material (font glyphs, sit-wasm) keeps its own terms — see README's License section for details.

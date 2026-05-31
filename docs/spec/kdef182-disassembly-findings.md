@@ -44,7 +44,7 @@ The kDEFs are where chrome rendering actually happens. The WDEF/CDEF/MDEF replac
 - **Text:** `TextFont`, `TextFace`, `TextSize`, `TextMode`, `DrawText`, `DrawString`, `TruncString`, `StringWidth`, `GetFontInfo`
 - **Resource manager:** `GetResource`, `LoadResource`, `ReleaseResource`, `HLock`, `HUnlock`, `HGetState`, `HSetState`
 
-**Implication for Aaron UI:** CSS `image-rendering: pixelated` + `border-image-repeat: stretch` produces the period-correct sample-and-hold scaling. Browsers default to bilinear filtering, which is wrong for the period. Our existing `image-rendering: pixelated` on chrome strips is correct.
+**Implication for Scriptoscope:** CSS `image-rendering: pixelated` + `border-image-repeat: stretch` produces the period-correct sample-and-hold scaling. Browsers default to bilinear filtering, which is wrong for the period. Our existing `image-rendering: pixelated` on chrome strips is correct.
 
 ### 2.2 Standard controls (buttons) are drawn by the OS, not by Kaleidoscope
 
@@ -80,7 +80,7 @@ These are **Kaleidoscope's own preferences**, not the cinf format. The cinf TMPL
 
 The WPrf reveals two facts about Kaleidoscope's animation model that spec B §13 didn't capture:
 - "Use Spinning Zoom Rects" is a USER preference, not a Colr (scheme) flag — so spec A §19's animation section is correct that this is global, not per-scheme.
-- "Number of steps" controls the zoom animation step count — adjustable by the user. Aaron UI doesn't ship zoom animations yet; if we add them, the step count should be configurable.
+- "Number of steps" controls the zoom animation step count — adjustable by the user. Scriptoscope doesn't ship zoom animations yet; if we add them, the step count should be configurable.
 
 ---
 
@@ -97,7 +97,7 @@ The disassembly clarifies the model: there is **no threshold** in Kaleidoscope. 
 - A **stretched fill** — CopyBits with srcRect = one-pixel-wide source, dstRect = N-pixel-wide destination (the "1-pixel-stretch" Speed Note pattern), OR
 - A **tiled fill** — only when `cinf.tileSides = 1`; uses pattern-fill primitives instead of CopyBits.
 
-**Implication for Aaron UI:** the current `TINY_STRETCH_THRESHOLD = 2` is an ARTIFACT of CSS `border-image` not having a clean "stretch a 1-pixel slice" mode. The period-correct behavior is: source slices are AT MOST 1 pixel wide for fills (the author authored them that way). If a segment is wider in the cicn, it's a STATIC graphic the author wants preserved, not a fill — these correspond to recipe `at` markers that bracket the static graphic.
+**Implication for Scriptoscope:** the current `TINY_STRETCH_THRESHOLD = 2` is an ARTIFACT of CSS `border-image` not having a clean "stretch a 1-pixel slice" mode. The period-correct behavior is: source slices are AT MOST 1 pixel wide for fills (the author authored them that way). If a segment is wider in the cicn, it's a STATIC graphic the author wants preserved, not a fill — these correspond to recipe `at` markers that bracket the static graphic.
 
 The threshold can be replaced with a more honest rule: **if the segment's part is in rectList, stamp the rect at native; otherwise, stretch the source slice at the recipe-bounded width.** Width-of-source = `next_at − cur_at` for fills.
 
@@ -114,7 +114,7 @@ The cinf TMPL 129 in Scheme Factory has explicit fields:
 - `Text Pixel x/y`
 - `Embossing Pixel x/y`
 
-So the kDEF doesn't have to GUESS which pixel — the cinf TELLS it. Aaron UI's current empirical `(1, height-1)` sample is a fallback when cinf is absent; for cinf-present cases, we should be reading these explicit pixel coords from cinf.
+So the kDEF doesn't have to GUESS which pixel — the cinf TELLS it. Scriptoscope's current empirical `(1, height-1)` sample is a fallback when cinf is absent; for cinf-present cases, we should be reading these explicit pixel coords from cinf.
 
 **Action:** check src/themes/loader/decoders/cinf.js — is it already parsing Background/Text/Embossing pixel? (Yes, per our cinf decoder file — the fields exist as `bgPixel`, `textPixel`, `embossPixel`.)
 
@@ -130,17 +130,17 @@ K2 says 125 ms per frame. The disassembly doesn't directly reveal the delay valu
 
 ### §13.7 Disclosure animation timing — UNCHANGED
 
-K2 says 1/20s (50 ms) per frame, 5 frames. Aaron UI doesn't ship animations yet; defer.
+K2 says 1/20s (50 ms) per frame, 5 frames. Scriptoscope doesn't ship animations yet; defer.
 
 ---
 
 ## 4. New findings not previously catalogued
 
-### 4.1 WPrf prefs are USER-level (Aaron UI doesn't have a counterpart)
+### 4.1 WPrf prefs are USER-level (Scriptoscope doesn't have a counterpart)
 
 Kaleidoscope's WPrf carries 5 flags including "Finder Windows have icons" and "Enable WindowShade Widget". These are GLOBAL user prefs (not per-scheme), set in the Control Panel.
 
-**Implication for Aaron UI:** if we want user-level "appearance global" preferences (analogous to Mac OS Appearance Manager), they belong in a Theme-Registry-adjacent layer, NOT in Theme. We have no analog today; not urgent.
+**Implication for Scriptoscope:** if we want user-level "appearance global" preferences (analogous to Mac OS Appearance Manager), they belong in a Theme-Registry-adjacent layer, NOT in Theme. We have no analog today; not urgent.
 
 ### 4.2 The cdev's Colr load pattern (-14336 family)
 
@@ -189,8 +189,8 @@ Disassembly artifacts kept under `/tmp/aaron-disasm/` (not committed). Reproduci
 
 ## 7. References
 
-- [`docs/aaron-ui-raster-mapping-spec.md`](../aaron-ui-raster-mapping-spec.md) §13 — open-question catalog this disassembly is closing against
-- [`docs/aaron-ui-architecture-spec.md`](../aaron-ui-architecture-spec.md) §2-§6 — format model this confirms
+- [`docs/scriptoscope-raster-mapping-spec.md`](../scriptoscope-raster-mapping-spec.md) §13 — open-question catalog this disassembly is closing against
+- [`docs/scriptoscope-architecture-spec.md`](../scriptoscope-architecture-spec.md) §2-§6 — format model this confirms
 - K2 Scheme Reference (in `Kaleidoscope Goodies/`) — period-author documentation
 - Apple "Mac OS Runtime Architecture" (1996) — PEF specification
 - Apple "Inside Macintosh: Macintosh Toolbox Essentials" — WDEF / CDEF / MDEF protocols + QuickDraw reference

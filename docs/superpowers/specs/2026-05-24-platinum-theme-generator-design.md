@@ -80,7 +80,7 @@ Decode the authentic Platinum gray ramp before baking it, via this decision tree
 2. **Cross-check — static-resource decode** of the 8.5 System file's `clut`/`wctb`/`cctb` candidates (`.scratch/iso-recon/` toolchain) for Apple's literal values.
 3. If (1) and (2) diverge materially, **surface both for the user to adjudicate** (an emulator capture or a trustworthy reference image is the tiebreaker).
 
-Risk/dependency: if neither in-repo source yields a clean ramp, a trustworthy Platinum reference image is needed (tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190)).
+Risk/dependency: if neither in-repo source yields a clean ramp, a trustworthy Platinum reference image is needed (tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190)).
 
 ## Frozen parameters (acceptable, and authentic to the format)
 

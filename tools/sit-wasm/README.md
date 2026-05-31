@@ -2,7 +2,7 @@
 
 A small WebAssembly build of [munbox](https://github.com/idolpx/munbox) (MIT) that decodes
 classic-Mac archives **entirely client-side** — bytes in, forks out, no server, no filesystem.
-Built for [scriptoscope](https://github.com/khawkins98/aaron-ui) (the Kaleidoscope-runtime project)
+Built for [scriptoscope](https://github.com/khawkins98/scriptoscope) (the Kaleidoscope-runtime project)
 to accept a dropped Kaleidoscope `.sit` theme, but the module is self-contained and dependency-free:
 a standalone "decode StuffIt in the browser" tool that, as far as we could find, didn't otherwise
 exist. Separable on purpose — it could become its own package/repo with no changes. (Origin note:

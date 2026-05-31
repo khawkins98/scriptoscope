@@ -5,9 +5,9 @@ natively. The decision is in [`PRD.md` §90](../PRD.md) and the reasoning is in
 [`LEARNINGS.md`](../LEARNINGS.md) 2026-05-16 — short version: Apple-asserted
 visual IP on Hi-Tech / Drawing Board / Gizmo, a sparse community `.afm` corpus,
 and a separate compositor model (`kPSetCDEF`) we don't ship. The decision was
-revisited 2026-05-28 (issue [#174](https://github.com/khawkins98/aaron-ui/issues/174))
+revisited 2026-05-28 (issue [#174](https://github.com/khawkins98/scriptoscope/issues/174))
 and confirmed. The pivot — **user-side conversion** instead of a runtime
-importer — is tracked at [#176](https://github.com/khawkins98/aaron-ui/issues/176),
+importer — is tracked at [#176](https://github.com/khawkins98/scriptoscope/issues/176),
 which carries the roadmap for making this pathway lower-friction over time
 (docs improvements, an optional Node CLI converter, possible standalone
 package).

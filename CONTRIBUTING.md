@@ -19,7 +19,7 @@ Scriptoscope is plain TypeScript with no framework dependency.
 2. **Start the dev server.**
    ```sh
    npm run dev        # http://localhost:5173 — opens demo/index.html (the consumer landing); the dev/contributor showcase + per-scheme inspectors live at /diagnostic.html
-   npm run preview:demo # serve the PROD bundle at http://localhost:4173/aaron-ui/ — use before push to catch bundling/minification regressions the dev server hides
+   npm run preview:demo # serve the PROD bundle at http://localhost:4173/scriptoscope/ — use before push to catch bundling/minification regressions the dev server hides
    ```
 
 3. **Check your work.** In prototype mode the project leans on the type checker and the render/audit diagnostics rather than a unit/e2e suite:
@@ -30,7 +30,7 @@ Scriptoscope is plain TypeScript with no framework dependency.
    npm run lint:themes  # validate theme bundles
    ```
 
-4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/aaron-ui/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
+4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
    - Improve a JSDoc comment that confused you the first time you read it.
    - Port an additional freeware scheme into the corpus (see "Adding a theme" below).
@@ -43,7 +43,7 @@ Scriptoscope is plain TypeScript with no framework dependency.
    git push -u origin feat/my-first-change
    ```
 
-6. **Open a PR** from your fork's branch to `khawkins98/aaron-ui:main`, with a typecheck-clean diff. (The maintainer commits directly to the working branch in prototype mode; PRs are the path for external contributions.)
+6. **Open a PR** from your fork's branch to `khawkins98/scriptoscope:main`, with a typecheck-clean diff. (The maintainer commits directly to the working branch in prototype mode; PRs are the path for external contributions.)
 
 ## Branching
 

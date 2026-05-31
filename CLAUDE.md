@@ -13,7 +13,7 @@ Status: prototype mode, pre-1.0. The maintainer commits directly to the working 
 ```sh
 npm install
 npm run dev          # vite, http://localhost:5173 — opens demo/index.html (the consumer landing); the dev/contributor showcase + per-scheme inspectors live at /diagnostic.html
-npm run preview:demo # serve the PROD bundle locally at http://localhost:4173/aaron-ui/ — catches bundling/minification regressions before push (the dev server hides them, then GH Pages silently fails)
+npm run preview:demo # serve the PROD bundle locally at http://localhost:4173/scriptoscope/ — catches bundling/minification regressions before push (the dev server hides them, then GH Pages silently fails)
 # Dev/prod CSS parity: vite.config.js's `serve-scriptoscope-css` middleware
 # serves src/scriptoscope.css at /scriptoscope.css in dev (matching prod's
 # build-time copy). Without it, every CSS rule silently fails in dev — see

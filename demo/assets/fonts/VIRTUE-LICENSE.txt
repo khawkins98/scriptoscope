@@ -10,7 +10,7 @@ WHY IT FITS THIS PROJECT
 Virtue is Marty Pfeiffer's improvement of Apple's "Charcoal" (the Mac OS 8 system
 font). Per the author's readme, it is built on Greg Landweber's reverse-engineered
 Charcoal from the **Aaron extension + Kaleidoscope** control panel — the exact
-lineage this project (Aaron UI) descends from. Used here as the `@font-face`
+lineage this project (Scriptoscope) descends from. Used here as the `@font-face`
 "Charcoal" stand-in so window titles + UI text read in period-accurate type.
 
 TERMS (from the package readme + EULA)
@@ -21,7 +21,7 @@ TERMS (from the package readme + EULA)
 
 MAINTAINER ACTION (courtesy, per the distribution note): email
 marty@scootergraphics.com to note that Virtue is bundled in this repository
-(github.com/khawkins98/aaron-ui) as the Charcoal stand-in, with attribution.
+(github.com/khawkins98/scriptoscope) as the Charcoal stand-in, with attribution.
 
 Converted to WOFF (virtue.woff) from the distributed TrueType (virtue.zip) with
 fonttools. Original readme preserved in the project history / the source URL above.

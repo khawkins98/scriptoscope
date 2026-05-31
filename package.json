@@ -5,13 +5,13 @@
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes (cicn/wnd#/cinf/ppat/Colr) 1:1 from their original binary resources.",
   "license": "MIT",
   "author": "Ken Hawkins",
-  "homepage": "https://github.com/khawkins98/aaron-ui",
+  "homepage": "https://github.com/khawkins98/scriptoscope",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/khawkins98/aaron-ui.git"
+    "url": "git+https://github.com/khawkins98/scriptoscope.git"
   },
   "bugs": {
-    "url": "https://github.com/khawkins98/aaron-ui/issues"
+    "url": "https://github.com/khawkins98/scriptoscope/issues"
   },
   "keywords": [
     "scriptoscope",

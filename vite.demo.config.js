@@ -9,10 +9,11 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   root: 'demo',
-  // GitHub Pages still serves at /aaron-ui/ (the repo slug); override via the env var if/when
-  // the repo is renamed. Package name on npm is scriptoscope; the repo + Pages URL are
-  // separate concerns and can pivot independently.
-  base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/aaron-ui/',
+  // GitHub Pages serves at /scriptoscope/ (the repo slug, post-2026-05-31 rename from
+  // /aaron-ui/). Override via the env var if/when the repo is renamed again. The legacy
+  // AARON_UI_BASE_PATH env var is kept as a fallback alias so any old CI / scripts /
+  // bookmarks pointing at the prior naming keep building.
+  base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/scriptoscope/',
   publicDir: false,
   // Same `scriptoscope` alias as the dev config — keeps the prod bundle
   // using the same import path the landing models for consumers.

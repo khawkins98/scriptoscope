@@ -6,7 +6,7 @@
 // This file should run before any commit that touches positioning.
 //
 // Pre-req: dev server running on :5188 (matches boot-affordance.spec.mjs)
-//   BASE=http://localhost:4173/aaron-ui  for the prod-bundle preview.
+//   BASE=http://localhost:4173/scriptoscope  for the prod-bundle preview.
 //
 // Total cost ~3s.
 

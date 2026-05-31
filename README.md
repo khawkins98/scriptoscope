@@ -4,15 +4,17 @@ A web-native re-implementation of Apple's Mac OS 8 [Appearance Manager](https://
 
 Kaleidoscope was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on Info-Mac had just posted a new one. Then OS X arrived and the whole format went quiet.
 
+There was hope for a while that Kaleidoscope might survive into the OS X era — but the refactor was enormous, and OS X's own theming layer was never as stable as classic Mac OS had been. The various third-party attempts that did ship (ShapeShifter, Magnifique, et al.) had a reputation for corrupting installs more often than they worked. A few macOS versions later, the platform was locked down enough that no third-party chrome layer could ever ship again.
+
 Scriptoscope is a compatibility layer that reads those same scheme files — the actual `.sit` and `.rsrc` bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.
 
 A Kaleidoscope scheme is a Mac resource fork: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a `<canvas>` renderer that speaks the same scheme format the original control panel did. *(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in [the ledger](./docs/spec/kdef-faithfulness-ledger.md) if you care.)* All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.
 
 To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.
 
-Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, [I genuinely want to hear about it](https://github.com/khawkins98/aaron-ui/issues). And if you ever wrote a Kaleidoscope scheme, [the door's open](#if-you-build-a-scheme).
+Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, [I genuinely want to hear about it](https://github.com/khawkins98/scriptoscope/issues). And if you ever wrote a Kaleidoscope scheme, [the door's open](#if-you-build-a-scheme).
 
-> *P.S. The repo is named **aaron-ui** because **Aaron** was Landweber's earlier extension — the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people will catch that. Hello, three people.*
+> *P.S. The project was originally **Aaron UI** — **Aaron** was Landweber's earlier extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope 2026-05-28 once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.*
 
 I emailed Greg Landweber and Arlo Rose and a few of the scheme authors I could find addresses for; if any of them ever reply, that'll be the best day of this project.
 
@@ -24,24 +26,24 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-05-29):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) for the Aaron UI → Scriptoscope rebrand (2026-05-28) + the full `data-scriptoscope-*` sweep (2026-05-29 — the Lodash-kept-`_` argument didn't survive the first integration guide). Live demo: <https://khawkins98.github.io/aaron-ui/>.
+> **Status (pre-1.0, 2026-05-29):** prototype mode. Two public surfaces are in: the **imperative runtime** (`loadTheme()` / `renderWindow()` in [`src/index.ts`](./src/index.ts)) and the **declarative front door** (`mountDeclarative()` + `data-scriptoscope-*` in [`src/declarative/index.ts`](./src/declarative/index.ts)) — both exercised by the demo pages below. The chrome renderer is rebuilt around Kaleidoscope's own part-code model and validated against the decompiled 2.3.1 kDEF. See [`docs/history.md`](./docs/history.md) for the project arc (and the "Dead ends — don't relitigate these" list — read it first), [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md) for the declarative layer's design, and [`LEARNINGS.md`](./LEARNINGS.md) for the Aaron UI → Scriptoscope rebrand (2026-05-28) + the full `data-scriptoscope-*` sweep (2026-05-29 — the Lodash-kept-`_` argument didn't survive the first integration guide). Live demo: <https://khawkins98.github.io/scriptoscope/>.
 
 ## If you build a scheme
 
 The original tooling — Greg Landweber and Arlo Rose's Kaleidoscope.app, Edwin Wong's Scheme Factory, the various ResEdit templates that floated around Info-Mac — is gone, or close enough. But the *format* isn't. Scriptoscope reads the same `cicn` / `wnd#` / `cinf` / `ppat` / `Colr` records the 1999 control panel did, so a scheme authored today against this runtime will render the same way an Erik Ekengren scheme from 1998 does.
 
-Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus is closed because the tools closed, not because the form ran out. If you want to be the one who reopens it, I'd love to help — [file an issue](https://github.com/khawkins98/aaron-ui/issues), mail me a `.rsrc`, draw a single button cicn and see what happens. The renderer doesn't know what year it is.
+Nobody's authored a new Kaleidoscope scheme in roughly twenty years. The corpus is closed because the tools closed, not because the form ran out. If you want to be the one who reopens it, I'd love to help — [file an issue](https://github.com/khawkins98/scriptoscope/issues), mail me a `.rsrc`, draw a single button cicn and see what happens. The renderer doesn't know what year it is.
 
 ## Install
 
 Scriptoscope is a hobby project — there's no npm package. The runtime + the 18 themes are hosted on the project's own GitHub Pages and that **is** the install path. Two URLs, no build step:
 
 ```html
-<link rel="stylesheet" href="https://khawkins98.github.io/aaron-ui/scriptoscope.css">
+<link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
 <script type="module">
-  import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+  import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
   await mountDeclarative({
-    themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+    themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
     pageThemeDefault: '1138',
   });
 </script>
@@ -59,7 +61,7 @@ A more complete page with the script wired in, one window, and a button:
 <head>
   <!-- 1. Optional outer-shell stylesheet (drop shadow, focus ring, desktop background).
        Without this, chrome still renders faithfully — this just adds polish. -->
-  <link rel="stylesheet" href="https://khawkins98.github.io/aaron-ui/scriptoscope.css">
+  <link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
 </head>
 <body>
 
@@ -75,9 +77,9 @@ A more complete page with the script wired in, one window, and a button:
   <!-- 3. Bootstrap. mountDeclarative() scans the page once, then watches
        MutationObserver-style for new data-scriptoscope-* elements. -->
   <script type="module">
-    import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+    import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
     await mountDeclarative({
-      themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+      themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
       pageThemeDefault: '1138',
     });
   </script>
@@ -100,7 +102,7 @@ The full set of behaviours, with the gotchas + framework integration notes + kno
 
 #### Available theme slugs
 
-The live list (with display labels and reference renders) is served at <https://khawkins98.github.io/aaron-ui/themes-manifest.json> and rendered visually at <https://khawkins98.github.io/aaron-ui/> (the demo page's theme switcher). Current bundled corpus:
+The live list (with display labels and reference renders) is served at <https://khawkins98.github.io/scriptoscope/themes-manifest.json> and rendered visually at <https://khawkins98.github.io/scriptoscope/> (the demo page's theme switcher). Current bundled corpus:
 
 | slug | name | author |
 |---|---|---|
@@ -159,7 +161,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 
 ```ts
 await mountDeclarative({
-  themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes', // where bundles live
+  themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes', // where bundles live
   pageThemeDefault: '1138',         // theme slug or URL for windows w/o explicit data-scriptoscope-theme
   persistKey: 'my-app-layout',      // optional: save window positions to localStorage.scriptoscope:layout:<key>
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
@@ -261,10 +263,10 @@ Two ways to wire it. The simpler one is a button or any element that doubles as 
   // a .sit is decoded.
   import {
     mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme,
-  } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+  } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
 
   const handle = await mountDeclarative({
-    themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+    themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
     pageThemeDefault: '1138',
   });
 
@@ -296,11 +298,11 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 
 | URL | What |
 |---|---|
-| `https://khawkins98.github.io/aaron-ui/scriptoscope.js` | Runtime (ESM, ~220 KB raw / 66 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
-| `https://khawkins98.github.io/aaron-ui/scriptoscope.css` | Optional outer-shell stylesheet (~13 KB raw / 5 KB gzip) |
-| `https://khawkins98.github.io/aaron-ui/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
-| `https://khawkins98.github.io/aaron-ui/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
-| `https://khawkins98.github.io/aaron-ui/sit-wasm/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
+| `https://khawkins98.github.io/scriptoscope/scriptoscope.js` | Runtime (ESM, ~220 KB raw / 66 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
+| `https://khawkins98.github.io/scriptoscope/scriptoscope.css` | Optional outer-shell stylesheet (~13 KB raw / 5 KB gzip) |
+| `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
+| `https://khawkins98.github.io/scriptoscope/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
+| `https://khawkins98.github.io/scriptoscope/sit-wasm/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
 
 > **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
 
@@ -319,8 +321,8 @@ Same import path either way (ESM module from a URL), no bundler required.
 Three demo pages sit on the same runtime, each showing a different integration path. To hack on them locally, clone the repo and run the dev server:
 
 ```sh
-git clone https://github.com/khawkins98/aaron-ui.git
-cd aaron-ui
+git clone https://github.com/khawkins98/scriptoscope.git
+cd scriptoscope
 npm install        # dev dependencies (vite, tsc, playwright) — NOT the library itself
 npm run dev        # http://localhost:5173/
 ```
@@ -338,9 +340,9 @@ Two surfaces, same engine.
 A scheme bundle is a directory containing the **original Kaleidoscope archive** (`scheme.sit` preferred, `scheme.rsrc` fallback) plus `meta.json` + `PROVENANCE.md`. `loadTheme()` fetches the archive and decodes it in-browser via the bundled StuffIt + Kaleidoscope decoders; `renderWindow()` composites a window from the result. First per-bundle load is ~234 ms on a fast machine (browser decode + 500 OffscreenCanvas PNG encodes); subsequent calls hit the in-page cache.
 
 ```ts
-import { loadTheme, renderWindow } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+import { loadTheme, renderWindow } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
 
-const theme = await loadTheme('https://khawkins98.github.io/aaron-ui/themes/beos-r503');
+const theme = await loadTheme('https://khawkins98.github.io/scriptoscope/themes/beos-r503');
 const win = await renderWindow(theme, {
   title: 'Hello!',
   width: 320, height: 200,
@@ -375,9 +377,9 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
   </div>
 
   <script type="module">
-    import { mountDeclarative } from 'https://khawkins98.github.io/aaron-ui/scriptoscope.js';
+    import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
     await mountDeclarative({
-      themeBaseUrl: 'https://khawkins98.github.io/aaron-ui/themes',
+      themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
       baseSlug: 'apple-platinum-2',
     });
   </script>
@@ -392,7 +394,7 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Gestures**: drag the title bar (or any frame edge for side-titled palettes); drag the gripper to resize; click the **collapse** box or **double-click** the title bar to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it.
 
-Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/aaron-ui/>.
+Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/scriptoscope/>.
 
 ### Bring your own theme (in-browser conversion)
 
@@ -400,7 +402,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
-- **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/aaron-ui/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
+- **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
 - **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
 - **[`docs/spec/README.md`](./docs/spec/README.md)** — the **index** of every primary-source decode under `docs/spec/` (the citation chain: corpus → Scheme Factory → Apple → kDEF 2.3.1 → kDEF 1.8.2). First stop when chasing "what does id/field/address X mean?". The spec tree has grown to 30+ docs and this index is kept current.
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
@@ -471,17 +473,17 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 ### Themes — bring more in, surface what they ship
 
-- **Mac OS Appearance Manager theme import (.afm / kTHM)** — currently out of scope by deliberate decision ([#174](https://github.com/khawkins98/aaron-ui/issues/174) closed `wontfix`; the user-side `.afm` → `.rsrc` conversion path is documented at [`docs/converting-from-afm.md`](./docs/converting-from-afm.md)). If trademark posture changes, [#176](https://github.com/khawkins98/aaron-ui/issues/176) tracks the positive-side conversion-tooling roadmap (Tier 1: worked docs; Tier 2: Node CLI converter; Tier 3: standalone npm package; Tier 4: drop-zone integration).
-- **Theme variants / accents** — some Kaleidoscope schemes ship multiple palettes in one `.ksc` (day/night, gold/silver/copper, B/W vs colour). Currently we extract one variant deterministically. Whether they become theme **siblings** (separate slugs) or a runtime **knob** (`LoadedTheme.variant`) is an open design call. Tracked in [#177](https://github.com/khawkins98/aaron-ui/issues/177).
-- **Bonus assets in scheme bundles** — schemes routinely ship more than chrome: desktop patterns (`crayon-os`'s "Crayon OS Desktop"), bitmap fonts (`apple-lisa`'s Lisa Classic 12 / Icon Names 10), custom cursors (`slimes`' Slime cursor), zip icon overlays, HTML readmes with embedded GIFs, custom Finder icons. Currently silently discarded. [#177](https://github.com/khawkins98/aaron-ui/issues/177) tracks per-asset-type wiring.
+- **Mac OS Appearance Manager theme import (.afm / kTHM)** — currently out of scope by deliberate decision ([#174](https://github.com/khawkins98/scriptoscope/issues/174) closed `wontfix`; the user-side `.afm` → `.rsrc` conversion path is documented at [`docs/converting-from-afm.md`](./docs/converting-from-afm.md)). If trademark posture changes, [#176](https://github.com/khawkins98/scriptoscope/issues/176) tracks the positive-side conversion-tooling roadmap (Tier 1: worked docs; Tier 2: Node CLI converter; Tier 3: standalone npm package; Tier 4: drop-zone integration).
+- **Theme variants / accents** — some Kaleidoscope schemes ship multiple palettes in one `.ksc` (day/night, gold/silver/copper, B/W vs colour). Currently we extract one variant deterministically. Whether they become theme **siblings** (separate slugs) or a runtime **knob** (`LoadedTheme.variant`) is an open design call. Tracked in [#177](https://github.com/khawkins98/scriptoscope/issues/177).
+- **Bonus assets in scheme bundles** — schemes routinely ship more than chrome: desktop patterns (`crayon-os`'s "Crayon OS Desktop"), bitmap fonts (`apple-lisa`'s Lisa Classic 12 / Icon Names 10), custom cursors (`slimes`' Slime cursor), zip icon overlays, HTML readmes with embedded GIFs, custom Finder icons. Currently silently discarded. [#177](https://github.com/khawkins98/scriptoscope/issues/177) tracks per-asset-type wiring.
 
 ### Renderer — richer chrome + state coverage
 
 - **Better icon coverage** — `icl`/`ics` icon families (Finder/system icons) extract cleanly today (4-bit + 8-bit), but the runtime renders only what a window needs. A page-level "show me every icon the loaded scheme ships" view would let consumers browse and pick by name. Also: small `icm#` mini-icons (`apple-lisa` ships 33 of them) and `cicn` icons in id ranges -3800..-20800 aren't wired everywhere they could be.
 - **Better body backgrounds** — `bodyBackground` ppat tiling is shipped per-scheme (some ship one, some don't). Per-window-type backgrounds work in principle (the `cinf.bgPatternId` decode is wired) but no corpus scheme exercises them yet. Worth surfacing as a configurable knob: "use the scheme's background everywhere / only in document windows / override with a CSS value."
-- **Navigation bars + menu bar chrome** — Kaleidoscope schemes ship menubar background + highlight cicns at `-12272/-12287/-12288` and accent-menu families at `-12256+`. The corpus has these but the runtime doesn't compose them yet ([#166](https://github.com/khawkins98/aaron-ui/issues/166) tracks the menu/popup API design — alpha-deferred).
+- **Navigation bars + menu bar chrome** — Kaleidoscope schemes ship menubar background + highlight cicns at `-12272/-12287/-12288` and accent-menu families at `-12256+`. The corpus has these but the runtime doesn't compose them yet ([#166](https://github.com/khawkins98/scriptoscope/issues/166) tracks the menu/popup API design — alpha-deferred).
 - **Sound packs** — schemes occasionally ship `snd ` (system-7 sound) resources. Out of corpus norm but interesting if a consumer wanted period-correct beep/click/drag audio.
-- **State-rich slot vocabulary** — current schema knows `active|inactive|collapsed-active|collapsed-inactive`. The catalog defines additional states (pressed/disabled/normal/empty/small × N) that schemes ship for richer control vocabularies. [#178](https://github.com/khawkins98/aaron-ui/issues/178) item 12.
+- **State-rich slot vocabulary** — current schema knows `active|inactive|collapsed-active|collapsed-inactive`. The catalog defines additional states (pressed/disabled/normal/empty/small × N) that schemes ship for richer control vocabularies. [#178](https://github.com/khawkins98/scriptoscope/issues/178) item 12.
 
 ### Discovery — find themes without leaving the project
 
@@ -492,15 +494,15 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 ### Adopter-facing extras
 
-- **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/aaron-ui/issues/29) — open decision).
+- **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/scriptoscope/issues/29) — open decision).
 - ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Spike result.
-- **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/aaron-ui/issues/79) closed but the framework would live here.
+- **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/scriptoscope/issues/79) closed but the framework would live here.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
 - **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.
-- **Period-correct animation polish** — zoom-to-icon close, windowshade collapse, sheet slide-in. Tracked under [#25](https://github.com/khawkins98/aaron-ui/issues/25) Phase 6.
-- **cv-mac integration** — the upstream project this was extracted from. WinBox swap one PR away once the API stabilizes; [#27](https://github.com/khawkins98/aaron-ui/issues/27).
+- **Period-correct animation polish** — zoom-to-icon close, windowshade collapse, sheet slide-in. Tracked under [#25](https://github.com/khawkins98/scriptoscope/issues/25) Phase 6.
+- **cv-mac integration** — the upstream project this was extracted from. WinBox swap one PR away once the API stabilizes; [#27](https://github.com/khawkins98/scriptoscope/issues/27).
 
-Tracker issues for new ideas: <https://github.com/khawkins98/aaron-ui/issues/new>.
+Tracker issues for new ideas: <https://github.com/khawkins98/scriptoscope/issues/new>.
 
 ## License
 

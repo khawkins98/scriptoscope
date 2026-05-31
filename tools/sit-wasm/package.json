@@ -44,7 +44,7 @@
   "author": "Ken Hawkins",
   "repository": {
     "type": "git",
-    "url": "https://github.com/khawkins98/aaron-ui.git",
+    "url": "https://github.com/khawkins98/scriptoscope.git",
     "directory": "tools/sit-wasm"
   },
   "engines": {

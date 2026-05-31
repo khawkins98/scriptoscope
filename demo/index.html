@@ -60,7 +60,8 @@
          the ON-state chrome reveal hits twice as hard.
        - Skin toggle promoted to an explicit action-labelled button (the
          disbelief beat needs an INVITATION to flip, not a state report).
-       - Top-right /aaron-ui breadcrumb retired (leaks the repo name, also
+       - Top-right /aaron-ui breadcrumb retired (the historical repo slug;
+         today it would have leaked /scriptoscope/, same problem — also
          period homepages didn't breadcrumb); replaced by a version line
          under the install snippet (every Mac shareware Read Me started
          with Version / License / Requires). */
@@ -535,18 +536,19 @@
                data-scriptoscope-widgets="zoom,collapse">
         <h2>Scriptoscope: Hundreds of Kaleidoscope schemes running on your site, twenty-five years too late.</h2>
         <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly — Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with thousands of schemes. Then OS X arrived in 2001 and the whole format went quiet.</p>
+        <p class="powers-lede">There was hope for a while that Kaleidoscope might survive into the OS X era — but the refactor was enormous, and OS X's own theming layer was never as stable as classic Mac OS had been. The various third-party attempts that did ship (ShapeShifter, Magnifique, et al.) had a reputation for corrupting installs more often than they worked. A few macOS versions later, the platform was locked down enough that no third-party chrome layer could ever ship again.</p>
         <p class="powers-lede">Decades on, the schemes are remembered with nostalgia but largely unreachable — the only way to actually see them is through period Macintosh emulators, fun for archaeology but hardly practical. What if, through the beauty of JavaScript and a <code>&lt;canvas&gt;</code>, we could just apply them to our websites?</p>
         <p class="powers-lede">If you're in that very small Venn diagram overlap, behold: Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
-        <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
+        <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
         <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. <em>(The <a href="https://macthemes.garden/">full corpus</a> — 4,400-plus themes from 900-plus authors — is still out there if you want to dig.)</em> This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>
+        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. <em>(The <a href="https://macthemes.garden/">full corpus</a> — 4,400-plus themes from 900-plus authors — is still out there if you want to dig.)</em> This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
         <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
-        <p class="powers-meta-aaron">P.S. The repo is named <em>aaron-ui</em> because <strong>Aaron</strong> was Landweber's <em>earlier</em> extension — the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people will catch that. Hello, three people.</p>
+        <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
       </article>
       <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
-      <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute — Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/aaron-ui">view source</a></p>
+      <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute — Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
       <!-- HERO CONTROL STRIP — wrapped in a titled-utility window so it
            demonstrates a SECOND window-type alongside the document-windows
            and the About utility. titled-utility is the classic Mac tools-
@@ -588,7 +590,7 @@
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="folder">⌘</div>
             <div>
               <h3><a href="./diagnostic.html#detail">One engine, eighteen looks</a></h3>
-              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped (the <strong>kDEF replay engine</strong>): same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
+              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped (the <strong>kDEF replay engine</strong>): same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
             </div>
           </article>
           <article class="powers-card" data-scriptoscope-window
@@ -600,7 +602,7 @@
               <p>So that's what this does. Drop a <code>.sit</code> on the page — say, the original <code>beosr503.sit</code> Jon Alexander uploaded in 2002 — and the runtime hands the bytes to a WebAssembly StuffIt decoder, lifts the resource fork out of the unpacked MacBinary wrapper, walks the resource map, and pulls each typed record into memory. The 8-bit <code>cicn</code> color icons get their CLUTs applied and Mac 1.8 → sRGB 2.2 gamma-corrected; the <code>wnd#</code> rect list becomes the four-sided recipe the compositor walks part-code by part-code; the <code>ppat</code> patterns become tile sources for the desktop and the dialog grays. All of it in your browser — no upload, no server, no telemetry, no account. Refresh the tab and the bytes are gone.</p>
               <p>Two things this enables that nothing else does. First: the eighteen bundled schemes ship as their <em>original archives</em> — <code>scheme.sit</code> straight from kaleidoscope.net's 1999 mirror, or <code>scheme.rsrc</code> recovered from a Wayback crawl when the StuffIt is no longer reachable — with a <code>meta.json</code> that records who made it and where it came from. Nothing's been re-encoded or &ldquo;cleaned up.&rdquo; If a 1998 byte was wrong, it's wrong here.</p>
               <p>Second: the demo's drop zone is the same code path as the bundled corpus. Drag any of the 3,000-plus schemes from the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a> onto the page and watch it render — the runtime doesn't know or care that you didn't ship it.</p>
-              <p>The decoder lives in <a href="https://github.com/khawkins98/aaron-ui/tree/main/tools/theme-loader"><code>tools/theme-loader/</code></a> and has no dependency on the renderer, the DOM, Node, or anything else app-specific. If you want to read resource forks in a browser for some other reason — a Mac archaeology project, a Hypercard stack viewer, a Mac OS save-game inspector — it's MIT licensed and it'll work.</p>
+              <p>The decoder lives in <a href="https://github.com/khawkins98/scriptoscope/tree/main/tools/theme-loader"><code>tools/theme-loader/</code></a> and has no dependency on the renderer, the DOM, Node, or anything else app-specific. If you want to read resource forks in a browser for some other reason — a Mac archaeology project, a Hypercard stack viewer, a Mac OS save-game inspector — it's MIT licensed and it'll work.</p>
             </div>
           </article>
         </div>
@@ -614,7 +616,7 @@
                    data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="prefs">✎</div>
             <div>
-              <h3><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
+              <h3><a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
               <p>Tag an element, tell the runtime what it is — window, button, checkbox, slider, scrollbar — and it wears the current scheme. No React, no Web Components dependency, no build step required. The children stay live HTML; only the chrome is canvas.</p>
               <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
 &lt;input type=&quot;range&quot; data-scriptoscope-slider /&gt;
@@ -632,9 +634,9 @@
         </div>
       </div>
       <div class="powers-divider">
-        <span>Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no original code is shipped or executed. Deliberate divergences are catalogued in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>.</span>
+        <span>Reverse-engineered clean-room from the decompiled Kaleidoscope 2.3.1 kDEF — no original code is shipped or executed. Deliberate divergences are catalogued in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>.</span>
         <nav class="powers-footnav" aria-label="Section nav">
-          <a href="./diagnostic.html#ribbon">Schemes</a><span>|</span><a href="./diagnostic.html#byo">Bring your own</a><span>|</span><a href="./diagnostic.html">Runtime diagnostics</a><span>|</span><a href="https://github.com/khawkins98/aaron-ui">Source</a><span>|</span><a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">Ledger</a>
+          <a href="./diagnostic.html#ribbon">Schemes</a><span>|</span><a href="./diagnostic.html#byo">Bring your own</a><span>|</span><a href="./diagnostic.html">Runtime diagnostics</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope">Source</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">Ledger</a>
         </nav>
       </div>
     </div>
@@ -660,7 +662,7 @@
     // links in <head> below let the browser start the woff fetches in
     // parallel with the JS download instead of after it.)
 
-    // Theme bundles live under the deploy base: `/` in dev, `/aaron-ui/` on
+    // Theme bundles live under the deploy base: `/` in dev, `/scriptoscope/` on
     // GH Pages. BASE_URL carries the prefix + trailing slash.
     const BASE = import.meta.env.BASE_URL;
     const themeBaseUrl = `${BASE}themes`.replace(/\/+$/, '');
