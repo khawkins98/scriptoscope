@@ -5,7 +5,7 @@ This is the long-form companion to the README's quick-start. It exists for the t
 If you only want to drop Scriptoscope onto a static HTML page and not touch it again, you probably don't need this doc. The defaults are tuned for the common case.
 
 **Contents**
-- [Close is universal: pick the right window-type](#close-is-universal-pick-the-right-window-type)
+- [Controlling which widgets do something: `data-scriptoscope-widgets`](#controlling-which-widgets-do-something-data-scriptoscope-widgets)
 - [How positioning works](#how-positioning-works-posture-b-2026-05-31)
 - [Auto-resize: content growing after promote](#auto-resize-content-growing-after-promote)
 - [Class inheritance and the locked-down properties](#class-inheritance-and-the-locked-down-properties)
@@ -16,11 +16,36 @@ If you only want to drop Scriptoscope onto a static HTML page and not touch it a
 - [Internal stamps — don't set these yourself](#internal-stamps--dont-set-these-yourself)
 - [Framework integration notes](#framework-integration-notes)
 
-## Close is universal: pick the right window-type
+## Controlling which widgets do something: `data-scriptoscope-widgets`
 
-The chrome's close widget — when the scheme's cicn paints one — ALWAYS dismisses the window (runtime restores the bare HTML in its place). There's no per-window opt-out attribute; the universal Mac OS contract is "close means close."
+The chrome paints whatever widgets a scheme's cicn defines for the window-type — close, zoom, collapse. By default every painted widget is wired (clicking close dismisses, clicking zoom grows-to-fit, clicking collapse window-shades). To leave a widget *painted but inert*, opt into the subset:
 
-If you don't want a window dismissible, pick a window-type whose canonical Mac OS look has no close widget. `movable-modal` is the natural fit for "draggable content with no widgets" — the demo uses it for the Read Me and the Schemes Folder picker for exactly this reason. A handful of schemes paint close on movable-modal anyway (their cicn art differs from the Apple Appearance Manager default); in those, clicking close still works and the bare HTML article remains where the chrome was. The library's event listeners on children (picker tiles, buttons) survive unmount, so clicking BeOS in a "closed" Schemes Folder still rethemes the page.
+```html
+<article data-scriptoscope-window
+         data-scriptoscope-window-type="document-window"
+         data-scriptoscope-widgets="zoom,collapse">
+  Read Me content. The close widget paints (cicn art preserved) but the click does nothing.
+</article>
+```
+
+Semantics:
+- **Attribute absent** (default): every widget the type supports is wired.
+- **`widgets="zoom,collapse"`**: only the listed widgets are wired; the others paint but are inert.
+- **`widgets=""`** (empty): every painted widget is inert. Useful for non-dismissible picker palettes whose scheme happens to paint a close box.
+
+The demo uses `document-window` + `widgets="zoom,collapse"` for both the Read Me and the Schemes Folder picker — they're page-essential content, not dismissible.
+
+When close IS wired, clicking it dismisses the window — the runtime restores your original bare HTML in place. Event listeners on children (picker tiles, buttons) survive the unmount, so a "closed" window's interactive children keep working as plain HTML.
+
+**Detecting close from JS:** listen for the bubbling `scriptoscope:close` CustomEvent on the host (or any ancestor — it bubbles + is composed, so consumer wraps outside the shadow tree catch it too):
+
+```js
+host.addEventListener('scriptoscope:close', () => {
+  // Runtime is about to teardown + restore bare HTML.
+});
+```
+
+> Earlier guidance (pre-2026-05-31) suggested picking `movable-modal` as the "no close widget" type. That was a workaround; the widgets attribute is the right primitive. Some schemes paint close on movable-modal anyway — `widgets=""` is the unambiguous opt-out.
 
 ## How positioning works (Posture B, 2026-05-31)
 
@@ -29,11 +54,13 @@ Two postures, decided by whether you set `data-scriptoscope-x` or `data-scriptos
 - **In-flow (default).** No `-x`/`-y` → the host is created as `position: static` and sits exactly where your source element sat in the DOM. Grid cells, flex children, normal flow, everything works because the browser's own layout engine places it. Siblings push down naturally — the runtime doesn't pin ancestor heights or cascade-shift. Inline `position` is cleared, so your own `.my-class { position: relative }` for stacking contexts is respected.
 - **Absolute (opt-in via `-x`/`-y`).** Either coordinate present → host flips to `position: absolute` resolved against the nearest positioned ancestor. Use for desktop scatters, overlays, palettes. The `cascade` fallback (`24+26·n`, `24+26·n`) applies only when the source element has no bounding rect (e.g. `display: none` at promotion time). Coordinates must be in **px**; percentages / em / vh aren't parsed.
 
-Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag / keyboard-arrow move (you can drag an in-flow window and it lifts out of flow at the captured page position); once converted, it stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
+Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag, keyboard-arrow move, or grow-box resize. When the handoff happens, the runtime inserts an invisible `<div data-scriptoscope-placeholder>` in the host's original static slot so siblings don't collapse upward — the page stays put while the window floats out. The placeholder persists until the window is unmounted (cleaned up by `WindowManager.remove`). Once converted, the host stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
 
 ## Auto-resize: content growing after promote
 
 Any window with at least one un-declared dimension (no `data-scriptoscope-width` OR no `-height`) is wired to a shared `ResizeObserver` on its content. If consumer content grows after promote — an async-loaded image, a runtime-populated picker, a framework that paints children in a follow-up tick — the chrome re-fits to the new size automatically. The fit only GROWS past the captured baseline, never shrinks (transient layout collapses don't yank the window smaller).
+
+Auto-fit also terminates the first time the user grow-box-resizes the window. The runtime treats the user-chosen size as authoritative from that point: `WindowManager` fires a bubbling `scriptoscope:userresize` event, and the shared `ResizeObserver` is unobserved for that window. After a user resize, subsequent content growth WILL clip (the slot's `overflow: auto` will scroll the themed Kaleidoscope scrollbar). This is intentional — the alternative is fighting the user's resize gesture with auto-grow.
 
 Past a 30 px / 500 ms growth threshold the runtime emits a one-shot `console.warn` suggesting you pre-declare via `data-scriptoscope-extra-width="N"` / `-extra-height="N"` to skip the visual pop on initial load. **To suppress the warning**: either set the suggested `-extra-*` attribute, or declare absolute `-width`/`-height` (auto-resize is suppressed entirely for declared dimensions).
 
@@ -120,6 +147,8 @@ The runtime uses these DOM attributes as re-entrancy guards. Consumers should no
 - `data-scriptoscope-switcher-wired` (on `<select data-scriptoscope-theme-switcher>`)
 - `data-scriptoscope-current-state="active|inactive"` (on the inner `.scriptoscope-window`, indicates focus state)
 - `data-scriptoscope-theme="<slug>"` (on each window host, indicates which theme is painted)
+- `data-scriptoscope-placeholder` (a hidden `<div>` inserted in the original static slot when a host converts to absolute via drag/keyboard-move/grow-box-resize; reserves the flow position so siblings don't collapse upward)
+- `data-scriptoscope-modal-open` (on a wrap passed to `handle.openModal` — consumer CSS scopes visibility off this attribute; the runtime toggles it)
 
 `SCRIPTOSCOPE_PROMOTED_ATTR` is exported as a constant for SSR setups that need to assert the attribute is absent.
 
@@ -129,3 +158,4 @@ The runtime uses these DOM attributes as re-entrancy guards. Consumers should no
 - **Vue / Svelte**: same shape. Mount Scriptoscope in `onMounted` / `onMount`, after the framework's first paint.
 - **Astro / 11ty / static-render**: works perfectly — the bare HTML is what the static render produces; the script runs and promotes on client hydrate.
 - **Server-rendered HTML with sticky elements**: if your server emits any of the "internal stamps" above (you shouldn't), the scanner skips those elements as already-promoted. Strip them in your render layer.
+- **Modal patterns**: if you're building a "click this button → show a themed window in an overlay" flow, use `handle.openModal(wrap, { returnFocusTo: triggerButton })`. It handles focus trap (including shadow-DOM chrome focusables via the `focusin` redirect pattern), Esc, backdrop-click dismissal, and listens for `scriptoscope:close` so the chrome's close widget closes the overlay. Pass `returnFocusTo` explicitly — `document.activeElement` at the moment a mouse click opens the modal is BODY, not the trigger button. The wrap is your `position: fixed` container; the runtime toggles `data-scriptoscope-modal-open` on it, your CSS scopes visibility/opacity/pointer-events off the attribute.

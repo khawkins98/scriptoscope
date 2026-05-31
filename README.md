@@ -138,7 +138,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |
 | `data-scriptoscope-z="…"` | a window | Initial stacking order. Higher = on top. |
 | `data-scriptoscope-collapsed` | a window | Boot pre-shaded (just title bar visible). Double-click the title to toggle at runtime. |
-| `data-scriptoscope-widgets` | a window | Comma-separated subset of `close,zoom,collapse` whose click handlers wire up. Omitted widgets are still painted by the cicn art (we don't paint over chrome) but clicking does nothing. Default (attribute absent): every widget the type supports is wired. Pair with the type: e.g. `document-window` + `widgets="zoom,collapse"` for a Read Me that can't be closed; `titled-utility-window` + `widgets=""` for a non-dismissible picker palette. |
+| `data-scriptoscope-widgets` | a window | Comma-separated subset of `close,zoom,collapse` whose click handlers wire up. Omitted widgets are still painted by the cicn art (we don't paint over chrome) but clicking does nothing. Default (attribute absent): every widget the type supports is wired. The demo uses `document-window` + `widgets="zoom,collapse"` for both the Read Me and the Schemes Folder — page-essential content, not dismissible. `widgets=""` makes every painted widget inert. |
 | `data-scriptoscope-theme="…"` | a window OR any ancestor | Per-element theme override (slug or URL). Nearest-ancestor wins. |
 | `data-scriptoscope-theme-switcher` | a `<select>` | Runtime theme picker. Selecting an option re-skins every window + control. |
 | `data-scriptoscope-button` | a `<button>` | Themed push button. Native button stays underneath (form/keyboard/a11y preserved). |
@@ -189,10 +189,19 @@ handle.addEventListener('retheme', (e) => { /* theme just switched; e.detail.ref
 handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, err } */ });
 handle.addEventListener('unmounted', () => { /* disconnect() finished */ });
 
+// On a window host (not the handle): bubbling CustomEvent fired BEFORE teardown,
+// composed so it crosses the shadow boundary into your consumer wraps.
+host.addEventListener('scriptoscope:close', () => { /* runtime is about to restore bare HTML */ });
+
 // Methods
-handle.disconnect();                      // tear down observers + restore source elements
-handle.retheme(slugOrUrl);                // programmatic theme switch (fires the 'retheme' event)
-handle.registerTheme(ref, loadedTheme);   // register a runtime-decoded theme (used by drop-zones)
+handle.disconnect();                       // tear down observers + restore source elements
+handle.retheme(slugOrUrl);                 // programmatic theme switch (fires the 'retheme' event)
+handle.registerTheme(ref, loadedTheme);    // register a runtime-decoded theme (used by drop-zones)
+handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (including shadow-DOM chrome
+                                           //   focusables), Esc, backdrop-click, listens for the inner
+                                           //   window's scriptoscope:close. Toggles `data-scriptoscope-modal-open`
+                                           //   on the wrap; your CSS scopes visibility off that attribute.
+                                           //   Returns { close() }. Idempotent on the same wrap.
 
 // Properties
 handle.stats;  // { windows, buttons, controls, fields, tabs, icons, pickers } — live counts updated on each promote
@@ -262,7 +271,7 @@ Two ways to wire it. The simpler one is a button or any element that doubles as 
 
 That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [Mac Themes Garden](https://macthemes.garden/) and [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/) archives ship (`.sit`, `.hqx`, `.bin`, AppleSingle/Double, raw `.rsrc`); the decode runs entirely client-side via the bundled StuffIt WASM. The dropped theme persists for the session; reload restores the default.
 
-**The richer pattern** (used by the demo's "Load your own" picker tile) opens a themed `movable-modal` window with the drop zone inside it. The drop-zone wiring is identical — `attachThemeDropZone` on a button inside the modal — but the modal lives in a `position: fixed` wrap that toggles visibility on click. The full markup + CSS + boot wiring for the modal pattern is in [`demo/index.html`](./demo/index.html) (search for `powers-byo-modal-wrap`); the structure: themed `<article data-scriptoscope-window data-scriptoscope-window-type="movable-modal">` inside a fixed-position wrap with `visibility: hidden; opacity: 0; pointer-events: none` until a `.open` class flips them on. Backdrop click + Escape close it.
+**The richer pattern** (used by the demo's "Load your own" picker tile) opens a themed `movable-modal` window with the drop zone inside it. Use `handle.openModal(wrap, { returnFocusTo: triggerButton })` — the helper toggles `data-scriptoscope-modal-open` on the wrap (your CSS scopes off the attribute), traps focus inside (including the shadow-DOM chrome focusables), dismisses on Esc + backdrop click, and listens for the chrome's close widget via `scriptoscope:close`. The full markup is in [`demo/index.html`](./demo/index.html) (search for `powers-byo-modal-wrap`): a `position: fixed` wrap with `visibility: hidden; opacity: 0; pointer-events: none` until `[data-scriptoscope-modal-open]` flips them on, with a themed `<article data-scriptoscope-window data-scriptoscope-window-type="movable-modal">` inside.
 
 ### CDN paths reference
 

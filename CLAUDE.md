@@ -71,14 +71,16 @@ Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing
 - `baseChain.ts` — `LoadedTheme.base` inheritance walker (`resolveInChain`). Sparse bundles like `apple-platinum-2` defer to a base scheme (the consumer picks via `mountDeclarative({ baseSlug })`).
 - `pixelBuffer.ts` — the offscreen QuickDraw-style buffer everything draws into.
 - `textRaster.ts` — Charcoal 12 / Virtue bitmap title rasterizer (uses an ink-tight buffer; the compositor centres it).
-- `declarative/` — the `data-scriptoscope-*` consumption layer (separate public entry — `mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, `parseWindowAttrs`). Does **not** modify the runtime; imports it directly.
-- `interactive.ts` — `WindowManager` + interactive widget wrappers (buttons, checkboxes, sliders, scrollbars, title widgets). Also owns the drag handoff: an in-flow host converts to `position: absolute` on first pointer-drag / keyboard-arrow move (Posture B, see below).
+- `declarative/` — the `data-scriptoscope-*` consumption layer (separate public entry — `mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, `parseWindowAttrs`, `openModal`). Dispatches `scriptoscope:ready`, `scriptoscope:promoted`, `scriptoscope:retheme`, `scriptoscope:promoteError`, `scriptoscope:unmounted` on the handle + `scriptoscope:close` (before unmount) + `scriptoscope:userresize` (after grow-box) on the host. Does **not** modify the runtime; imports it directly.
+- `interactive.ts` — `WindowManager` + interactive widget wrappers (buttons, checkboxes, sliders, scrollbars, title widgets). Also owns the drag/resize handoff: an in-flow host converts to `position: absolute` on first pointer-drag / keyboard-arrow move / grow-box resize (Posture B, see below). The handoff inserts a `<div data-scriptoscope-placeholder>` in the host's static slot to reserve flow (siblings don't collapse upward); the placeholder is cleaned up in `WindowManager.remove`.
 
 ### Declarative layout model (Posture B, 2026-05-31)
 
 The consumption layer defaults to **in-flow hosts** (`position: static`, inline cleared so consumer-class CSS for `position` is respected). Setting `data-scriptoscope-x` or `-y` opts into absolute positioning; the drag handler flips static→absolute on the first move so a dragged window lifts cleanly out of flow.
 
 A shared `ResizeObserver` is wired whenever at least one dimension is un-declared, so content growing after promote (picker tiles populated by the runtime, async-loaded images) auto-fits the chrome. The fit only GROWS past the captured baseline. A 30 px / 500 ms growth warning fires once per window with a copy-paste hint pointing at `data-scriptoscope-extra-width/-height`.
+
+Auto-fit is terminated when the user grow-box-resizes: `WindowManager` dispatches a bubbling `scriptoscope:userresize` event on commit, and `ScriptoscopeWindow.acceptUserSize(w, h)` unobserves the shared RO for that window. After a user resize, the chrome stays at the user's chosen size regardless of subsequent content growth (it's a "I'm in charge now" signal). Subsequent content overflow scrolls via the themed Kaleidoscope scrollbar.
 
 Ten host CSS properties are locked down via inline styles (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`, `contain`) so inherited consumer classes can't break the host↔chrome box correspondence. Consumer styles for color/font/position/custom-properties still apply. The set grows monotonically; see the Posture B LEARNINGS entry for the history.
 
@@ -102,6 +104,7 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - **Don't infer roles from slugs or ids.** Read `themes/<slug>/resource-roles.json`. The same id (e.g. `-10239`) is a button cicn in one scheme and a checkbox ics4 in another.
 - **Mac 1.8 → sRGB 2.2 gamma is a BAKE-time transform.** It lives in `scripts/lib/mac-gamma.mjs` and runs during `extract-scheme` / `extract-icons`. It does **not** belong in decoders — `lint:themes` and `resource-roles` need raw bytes.
 - **Prototype-mode commit cadence.** Batch into bigger commits; delete non-critical tests; skip non-critical PRs; commit directly to the working branch. Commit messages follow Conventional Commits with a detailed body, **no `Co-Authored-By:` line**.
+- **Doc sweep after heavy iteration days.** See [`docs/doc-sweep.md`](./docs/doc-sweep.md) — run after any 5+ commit day to keep the four context docs (this file + LEARNINGS + README + integration-edge-cases) synced with code reality. Heavy days drift docs fast; the sweep is ~20 minutes and prevents every future session paying 5-10 minutes of "doc says X, code says Y" reconciliation.
 
 ## Pointers into `docs/`
 

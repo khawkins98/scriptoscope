@@ -33,11 +33,12 @@ export interface ParsedWindow {
    *  click handlers; omitted widgets are visually painted by the scheme's cicn
    *  (we never paint over chrome) but clicking them does nothing. Default
    *  (attribute absent): every widget the type supports is enabled — the standard
-   *  Mac contract. Use cases: `widgets="zoom,collapse"` on a `document-window`
-   *  Read Me (close inert, can't be dismissed); `widgets=""` on a
-   *  `titled-utility-window` picker (no widgets fire). The right hand of the
-   *  "widget type + widget set" pair the consumer reaches for when the type
-   *  alone doesn't capture intent (architect-reviewer 2026-05-31). */
+   *  Mac contract. Demo pattern: `document-window` + `widgets="zoom,collapse"`
+   *  for both the Read Me and the Schemes Folder (page-essential content, not
+   *  dismissible — close paints but the click is inert). `widgets=""` makes
+   *  every painted widget inert. The right hand of the "widget type + widget
+   *  set" pair the consumer reaches for when the type alone doesn't capture
+   *  intent (architect-reviewer 2026-05-31). */
   enabledWidgets?: ReadonlySet<string>;
 }
 

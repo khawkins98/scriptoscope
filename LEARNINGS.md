@@ -2996,6 +2996,8 @@ I had set Read Me + Schemes Folder to `movable-modal` window-type purely as a 'p
 
 The synthesis was clean and lands both fixes at once: ship the widgets attribute, revert the type picks. Read Me is now `document-window` + `widgets="zoom,collapse"`. Schemes Folder is now `titled-utility-window` + `widgets=""` (all painted widgets inert).
 
+> ⚠️ Superseded by 2026-05-31 (evening) "Schemes Folder window-type churn" entry below. The Schemes Folder titled-utility-window pick recorded here lived for ~3 hours before commit `479e6ce` reverted it to `document-window`. The runtime hard-clips overflow on utility/palette/modal/dialog types ("never scrolled in classic Mac"); the themed Kaleidoscope vertical scrollbar the user wanted only renders on document-window. Period precedent flipped with the implementation: Mac OS 9's Appearance CP was itself a document-window for the same overflow reason. Read Me + widgets="zoom,collapse" pick stands; only the Schemes Folder type changed.
+
 ### Convergence #2: surface scriptoscope:close, delete the MutationObserver
 
 Architect's #1 ROI call: the demo's modal had a `MutationObserver` watching for shadow-root-bearing elements being removed from the wrap — that was the close-detection signal. Reverse-engineering an internal lifecycle event from DOM removal is the smell. Fix: `ScriptoscopeWindow.unmount` dispatches a bubbling `scriptoscope:close` CustomEvent on the host BEFORE teardown. Demo modal listens at the wrap, removes 14 lines of observer. Every future consumer that wants 'do X on close' gets it free.
@@ -3056,3 +3058,110 @@ Without the fix the card shifts ~696px upward (the height of the lifted Read Me)
 
 ~20 LoC added to toAbsolute (the placeholder insertion + the stored reference). ~5 LoC added to WindowManager.remove (cleanup). One regression test (~30 LoC). No public API change; same MountHandle / WindowManager surface.
 
+
+
+---
+
+## 2026-05-31 (evening) — Schemes Folder window-type churn (3 picks in 24h: when period precedent yields to runtime affordance)
+
+The Schemes Folder picker's window-type changed THREE times in one day:
+
+1. **`movable-modal`** (yesterday) — picked because the canonical cicn for movable-modal has no widgets in most schemes; "no close" was achieved by type-as-hint. Confusing for schemes whose movable-modal cicn paints close anyway. Markup lying about intent (architect-reviewer's call).
+2. **`titled-utility-window` + `widgets=""`** (morning, three-reviewer pass) — picked because period-historian flagged that Mac OS 9's Appearance control panel + the real Kaleidoscope Scheme picker were both authored against `kThemeUtilityWindow` (slim title bar, persistent floater, doesn't take focus). With `widgets=""`, every painted widget is inert. Period-correct.
+3. **`document-window` + `widgets="zoom,collapse"`** (evening, commit `479e6ce`) — picked because the user asked for a themed Kaleidoscope vertical scrollbar in the picker, and the runtime hard-clips overflow on utility/palette/modal/dialog types (`interactive.ts:1000`, "never scrolled in classic Mac"). The themed scrollbar only renders on document-window. AND Mac OS 9's Appearance CP — the same period precedent the historian cited — was itself a document-window for exactly that overflow reason. Both period precedents exist; we picked the one matching the affordance we needed to ship.
+
+### The generalizable lesson
+
+When period correctness and runtime-supported behavior collide, the implementation wins, and the period precedent gets a footnote. In this case the footnote is "Mac OS 9's Appearance control panel scheme picker was a document-window for the same overflow reason" — so the document-window pick is ALSO period-correct, just for a different period of the same lineage. Multiple precedents are common; pick the one that maps to the affordance you actually need.
+
+The corollary: if your period-research recommendation requires a runtime feature you don't have, your real options are (a) build the runtime feature (in this case, removing the utility-window overflow hard-clip), (b) pick a different precedent that maps to existing runtime support, or (c) drop the affordance entirely. Don't pick the period-correct option and hope nobody notices the broken affordance.
+
+### Subsequent UX iteration on the same window
+
+Within a few hours of (3), the picker also went through layout-engine churn (flex strip → flex-wrap → CSS grid auto-fill 86px), and the declared-height attempt (`data-scriptoscope-height="110"` to force "one row + themed scrollbar") turned out to clip the credit byline + the "Load your own" tile entirely. Reverted to natural fit (no declared height) in the doc-sweep commit. The scrollbar requirement was over-specified — "show all tiles, let the window be as tall as it needs" is the cleaner answer + matches Mac OS 9's CP.
+
+> Cross-reference: 2026-05-31 "Three-reviewer lateral pass" entry above for the period-historian recommendation that led to pick (2). The historical record of the chain is the value here; the present-tense answer is "document-window, all the way."
+
+---
+
+## 2026-05-31 (evening) — Grow-box resize feedback loop with flex-wrap content
+
+User report: "whenever I try to make smaller it just gets bigger?" — the Schemes Folder window grew TALLER on every shrink attempt instead of shrinking. Two stacked bugs:
+
+### Bug 1: auto-fit fights user shrink
+
+`ScriptoscopeWindow.scheduleFit` has an "only grows, never shrinks past `last`" invariant (`Math.max(measuredW, this.last.w)`), intended to prevent transient layout collapses (image flicker, font swap mid-load) from yanking the chrome smaller. Combined with `flex-wrap` (briefly added then reverted on the picker, commit `d799b47` → `b8d80a4`), the invariant turned into a feedback loop:
+
+1. User drags grow box smaller
+2. Chrome canvas re-renders narrower
+3. Slot is narrower → tiles wrap to MORE rows → content gets TALLER
+4. ResizeObserver on `fit` fires; `scheduleFit` measures the new (taller) content
+5. `Math.max(measuredH, last.h)` grows the height to fit
+6. User sees the window get BIGGER, not smaller
+
+### Bug 2: in-flow host stays full-width when chrome shrinks
+
+Even with the feedback loop fixed, dragging the grow box only shrank the chrome canvas inside the host — the HOST element (still `position: static`, in-flow) kept its parent's full block width. So the chrome would visually shrink but the host's bounding box (and the gray empty space below the chrome) stayed at 880px.
+
+### Fix (commit `beb78a4`)
+
+Two coordinated changes:
+
+- **`scriptoscope:userresize` event + `ScriptoscopeWindow.acceptUserSize(w, h)`** — `WindowManager` dispatches the event from BOTH the pointer grow box and the keyboard arrow-resize handlers on commit. `ScriptoscopeWindow` listens, updates `this.last` to the user's chosen size, and unobserves the shared `ResizeObserver`. User owns the size from that point; auto-fit is permanently off for that window.
+- **Grow box now calls `toAbsolute(host)` at pointerdown** — reuses the Posture-B drag handoff (commit `39b3ebd`) so the host flips to absolute (sizes to its content) AND a same-size placeholder reserves the original static slot. Symmetric with title-drag.
+
+### The generalizable lesson
+
+Any auto-fit observer needs a "user took over" termination signal, not just a debounce. The "only grows" invariant is correct in isolation (it protects against transient layout collapse) but pathological under wrap-able content + user shrink. The fix isn't to relax the invariant — it's to add an explicit ownership-transfer event.
+
+The picker is now CSS grid (no flex-wrap), so the specific symptom that triggered the fix is gone. But the underlying bug class — any content with intrinsic min-width that wraps when squeezed (long flowing prose, side-by-side cards demoting to stacked) reproduces the same fight — survives. The `acceptUserSize` mechanism is defensive principled now, not bug-driven. Keep it.
+
+---
+
+## 2026-05-31 (evening) — Two false starts in one session: the misread pattern
+
+This session had two false-start-then-revert cycles within 24 hours, and they share a shape worth naming.
+
+### False start #1: `data-scriptoscope-no-close` attribute (shipped + reverted same day)
+
+User asked: "for the window type, we don't want some to be closable, e.g the main content window." I shipped `data-scriptoscope-no-close` as a per-window opt-out attribute (commit `f9de2f9`). The user came back: "the option we go with should automatically select the appropriate MacOS window type, e.g. movable modal." I reverted the attribute (commit `e4791cb`), thinking the answer was "pick the right window-type, no attribute needed." The three-reviewer pass the next morning surfaced the right answer: a `data-scriptoscope-widgets` opt-in subset (more general than `no-close`, allows close+zoom but not collapse, etc.). The widgets attribute eats both the original `no-close` use case and a class of future patterns.
+
+### False start #2: delete `toAbsolute` to fix page-shift on drag
+
+User reported: dragging a window made the page visibly shift (siblings collapse upward into the host's vacated static slot). My AskUserQuestion options conflated "drop the page-shift" with "drop the conversion that causes the page-shift." User picked "drop the toAbsolute conversion" — I deleted it. Reverted within minutes when the user said "but now I can't move the windows?" The right fix was a placeholder element reserving the static slot (commit `39b3ebd`).
+
+### The shared pattern
+
+When a user-reported symptom suggests a fix that maps 1:1 to "delete the offending behavior," that's the false-start tell. The behavior is usually load-bearing for something else the user also wants. The right fix is almost always one of:
+
+- **Add a side-channel** that preserves the behavior + gives the user control (`data-scriptoscope-widgets` opt-in; `<div data-scriptoscope-placeholder>` reserving the flow slot).
+- **Add an ownership-transfer event** that lets the user opt OUT of an auto-behavior once they take manual control (`scriptoscope:userresize` → `acceptUserSize` disconnects auto-fit).
+- **Decompose the symptom** — page-shift wasn't caused by toAbsolute as such; it was caused by toAbsolute WITHOUT reserving the slot. Same with no-close: the issue wasn't "close shouldn't work" universally, it was "the chrome paints close on a type whose intent is non-dismissible."
+
+### Cost of the misreads
+
+Each false-start cycle cost ~15-30 minutes of code-write-then-revert + a moment of user frustration. Both could've been avoided by asking ONE sharp clarifying question instead of inferring the wrong axis from the request. The AskUserQuestion options in particular need to be honest: if an option's mechanism would break a feature the user also values, the label needs to say so (e.g. "Drop dragging for in-flow hosts entirely" instead of "Drop the static→absolute conversion in the drag handler").
+
+The doc-sweep recipe (new file `docs/doc-sweep.md`, this same date) calls this out in step 5 as a recurring LEARNINGS pattern worth capturing every time it happens.
+
+---
+
+## 2026-05-31 (evening) — Doc-sweep recipe + the four-context-doc invariant
+
+Post-three-reviewer-pass, the reviewer agent's strongest meta-finding: after a heavy iteration day (10+ commits in 24h), the four "context docs" (`CLAUDE.md`, `LEARNINGS.md`, `README.md`, `docs/integration-edge-cases.md`) drift fast. Three concrete stale claims found by audit:
+
+- `docs/integration-edge-cases.md` "Close is universal" section recommended `movable-modal` for the Read Me + Schemes Folder — both windows are now `document-window`.
+- `README.md` widgets attribute example used `titled-utility-window` + `widgets=""` — a pattern the demo doesn't exercise anywhere.
+- LEARNINGS "Convergence #1" entry recorded `titled-utility-window` for the Schemes Folder — reverted to `document-window` 3 hours later, no supersede pointer.
+
+### The fix
+
+New `docs/doc-sweep.md` — a checklist for "run after any 5+ commit day." Steps: enumerate deltas, grep for stale knob names, verify new APIs appear in README, write supersede pointers for churned decisions, write meta-entries for false-starts, internal-stamp audit, demo-vs-docs sync.
+
+CLAUDE.md's working-norms section now points at the recipe so future sessions discover it.
+
+### The generalizable lesson
+
+In prototype mode with fast iteration, the docs are NEVER current — they're behind by some number of commits at any moment. The question isn't "keep them current" (impossible at this cadence) but "make catching up cheap + bounded." A 20-minute sweep after a heavy day prevents 5-10 minutes per future session of "doc says X, code says Y" reconciliation. Pays off after 2-3 sessions.
+
+The deeper move (called out in the recipe's meta-principle section): when a consumer footgun keeps recurring — no close hook → MutationObserver hack; type-as-hint → ambiguous; hand-rolled focus trap → a11y bug — the right answer is *promoting the consumer's workaround into a library primitive*. The widgets-opt-in + `openModal` helper + `scriptoscope:close` event triplet (commits `af2a106`-onward) all came from exactly this pattern. The doc-sweep's step 3 ("does this new API addition warrant a LEARNINGS entry on what consumer-side workaround it deletes") is the trigger.

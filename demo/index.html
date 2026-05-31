@@ -442,25 +442,23 @@
            user can drag/resize like any other; in OFF mode it's a
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
-        <!-- SCHEMES FOLDER — `document-window` (not titled-utility) because
-             the user-decided UX is "one row of tiles visible + themed
-             Kaleidoscope vertical scrollbar to reach the rest" — the
-             runtime hard-clips overflow on utility/palette/modal types
-             (per the period rule that those never scrolled in classic
-             Mac), so themed scrollbars require a document-window. Mac OS
-             9's Appearance control panel scheme picker WAS a
-             document-window for the same reason. `widgets="zoom,collapse"`
-             keeps close inert (picker shouldn't dismiss; closing it
-             leaves the user unable to re-skin). Declared height fits ~one
-             tile row + padding so the grid below (auto-fill 86px columns
-             + flex-wrap) overflows vertically into the themed scrollbar
-             whenever there are more tiles than fit one row at the
-             current window width. -->
+        <!-- SCHEMES FOLDER — `document-window` (Mac OS 9's Appearance
+             control panel scheme picker was itself a document-window for
+             the same overflow reason). `widgets="zoom,collapse"` keeps
+             close inert (picker shouldn't dismiss; closing it leaves the
+             user unable to re-skin). Natural fit (no declared height):
+             the picker grid wraps to as many rows as needed and the
+             credit byline sits visibly below. A previous iteration
+             pinned the height to one row + themed Kaleidoscope vertical
+             scrollbar, but the slot's hard-clip swallowed the credit +
+             the "Load your own" tile — broken UX in service of one
+             aesthetic. Period precedent (Mac OS 9 CP) is "all tiles
+             visible, scroll if you must" anyway. 2026-05-31 reviewer-
+             pass + user direction. -->
         <article class="powers-picker" data-scriptoscope-window
                  data-scriptoscope-title="Schemes Folder"
                  data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-widgets="zoom,collapse"
-                 data-scriptoscope-height="110">
+                 data-scriptoscope-widgets="zoom,collapse">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
