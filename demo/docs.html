@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drift v1.0 docs — getting started — a Scriptoscope example</title>
+  <link rel="stylesheet" href="scriptoscope.css">
+  <style>
+    html, body { margin: 0; padding: 0; background: #d0d0d0; }
+    body { font: 16px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; min-height: 100vh; }
+    a { color: #0000EE; }
+    a:visited { color: #551A8B; }
+    a:hover { color: #cc0000; }
+
+    .topnav {
+      background: #ffffff; border-bottom: 1px solid #888; padding: 8px 24px;
+      font: 12px Monaco, "Courier New", monospace; color: #5a5a5a;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .topnav a { color: #0000EE; text-decoration: underline; }
+    .topnav .examples-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .topnav .examples-nav span { color: #aaa; }
+
+    /* Docs-site 3-column: TOC sidebar (left), prose (center, widest),
+       in-page nav (right, narrowest). On narrow viewports collapses to
+       single column. */
+    .page {
+      max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px;
+      display: grid; gap: 24px;
+      grid-template-columns: 220px 1fr 200px;
+      align-items: start;
+    }
+    @media (max-width: 920px) {
+      .page { grid-template-columns: 1fr; }
+    }
+
+    /* TOC + on-this-page styling. */
+    .toc h2, .anchor h2 { font: 600 13px/1.2 "Times New Roman", serif; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.04em; color: #5a5a5a; }
+    .toc ul, .anchor ul { margin: 0 0 14px; padding: 0; list-style: none; font-size: 14px; }
+    .toc li, .anchor li { padding: 3px 0; }
+    .toc li.section { margin-top: 10px; font-weight: 600; color: #1c1c1c; }
+    .toc li.section:first-child { margin-top: 0; }
+    .toc li ul { padding-left: 12px; margin: 4px 0 0; }
+    .toc .here { color: #1c1c1c; font-weight: 600; }
+    .anchor li { font-size: 13px; }
+
+    /* Docs prose. */
+    .docs h1 { font: 32px/1.15 "Times New Roman", serif; margin: 0 0 4px; }
+    .docs .docs-subtitle { font: italic 17px/1.4 "Times New Roman", serif; color: #5a5a5a; margin: 0 0 22px; }
+    .docs h2 { font: 600 22px/1.2 "Times New Roman", serif; margin: 28px 0 10px; padding-top: 6px; border-top: 1px solid #ddd; }
+    .docs h2:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+    .docs h3 { font: 600 16px/1.2 "Times New Roman", serif; margin: 18px 0 6px; }
+    .docs p { margin: 0 0 12px; max-width: 64ch; }
+    .docs ul, .docs ol { margin: 0 0 14px; padding-left: 22px; }
+    .docs li { margin: 0 0 4px; }
+    .docs pre { background: #fff9d6; border: 1px solid #d4c97a; padding: 10px 12px; font: 13px/1.55 Monaco, "Courier New", monospace; overflow-x: auto; max-width: 64ch; margin: 0 0 14px; }
+    .docs code { font: 13px Monaco, "Courier New", monospace; background: #f0f0f0; padding: 1px 4px; }
+    .docs .callout {
+      border-left: 3px solid #5a8db5; background: #eef3f7;
+      padding: 10px 12px; margin: 14px 0; max-width: 64ch;
+      font-size: 14px;
+    }
+    .docs .callout strong { display: block; margin-bottom: 4px; }
+    .docs table { border-collapse: collapse; margin: 0 0 14px; font-size: 14px; }
+    .docs th, .docs td { border: 1px solid #c8c8c8; padding: 4px 8px; text-align: left; }
+    .docs th { background: #f0f0f0; font-weight: 600; }
+
+    .footer-credit {
+      max-width: 1200px; margin: 0 auto; padding: 16px 24px 32px;
+      font: italic 12px/1.4 "Times New Roman", serif; color: #5a5a5a;
+      text-align: center;
+    }
+    .footer-credit a { color: #0000EE; }
+  </style>
+</head>
+<body>
+
+  <nav class="topnav">
+    <span class="examples-nav">
+      <a href="./">← Showcase</a><span>·</span>
+      <a href="./personal.html">Personal blog</a><span>·</span>
+      <a href="./shareware.html">Shareware Read Me</a><span>·</span>
+      <a href="./landing.html">Product landing</a><span>·</span>
+      <strong>Documentation</strong>
+    </span>
+    <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
+  </nav>
+
+  <main class="page">
+
+    <!-- LEFT — Table of Contents nav. -->
+    <article class="toc" data-scriptoscope-window
+             data-scriptoscope-title="Drift v1.0"
+             data-scriptoscope-window-type="titled-utility-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h2>Docs</h2>
+      <ul>
+        <li class="section">Getting started</li>
+        <li><ul>
+          <li class="here">Quickstart</li>
+          <li><a href="#">Installing</a></li>
+          <li><a href="#">First sync</a></li>
+        </ul></li>
+        <li class="section"><a href="#">Concepts</a></li>
+        <li><ul>
+          <li><a href="#">Repositories</a></li>
+          <li><a href="#">Branches</a></li>
+          <li><a href="#">Commits</a></li>
+          <li><a href="#">Conflicts</a></li>
+        </ul></li>
+        <li class="section"><a href="#">Commands</a></li>
+        <li><ul>
+          <li><a href="#">drift init</a></li>
+          <li><a href="#">drift sync</a></li>
+          <li><a href="#">drift status</a></li>
+          <li><a href="#">drift log</a></li>
+        </ul></li>
+        <li class="section"><a href="#">Recipes</a></li>
+        <li class="section"><a href="#">API reference</a></li>
+        <li class="section"><a href="#">Changelog</a></li>
+      </ul>
+    </article>
+
+    <!-- CENTER — the docs page itself. -->
+    <article class="docs" data-scriptoscope-window
+             data-scriptoscope-title="Quickstart"
+             data-scriptoscope-window-type="document-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h1>Quickstart</h1>
+      <p class="docs-subtitle">Drift is a single-binary version-control system. From install to your first synced commit in three commands.</p>
+
+      <h2 id="install">Install</h2>
+      <p>One binary, no dependencies. Pick your platform:</p>
+      <pre># macOS / Linux
+curl -fsSL https://drift.example/install.sh | sh
+
+# Windows (PowerShell)
+irm https://drift.example/install.ps1 | iex</pre>
+      <p>The installer drops a <code>drift</code> binary in <code>~/.local/bin</code> (Unix) or <code>%LOCALAPPDATA%\Drift</code> (Windows). Confirm:</p>
+      <pre>$ drift --version
+drift 1.0.0 (2026-05-31, deadbeef)</pre>
+
+      <h2 id="init">Init a repo</h2>
+      <p>In any directory:</p>
+      <pre>$ cd ~/projects/my-project
+$ drift init
+Initialized drift repository in .drift/</pre>
+      <p>Drift's metadata lives in <code>.drift/</code>. Add it to your gitignore if you're co-existing with Git for now; the two don't share state.</p>
+
+      <div class="callout">
+        <strong>Drift and Git side-by-side</strong>
+        You can run both VCSes against the same working tree without conflicts. Drift writes only to <code>.drift/</code>; Git writes only to <code>.git/</code>. The team's been doing this in production for six months without an incident.
+      </div>
+
+      <h2 id="commit">Make your first commit</h2>
+      <p>Track everything, then commit:</p>
+      <pre>$ drift track .
+3,841 files tracked.
+
+$ drift commit -m "Initial commit"
+Committed: f3a91b2 (3,841 files, 4.2 MB)</pre>
+
+      <h2 id="sync">Sync to a remote</h2>
+      <p>Drift remotes are URLs over HTTPS. Set one + push:</p>
+      <pre>$ drift remote add origin https://drift.example/me/my-project
+$ drift sync
+Pushing to origin... 4.2 MB transferred in 1.8s.</pre>
+      <p>The remote stores your commits in a content-addressable blob store; nothing about the directory layout, your filenames, or your branch structure is exposed in the URL.</p>
+
+      <h2 id="branch">Branch + merge</h2>
+      <p>Branches in Drift are first-class names with no inherent hierarchy. Create one:</p>
+      <pre>$ drift branch new feature/login
+Switched to branch 'feature/login'</pre>
+      <p>Make changes, commit, switch back, merge:</p>
+      <pre>$ drift commit -m "Add login form"
+Committed: 2e1f8c4
+
+$ drift branch switch main
+Switched to branch 'main'
+
+$ drift merge feature/login
+Merged 1 commit. No conflicts.</pre>
+
+      <h3 id="next">Next steps</h3>
+      <p>You've initialized a repo, committed, synced, branched, and merged. From here:</p>
+      <ul>
+        <li>Learn the <a href="#">concept model</a> (repositories, branches, commits).</li>
+        <li>Browse the <a href="#">command reference</a>.</li>
+        <li>Read <a href="#">recipes</a> for common workflows.</li>
+        <li>Join the <a href="#">community Discord</a> if you hit something.</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Task</th><th>Command</th></tr></thead>
+        <tbody>
+          <tr><td>Check status</td><td><code>drift status</code></td></tr>
+          <tr><td>View log</td><td><code>drift log</code></td></tr>
+          <tr><td>Diff vs last commit</td><td><code>drift diff</code></td></tr>
+          <tr><td>Undo last commit</td><td><code>drift undo</code></td></tr>
+          <tr><td>Pull from remote</td><td><code>drift pull</code></td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <!-- RIGHT — on-this-page anchors + version info. -->
+    <article class="anchor" data-scriptoscope-window
+             data-scriptoscope-title="On this page"
+             data-scriptoscope-window-type="titled-utility-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h2>On this page</h2>
+      <ul>
+        <li><a href="#install">Install</a></li>
+        <li><a href="#init">Init a repo</a></li>
+        <li><a href="#commit">First commit</a></li>
+        <li><a href="#sync">Sync to a remote</a></li>
+        <li><a href="#branch">Branch + merge</a></li>
+        <li><a href="#next">Next steps</a></li>
+      </ul>
+      <h2>Version</h2>
+      <ul>
+        <li><strong>v1.0</strong> (current)</li>
+        <li><a href="#">v0.9</a></li>
+        <li><a href="#">v0.8</a></li>
+        <li><a href="#">All versions →</a></li>
+      </ul>
+      <h2>Help</h2>
+      <ul>
+        <li><a href="#">Edit this page</a></li>
+        <li><a href="#">Report an issue</a></li>
+        <li><a href="#">Community Discord</a></li>
+      </ul>
+    </article>
+
+  </main>
+
+  <p class="footer-credit">
+    A <a href="./">Scriptoscope</a> example: docs site with TOC sidebar, prose content, on-page anchors. Now wearing <span id="page-theme-credit">…</span>.
+  </p>
+
+  <script type="module">
+    import { mountDeclarative } from 'scriptoscope';
+    import THEMES from './themes-manifest.json';
+
+    // Documentation: 1984 (Geoffrey Hamilton, 1999). Clean, neutral
+    // scheme that doesn't compete with code blocks + dense prose.
+    const PAGE_DEFAULT_THEME = '1984';
+
+    const switcher = document.querySelector('[data-scriptoscope-theme-switcher]');
+    if (switcher) {
+      for (const t of THEMES) {
+        const opt = document.createElement('option');
+        opt.value = t.slug;
+        opt.textContent = t.name ?? t.slug;
+        if (t.slug === PAGE_DEFAULT_THEME) opt.selected = true;
+        switcher.appendChild(opt);
+      }
+    }
+
+    const BASE = import.meta.env.BASE_URL;
+    const handle = await mountDeclarative({
+      themeBaseUrl: `${BASE}themes`.replace(/\/+$/, ''),
+      pageThemeDefault: PAGE_DEFAULT_THEME,
+      themes: THEMES,
+      syncToUrlParam: 'theme',
+    });
+
+    const creditEl = document.getElementById('page-theme-credit');
+    const findEntry = (ref) => {
+      if (typeof ref !== 'string') return null;
+      if (ref.startsWith('dropped:')) return { slug: ref.slice(8), name: ref.slice(8), author: null, year: null };
+      return THEMES.find((t) => t.slug === ref || ref.endsWith('/' + t.slug)) ?? null;
+    };
+    const renderCredit = (entry) => {
+      if (!creditEl) return;
+      if (!entry) { creditEl.textContent = '(loading)'; return; }
+      const bits = [`<strong>${entry.name ?? entry.slug}</strong>`];
+      if (entry.author) bits.push(`by ${entry.author}`);
+      if (entry.year) bits.push(`(${entry.year})`);
+      creditEl.innerHTML = bits.join(' ');
+    };
+    const url = new URL(window.location.href);
+    const initialSlug = url.searchParams.get('theme') ?? PAGE_DEFAULT_THEME;
+    renderCredit(findEntry(initialSlug));
+    handle.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
+  </script>
+</body>
+</html>

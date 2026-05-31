@@ -45,12 +45,15 @@ export default defineConfig({
         // Hostile-CSS regression page: aggressive host rules that would wreck light-DOM chrome.
         // Confirms ADR-0001 Decision 2 (Shadow DOM around the chrome) keeps doing its job.
         'declarative-hostile-css': resolve(import.meta.dirname, 'demo/declarative-hostile-css.html'),
-        // Real-world example page: a plausibly-personal "Ken's site" with the
-        // patterns a typical consumer would actually use (CSS-grid layout, mix
-        // of document + utility windows, a themed form, a theme picker). Sits
-        // alongside index/diagnostic as the "here's what shipping with this
-        // looks like" page. User direction 2026-05-31.
-        personal: resolve(import.meta.dirname, 'demo/personal.html'),
+        // Real-world example pages. Each pinned to a different theme so a
+        // visitor sees the breadth of the corpus across page archetypes.
+        // User direction 2026-05-31: 'good way to just play around with
+        // the functionality and dog food it.' Cross-linked from the main
+        // showcase + each other via topnav.
+        personal:  resolve(import.meta.dirname, 'demo/personal.html'),  // 3-col blog, theme: 1138
+        shareware: resolve(import.meta.dirname, 'demo/shareware.html'), // cascade, theme: system7-nostalgia-silver
+        landing:   resolve(import.meta.dirname, 'demo/landing.html'),   // hero + cards, theme: beos-r503
+        docs:      resolve(import.meta.dirname, 'demo/docs.html'),      // docs-site 3-col, theme: 1984
       },
     },
   },
