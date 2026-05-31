@@ -751,35 +751,89 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && modalWrap?.classList.contains('open')) closeModal();
     });
+    // Chrome close widget — clicking the close box in the modal's title bar
+    // fires the runtime's onClose, which removes the modal host from the
+    // wrap and restores the bare `<article id="powers-byo-modal">` in its
+    // place. Without this listener, the backdrop would linger empty around
+    // a bare-HTML article. We watch for the runtime host (the div with a
+    // shadow root) being removed from the wrap; when it goes, close the
+    // wrap too. The scanner's own MutationObserver will re-promote the
+    // restored bare article shortly after — so re-opening the modal works
+    // again (with a brief flash of bare HTML on first reopen if scan
+    // hasn't completed; acceptable trade-off).
+    if (modalWrap) {
+      const closeOnHostRemoval = new MutationObserver((records) => {
+        if (!modalWrap.classList.contains('open')) return;
+        for (const r of records) {
+          for (const removed of r.removedNodes) {
+            if (removed instanceof HTMLElement && removed.shadowRoot) {
+              closeModal();
+              return;
+            }
+          }
+        }
+      });
+      closeOnHostRemoval.observe(modalWrap, { childList: true, subtree: true });
+    }
 
-    // PICKER SPECIAL TILES — 'No theme' unmounts; 'Load your own' opens
-    // the modal. Event-delegated off the picker container so the tiles
-    // work even though they're not promoted through the library's tile
-    // wiring (deliberately — they're demo-side extras, not real themes).
+    // PICKER CLICK HANDLER — delegated, capture phase. Three cases:
+    //   1. Special tile ('No theme' / 'Load your own') → demo-side action.
+    //      These tiles aren't promoted through the library's tile wiring
+    //      (deliberately — they're demo-side extras, not real themes), so
+    //      this delegation IS the wiring.
+    //   2. Theme tile clicked WHILE IN OFF MODE → re-mount + retheme to
+    //      that slug. The picker article is restored to the DOM after
+    //      unmount with all its tiles + library-wired click handlers, but
+    //      the handlers now close over a dead scanner closure and silently
+    //      no-op. Without this intercept, clicking BeOS in OFF mode does
+    //      nothing — the user-reported 2026-06-01 P0 (after the No-theme
+    //      tile unmount path landed and surfaced the symmetry gap).
+    //   3. Theme tile clicked WHILE MOUNTED → let the library's per-tile
+    //      handler take it. We don't stopPropagation; event continues to
+    //      target phase normally.
     //
-    // 'Load your own' is also reachable from OFF mode: the picker isn't
-    // visible there (no chrome), but the click handler is delegated to
-    // foldersEl which only exists in skinned mode. In OFF mode the user
-    // has to first click 'Restore the chrome ←' (the toolbar button
-    // visible only when un-skinned). The reverse case — clicking the
-    // tile WHILE the runtime is mid-unmount — would race; the modal must
-    // wait for the runtime so the modal article is themed when shown
-    // (FE-reviewer 2026-06-01 P0).
+    // Capture-phase (third arg = true) so we intercept BEFORE the
+    // library's per-tile handlers fire. stopPropagation prevents them in
+    // cases 1 + 2; case 3 falls through.
     foldersEl?.addEventListener('click', async (e) => {
-      const tile = e.target.closest('.powers-picker-special-tile');
-      if (!tile) return;
-      e.stopPropagation();
-      const kind = tile.dataset.special;
-      if (kind === 'none') {
-        unmountPowers();
-      } else if (kind === 'load') {
-        // Defensive: only open the modal if the runtime is mounted (the
-        // modal article needs to be a promoted themed window, not bare
-        // HTML). If mid-mount or pre-mount, await first.
-        if (!handle) await mountPowers();
-        if (handle) openModal();
+      const target = e.target;
+      // CASE 1 — special tiles
+      const special = target.closest('.powers-picker-special-tile');
+      if (special) {
+        e.stopPropagation();
+        const kind = special.dataset.special;
+        if (kind === 'none') {
+          unmountPowers();
+        } else if (kind === 'load') {
+          // Defensive: only open the modal if the runtime is mounted (the
+          // modal article needs to be a promoted themed window, not bare
+          // HTML). If pre-mount or post-disconnect, await first. Same
+          // aria-pressed flip pattern as the theme-tile case below.
+          if (!handle) {
+            toggleBtn.setAttribute('aria-pressed', 'true');
+            await mountPowers();
+          }
+          if (handle) openModal();
+        }
+        return;
       }
-    });
+      // CASE 2 — theme tile clicked while OFF
+      if (!handle) {
+        const themeTile = target.closest('.scriptoscope-theme-picker-tile');
+        const slug = themeTile?.dataset?.slug;
+        if (slug) {
+          e.stopPropagation();
+          // mountPowers bails if toggleBtn.aria-pressed === 'false' (the
+          // 'consumer toggled off mid-mount' guard). The click here IS the
+          // consumer toggling back on, so flip the intent first.
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          await mountPowers();
+          if (handle) await handle.retheme(slug);
+        }
+      }
+      // CASE 3 — theme tile clicked while ON: no stopPropagation,
+      // event proceeds to the tile's own library-wired handler.
+    }, true);
 
     // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
     // `<div data-scriptoscope-theme-picker>` in the markup + `themes: THEMES`

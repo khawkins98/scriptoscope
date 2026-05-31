@@ -115,6 +115,41 @@ test('posture-b: in-flow host parents are not min-height-pinned (Pass A deleted)
   await browser.close();
 });
 
+test('demo picker: click a theme tile in OFF mode → re-mounts + rethemes', async () => {
+  // 2026-06-01 user-reported P0: after clicking the 'No theme' tile to
+  // unmount, the picker article is restored to the DOM with all tiles
+  // intact, but the tiles' library-wired click handlers now close over a
+  // dead scanner closure and silently no-op. The demo's capture-phase
+  // listener catches this case and re-mounts + rethemes to the clicked
+  // slug. This test locks in that round-trip.
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForFunction(() => document.querySelectorAll('.scriptoscope-theme-picker-tile').length >= 10, { timeout: 15000 });
+  await page.waitForTimeout(1500);
+  // Confirm we're skinned (handle exists → picker is inside chrome)
+  const initiallySkinned = await page.evaluate(() => !!document.querySelector('.scriptoscope-slot'));
+  assert.equal(initiallySkinned, true, 'demo should boot in skinned mode');
+  // Click 'No theme' → unmount
+  await page.locator('[data-special="none"]').first().click();
+  await page.waitForTimeout(400);
+  const afterUnmount = await page.evaluate(() => !!document.querySelector('.scriptoscope-slot'));
+  assert.equal(afterUnmount, false, 'No theme click should remove the slot (unmount)');
+  // Picker tiles still in DOM
+  const tilesPresent = await page.evaluate(() => document.querySelectorAll('.scriptoscope-theme-picker-tile').length);
+  assert.ok(tilesPresent >= 10, `picker tiles should remain after unmount; saw ${tilesPresent}`);
+  // Click a theme tile in OFF mode — should re-mount + retheme
+  await page.locator('.scriptoscope-theme-picker-tile[data-slug="beos-r503"]').first().click();
+  await page.waitForTimeout(1500);
+  const afterRemount = await page.evaluate(() => ({
+    slot: !!document.querySelector('.scriptoscope-slot'),
+    activeTheme: document.querySelector('[data-scriptoscope-theme]')?.dataset?.scriptoscopeTheme ?? null,
+  }));
+  assert.equal(afterRemount.slot, true, 'theme tile click in OFF mode should re-mount the runtime');
+  assert.equal(afterRemount.activeTheme, 'beos-r503', `re-mount should retheme to clicked slug (got ${afterRemount.activeTheme})`);
+  await browser.close();
+});
+
 test('posture-b: card grid honours its consumer max-height (no auto-grow past CSS cap)', async () => {
   const browser = await chromium.launch();
   const page = await browser.newPage();
