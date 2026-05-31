@@ -78,11 +78,11 @@
        .skinned flips, the runtime captures the WRONG geometry. So .skinned
        in this stylesheet only touches VISUAL chrome (filter, mask, border)
        — never display/max-width/grid-template. */
-    #powers .powers-inner { max-width: 880px; margin: 0 auto; font: 14.5px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; }
+    #powers .powers-inner { max-width: 880px; margin: 0 auto; font: 16px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; }
     #powers .powers-inner > * { max-width: 100%; }
     /* H2: confident 36px Times for the OFF state period; survives skinned. */
     #powers h2 { font: 400 36px/1.05 "Times New Roman", Times, serif; margin: 14px 0 12px; letter-spacing: -0.005em; color: #1c1c1c; }
-    #powers > .powers-inner > p.powers-lede { font-size: 15.5px; line-height: 1.55; margin: 0 0 18px; max-width: 64ch; }
+    #powers > .powers-inner > p.powers-lede { font-size: 17px; line-height: 1.55; margin: 0 0 18px; max-width: 64ch; }
     /* 1999 browser-default link blue + underline. Period browsers used
        #0000EE for unvisited links; the Apple page used mauve as the
        OUTLIER. Going default-blue makes the OFF state read as "untouched
@@ -94,7 +94,31 @@
        Monaco-bg that reads as "shareware Read Me snippet" not "modern
        terminal output". Period Mac shareware Read Mes were SimpleText
        windows; this is the homage. */
-    #powers .powers-install { margin: 0 0 6px; padding: 10px 14px; background: #fff9d6; color: #1c1c1c; border: 1px solid #d4c97a; border-radius: 0; font: 12px/1.55 Monaco, "Courier New", monospace; max-width: 64ch; }
+    #powers .powers-install { margin: 0 0 6px; padding: 10px 14px; background: #fff9d6; color: #1c1c1c; border: 1px solid #d4c97a; border-radius: 0; font: 12px/1.55 Monaco, "Courier New", monospace; max-width: 64ch; overflow-x: auto; }
+    /* Tools row: Controls palette + Install snippet palette tiled
+       side-by-side on wider viewports. Both are titled-utility-window
+       chromes. On narrow viewports (<700px) they stack. The grid
+       columns are 1fr 1fr (equal split) which is fine since each
+       window's chrome sizes to fit its content + the grid cell sets
+       the upper bound. */
+    #powers .powers-tools-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+      margin: 0 0 22px;
+    }
+    @media (max-width: 700px) {
+      #powers .powers-tools-row { grid-template-columns: 1fr; }
+    }
+    /* Install snippet's copy button. Period-Mac "small action button"
+       look: thin black border, subtle background, no fancy hover.
+       Sits inline with the version meta line. */
+    #powers .powers-install-copy {
+      font: 11px Monaco, "Courier New", monospace;
+      padding: 1px 8px; border: 1px solid #888; background: #f4f4f4;
+      color: #1c1c1c; cursor: pointer; border-radius: 0;
+    }
+    #powers .powers-install-copy:hover { background: #e8e8e8; }
+    #powers .powers-install-copy:active { background: #d8d8d8; }
+    #powers .powers-install-copy.copied { background: #d9f0d9; border-color: #5a9d5a; }
     #powers .powers-install .c { color: #8b6914; }
     #powers .powers-install .a { color: #1c1c1c; }
     #powers .powers-install .s { color: #af1010; }
@@ -125,7 +149,7 @@
     #powers .powers-byo-zone:hover,
     #powers .powers-byo-zone:focus-visible { background: #fafaf3; border-color: #5a5a5a; outline: none; }
     #powers .powers-byo-zone.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
-    #powers .powers-byo-headline { font: 600 14.5px "Times New Roman", Times, serif; }
+    #powers .powers-byo-headline { font: 600 16px "Times New Roman", Times, serif; }
     #powers .powers-byo-hint { font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; }
     #powers .powers-byo-hint code { font-family: Monaco, "Courier New", monospace; font-style: normal; font-size: 11.5px; color: #444; }
     #powers .powers-byo-hint a { color: #0000EE; }
@@ -545,38 +569,34 @@
         <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
         <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
       </article>
-      <!-- INSTALL SNIPPET, wrapped in a titled-utility window so the
-           recipe reads as a Mac OS 8 code/source palette: slim title
-           bar, floating-tool feel. `widgets="zoom,collapse"` keeps
-           close inert; this is reference content for the page, not
-           dismissible. User direction 2026-05-31. -->
-      <article class="powers-install-host" data-scriptoscope-window
-               data-scriptoscope-title="Install"
-               data-scriptoscope-window-type="titled-utility-window"
-               data-scriptoscope-widgets="zoom,collapse">
-        <pre class="powers-install" aria-label="Install snippet"><span class="c">&lt;!-- one tag, eighteen scheme bundles --&gt;</span>
-<span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
-<span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>…<span class="a">&lt;/article&gt;</span></pre>
-        <p class="powers-meta">Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute — Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5 — alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
-      </article>
-      <!-- HERO CONTROL STRIP — wrapped in a titled-utility window so it
-           demonstrates a SECOND window-type alongside the document-windows
-           and the About utility. titled-utility is the classic Mac tools-
-           palette type (slimmer title bar, designed for floating widget
-           sets). The strip's controls themselves are unchanged — runtime
-           auto-sets autocomplete="off" + re-syncs on pageshow.persisted
-           (T1.4), so consumers don't need defenses in markup. -->
-      <article class="powers-hero-window" data-scriptoscope-window
-               data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
-        <div class="powers-hero-strip" aria-label="Live themed controls — one of each kind">
-          <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
-          <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
-          <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
-          <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
-          <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
-          <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
-        </div>
-      </article>
+      <!-- TOOLS ROW: Controls + Install tiled side-by-side. Both are
+           titled-utility-window palettes (slim title bar, period
+           floating-tool feel). The 2-column flex layout reads as two
+           Mac OS palette windows opened next to each other, matching
+           the period desktop convention. User direction 2026-05-31. -->
+      <div class="powers-tools-row">
+        <article class="powers-hero-window" data-scriptoscope-window
+                 data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
+          <div class="powers-hero-strip" aria-label="Live themed controls, one of each kind">
+            <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
+            <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
+            <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
+            <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
+            <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
+            <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
+          </div>
+        </article>
+        <article class="powers-install-host" data-scriptoscope-window
+                 data-scriptoscope-title="Install"
+                 data-scriptoscope-window-type="titled-utility-window"
+                 data-scriptoscope-widgets="zoom,collapse">
+          <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet"><span class="c">&lt;!-- two URLs, eighteen scheme bundles --&gt;</span>
+<span class="a">&lt;link rel=</span><span class="s">"stylesheet"</span><span class="a"> href=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.css"</span><span class="a">&gt;</span>
+<span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
+<span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>Hello world<span class="a">&lt;/article&gt;</span></pre>
+          <p class="powers-meta"><button type="button" class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button> &nbsp;·&nbsp; Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
+        </article>
+      </div>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
            actually reads), 2-up minor row below (footnotes). NO explicit
            x/y/width/height on any card: mountDeclarative reads each card's
@@ -693,6 +713,32 @@
     // package version (period Mac shareware convention: "Version x.y.z" was
     // the FIRST line of every Read Me).
     if (verEl) verEl.textContent = VERSION;
+
+    // Copy-snippet button: grabs the install snippet's text content
+    // (stripping the syntax-highlight spans) + writes it to the
+    // clipboard. Visual confirmation via a .copied class + label flip
+    // that reverts after 1.6s. Falls back gracefully if the Clipboard
+    // API is unavailable (older browsers / non-HTTPS pages).
+    const copyBtn = document.getElementById('powers-install-copy');
+    const snippetEl = document.getElementById('powers-install-snippet');
+    if (copyBtn && snippetEl) {
+      copyBtn.addEventListener('click', async () => {
+        const text = snippetEl.textContent.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          const original = copyBtn.textContent;
+          copyBtn.textContent = 'Copied';
+          copyBtn.classList.add('copied');
+          setTimeout(() => {
+            copyBtn.textContent = original;
+            copyBtn.classList.remove('copied');
+          }, 1600);
+        } catch {
+          copyBtn.textContent = 'Copy failed';
+          setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600);
+        }
+      });
+    }
 
     // ── Skinning state ──────────────────────────────────────────────────────
     // The toggle is a real button with aria-pressed (was a checkbox before
