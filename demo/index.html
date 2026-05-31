@@ -442,20 +442,25 @@
            user can drag/resize like any other; in OFF mode it's a
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
-        <!-- SCHEMES FOLDER — `kThemeUtilityWindow` is the period type for
-             "floating chooser of stuff you switch between" (Apple HIG: tool
-             palettes / floaters live above documents, smaller title bar,
-             don't take focus). Mac OS 9's Appearance control panel + the
-             real Kaleidoscope Scheme picker were both authored against
-             this exact type (period-historian-reviewer 2026-05-31).
-             `widgets=""` makes every painted widget inert — picker
-             shouldn't be dismissible (closing it leaves the user unable
-             to re-skin). The picker's interactive content is the tiles,
-             not the chrome. -->
+        <!-- SCHEMES FOLDER — `document-window` (not titled-utility) because
+             the user-decided UX is "one row of tiles visible + themed
+             Kaleidoscope vertical scrollbar to reach the rest" — the
+             runtime hard-clips overflow on utility/palette/modal types
+             (per the period rule that those never scrolled in classic
+             Mac), so themed scrollbars require a document-window. Mac OS
+             9's Appearance control panel scheme picker WAS a
+             document-window for the same reason. `widgets="zoom,collapse"`
+             keeps close inert (picker shouldn't dismiss; closing it
+             leaves the user unable to re-skin). Declared height fits ~one
+             tile row + padding so the grid below (auto-fill 86px columns
+             + flex-wrap) overflows vertically into the themed scrollbar
+             whenever there are more tiles than fit one row at the
+             current window width. -->
         <article class="powers-picker" data-scriptoscope-window
                  data-scriptoscope-title="Schemes Folder"
-                 data-scriptoscope-window-type="titled-utility-window"
-                 data-scriptoscope-widgets="">
+                 data-scriptoscope-window-type="document-window"
+                 data-scriptoscope-widgets="zoom,collapse"
+                 data-scriptoscope-height="110">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
