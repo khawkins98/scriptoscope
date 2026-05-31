@@ -78,6 +78,23 @@ export function openModal(wrap: HTMLElement, options: OpenModalOptions = {}): Op
   // wrap is just the backdrop chrome).
   if (!wrap.hasAttribute('role')) wrap.setAttribute('role', 'presentation');
 
+  // A11y: `inert` siblings of the wrap so SR virtual-cursor / swipe-nav
+  // can't escape the modal. aria-modal on the dialog inside is the
+  // declarative half; `inert` on the background DOM is the actual
+  // constraint. Restored on close. Skip elements that already had
+  // `inert` set by the consumer (don't toggle their state on close).
+  // (a11y reviewer 2026-05-31 second pass.)
+  const inertedSiblings: HTMLElement[] = [];
+  if (wrap.parentElement) {
+    for (const sibling of Array.from(wrap.parentElement.children)) {
+      if (sibling === wrap) continue;
+      if (!(sibling instanceof HTMLElement)) continue;
+      if (sibling.hasAttribute('inert')) continue;
+      sibling.setAttribute('inert', '');
+      inertedSiblings.push(sibling);
+    }
+  }
+
   // Initial focus: first focusable inside the wrap (typically the close
   // widget hit-button in the chrome). If none, focus the wrap itself
   // (with tabindex=-1) so Esc still works.
@@ -144,6 +161,10 @@ export function openModal(wrap: HTMLElement, options: OpenModalOptions = {}): Op
     document.removeEventListener('keydown', onKeyDown);
     document.removeEventListener('focusin', onFocusIn);
     wrap.removeEventListener('scriptoscope:close', onInnerClose);
+    // Restore background SR navigation by un-inerting siblings we set.
+    // Consumer-set inert elements are NOT in our list — they keep their state.
+    for (const el of inertedSiblings) el.removeAttribute('inert');
+    inertedSiblings.length = 0;
     delete (wrap as unknown as { __scriptoscopeModalClose?: () => void }).__scriptoscopeModalClose;
     // Restore focus AFTER the attribute is off (consumer CSS may make
     // the wrap unfocusable / display:none on transition end).

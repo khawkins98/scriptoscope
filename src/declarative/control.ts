@@ -71,12 +71,16 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
   }
 
   // VISUALLY-HIDE the native input rather than `display: none`. `display: none`
-  // removes the input from the accessibility tree entirely — screen-reader users
-  // lose access AND `<label for="...">` click-to-toggle stops working (the click
-  // dispatches on the label but reaches no rendered input). The visually-hidden
-  // pattern keeps the input in the AT tree + focusable + label-click-target while
-  // making it visually disappear behind the skinned chrome. WCAG 1.3.1 + 2.5.5 +
-  // 4.1.2 compliance. (a11y reviewer 2026-05-31)
+  // removes the input from the accessibility tree entirely — losing form-state
+  // value + `<label for="...">` click-to-toggle. The visually-hidden pattern
+  // keeps the input as the FORM-VALUE CARRIER + label-click-target while
+  // making it visually disappear behind the skinned chrome. Combined with
+  // tabIndex=-1 + aria-hidden=true (below), the native input becomes
+  // AT-invisible + non-tabbable, leaving the skinned face (role=checkbox/
+  // radio/slider with aria-checked + aria-label + tabIndex=0) as the SOLE
+  // AT + keyboard target. Without this, every promoted control would be
+  // announced twice + tabbed through twice — the reviewer-caught bug from
+  // the 2026-05-31 first attempt at this fix. WCAG 1.3.1 + 2.5.5 + 4.1.2.
   Object.assign(input.style, {
     position: 'absolute',
     width: '1px', height: '1px',
@@ -84,6 +88,8 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
     overflow: 'hidden', clip: 'rect(0,0,0,0)',
     whiteSpace: 'nowrap',
   });
+  input.tabIndex = -1;
+  input.setAttribute('aria-hidden', 'true');
   const lbl = kind !== 'range' ? associatedLabel(input) : null;
   const wrapping = lbl?.contains(input) ?? false;
   if (wrapping && lbl) {

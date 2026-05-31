@@ -26,27 +26,41 @@ Scriptoscope is **desktop windowing**. Classic Mac chrome assumes pointer + keyb
 - The chrome canvas is `image-rendering: pixelated`; on high-DPR displays the integer-upscale looks clean.
 - Window-types sized larger than the viewport overflow horizontally. There's no auto-shrink mode.
 
-Recommended pattern: hide the chrome below a breakpoint and let the bare HTML render naturally.
+**Recommended pattern: skip mounting entirely below your breakpoint.** This is the only clean answer — the chrome canvas + the runtime's interactive overlays (move handle, grow box, title widget hit-buttons, themed scrollbars) all live inside a shadow root that page CSS can't reach. Hiding only the chrome canvas via CSS leaves the overlays as invisible-but-clickable regions, an accessibility trap.
+
+```js
+// Conditional mount — the cleanest pattern.
+if (!window.matchMedia('(max-width: 600px)').matches) {
+  await mountDeclarative({ /* ... */ });
+}
+// Bare HTML renders untouched below the breakpoint.
+```
+
+If you want chrome to appear/disappear on viewport changes (rotate to landscape, browser resize), wire a `matchMedia` change listener that calls `handle.disconnect()` or re-mounts:
+
+```js
+const mq = window.matchMedia('(min-width: 600px)');
+let handle;
+const sync = async () => {
+  if (mq.matches && !handle) handle = await mountDeclarative({ /* ... */ });
+  else if (!mq.matches && handle) { handle.disconnect(); handle = undefined; }
+};
+mq.addEventListener('change', sync);
+sync();
+```
+
+**If you DO want a CSS-only fallback** (e.g. no JS path), the only safe approach is to hide the entire host element via the runtime's promoted-attribute selector and let your bare-HTML fallback render in its place via a `<noscript>`-equivalent pattern:
 
 ```css
 @media (max-width: 600px) {
-  /* Chromed windows become bare blocks; chrome canvas hidden, content flows */
-  [data-scriptoscope-promoted] .scriptoscope-window > canvas { display: none; }
-  [data-scriptoscope-promoted] .scriptoscope-content { padding: 0; }
+  [data-scriptoscope-promoted] { display: none; }
+  .my-mobile-fallback { display: block; }
 }
 ```
 
-Or, more aggressively, skip mounting entirely below the breakpoint:
+But this leaves the user with no content unless you ship a parallel mobile-only DOM tree. The conditional-mount pattern above is cleaner.
 
-```js
-if (window.matchMedia('(max-width: 600px)').matches) {
-  // Don't call mountDeclarative — leave the bare HTML alone.
-} else {
-  await mountDeclarative({ ... });
-}
-```
-
-The library doesn't itself listen for viewport changes — if you want chrome to reappear when the user rotates to landscape, wire a `matchMedia` change listener that calls `handle.disconnect()` / re-mounts.
+The library does not itself listen for viewport changes — that's intentionally consumer-controlled.
 
 ## Content Security Policy
 

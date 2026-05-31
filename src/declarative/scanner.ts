@@ -110,10 +110,15 @@ export interface MountStats {
 }
 
 /** Events dispatched on the MountHandle. Use `handle.addEventListener('ready', cb)`.
- *  All events bubble through the handle itself (it's an EventTarget); promoted
- *  windows ALSO dispatch a `scriptoscope:promoted` CustomEvent on the original
- *  consumer element (bubbles up the DOM) so consumers can listen anywhere
- *  without holding the handle.
+ *  Per-window DOM events also fire and BUBBLE up from the runtime-inserted
+ *  host element (the original consumer element is removed at promote time —
+ *  it's detached, so adding a listener there won't fire). Listen on a stable
+ *  ancestor like `document.body` instead:
+ *    - `scriptoscope:promoted`    — `detail = { kind, host }`, after promote
+ *    - `scriptoscope:close`       — fires on host BEFORE teardown
+ *    - `scriptoscope:userresize`  — `detail = { w, h }`, after grow-box commit
+ *    - `scriptoscope:promoteError`— `detail = { kind, el, cause }`, fires on
+ *                                   the original element BEFORE it's removed
  *
  * - `ready`         — initial scan completed; stats reflect first-pass counts.
  * - `retheme`       — handle.retheme resolved; .detail is the new ref.

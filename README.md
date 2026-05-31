@@ -131,7 +131,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 |---|---|---|
 | `data-scriptoscope-window` | any element | Promote into a Mac window. Children become the window body. |
 | `data-scriptoscope-title="…"` | a window | Title-bar text. Optional. |
-| `data-scriptoscope-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
+| `data-scriptoscope-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `popup-window`, plus boot-shaded variants `collapsed-document-window`, `collapsed-titled-utility`, `collapsed-side-utility`, `collapsed-no-title-utility` (most schemes ship art for `collapsed-document-window` only; double-click any window's title at runtime to shade regardless of boot-type). Default: `document-window`. |
 | `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. **Setting either flips the host to `position: absolute`** — the opt-in to the floater posture (overlays, desktop scatters, palettes). When BOTH are omitted, the host stays in flow at the source element's DOM position — `getBoundingClientRect` is never consulted for layout; the browser places it natively. The cascade fallback (`24+26·n`, `24+26·n`) applies only on this absolute path when the source element has no bounding rect (e.g. `display:none` at promotion time). |
 | `data-scriptoscope-width="…"` / `data-scriptoscope-height="…"` | a window | **Absolute** declared size in px. **Optional** — omitted values inherit the element's currently-rendered width/height (one-shot capture). When declared, the size is fixed: the auto-resize observer is suppressed for that dimension. Use for overlay-style windows that should be a specific size regardless of where the source element sits in the DOM. |
 | `data-scriptoscope-extra-width="…"` / `data-scriptoscope-extra-height="…"` | a window | **Additive** padding (in px) on the auto-captured natural rect — pre-reserves space for content that will grow after promote. **Mutually exclusive** with `data-scriptoscope-width` / `-height` (ignored when the absolute form is set). Use case: a theme-picker whose tile children are populated by the runtime itself; without `extra-height`, the chrome boots at the empty-strip size and momentarily shows nested scrollbars until the auto-resize observer catches up. Setting `extra-height` synchronously reserves the space and avoids the visual pop. (The runtime ALSO auto-resizes via `ResizeObserver` regardless — `extra-*` is the synchronous version that skips the pop.) |
@@ -175,6 +175,11 @@ await mountDeclarative({
   rejectOnEmptyMount: true,         // optional: throw if scan found data-scriptoscope-* targets but
                                     //   ZERO promoted (catches theme-bundle 404s + decoder errors in one place).
   onPromoteError: (err, ctx) => {…},// optional: hook per-target promotion failures (vs the rejectOnEmpty above).
+  bootAffordance: 'auto',           // optional: chrome wipe-in animation + boot-state CSS hook
+                                    //   (data-scriptoscope-loading on the root + .scriptoscope-ready class
+                                    //   on the root once promotion settles). 'auto' (default) picks per
+                                    //   element; 'none' (alias false) suppresses entirely. Respects
+                                    //   prefers-reduced-motion automatically.
 });
 ```
 
@@ -186,17 +191,26 @@ const handle = await mountDeclarative({…});
 // Event API — four events on the handle
 handle.addEventListener('ready', (e) => { /* initial scan complete; e.detail.stats has counts */ });
 handle.addEventListener('retheme', (e) => { /* theme just switched; e.detail.ref is the slug or URL */ });
-handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, err } */ });
+handle.addEventListener('promoteError', (e) => { /* a promotion failed; e.detail = { kind, el, cause } */ });
 handle.addEventListener('unmounted', () => { /* disconnect() finished */ });
 
-// On the ORIGINAL consumer element (the <article> you tagged): bubbling DOM event
-// when the runtime promotes it. Listen at the element itself or any ancestor.
-sourceEl.addEventListener('scriptoscope:promoted', (e) => { /* e.detail.host is the runtime host */ });
+// On the runtime-inserted HOST element (the original consumer element is removed
+// at promote time — its children move into the host's slot). The event bubbles
+// UP from the host, so listen on a stable ancestor of the source element's
+// original position (document, document.body, your app root). Do NOT cache a
+// ref to the original element and listen on it — it's detached by the time
+// this fires.
+document.body.addEventListener('scriptoscope:promoted', (e) => { /* e.detail = { kind: 'window', host } */ });
 
 // On the runtime-inserted HOST element: bubbling + composed CustomEvents that cross
-// the shadow boundary into your consumer wraps (modal overlays, etc.).
-host.addEventListener('scriptoscope:close', () => { /* runtime is about to restore bare HTML */ });
-host.addEventListener('scriptoscope:userresize', (e) => { /* user finished grow-box drag; e.detail = { w, h } */ });
+// the shadow boundary into your consumer wraps (modal overlays, etc.). Same listener
+// rule as scriptoscope:promoted — listen on an ancestor, not the original element.
+document.body.addEventListener('scriptoscope:close', (e) => { /* runtime is about to restore bare HTML */ });
+document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finished grow-box drag; e.detail = { w, h } */ });
+
+// On the ORIGINAL consumer element (or any ancestor): a per-target failure event
+// when promotion throws. Bubbles. Same shape as the handle's 'promoteError'.
+document.body.addEventListener('scriptoscope:promoteError', (e) => { /* e.detail = { kind, el, cause } */ });
 
 // Methods
 handle.disconnect();                       // tear down observers + restore source elements
