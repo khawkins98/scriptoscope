@@ -329,6 +329,59 @@
       #powers .powers-card-row.heavy, #powers .powers-card-row.minor { grid-template-columns: 1fr; }
       #powers .powers-toolbar { padding: 12px 16px 0; flex-wrap: wrap; }
     }
+    /* PICKER SPECIAL TILES — "No theme" and "Load your own" inside the
+       picker strip, replacing the top-right toggle + the dashed drop zone
+       below it. CSS `order` puts No theme first, Load your own last,
+       theme tiles fall in between (default order 0). Distinct class so the
+       library's keyboard nav (scoped to `.scriptoscope-theme-picker-tile`)
+       doesn't try to switchTheme(undefined) on them. */
+    #powers .powers-picker-special-tile {
+      flex: 0 0 86px; min-width: 86px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 4px 4px 6px; background: transparent; border: 1px solid transparent;
+      font: 9.5px/1.1 "Charcoal", "Geneva", "Lucida Grande", sans-serif;
+      color: #1c1c1c; cursor: pointer;
+    }
+    #powers .powers-picker-special-tile:hover { background: #f0f0f0; }
+    #powers .powers-picker-special-tile:focus-visible { outline: 2px solid #0000EE; outline-offset: -2px; }
+    #powers .powers-picker-special-tile .glyph { width: 32px; height: 32px; display: grid; place-items: center; font-size: 20px; color: #666; image-rendering: pixelated; }
+    #powers .powers-picker-special-tile .name { font-weight: 700; }
+    #powers .powers-picker-special-tile .author { font-size: 8.5px; font-style: italic; color: #5a5a5a; }
+    #powers .powers-picker-special-tile[data-special="none"] { order: -1; }
+    #powers .powers-picker-special-tile[data-special="load"] { order: 99; }
+    /* BYO MODAL — fixed-position backdrop + themed modal window inside.
+       Initially hidden (visibility + opacity for transition, pointer-events
+       off). On `.open`, all three flip on. Backdrop click closes; the
+       modal's own close widget also closes. */
+    #powers-byo-modal-wrap {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(40, 40, 60, 0.42);
+      display: flex; align-items: center; justify-content: center;
+      visibility: hidden; opacity: 0; pointer-events: none;
+      transition: opacity 140ms ease-out, visibility 0s linear 140ms;
+    }
+    #powers-byo-modal-wrap.open { visibility: visible; opacity: 1; pointer-events: auto; transition-delay: 0s; }
+    @media (prefers-reduced-motion: reduce) { #powers-byo-modal-wrap { transition: none; } }
+    .powers-byo-modal-content { padding: 4px 4px 8px; font: 13px/1.5 "Times New Roman", Times, serif; color: #1c1c1c; max-width: 460px; }
+    .powers-byo-modal-content p { margin: 0 0 10px; }
+    .powers-byo-modal-content code { font: 11.5px Monaco, "Courier New", monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+    .powers-byo-zone-modal {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      width: 100%; padding: 18px 16px;
+      border: 1.5px dashed #8a8a8a; background: #fafaf3;
+      font-family: inherit; cursor: pointer;
+      transition: background .12s, border-color .12s;
+    }
+    .powers-byo-zone-modal:hover,
+    .powers-byo-zone-modal:focus-visible { background: #fff5d6; border-color: #5a5a5a; outline: none; }
+    .powers-byo-zone-modal.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
+    .powers-byo-zone-modal strong { font: 600 14px serif; }
+    .powers-byo-zone-modal .subhint { font: italic 12px serif; color: #5a5a5a; }
+    .powers-byo-modal-out { margin-top: 8px; min-height: 1em; font: italic 12px serif; color: #5a5a5a; }
+    .powers-byo-modal-out .ok { color: #1c5d1c; }
+    .powers-byo-modal-out .err { color: #a01818; }
+    .powers-byo-modal-meta { margin-top: 8px; font: italic 11.5px serif; color: #767676; }
+    .powers-byo-modal-meta a { color: #0000EE; }
   </style>
 </head>
 <body>
@@ -340,10 +393,13 @@
          for the runtime inspectors. -->
     <div class="powers-toolbar">
       <a href="./diagnostic.html" class="powers-skin-link" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
-      <span class="powers-skin-btn-sep">·</span>
+      <!-- Skin-toggle button is now only shown when un-skinned (see syncToggleUI
+           in boot block). When skinned, the picker's 'No theme' tile is the
+           un-skin path; the toolbar button only re-appears in OFF mode as
+           the 'Restore the chrome' affordance. -->
       <button type="button" id="powers-skin-toggle" class="powers-skin-btn"
-              aria-pressed="true"
-              title="Toggle the live Mac chrome. Off shows the bare 1999 HTML — the same DOM, no skinning runtime.">See the bare HTML <span class="arrow">→</span></button>
+              aria-pressed="true" hidden
+              title="Restore the live Mac chrome. Off shows the bare 1999 HTML — the same DOM, no skinning runtime.">Restore the chrome <span class="arrow">←</span></button>
     </div>
     <div class="powers-inner">
       <!-- ── PICKER as page header — open-the-folder is the FIRST eye-move.
@@ -360,28 +416,51 @@
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
                Themes come from the `themes` array passed to mountDeclarative.
-               No `data-scriptoscope-extra-height` needed — the runtime's
-               ResizeObserver auto-resizes the chrome once the tiles populate
-               (the strip grows from ~8px empty to ~116px). For consumers who
-               want to AVOID the brief visual pop on first paint, set
-               data-scriptoscope-extra-height="100" to pre-reserve the space. -->
-          <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders"></div>
+               The two `.powers-picker-special-tile` buttons pre-seeded
+               inside are demo-side extras (No theme + Load your own); CSS
+               `order` puts No theme first and Load your own last, theme
+               tiles fall in between. Distinct class so the library's
+               keyboard nav skips them. -->
+          <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders">
+            <button type="button" class="powers-picker-special-tile" data-special="none"
+                    aria-label="Switch to bare HTML — no theme applied">
+              <span class="glyph" aria-hidden="true">⊘</span>
+              <span class="name">No theme</span>
+              <span class="author">bare HTML</span>
+            </button>
+            <button type="button" class="powers-picker-special-tile" data-special="load"
+                    aria-label="Load your own Kaleidoscope scheme — opens an upload modal">
+              <span class="glyph" aria-hidden="true">↑</span>
+              <span class="name">Load your own</span>
+              <span class="author">.sit · .rsrc</span>
+            </button>
+          </div>
         </article>
       </div>
-      <!-- DROP-YOUR-OWN-SCHEME zone — surfaces the "any of the 3,000+
-           Kaleidoscope schemes can render here" pitch right on the
-           landing, not buried in /diagnostic.html. The runtime exposes
-           attachThemeDropZone (handles the click + drag-and-drop +
-           file-input plumbing); the onFile callback decodes via the
-           library's loadKaleidoscopeScheme, registers under a synthetic
-           ref, and rethemes the page. Nothing is uploaded. -->
-      <div class="powers-byo">
-        <button type="button" id="powers-drop" class="powers-byo-zone"
-                aria-label="Drop your own Kaleidoscope scheme — decoded entirely in your browser">
-          <span class="powers-byo-headline">Drop your own scheme →</span>
-          <span class="powers-byo-hint">Any <code>.sit</code>, <code>.rsrc</code>, <code>.hqx</code>, or MacBinary. Decoded in your browser; nothing uploaded. Grab one from the <a href="https://macthemes.garden/" target="_blank" rel="noopener">archive</a> if you don't have one handy.</span>
-        </button>
-        <div id="powers-drop-out" class="powers-byo-out" role="status" aria-live="polite"></div>
+      <!-- BYO modal — themed `movable-modal` window with the drop-zone UI
+           inside. Triggered by the picker's 'Load your own' tile (see
+           the boot block below). The wrap is `position: fixed` with a
+           backdrop; clicking the backdrop OR the modal's close widget
+           hides the wrap. Initially `visibility: hidden` + `opacity: 0`
+           + `pointer-events: none` so the runtime promotes the modal
+           normally at mount-time (its rect captures fine), then we just
+           toggle the wrap's class to show/hide. -->
+      <div id="powers-byo-modal-wrap" role="presentation">
+        <article id="powers-byo-modal" class="powers-byo-modal" data-scriptoscope-window
+                 data-scriptoscope-title="Bring your own theme"
+                 data-scriptoscope-window-type="movable-modal"
+                 data-scriptoscope-width="460" data-scriptoscope-height="220">
+          <div class="powers-byo-modal-content">
+            <p>Drop a Kaleidoscope scheme file here, or click to choose one. Decoded entirely in your browser — nothing uploaded; refreshing the page throws the bytes away.</p>
+            <button type="button" id="powers-byo-modal-drop" class="powers-byo-zone-modal"
+                    aria-label="Drop a Kaleidoscope scheme — decoded entirely in your browser">
+              <strong>Drop a .sit / .rsrc / .hqx file here</strong>
+              <span class="subhint">or click to choose</span>
+            </button>
+            <div id="powers-byo-modal-out" class="powers-byo-modal-out" role="status" aria-live="polite"></div>
+            <p class="powers-byo-modal-meta">Don't have one? <a href="https://macthemes.garden/" target="_blank" rel="noopener">Mac Themes Garden</a> has 4,400+ themes.</p>
+          </div>
+        </article>
       </div>
       <!-- READ ME window — the lede prose itself wears chrome. Period
            shareware convention: every download came with a "Read Me" you
@@ -559,9 +638,13 @@
     // lockstep without needing a separate setter.
     const syncToggleUI = (skinned) => {
       toggleBtn.setAttribute('aria-pressed', String(skinned));
-      toggleBtn.firstChild.textContent = skinned ? 'See the bare HTML ' : 'Restore the chrome ';
+      toggleBtn.firstChild.textContent = 'Restore the chrome ';
       const arrow = toggleBtn.querySelector('.arrow');
-      if (arrow) arrow.textContent = skinned ? '→' : '←';
+      if (arrow) arrow.textContent = '←';
+      // Show the toolbar button ONLY when un-skinned — when skinned, the
+      // picker's 'No theme' tile is the un-skin path. Toolbar button
+      // re-appears in OFF mode as the 'Restore the chrome' affordance.
+      toggleBtn.hidden = skinned;
     };
 
     const mountPowers = async () => {
@@ -603,62 +686,83 @@
       syncToggleUI(true);
     };
 
-    // Bring-your-own-scheme drop zone — wires the runtime's
-    // attachThemeDropZone onto the page's <button id="powers-drop">. The
-    // onFile callback decodes the dropped file via loadKaleidoscopeScheme
-    // (in-browser, no upload), registers under a synthetic ref tied to
-    // the file name so repeat drops re-render the same theme, then
-    // rethemes the page. The aria-live status region announces success
-    // / failure for AT. Attach once at module load — the drop zone
-    // outlives mount cycles so a consumer can drop while in OFF mode
-    // (we'll auto-flip to skinned).
-    {
-      const dropZone = document.getElementById('powers-drop');
-      const dropOut = document.getElementById('powers-drop-out');
-      if (dropZone) {
-        attachThemeDropZone(dropZone, {
-          accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
-          onFile: async (file) => {
-            const name = file.name.replace(/\.[^.]+$/, '') || file.name;
-            dropOut.className = 'powers-byo-out';
-            dropOut.textContent = `Decoding ${file.name}…`;
-            // If currently in OFF mode, mount first so we have a handle
-            // to register against.
-            if (!handle) await mountPowers();
-            if (!handle) {
-              dropOut.className = 'powers-byo-out err';
-              dropOut.textContent = `Couldn't bring up the runtime to render ${file.name}.`;
-              return;
-            }
-            try {
-              const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
-              const ref = `dropped:${file.name}`;
-              handle.registerTheme(ref, theme);
-              await handle.retheme(ref);
-              dropOut.className = 'powers-byo-out ok';
-              dropOut.textContent = `Now wearing ${name} — preview only, gone on reload.`;
-            } catch (err) {
-              dropOut.className = 'powers-byo-out err';
-              dropOut.textContent = `Couldn't read ${file.name} as a Kaleidoscope theme (${(err && err.message) || err}).`;
-            }
-          },
-          onError: (err) => {
-            dropOut.className = 'powers-byo-out err';
-            dropOut.textContent = `Drop failed: ${(err && err.message) || err}`;
-          },
-        });
-      }
-    }
     const unmountPowers = () => {
       mountToken++;
       if (handle) { try { handle.disconnect(); } catch {} handle = null; }
       syncToggleUI(false);
     };
     toggleBtn.addEventListener('click', () => {
-      // (Library already stops auto-cycle on any pointerdown in the root —
-      // clicking the toggle counts as engagement automatically.)
-      const skinned = toggleBtn.getAttribute('aria-pressed') === 'true';
-      skinned ? unmountPowers() : mountPowers();
+      // Toolbar button is only visible when un-skinned (syncToggleUI hides
+      // it otherwise). One job: restore the chrome.
+      mountPowers();
+    });
+
+    // BYO MODAL — opened by the picker's 'Load your own' tile, hidden by
+    // backdrop click OR the modal's own close widget. The drop zone INSIDE
+    // the modal is wired via attachThemeDropZone. onFile decodes via
+    // loadKaleidoscopeScheme (no upload), registers under a synthetic ref,
+    // and rethemes the page. Modal stays open after a successful load so
+    // the user can see the status; they close it via backdrop or close
+    // widget when done.
+    const modalWrap = document.getElementById('powers-byo-modal-wrap');
+    const modalDrop = document.getElementById('powers-byo-modal-drop');
+    const modalOut = document.getElementById('powers-byo-modal-out');
+    const openModal = () => modalWrap.classList.add('open');
+    const closeModal = () => modalWrap.classList.remove('open');
+    if (modalDrop && modalOut) {
+      attachThemeDropZone(modalDrop, {
+        accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
+        onFile: async (file) => {
+          const name = file.name.replace(/\.[^.]+$/, '') || file.name;
+          modalOut.className = 'powers-byo-modal-out';
+          modalOut.textContent = `Decoding ${file.name}…`;
+          // If currently in OFF mode, mount first so we have a handle
+          // to register against (and to render the dropped theme).
+          if (!handle) await mountPowers();
+          if (!handle) {
+            modalOut.className = 'powers-byo-modal-out err';
+            modalOut.textContent = `Couldn't bring up the runtime to render ${file.name}.`;
+            return;
+          }
+          try {
+            const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
+            const ref = `dropped:${file.name}`;
+            handle.registerTheme(ref, theme);
+            await handle.retheme(ref);
+            modalOut.className = 'powers-byo-modal-out ok';
+            modalOut.textContent = `Now wearing ${name} — preview only, gone on reload.`;
+          } catch (err) {
+            modalOut.className = 'powers-byo-modal-out err';
+            modalOut.textContent = `Couldn't read ${file.name} as a Kaleidoscope theme (${(err && err.message) || err}).`;
+          }
+        },
+        onError: (err) => {
+          modalOut.className = 'powers-byo-modal-out err';
+          modalOut.textContent = `Drop failed: ${(err && err.message) || err}`;
+        },
+      });
+    }
+    // Backdrop click closes the modal (clicks ON the modal article itself
+    // bubble up to the wrap; we only close when the target IS the wrap).
+    modalWrap?.addEventListener('click', (e) => {
+      if (e.target === modalWrap) closeModal();
+    });
+    // Esc key closes the modal.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalWrap?.classList.contains('open')) closeModal();
+    });
+
+    // PICKER SPECIAL TILES — 'No theme' unmounts; 'Load your own' opens
+    // the modal. Event-delegated off the picker container so the tiles
+    // work even though they're not promoted through the library's tile
+    // wiring (deliberately — they're demo-side extras, not real themes).
+    foldersEl?.addEventListener('click', (e) => {
+      const tile = e.target.closest('.powers-picker-special-tile');
+      if (!tile) return;
+      e.stopPropagation();
+      const kind = tile.dataset.special;
+      if (kind === 'none') unmountPowers();
+      else if (kind === 'load') openModal();
     });
 
     // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
