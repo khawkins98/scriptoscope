@@ -89,9 +89,32 @@ The runtime is hosted at <https://khawkins98.github.io/aaron-ui/> alongside the 
 
 That's it. The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
-#### How positioning works
+#### How positioning works (Posture B, 2026-05-31)
 
-`data-scriptoscope-window` elements **inherit their position and size from the DOM** at promotion time. If you don't specify `data-scriptoscope-x/y/width/height`, the runtime calls `getBoundingClientRect()` on the element and uses that — meaning whatever CSS you've written for the element (grid cell, flexbox child, absolute, or normal flow) is the source of truth. The chrome wraps **in place**. No new positioning vocabulary to learn.
+Two postures, decided by whether you set `data-scriptoscope-x` or `data-scriptoscope-y`:
+
+- **In-flow (default).** No `-x`/`-y` → the host is created as `position: static` and sits exactly where your source element sat in the DOM. Grid cells, flex children, normal flow, everything works because the browser's own layout engine places it. Siblings push down naturally — the runtime doesn't pin ancestor heights or cascade-shift. Inline `position` is cleared, so your own `.my-class { position: relative }` for stacking contexts is respected.
+- **Absolute (opt-in via `-x`/`-y`).** Either coordinate present → host flips to `position: absolute` resolved against the nearest positioned ancestor. Use for desktop scatters, overlays, palettes. The `cascade` fallback (`24+26·n`, `24+26·n`) applies only when the source element has no bounding rect (e.g. `display: none` at promotion time).
+
+Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag/keyboard-arrow move (you can drag an in-flow window and it lifts out of flow at the captured page position); once converted, it stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
+
+#### Auto-resize: content growing after promote
+
+Any window with at least one un-declared dimension (no `data-scriptoscope-width` OR no `-height`) is wired to a shared `ResizeObserver` on its content. If consumer content grows after promote — an async-loaded image, a runtime-populated picker, a framework that paints children in a follow-up tick — the chrome re-fits to the new size automatically. The fit only GROWS past the captured baseline, never shrinks (transient layout collapses don't yank the window smaller).
+
+Past a 30 px / 500 ms growth threshold the runtime emits a one-shot `console.warn` suggesting you pre-declare via `data-scriptoscope-extra-width="N"` / `-extra-height="N"` to skip the visual pop on initial load. If you set a px-valued `max-width` / `max-height` on the host via CSS, the auto-resize respects it as a hard cap; the slot scrolls instead. Percentage / em / vh-based caps are ignored.
+
+#### Class inheritance and the locked-down properties
+
+The runtime copies the source element's `id`, classes, ARIA attributes, non-`data-scriptoscope-*` `data-*`, `lang`, `dir`, and `title` onto the host so your selectors keep matching after promotion. Five layout/decoration properties are then **locked down** via inline styles on the host, overriding any inherited class CSS:
+
+- `display: block` — your `.card { display: grid }` would collapse the host's box and decouple it from the chrome canvas.
+- `box-sizing: border-box`
+- `padding: 0` — padding pushes the canvas inside the host's box and leaves stripes of host-background showing around the chrome edges.
+- `border: 0` — your border was for the bare HTML; the chrome IS the intended frame.
+- `background: transparent` — paints under the chrome (invisible if chrome is opaque, ugly if chrome has transparent corners).
+
+Consumer styles for color, font, position (yes — `position: relative` from your class works), `max-width`/`max-height` (px caps), and custom properties still apply — they're not in the lockdown set.
 
 After mount, drag + resize update the host's inline `style.left/top/width/height` directly; CSS is the initial state, runtime owns runtime state. Reload restores CSS defaults (unless you pass `persistKey` — see below).
 
@@ -139,7 +162,7 @@ If your framework expects to manage the lifecycle of the wrapper (React owns the
 Things that work in the lab but bite once integrated:
 
 - **`* { box-sizing: content-box }` global resets** — the WindowManager's width math is based on content-box content sizes. Most CSS frameworks already set `border-box`, which we expect; flipping global box-sizing on `*` for `<div>` or `canvas` will produce windows wider than declared geometry by `padding + border`.
-- **`* { transform: translateZ(0) }` iOS scroll-perf hacks** — `transform` on any element creates a CSS containing block, breaking `findPositionedAncestor`'s walk. Windows position relative to the wrong ancestor, usually the nearest hacked element instead of your intended container.
+- **`* { transform: translateZ(0) }` iOS scroll-perf hacks** — only matters for windows on the absolute path (those with `data-scriptoscope-x`/`-y` declared, or that have been dragged). `transform` on any element creates a CSS containing block, so `findPositionedAncestor` resolves to a different anchor than the consumer expected. In-flow (default) windows aren't affected — the browser places them via normal flow.
 - **`body { overflow: hidden }` from modal libraries** — promoted windows use viewport-coordinate drag handlers. Freezing scroll while drag is in progress means the pointer/window math diverges; release works but the visual lags. Toggle this off while a Scriptoscope window has focus.
 - **`position: fixed` on consumer content INSIDE a promoted window** — the inner fixed element now anchors to the window host's transformed ancestor (if any), not the viewport. The runtime doesn't warn; this is a CSS spec edge that breaks consumers' assumptions.
 - **Heavy CSS reset on `<button>` and `<input>` (Tailwind preflight, Bootstrap reset)** — generally OK because we set chrome inside the shadow root. The HOST checkbox/select gets the reset normally, which is what you want.
@@ -193,7 +216,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-window` | any element | Promote into a Mac window. Children become the window body. |
 | `data-scriptoscope-title="…"` | a window | Title-bar text. Optional. |
 | `data-scriptoscope-window-type="…"` | a window | One of: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `collapsed-document-window`, `popup-window` (+ collapsed variants). Default: `document-window`. |
-| `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. **Optional** — omitted values inherit from the element's current page position, so the window appears in place where the original `<div>` was. Fallback (24,24) only kicks in when the element has no bounding rect (e.g. `display:none` at promotion time). |
+| `data-scriptoscope-x="…"` / `data-scriptoscope-y="…"` | a window | Initial position (px), relative to the nearest positioned ancestor. **Setting either flips the host to `position: absolute`** — the opt-in to the floater posture (overlays, desktop scatters, palettes). When BOTH are omitted, the host stays in flow at the source element's DOM position — `getBoundingClientRect` is never consulted for layout; the browser places it natively. The cascade fallback (`24+26·n`, `24+26·n`) applies only on this absolute path when the source element has no bounding rect (e.g. `display:none` at promotion time). |
 | `data-scriptoscope-width="…"` / `data-scriptoscope-height="…"` | a window | **Absolute** declared size in px. **Optional** — omitted values inherit the element's currently-rendered width/height (one-shot capture). When declared, the size is fixed: the auto-resize observer is suppressed for that dimension. Use for overlay-style windows that should be a specific size regardless of where the source element sits in the DOM. |
 | `data-scriptoscope-extra-width="…"` / `data-scriptoscope-extra-height="…"` | a window | **Additive** padding (in px) on the auto-captured natural rect — pre-reserves space for content that will grow after promote. **Mutually exclusive** with `data-scriptoscope-width` / `-height` (ignored when the absolute form is set). Use case: a theme-picker whose tile children are populated by the runtime itself; without `extra-height`, the chrome boots at the empty-strip size and momentarily shows nested scrollbars until the auto-resize observer catches up. Setting `extra-height` synchronously reserves the space and avoids the visual pop. (The runtime ALSO auto-resizes via `ResizeObserver` regardless — `extra-*` is the synchronous version that skips the pop.) |
 | `data-scriptoscope-state="active"` or `"inactive"` | a window | Initial focus state. Default `active` for first window, `inactive` after. |

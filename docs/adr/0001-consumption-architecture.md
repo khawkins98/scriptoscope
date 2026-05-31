@@ -1,6 +1,6 @@
 # ADR-0001 — Consumption architecture: applying a theme to a live web page
 
-- **Status:** Partially Accepted — Decision 3 (front door) shipped 2026-05-28; Decision 4 (ingestion) shipped 2026-05-27; Decision 2 (Shadow DOM) still open; **Decision 1 REVISED 2026-05-28** — the CSS `border-image` emitter is retired after three rounds of spike couldn't reach fidelity for the exotic schemes ([`docs/archive/2026-05-28-css-emitter-spike.md`](../archive/2026-05-28-css-emitter-spike.md)). The architecture is now explicitly "DOM structure + canvas decoration" — what the existing implementation already does. See §Spike result and the revised §Decision 1 below.
+- **Status:** Partially Accepted — Decision 3 (front door) shipped 2026-05-28; Decision 4 (ingestion) shipped 2026-05-27; **Decision 2 (Shadow DOM) SHIPPED 2026-05-28** in `src/interactive.ts:642` (`host.attachShadow({mode:'open'})`); **Decision 1 REVISED 2026-05-28** — the CSS `border-image` emitter is retired after three rounds of spike couldn't reach fidelity for the exotic schemes ([`docs/archive/2026-05-28-css-emitter-spike.md`](../archive/2026-05-28-css-emitter-spike.md)). The architecture is now explicitly "DOM structure + canvas decoration" — what the existing implementation already does. See §Spike result and the revised §Decision 1 below.
 - **Date:** 2026-05-25 (reviewed 2026-05-26, 2026-05-27, 2026-05-28 — see §Update + §Spike result)
 - **Supersedes:** the CSS-custom-property theme model and "Phase 1 WM shipped" assumptions in `PRD.md` (drifted from the v3 canvas reset). See `docs/history.md`, `docs/spec/compositor-spec.md`.
 - **Deciders:** maintainer (khawkins)
@@ -82,7 +82,7 @@ Full design + build log: `docs/superpowers/specs/2026-05-27-declarative-windows-
 
 **Still NOT shipped** (this ADR's open work):
 - Decision 1 — CSS `border-image` emitter + representability classifier. Still spike-gated; the gating spike has not been run. **This is the next gate.** All chrome rendering today goes through the canvas compositor (per-window canvas; no SSR; canvas is invisible to AT — the accessibility motivation for Decision 1 stands).
-- Decision 2 — Shadow DOM around chrome. Not yet wrapped; chrome currently renders into the same DOM tree as host content. The case still holds for hostile third-party CSS environments; the demos so far run on clean pages.
+- ~~Decision 2 — Shadow DOM around chrome.~~ **SHIPPED 2026-05-28** in `src/interactive.ts:642`. Every promoted window's host element gets an open-mode shadow root; chrome canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root. Consumer content lives in the host's light DOM (slotted into `.scriptoscope-content`). Validated under hostile consumer CSS via `demo/declarative-hostile-css.html`.
 - Phase map items PC (CSS emitter), PE (broader control decoration) — open. PD (ingestion) shipped 2026-05-27 (see below).
 
 **The ADR's central decision (CSS-first hybrid) is therefore still unproven.** Production chrome is canvas-only. The front door was built without prejudicing that decision: the renderer plumbing in `src/renderWindow.ts` is the canvas path; a future CSS emitter can be slotted behind the same `composeWindowChrome` recipe (see §1).

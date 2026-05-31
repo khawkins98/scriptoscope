@@ -2750,3 +2750,155 @@ P5's expected savings (~8KB code-split chunk for the 14 non-corner-sprite themes
 **The bigger qualitative change isn't in these numbers.** Before the CSS fix, the boot affordance's wipe-in + icon-fade + placeholder-dot animations had `var(--undefined)` references → invalid property values → silently disabled. The page reached "first window painted" in the same ~3s but with a popcorn-like rendering — chrome appearing instantly when its texture finished decoding, no transition cover. Post-fix, the wipe reveals the chrome smoothly over the consumer's already-visible markup; perceived perf at the same 3s wall-clock improves a level. The metric-vs-feel gap matters here.
 
 **Generalisable lesson.** Numerical perf tracking measures the timing axis; it cannot distinguish "renders fine" from "renders fine with a smooth transition." When fixing a feature that's only visible during the loading window, re-measure the metric, but ALSO eyeball the deployed bundle on the slowest profile you intend to serve. Some "wins" don't move the chart and some chart-flat changes are felt.
+
+## 2026-05-31 — The layout-patch chain: stop bandaging, refactor to Posture B
+
+A week of accumulated layout bugs in the declarative front door, each with a
+plausible "small fix," ended in a posture refactor (`cf267ac`) that retired
+half the scaffolding. Worth recording as a chain because no single patch was
+the mistake — the mistake was iterating along an axis that the architecture
+wouldn't carry.
+
+### The chain
+
+Starting point (pre-2026-05-26): every promoted host was created as
+`position: absolute` and positioned at the source element's captured
+`getBoundingClientRect`. The scanner pre-captured rects for all hosts in a
+single pass before promote, then handed them via a WeakMap to
+`ScriptoscopeWindow.promote`. To keep the rest of the page from collapsing
+when a host went absolute, the scanner pinned each ancestor's `min-height` to
+its captured height. Cumulative chrome growth across sibling hosts was
+tracked in a `cascade` shift counter.
+
+That posture mostly worked. It also produced a steady drip of bugs whose
+fixes accumulated:
+
+1. **`21d176f`** — added `extra-width`/`extra-height` because the theme-
+   picker's runtime-populated tiles grew the chrome post-promote, showing
+   nested scrollbars in the gap before auto-resize caught up. Same commit
+   added class inheritance from source el onto host (without it, consumer
+   CSS targeting `.my-class` was orphaned on the now-removed source).
+2. **`4c9bf85`** — wired `ResizeObserver` always (not just for explicit-
+   fit) + emit a 500 ms / 30 px growth warning with a copy-paste fix
+   pointing at `extra-height`.
+3. **`ba984fe`** — `display: block` lockdown on the host, because
+   inherited consumer classes like `.card { display: grid }` were
+   collapsing the host's box and decoupling it from the chrome canvas.
+   Also fixed natural-rect fit semantics (use `width: 100%` not
+   `max-content` when we have a natural rect — the max-content path was
+   silently measuring the longest unwrapped line of prose). Added a
+   px-only cap on `max-width`/`max-height` (`parseFloat('100%')` returned
+   100, not NaN, so % was being treated as a 100px cap → Read Me window
+   collapsed to a 100 px-wide column).
+4. **`d8df2ef`** — extended lockdown to `padding`, `border`, `background`.
+   `padding` was offsetting the canvas inside the host's box (stripes of
+   host-bg visible); `border` was double-framing; `background` was
+   showing through transparent chrome corners.
+
+### The refactor (`cf267ac`)
+
+The FE reviewer running against the post-#4 codebase recommended a posture
+inversion: stop trying to mimic in-flow layout via absolute positioning, and
+just **be** in-flow by default. Hosts default to `position: static`. Setting
+`-x` or `-y` opts into absolute (the original posture, now scoped to overlay/
+desktop use cases). The drag handler converts static → absolute on first
+move so a dragged window lifts out of flow cleanly.
+
+What got deleted:
+- Pre-capture pass in the scanner.
+- WeakMap `inheritedRect` handoff (file deleted in `0652704`).
+- Ancestor `min-height` pinning.
+- The `cascade` shift counter for in-flow paths.
+- The demo's `.powers-readme { position: static !important }` workaround.
+
+What remains:
+- The class-inheritance + lockdown decisions from #1-#4 (those were
+  about chrome correspondence, not posture).
+- `ResizeObserver` auto-fit (the growth-warning still helps consumers).
+- Absolute path via `-x`/`-y` for overlay/floater use cases (unchanged).
+
+The owner's framing was the key insight: dogfooding the runtime on the
+demo's own landing page (the cards, theme picker, Read Me article) generated
+more bug pressure in two weeks than 17 themes of faithful-chrome work
+generated in a month. The runtime had been designed for the absolute-overlay
+use case (Mac desktop scatter); the landing exercised the in-flow case
+(article-like cards in a grid). The patches in #1-#4 were each making the
+absolute path mimic in-flow better. Posture B accepts that the in-flow case
+is the more common one and serves it natively.
+
+### Post-refactor P0s caught by the FE reviewer (`0652704`)
+
+The Posture B refactor itself shipped two latent regressions that a focused
+review surfaced before any user hit them:
+
+- **Persistence**: `readHostPosition` returned `(0, 0)` for in-flow hosts
+  (whose top/left were never authoritative). Persistence wrote those. On
+  reload, the scanner restored `data-scriptoscope-x="0"`/`y="0"` from
+  storage — which triggered the absolute-opt-in path. Result: every
+  undragged window would yank to viewport origin on the first
+  persistence-enabled reload after the refactor. Fix: only persist
+  position when the host is genuinely absolute.
+- **Lying lockdown comment**: the in-flow path set
+  `host.style.position = 'static'` inline, then the doc-comment claimed
+  consumer-class CSS for position/top/left still applied. Inline beats
+  class. Fix: clear the inline (`host.style.position = ''`) so consumer
+  class CSS — and the UA static default — actually take precedence.
+
+### Generalisable lessons
+
+1. **Posture > patches.** When the third bug in a row asks the same
+   primitive to behave like a different one (absolute pretending to be
+   in-flow), the bug is the primitive choice, not the patches. Each fix
+   in #1-#4 was technically correct AND made the system more brittle by
+   adding scaffolding that the next bug had to navigate.
+
+2. **The dogfood gradient surfaces the real workload.** The faithful-
+   chrome corpus stressed the decode model; the landing page stressed
+   the consumption layer. If your library has a consumption layer, USE
+   IT FOR SOMETHING NON-TRIVIAL IN YOUR OWN REPO — the test suite won't
+   surface "consumer class inherited onto the host silently kills the
+   layout" because tests don't ship consumer classes.
+
+3. **Layout-affecting CSS from consumer classes is a load-bearing
+   security boundary.** Moving an element's DOM identity to a new host
+   means the new host inherits the consumer's classes (you need this
+   for selector continuity) AND inherits any layout-affecting CSS those
+   classes carry (you don't want this — your chrome's box correspondence
+   breaks). The split has to be enforced; you can't just hope consumers
+   write only color/font rules. The lockdown set
+   (`display`/`box-sizing`/`padding`/`border`/`background`) is the
+   minimal viable defence; extend it when a sixth property bites.
+
+4. **CSS shrinks-and-grows asymmetrically.** A `ResizeObserver`-driven
+   auto-fit must only GROW past the captured baseline, never shrink —
+   transient layout collapses (image flicker during reflow, font swap
+   mid-paint, scrollbar gutter appearance) routinely produce smaller
+   measurements for a frame or two, and shrinking the chrome in response
+   yanks the visible window underneath the user.
+
+5. **A noisy-but-survivable warning earns its place.** The 30 px / 500 ms
+   growth warning surfaces "you should have declared `extra-height` here"
+   without breaking the auto-fit fallback path. Same pattern as the
+   boot-affordance CSS warning that surfaced the nested-comment bug
+   (`2026-05-30 — Two :root blocks` entry): warn loudly, degrade
+   gracefully, let the next person catch the report.
+
+6. **A refactor with no architectural test surface is half-done.** Both
+   the persistence P0 and the lying-lockdown P0 were invisible to the
+   typecheck + unit test gates. They surfaced only on a targeted FE
+   review of the diff. Posture-B test coverage should include flex/grid
+   parent, transformed ancestor, persistence round-trip on in-flow
+   windows, and drag handoff under scroll.
+
+### Application
+
+- New layout-touching code goes in `ScriptoscopeWindow.promote`'s
+  documented comment block (lines 95-227), not in the scanner. Posture
+  decisions live with the host, not with the scan.
+- Any future "small fix" to layout that adds more scaffolding around the
+  absolute path should trigger this entry as a re-read.
+- The `WindowManager.setPosition(host, x, y)` chokepoint (mentioned in
+  the FE review as the v2-reflow groundwork) is still un-built. Geometry
+  mutations remain scattered across `interactive.ts` drag/keyboard
+  handlers, `scanner.ts` cross-tab restore, and `ScriptoscopeWindow.promote`'s
+  absolute branch. Worth landing before v2 reflow features start.

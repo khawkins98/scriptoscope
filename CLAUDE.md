@@ -68,7 +68,17 @@ Dependencies are acyclic: demo → {runtime, conversion}; conversion → nothing
 - `pixelBuffer.ts` — the offscreen QuickDraw-style buffer everything draws into.
 - `textRaster.ts` — Charcoal 12 / Virtue bitmap title rasterizer (uses an ink-tight buffer; the compositor centres it).
 - `declarative/` — the `data-scriptoscope-*` consumption layer (separate public entry — `mountDeclarative`, `ScriptoscopeWindow`, `promoteButton`, `parseWindowAttrs`). Does **not** modify the runtime; imports it directly.
-- `interactive.ts` — `WindowManager` + interactive widget wrappers (buttons, checkboxes, sliders, scrollbars, title widgets).
+- `interactive.ts` — `WindowManager` + interactive widget wrappers (buttons, checkboxes, sliders, scrollbars, title widgets). Also owns the drag handoff: an in-flow host converts to `position: absolute` on first pointer-drag / keyboard-arrow move (Posture B, see below).
+
+### Declarative layout model (Posture B, 2026-05-31)
+
+The consumption layer defaults to **in-flow hosts** (`position: static`, inline cleared so consumer-class CSS for `position` is respected). Setting `data-scriptoscope-x` or `-y` opts into absolute positioning; the drag handler flips static→absolute on the first move so a dragged window lifts cleanly out of flow.
+
+A shared `ResizeObserver` is wired whenever at least one dimension is un-declared, so content growing after promote (picker tiles populated by the runtime, async-loaded images) auto-fits the chrome. The fit only GROWS past the captured baseline. A 30 px / 500 ms growth warning fires once per window with a copy-paste hint pointing at `data-scriptoscope-extra-width/-height`.
+
+Five host CSS properties are locked down via inline styles (`display`, `box-sizing`, `padding`, `border`, `background`) so inherited consumer classes can't break the host↔chrome box correspondence. Consumer styles for color/font/position/custom-properties still apply.
+
+**Read `src/declarative/ScriptoscopeWindow.ts:promote` first when touching this layer** — the comment block at lines 95-230 is the authoritative narrative. The `LEARNINGS.md` "2026-05-31 — The layout-patch chain" entry has the design history (why Posture B exists, what got deleted, what stays).
 
 ### Theme bundles (`themes/<slug>/`)
 
