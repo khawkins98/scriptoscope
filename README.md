@@ -381,6 +381,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
+- **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/aaron-ui/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
 - **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
 - **[`docs/spec/README.md`](./docs/spec/README.md)** — the **index** of every primary-source decode under `docs/spec/` (the citation chain: corpus → Scheme Factory → Apple → kDEF 2.3.1 → kDEF 1.8.2). First stop when chasing "what does id/field/address X mean?". The spec tree has grown to 30+ docs and this index is kept current.
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**

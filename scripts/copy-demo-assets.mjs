@@ -43,6 +43,19 @@ if (await exists(resolve(root, 'demo/themes-manifest.json'))) {
   );
 }
 
+// llms.txt — the LLM-agent discovery file (https://llmstxt.org standard).
+// Lives at the repo root for humans + dev tools; copied to dist/demo so it's
+// also fetchable at https://khawkins98.github.io/aaron-ui/llms.txt for any
+// LLM agent helping a consumer integrate Scriptoscope. The file curates
+// pointers to README + integration docs + recipes + API surface — gives an
+// agent a single canonical starting point instead of guessing across the repo.
+if (await exists(resolve(root, 'llms.txt'))) {
+  await copy(
+    resolve(root, 'llms.txt'),
+    resolve(root, 'dist/demo/llms.txt'),
+  );
+}
+
 // Bundled font referenced by the @font-face (the OFL Charcoal stand-in).
 if (await exists(resolve(root, 'demo/assets/fonts'))) {
   await copy(resolve(root, 'demo/assets/fonts'), resolve(outAssets, 'fonts'));
