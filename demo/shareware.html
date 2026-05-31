@@ -23,15 +23,31 @@
     .topnav .examples-nav { display: flex; gap: 6px; flex-wrap: wrap; }
     .topnav .examples-nav span { color: #aaa; }
 
-    /* Cascade layout: the "I just unzipped this archive and four windows
-       opened on my desktop" feel. Defaults handled by the runtime via
-       data-scriptoscope-cascade; we set step here to be tighter so the
-       four windows are all visible at common widths without scrolling
-       horizontally. */
+    /* Two-column layout: cascading Read Me windows on the left, a
+       "What's New" sidebar on the right. The cascade is the period
+       "I just unzipped this archive" beat; the sidebar is the
+       always-visible release-notes panel a real Mac shareware would
+       have shown in its splash. */
     .page {
-      max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px;
-      position: relative;
+      max-width: 1200px; margin: 0 auto; padding: 36px 24px 80px;
+      display: grid; gap: 28px;
+      grid-template-columns: 1fr 320px;
+      align-items: start;
     }
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+    }
+    .cascade-area {
+      position: relative;
+      /* Min height so the cascade has room to lay out four diagonal
+         windows even before the runtime measures + sets it. */
+      min-height: 540px;
+    }
+    .sidebar { }
+    .sidebar h3 { font: 600 14px/1.2 "Times New Roman", serif; margin: 10px 0 4px; }
+    .sidebar ul { padding-left: 18px; margin: 0 0 10px; font-size: 14px; }
+    .sidebar li { margin: 0 0 4px; }
+    .sidebar p { font-size: 14px; margin: 0 0 10px; }
 
     /* Each window's content typography. */
     .doc h2 { font: 600 18px/1.2 "Times New Roman", serif; margin: 0 0 8px; }
@@ -67,92 +83,99 @@
     <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
   </nav>
 
-  <!-- Cascade layout for the four Read Me windows: the period "I just
-       unzipped a Mac shareware archive" beat. The container has
-       data-scriptoscope-cascade so the runtime stacks them with a
-       diagonal offset; each window is sized via -width/-height so the
-       cascade is predictable. -->
-  <main class="page" data-scriptoscope-cascade
-        data-scriptoscope-cascade-step-x="44"
-        data-scriptoscope-cascade-step-y="36">
+  <main class="page">
 
-    <!-- 1. The opening "About this Application" window — period-correct
-         shareware convention: the FIRST thing a user opened. -->
-    <article class="doc" data-scriptoscope-window
-             data-scriptoscope-title="About SimpleNote 2.0"
-             data-scriptoscope-window-type="document-window"
-             data-scriptoscope-width="460" data-scriptoscope-height="380">
-      <h2>SimpleNote 2.0</h2>
-      <p class="lead">A tiny note-taking application for Mac OS 8 / 9. One window, no folders, plain text. Indexed for instant search.</p>
-      <p>Version 2.0 ships with full-text indexing, a System 8.5 Appearance Manager-aware look, and AppleScript support. Backward-compatible with 1.x note files.</p>
-      <p>SimpleNote is <strong>shareware</strong>: try it for 30 days; if you keep using it, please send $15 to the address below. Site licenses available for classrooms.</p>
-      <h3>Author</h3>
-      <p>Margot Sandoval<br>Tacoma, WA<br><a href="mailto:margot@example.com">margot@example.com</a></p>
-    </article>
+    <!-- LEFT: cascade of three Read Me windows. DOM order is reversed
+         from visual stacking order so the FIRST-thing-a-user-opens
+         ("About SimpleNote 2.0") ends up on TOP of the cascade. The
+         runtime walks DOM order + assigns ascending z, so the last
+         article inside the cascade container is the topmost. User
+         direction 2026-05-31. -->
+    <section class="cascade-area" data-scriptoscope-cascade
+             data-scriptoscope-cascade-step-x="44"
+             data-scriptoscope-cascade-step-y="36">
 
-    <!-- 2. Features list — the second window people open ("what does it
-         actually do?"). -->
-    <article class="doc" data-scriptoscope-window
-             data-scriptoscope-title="What's New in 2.0"
-             data-scriptoscope-window-type="document-window"
-             data-scriptoscope-width="420" data-scriptoscope-height="360">
-      <h2>What's New in 2.0</h2>
-      <p>The changes since 1.4:</p>
-      <ul>
-        <li><strong>Full-text indexing.</strong> Cmd-F finds across every note in milliseconds.</li>
-        <li><strong>Appearance Manager support.</strong> SimpleNote now wears whatever Kaleidoscope scheme you have active.</li>
-        <li><strong>AppleScript.</strong> Five new verbs: <code>add note</code>, <code>delete note</code>, <code>find</code>, <code>export</code>, <code>count</code>.</li>
-        <li><strong>Drag-and-drop import.</strong> Drop a TextEdit clipping on the SimpleNote icon to make a note.</li>
-        <li><strong>Auto-save.</strong> Every keystroke. No more lost notes from a frozen system.</li>
-        <li><strong>Dark notes.</strong> Cmd-Shift-D toggles a dim-on-dark mode for night use.</li>
-      </ul>
-      <h3>Fixed in 2.0</h3>
-      <ul>
-        <li>Memory leak when scrolling lists over 500 notes (since 1.2)</li>
-        <li>Crash when importing PageMaker text exports</li>
-        <li>Wrong line-ending detection on PC-exported files</li>
-      </ul>
-    </article>
+      <!-- bottom of cascade -->
+      <article class="doc" data-scriptoscope-window
+               data-scriptoscope-title="License + Credits"
+               data-scriptoscope-window-type="titled-utility-window"
+               data-scriptoscope-width="380" data-scriptoscope-height="280">
+        <h2>License</h2>
+        <p>SimpleNote 2.0 is <strong>shareware</strong>. Try it for 30 days. If you keep using it, please register: $15 individual, $40 site license (one school or company), $120 educational network (one district).</p>
+        <p>Send a check or money order to the address in the About window, or use the <a href="#">online registration form</a>.</p>
+        <h3>Credits</h3>
+        <ul>
+          <li><strong>Code:</strong> Margot Sandoval</li>
+          <li><strong>Icon design:</strong> Sam Park</li>
+          <li><strong>Testing:</strong> the WSU Computer Lab crew</li>
+          <li><strong>Sound effects:</strong> from the Mac OS 8.5 SoundSet (Apple, used with permission)</li>
+        </ul>
+      </article>
 
-    <!-- 3. Installation — utility-window because it's a quick reference,
-         not long-form. -->
-    <article class="doc" data-scriptoscope-window
-             data-scriptoscope-title="Installation"
-             data-scriptoscope-window-type="titled-utility-window"
-             data-scriptoscope-width="380" data-scriptoscope-height="310">
-      <h2>Installation</h2>
-      <ol>
-        <li>Quit any running copy of SimpleNote 1.x.</li>
-        <li>Drag the <strong>SimpleNote 2.0</strong> application to your <code>Applications</code> folder.</li>
-        <li>Double-click it. The first launch builds the index (about 30 seconds for 1,000 notes).</li>
-        <li>Done. Your old 1.x notes are read in place; no migration needed.</li>
-      </ol>
-      <h3>System Requirements</h3>
-      <ul>
-        <li>Mac OS 8.0 or later (System 7.5.5 minimum, with InputSprockets installed)</li>
-        <li>4 MB free RAM</li>
-        <li>2 MB disk space + your notes</li>
-        <li>Color QuickDraw (built into Mac OS 7.5+)</li>
-      </ul>
-    </article>
+      <!-- middle of cascade -->
+      <article class="doc" data-scriptoscope-window
+               data-scriptoscope-title="Installation"
+               data-scriptoscope-window-type="titled-utility-window"
+               data-scriptoscope-width="380" data-scriptoscope-height="310">
+        <h2>Installation</h2>
+        <ol>
+          <li>Quit any running copy of SimpleNote 1.x.</li>
+          <li>Drag the <strong>SimpleNote 2.0</strong> application to your <code>Applications</code> folder.</li>
+          <li>Double-click it. The first launch builds the index (about 30 seconds for 1,000 notes).</li>
+          <li>Done. Your old 1.x notes are read in place; no migration needed.</li>
+        </ol>
+        <h3>System Requirements</h3>
+        <ul>
+          <li>Mac OS 8.0 or later (System 7.5.5 minimum, with InputSprockets installed)</li>
+          <li>4 MB free RAM</li>
+          <li>2 MB disk space + your notes</li>
+          <li>Color QuickDraw (built into Mac OS 7.5+)</li>
+        </ul>
+      </article>
 
-    <!-- 4. License + credits — small utility, often the last window
-         opened. -->
-    <article class="doc" data-scriptoscope-window
-             data-scriptoscope-title="License + Credits"
-             data-scriptoscope-window-type="titled-utility-window"
-             data-scriptoscope-width="380" data-scriptoscope-height="280">
-      <h2>License</h2>
-      <p>SimpleNote 2.0 is <strong>shareware</strong>. Try it for 30 days. If you keep using it, please register: $15 individual, $40 site license (one school or company), $120 educational network (one district).</p>
-      <p>Send a check or money order to the address in the About window, or use the <a href="#">online registration form</a>.</p>
-      <h3>Credits</h3>
-      <ul>
-        <li><strong>Code:</strong> Margot Sandoval</li>
-        <li><strong>Icon design:</strong> Sam Park</li>
-        <li><strong>Testing:</strong> the WSU Computer Lab crew</li>
-        <li><strong>Sound effects:</strong> from the Mac OS 8.5 SoundSet (Apple, used with permission)</li>
-      </ul>
-    </article>
+      <!-- TOP of cascade: the first thing a user reads when they unzip
+           a shareware archive. The period convention. -->
+      <article class="doc" data-scriptoscope-window
+               data-scriptoscope-title="About SimpleNote 2.0"
+               data-scriptoscope-window-type="document-window"
+               data-scriptoscope-width="460" data-scriptoscope-height="380">
+        <h2>SimpleNote 2.0</h2>
+        <p class="lead">A tiny note-taking application for Mac OS 8 / 9. One window, no folders, plain text. Indexed for instant search.</p>
+        <p>Version 2.0 ships with full-text indexing, a System 8.5 Appearance Manager-aware look, and AppleScript support. Backward-compatible with 1.x note files.</p>
+        <p>SimpleNote is <strong>shareware</strong>: try it for 30 days; if you keep using it, please send $15 to the address below. Site licenses available for classrooms.</p>
+        <h3>Author</h3>
+        <p>Margot Sandoval<br>Tacoma, WA<br><a href="mailto:margot@example.com">margot@example.com</a></p>
+      </article>
+
+    </section>
+
+    <!-- RIGHT SIDEBAR: "What's New in 2.0" — release notes are always
+         visible, period precedent of the splash-screen "Latest
+         Changes" panel. Pulled out of the cascade so users don't have
+         to dig past the About to read the changelog. -->
+    <aside class="sidebar">
+      <article class="doc" data-scriptoscope-window
+               data-scriptoscope-title="What's New in 2.0"
+               data-scriptoscope-window-type="titled-utility-window"
+               data-scriptoscope-widgets="zoom,collapse">
+        <h2>What's New in 2.0</h2>
+        <p>The changes since 1.4:</p>
+        <ul>
+          <li><strong>Full-text indexing.</strong> Cmd-F finds across every note in milliseconds.</li>
+          <li><strong>Appearance Manager support.</strong> SimpleNote now wears whatever Kaleidoscope scheme you have active.</li>
+          <li><strong>AppleScript.</strong> Five new verbs: <code>add note</code>, <code>delete note</code>, <code>find</code>, <code>export</code>, <code>count</code>.</li>
+          <li><strong>Drag-and-drop import.</strong> Drop a TextEdit clipping on the SimpleNote icon to make a note.</li>
+          <li><strong>Auto-save.</strong> Every keystroke. No more lost notes from a frozen system.</li>
+          <li><strong>Dark notes.</strong> Cmd-Shift-D toggles a dim-on-dark mode for night use.</li>
+        </ul>
+        <h3>Fixed in 2.0</h3>
+        <ul>
+          <li>Memory leak when scrolling lists over 500 notes (since 1.2)</li>
+          <li>Crash when importing PageMaker text exports</li>
+          <li>Wrong line-ending detection on PC-exported files</li>
+        </ul>
+      </article>
+    </aside>
 
   </main>
 
@@ -164,9 +187,11 @@
     import { mountDeclarative } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
-    // Shareware Read Me: System 7 Nostalgia Silver matches the period
-    // System 7.5 / Mac OS 8 shareware aesthetic.
-    const PAGE_DEFAULT_THEME = 'system7-nostalgia-silver';
+    // Shareware Read Me: Platinum 8 (Russell Silver Jr., 1998). The
+    // canonical Mac OS 8 Platinum look, the exact aesthetic a 1998
+    // shareware app would have shipped with. User direction
+    // 2026-05-31.
+    const PAGE_DEFAULT_THEME = 'platinum-8';
 
     const switcher = document.querySelector('[data-scriptoscope-theme-switcher]');
     if (switcher) {

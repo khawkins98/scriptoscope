@@ -188,11 +188,10 @@ switch (classification.kind) {
     import { mountDeclarative } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
-    // Each example page pins a default theme that suits its content.
-    // Personal blog: 1138 (Erik Ekengren, 1998) — a classic platinum-
-    // adjacent scheme that reads naturally for prose. URL ?theme=<slug>
-    // overrides via syncToUrlParam.
-    const PAGE_DEFAULT_THEME = '1138';
+    // Personal blog: Crayon OS (Karl von Laudermann, 2000). Soft,
+    // friendly palette suits a personal homepage. URL ?theme=<slug>
+    // overrides via syncToUrlParam. User direction 2026-05-31.
+    const PAGE_DEFAULT_THEME = 'crayon-os';
 
     const switcher = document.querySelector('[data-scriptoscope-theme-switcher]');
     if (switcher) {
