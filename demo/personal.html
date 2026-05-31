@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ken's Pages — a Scriptoscope example</title>
+
+  <!-- Scriptoscope CSS. Relative path so it works both in dev (Vite's
+       serveScriptoscopeCssPlugin serves it from src/) and in prod (the
+       file is copied next to this HTML in dist/demo/). Same pattern as
+       the main demo's index.html. -->
+  <link rel="stylesheet" href="scriptoscope.css">
+
+  <!-- Demo-side stylesheet, kept inline so this file is a single self-contained
+       example a consumer can read top-to-bottom. The only Scriptoscope-specific
+       rule is the .page wrapper (CSS grid that lays out the in-flow windows).
+       Everything else is plain content styling for the prose, lists, and form. -->
+  <style>
+    /* Page chrome (the "desktop" the windows sit on). Subtle textured
+       background matches the period homepage convention. Body font is
+       Times Roman because that's what 1999 personal sites looked like;
+       the windows' THEMED chrome overrides this for canvas-rendered
+       title text. */
+    html, body { margin: 0; padding: 0; background: #c0c4c8; }
+    body { font: 16px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; min-height: 100vh; }
+    a { color: #0000EE; }
+    a:visited { color: #551A8B; }
+    a:hover { color: #cc0000; }
+
+    /* Top nav bar (period: a thin bordered strip with site links). Sits
+       above the windows, doesn't compete with the chrome. */
+    .topnav {
+      background: #ffffff; border-bottom: 1px solid #888; padding: 8px 24px;
+      font: 12px Monaco, "Courier New", monospace; color: #5a5a5a;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .topnav a { color: #0000EE; text-decoration: underline; }
+
+    /* The "desktop" container holds the windows. CSS Grid lays them
+       out responsively without needing per-window -x/-y attributes
+       (in-flow Posture B). On narrow viewports it collapses to a single
+       column. The runtime takes care of the chrome; this layout is
+       just consumer CSS. */
+    .page {
+      max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px;
+      display: grid; gap: 28px;
+      grid-template-columns: 1fr 1fr;
+    }
+    /* "Welcome" + "Posts" each span both columns on narrow viewports
+       only; on wide viewports they share their row with a sidebar. */
+    .welcome { grid-column: 1 / -1; }
+    .posts   { grid-column: 1 / span 1; }
+    .links   { grid-column: 2 / span 1; }
+    .now     { grid-column: 1 / span 1; }
+    .signup  { grid-column: 2 / span 1; }
+    @media (max-width: 720px) {
+      .page > article { grid-column: 1 / -1; }
+    }
+
+    /* Content typography inside the promoted windows. The chrome is
+       canvas; the content stays HTML and gets normal CSS. */
+    .welcome h1 { font: 28px/1.1 "Times New Roman", serif; margin: 0 0 12px; }
+    .welcome p { margin: 0 0 12px; max-width: 60ch; }
+    .now h2, .posts h2, .links h2, .signup h2 { font: 600 18px/1.2 "Times New Roman", serif; margin: 0 0 10px; }
+    .now ul, .posts ul, .links ul { margin: 0; padding: 0 0 0 18px; }
+    .now li, .posts li, .links li { margin: 0 0 8px; }
+    .posts li strong { display: block; font-weight: 600; }
+    .posts li span { color: #5a5a5a; font-size: 14px; }
+
+    /* Signup form (period vertical stack with one label per input). */
+    .signup form { display: grid; gap: 10px; }
+    .signup label { font: 600 14px/1.2 "Times New Roman", serif; display: block; }
+    .signup input[type=email] { width: 100%; box-sizing: border-box; padding: 4px 6px; font: 14px Monaco, "Courier New", monospace; }
+    .signup button { width: fit-content; padding: 4px 14px; font: 14px "Times New Roman", serif; }
+    .signup .helper { font: italic 12px/1.4 "Times New Roman", serif; color: #5a5a5a; margin: 0; }
+
+    /* Footer credit. */
+    .footer-credit {
+      max-width: 1100px; margin: 0 auto; padding: 16px 24px 32px;
+      font: italic 12px/1.4 "Times New Roman", serif; color: #5a5a5a;
+      text-align: center;
+    }
+    .footer-credit a { color: #0000EE; }
+  </style>
+</head>
+<body>
+
+  <!-- Top nav — site-level links, not chromed. Period sites had a thin
+       header strip with section bookmarks; this is the same idea. -->
+  <nav class="topnav">
+    <span><a href="./">← Scriptoscope showcase</a> &nbsp;|&nbsp; this is a real-world example page</span>
+    <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
+  </nav>
+
+  <!-- The "desktop" — every direct child is an `<article data-scriptoscope-
+       window>` that the runtime promotes. CSS Grid handles the layout;
+       windows are in-flow (Posture B), so they reflow at narrow viewports
+       and stack cleanly on mobile via the @media query above. -->
+  <main class="page">
+
+    <!-- 1. Welcome window — spans full width at top. Document-window =
+         period-Mac standard "I opened a folder" chrome. -->
+    <article class="welcome" data-scriptoscope-window
+             data-scriptoscope-title="Welcome"
+             data-scriptoscope-window-type="document-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h1>Hi, I'm Ken.</h1>
+      <p>I make small things on the web. This page is wrapped in <a href="./">Scriptoscope</a>, a library that paints classic Mac OS 8 chrome around any HTML, using the original 1998 <a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> scheme files as the art source. The chrome you're seeing right now is decoded from a real <code>.sit</code> archive someone uploaded to Info-Mac a quarter-century ago.</p>
+      <p>Try the theme picker in the top-right; the whole page changes scheme without a reload. Drag any window by its title bar; double-click a title to roll it up. Click the close box on a window to dismiss it (the content stays, as bare HTML in the page).</p>
+    </article>
+
+    <!-- 2. Now window — what the site owner is up to. Period blogs called
+         this the "Now Page". Document-window with all widgets enabled (a
+         throwaway content window, fine to close). -->
+    <article class="now" data-scriptoscope-window
+             data-scriptoscope-title="Now"
+             data-scriptoscope-window-type="document-window">
+      <h2>What I'm doing now</h2>
+      <ul>
+        <li>Maintaining Scriptoscope. Recent work: a cascade layout primitive, a themed modal helper, an llms.txt for AI agents.</li>
+        <li>Reading <em>The Soul of a New Machine</em> for the third time.</li>
+        <li>Thinking about whether period-Mac sound effects (<code>snd </code> resources) should ship as an opt-in.</li>
+      </ul>
+    </article>
+
+    <!-- 3. Email signup — themed form. The native <input> + <button> stay
+         real (form validation, keyboard, submission) — the runtime auto-
+         skins them via data-scriptoscope-control / data-scriptoscope-button. -->
+    <article class="signup" data-scriptoscope-window
+             data-scriptoscope-title="Mailing list"
+             data-scriptoscope-window-type="document-window">
+      <h2>Get a quarterly email</h2>
+      <form onsubmit="event.preventDefault(); document.getElementById('signup-out').textContent = 'Thanks! (Demo: nothing actually sent.)';">
+        <label for="signup-email">Email</label>
+        <input id="signup-email" type="email" required placeholder="you@example.com">
+        <button data-scriptoscope-button data-scriptoscope-default type="submit">Subscribe</button>
+        <p class="helper" id="signup-out">No spam, ~4 emails a year, unsubscribe with a click.</p>
+      </form>
+    </article>
+
+    <!-- 4. Recent posts — utility window (slim title bar, "this is a list,
+         not a document"). -->
+    <article class="posts" data-scriptoscope-window
+             data-scriptoscope-title="Recent posts"
+             data-scriptoscope-window-type="titled-utility-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h2>Recent posts</h2>
+      <ul>
+        <li>
+          <strong><a href="#">Scriptoscope at 0.0.1: what I learned shipping a hobby compatibility runtime</a></strong>
+          <span>2026-05-31</span>
+        </li>
+        <li>
+          <strong><a href="#">The kDEF replay engine: rebuilding a 68k WDEF for the web</a></strong>
+          <span>2026-05-22</span>
+        </li>
+        <li>
+          <strong><a href="#">Why I emailed Greg Landweber</a></strong>
+          <span>2026-05-15</span>
+        </li>
+        <li>
+          <strong><a href="#">Vintage UI as a category of web design</a></strong>
+          <span>2026-04-30</span>
+        </li>
+      </ul>
+    </article>
+
+    <!-- 5. Links / blogroll — utility window, smaller. -->
+    <article class="links" data-scriptoscope-window
+             data-scriptoscope-title="Links"
+             data-scriptoscope-window-type="titled-utility-window"
+             data-scriptoscope-widgets="zoom,collapse">
+      <h2>Bookmarks</h2>
+      <ul>
+        <li><a href="https://macthemes.garden/">Mac Themes Garden</a> — the corpus</li>
+        <li><a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a></li>
+        <li><a href="https://github.com/felixrieseberg/macintosh.js">macintosh.js</a> — Mac OS 8 in your browser</li>
+        <li><a href="https://infinitemac.org/">infinitemac.org</a> — classic Mac via the Internet Archive</li>
+        <li><a href="https://github.com/khawkins98/scriptoscope">github.com/khawkins98/scriptoscope</a></li>
+      </ul>
+    </article>
+
+  </main>
+
+  <p class="footer-credit">
+    A <a href="./">Scriptoscope</a> example. Page content is plausible-but-fictional; the runtime + chrome are real.
+    Now wearing <span id="page-theme-credit">…</span>.
+  </p>
+
+  <!-- Bootstrap script. The library scans the document on mount,
+       promotes every `data-scriptoscope-window` into a chromed window,
+       and skins every `data-scriptoscope-button` / `data-scriptoscope-
+       control` it finds. Two URLs, no build step. -->
+  <script type="module">
+    // Bare 'scriptoscope' specifier: same string a third-party consumer
+    // would write against the CDN, aliased by Vite (dev + prod) to the
+    // library entry. Matches the main demo's import.
+    import { mountDeclarative } from 'scriptoscope';
+    import THEMES from './themes-manifest.json';
+
+    // Random default theme per page load — surfaces the breadth of the
+    // corpus. `?theme=<slug>` deep-links override it via syncToUrlParam.
+    const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
+
+    // Theme switcher dropdown — the runtime promotes the <select>
+    // automatically once the bootstrap fires. Pre-populate options here
+    // so the visitor can pick any of the 18 themes.
+    const switcher = document.querySelector('[data-scriptoscope-theme-switcher]');
+    if (switcher) {
+      for (const t of THEMES) {
+        const opt = document.createElement('option');
+        opt.value = t.slug;
+        opt.textContent = t.name ?? t.slug;
+        if (t.slug === randomDefaultSlug) opt.selected = true;
+        switcher.appendChild(opt);
+      }
+    }
+
+    // Vite's BASE_URL carries the deploy prefix + trailing slash
+    // ('/' in dev, '/scriptoscope/' on GH Pages). Matches the main demo.
+    const BASE = import.meta.env.BASE_URL;
+    const handle = await mountDeclarative({
+      themeBaseUrl: `${BASE}themes`.replace(/\/+$/, ''),
+      pageThemeDefault: randomDefaultSlug,
+      themes: THEMES,
+      syncToUrlParam: 'theme',
+    });
+
+    // Update the footer credit line on every theme switch.
+    const creditEl = document.getElementById('page-theme-credit');
+    const findEntry = (ref) => {
+      if (typeof ref !== 'string') return null;
+      if (ref.startsWith('dropped:')) return { slug: ref.slice(8), name: ref.slice(8), author: null, year: null };
+      return THEMES.find((t) => t.slug === ref || ref.endsWith('/' + t.slug)) ?? null;
+    };
+    const renderCredit = (entry) => {
+      if (!creditEl) return;
+      if (!entry) { creditEl.textContent = '(loading)'; return; }
+      const bits = [`<strong>${entry.name ?? entry.slug}</strong>`];
+      if (entry.author) bits.push(`by ${entry.author}`);
+      if (entry.year) bits.push(`(${entry.year})`);
+      creditEl.innerHTML = bits.join(' ');
+    };
+    const url = new URL(window.location.href);
+    const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
+    renderCredit(findEntry(initialSlug));
+    handle.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
+  </script>
+</body>
+</html>
