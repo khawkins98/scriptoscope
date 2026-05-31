@@ -453,6 +453,14 @@ export async function renderWindow(
   }
   Object.assign(win.style, {
     position: 'relative',
+    // touch-action: none — block the browser's default touch gestures
+    // (page scroll, pinch zoom, double-tap zoom) on the chrome region
+    // so pointer-drag works on iOS without a 150ms tap-delay or a
+    // mid-drag scroll hijack. The slot inside (.scriptoscope-content)
+    // has its own overflow:auto + restores touch-action to 'pan-y' so
+    // consumer content inside still scrolls naturally. FE-reviewer
+    // follow-up 2026-05-31.
+    touchAction: 'none',
     width: `${fullWidth * scale}px`,
     height: `${fullHeight * scale}px`,
   } satisfies Partial<CSSStyleDeclaration>);
@@ -501,6 +509,11 @@ export async function renderWindow(
     boxSizing: 'border-box',
     overflow: 'auto',
     zIndex: '1',
+    // Restore default touch behaviour inside the content area: the
+    // parent `.scriptoscope-window` sets `touch-action: none` to block
+    // iOS gestures during chrome drag, but content (consumer prose,
+    // forms, scrollable lists) needs normal touch scrolling back.
+    touchAction: 'auto',
     ...bodyBackgroundStyle(owner, slug),
   } satisfies Partial<CSSStyleDeclaration>);
   scaleBodyPattern(content, owner, scale, slug);

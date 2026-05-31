@@ -21,23 +21,12 @@ const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster wi
 const MIN_W = 80, MIN_H = 40;
 
 
-/** Walk up the DOM to find the nearest positioned ancestor (the one the host's absolute
- *  positioning will resolve against). Returns null when no positioned ancestor exists
- *  (the host will resolve against the viewport via `<html>`). Matches the browser's own
- *  "containing block for absolute positioning" algorithm: any element whose computed
- *  `position` is `relative`/`absolute`/`fixed`/`sticky`, OR a `transform`/`filter`/`perspective`
- *  that creates a containing block, OR `<html>`. */
-export function findPositionedAncestor(el: HTMLElement): HTMLElement | null {
-  let node: HTMLElement | null = el.parentElement;
-  while (node && node !== document.documentElement) {
-    const cs = getComputedStyle(node);
-    if (cs.position !== 'static') return node;
-    // CSS transforms / filters create a containing block too.
-    if (cs.transform !== 'none' || cs.filter !== 'none' || cs.perspective !== 'none') return node;
-    node = node.parentElement;
-  }
-  return node; // <html> when nothing positioned along the chain
-}
+// findPositionedAncestor moved to ../positioning.ts so the runtime layer
+// (WindowManager's drag handlers in interactive.ts) can use the same walker
+// without crossing into the declarative layer. Re-exported here for back-
+// compat with any external imports. FE-reviewer follow-up 2026-05-31.
+import { findPositionedAncestor } from '../positioning.js';
+export { findPositionedAncestor };
 
 export class ScriptoscopeWindow {
   /** The positioned WindowManager host element (lives in the document). */
@@ -50,6 +39,11 @@ export class ScriptoscopeWindow {
    *  for all windows (closes #170). */
   private observing = false;
   private rafId = 0;
+  /** Handle for the one-shot 500ms growth-diagnostic timer (set inside
+   *  startGrowthObserver). Cleared in unmount() so a fast unmount-then-
+   *  remount cycle doesn't leak a pending timer that fires on the dead
+   *  instance. */
+  private growthTimer: ReturnType<typeof setTimeout> | 0 = 0;
   private rendering = false;
   /** Most-recent content size set on the chrome — also the FLOOR for the
    *  observer-driven auto-resize. Re-fits only grow past `last`, never
@@ -324,7 +318,8 @@ export class ScriptoscopeWindow {
     // settling noise (we routinely see 5-25px width/height shifts from
     // grid/flex layout finalising); anything past that is consumer-
     // visible and worth a hint.
-    setTimeout(() => {
+    this.growthTimer = setTimeout(() => {
+      this.growthTimer = 0;
       if (this.unmounted) return;
       const grewH = this.last.h - opts.initialH;
       const grewW = this.last.w - opts.initialW;
@@ -413,6 +408,7 @@ export class ScriptoscopeWindow {
     debug('unmount', `ScriptoscopeWindow: ${this.host.querySelector('[aria-label]')?.getAttribute('aria-label') ?? ''}`);
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
+    if (this.growthTimer) { clearTimeout(this.growthTimer); this.growthTimer = 0; }
     if (this.observing) { sharedRO.unobserve(this.fit); this.observing = false; }
     this.deps.manager.remove(this.host); // stop the manager re-rendering/re-theming a closed window
     const { el, parent, next } = this.restore;

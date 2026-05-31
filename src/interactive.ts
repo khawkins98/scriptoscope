@@ -89,6 +89,7 @@ import {
   type ButtonOptions, type ControlState,
 } from './controls.js';
 import { platinumSlider, platinumScrollbar } from './platinum.js';
+import { findPositionedAncestor } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
@@ -673,6 +674,44 @@ export class WindowManager {
     this.windows.splice(i, 1);
   }
 
+  /** Set a window host's absolute-coordinate position. The chokepoint for ALL geometry
+   *  mutations after promote: drag, keyboard-arrow move, cross-tab restore. Future v2
+   *  reflow features (snap-to-grid, collision detection, multi-window tiling) intercept
+   *  HERE rather than at every scattered `host.style.left = ...` site. Fires onChange so
+   *  persistence + consumer listeners see the new position. Idempotent if the host's
+   *  position is already absolute. */
+  setPosition(host: HTMLElement, x: number, y: number): void {
+    if (host.style.position !== 'absolute' && host.style.position !== 'fixed') {
+      host.style.position = 'absolute';
+    }
+    host.style.left = `${Math.round(x)}px`;
+    host.style.top = `${Math.round(y)}px`;
+    if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
+  }
+
+  /** Convert an in-flow host to `position: absolute` at its CURRENT visible page position.
+   *  Captures the host's bounding rect, computes the offset against the nearest positioned
+   *  ancestor, and flips position + sets top/left so the user perceives no jump. Called by
+   *  the drag + keyboard-move handlers on the first move of a Posture-B in-flow host;
+   *  subsequent moves skip this since the host is already absolute. Returns the (x, y) it
+   *  applied so callers can start their drag math from a known baseline. */
+  toAbsolute(host: HTMLElement): { x: number; y: number } {
+    if (host.style.position === 'absolute' || host.style.position === 'fixed') {
+      return { x: parseFloat(host.style.left) || 0, y: parseFloat(host.style.top) || 0 };
+    }
+    const hr = host.getBoundingClientRect();
+    const anc = host.parentElement ? findPositionedAncestor(host) : null;
+    const ancRect = anc && anc !== document.documentElement
+      ? anc.getBoundingClientRect()
+      : { left: 0, top: 0 };
+    const x = Math.round(hr.left - ancRect.left);
+    const y = Math.round(hr.top - ancRect.top);
+    host.style.position = 'absolute';
+    host.style.left = `${x}px`;
+    host.style.top = `${y}px`;
+    return { x, y };
+  }
+
   /** Re-render an already-added window at a new CONTENT size (used by the declarative content-fit
    *  path). No-op if the host isn't managed or the size is unchanged. Public so the declarative
    *  layer can drive resize without reaching into private state. */
@@ -1142,26 +1181,15 @@ export class WindowManager {
       if (e.pointerType === 'mouse' && e.button !== 0) return; // only primary mouse button initiates drag
       e.preventDefault();
       void this.focus(entry);
-      // Posture B handoff: declaratively-promoted windows default to
-      // `position: static` (in flow). To drag them, we need absolute
-      // positioning. Capture the current page rect, compute the relative
-      // offset against the nearest positioned ancestor, and flip the host
-      // to absolute at that exact spot — the user perceives no jump.
-      // Subsequent drags skip this since the host stays absolute after the
-      // first conversion.
-      if (host.style.position !== 'absolute' && host.style.position !== 'fixed') {
-        const hr = host.getBoundingClientRect();
-        let ancL = 0, ancT = 0;
-        let anc: HTMLElement | null = host.parentElement;
-        while (anc && anc !== document.body) {
-          const cs = getComputedStyle(anc);
-          if (cs.position !== 'static') { const ar = anc.getBoundingClientRect(); ancL = ar.left; ancT = ar.top; break; }
-          anc = anc.parentElement;
-        }
-        host.style.left = `${Math.round(hr.left - ancL)}px`;
-        host.style.top = `${Math.round(hr.top - ancT)}px`;
-        host.style.position = 'absolute';
-      }
+      // Posture B handoff: in-flow hosts (the Posture-B default) need to
+      // flip to `position: absolute` before drag math can write top/left.
+      // `toAbsolute` is the chokepoint — captures the host's current
+      // visible page position, computes coords relative to its positioned
+      // ancestor (using the canonical containing-block walker that handles
+      // transformed/filtered ancestors correctly — the duplicated ad-hoc
+      // walker that lived here pre-2026-05-31 missed those cases),
+      // returns the now-applied (x, y). No visual jump.
+      this.toAbsolute(host);
       const sx = e.clientX, sy = e.clientY;
       const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
       const mv = (ev: PointerEvent): void => { host.style.left = `${x0 + ev.clientX - sx}px`; host.style.top = `${y0 + ev.clientY - sy}px`; };
@@ -1206,31 +1234,17 @@ export class WindowManager {
       else return;
       e.preventDefault();
       void this.focus(entry);
-      // Posture B handoff (same shape as the pointer-drag handler above):
-      // in-flow windows convert to absolute on the first move so the keyboard
-      // step has somewhere to write top/left. The handoff captures the host's
-      // current page position and pins it before applying the step.
-      if (host.style.position !== 'absolute' && host.style.position !== 'fixed') {
-        const hr = host.getBoundingClientRect();
-        let ancL = 0, ancT = 0;
-        let anc: HTMLElement | null = host.parentElement;
-        while (anc && anc !== document.body) {
-          const cs = getComputedStyle(anc);
-          if (cs.position !== 'static') { const ar = anc.getBoundingClientRect(); ancL = ar.left; ancT = ar.top; break; }
-          anc = anc.parentElement;
-        }
-        host.style.left = `${Math.round(hr.left - ancL)}px`;
-        host.style.top = `${Math.round(hr.top - ancT)}px`;
-        host.style.position = 'absolute';
-      }
-      const x0 = parseFloat(host.style.left) || 0, y0 = parseFloat(host.style.top) || 0;
-      host.style.left = `${x0 + dx}px`;
-      host.style.top = `${Math.max(0, y0 + dy)}px`;
+      // Posture B handoff: same as pointer-drag above — `toAbsolute` is the
+      // chokepoint that converts an in-flow host on first move. After the
+      // first arrow keypress the host stays absolute; subsequent steps are
+      // pure left/top math.
+      const { x: x0, y: y0 } = this.toAbsolute(host);
+      // setPosition is the chokepoint — it fires onChange so persistence
+      // + consumer listeners see the new position. The contract is the
+      // same as the pointer-drag mouseup: CSS-only update, no render,
+      // single commit point.
+      this.setPosition(host, x0 + dx, Math.max(0, y0 + dy));
       debug('drag', `keyboard move ${entry.opts.title ?? ''}`, { dx, dy, x: x0 + dx, y: y0 + dy });
-      // Notify the change listener so persistence (and any other consumer) sees the new position.
-      // Same contract as the pointer-drag mouseup — CSS-only update, no render, but the position
-      // is committed.
-      if (this.onChange) try { this.onChange(host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
     });
     win.appendChild(moveBtn);
 

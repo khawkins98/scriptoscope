@@ -324,10 +324,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
           // Post-Posture-B: cross-tab restore of an absolute position
           // must also flip the host to absolute (it may currently be
           // `position: static`, in which case top/left would have no
-          // effect). Mirrors the drag handoff in interactive.ts.
-          aw.host.style.position = 'absolute';
-          aw.host.style.left = `${w.x}px`;
-          aw.host.style.top = `${w.y}px`;
+          // effect). Routes through the WindowManager.setPosition chokepoint
+          // (FE-reviewer 2026-05-31), which is also the seam future v2
+          // reflow features (snap-to-grid etc.) will intercept.
+          manager.setPosition(aw.host, w.x, w.y);
         }
         if (w.w != null && w.h != null) {
           void manager.setContentSize(aw.host, w.w, w.h);
