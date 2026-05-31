@@ -353,7 +353,6 @@
     #powers .powers-skin-btn:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
     #powers .powers-skin-btn .arrow { color: #5a5a5a; padding-left: 4px; }
     #powers .powers-skin-btn-sep { font: 12px serif; color: #c0c0c0; }
-    #powers .powers-skin-link { font: 12px "Times New Roman", serif; color: #0000EE; text-decoration: underline; }
     /* Footer — period-1999 reflow: hr separators, smaller centered text. */
     #powers .powers-divider { margin-top: 26px; padding-top: 14px; border-top: 1px solid #b8b8b8; font: 12px "Times New Roman", serif; color: #5a5a5a; display: flex; flex-direction: column; gap: 10px; }
     #powers .powers-divider a { color: #0000EE; }
@@ -443,13 +442,15 @@
 </head>
 <body>
   <section id="powers" aria-label="Scriptoscope">
-    <!-- Skin toggle (top-right, button-style affordance) — the disbelief beat.
-         "See the bare HTML →" is the INVITATION; the prior checkbox merely
-         reported state. Period precedent: BBEdit's Preview / Source toggle,
-         CityDesk's HTML/Rendered switch. Sits next to a `diagnostics →` link
-         for the runtime inspectors. -->
+    <!-- Skin toggle (top-right, button-style affordance), the disbelief
+         beat. "See the bare HTML →" is the INVITATION; the prior checkbox
+         merely reported state. Period precedent: BBEdit's Preview/Source
+         toggle, CityDesk's HTML/Rendered switch. The previous sibling
+         `diagnostics →` link was moved into the Install window's meta
+         line because it clashed visually with theme chrome art that
+         bleeds past the title-bar edge (monkey-paradise's mascot, etc.).
+         User direction 2026-05-31. -->
     <div class="powers-toolbar">
-      <a href="./diagnostic.html" class="powers-skin-link" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
       <!-- Skin-toggle button is now only shown when un-skinned (see syncToggleUI
            in boot block). When skinned, the picker's 'No theme' tile is the
            un-skin path; the toolbar button only re-appears in OFF mode as
@@ -594,7 +595,7 @@
 <span class="a">&lt;link rel=</span><span class="s">"stylesheet"</span><span class="a"> href=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.css"</span><span class="a">&gt;</span>
 <span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
 <span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>Hello world<span class="a">&lt;/article&gt;</span></pre>
-          <p class="powers-meta"><button type="button" class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button> &nbsp;·&nbsp; Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a></p>
+          <p class="powers-meta"><button type="button" class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button> &nbsp;·&nbsp; Version <span id="powers-ver">0.x</span> &nbsp;·&nbsp; MIT licensed &nbsp;·&nbsp; works in modern browsers <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">(mid-2023+)</span> &nbsp;·&nbsp; <a href="https://github.com/khawkins98/scriptoscope">view source</a> &nbsp;·&nbsp; <a href="./diagnostic.html" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a></p>
         </article>
       </div>
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
