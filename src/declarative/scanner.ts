@@ -14,6 +14,7 @@ import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
 import type { ThemeEntry } from './theme.js';
 import { promoteTabs } from './tabs.js';
 import { openModal, type OpenModalOptions, type OpenModalHandle } from './openModal.js';
+import { applyCascadeLayout } from './cascade.js';
 import { createThemeResolver, type ThemeBootstrapOpts } from './theme.js';
 import { resolveThemeRef } from './parse.js';
 import { debug } from '../debug.js';
@@ -605,6 +606,18 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // source element JIT for THAT path's positioning.
     const windowTargets = Array.from(within.querySelectorAll(WINDOW_SEL)) as HTMLElement[];
     for (const el of windowTargets) await promoteWindow(el);
+    // Cascade layout — if any ancestor container carries
+    // `data-scriptoscope-cascade`, the windows inside it get a
+    // Mac-OS-classic "newly-opened windows cascade" treatment: each
+    // window flips to position:absolute at a cumulative offset from
+    // the container's natural top-left. The consumer opts in by
+    // adding the attribute to a container; the runtime computes the
+    // coords. Per-window `data-scriptoscope-x`/`-y` overrides the
+    // cascade (explicit positioning always wins). 2026-05-31, the
+    // library answer to "how do I scatter a bunch of windows without
+    // hand-writing position math for each one." Run after all windows
+    // in this scan pass have promoted so containers are accurate.
+    applyCascadeLayout(within, mounted);
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
     for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);

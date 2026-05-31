@@ -8,6 +8,7 @@ If you only want to drop Scriptoscope onto a static HTML page and not touch it a
 - [Mobile + responsive](#mobile--responsive)
 - [Content Security Policy](#content-security-policy)
 - [Controlling which widgets do something: `data-scriptoscope-widgets`](#controlling-which-widgets-do-something-data-scriptoscope-widgets)
+- [Cascade layout: `data-scriptoscope-cascade`](#cascade-layout-data-scriptoscope-cascade)
 - [How positioning works](#how-positioning-works-posture-b-2026-05-31)
 - [Auto-resize: content growing after promote](#auto-resize-content-growing-after-promote)
 - [Class inheritance and the locked-down properties](#class-inheritance-and-the-locked-down-properties)
@@ -134,6 +135,29 @@ host.addEventListener('scriptoscope:close', () => {
 ```
 
 > Earlier guidance (pre-2026-05-31) suggested picking `movable-modal` as the "no close widget" type. That was a workaround; the widgets attribute is the right primitive. Some schemes paint close on movable-modal anyway — `widgets=""` is the unambiguous opt-out.
+
+## Cascade layout: `data-scriptoscope-cascade`
+
+If you want a group of windows to scatter like real Mac OS windows (each one offset from the previous, later ones on top), add `data-scriptoscope-cascade` to a container. The runtime walks the descendant `data-scriptoscope-window` elements in DOM order and positions each absolutely at a cumulative offset.
+
+```html
+<div data-scriptoscope-cascade
+     data-scriptoscope-cascade-step-x="24"
+     data-scriptoscope-cascade-step-y="20">
+  <article data-scriptoscope-window data-scriptoscope-title="Window 1">…</article>
+  <article data-scriptoscope-window data-scriptoscope-title="Window 2">…</article>
+  <article data-scriptoscope-window data-scriptoscope-title="Window 3">…</article>
+</div>
+```
+
+Defaults: `step-x="32"`, `step-y="28"` (matches the period Mac OS "new window stagger"). The base offset (the first window's position inside the container) defaults to `(0, 0)`; override via `-base-x` / `-base-y`.
+
+Precedence:
+- Per-window `data-scriptoscope-x` / `-y` always wins. Cascade skips any window that declared either coordinate explicitly.
+- Cascade is one-shot at mount time. After the user drags or grow-box-resizes a window, that window owns its position; subsequent scans don't re-cascade it (stamped via the internal `data-scriptoscope-cascaded` marker).
+- Nested cascade containers cascade independently. Each container iterates its own descendant windows.
+
+The container is set to `position: relative` (only if it wasn't already positioned) so the absolute children resolve against it, and gets a `min-height` reserving the cascade's vertical span so siblings below don't overlap. The library answer to "scatter a bunch of windows without writing per-window position math."
 
 ## How positioning works (Posture B, 2026-05-31)
 
