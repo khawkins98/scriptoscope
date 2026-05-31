@@ -323,6 +323,19 @@ export class ScriptoscopeWindow {
     if (restore.parent) restore.parent.insertBefore(host, restore.el);
     restore.el.remove();
 
+    // Once the user manually resizes the window via the chrome grow box
+    // (or the keyboard arrow-resize), they OWN the size. Auto-fit's
+    // "only grows" rule × flex-wrap content × user shrink = feedback
+    // loop where shrinking width re-wraps the content taller, then
+    // auto-fit grows the window back to fit the new taller content
+    // (the user's bug report — "whenever I try to make smaller it just
+    // gets bigger"). Fix: on userresize event, disconnect the observer
+    // + pin last to the user's choice so future scheduleFit calls are
+    // no-ops. The grow box dispatches this event from interactive.ts.
+    host.addEventListener('scriptoscope:userresize', (e) => {
+      if (inst) inst.acceptUserSize((e as CustomEvent).detail.w, (e as CustomEvent).detail.h);
+    });
+
     // Content-fit only when NEITHER w/h was declared AND we didn't capture a natural rect:
     // the captured rect already gives the right initial size, and triggering a fit-to-content
     // pass would override it with content's max-content size (often smaller than the
@@ -380,6 +393,21 @@ export class ScriptoscopeWindow {
         `on the source element.`
       );
     }, 500);
+  }
+
+  /** The user explicitly chose this size via the chrome grow box / keyboard
+   *  arrow-resize. Stop auto-fitting from now on — the user OWNS the size.
+   *  Without this, the "only grows" auto-fit would fight a shrink that
+   *  reflows content (e.g. flex-wrap picker tiles becoming taller as the
+   *  window narrows). Idempotent: subsequent calls update last to the
+   *  newest user size. */
+  acceptUserSize(w: number, h: number): void {
+    this.last = { w, h };
+    if (this.observing) {
+      sharedRO.unobserve(this.fit);
+      this.observing = false;
+    }
+    if (this.growthTimer) { clearTimeout(this.growthTimer); this.growthTimer = 0; }
   }
 
   /** Measure the content and re-render the chrome to fit it; optionally start observing reflow.

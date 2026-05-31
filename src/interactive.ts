@@ -1346,9 +1346,20 @@ export class WindowManager {
       else if (e.key === 'ArrowUp')    dh = -step;
       else return;
       e.preventDefault();
+      // Same Posture-B handoff as the pointer grow box — see comment below.
+      this.toAbsolute(host);
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
-      entry.opts = { ...entry.opts, width: Math.max(minContentW, w0 + dw), height: Math.max(40, h0 + dh) };
+      const nw = Math.max(minContentW, w0 + dw), nh = Math.max(40, h0 + dh);
+      entry.opts = { ...entry.opts, width: nw, height: nh };
       void this.render(entry);
+      // Signal to the declarative layer that the user owns the size now.
+      // ScriptoscopeWindow's auto-fit ResizeObserver disconnects on this
+      // event — otherwise the "only grows" auto-fit fights the user's
+      // shrink (e.g. narrowing a wrapping picker grows the height to fit
+      // more rows, undoing the user's intent). 2026-05-31 user fix.
+      host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
+        detail: { w: nw, h: nh }, bubbles: true,
+      }));
     });
     // Swallow dblclick on the gripper too, else "inFrame at the bottom-right" would shade-on-dblclick.
     corner.addEventListener('dblclick', (e) => { e.stopPropagation(); });
@@ -1356,6 +1367,14 @@ export class WindowManager {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault(); e.stopPropagation();
       void this.focus(entry);
+      // Posture-B handoff: an in-flow host stays at parent block width
+      // even after the chrome canvas inside it shrinks — visually the
+      // window doesn't appear smaller (the canvas just doesn't fill).
+      // toAbsolute flips the host to position:absolute (so it sizes to
+      // its content) AND inserts a same-size placeholder in the static
+      // slot so the page doesn't shift. Once absolute, all subsequent
+      // resizes work naturally. 2026-05-31 user fix follow-up.
+      this.toAbsolute(host);
       const sx = e.clientX, sy = e.clientY;
       const w0 = entry.opts.width ?? 240, h0 = entry.opts.height ?? 120;
       const hw0 = host.offsetWidth, hh0 = host.offsetHeight;
@@ -1377,6 +1396,11 @@ export class WindowManager {
         outline.remove();
         entry.opts = { ...entry.opts, width: nw, height: nh };
         void this.render(entry);
+        // Same userresize signal as the keyboard path — the declarative
+        // layer's auto-fit disconnects on this event.
+        host.dispatchEvent(new CustomEvent('scriptoscope:userresize', {
+          detail: { w: nw, h: nh }, bubbles: true,
+        }));
       };
       document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up);
     });
