@@ -172,13 +172,21 @@ export class ScriptoscopeWindow {
       parsed.height ?? ((hasNaturalRect ? naturalH : FIT_DEFAULT.h) + (parsed.extraHeight ?? 0)));
 
     let inst: ScriptoscopeWindow | undefined;
+    // `data-scriptoscope-no-close` opt-out: omit onClose entirely. The
+    // runtime's widget-handler wiring (interactive.ts:1351) leaves the
+    // close widget INERT when the handler is undefined — the cicn art
+    // stays drawn (we don't paint over chrome), but the click does
+    // nothing. Pair this attribute with a window-type whose canonical
+    // Mac OS look has no close (e.g. `movable-modal` for non-closable
+    // main content); the attribute is the defensive backup for schemes
+    // whose cicn art for that type happens to include close.
     const host = await deps.manager.add(
       deps.theme,
       {
         windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
         ...(parsed.title != null ? { title: parsed.title } : {}),
       },
-      { onClose: () => inst?.unmount() },
+      parsed.noClose ? {} : { onClose: () => inst?.unmount() },
       {
         contentEl: slot,
         ...(parsed.z != null ? { z: parsed.z } : {}),

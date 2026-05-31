@@ -411,7 +411,8 @@
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
         <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="document-window">
+                 data-scriptoscope-title="Schemes Folder" data-scriptoscope-window-type="movable-modal"
+                 data-scriptoscope-no-close>
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
@@ -464,11 +465,20 @@
       </div>
       <!-- READ ME window — the lede prose itself wears chrome. Period
            shareware convention: every download came with a "Read Me" you
-           opened before installing. The window-type is document-window
-           so it shares the same pinstripe title bar as the cards below;
-           reading the page IS the demo of a document window. -->
+           opened before installing. The window-type is `movable-modal`
+           (NOT document-window) — movable-modal's canonical cicn has no
+           widgets, which matches the intent: the Read Me IS the page
+           content; you shouldn't be able to close, zoom, or collapse it.
+           `data-scriptoscope-no-close` is the defensive backup for
+           schemes whose movable-modal cicn happens to include close art
+           (e.g. some dark-platform themes) — without it, clicking close
+           would unmount the page's lede. The "use the right window-type"
+           + "opt out of close click for non-standard schemes" pair is
+           the holistic non-closable-content pattern (user-decided
+           2026-06-01). -->
       <article class="powers-readme" data-scriptoscope-window
-               data-scriptoscope-title="Read Me" data-scriptoscope-window-type="document-window">
+               data-scriptoscope-title="Read Me" data-scriptoscope-window-type="movable-modal"
+               data-scriptoscope-no-close>
         <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
         <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on <a href="https://en.wikipedia.org/wiki/Info-Mac">Info-Mac</a> had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
         <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
