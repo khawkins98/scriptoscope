@@ -461,7 +461,18 @@ export class ScriptoscopeWindow {
         const capH = pxCap(cs.maxHeight);
         const w = this.declaredW ?? Math.min(capW, Math.max(measuredW, this.last.w));
         const h = this.declaredH ?? Math.min(capH, Math.max(measuredH, this.last.h));
-        if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) return;
+        if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) {
+          // Window dimensions are stable but the fit's content changed
+          // (e.g. picker tiles populated AFTER mount, growing the slot's
+          // scrollHeight past the declared height). Nudge the runtime to
+          // re-check scrollbars even though no chrome re-render is needed:
+          // the initial wireScrollbars (from render(), before tiles loaded)
+          // saw no overflow and bailed. Without this re-check, themed
+          // scrollbars never appear on a declared-height window whose
+          // content grows after promote. (2026-05-31 user-caught regression.)
+          void this.deps.manager.refreshScrollbars(this.host);
+          return;
+        }
         this.rendering = true;
         // Unobserve ONLY this window's fit (not the whole shared observer) so OUR own
         // size-change can't re-trigger fitToContent. Other windows' observations continue.

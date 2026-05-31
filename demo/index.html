@@ -443,22 +443,23 @@
            labeled bordered box with a folder-strip inside. -->
       <div class="powers-picker-host" id="powers-picker-host">
         <!-- SCHEMES FOLDER — `document-window` (Mac OS 9's Appearance
-             control panel scheme picker was itself a document-window for
-             the same overflow reason). `widgets="zoom,collapse"` keeps
-             close inert (picker shouldn't dismiss; closing it leaves the
-             user unable to re-skin). Natural fit (no declared height):
-             the picker grid wraps to as many rows as needed and the
-             credit byline sits visibly below. A previous iteration
-             pinned the height to one row + themed Kaleidoscope vertical
-             scrollbar, but the slot's hard-clip swallowed the credit +
-             the "Load your own" tile — broken UX in service of one
-             aesthetic. Period precedent (Mac OS 9 CP) is "all tiles
-             visible, scroll if you must" anyway. 2026-05-31 reviewer-
-             pass + user direction. -->
+             control panel scheme picker was a document-window for the
+             same overflow reason). `widgets="zoom,collapse"` keeps close
+             inert (picker shouldn't dismiss; closing it leaves the user
+             unable to re-skin). `height="110"` constrains the slot to
+             ~one tile row so the grid (auto-fill 86px columns + flex-
+             wrap) overflows into the themed Kaleidoscope vertical
+             scrollbar — the picker's UX is "1 row visible, scroll for
+             more." The credit byline + 'Load your own' tile sit BELOW
+             the first row in the picker DOM, so they're reachable via
+             scroll (not initially visible — by design, the picker is a
+             tile chooser, the credit is just a current-state readout).
+             User-iterated 2026-05-31. -->
         <article class="powers-picker" data-scriptoscope-window
                  data-scriptoscope-title="Schemes Folder"
                  data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-widgets="zoom,collapse">
+                 data-scriptoscope-widgets="zoom,collapse"
+                 data-scriptoscope-height="110">
           <!-- The folder strip — one attribute. The library renders one tile
                per registered theme (icon + name + author/year credit) with
                full ARIA tab pattern + keyboard nav + retheme on click.
@@ -529,12 +530,13 @@
            in the Apple menu (P1 candidate), this is the right shape:
            visually period-correct, functionally non-dismissible. -->
       <article class="powers-readme" data-scriptoscope-window
-               data-scriptoscope-title="Read Me"
+               data-scriptoscope-title="Scriptoscope: Read Me"
                data-scriptoscope-window-type="document-window"
                data-scriptoscope-widgets="zoom,collapse">
-        <h2>Eighteen Kaleidoscope schemes, running in a browser tab twenty-five years too late.</h2>
-        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a control panel some of us couldn't leave alone. Greg Landweber and Arlo Rose wrote it; the rest of us kept a Scheme Folder we'd refresh every weekend because Hayato Mori or Erik Ekengren or somebody on <a href="https://en.wikipedia.org/wiki/Info-Mac">Info-Mac</a> had just posted a new one. Then OS X arrived and the whole format went quiet.</p>
-        <p class="powers-lede">Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
+        <h2>Scriptoscope: Hundreds of Kaleidoscope schemes running on your site, twenty-five years too late.</h2>
+        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer that many remember fondly. Made by Greg Landweber and Arlo Rose and with community themes from many more. But then in 2000, OS X arrived and the whole format went quite.</p>
+        <p class="powers-lede">But now, as all of us age, we remember these classic themes with nostalgia and fun, and largely the only way to access them is to use period Macintosh OS software, which has run through emulators and serves no practical purpose. But what if through the beauty of JavaScript and web canvas, we could apply these themes through to our websites?</p>
+        <p class="powers-lede">Are you too in this very small ven diagram overlap? If so, behold Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
         <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/aaron-ui/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
         <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
         <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. <em>(The <a href="https://macthemes.garden/">full corpus</a> — 4,400-plus themes from 900-plus authors — is still out there if you want to dig.)</em> This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/aaron-ui/issues">I genuinely want to hear about it</a>.</p>

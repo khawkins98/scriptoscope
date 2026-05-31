@@ -49,16 +49,39 @@ mq.addEventListener('change', sync);
 sync();
 ```
 
-**If you DO want a CSS-only fallback** (e.g. no JS path), the only safe approach is to hide the entire host element via the runtime's promoted-attribute selector and let your bare-HTML fallback render in its place via a `<noscript>`-equivalent pattern:
+### ⚠️ The CSS-only fallback is a footgun. Use the JS conditional-mount above.
+
+A CSS-only "hide chrome below the breakpoint" approach exists but has an asymmetry you'll regret in production. Here's why and what NOT to do:
+
+```css
+/* DO NOT DO THIS — leaves desktop-resize-down users with NO content */
+@media (max-width: 600px) {
+  [data-scriptoscope-promoted] { display: none; }
+}
+```
+
+The asymmetry: when promotion happens, the runtime MOVES your consumer content from the source element's children INTO the promoted host's slot, then removes the source element. So:
+
+  - **User loads on mobile**: viewport < 600px → if you used the conditional-mount JS pattern above, `mountDeclarative` doesn't run → bare HTML stays visible. ✅ Fine.
+  - **User loads on desktop, resizes to mobile**: promotion already ran → consumer content lives INSIDE the promoted hosts → CSS hides the hosts → **content disappears entirely**. ❌ Broken.
+
+The CSS-only fallback only works if you ship a duplicate mobile-only DOM tree:
+
+```html
+<!-- Parallel DOM trees, one shown per breakpoint. Heavyweight + duplicates content -->
+<article data-scriptoscope-window>…desktop tree…</article>
+<aside class="my-mobile-fallback">…parallel mobile tree…</aside>
+```
 
 ```css
 @media (max-width: 600px) {
   [data-scriptoscope-promoted] { display: none; }
   .my-mobile-fallback { display: block; }
 }
+@media (min-width: 601px) { .my-mobile-fallback { display: none; } }
 ```
 
-But this leaves the user with no content unless you ship a parallel mobile-only DOM tree. The conditional-mount pattern above is cleaner.
+If you don't want a parallel DOM tree (you usually don't): **use the JS conditional-mount pattern with the matchMedia change-listener above**. It handles resize-across-breakpoint cleanly by calling `handle.disconnect()` (which restores your original source elements into the DOM) before the CSS would have hidden them. That's the only path that works for both initial-load AND resize directions without content loss.
 
 The library does not itself listen for viewport changes — that's intentionally consumer-controlled.
 

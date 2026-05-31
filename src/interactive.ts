@@ -794,6 +794,21 @@ export class WindowManager {
     return { x, y };
   }
 
+  /** Re-check scrollbars for a window without re-rendering chrome. Public so the
+   *  declarative layer can nudge the runtime after content-only changes — e.g. the
+   *  theme picker populates tiles AFTER mount, growing the slot's scrollHeight past
+   *  its declared height. The initial wireScrollbars (called from render() before
+   *  tile load) sees no overflow and bails; without this hook, scrollbars never
+   *  appear because no re-render fires. The find-current-win path goes through
+   *  shadowRoot.firstChild (same as render's staleness check). 2026-05-31. */
+  async refreshScrollbars(host: HTMLElement): Promise<void> {
+    const entry = this.windows.find((w) => w.host === host);
+    if (!entry) return;
+    const win = entry.host.shadowRoot?.firstChild as HTMLElement | null;
+    if (!win) return;
+    await this.wireScrollbars(entry, win, 0);
+  }
+
   /** Re-render an already-added window at a new CONTENT size (used by the declarative content-fit
    *  path). No-op if the host isn't managed or the size is unchanged. Public so the declarative
    *  layer can drive resize without reaching into private state. */
