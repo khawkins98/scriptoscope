@@ -138,18 +138,39 @@
        page-author responsibility. We override locally inside #powers when
        the runtime stamps one of those slugs onto a window host. UX review
        2026-05-31. */
+    /* Override every element that hard-codes its own color in the demo's
+       page CSS (h1-h3, .powers-meta-aaron, .powers-meta-aaron strong, etc.).
+       The bare `.scriptoscope-fit { color: ... }` rule alone doesn't reach
+       descendants whose own selectors set color explicitly — color isn't
+       inherited through an element with a hard-coded value of its own.
+       Use one combined selector list to avoid the per-element repetition.
+       Set !important to win against the page's existing
+       `#powers h2 { color: #1c1c1c }` (specificity tied; cascade order
+       would otherwise depend on file position). */
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit { color: #f0f0f0; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a { color: #87CEEB; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h1,
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h2,
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h3,
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit p,
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit em,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit em,
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit strong,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit strong { color: inherit; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron,
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron strong,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h1,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h2,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h3,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit p,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit em,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit strong,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a { color: #87CEEB !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
+    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
+    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
        Sits in flow automatically (Posture B 2026-05-30: hosts default
@@ -278,12 +299,18 @@
        Period precedent: BBEdit's "Show Source" preview toggle, CityDesk's
        "Show HTML" / "Show Rendered" pair. Two-state button with action
        label, not "skinned: on" checkbox-style. */
-    #powers .powers-skin-btn { position: absolute; top: 14px; right: calc(50% - 480px + 24px); font: 12px/1.1 "Times New Roman", serif; color: #0000EE; background: #ffffff; border: 1px solid #888; padding: 4px 10px; cursor: pointer; }
+    /* Toolbar — in-flow right-aligned strip ABOVE the picker. Previously
+       three absolute-positioned elements with brittle right:calc() math
+       that assumed a 960px container width; they collided on 1280px
+       viewports (the user-reported overlap that motivated this refactor).
+       Flexbox handles alignment + spacing without per-element calc(). */
+    #powers .powers-toolbar { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; padding: 14px 24px 0; max-width: 880px; margin: 0 auto; }
+    #powers .powers-skin-btn { font: 12px/1.1 "Times New Roman", serif; color: #0000EE; background: #ffffff; border: 1px solid #888; padding: 4px 10px; cursor: pointer; }
     #powers .powers-skin-btn:hover { background: #fffae6; }
     #powers .powers-skin-btn:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
     #powers .powers-skin-btn .arrow { color: #5a5a5a; padding-left: 4px; }
-    #powers .powers-skin-btn-sep { position: absolute; top: 18px; right: calc(50% - 480px + 130px); font: 12px serif; color: #c0c0c0; }
-    #powers .powers-skin-link { position: absolute; top: 18px; right: calc(50% - 480px + 146px); font: 12px "Times New Roman", serif; color: #0000EE; text-decoration: underline; }
+    #powers .powers-skin-btn-sep { font: 12px serif; color: #c0c0c0; }
+    #powers .powers-skin-link { font: 12px "Times New Roman", serif; color: #0000EE; text-decoration: underline; }
     /* Footer — period-1999 reflow: hr separators, smaller centered text. */
     #powers .powers-divider { margin-top: 26px; padding-top: 14px; border-top: 1px solid #b8b8b8; font: 12px "Times New Roman", serif; color: #5a5a5a; display: flex; flex-direction: column; gap: 10px; }
     #powers .powers-divider a { color: #0000EE; }
@@ -300,7 +327,7 @@
     }
     @media (max-width: 720px) {
       #powers .powers-card-row.heavy, #powers .powers-card-row.minor { grid-template-columns: 1fr; }
-      #powers .powers-skin-btn, #powers .powers-skin-btn-sep, #powers .powers-skin-link { position: static; display: inline-block; margin-right: 8px; right: auto; top: auto; }
+      #powers .powers-toolbar { padding: 12px 16px 0; flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -311,11 +338,13 @@
          reported state. Period precedent: BBEdit's Preview / Source toggle,
          CityDesk's HTML/Rendered switch. Sits next to a `diagnostics →` link
          for the runtime inspectors. -->
-    <button type="button" id="powers-skin-toggle" class="powers-skin-btn"
-            aria-pressed="true"
-            title="Toggle the live Mac chrome. Off shows the bare 1999 HTML — the same DOM, no skinning runtime.">See the bare HTML <span class="arrow">→</span></button>
-    <span class="powers-skin-btn-sep">·</span>
-    <a href="./diagnostic.html" class="powers-skin-link" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
+    <div class="powers-toolbar">
+      <a href="./diagnostic.html" class="powers-skin-link" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
+      <span class="powers-skin-btn-sep">·</span>
+      <button type="button" id="powers-skin-toggle" class="powers-skin-btn"
+              aria-pressed="true"
+              title="Toggle the live Mac chrome. Off shows the bare 1999 HTML — the same DOM, no skinning runtime.">See the bare HTML <span class="arrow">→</span></button>
+    </div>
     <div class="powers-inner">
       <!-- ── PICKER as page header — open-the-folder is the FIRST eye-move.
            Mac Themes Garden's per-scheme grid + the Kaleidoscope.net 1998

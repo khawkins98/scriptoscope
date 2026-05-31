@@ -219,3 +219,20 @@
   }
   .scriptoscope-theme-picker-icon[src] { animation: none; }
 }
+
+/* ─── Hide native scrollbars on the runtime slot ───────────────────────── */
+/* The slot (.scriptoscope-slot, the light-DOM container the consumer's
+   content lives in) is `overflow: auto` so it scrolls when content
+   exceeds the chrome's content area. The runtime ALSO renders a themed
+   scrollbar inside the shadow DOM that drives the slot's scrollTop —
+   without this rule, BOTH visualizations appear, with the native bar
+   floating over the themed art (the 2026-05-31 user-reported regression
+   visible on the demo's ResourceForkLib card). Hide native;
+   themed-only is the intended UI. Consumer can opt out by overriding
+   `.scriptoscope-slot { scrollbar-width: auto; }` if they actively
+   want both. */
+.scriptoscope-slot {
+  scrollbar-width: none;     /* Firefox + modern Edge */
+  -ms-overflow-style: none;  /* old Edge / IE10+ */
+}
+.scriptoscope-slot::-webkit-scrollbar { display: none; }
