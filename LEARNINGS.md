@@ -3295,3 +3295,13 @@ and otherwise immediately disconnects the newly mounted handle.
 ### 2026-10-18 — Coverage audits must consume the resolved background
 
 The Scene audit contrast-picked text from headerFill even when a higher-priority pattern was actually rendered. Dark fallback colors therefore reported white text while the diagnostic correctly kept black on textured bars. Share the pure background/text resolver between the diagnostic and audit, rather than maintaining two conditional trees. This corrects the evidence without reordering resource tiers based on unversioned preview crops. Corpus browser fixtures should remain byte-identical.
+
+### 2026-10-18 — A promotion stamp is not a visual-readiness signal
+
+Window promotion stamps the live source before asynchronous chrome preparation
+to prevent duplicate work. The boot wipe previously selected that stamp alone,
+clipping the original source while its focused controls remained interactive.
+Gate the animation on scanner-owned inertness as well: pending sources remain
+visible, prepared targets cannot take focus while clipped, and removing inert
+removes the animation immediately. Test with the real stylesheet and pause the
+first animation frame; a final-state DOM assertion misses this transient bug.
