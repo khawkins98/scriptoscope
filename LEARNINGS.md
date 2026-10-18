@@ -3489,3 +3489,21 @@ below the visible panel. Group all buttons before panels, as in the documented
 consumer markup; check that order and the visible panel's geometry independently
 before approving snapshots. A deterministic image can faithfully preserve a bad
 test fixture.
+
+### 2026-10-18 — A slider groove does not define its thumb's bounds
+
+Windows 95's horizontal groove `cicn -10131` is 5×4, while its thumb sheet
+`-10129` is 11×64 (four 11×16 cells). The vertical counterparts `-10115` and
+`-10113` are 4×5 and 64×11. Allocating the output from the groove alone clipped
+each thumb to four pixels. Allocate the maximum native cross-axis dimension and
+floor-center each piece, preserving axis length, selected cell, and value mapping.
+The independent browser oracle checks every opaque source-cell pixel in both
+orientations and all states, including synthetic thumbs smaller than their groove.
+
+This establishes complete source-art retention, not a completed original-engine
+slider reconstruction. Exact 2.3.1 track/thumb positioning remains untraced in
+`docs/spec/kdef231-reference.md` §7.4; floor-centering is an explicit runtime
+placement policy until independent engine-reference evidence resolves it.
+The thumb retains its prior `srcCopy` transfer behavior. Whether its transparent
+mask should preserve the underlying groove is a separate historical unknown,
+not established by an opaque-pixel retention test.
