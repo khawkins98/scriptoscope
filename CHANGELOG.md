@@ -86,8 +86,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Provisional independent reference-capture requests and evidence intake checks:
   exact source/condition/provenance bindings, separate independent review, known
-  self-image contamination checks, and an honest report of twelve missing
-  captures. Author previews and selfgoldens remain non-independent evidence.
+  self-image contamination checks, and an honest report of thirteen missing
+  captures. Nonzero-port experiments require reviewed direct invocation and
+  observed pattern-origin state. Author previews and selfgoldens remain
+  non-independent evidence.
 
 - Reconcile the fidelity plan with delivered solid-face geometry and loaded-byte
   provenance; keep remaining decoder, pattern and reference requirements explicit.

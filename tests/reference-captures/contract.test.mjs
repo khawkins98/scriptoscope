@@ -19,7 +19,7 @@ function png(width, height, color = 33) {
   const rows = Buffer.alloc(height * (width * 3 + 1), color); for (let y = 0; y < height; y++) rows[y * (width * 3 + 1)] = 0;
   return Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(rows)), chunk('IEND', Buffer.alloc(0))]);
 }
-function fixture(t) {
+function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.normal')) {
   const root = mkdtempSync(join(tmpdir(), 'reference-intake-test-')); t.after(() => rmSync(root, { recursive: true, force: true }));
   const bytes = png(160, 80); writeFileSync(join(root, 'test-only.png'), bytes);
   const log = Buffer.from('SYNTHETIC UNIT TEST; NOT AN ORIGINAL CAPTURE'); writeFileSync(join(root, 'test-only.txt'), log);
@@ -48,7 +48,7 @@ function fixture(t) {
 
 test('actual checked-in corpus reports every provisional request missing and never a fidelity percentage', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: repositoryRoot, known: knownImages() });
-  assert.equal(report.requests.length, 12); assert.ok(report.requests.every(r => r.status === 'missing'));
+  assert.equal(report.requests.length, 13); assert.ok(report.requests.every(r => r.status === 'missing'));
   assert.equal(report.captures.length, 0); assert.equal(report.knownNonIndependent.filter(r => r.kind === 'qualitative-author-preview').length, 18);
   assert.equal(Object.hasOwn(report, 'percentage'), false);
 });
@@ -162,7 +162,7 @@ for (const [field, value, expected] of [['contractId', 'another.contract', /cont
 }
 test('a changed authoritative document invalidates prior request and review bindings even without a version increment', t => {
   const root = contractRoot(t), path = join(root, 'docs/spec/fidelity-compatibility-contract.md');
-  const original = readContract(root); assert.equal(original.compatibility.version, '0.1.1');
+  const original = readContract(root); assert.equal(original.compatibility.version, contract.compatibility.version);
   writeFileSync(path, readFileSync(path, 'utf8') + '\nA changed acceptance boundary requires fresh review.\n');
   const changed = readContract(root), nextRequest = changed.requests.find(r => r.id === request.id);
   assert.notEqual(changed.compatibility.sha256, original.compatibility.sha256);
@@ -192,4 +192,67 @@ test('changed target requirement wording invalidates bindings even if its ID and
   ledger.requirements.find(r => r.id === request.targetRequirementIds[0]).claim = 'A different claimed obligation';
   writeFileSync(path, JSON.stringify(ledger));
   assert.notEqual(readContract(root).requests.find(r => r.id === request.id).requestDigest, request.requestDigest);
+});
+
+function originFixture(t, id = 'crayon-os.normal.shifted-port') {
+  const request = contract.requests.find(r => r.id === id), f = fixture(t, request), o = f.capture.observed;
+  o.patternOriginState = { apiAvailability: 'available', offset: [7, -2], evidence: 'TEST ONLY observed state' };
+  if (request.conditions.requiredInvocationClass) {
+    o.controlDefinition.invocationClass = 'reviewed-direct-drawing';
+    o.directOriginEvidence = { invocation: 'TEST ONLY', nonzeroOriginJustification: 'TEST ONLY', sourceReference: 'TEST ONLY' };
+    const artifact = Buffer.from(JSON.stringify({ controlDefinition: o.controlDefinition, directOriginEvidence: o.directOriginEvidence, patternOriginState: o.patternOriginState }));
+    writeFileSync(join(f.root, 'test-invocation.json'), artifact);
+    f.capture.provenance.artifacts.push({ role: 'direct-origin-invocation', path: 'test-invocation.json', sha256: sha256(artifact) });
+  }
+  return f;
+}
+test('origin experiments distinguish coordinate motion from fixed physical placement without predicting pixels', () => {
+  const base = contract.requests.find(r => r.id === 'crayon-os.normal').conditions;
+  const moved = contract.requests.find(r => r.id === 'crayon-os.normal.shifted-port').conditions;
+  const phase = contract.requests.find(r => r.id === 'crayon-os.normal.fixed-physical-phase').conditions;
+  const physical = c => c.controlRect.map((v, i) => v - (i < 2 ? c.portOrigin[i] : 0));
+  assert.notDeepEqual(physical(moved), physical(base));
+  assert.deepEqual(physical(phase), physical(base));
+  assert.deepEqual(phase.cropImageRect, base.cropImageRect);
+  assert.deepEqual(phase.cropPortRect, [15, 17, 96, 36]);
+  assert.ok(contract.requests.filter(r => r.sourceSlug === 'crayon-os').every(r => r.toObserve.patternOriginState === null));
+});
+for (const [name, mutate, expected] of [
+  ['fixed-placement control rect', r => { r.conditions.controlRect[0]--; }, /experiment placement/],
+  ['fixed-placement crop', r => { r.conditions.cropPortRect[0]--; r.conditions.cropImageRect[0]--; }, /experiment placement/],
+  ['missing direct invocation precondition', r => { delete r.conditions.requiredInvocationClass; }, /direct-invocation/],
+]) test(`origin request rejects ${name}`, t => {
+  const root = contractRoot(t), path = join(root, 'tests/reference-captures/requests.json'), catalog = JSON.parse(readFileSync(path));
+  mutate(catalog.requests.find(r => r.id === 'crayon-os.normal.fixed-physical-phase'));
+  writeFileSync(path, JSON.stringify(catalog)); assert.throws(() => readContract(root), expected);
+});
+test('all pattern experiments require observed API availability/state, including the zero-origin baseline', t => {
+  for (const id of ['crayon-os.normal', 'crayon-os.normal.shifted-port', 'crayon-os.normal.fixed-physical-phase']) {
+    const f = originFixture(t, id); assert.equal(f.assess().status, 'reviewed-independent-capture');
+    f.capture.observed.patternOriginState = null;
+    assert.ok(f.assess().missing.includes('observed.patternOriginState.apiAvailability'));
+  }
+  const f = originFixture(t, 'crayon-os.normal');
+  f.capture.observed.patternOriginState = { apiAvailability: 'unavailable', offset: null, evidence: 'TEST ONLY unavailable API evidence' };
+  assert.equal(f.assess().status, 'reviewed-independent-capture');
+  f.capture.observed.patternOriginState.offset = [0, 0]; assert.equal(f.assess().status, 'rejected');
+});
+test('nonzero origins cannot pass as ordinary manager calls or without independent invocation evidence', t => {
+  const f = originFixture(t); assert.equal(f.assess().status, 'reviewed-independent-capture');
+  const review = f.approve(f.capture); review.checks.directOriginInvocation = null;
+  assert.ok(f.assess(f.capture, [review]).missing.includes('review.checks.directOriginInvocation'));
+  const patternReview = f.approve(f.capture); patternReview.checks.patternOriginState = null;
+  assert.ok(f.assess(f.capture, [patternReview]).missing.includes('review.checks.patternOriginState'));
+  f.capture.observed.controlDefinition.invocationClass = 'window-control-manager';
+  assert.ok(f.assess().rejected.some(s => s.startsWith('observed.controlDefinition.invocationClass')));
+  f.capture.observed.controlDefinition.invocationClass = 'reviewed-direct-drawing';
+  f.capture.provenance.artifacts = f.capture.provenance.artifacts.filter(a => a.role !== 'direct-origin-invocation');
+  f.capture.observed.directOriginEvidence = null;
+  const result = f.assess(); assert.equal(result.status, 'partial');
+  assert.ok(result.missing.includes('provenance.artifacts.direct-origin-invocation'));
+  assert.ok(result.missing.includes('observed.directOriginEvidence.nonzeroOriginJustification'));
+});
+test('swapped direct invocation or pattern-origin record rejects a fresh review', t => {
+  const f = originFixture(t); f.capture.observed.patternOriginState.offset = [0, 0];
+  assert.ok(f.assess().rejected.some(s => s.startsWith('direct-origin-invocation')));
 });

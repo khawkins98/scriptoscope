@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "requestVersion": "0.1.0",
+  "requestVersion": "0.1.1",
   "status": "provisional-capture-inputs",
   "contractId": "scriptoscope.kaleidoscope-2.3.1",
-  "contractVersion": "0.1.1",
+  "contractVersion": "0.1.2",
   "sourceRegistry": "tests/control-availability/source-choices.json",
   "requirementLedger": "tests/rendering-requirements/ledger.json",
   "engineComponentId": "engine.kaleidoscope-2.3.1-kdef0",
@@ -12,7 +12,8 @@
     "No capture or approval exists in this initial corpus.",
     "The kDEF0 pin identifies one component, not the complete original engine/patch stack.",
     "Draft source choices identify requested bytes, not approved historical selection or Resource Manager ownership.",
-    "Empty labels isolate body/state work. Historical typography and labeled follow-ups remain unknown."
+    "Empty labels isolate body/state work. Historical typography and labeled follow-ups remain unknown.",
+    "Nonzero port origins require independently reviewed direct invocation evidence; ordinary Window/Control Manager routines require origin zero. Pattern-origin state is unknown, not presumed zero."
   ],
   "requests": [
     {
@@ -486,10 +487,15 @@
         "controlDefinition": null,
         "captureMethod": null,
         "baseChainReason": null,
-        "patchStackReason": null
+        "patchStackReason": null,
+        "patternOriginState": null
       },
       "unknownReason": "Original environment, installed dependencies and capture pipeline have not been supplied. Do not infer them from current browser output or author previews.",
-      "purpose": "Pattern-bearing active face (raw cinf mode0/background17); observe phase with zero port origin."
+      "purpose": "Pattern-bearing active face (raw cinf mode0/background17); observe phase with zero port origin.",
+      "experiment": {
+        "kind": "origin-baseline",
+        "baselineRequestId": null
+      }
     },
     {
       "id": "crayon-os.normal.shifted-port",
@@ -516,7 +522,8 @@
         "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
         "backgroundRGB": [255, 255, 255],
         "enabled": true,
-        "windowActive": true
+        "windowActive": true,
+        "requiredInvocationClass": "reviewed-direct-drawing"
       },
       "toObserve": {
         "os": null,
@@ -529,10 +536,66 @@
         "controlDefinition": null,
         "captureMethod": null,
         "baseChainReason": null,
-        "patchStackReason": null
+        "patchStackReason": null,
+        "patternOriginState": null,
+        "directOriginEvidence": null
       },
       "unknownReason": "Original environment, installed dependencies and capture pipeline have not been supplied. Do not infer them from current browser output or author previews.",
-      "purpose": "Same control Rect with nonzero port origin; crop transform is explicit so phase is not inferred from a local-face screenshot."
+      "purpose": "Same control Rect with nonzero port origin; crop transform is explicit so phase is not inferred from a local-face screenshot.",
+      "experiment": {
+        "kind": "coordinate-placement",
+        "baselineRequestId": "crayon-os.normal"
+      }
+    },
+    {
+      "id": "crayon-os.normal.fixed-physical-phase",
+      "sourceSlug": "crayon-os",
+      "targetRequirementIds": [
+        "selection.original",
+        "geometry.remaining",
+        "fill.remaining",
+        "state.original",
+        "placement.original"
+      ],
+      "conditions": {
+        "surface": "push-button",
+        "state": "normal",
+        "defaultRing": false,
+        "controlRect": [23, 25, 80, 20],
+        "text": "",
+        "portOrigin": [3, 5],
+        "portBounds": [3, 5, 160, 80],
+        "imageSize": [160, 80],
+        "scale": [1, 1],
+        "cropPortRect": [15, 17, 96, 36],
+        "cropImageRect": [12, 12, 96, 36],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [255, 255, 255],
+        "enabled": true,
+        "windowActive": true,
+        "requiredInvocationClass": "reviewed-direct-drawing"
+      },
+      "toObserve": {
+        "os": null,
+        "engineInstallation": null,
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": null,
+        "controlDefinition": null,
+        "captureMethod": null,
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "patternOriginState": null,
+        "directOriginEvidence": null
+      },
+      "unknownReason": "Original environment, installed dependencies and capture pipeline have not been supplied. Do not infer them from current browser output or author previews.",
+      "purpose": "Same control Rect with nonzero port origin; crop transform is explicit so phase is not inferred from a local-face screenshot.",
+      "experiment": {
+        "kind": "fixed-physical-placement-phase",
+        "baselineRequestId": "crayon-os.normal"
+      }
     }
   ]
 }

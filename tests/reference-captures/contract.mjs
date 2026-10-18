@@ -53,6 +53,18 @@ export function readContract(root = repositoryRoot) {
     check(isDeepStrictEqual(c.cropImageRect, [c.cropPortRect[0] - c.portOrigin[0], c.cropPortRect[1] - c.portOrigin[1], ...c.cropPortRect.slice(2)]), `${request.id}: inconsistent crop transform`);
     const [x, y, w, h] = c.cropImageRect;
     check(x >= 0 && y >= 0 && w > 0 && h > 0 && x + w <= c.imageSize[0] && y + h <= c.imageSize[1], `${request.id}: crop outside image`);
+    if (c.portOrigin.some(n => n !== 0)) check(c.requiredInvocationClass === 'reviewed-direct-drawing', `${request.id}: nonzero origin needs a direct-invocation precondition`);
+    if (request.experiment?.baselineRequestId) {
+      const baseline = catalog.requests.find(r => r.id === request.experiment.baselineRequestId);
+      check(baseline?.sourceSlug === request.sourceSlug, `${request.id}: missing matching experiment baseline`);
+      const b = baseline.conditions;
+      const delta = c.portOrigin.map((n, i) => n - b.portOrigin[i]);
+      const translate = rect => rect.map((n, i) => n + (i < 2 ? delta[i] : 0));
+      const fixed = request.experiment.kind === 'fixed-physical-placement-phase';
+      check(fixed || request.experiment.kind === 'coordinate-placement', `${request.id}: unknown origin experiment`);
+      check(isDeepStrictEqual(c.controlRect, fixed ? translate(b.controlRect) : b.controlRect)
+        && isDeepStrictEqual(c.cropPortRect, fixed ? translate(b.cropPortRect) : b.cropPortRect), `${request.id}: inconsistent experiment placement`);
+    }
     const pinned = { compatibility, requestVersion: catalog.requestVersion,
       ledgerVersion: ledger.inventoryVersion, targetRequirements: request.targetRequirementIds.map(id => ledger.requirements.find(r => r.id === id)), sourceRegistrySchema: choices.schemaVersion, sourceRegistryReview: choices.reviewStatus,
       request, source, engineComponent: engine };
@@ -89,10 +101,13 @@ export function captureTemplate(request) {
 
 export const reviewDigest = capture => digest(capture);
 const reviewChecks = ['originalEnvironment', 'sourceAndBaseIdentity', 'engineAndPatchStack', 'conditionsAndTransform', 'imageAndArtifacts', 'independentOfScriptoscope'];
+const requiredReviewChecks = request => [...reviewChecks,
+  ...(Object.hasOwn(request.toObserve, 'patternOriginState') ? ['patternOriginState'] : []),
+  ...(request.conditions.requiredInvocationClass ? ['directOriginInvocation'] : [])];
 export function reviewTemplate(capture, request) {
   return { captureId: capture.id, verdict: null, reviewer: null, reviewedAt: null, captureDigest: reviewDigest(capture),
     requestDigest: request.requestDigest, targetRequirementIds: [...request.targetRequirementIds],
-    checks: Object.fromEntries(reviewChecks.map(key => [key, null])), notes: null };
+    checks: Object.fromEntries(requiredReviewChecks(request).map(key => [key, null])), notes: null };
 }
 
 /** Validate eligibility of supplied evidence, never renderer fidelity or historical authenticity. */
@@ -154,6 +169,17 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     if (typeof o.controlDefinition?.[field] === 'boolean') equal(o.controlDefinition[field], request.conditions[field], `observed.controlDefinition.${field}`);
   }
   for (const field of ['defaultMechanism', 'invocation']) need(text(o.controlDefinition?.[field]), `observed.controlDefinition.${field}`);
+  if (Object.hasOwn(request.toObserve, 'patternOriginState')) {
+    const state = o.patternOriginState;
+    need(['available', 'unavailable'].includes(state?.apiAvailability), 'observed.patternOriginState.apiAvailability');
+    need(text(state?.evidence), 'observed.patternOriginState.evidence');
+    if (state?.apiAvailability === 'available') need(Array.isArray(state.offset) && state.offset.length === 2 && state.offset.every(Number.isInteger), 'observed.patternOriginState.offset');
+    if (state?.apiAvailability === 'unavailable' && state.offset != null) rejected.push('patternOriginState.offset: unavailable API must not invent an observed offset');
+  }
+  if (request.conditions.requiredInvocationClass) {
+    equal(o.controlDefinition?.invocationClass, request.conditions.requiredInvocationClass, 'observed.controlDefinition.invocationClass');
+    for (const field of ['invocation', 'nonzeroOriginJustification', 'sourceReference']) need(text(o.directOriginEvidence?.[field]), `observed.directOriginEvidence.${field}`);
+  }
   const p = capture.provenance ?? {};
   need(text(p.producer), 'provenance.producer'); need(text(p.capturedAt) && Number.isFinite(Date.parse(p.capturedAt)), 'provenance.capturedAt');
   need(text(p.method), 'provenance.method');
@@ -169,10 +195,14 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
       if (artifact.role === 'environment-manifest') {
         equal(JSON.parse(artifactBytes), JSON.parse(JSON.stringify({ source: capture.source, engineComponent: capture.engineComponent, observed: capture.observed })), 'environment-manifest');
       }
+      if (artifact.role === 'direct-origin-invocation') equal(JSON.parse(artifactBytes), {
+        controlDefinition: o.controlDefinition, directOriginEvidence: o.directOriginEvidence, patternOriginState: o.patternOriginState,
+      }, 'direct-origin-invocation');
     }
     catch (error) { rejected.push(`artifact ${artifact.role}: ${error.message}`); }
   }
   for (const role of ['capture-log', 'environment-manifest']) need(roles.has(role), `provenance.artifacts.${role}`);
+  if (request.conditions.requiredInvocationClass) need(roles.has('direct-origin-invocation'), 'provenance.artifacts.direct-origin-invocation');
   const matches = reviews.filter(review => review.captureId === capture.id);
   if (matches.length > 1) rejected.push('multiple review decisions: resolve explicitly before intake');
   const review = matches[0];
@@ -185,7 +215,7 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     need(text(review.reviewer), 'review.reviewer');
     if (text(review.reviewer) && review.reviewer === p.producer) rejected.push('reviewer must be independent of capture producer');
     need(text(review.reviewedAt) && Number.isFinite(Date.parse(review.reviewedAt)), 'review.reviewedAt'); need(text(review.notes), 'review.notes');
-    for (const field of reviewChecks) need(review.checks?.[field] === true, `review.checks.${field}`);
+    for (const field of requiredReviewChecks(request)) need(review.checks?.[field] === true, `review.checks.${field}`);
   }
   if (rejected.length) return result('rejected');
   if (missing.length) return result('partial');

@@ -3835,6 +3835,14 @@ request pins against its explicit header and bind its full-file hash into reques
 digests: a stale catalog version must fail, and a document change must invalidate
 previous attestations even if someone omitted the required version increment.
 
+The origin experiments need a separate invocation precondition: Apple's SetOrigin
+reference forbids assuming ordinary Window/Control Manager calls work at nonzero
+origins. Fixed D with shifted O moves physical placement; translating both D and
+the crop with O instead holds physical placement fixed. Neither establishes an
+observed pattern phase without the actual invocation and per-port pattern-origin
+state. Capture intake now requires that evidence and independent review, keeps
+all observations null, and separates the two experiments (13 requests total).
+
 ### 2026-10-18 — Repository typechecking does not establish tarball type closure
 
 The emitted root declaration preserves the loader re-export's `../tools` path,

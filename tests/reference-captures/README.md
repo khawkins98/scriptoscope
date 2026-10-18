@@ -1,9 +1,9 @@
-# Independent reference capture intake (draft 0.1.0)
+# Independent reference capture intake (request draft 0.1.1)
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
 **There are no original captures or capture approvals in this initial corpus.**
-The twelve requests are provisional experiments, not historical default sizes,
+The thirteen requests are provisional experiments, not historical default sizes,
 complete control coverage, or an acceptance denominator. Intake never runs the
 original engine, invokes Scriptoscope to produce references, or certifies fidelity.
 
@@ -15,9 +15,10 @@ original engine, invokes Scriptoscope to produce references, or certifies fideli
 | System 7 Nostalgia Silver | normal, pressed, inactive, default | Same explicit inputs on a second target |
 | Apple Lisa | normal | Unequal corner4/side1 face |
 | 1990 | default | Unequal corner7/side14 ring bands |
-| Crayon OS | normal at port origins (0,0) and (3,5) | Pattern-bearing body and phase |
+| Crayon OS | zero-origin baseline, shifted-origin placement control, fixed-physical-placement phase experiment | Pattern-bearing body; invocation and pattern-origin state unresolved |
 
-Every request specifies an empty label, an **80×20 control Rect at (20,20)**,
+Every request specifies an empty label and an **80×20 control Rect** (at (20,20),
+except the fixed-physical-placement experiment at (23,25)),
 white background, an active window and native 1:1 pixels. “Inactive” here requests
 a **disabled control in an active window**, not an inactive window. “Default” is
 normal/enabled with the original default mechanism engaged; its actual mechanism
@@ -25,14 +26,58 @@ must be recorded. Pressed requires the original pressed condition, not a renamed
 normal screenshot. No CDEF number, hilite byte or rendering flag is inferred from
 these logical names: record the observed original invocation and have it reviewed.
 
-The full capture is 160×80 pixels. The requested crop is port Rect (12,12,96,36),
-leaving context outside the nominal face and possible ring. Image coordinates are
-`portXY - portOrigin`, so the shifted Crayon crop is image Rect (9,7,96,36), not
-(12,12,96,36). These are explicit **experimental coordinate requirements**, not a
-claim about historical pattern arithmetic. Keep the full image as evidence; do
-not trim alpha/opaque bounds, rescale, rotate, resample, recolor or crop away an
+The full capture is 160×80 pixels. Most crops are port Rect (12,12,96,36),
+leaving context outside the nominal face and possible ring. Keep the full image;
+do not trim alpha/opaque bounds, rescale, rotate, resample, recolor or crop away an
 unexpected artifact. If the original environment cannot meet a request, revise
-and review the request instead of relabeling a different capture as a match.
+and review the request instead of relabeling another capture as a match.
+
+### Origin experiments and unresolved invocation preconditions
+
+Image coordinates are `portXY - portOrigin`. The three Crayon requests separate
+coordinate motion from a possible phase experiment:
+
+| Request suffix | Port origin O | Control Rect D | Crop in port | Crop in image | Intended distinction |
+|---|---|---|---|---|---|
+| `normal` | (0,0) | (20,20,80,20) | (12,12,96,36) | (12,12,96,36) | Baseline |
+| `normal.shifted-port` | (3,5) | (20,20,80,20) | (12,12,96,36) | (9,7,96,36) | Coordinate-placement control: physical face moves |
+| `normal.fixed-physical-phase` | (3,5) | (23,25,80,20) | (15,17,96,36) | (12,12,96,36) | Physical face/crop held fixed; potential local pattern-phase discrimination |
+
+These are provisional input specifications, **not predictions of historical
+pixels or valid ordinary Control Manager usage**. Apple's *Inside Macintosh:
+Imaging With QuickDraw* (1994), printed page 2-45, explicitly requires origin
+(0,0) before Window/Control Manager routines. The two nonzero-origin requests
+therefore require `controlDefinition.invocationClass: "reviewed-direct-drawing"`
+and `directOriginEvidence` with the actual invocation, justification for its
+nonzero-origin validity, and source reference. The invocation is currently
+**unknown**; no CDEF number, bypass or supported entry point is invented here.
+A hashed `direct-origin-invocation` JSON artifact must exactly contain
+`{controlDefinition, directOriginEvidence, patternOriginState}` from `observed`.
+Independent review must affirm `directOriginInvocation`; an ordinary manager
+invocation is rejected and an unknown invocation remains incomplete.
+
+The pinned kDEF component's f94e/f952 save O, f956–f962 set O−P, f990–f9a8 use
+D−P, and f9e8–f9ec restore O. Thus physical D−O is preserved by that paired
+translation; local coordinates alone do not establish the full observed pattern
+phase. Later QuickDraw `QDSetPatternOrigin` adds a per-port pattern offset.
+All three Crayon requests require observed `patternOriginState`:
+`apiAvailability` (`available` or `unavailable`), `offset` (observed integer [x,y]
+when available; null when unavailable), and `evidence` describing how the state
+or API unavailability was established. Unknown availability/offset is incomplete;
+zero is never assumed. The independent review check `patternOriginState` is
+required. Compare phase only with a valid invocation and reviewed, controlled
+pattern-origin state; the validator predicts no phase shift or pixel result.
+
+Pinned source references for these experimental constraints:
+
+- [Apple Imaging With QuickDraw PDF](https://vintageapple.org/inside_r/pdf/Imaging_With_QuickDraw_1994.pdf),
+  printed pp. 2-45 (SetOrigin restriction) and 3-6 (pattern continuity), SHA-256
+  `f8e079d02b57516900f4b45c1f09629ef734313a51c171029278c9d97f6b497a`.
+- [Apple Universal Interfaces 3.4.1 Quickdraw.h documentation, QDSetPatternOrigin](https://www.ioi-xd.net/os9docs/Quickdraw_8h.html#afff2dba5362303c1881307f1448db977),
+  rendered header reference SHA-256
+  `9e30372f277b70b9c877c628204db448526cec3ee8dfb849ab6e4af0c9c444ef`.
+  It documents per-port offset semantics and Non-Carbon CFM availability from
+  NQD 8.5, CarbonLib 1.3 and Mac OS X 10.1; the actual capture environment remains unknown.
 
 `requests.json` is authoritative for exact inputs. It references the existing
 [source-choice registry](../control-availability/source-choices.json); it does not
@@ -42,7 +87,7 @@ document ID/version/full-file SHA-256, ledger version, exact target requirement
 wording and engine component pin. Source-registry/ledger paths are also checked
 against their existing authorities.
 The compatibility document is the single identity/version authority: request pins must match its explicit header (currently
-draft 0.1.1). Even an unversioned document edit invalidates prior request digests;
+draft 0.1.2). Even an unversioned document edit invalidates prior request digests;
 reviewed document changes still require a version increment. These draft source
 choices identify
 requested bytes; they do **not** approve historical Resource Manager selection or
@@ -85,7 +130,7 @@ it cannot silently satisfy this version-matched request.
 ## Intake and review
 
 ```sh
-# Honest repository report: currently twelve missing requests, zero approvals.
+# Honest repository report: currently thirteen missing requests, zero approvals.
 npm run test:references
 
 # Write a request template; no image or approval is generated.

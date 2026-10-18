@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.1**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.2**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -159,7 +159,7 @@ This draft does not choose that threshold or certify the current implementation.
 ## Reference capture intake implementation (#190)
 
 [Capture requests and validation](../../tests/reference-captures/README.md) now
-provide a finite provisional twelve-request first batch and an initially empty
+provide a finite provisional thirteen-request first batch and an initially empty
 capture/review corpus. Requests reuse the draft source-choice pins, name target
 requirements, and specify body-only geometry/state/port/crop conditions. Unknown
 original environment, base/search-chain, font and palette information stays
@@ -169,3 +169,9 @@ contamination and stale/mismatched provenance, and reports missing evidence
 without a fidelity percentage. It neither executes original code nor promotes
 request inputs, author previews or selfgoldens to historical defaults. Target
 closure, source-selection approval and typography remain unchanged.
+
+Nonzero-port requests are explicitly unresolved direct-invocation experiments,
+not assumed valid Window/Control Manager calls. Their coordinate-placement and
+fixed-physical-placement cases are separate; pattern-origin API availability and
+state require observation and review before any phase comparison. See the capture
+contract for source references and exact transforms.
