@@ -3179,3 +3179,7 @@ Picker teardown must release listeners and timers as well as IntersectionObserve
 ### 2026-10-18 — Upgrade build tooling without silently raising browser requirements
 
 Vite 7's default build target is newer than Vite 5's. The library config previously relied on that default, so upgrading Vite alone would silently raise the browser requirements of the public runtime. Pin the previous resolved target (`es2020`, Edge 88, Firefox 78, Chrome 87, Safari 14) in the library build; the demo keeps its existing explicit `es2022` target. Contributor tooling uses Node 24, matching CI, independently of the published package's engine metadata. Validate both the standalone CDN entry's lazy archive decoder and the separately bundled demo after build-tool upgrades.
+
+### 2026-10-18 — Window aliases must survive opaque asset URLs
+
+The utility/mini/floating/palette resolver ranked PNG filename words, even though the browser loader replaces those names with opaque blob URLs. This selected movable-modal instead of titled-utility-window in 11 corpus schemes. Rank the decoder's canonical wnd# keys instead; use the chrome element's structured authorLabel to reject grow-box mispairs. Joining a chrome URL to its matching chromeElements entry is safe because both references are rewritten together; interpreting the URL's text is not. The resolver now has a corpus regression that checks all generic aliases and exact window types with filename and opaque URL encoders.
