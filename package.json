@@ -71,12 +71,18 @@
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
     "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs",
     "import": "node scripts/import-scheme.mjs",
-    "gates": "npm run typecheck && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check"
+    "gates": "npm run typecheck && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check",
+    "test:rendering": "npm run build && playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:extended": "npm run build && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:goldens": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:goldens:update": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 SCRIPTOSCOPE_UPDATE_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:container": "node tests/rendering-options/container.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "@types/node": "^24.0.0",
     "typescript": "^5.6.0",
     "vite": "^7.3.7"

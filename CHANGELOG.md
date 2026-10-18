@@ -13,6 +13,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   raw-art references, promoted DOM/style metadata, and grid/flex window fixtures
   for source-backed assertions and reviewed contact sheets (refs #213).
 
+- Pinned browser CI for rendering-option contracts across the theme corpus,
+  source and built entries, real promoted DOM, and independent source-art checks.
+  Explicit Linux golden recording/verification preserves reviewable failure evidence.
+
 - Explicit `ThemeEntry.meta` support for catalogs carrying a complete provenance
   sidecar; picker display labels no longer substitute for origin/license metadata.
   ([#198](https://github.com/khawkins98/scriptoscope/pull/198))

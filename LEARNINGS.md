@@ -3459,3 +3459,24 @@ sole interactive/accessibility target, mark every replacement face decorative,
 and reflect native focus with `:focus-within` on the visible wrapper through the optional
 stylesheet. Verify actual Tab/typeahead behavior and asynchronous face replacement;
 canvas parity cannot establish native keyboard usability.
+### 2026-10-18 — Rendering regressions need independent inputs and real DOM contracts
+
+A readable label in a raw canvas does not establish correct control rendering.
+The optional stylesheet put window shadows on promoted controls, and fixed-height
+Scene captures hid automatic sizing defects. The rendering-options runner checks
+raw public compositor output alongside actual scanner and WindowManager DOM,
+including focus, shadow-bearing part bounds in stretched grids/flex layouts,
+integer scaling, value endpoints, and source-versus-built output.
+
+Independent source evidence matters: Windows 95's authored cinf background sample
+is gray even when the previous renderer painted white; a snapshot of that renderer
+would preserve the bug. Synthetic asymmetric corner/edge sentinels exercise slice
+and ring geometry without blessing existing output. Complete label-mask ink tests
+use an explicit face height to establish the expected font size independently.
+
+Golden contact sheets are a separate reviewed regression layer. Their environment,
+case inventory, source archives and fonts are equality-gated; commit/bundle hashes
+are provenance only. Verification refuses missing baselines and never writes them.
+An exact Playwright package plus immutable Linux browser image makes recording and
+comparison repeatable; source-art inspection and semantic assertions remain the
+fidelity evidence, even after image goldens are approved.
