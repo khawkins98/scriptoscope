@@ -3554,3 +3554,18 @@ expectations. The reviewed golden workflow separately removes the manifest/image
 and mutates one opaque pixel, checks the actual failure reason, proves verification
 did not rewrite expectations, restores their exact hashes, then verifies again.
 Keep the capture commit distinct from the later seed and CI-activation commits.
+
+### 2026-10-18 — Accessible replacements must inherit the native control's name
+
+The range promotion path hid its native input from assistive technology but
+created an unnamed `role=slider`. Preserve `aria-labelledby` as live references,
+then the explicit `aria-label`, associated label text (including multiple labels),
+and the native title fallback on the visible replacement. Let the browser resolve
+ARIA precedence rather than flattening explicit references into text. Retheming
+reapplies the naming from the original input without changing its attributes.
+
+The browser regression first checks each native accessible name, then checks the
+promoted name, real Tab/Arrow interaction, and retheming in source/built entries
+under Windows95 and System7. It failed on the old unnamed slider before the fix.
+This does not change min/max/step/disabled handling or claim native restoration:
+`disconnect()` currently leaves promoted form controls, tracked separately in #232.

@@ -50,6 +50,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Promoted range sliders retain associated labels and explicit ARIA naming,
+  including naming precedence and live label references after retheming (#229).
+
 - Fixed Firefox startup in the extended rendering workflow by matching the
   container user to its mounted home. Browser launch preflight now fails before
   running the matrix; optional focused workflow reruns retain the full default.
