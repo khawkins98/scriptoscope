@@ -34,3 +34,21 @@ enough to benefit, the shape is here: drop a pixelmatch import into a tiny diff 
 - After a decoder change in `tools/theme-loader/`.
 
 Eyeball the diff against the previous commit (`git diff tests/visual-baselines/`).
+
+## Boot-affordance smoke test
+
+Install the optional browser tooling once (it is not required for `npm test`):
+
+```sh
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
+```
+
+The smoke test starts an isolated Vite server on an available port and closes it
+and every browser after the run, including failed assertions. To check an existing
+dev server or production preview instead, pass its full landing-page URL in `BASE`:
+
+```sh
+BASE=http://localhost:4173/scriptoscope/ node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
+```

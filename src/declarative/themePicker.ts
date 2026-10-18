@@ -49,7 +49,7 @@ export interface PromotedPicker {
   el: HTMLElement;
   /** Teardown for SPA unmount: disconnects the IntersectionObserver so the
    *  observer no longer pins the (possibly already-removed) tile nodes,
-   *  and clears the in-flight decode queue. Called by the scanner's
+   *  removes event listeners, and clears the pending decode queue. Called by the scanner's
    *  `handle.disconnect()` in 2026-05-30's IO-leak fix. Safe to call
    *  multiple times. Lib reviewer P1. */
   teardown: () => void;
@@ -65,6 +65,16 @@ export async function promoteThemePicker(
   if (el.dataset.scriptoscopeThemePickerPromoted != null) return null;
   if (!themes.length) return null;
   el.dataset.scriptoscopeThemePickerPromoted = '';
+  let disposed = false;
+  let busyTimeout: ReturnType<typeof setTimeout> | undefined;
+  const removeListeners: Array<() => void> = [];
+  const listen = <K extends keyof HTMLElementEventMap>(
+    target: HTMLElement, type: K, listener: (event: HTMLElementEventMap[K]) => void,
+    options?: AddEventListenerOptions,
+  ): void => {
+    target.addEventListener(type, listener, options);
+    removeListeners.push(() => target.removeEventListener(type, listener, options));
+  };
   // Remove any STALE library-added tiles from a previous mount cycle.
   // The teardown clears the stamp but intentionally leaves the tile DOM
   // in place (consumer OFF-mode delegated handlers need the tiles
@@ -132,14 +142,14 @@ export async function promoteThemePicker(
       author.textContent = t.year ? `${t.author}, ${t.year}` : t.author;
       tile.append(author);
     }
-    tile.addEventListener('click', () => { void deps.switchTheme(t.slug); });
+    listen(tile, 'click', () => { void deps.switchTheme(t.slug); });
     el.appendChild(tile);
     tiles.set(t.slug, tile);
   }
 
   // Keyboard nav — the ARIA APG tablist pattern. Arrow/Home/End move focus +
   // activate the tile (consumers expect a single key to switch themes).
-  el.addEventListener('keydown', (e: KeyboardEvent) => {
+  listen(el, 'keydown', (e) => {
     const all = [...el.querySelectorAll<HTMLButtonElement>('.scriptoscope-theme-picker-tile')];
     if (!all.length) return;
     const i = all.findIndex((t) => t === document.activeElement);
@@ -207,8 +217,10 @@ export async function promoteThemePicker(
       .filter((c) => c && c !== excludeSlug);
     fallbackSearch = (async () => {
       for (const c of candidates) {
+        if (disposed) return null;
         try {
           const t = await deps.loadTheme(c);
+          if (disposed) return null;
           const hit = pickInChain(t);
           if (hit?.url) { cachedFallbackUrl = hit.url; return hit.url; }
         } catch { /* try next candidate */ }
@@ -219,6 +231,7 @@ export async function promoteThemePicker(
     return fallbackSearch;
   };
   const drain = (): void => {
+    if (disposed) return;
     while (inFlight < concurrencyCap && queued.size > 0) {
       const slug = queued.values().next().value as string;
       queued.delete(slug);
@@ -228,6 +241,7 @@ export async function promoteThemePicker(
       void (async () => {
         try {
           const theme = await deps.loadTheme(slug);
+          if (disposed) return;
           const hit = pickInChain(theme);
           let resolvedUrl: string | null = hit?.url ?? null;
           if (resolvedUrl) {
@@ -240,17 +254,21 @@ export async function promoteThemePicker(
             // hit the cache on the second-or-later sparse decode.
             resolvedUrl = await findFallbackIcon(slug);
           }
+          if (disposed) return;
           if (resolvedUrl) {
             const tile = tiles.get(slug);
             const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
             if (icon) icon.src = resolvedUrl;
           }
-          // Either way — icon found or not — the tile has settled. The
-          // dotted-outline placeholder remains if no icon was found
-          // anywhere in the corpus, which IS the correct visual state.
-          tiles.get(slug)?.setAttribute('aria-busy', 'false');
         } catch { /* tolerate per-theme failures */ } finally {
           inFlight -= 1;
+          if (disposed) return;
+          // A failed decode has settled too; never leave AT waiting on it.
+          tiles.get(slug)?.setAttribute('aria-busy', 'false');
+          if (slug === deps.initialSlug) {
+            clearTimeout(busyTimeout);
+            el.setAttribute('aria-busy', 'false');
+          }
           // Yield to the main thread between decodes — requestIdleCallback
           // when available (Chrome/Firefox), setTimeout fallback (Safari).
           const yieldFn: (cb: () => void) => void =
@@ -263,7 +281,7 @@ export async function promoteThemePicker(
     }
   };
   const requestDecode = (slug: string): void => {
-    if (decoded.has(slug)) return;
+    if (disposed || decoded.has(slug)) return;
     queued.add(slug); // Set.add is no-op on duplicate; O(1) membership
     drain();
   };
@@ -272,24 +290,13 @@ export async function promoteThemePicker(
   // Once it lands (decoded or failed), flip the container aria-busy so
   // AT knows the picker is settled. Below-the-fold tiles don't gate this
   // signal — they're lazy and may not decode at all this session.
-  if (deps.initialSlug) {
-    const initial = deps.initialSlug;
-    requestDecode(initial);
-    // Watch for the active tile's aria-busy transition (set to 'false' in
-    // drain()'s success branch above). Falls through to a timer fallback
-    // if the decode fails (no aria-busy flip).
-    const activeTile = tiles.get(initial);
-    if (activeTile) {
-      const settle = (): void => { el.setAttribute('aria-busy', 'false'); };
-      const mo = new MutationObserver(() => {
-        if (activeTile.getAttribute('aria-busy') === 'false') { settle(); mo.disconnect(); }
-      });
-      mo.observe(activeTile, { attributes: true, attributeFilter: ['aria-busy'] });
-      // Belt-and-braces fallback: if the active theme decode fails (e.g.
-      // 404), the per-tile aria-busy never flips. Cap the picker busy
-      // state at 3s so AT users aren't stranded.
-      setTimeout(() => { settle(); mo.disconnect(); }, 3000);
-    }
+  if (tiles.has(deps.initialSlug)) {
+    // Bound the busy signal even if a loader never settles. Teardown owns
+    // this timer so an earlier mount cannot mark a later mount ready.
+    busyTimeout = setTimeout(() => {
+      if (!disposed) el.setAttribute('aria-busy', 'false');
+    }, 3000);
+    requestDecode(deps.initialSlug);
   } else {
     el.setAttribute('aria-busy', 'false'); // no active tile to wait on
   }
@@ -311,8 +318,8 @@ export async function promoteThemePicker(
     // No IntersectionObserver (very old browsers) — decode on hover/focus
     // instead of preloading everything.
     for (const [slug, tile] of tiles) {
-      tile.addEventListener('mouseenter', () => requestDecode(slug), { once: true });
-      tile.addEventListener('focus', () => requestDecode(slug), { once: true });
+      listen(tile, 'mouseenter', () => requestDecode(slug), { once: true });
+      listen(tile, 'focus', () => requestDecode(slug), { once: true });
     }
   }
   // Click is the universal fallback — even with IntersectionObserver, a
@@ -320,17 +327,17 @@ export async function promoteThemePicker(
   // the IO fires. switchTheme already calls deps.loadTheme so the icon
   // resolves through the cache; this just ensures the tile's icon paints.
   for (const [slug, tile] of tiles) {
-    tile.addEventListener('click', () => requestDecode(slug));
+    listen(tile, 'click', () => requestDecode(slug));
   }
 
-  // Teardown closure: SPA unmount path. IO disconnect releases the
-  // tile-node refs the observer held (in a long-lived SPA where mount/
-  // unmount cycles, each cycle leaked one IO + N tiles before this).
-  // Clearing the queue drops any in-flight decodes still pending — the
-  // already-fired async decode IIFEs will run to completion harmlessly
-  // because the DOM nodes they target may be gone; the `if (icon)` and
-  // `tile?.` guards inside drain() already handle that case. Idempotent.
+  // Retain tiles for consumer OFF-mode delegation, but release this mount's
+  // listeners and ignore async work that finishes after teardown.
   const teardown = (): void => {
+    if (disposed) return;
+    disposed = true;
+    clearTimeout(busyTimeout);
+    for (const remove of removeListeners) remove();
+    removeListeners.length = 0;
     if (io) { io.disconnect(); io = null; }
     queued.clear();
     // Clear the promoted stamp so a subsequent mountDeclarative cycle

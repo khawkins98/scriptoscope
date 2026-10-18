@@ -9,26 +9,36 @@
 //
 // Recommended by the a11y reviewer 2026-05-30. Run via:
 //   node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
-// Pre-req: dev server running on :5188 OR set BASE=http://localhost:4173/scriptoscope
+// Starts an isolated dev server, or set BASE=http://localhost:4173/scriptoscope
 //
-// Total cost ~3 seconds; gate the PR on it.
+// Requires Playwright and its Chromium browser (see README.md).
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
+import { createServer } from 'vite';
+import { fileURLToPath } from 'node:url';
 
-const BASE = process.env.BASE ?? 'http://localhost:5188/?theme=1138';
-// Spin a dev server when one isn't running. The harness convention used
-// by .scratch/ probes — vite serves demo/ at 5188 here.
+let BASE = process.env.BASE;
 let server;
-if (!process.env.BASE) {
-  server = spawn('npx', ['vite', '--port', '5188'], { stdio: 'pipe' });
-  await new Promise((r) => setTimeout(r, 4500));
-}
+// Use Vite directly: killing an npx wrapper leaves its Vite child alive,
+// and unread child-process pipes can keep node --test running indefinitely.
+test.before(async () => {
+  if (BASE) return;
+  server = await createServer({
+    configFile: fileURLToPath(new URL('../../vite.config.js', import.meta.url)),
+    root: fileURLToPath(new URL('../../demo', import.meta.url)),
+    server: { host: '127.0.0.1', port: 0, open: false },
+  });
+  await server.listen();
+  BASE = `${server.resolvedUrls.local[0]}?theme=1138`;
+}, { timeout: 15000 });
 
-test('boot-affordance: scriptoscope.css is linked and resolves', async () => {
+test.after(async () => { await server?.close(); });
+
+test('boot-affordance: scriptoscope.css is linked and resolves', { timeout: 30000 }, async (t) => {
   const browser = await chromium.launch();
+  t.after(() => browser.close());
   const page = await browser.newPage();
   const cssRequests = [];
   page.on('response', (r) => { if (r.url().endsWith('.css')) cssRequests.push({ url: r.url(), status: r.status() }); });
@@ -36,11 +46,11 @@ test('boot-affordance: scriptoscope.css is linked and resolves', async () => {
   await page.waitForTimeout(500);
   const cssLoaded = cssRequests.some((r) => /scriptoscope\.css/.test(r.url) && r.status === 200);
   assert.ok(cssLoaded, `Expected scriptoscope.css to be linked + served (200). Saw: ${cssRequests.map((r) => `${r.url} ${r.status}`).join(', ') || '(no CSS requests)'}`);
-  await browser.close();
 });
 
-test('boot-affordance: data-scriptoscope-loading attribute set + CSS hooks fire', async () => {
+test('boot-affordance: data-scriptoscope-loading attribute set + CSS hooks fire', { timeout: 30000 }, async (t) => {
   const browser = await chromium.launch();
+  t.after(() => browser.close());
   const page = await browser.newPage();
   // We can't poll AFTER mountDeclarative resolves — by then the loading
   // attribute has already been torn down (the teardown is in the same
@@ -59,7 +69,9 @@ test('boot-affordance: data-scriptoscope-loading attribute set + CSS hooks fire'
     watcher(); // initial check, in case the attribute is set before MO arms
   });
   await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  await page.waitForSelector('[data-scriptoscope-promoted]', { timeout: 10000 });
+  // Promoted buttons can be hidden behind their rendered chrome; attachment
+  // is sufficient to inspect their loading lifecycle and computed styles.
+  await page.waitForSelector('[data-scriptoscope-promoted]', { state: 'attached', timeout: 10000 });
   const state = await page.evaluate(() => {
     const promoted = document.querySelector('[data-scriptoscope-promoted]');
     return {
@@ -74,8 +86,9 @@ test('boot-affordance: data-scriptoscope-loading attribute set + CSS hooks fire'
   assert.notEqual(state.promotedAnimName, '', 'animationName should not be empty (CSS not loaded?)');
 });
 
-test('boot-affordance: data-scriptoscope-loading is removed after ready', async () => {
+test('boot-affordance: data-scriptoscope-loading is removed after ready', { timeout: 30000 }, async (t) => {
   const browser = await chromium.launch();
+  t.after(() => browser.close());
   const page = await browser.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 15000 });
   await page.waitForTimeout(2500); // give ready dispatch a generous window
@@ -90,8 +103,9 @@ test('boot-affordance: data-scriptoscope-loading is removed after ready', async 
   assert.equal(state.hasLoadingAttr, false, 'Expected data-scriptoscope-loading to be REMOVED after ready');
 });
 
-test('boot-affordance: picker tiles get aria-busy lifecycle', async () => {
+test('boot-affordance: picker tiles get aria-busy lifecycle', { timeout: 30000 }, async (t) => {
   const browser = await chromium.launch();
+  t.after(() => browser.close());
   const page = await browser.newPage();
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 15000 });
   await page.waitForSelector('.scriptoscope-theme-picker-tile', { timeout: 10000 });
@@ -108,6 +122,3 @@ test('boot-affordance: picker tiles get aria-busy lifecycle', async () => {
   assert.equal(counts.withoutBusyAttr, 0, 'Every tile should carry an aria-busy attribute (true OR false)');
   assert.ok(counts.withBusyFalse >= 1, `At least one tile (the active one) should have aria-busy=false post-decode. Counts: ${JSON.stringify(counts)}`);
 });
-
-// Clean up the dev server if we spawned one.
-test.after(() => { if (server) server.kill(); });

@@ -22,13 +22,19 @@ Scriptoscope is plain TypeScript with no framework dependency.
    npm run preview:demo # serve the PROD bundle at http://localhost:4173/scriptoscope/ — use before push to catch bundling/minification regressions the dev server hides
    ```
 
-3. **Check your work.** In prototype mode the project leans on the type checker and the render/audit diagnostics rather than a unit/e2e suite:
+3. **Check your work.** Run the unit tests and static gates; use render/audit diagnostics for chrome changes:
    ```sh
    npm run typecheck  # tsc --noEmit
+   npm test           # decoder and runtime regression tests
    npm run diag:render  # render a window off a bundle to a PNG for eyeballing
    npm run diag:audit   # audit part placement against the recipe
    npm run lint:themes  # validate theme bundles
    ```
+
+   Before pushing, run `npm run build:themes`, `npm run build`, then `npm run gates`.
+   The build supplies the library used by strict lint; theme extraction supplies
+   the local derivatives used by the scene audit. Optional browser smoke setup
+   is documented in [`tests/visual-baselines/README.md`](./tests/visual-baselines/README.md).
 
 4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
@@ -159,7 +165,7 @@ The porting flow as currently implemented (the corpus today is `1138`, `1984`, `
 
 1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
 2. **Create `themes/<scheme-slug>/` and drop in the scheme's resource fork plus its metadata:**
-   - **`scheme.rsrc`** — the raw resource fork of the `.ksc` (the extractor reads this directly; no macOS DeRez step needed).
+   - **`scheme.sit`** (preferred) or **`scheme.rsrc`** — the original StuffIt archive or raw resource fork of the `.ksc`. The extractors decode either directly; no macOS DeRez step is needed.
    - **`meta.json`** — bundle metadata the binary scheme doesn't carry: `name`, `author`, `origin` (with the readme-stated license verbatim). See `themes/beos-r503/meta.json` for the shape and [`docs/theme-bundle-layout.md`](./docs/theme-bundle-layout.md) for the schema.
    - **`PROVENANCE.md`** — human-readable companion: author, source URL, readme excerpt, our license interpretation, why this scheme is in the corpus. See `themes/beos-r503/PROVENANCE.md` as a canonical example.
 3. **Run the importer.** `npm run import -- <slug>` runs the whole pipeline scoped to your scheme (chrome + icons + rasters + roles + lint), scaffolds a `meta.json` stub if you skipped step 2's metadata, and prints a report card (scheme type, window types, header colours, control/icon/glyph coverage, lint verdict). Under the hood that's `extract-scheme.mjs` (decodes `cicn`/`ppat`/`cinf`/`wnd#`/`clut` → PNGs + a schema-validated `theme.json`) + `extract-icons.mjs` (glyphs) — you can run those individually too. (Re-extract every bundle with `npm run build:themes`.)

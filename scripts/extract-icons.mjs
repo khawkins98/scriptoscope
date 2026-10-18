@@ -12,21 +12,28 @@
 //
 // Usage: node scripts/extract-icons.mjs <slug> [<slug>...] | --all
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { convertIcons } from '../tools/theme-loader/convert.js';
+import { schemeSource, readSchemeFork } from './lib/scheme-source.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
 
-function extract(slug) {
+async function extract(slug) {
   const destDir = resolve(repoRoot, 'themes', slug);
-  const rsrcPath = resolve(destDir, 'scheme.rsrc');
-  if (!existsSync(rsrcPath)) { console.error(`Not found: ${rsrcPath}`); return; }
-
-  const { assets, index, census } = convertIcons(new Uint8Array(readFileSync(rsrcPath)));
+  let result;
+  try {
+    const { fork } = await readSchemeFork(destDir);
+    result = convertIcons(fork);
+  } catch (err) {
+    console.error(`[${slug}] icon extraction FAILED:`, err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
+    return;
+  }
+  const { assets, index, census } = result;
 
   mkdirSync(resolve(destDir, 'icons'), { recursive: true });
   for (const a of assets) writeFileSync(resolve(destDir, a.path), encodePng(a.width, a.height, a.rgba));
@@ -49,6 +56,6 @@ const argv = process.argv.slice(2);
 if (argv.length === 0) { console.error('Usage: node scripts/extract-icons.mjs <slug>... | --all'); process.exit(2); }
 const themesRoot = resolve(repoRoot, 'themes');
 const slugs = argv.includes('--all')
-  ? readdirSync(themesRoot).filter((s) => existsSync(resolve(themesRoot, s, 'scheme.rsrc')))
+  ? readdirSync(themesRoot).filter((s) => schemeSource(resolve(themesRoot, s)))
   : argv;
-for (const s of slugs) extract(s);
+for (const s of slugs) await extract(s);
