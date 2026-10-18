@@ -719,6 +719,9 @@ export function titleWidgetHits(
 
 // ── Window focus manager ────────────────────────────────────────────────────
 interface ManagedWindow {
+  /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
+  renderEpoch: number;
+  initializing: boolean;
   theme: LoadedTheme;
   opts: RenderWindowOptions;
   handlers: TitleWidgetHandlers;
@@ -749,12 +752,10 @@ interface ManagedWindow {
    *  scroll container (the slot survives re-slotting), so without this it would accumulate one per
    *  render — multiplying scroll speed and leaking. Re-created each time the bar is (re)wired. */
   scrollAbort?: AbortController;
-  /** Pooled chrome canvas — kept across renders so we don't allocate a fresh RGBA buffer on every
-   *  state change (closes #171; see the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
-   *  entry pattern #5). The same canvas element is moved into each new .scriptoscope-window via renderWindow's
-   *  reuseCanvas option; setting width/height resets the pixels (re-painted via putImageData). At 50
-   *  windows × theme switch, this eliminates ~3.2 MB of transient allocations + the GC pause they
-   *  trigger. */
+  /** Pooled chrome canvas — keeps its DOM identity across state changes (see #171 and
+   *  the 2026-05-28 perf review + LEARNINGS "Classic Mac OS lessons"
+   *  entry pattern #5). Async preparation uses a staging canvas; only the guarded synchronous
+   *  commit copies its pixels into this live canvas and moves it into the new chrome. */
   chromeCanvas?: HTMLCanvasElement;
   /** Cached active/inactive title-bar strips for fast focus-flip rendering (closes #173; classic
    *  Mac OS lessons pattern #2 — active/inactive flip only repainted the title bar). At every
@@ -902,7 +903,8 @@ export class WindowManager {
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow = {
-      theme, opts, handlers, host,
+      theme, opts, handlers, host, renderEpoch: 0, initializing: true,
+      ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
       // clock either way so subsequent focus events stay monotonic relative to any declared values.
@@ -917,6 +919,7 @@ export class WindowManager {
     host.addEventListener('pointerdown', () => { void this.focus(entry); });
     try {
       await this.render(entry);
+      entry.initializing = false;
       return host;
     } catch (error) {
       // The caller never receives this detached host when preparation fails.
@@ -933,6 +936,7 @@ export class WindowManager {
   remove(host: HTMLElement): void {
     const i = this.windows.findIndex((w) => w.host === host);
     if (i < 0) return;
+    this.windows[i]!.renderEpoch++;
     this.windows[i]?.scrollAbort?.abort();
     this.windows.splice(i, 1);
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
@@ -1034,16 +1038,53 @@ export class WindowManager {
     await this.render(entry);
   }
 
+  private themeEpoch = 0;
+
   /** Re-skin every managed window with a new theme and re-render in place (the persistent slotted
    *  content survives, exactly as on a focus re-render). Drives the declarative theme-switcher — the
-   *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers. */
-  async retheme(theme: LoadedTheme): Promise<void> {
-    // Drop entries whose host is no longer in the document (e.g. a demo dismissed the window via
-    // `.scriptoscope-window.remove()` without going through manager.remove). Without this, retheme would
-    // render-into-detached-DOM for every dismissed window on every theme switch.
-    this.windows = this.windows.filter((w) => w.host.isConnected);
-    debug('theme', `retheme → ${theme.manifest.name ?? '(unnamed)'}`, { windows: this.windows.length });
-    for (const w of this.windows) { w.theme = theme; await this.render(w); }
+   *  whole desktop changes scheme at runtime, the Kaleidoscope way. Public for imperative consumers.
+   *  `themeRef` is the declarative mount's host metadata (not loaded asset identity);
+   *  imperative callers normally omit it. It commits with the pixels, before onChange. */
+  async retheme(theme: LoadedTheme, signal?: AbortSignal, themeRef?: string): Promise<void> {
+    const epoch = ++this.themeEpoch;
+    // Preserve the existing detached-host cleanup, but do not steal an add()
+    // still preparing its initial off-DOM host.
+    for (const entry of [...this.windows]) {
+      if (!entry.host.isConnected && !entry.initializing) this.remove(entry.host);
+    }
+    const current = (): boolean => epoch === this.themeEpoch && !signal?.aborted;
+    // Preparation never touches a live canvas. Failed/superseded batches leave
+    // every current window intact; commit below contains no asynchronous work.
+    const prepared = new Map<ManagedWindow, { epoch: number; win: HTMLElement; slug: string; collapsed: boolean }>();
+    while (current()) {
+      const entries = this.windows.filter(w => w.host.isConnected);
+      try {
+        for (const entry of entries) {
+          if (!current()) return;
+          if (prepared.get(entry)?.epoch === entry.renderEpoch) continue;
+          const version = entry.renderEpoch;
+          const result = await this.prepareRender(entry, theme);
+          if (!current()) return;
+          prepared.set(entry, { epoch: version, ...result });
+        }
+      } catch (error) {
+        if (!current()) return;
+        throw error;
+      }
+      // Focus/resize may have changed an entry while another raster decoded.
+      // Re-prepare only changed entries; removed windows are never resurrected.
+      const live = this.windows.filter(w => w.host.isConnected);
+      if (live.some(w => prepared.get(w)?.epoch !== w.renderEpoch)) continue;
+      for (const entry of live) {
+        const result = prepared.get(entry)!;
+        entry.renderEpoch++; // invalidate any older standalone render
+        entry.theme = theme;
+        this.commitRender(entry, result, false);
+        if (themeRef !== undefined) entry.host.dataset.scriptoscopeTheme = themeRef;
+      }
+      for (const entry of live) this.notifyChange(entry);
+      return;
+    }
   }
 
   private async focus(entry: ManagedWindow): Promise<void> {
@@ -1058,6 +1099,7 @@ export class WindowManager {
       const was = w.active;
       w.active = w === entry;
       if (w.active !== was) {
+        w.renderEpoch++;
         // Fast path (issue #173): if the OTHER state's title strip is cached under matching keys,
         // putImageData it into the existing canvas + update z-index. Skips the full chrome
         // recomposition + widget/scrollbar re-wiring. Falls back to render() on cache miss; the
@@ -1148,11 +1190,11 @@ export class WindowManager {
   }
 
   /** The window-type slug actually rendered: the collapsed variant when shaded, else the base type. */
-  private effectiveSlug(entry: ManagedWindow): string {
+  private effectiveSlug(entry: ManagedWindow, theme = entry.theme): string {
     const base = entry.opts.windowType ?? 'document-window';
     // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
     // else fall back to the same type at zero body height — both roll the window up to the title bar.
-    return entry.collapsed ? (collapsedSlugFor(entry.theme, base) ?? base) : base;
+    return entry.collapsed ? (collapsedSlugFor(theme, base) ?? base) : base;
   }
 
   /**
@@ -1177,23 +1219,43 @@ export class WindowManager {
    * windows, N renders on a theme switch (one per window). Don't regress this.
    */
   private async render(entry: ManagedWindow): Promise<void> {
+    const epoch = ++entry.renderEpoch;
+    let prepared;
+    try { prepared = await this.prepareRender(entry, entry.theme); }
+    catch (error) {
+      if (epoch !== entry.renderEpoch || !this.windows.includes(entry)) return;
+      throw error;
+    }
+    if (epoch !== entry.renderEpoch || !this.windows.includes(entry)) return;
+    this.commitRender(entry, prepared);
+  }
+
+  private async prepareRender(entry: ManagedWindow, theme: LoadedTheme): Promise<{ win: HTMLElement; slug: string; collapsed: boolean }> {
     const collapsed = entry.collapsed === true;
-    const slug = this.effectiveSlug(entry);
-    debug('render', `${entry.opts.title ?? '(untitled)'} → ${slug}`, {
-      w: entry.opts.width, h: entry.opts.height, active: entry.active, collapsed, zoomed: entry.zoomed, z: entry.z,
-      pooledCanvas: !!entry.chromeCanvas,
-    });
-    const win = await renderWindow(entry.theme, {
-      ...entry.opts,
+    const slug = this.effectiveSlug(entry, theme);
+    const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
+    const win = await renderWindow(theme, {
+      ...options,
       windowType: slug,
       ...(collapsed ? { height: 0 } : {}),
       state: entry.active ? 'active' : 'inactive',
-      ...(entry.chromeCanvas ? { reuseCanvas: entry.chromeCanvas } : {}),
+      // Never lend a live pooled canvas to an asynchronous preparation.
     });
-    // Capture the canvas from the freshly-rendered win for next time. On first render this stores
-    // a brand-new canvas; on subsequent renders, renderWindow reused entry.chromeCanvas (which is
-    // now inside the new win — append-from-old-parent semantics handle the move automatically).
-    entry.chromeCanvas = win.querySelector('canvas.scriptoscope-chrome') as HTMLCanvasElement ?? undefined;
+    return { win, slug, collapsed };
+  }
+
+  private commitRender(entry: ManagedWindow, { win, slug, collapsed }: { win: HTMLElement; slug: string; collapsed: boolean }, notify = true): void {
+    const fresh = win.querySelector<HTMLCanvasElement>('canvas.scriptoscope-chrome');
+    const pooled = entry.chromeCanvas;
+    if (fresh && pooled) {
+      pooled.width = fresh.width; pooled.height = fresh.height;
+      pooled.style.cssText = fresh.style.cssText;
+      pooled.className = fresh.className;
+      pooled.getContext('2d')!.drawImage(fresh, 0, 0);
+      fresh.replaceWith(pooled);
+    }
+    if (fresh) entry.chromeCanvas = pooled ?? fresh;
+    else delete entry.chromeCanvas;
     // Title-strip cache (closes #173) — capture the just-painted title region for the CURRENT
     // active state. On the next focus flip in the opposite direction (with cache key matching),
     // tryFastFocusFlip() can putImageData this strip into the existing canvas instead of doing a
@@ -1222,6 +1284,10 @@ export class WindowManager {
     // Notify the persistence layer (or any other state-change consumer) that this window's
     // render-affecting state is now committed. Fired after the DOM is updated so callers see the
     // final state. Cheap branch if no listener is registered.
+    if (notify) this.notifyChange(entry);
+  }
+
+  private notifyChange(entry: ManagedWindow): void {
     if (this.onChange) try { this.onChange(entry.host); } catch (err) { console.error('[scriptoscope] onChange threw:', err); }
   }
 
@@ -1699,12 +1765,8 @@ export class WindowManager {
     // on release. Cheap + lag-free after the first press (the pressed render is cached per widget).
     const chrome = win.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null;
     const cctx = chrome?.getContext('2d') ?? null;
-    let normalSnap: HTMLCanvasElement | null = null;
-    if (chrome) {
-      normalSnap = document.createElement('canvas');
-      normalSnap.width = chrome.width; normalSnap.height = chrome.height;
-      normalSnap.getContext('2d')?.drawImage(chrome, 0, 0);
-    }
+    const currentChrome = (): boolean => this.windows.includes(entry)
+      && entry.host.shadowRoot?.firstChild === win;
     for (const hit of titleWidgetHits(entry.theme, slug, composed, scale)) {
       const handler = cb[hit.role];
       if (!handler) continue;
@@ -1728,19 +1790,40 @@ export class WindowManager {
         padding: '0', margin: '0', border: '0', background: 'transparent',
         cursor: 'default', zIndex: '2',
       } satisfies Partial<CSSStyleDeclaration>);
-      btn.addEventListener('click', (e) => { e.stopPropagation(); handler(); });
-      if (chrome && cctx && normalSnap) {
-        let pressedCanvas: HTMLCanvasElement | null | undefined; // undefined = not yet rendered
+      btn.addEventListener('click', (e) => { e.stopPropagation(); if (currentChrome()) handler(); });
+      if (chrome && cctx) {
+        let pressedCanvas: HTMLCanvasElement | null | undefined;
+        let cacheEpoch = -1, pressEpoch = -1, pressGeneration = 0;
+        let normalSnap: HTMLCanvasElement | null = null;
         const press = async (): Promise<void> => {
+          if (!currentChrome()) return;
+          const generation = ++pressGeneration;
+          const epoch = pressEpoch = entry.renderEpoch;
+          // A focus-strip swap keeps the chrome node but changes its pixels.
+          // Capture the current normal face at press time, not overlay creation.
+          normalSnap = document.createElement('canvas');
+          normalSnap.width = chrome.width; normalSnap.height = chrome.height;
+          normalSnap.getContext('2d')?.drawImage(chrome, 0, 0);
+          if (cacheEpoch !== epoch) pressedCanvas = undefined;
           if (pressedCanvas === undefined) {
             try {
-              const pwin = await renderWindow(entry.theme, { ...entry.opts, state: entry.active ? 'active' : 'inactive', pressedWidget: hit.role });
-              pressedCanvas = (pwin.querySelector('.scriptoscope-chrome') as HTMLCanvasElement | null) ?? null;
-            } catch { pressedCanvas = null; }
+              const { reuseCanvas: _callerCanvas, ...options } = entry.opts;
+              const pwin = await renderWindow(entry.theme, { ...options, state: entry.active ? 'active' : 'inactive', pressedWidget: hit.role });
+              if (!currentChrome() || epoch !== entry.renderEpoch || generation !== pressGeneration) return;
+              pressedCanvas = pwin.querySelector<HTMLCanvasElement>('.scriptoscope-chrome');
+              cacheEpoch = epoch;
+            } catch {
+              if (!currentChrome() || epoch !== entry.renderEpoch || generation !== pressGeneration) return;
+              pressedCanvas = null; cacheEpoch = epoch;
+            }
           }
-          if (pressedCanvas) cctx.drawImage(pressedCanvas, 0, 0);
+          if (currentChrome() && epoch === entry.renderEpoch && generation === pressGeneration && pressedCanvas) cctx.drawImage(pressedCanvas, 0, 0);
         };
-        const release = (): void => { if (normalSnap) cctx.drawImage(normalSnap, 0, 0); };
+        const release = (): void => {
+          pressGeneration++;
+          if (currentChrome() && pressEpoch === entry.renderEpoch && normalSnap) cctx.drawImage(normalSnap, 0, 0);
+          normalSnap = null;
+        };
         // stopPropagation so the window's mousedown→focus handler doesn't re-render (which would
         // destroy this button mid-press); a widget press shouldn't require focusing the window first.
         btn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); void press(); });

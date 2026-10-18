@@ -3734,6 +3734,43 @@ import and call `mountDeclarative`; loading the library module alone does not
 auto-scan a consumer page. Browser tests run the displayed snippet as copied
 against the real built entry and original theme archive.
 
+### 2026-10-18 — request tokens must guard the actual paint boundary
+
+A source/built public mount test held System7's first real image decode, completed
+BeOS on two existing windows plus native controls, then released System7. The
+old manager loop repainted both windows while metadata and the completion event
+still named BeOS. The form cancellation checks could not protect window chrome.
+Checking after `renderWindow` is too late when it receives the live pooled canvas:
+it has already painted and moved that node during asynchronous preparation.
+
+Stage chrome off-DOM, then commit the entire current window batch synchronously.
+Preserve pooled canvas identity only at that commit, accepting temporary staging
+storage. A per-entry epoch detects focus/resize changes and removal; request
+ownership handles overlap and caller abort. Real archive/decode barriers also
+cover newer failures, retry, disconnect and failure preparing the second window.
+Do not describe this as whole-desktop transaction rollback: controls commit
+individually after chrome. Keep requested and completed defaults distinct, and
+capture only already-running scan promises before queuing new scans behind the
+request, otherwise the scanner can await its own request barrier.
+
+A MutationObserver can start a new request between chrome commit and an awaited
+scanner continuation. Host theme metadata must therefore commit with those exact
+window pixels, even when the next request fails before a desktop completion.
+Title-widget press/release is another pooled-canvas writer: an old delayed pressed
+render or pointerup can overwrite new chrome unless it checks chrome identity,
+entry epoch and press generation. Public caller-supplied `reuseCanvas` must also
+be stripped from every asynchronous preparation, then adopted only at commit.
+
+Public promotion and scanner-owned promotion have different lifetime contracts:
+direct calls can prepare disconnected fragments and keep their nonnullable button
+return type. Apply connection cancellation only when the scanner supplies a signal.
+A button insertion also reaches a MutationObserver before the awaiting scanner
+resumes; if that observer requests another theme, dispose and remove the fresh
+unregistered face rather than leaving a duplicate. Tests first reproduced both
+regressions on the proposed change; the detached-fragment test also passed the
+original source and built bundle. Retained discarded faces must stop forwarding
+activation, and a subsequent retheme must still replace exactly one tracked face.
+
 ### 2026-10-18 — slider pointer travel is not the whole canvas
 
 A 120px Windows95 slider has an 11px thumb: its rounded left edge travels 109px,

@@ -3,12 +3,15 @@
 // and its listeners all keep working; the skinned control simply forwards clicks to it.
 
 import type { LoadedTheme } from '../types.js';
-import { interactiveButton } from '../interactive.js';
+import { interactiveButton, disposeInteractiveControl } from '../interactive.js';
 import { parseButtonAttrs } from './parse.js';
 
-export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement> {
+// Direct callers may prepare a disconnected fragment. Scanner-owned promotion supplies
+// a lifetime signal and additionally requires a connected source at commit.
+export function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement>;
+export function promoteButton(el: HTMLElement, theme: LoadedTheme, signal: AbortSignal): Promise<HTMLElement | null>;
+export async function promoteButton(el: HTMLElement, theme: LoadedTheme, signal?: AbortSignal): Promise<HTMLElement | null> {
   const parsed = parseButtonAttrs(el.dataset as Record<string, string | undefined>, el.textContent ?? '');
-  el.dataset.scriptoscopePromoted = '';
   const skinned = await interactiveButton(theme, {
     default: parsed.isDefault, // the OK ring (falls back to baseline button if the theme ships none)
     disabled: parsed.disabled,
@@ -19,6 +22,11 @@ export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promis
       else el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     },
   });
+  if (signal && (signal.aborted || !el.isConnected)) {
+    disposeInteractiveControl(skinned);
+    return null;
+  }
+  el.dataset.scriptoscopePromoted = '';
   const aria = el.getAttribute('aria-label') ?? parsed.label;
   if (aria) skinned.setAttribute('aria-label', aria);
   skinned.dataset.scriptoscopePromoted = '';

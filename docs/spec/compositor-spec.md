@@ -210,3 +210,32 @@ complete titled-utility, other utility, then floating/palette recipes using the
 manifest's canonical window-type keys. Resource URLs never identify a window
 role: browser loading rewrites them to opaque blob URLs. A grow-box mispair is
 rejected using the matching chrome element's structured author label.
+
+
+## Runtime theme request ownership
+
+This is a web runtime lifecycle policy, not reconstructed kDEF drawing behavior.
+`WindowManager.retheme(theme, signal?, themeRef?)` uses a manager request epoch and stages
+all connected managed windows before committing chrome synchronously. A newer
+call or aborted caller signal discards the old preparation. A current preparation
+error rejects without assigning the new theme or changing any window canvas.
+Per-window epochs invalidate older focus/size renders; a theme batch re-prepares
+entries whose state changed while decoding. Removed entries cannot commit.
+
+The live pooled canvas, title-strip cache, and `describe().theme` change only
+inside commit. The optional declarative `themeRef` stamps those exact hosts
+before change notifications; it is a consumer ref, not a provenance identity.
+Title-widget pressed paints/release also check the current chrome and entry/press
+epochs before touching the pooled canvas. Preparing a replacement requires temporary canvas storage; it
+must never move or paint a live pooled canvas before the ownership check.
+Standalone add calls are enrolled if their hosts are connected before the batch
+commits; a host connected afterwards retains the explicitly supplied add theme.
+
+Declarative mounts invalidate a prior request at invocation, before loading.
+Superseded failures are suppressed; the current failure rejects. A completed
+request updates its URL/default, picker, and `retheme` event after controls finish.
+New scans wait for request settlement; scans already running are enrolled before
+window preparation. A failed load therefore cannot become the default for later
+windows. Window batch atomicity does not promise whole-desktop rollback: buttons,
+tabs, and native control faces have guarded individual commits after chrome.
+Individual control failures retain the existing logged-error behavior.

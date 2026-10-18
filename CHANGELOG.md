@@ -115,6 +115,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   old face/global drag listeners and pending paints, cancel unfinished promotion,
   and remove mount-owned theme-switcher wiring (#232).
 
+- Overlapping theme requests no longer let delayed chrome replace a newer window
+  batch. Window preparation is isolated from live canvases, failed newer requests
+  cannot revive superseded work, and declarative completion/default/URL updates
+  follow successful work. Dynamic scans join the current request boundary; native
+  focus and state survive face replacement. Direct public button/tab preparation
+  remains usable in disconnected fragments; reentrant button insertion disposes
+  discarded faces without leaving duplicate controls. (Refs #237.)
+
 - Promoted range sliders retain associated labels and explicit ARIA naming,
   including naming precedence and live label references after retheming (#229).
 

@@ -4,7 +4,7 @@
 // firing on our OWN DOM moves) skip them and settle.
 
 import { listenUntilAborted } from '../listenUntilAborted.js';
-import { WindowManager } from '../interactive.js';
+import { WindowManager, disposeInteractiveControl } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
 import { promoteButton } from './button.js';
@@ -124,7 +124,7 @@ export interface MountStats {
  *                                   the original element BEFORE it's removed
  *
  * - `ready`         — initial scan completed; stats reflect first-pass counts.
- * - `retheme`       — handle.retheme resolved; .detail is the new ref.
+ * - `retheme`       — current handle.retheme completed successfully; .detail is the new ref.
  * - `promoteError`  — single-target promotion failed; .detail is { kind, el, cause }.
  * - `unmounted`     — disconnect() ran; handle is now inert.
  */
@@ -287,7 +287,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     inertDuringWipe.add(el);
   };
   let cascade = 0;
-  let lastThemeRef: string | null = null; // last runtime theme switch — new windows inherit it, not pageDefault
+  let lastThemeRef: string | null = null; // last completed switch — new windows inherit it, not pageDefault
 
   // Persistence (opt-in via opts.persistKey). Load the snapshot now so promoteWindow can apply
   // restored geometry before WindowManager sees the window. Map<aaron-id, PersistedWindow>.
@@ -423,7 +423,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .scriptoscope-window
     inFlight.add(el);
     try {
-      const skinned = await promoteButton(el, await resolver.load(refForEl(el)));
+      const skinned = await promoteButton(el, await resolver.load(refForEl(el)), lifetime.signal);
+      if (!skinned) return;
       skinnedButtons.push({ el, skinned });
       markInertIfWiping(skinned);
       stats.buttons += 1;
@@ -439,7 +440,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (el.dataset.scriptoscopeTabsPromoted != null) return;
     inFlight.add(el);
     try {
-      await promoteTabs(el, await resolver.load(refForEl(el)));
+      await promoteTabs(el, await resolver.load(refForEl(el)), { signal: lifetime.signal });
       skinnedTabs.push(el);
       markInertIfWiping(el);
       stats.tabs += 1;
@@ -518,107 +519,119 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // Runtime theme switch: re-skin the whole desktop AND every promoted button with one scheme — a
   // system-wide Kaleidoscope theme change overrides per-window themes. The persistent window content
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
-  let controlRetheme: AbortController | undefined;
-  const retheme = async (ref: string): Promise<void> => {
-    if (lifetime.signal.aborted) return;
-    controlRetheme?.abort();
+  let themeRequest: AbortController | undefined;
+  let pendingTheme: Promise<void> | undefined;
+  const activeScans = new Set<Promise<void>>();
+  const retheme = (ref: string): Promise<void> => {
+    if (lifetime.signal.aborted) return Promise.resolve();
+    themeRequest?.abort();
     const replacing = new AbortController();
-    controlRetheme = replacing;
+    themeRequest = replacing;
     const current = (): boolean => !lifetime.signal.aborted && !replacing.signal.aborted;
-    lastThemeRef = ref;
-    // Fire retheme AT END (after manager.retheme resolves) so subscribers
-    // see committed state; see below.
-    // syncToUrlParam (T2.3): mirror the new slug back to ?<param>=<slug>
-    // so the URL stays shareable. replaceState (not pushState) keeps the
-    // history clean. Only updates if the param's already there or the
-    // consumer opted in via syncToUrlParam.
-    if (opts.syncToUrlParam && typeof location !== 'undefined' && typeof history !== 'undefined') {
-      try {
-        const u = new URL(location.href);
-        u.searchParams.set(opts.syncToUrlParam, ref);
-        history.replaceState(null, '', u);
-      } catch { /* sandboxed contexts (some iframes) can't replaceState */ }
-    }
-    const theme = await resolver.load(ref);
-    if (!current()) return;
-    await manager.retheme(theme);
-    if (!current()) return;
-    // Update each promoted host's `data-scriptoscope-theme` so consumers querying
-    // `[data-scriptoscope-theme="<slug>"]` see the new value and CSS / AT see consistent state.
-    // Manager.retheme rebuilds the inner `.scriptoscope-window` but doesn't touch the outer host
-    // dataset — we do that here.
-    for (const aw of mounted) aw.host.dataset.scriptoscopeTheme = ref;
-    // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
-    // out of any .scriptoscope-window, so re-skinning them would re-inject a face into the restored consumer DOM.
-    // `isConnected` (not `.closest('.scriptoscope-window')`) is the load-bearing filter: `closest` walks even
-    // detached subtrees and would keep entries whose window was removed via `.scriptoscope-window.remove()`.
-    const live = skinnedButtons.filter((b) => b.skinned.isConnected);
-    skinnedButtons.length = 0; skinnedButtons.push(...live);
-    for (const b of skinnedButtons) {
-      try {
-        const fresh = await promoteButton(b.el, theme); // inserts the new face right after el…
-        b.skinned.remove();                              // …then drop the previous one
-        b.skinned = fresh;
-      } catch (err) { console.error('[scriptoscope] button re-skin failed:', err); }
-    }
-    // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
-    // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
-    // <button>s and panels stay put — only the skinned spans + ARIA + tabindex are rewritten.
-    const liveTabs = skinnedTabs.filter((el) => el.isConnected);
-    skinnedTabs.length = 0; skinnedTabs.push(...liveTabs);
-    for (const tabsEl of skinnedTabs) {
-      try {
-        // Strip the old skinned siblings before re-promoting so we don't accumulate them.
-        for (const old of Array.from(tabsEl.querySelectorAll(':scope > [data-scriptoscope-tab-skinned]'))) old.remove();
-        // Restore the native buttons' visibility + clear promoted flag so promoteTabs sees them
-        // again and can re-decide skinned vs CSS fallback under the new theme.
-        for (const btn of Array.from(tabsEl.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab]'))) {
-          btn.style.display = '';
-          delete btn.dataset.scriptoscopePromoted;
-          delete btn.dataset.scriptoscopeTabFallback;
-        }
-        delete tabsEl.dataset.scriptoscopeTabsPromoted;
-        await promoteTabs(tabsEl, theme, { forceRescan: true });
-      } catch (err) { console.error('[scriptoscope] tabs re-skin failed:', err); }
-    }
-    if (!current()) return;
-    // Replace form-control faces atomically; release removed sources and their listeners.
-    const liveCtls = skinnedControls.filter((c) => {
-      if (c.el.isConnected && c.skinned.isConnected) return true;
-      restoreControl(c.el); return false;
-    });
-    skinnedControls.length = 0; skinnedControls.push(...liveCtls);
-    for (const c of skinnedControls) {
+    // Capture only scans already running. Scans arriving after this request
+    // wait for its settlement, so this barrier cannot wait on itself.
+    const priorScans = [...activeScans];
+    const run = async (): Promise<void> => {
+      await Promise.all(priorScans);
       if (!current()) return;
-      try {
-        const fresh = await promoteControl(c.el, theme, replacing.signal);
-        if (fresh) c.skinned = fresh;
-      } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
-    }
-    if (!current()) return;
-    // Re-resolve every promoted icon's src from the new theme's iconIndex.
-    // Filter orphans (icon removed from DOM during retheme) before re-running.
-    const liveIcons = skinnedIcons.filter((el) => el.isConnected);
-    skinnedIcons.length = 0; skinnedIcons.push(...liveIcons);
-    for (const el of skinnedIcons) {
-      try { promoteIcon(el, theme); }
-      catch (err) { console.error('[scriptoscope] icon re-resolve failed:', err); }
-    }
-    // Sync every promoted theme picker's active-tile state. The picker
-    // itself didn't trigger the retheme (it could have been triggered by
-    // a different control or by handle.retheme directly) — this keeps
-    // every picker in lockstep with the live theme.
-    const livePickers = skinnedPickers.filter((el) => el.isConnected);
-    skinnedPickers.length = 0; skinnedPickers.push(...livePickers);
-    for (const el of skinnedPickers) syncThemePickerActive(el, ref);
-    dispatch('retheme', { ref });
+      const theme = await resolver.load(ref);
+      if (!current()) return;
+      await manager.retheme(theme, replacing.signal, ref);
+      if (!current()) return;
+      // Drop buttons whose window was closed — unmount moved their content (incl. the skinned face) back
+      // out of any .scriptoscope-window, so re-skinning them would re-inject a face into the restored consumer DOM.
+      // `isConnected` (not `.closest('.scriptoscope-window')`) is the load-bearing filter: `closest` walks even
+      // detached subtrees and would keep entries whose window was removed via `.scriptoscope-window.remove()`.
+      const live = skinnedButtons.filter((b) => b.skinned.isConnected);
+      skinnedButtons.length = 0; skinnedButtons.push(...live);
+      for (const b of skinnedButtons) {
+        if (!current()) return;
+        try {
+          const fresh = await promoteButton(b.el, theme, replacing.signal);
+          if (!current()) {
+            // Insertion can synchronously queue a consumer MutationObserver which
+            // requests another theme before this continuation owns the new face.
+            if (fresh) { disposeInteractiveControl(fresh); fresh.remove(); }
+            return;
+          }
+          if (!fresh) continue; // source removed during preparation
+          const focused = b.skinned.contains(document.activeElement);
+          disposeInteractiveControl(b.skinned);
+          b.skinned.remove(); // the replacement is already inserted after the source
+          b.skinned = fresh;
+          if (focused) fresh.focus({ preventScroll: true });
+        } catch (err) { console.error('[scriptoscope] button re-skin failed:', err); }
+      }
+      // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
+      // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
+      // <button>s and panels stay put — only the skinned spans + ARIA + tabindex are rewritten.
+      const liveTabs = skinnedTabs.filter((el) => el.isConnected);
+      skinnedTabs.length = 0; skinnedTabs.push(...liveTabs);
+      for (const tabsEl of skinnedTabs) {
+        try {
+          if (!current()) return;
+          await promoteTabs(tabsEl, theme, { forceRescan: true, signal: replacing.signal });
+        } catch (err) { console.error('[scriptoscope] tabs re-skin failed:', err); }
+      }
+      if (!current()) return;
+      // Replace form-control faces atomically; release removed sources and their listeners.
+      const liveCtls = skinnedControls.filter((c) => {
+        if (c.el.isConnected && c.skinned.isConnected) return true;
+        restoreControl(c.el); return false;
+      });
+      skinnedControls.length = 0; skinnedControls.push(...liveCtls);
+      for (const c of skinnedControls) {
+        if (!current()) return;
+        try {
+          const fresh = await promoteControl(c.el, theme, replacing.signal);
+          if (fresh) c.skinned = fresh;
+        } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
+      }
+      if (!current()) return;
+      // Re-resolve every promoted icon's src from the new theme's iconIndex.
+      // Filter orphans (icon removed from DOM during retheme) before re-running.
+      const liveIcons = skinnedIcons.filter((el) => el.isConnected);
+      skinnedIcons.length = 0; skinnedIcons.push(...liveIcons);
+      for (const el of skinnedIcons) {
+        try { promoteIcon(el, theme); }
+        catch (err) { console.error('[scriptoscope] icon re-resolve failed:', err); }
+      }
+      // Sync every promoted theme picker's active-tile state. The picker
+      // itself didn't trigger the retheme (it could have been triggered by
+      // a different control or by handle.retheme directly) — this keeps
+      // every picker in lockstep with the live theme.
+      const livePickers = skinnedPickers.filter((el) => el.isConnected);
+      skinnedPickers.length = 0; skinnedPickers.push(...livePickers);
+      for (const el of skinnedPickers) syncThemePickerActive(el, ref);
+      if (!current()) return;
+      lastThemeRef = ref;
+      if (writeNow) writeNow(snapshot());
+      // syncToUrlParam (T2.3): mirror the new slug back to ?<param>=<slug>
+      // so the URL stays shareable. replaceState (not pushState) keeps the
+      // history clean. Only updates if the param's already there or the
+      // consumer opted in via syncToUrlParam.
+      if (opts.syncToUrlParam && typeof location !== 'undefined' && typeof history !== 'undefined') {
+        try {
+          const u = new URL(location.href);
+          u.searchParams.set(opts.syncToUrlParam, ref);
+          history.replaceState(null, '', u);
+        } catch { /* sandboxed contexts (some iframes) can't replaceState */ }
+      }
+      dispatch('retheme', { ref });
+    };
+    const job = run().catch(error => { if (current()) throw error; });
+    pendingTheme = job;
+    // Clear without creating an unhandled rejected finally() promise.
+    const clear = (): void => { if (pendingTheme === job) pendingTheme = undefined; };
+    void job.then(clear, clear);
+    return job;
   };
 
   // Windows in DOCUMENT ORDER, sequentially, so the first declared window becomes the active one
   // deterministically (WindowManager focus follows add-order). This moves window content — including
   // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
   // concurrently. Stamps make this safe to run repeatedly.
-  const scanAndPromote = async (within: Document | Element): Promise<void> => {
+  const runScan = async (within: Document | Element): Promise<void> => {
     if (lifetime.signal.aborted) return;
     // Posture B (2026-05-30 refactor): hosts default to `position: static`
     // and sit in flow at the source element's DOM position. The browser's
@@ -656,6 +669,20 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       ...Array.from(within.querySelectorAll(ICON_SEL), (el) => promoteIco(el as HTMLImageElement | HTMLElement)),
       ...Array.from(within.querySelectorAll(THEME_PICKER_SEL), (el) => promotePicker(el as HTMLElement)),
     ]);
+  };
+
+  const scanAndPromote = async (within: Document | Element): Promise<void> => {
+    let waited = false;
+    while (pendingTheme) {
+      waited = true;
+      try { await pendingTheme; } catch { /* a failed request keeps the completed default */ }
+    }
+    if (lifetime.signal.aborted || !root.contains(within)) return;
+    // The observer coalesces additions while this scan waits. Include additions
+    // from the entire root once, after the request barrier, rather than losing them.
+    const scan = runScan(waited ? root : within);
+    activeScans.add(scan);
+    try { await scan; } finally { activeScans.delete(scan); }
   };
 
   // Wire `[data-scriptoscope-theme-switcher]` controls (the PRD's named front door for runtime themes). A
@@ -880,7 +907,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     disconnect: () => {
       if (lifetime.signal.aborted) return;
       lifetime.abort();
-      controlRetheme?.abort();
+      themeRequest?.abort();
       for (const sw of wiredSwitchers) {
         if (sw.dataset.scriptoscopeSwitcherWired === '') delete sw.dataset.scriptoscopeSwitcherWired;
       }

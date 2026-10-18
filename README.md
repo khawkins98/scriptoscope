@@ -237,7 +237,7 @@ document.body.addEventListener('scriptoscope:promoteError', (e) => { /* e.detail
 
 // Methods
 handle.disconnect();                       // tear down mount observers + restore windows and native form controls
-handle.retheme(slugOrUrl);                 // programmatic theme switch (fires the 'retheme' event)
+handle.retheme(slugOrUrl);                 // programmatic theme switch ('retheme' after current request succeeds)
 handle.registerTheme(ref, loadedTheme);    // register a runtime-decoded theme (used by drop-zones)
 handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (including shadow-DOM chrome
                                            //   focusables), Esc, backdrop-click, listens for the inner
@@ -248,6 +248,15 @@ handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (i
 // Properties
 handle.stats;  // { windows, buttons, controls, tabs, fields } — five numeric counts updated on each promote
 ```
+
+Overlapping `handle.retheme(ref)` calls use the latest **request**, even if that
+request fails. Superseded or disconnected requests settle without a completion
+event; a current load/window-preparation failure rejects. Window chrome prepares
+as a batch before it commits, so such a failure leaves existing windows intact.
+The completed theme URL/default and picker selection advance only on success.
+Controls replace after the window batch; this is not a rollback transaction for
+the entire desktop. New declarative scans wait for the current request to settle;
+already-started scans finish before its window snapshot.
 
 `disconnect()` releases themes loaded internally by that mount and their decoded
 raster caches. Pending loads release their assets when they finish. Themes passed
