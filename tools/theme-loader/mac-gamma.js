@@ -1,23 +1,20 @@
-// Mac→sRGB gamma correction — a DISPLAY transform applied at bake time.
+// Declared display policy for prepared theme assets and sampled colors.
 //
-// Classic Mac OS targeted a display gamma of 1.8; modern (sRGB) screens are
-// ~2.2. The clut/cicn/ppat/icon RGB values stored in a scheme are device
-// values authored for the 1.8 world, so on a modern screen the SAME byte value
-// renders darker in the midtones (e.g. mid-gray 128 → 0.5^1.8=0.29 luminance on
-// a period Mac vs 0.5^2.2=0.22 on sRGB). To reproduce what a 1998 user actually
-// saw, we lift the midtones by re-encoding for the brighter target gamma:
+// The current compatibility transform uses these fixed exponents:
 //
 //   out = 255 · (in/255)^(MAC_GAMMA / TARGET_GAMMA)
 //
-// The exponent (1.8/2.2 ≈ 0.818) is < 1, so it brightens midtones and leaves the
-// endpoints fixed (0→0, 255→255). Saturated primaries (channels at 0/255) are
-// nearly untouched; grayscale shading moves the most — which is exactly where
-// classic Mac art looks too dark on a modern display.
+// This 1.8/2.2 approximation brightens midtones and fixes the endpoints. It is
+// not a measured original device gamma, palette conversion or complete sRGB
+// color-management pipeline. Agreement on saturated primaries cannot establish
+// gray-value fidelity. Original captures need their own recorded display and
+// producer conditions; see docs/spec/fidelity-compatibility-contract.md and #190.
 //
-// IMPORTANT: this is a display correction, NOT part of the decode. The raw
-// decoders in tools/theme-loader stay byte-faithful (lint + role detection rely
-// on the raw values). Gamma is applied ONLY when baking display artifacts
-// (cicn/ppat PNGs, icon PNGs, header colors in theme.json).
+// Apply this policy when preparing display artifacts, both during extraction
+// and encoded browser loading (cicn/ppat/icon PNGs and manifest/sample colors).
+// Keep it separate from raw resource decoding so source samples, lint and role
+// detection retain the stored values. These constants name the current policy;
+// they do not certify what a particular historical user or emulator displayed.
 
 export const MAC_GAMMA = 1.8;
 export const TARGET_GAMMA = 2.2;

@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Clarify the fixed display LUT as a compatibility policy in source comments and
+  historical notes; distinguish extraction/browser preparation from raw decoding
+  and independently measured original display conditions (#190).
+
 - Register two exact solid-background requirement cases with selected-owner byte
   joins and independent literal fill assertions. Preserve all sixteen prior cases
   and 134 assessments; the eighteen-case inventory remains OPEN with device,
