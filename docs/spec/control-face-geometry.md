@@ -1,10 +1,13 @@
 # Solid control-face geometry
 
-The source-backed path currently covers push/default and bevel faces with explicit
-`cinf` slice metadata, no `bgPattern`, and an in-bounds opaque `bgAnchor` sample.
-It does not claim complete control fidelity. Pattern-backed faces (including
-Crayon OS), list headers, missing/transparent sample metadata, and text sizing,
-color and emboss policies remain explicit limitations under #218/#221.
+This document describes the source-backed solid-body and border model for
+push/default and bevel faces. The subsequent [pattern/context and authored-color
+model](control-pattern-context.md), delivered by #279, adds bounded full-color
+`ppat` bodies and raw RGB16 background/text/emboss samples, including sampled RGB
+under mask holes. Together these paths require usable explicit `cinf` metadata
+and supported body/sample inputs; they do not establish complete control fidelity.
+List headers, mode5 color-icon bodies, mono/device paths, original typography,
+transfer and resource lookup remain explicit limits under #218/#221.
 
 ## Original call sites and rectangles
 
@@ -41,14 +44,23 @@ are exercised in source and built runtimes. The shipped Animals/Monkey/Lisa
 faces additionally retain all four authored corner blocks at native/12/20/32
 heights. These requirements are narrower than a complete historical pixel match.
 
-Pattern paths differ: `0x109be` selects the background-cicn case and
-`0x10a6c..0x10b70` handles pattern lookup/phase. Their existing approximation is
-retained pending independent pattern requirements. List headers share code in
-Scriptoscope, but their original call-site equivalence has not been established;
-they explicitly retain legacy geometry. Missing/transparent background samples
-also retain that path because decoded transparent pixels do not preserve source
-RGB. Text rendering remains a runtime policy: the original does read text and
-emboss samples at `0x10922..0x10990`; our contrast heuristic is not that algorithm.
+Body dispatch remains distinct: `0x109be` selects the mode5 background-cicn
+case, which is still unsupported by the source-backed body path;
+`0x10a6c..0x10b70` handles non5 pattern lookup/phase. The latter now has independent
+asymmetric-tile, phase, inset-union and bounded clip checks; see
+[the current pattern/context evidence and limits](control-pattern-context.md).
+List headers share implementation in Scriptoscope, but their original call-site
+equivalence has not been established; they retain legacy geometry and text policy.
+
+A transparent decoded canvas pixel does not preserve hidden source RGB. The
+loader retains raw background/text/emboss samples before that transport, but the
+solid-body branch still requires an opaque decoded background anchor and uses
+its decoded RGB. A masked background anchor therefore still retains the legacy
+body path; retained raw background metadata alone does not fix that limitation.
+Push/bevel foreground and emboss decisions do consume the source samples
+at `0x10922..0x10990`; browser glyphs/metrics, alpha-over transfer and the declared
+high-byte/display LUT remain compatibility policies. These narrower corrections
+do not prove original device color, font rendering or complete masking behavior.
 
 Selection is a separate boundary. Author-label anti-role rejection, named-role
 preference, base inheritance and active/pressed/inactive fallback are declared

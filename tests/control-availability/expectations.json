@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.0.2",
+  "inventoryVersion": "1.0.3",
   "reviewStatus": "reviewed",
   "scope": {
     "description": "14 real archive cases and 13 synthetic direct/interactive cases; 26 reviewed API availability expectations and one explicit UNKNOWN. All unlisted combinations remain unknown.",
@@ -669,7 +669,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "610366849fc86e5ec19ecd5b3a90d7db0f1a9f30181253153b181237d3d3b2ac",
+          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
@@ -778,7 +778,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "610366849fc86e5ec19ecd5b3a90d7db0f1a9f30181253153b181237d3d3b2ac",
+          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b",
@@ -878,7 +878,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "610366849fc86e5ec19ecd5b3a90d7db0f1a9f30181253153b181237d3d3b2ac",
+          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
@@ -1905,7 +1905,7 @@
       ]
     }
   ],
-  "inventorySha256": "d0ddff1c4b0ceb303efae5143198a31b73a17b74f55e179cd3d068bf667af07f",
+  "inventorySha256": "a12314b29bc7109be9d82e49cf76e49f950774a4c015da96ebde578c2f8ee4a1",
   "engineEvidence": {
     "id": "Kaleidoscope2.3.1-kDEF0",
     "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
@@ -1929,33 +1929,43 @@
   "review": {
     "date": "2026-10-18",
     "reviewers": [
-      "root: independent source and policy review",
-      "Astra architecture: independent source identity and dispatch review"
+      "root: automated source-note and unchanged-case review",
+      "frontend_performance_review: independent automated runtime/document and hash-only transition review"
     ],
-    "inventoryVersion": "1.0.2",
-    "inventorySha256": "d0ddff1c4b0ceb303efae5143198a31b73a17b74f55e179cd3d068bf667af07f",
-    "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-    "transition": "Only three source-evidence document hashes changed after correcting the push DeviceLoop callback fp18 from variation code to device depth. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+    "inventoryVersion": "1.0.3",
+    "inventorySha256": "a12314b29bc7109be9d82e49cf76e49f950774a4c015da96ebde578c2f8ee4a1",
+    "transition": "Only three full-document source hashes changed after reconciling stale solid-face summaries with delivered pattern/raw-color behavior. Exact API inputs, source payload identities, ring source addresses and all expected policy outcomes are unchanged.",
     "previousReview": {
       "date": "2026-10-18",
       "reviewers": [
         "root: independent source and policy review",
         "Astra architecture: independent source identity and dispatch review"
       ],
-      "inventoryVersion": "1.0.1",
-      "inventorySha256": "18780e634b364e281f24dab8b5f470d84ee6b8a7b58d5c853dbbbe8438ec9652",
+      "inventoryVersion": "1.0.2",
+      "inventorySha256": "d0ddff1c4b0ceb303efae5143198a31b73a17b74f55e179cd3d068bf667af07f",
       "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-      "transition": "Only three source-evidence document hashes changed after the cinf body/trap documentation correction. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+      "transition": "Only three source-evidence document hashes changed after correcting the push DeviceLoop callback fp18 from variation code to device depth. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
       "previousReview": {
         "date": "2026-10-18",
         "reviewers": [
           "root: independent source and policy review",
           "Astra architecture: independent source identity and dispatch review"
         ],
-        "inventoryVersion": "1.0.0",
-        "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+        "inventoryVersion": "1.0.1",
+        "inventorySha256": "18780e634b364e281f24dab8b5f470d84ee6b8a7b58d5c853dbbbe8438ec9652",
         "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-        "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+        "transition": "Only three source-evidence document hashes changed after the cinf body/trap documentation correction. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+        "previousReview": {
+          "date": "2026-10-18",
+          "reviewers": [
+            "root: independent source and policy review",
+            "Astra architecture: independent source identity and dispatch review"
+          ],
+          "inventoryVersion": "1.0.0",
+          "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+          "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
+          "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+        }
       }
     }
   }

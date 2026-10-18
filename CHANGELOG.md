@@ -15,6 +15,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   window hosts now exclude both direct and wrapped late controls; this removes
   the accidental wrapped path that bypassed the documented boundary (#281).
 
+- Reconcile the control-face and kDEF reference notes with delivered full-color
+  pattern and raw RGB16 text/background behavior. Preserve remaining device,
+  font, transfer and list-header limits; refresh only the three affected
+  availability document pins without changing its 27 cases or outcomes.
+
 - Extend the partial rendering requirement inventory to sixteen exact direct
   cases, with bounded authored RGB16 text/emboss and pattern phase/clip evidence.
   Preserve the original eight cases, all OPEN closures and explicit unknown
