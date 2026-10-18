@@ -30,8 +30,9 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
       expect(focus.decoration).toHaveLength(1);
       expect(focus.decoration[0].tabIndex, 'paint-only button must not create a dead tab stop').toBe(-1);
       expect(focus.decoration[0].hidden, 'native combobox is the accessible control').toBe('true');
-      await page.keyboard.press('ArrowDown');
-      await page.keyboard.press('Enter');
+      // Native popup arrow behavior varies by OS even for a plain select.
+      // Typeahead exercises real keyboard selection without a popup assumption.
+      await page.keyboard.press('a');
       await expect(native).toHaveValue('second');
       const wrapper = native.locator('..');
       await expect(wrapper.locator('.scriptoscope-button')).toHaveAttribute('aria-label', 'Alternative Agjp  ▾');

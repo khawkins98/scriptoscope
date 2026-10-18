@@ -105,7 +105,7 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
       const element = (id, source, corner, side, tile = false) => ({ sourceCicnId: id,
         asset: source.asset, width: source.buffer.width, height: source.buffer.height,
         slice: { corner, side, tile }, bgAnchor: [3, 3] });
-      for (const [size, corner, side, tile] of [[10, 3, 1, false], [21, 7, 14, true], [21, 7, 14, false]]) {
+      for (const [size, corner, side, tile] of [[10, 3, 1, false], [21, 7, 14, true], [21, 7, 14, false], [21, 12, 14, false]]) {
         const ring = art(size);
         const theme = { baseUrl: location.origin, manifest: { chromeElements: {
           face: element(-10239, face, 1, 1), ring: element(-10231, ring, corner, side, tile),
@@ -116,9 +116,10 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
         const probes = [{ target: [2, 2], source: [2, 2] }];
         if (size === 21) {
           // The authored middle strip is7px (21−2×7). At y17 the
-          // repeat variant samples10; the nonrepeat variant samples7.
-          const sourceY = tile ? 10 : 7;
-          probes.push({ target: [0, 17], source: [0, sourceY] }, { target: [output.width - 1, 17], source: [20, sourceY] });
+          // repeat variant samples10; nonrepeat samples the first middle
+          // row/column even when 12px source corners overlap in a21px image.
+          const sourceY = tile ? 10 : corner;
+          probes.push({ target: [17, 0], source: [sourceY, 0] }, { target: [0, 17], source: [0, sourceY] }, { target: [output.width - 1, 17], source: [20, sourceY] });
         }
         rows.push({ kind: 'geometry', size, corner, side, tile, probes: probes.map(probe => ({ ...probe,
           expected: ring.buffer.getPixel(...probe.source), actual: output.getPixel(...probe.target) })) });
