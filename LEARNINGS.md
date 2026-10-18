@@ -1670,6 +1670,8 @@ control-coverage rules in `scripts/lint-themes.mjs`, and `docs/tracking/mac-font
 
 ## 2026-05-26 — Palette sourcing, geometry-from-the-decode, and the faithfulness punch-list
 
+**Partially superseded 2026-10-18 by [display-policy boundaries](#2026-10-18--display-transforms-need-measured-condition-evidence):** the gamma discussion below records the chosen compatibility policy, not verified original display conditions; encoded browser loading also prepares display assets. Palette-sourcing lessons remain separate.
+
 A few days of corner-sprite/icon/geometry work. The reusable lessons, apart from the per-bug
 detail in `docs/geometry-refactor-todo.md`:
 
@@ -4264,3 +4266,14 @@ exercise distinct failures; wrong-owner, wrong-payload and wrong-output mutation
 must reject the same observed records. This verifies a bounded current sampler
 and display policy, leaving original lookup, device color and broader geometry
 unknown. The other 46 regression rows do not enlarge the reviewed denominator.
+
+## 2026-10-18 — display transforms need measured condition evidence
+
+The fixed high-byte plus1.8/2.2 display LUT is a compatibility choice applied
+when extraction or encoded browser loading prepares display artifacts. Raw
+resource decoding and raw RGB16 source sampling remain separate. Neither the
+names of its constants nor correct saturated primaries prove original gray
+conversion, a full sRGB pipeline or historical monitor appearance. Reconcile
+captured palette, device gamma and producer conditions independently under
+#190; do not tune the default LUT or golden tolerances from an unconditioned
+comparison. The current compatibility contract already records this limit.
