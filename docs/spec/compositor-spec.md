@@ -204,12 +204,27 @@ Open:
 
 ## Window type selection before composition
 
-The renderer resolves an exact window-type key first, followed by the kDEF
-wnd# fallback cascade. Generic utility/mini/floating/palette aliases prefer
+The renderer resolves an exact usable window-type key first, then equivalent
+canonical, legacy and raw signed `wnd#` keys from the portable
+`tools/theme-loader/window-type-identities.js` authority. For example,
+`collapsed-side-utility`, `collapsed-side-floating-utility-window` and
+`wnd--14292` identify the same authored type. Exact conflicting/custom keys still
+win. The loader retains its shipped manifest names; it does not rename bundles.
+Only after equivalent identities miss does the kDEF wnd# mask fallback cascade
+run, expanding each fallback identity through that same key table. Generic utility/mini/floating/palette aliases prefer
 complete titled-utility, other utility, then floating/palette recipes using the
 manifest's canonical window-type keys. Resource URLs never identify a window
 role: browser loading rewrites them to opaque blob URLs. A grow-box mispair is
 rejected using the matching chrome element's structured author label.
+
+Collapse discovery uses the owner selected by the expanded request's existing
+child-first render policy. A usable child fallback still wins over an exact
+collapsed type in its base; an empty child can defer to its base. Both sliced and
+corner-sprite types use the shared window eligibility check; a corner sprite does
+not require a sliced top-edge recipe. If no authored collapsed type is found,
+the manager retains the expanded type at zero body height. These are runtime
+identity/selection guarantees, not a claim about original Resource Manager search
+ownership or independently verified original window pixels.
 
 
 ## Runtime theme request ownership

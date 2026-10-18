@@ -3957,3 +3957,22 @@ resolved bgPattern slug. Zero is a real request; mode5 requests a cicn in the
 primary dispatch even though the old label says bg-pattern. Catalog byte identity
 is now observable, but the current face compositor does not paint that dependency.
 Do not fabricate a control-trace paint step from catalog presence (#260/#218).
+
+### 2026-10-18 — Alias misses are not missing window resources
+
+The loader emitted `collapsed-titled-utility`, `collapsed-side-utility` and
+`collapsed-no-title-utility`, while the runtime's canonical ID table used longer
+names. The mask ladder therefore degraded before recognizing authored art.
+Real archive loads exposed eight variants across BeOS, System 7 and 1138: canonical
+and raw public render requests failed 32 direct identity/geometry comparisons per
+mode; manager collapse failed 12 of 16. System 7 corner-sprite collapse also failed
+the unrelated `edges.top` eligibility check.
+
+One portable identity table now drives unchanged loader keys and runtime aliases.
+Exact keys win, then equivalent keys, then the unchanged mask sequence expanded
+through those identities. The shared render selection determines collapse's
+owner: do not reach past a child fallback to steal a base's collapsed art. Tests
+observe the actual selected authored object, compare exact-key pixels/geometry,
+and exercise collapse/expand; they establish alias consistency, not historical
+fidelity or original Resource Manager base order. Raw IDs also normalize the
+existing utility/title/background predicates without weakening exact selection.

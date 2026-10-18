@@ -1,5 +1,4 @@
 import type { LoadedTheme, WindowState, WindowType } from './types.js';
-import { resolveInChain } from './baseChain.js';
 import { assetUrl, findChromeElement } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
@@ -11,7 +10,8 @@ import { composeWindowChrome, type ComposedChrome } from './composeChrome.js';
 // widget-glyph loads), so the extra await is free.
 import { rasterizeText } from './textRaster.js';
 import { PixelBuffer } from './pixelBuffer.js';
-import { resolveWindowType } from './resolveWindowType.js';
+import { resolveWindowSelection } from './resolveWindowType.js';
+import { canonicalWindowTypeSlug } from './wndCascade.js';
 
 /**
  * Rasterize the window title in a real FONT (the CSS "Charcoal" stack — a local
@@ -218,7 +218,8 @@ export async function renderWindow(
   theme: LoadedTheme,
   opts: RenderWindowOptions = {},
 ): Promise<HTMLElement> {
-  const slug = opts.windowType ?? 'document-window';
+  const requestedSlug = opts.windowType ?? 'document-window';
+  const slug = canonicalWindowTypeSlug(requestedSlug);
   const state: WindowState = opts.state ?? 'active';
   const title = opts.title ?? '';
   const contentW = opts.width ?? 240;
@@ -232,11 +233,7 @@ export async function renderWindow(
   // bundle the chrome + body assets are loaded from. With nothing in the chain, a
   // procedural default window from the (original) scheme's header colors renders
   // (North Star: render any scheme).
-  const resolved = resolveInChain(theme, (t) => {
-    const wt = resolveWindowType(t, slug);
-    const cicnPath = wt ? (wt.chrome[state] ?? wt.chrome.active) : undefined;
-    return wt && cicnPath ? { owner: t, wt, cicnPath } : null;
-  });
+  const resolved = resolveWindowSelection(theme, requestedSlug, state);
   if (!resolved) {
     const utility = /utility|mini|floating|palette/.test(slug);
     return buildBaselineWindow(theme, { title, state, contentW, contentH, scale, utility, slug });

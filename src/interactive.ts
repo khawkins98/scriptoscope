@@ -83,6 +83,7 @@
 // repaints.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
   composeButton, composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
@@ -96,8 +97,7 @@ import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from 
 import type { PixelBuffer } from './pixelBuffer.js';
 import type { SliderComposition, SliderLayout } from './sliderLayout.js';
 import type { ComposedChrome } from './composeChrome.js';
-import type { LoadedTheme } from './types.js';
-import { resolveInChain } from './baseChain.js';
+import type { LoadedTheme, WindowState } from './types.js';
 
 type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
@@ -701,13 +701,16 @@ export function titleWidgetHits(
   windowType: string,
   composed: ComposedChrome,
   scale: number,
+  state?: WindowState,
 ): TitleWidgetHit[] {
   // Resolve the window type through the BASE chain, mirroring renderWindow: a
   // scheme that ships no window chrome of its own (e.g. apple-platinum-2 — no
   // `windowTypes` map at all) renders its base's chrome, so its widget rects
   // come from the base too. (`windowTypes` may be absent entirely → optional
   // chaining, not an index into undefined.)
-  const wt = resolveInChain(theme, (t) => t.manifest.windowTypes?.[windowType]);
+  // Without an explicit state, retain public lookup of either chrome state.
+  // The manager supplies its actual state to match the rendered owner.
+  const wt = resolveWindowSelection(theme, windowType, state ?? 'inactive')?.wt;
   if (!wt) return [];
   // Single source of truth (renderWindow.resolveTitleWidgetRects) — gives UNSCALED rects + roles;
   // the hit zones are those ×scale (the window element's own scaled pixel space).
@@ -778,24 +781,6 @@ interface ManagedWindow {
    *  into the freshly-built `.scriptoscope-content` after every render() — `renderWindow` rebuilds the window
    *  subtree, so without this the slotted content would be destroyed on focus/resize. */
   contentEl?: HTMLElement;
-}
-
-/** Find a theme's window-shade (collapsed) variant slug for a base window type, if it ships one.
- *  Returned slug is passed to renderWindow EXPLICITLY — `resolveWindowType` exact-matches it before
- *  the utility scan that deliberately skips `/collapsed/` keys, so the shade chrome resolves. */
-function collapsedSlugFor(theme: LoadedTheme, baseSlug: string): string | undefined {
-  const wts = theme.manifest.windowTypes ?? {};
-  // Only accept a candidate that resolveWindowType would actually render as a window (top edge recipe
-  // + a part-0 body rect) — otherwise return undefined so effectiveSlug's `?? base` fallback (same type
-  // at zero body height) kicks in, instead of renderWindow dropping to the procedural baseline.
-  const ok = (k: string): string | undefined => {
-    const v = wts[k];
-    return v && v.edges?.top?.length && v.parts?.['part-0']?.rect ? k : undefined;
-  };
-  const noun = baseSlug.replace(/-window$/, '');
-  for (const c of [`collapsed-${baseSlug}`, `collapsed-${noun}`]) { const r = ok(c); if (r) return r; }
-  for (const k of Object.keys(wts)) if (k.startsWith('collapsed') && k.includes(noun)) { const r = ok(k); if (r) return r; }
-  return undefined;
 }
 
 /**
@@ -1194,7 +1179,7 @@ export class WindowManager {
     const base = entry.opts.windowType ?? 'document-window';
     // Window-shade: render the collapsed chrome variant (title-bar-only art) if the theme ships one,
     // else fall back to the same type at zero body height — both roll the window up to the title bar.
-    return entry.collapsed ? (collapsedSlugFor(theme, base) ?? base) : base;
+    return entry.collapsed ? (resolveCollapsedWindowTypeSlug(theme, base, entry.active ? 'active' : 'inactive') ?? base) : base;
   }
 
   /**
@@ -1767,7 +1752,7 @@ export class WindowManager {
     const cctx = chrome?.getContext('2d') ?? null;
     const currentChrome = (): boolean => this.windows.includes(entry)
       && entry.host.shadowRoot?.firstChild === win;
-    for (const hit of titleWidgetHits(entry.theme, slug, composed, scale)) {
+    for (const hit of titleWidgetHits(entry.theme, slug, composed, scale, entry.active ? 'active' : 'inactive')) {
       const handler = cb[hit.role];
       if (!handler) continue;
       const btn = document.createElement('button');

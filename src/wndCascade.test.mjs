@@ -85,3 +85,25 @@ test('cascadeFallbackSlugs: popup-window has no canonical fallback (off the mask
   // still attempt the masked ids, but none collide with a canonical entry.
   assert.deepEqual(cascadeFallbackSlugs('popup-window'), []);
 });
+
+const { WINDOW_TYPE_IDENTITIES } = await import('../tools/theme-loader/window-type-identities.js');
+const { canonicalWindowTypeSlug, equivalentWindowTypeKeys, collapsedWindowTypeSlug } = await import('./wndCascade.ts');
+test('one portable identity table retains loader keys, raw keys and mask semantics', () => {
+  const keys = new Set(), ids = new Set();
+  for (const identity of WINDOW_TYPE_IDENTITIES) {
+    assert.ok([identity.canonicalSlug, ...identity.legacySlugs].includes(identity.preferredManifestSlug));
+    for (const id of [identity.id, ...(identity.alternateIds ?? [])]) { assert.ok(!ids.has(id)); ids.add(id); }
+    const equivalents = equivalentWindowTypeKeys(identity.canonicalSlug);
+    for (const key of equivalents) {
+      assert.ok(!keys.has(key)); keys.add(key);
+      assert.equal(canonicalWindowTypeSlug(key), identity.canonicalSlug);
+      assert.equal(equivalentWindowTypeKeys(key)[0], key);
+      assert.deepEqual(new Set(equivalentWindowTypeKeys(key)), new Set(equivalents));
+      assert.deepEqual(cascadeFallbackSlugs(key), cascadeFallbackSlugs(identity.canonicalSlug));
+    }
+    if (identity.collapsedId != null) assert.equal(collapsedWindowTypeSlug(identity.canonicalSlug), WINDOW_TYPE_IDENTITIES.find(i => i.id === identity.collapsedId).canonicalSlug);
+  }
+  assert.deepEqual(equivalentWindowTypeKeys('author-tool'), ['author-tool']);
+  assert.deepEqual(equivalentWindowTypeKeys('wnd--9999'), ['wnd--9999']);
+  assert.deepEqual(cascadeFallbackSlugs('wnd--9999'), []);
+});

@@ -4,11 +4,11 @@
 // PNG filenames. The theme.json is the runtime contract — typed in src/types.ts
 // (the schema of record), validated by validateTheme.js here.
 //
-// This module is pure: no file I/O, no Node built-ins. The CLI wraps it. (The one
-// import is the shared, pure WINDOW_RECIPES data — the per-type recipe both this
-// builder and the replica generator derive from; see window-recipes.mjs.)
+// This module is pure: no file I/O, no Node built-ins. The CLI wraps it. (The
+// imports are shared pure recipe and identity data.)
 
 import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
+import { WINDOW_TYPE_IDENTITIES } from './window-type-identities.js';
 
 /**
  * @typedef {object} ManifestAsset
@@ -498,19 +498,5 @@ const CORNER_SPRITE_WINDOWS = [
   { slug: 'no-title-utility-window',      active: -14316, inactive: -14320, pinstripe: -14314, growBox: null   },
 ];
 
-const CANONICAL_WNDTYPE_SLUGS = {
-  '-14336': 'document-window',
-  '-14335': 'document-window', // active variant (some schemes use as the wnd# ID)
-  '-14332': 'collapsed-document-window',
-  '-14328': 'dialog',
-  '-14326': 'alert',
-  '-14324': 'movable-modal',
-  '-14322': 'movable-alert',
-  '-14304': 'titled-utility-window',
-  '-14300': 'collapsed-titled-utility',
-  '-14296': 'side-floating-utility-window',
-  '-14292': 'collapsed-side-utility',
-  '-14288': 'no-title-utility-window',
-  '-14284': 'collapsed-no-title-utility',
-  '-12320': 'popup-window',
-};
+const CANONICAL_WNDTYPE_SLUGS = Object.fromEntries(WINDOW_TYPE_IDENTITIES.flatMap(identity =>
+  [identity.id, ...(identity.alternateIds ?? [])].map(id => [id, identity.preferredManifestSlug])));
