@@ -3757,3 +3757,26 @@ canonicalizes it to `25` even when step sanitization leaves the same number.
 Native pointer input/commit comparisons therefore use numeric values and retain
 the current spelling for unchanged values, including the original spelling when
 a drag returns to its starting step bucket.
+
+
+## 2026-10-18 — Verify branch polarity and trap identity before pattern work (#218)
+
+The older cinf resize-behavior note inverted the `cmp mode,5` / `bne` paths and
+called DisposeCIcon a pattern setter. Offline kDEF 2.3.1 inspection plus Apple's
+Universal Interfaces trap table establishes: mode5 loads a cicn and draws it
+into the side-inset rectangle; non5 loads a ppat and fills the corner/side inset
+union with explicit phase arguments. A missing resource takes the solid union
+fallback. The background ID is passed in both branches, including zero.
+
+The reproducible raw 18-fork survey contains 1,033 cinfs, no mode5, but 125 nonzero
+background IDs. Crayon's active/inactive push faces use mode0/ppat17; absence of
+mode5 never meant absence of authored patterns. Twenty nonzero references lack
+a same-fork ppat; that does not establish absence from the original search chain.
+The source pins and survey do not certify the shared archive decoder or runtime
+selection. The old five-theme body claims are superseded by
+[the corrected evidence](docs/spec/cinf-resize-behavior.md).
+
+Correcting A8B2 from PaintRect to EraseRoundRect does not change the already
+sourced solid geometry: its two oval dimensions are zero. Pattern phase under
+nonzero port origins, alternate drawing flags, masks, list-header/tab callers
+and legacy metadata still need independent requirements before implementation.

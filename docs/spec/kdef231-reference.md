@@ -229,9 +229,9 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 
 | addr | name | purpose | resource | notes |
 |---|---|---|---|---|
-| `0x10472` | **cicn loader / cache** | `Get1Resource('cicn', id)` (`$A9A0` at `0x10490`) + `GetCIcon` (`$AA0C`), tags GWorld with `'Copl'` clut; an inline `0x148` sparse switch (`0x104ba`) caches 18 specific control IDs into `a4`-relative GWorld slots | `'cicn'` `#1667851118` | the switch enumerates the cached control cicn families (see §2) |
+| `0x10472` | **cicn loader / cache** | `GetCIcon` (`$AA1E` at `0x10434` / `0x10698`); an inline `0x148` sparse switch (`0x104ba`) caches specific control IDs in `a4`-relative slots; see the corrected [body dispatch](cinf-resize-behavior.md) | `'cicn'` `#1667851118` | the switch enumerates the cached control cicn families (see §2) |
 | `0x10420` | cicn slot fetch | `GetCIcon`-by-id into a cached slot if empty | `'cicn'` | helper for `0x10472` |
-| `0x10440` | plain cicn load | `Get1Resource('cicn', id)`+`GetCIcon`, tag `'Copl'` | `'cicn'` | |
+| `0x10440` | plain ppat load | GetPixPat (`$AA0C` at `0x10460`) | `'ppat'` | mode !=5 body path |
 | `0x116f8` | **cinf loader** | `Get1Resource('cinf', id)` (`#1667853926` at `0x1171a`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; also loads paired `'pWin'` (`#1884776814`) resource for in-range ids | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
 | `0x106e6` | clut loader | loads `'clut'` (`#1668052340` = `0x636c7574`) | `'clut'` | scheme palette |
 | `0x33a8`/`0x3be4` | `'Copl'` tag | `'Copl'` (`#1131376748` = `0x436f706c`) — the kDEF's private GWorld-tagging clut handle, attached to every GWorld it allocates | `'Copl'` | NOT a scheme resource; internal marker |
@@ -536,11 +536,11 @@ baselines that shifted when the helper landed):
 
 | byte | TMPL 129 field name | kDEF use | evidence |
 |---|---|---|---|
-| `[0]` | **Corner Size** | corner inset X (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
-| `[1]` | **Side Thickness** | corner inset Y (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
-| `[2]` | **Tile Sides** | (boolean: tile vs stretch the side bands) | TMPL 129 (was "(?)" — now confirmed) |
-| `[3]` | **Pattern Anchor** | body fill pattern-phase selector (NOT a 1..15 enum) | `0x109be cmpib #5,%a0@(3)` selects the bgPattern-fill path when `=5`; otherwise `0x10ab2 subq #1`-chain dispatches cases 1..4 → anchor body pattern phase at dst-rect corner TL/TR/BL/BR (reads `a2@(0/2/4/6)`); default (0 or ≥6) → anchor at origin `(0,0)`. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`. |
-| `[4..5]` | **Background Pattern ID** (DWRD) | tied ppat handle | TMPL 129 |
+| `[0]` | **Corner Size** | square corner size (`d3`) | `1610 moveb %a0@,%d3` @ `0x108a8` |
+| `[1]` | **Side Thickness** | independent edge thickness (`d4`) | `1828 0001 moveb %a0@(1),%d4` @ `0x108b0` |
+| `[2]` | **Tile Sides** | (boolean: full-band repeat vs first middle column/row) | TMPL 129 (was "(?)" — now confirmed) |
+| `[3]` | **Pattern Anchor** | body resource/phase selector (NOT a 1..15 enum) | `0x109be cmpib #5,%a0@(3)` selects a cicn body at `=5`; otherwise loads a ppat and `0x10ab2 subq #1`-chain dispatches cases 1..4 → anchor body pattern phase at dst-rect corner TL/TR/BL/BR (reads `a2@(0/2/4/6)`); default (0 or ≥6) → anchor at origin `(0,0)`. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`. |
+| `[4..5]` | **Background Pattern ID** (DWRD) | signed resource ID: cicn for mode5, ppat otherwise | TMPL 129 / [body dispatch](cinf-resize-behavior.md) |
 | `[6..7]` | **Background Pixel y** (DWRD) | sample-pixel coordinate | TMPL 129 |
 | `[8..9]` | **Background Pixel x** (DWRD) | sample-pixel coordinate | TMPL 129 |
 | `[10..11]` | **Text Pixel y** (DWRD) | text marker | TMPL 129 |
@@ -628,7 +628,9 @@ title anchor).
 ## 6. A-trap inventory
 
 The toolbox calls the kDEF uses, with representative invocation addresses (full
-counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
+counts via `grep '.short 0xaXXX'`). Body-related rows were corrected against Apple Universal Interfaces 3.4.1;
+see [source identity and body dispatch](cinf-resize-behavior.md). Other tentative
+rows below are not promoted to verified by that bounded correction.
 
 | trap | name | role in kDEF | example addr(s) |
 |---|---|---|---|
@@ -637,16 +639,16 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
 | `$A874` | GetPort | save current port | `0xfeee`, `0x10336`, `0x108cc` |
 | `$A873`/`$A879` | SetPort/SetPortBits (?) | port plumbing | `0x...` |
 | `$A8A9` | **InsetRect** | rect geometry; default ring expands the control rect by 4px | `0x76a2` |
-| `$AA19` | **GetGWorld** | save current GWorld | `0xff32`, `0x1037c`, `0x1e96` |
-| `$AA1A` | **SetGWorld** (the GWorld dispatch form) | switch to the cicn GWorld | `0xff38`, `0x10382`, `0x1e90` |
-| `$AA1E` | **NewGWorld** | offscreen alloc (cicn cache) | `0x10434` |
-| `$AA0C` | **UpdateGWorld** | refresh a cached GWorld | `0x10460` |
-| `$AA14` | **LockPixels** | lock the cicn pixmap before CopyBits | `0x760c`, `0x10994` |
-| `$AA15` | **UnlockPixels** | unlock after the blit | `0x7612`, `0x10998` |
+| `$AA19` | **GetForeColor** | save foreground RGB | `0xfe2c`, `0xf82a` |
+| `$AA1A` | **GetBackColor** | save background RGB | `0xfe32`, `0xf830` |
+| `$AA1E` | **GetCIcon** | request color icon | `0x10434`, `0x10698` |
+| `$AA0C` | **GetPixPat** | request pixel pattern | `0x10460`, `0xef24` |
+| `$AA14` | **RGBForeColor** | set foreground RGB | `0xfe9c`, `0xf836` |
+| `$AA15` | **RGBBackColor** | set background RGB | `0x10998`, `0x109b6` |
 | `$A9A0` | **GetResource / Get1Resource** | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x10490`, `0x11722` |
 | `$A9A2` | **ReleaseResource** | free recipe handle | `0x36a6`, `0x1172e` |
 | `$A024` | **SetHandleSize** | resize loaded handle | `0x1174a`, `0x117b6` |
-| `$A01B` | **SetGWorld** (`_GWorldDispatch` selector form via `0x118`/`0x2a6`) | switch drawing world using saved port/device | `0x10490`, `0x1045a` |
+| `$A01B` | **SetZone** | switch heap zone around resource loads | `0x10458`, `0x1048e` |
 | `$A994` | **CurResFile** | save current resource file | `0x10816`, `0x10494` |
 | `$A998` | **UseResFile** | restore resource file | `0x10830`, `0x104ae` |
 | `$A888` | **StringWidth** | measure title text (title-fits gate) | `0x4f18`, `0x4f20`, `0x4f36` |
@@ -654,8 +656,8 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
 | `$A887` | **TextFont** | set title font | `0x7540` |
 | `$A88A` | **TextSize** | set title size | `0x754a` |
 | `$A889` | **TextFace/DrawChar-area** | set title face / draw | `0x7558`, `0x75bc`, `0x75c4` |
-| `$A8B2` | **PaintRect** | center fill in the 9-slice (case `d3==d4`) | `0x10a3e`, `0x10a66` |
-| `$AA25` | **DisposeGWorld** | free temp world | `0x10a14` |
+| `$A8B2` | **EraseRoundRect** | solid inset-union body; both oval dimensions pushed as zero | `0x10a3e`, `0x10a66` |
+| `$AA25` | **DisposeCIcon** | release mode5 background icon | `0x10a14` |
 | `$AA42`/`$AA55`/`$AA73` | Appearance/Icon-services utilities (?) | control-state / icon queries | scattered |
 | `$A8D8`/`$A8D9` | **SectRect / UnionRect** | rect math in tiling/slicing | `0x103c4`, `0x15c92` |
 | `$A8DC`/`$A8DF`/`$A8E0`/`$A8E4`/`$A8E5`/`$A8E6` | EqualRect / OffsetRect / InsetRect / PtInRect family | geometry | throughout |
@@ -677,7 +679,15 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
    (`0x698a`/`0x6b14`/`0x6a86`/`0x6980`/`0x6b84`) but the per-message behaviour
    is not traced; the message *meanings* are inferred from Appearance numbering,
    not proven (§1.1).
-2. ~~**cinf byte[2] and bytes [4..55]**~~ **RESOLVED 2026-05-29** — TMPL 129 shipped in 16 of 18 corpus bundles gives the full field map: byte[2]=Tile Sides, byte[3]=Pattern Anchor, bytes[4..17]=3× DWRD pixel coords (bg/text/embossing). See §3.5. **The 15-value Scheme Factory MENU 139 vocabulary** referenced in earlier `cinf.js` decoder comments is editor-side authoring sugar — the kDEF dispatches on `byte[2]` as a boolean (tile vs stretch the 4 edge bands) and `byte[3]` as a 5-way switch (`0`=origin anchor, `1..4`=anchor TL/TR/BL/BR corner of dst rect, `5`=use bgPattern resource); higher values fall through to the `=0` default. Verified at `0x10ab2` subq-chain + `0x109be cmpib #5,%a0@(3)` — there is no `cmpib` against byte[3] for values 6..15 anywhere in the kDEF. The "anchor-corner" labels (indices 10..14) in `RESIZE_BEHAVIOR_LABELS` were speculative and unreachable from the kDEF's byte[3] dispatch; dropped. Full decode + corpus survey in `docs/spec/cinf-resize-behavior.md`.
+2. **cinf header fields / body dispatch** — field offsets are known, but full
+   body rendering is not closed. Byte2 is boolean edge repeat; byte3==5 requests
+   a cicn, while other modes request a ppat and choose phase0..4 (higher values
+   use origin). Bytes4–5 are a signed background resource ID in both branches;
+   bytes6–17 are bg/text/emboss RGB sample coordinates. The prior “resolved”
+   note inverted the body branch and overstated the Scheme Factory MENU139
+   interpretation. See the corrected [source table and 18-fork survey](cinf-resize-behavior.md).
+   Editor menu encoding, complete phase/mask behavior and caller coverage are
+   not established by header labels alone.
 3. **'pWin' companion resource** (`0x1175e`, `#1884776814`) — loaded for cinf-
    range ids; its layout/use is not decoded.
 4. **Scrollbar/slider/popup/progress/menu/disclosure LAYOUT arithmetic** — drawer

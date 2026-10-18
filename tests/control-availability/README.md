@@ -7,7 +7,7 @@ availability is not a whole-control fidelity certificate.
 
 ## Source evidence and review
 
-`expectations.json` version 1.0.0 declares exact inputs, painted owner/depth,
+`expectations.json` version 1.0.1 declares exact inputs, painted owner/depth,
 manifest key, signed cicn/cinf identities, source references and required policy
 decisions. `REVIEW.md` records independent root/Astra review and the original
 draft digest. Activation changes review state only; the reviewed inputs and
@@ -100,3 +100,10 @@ prove actual decoder/fork provenance. Historical face fallback, all-theme
 availability, complete pixel fidelity and original-engine execution are outside
 this finite inventory. Extend it with separately reviewed exact evidence and
 expectations, never by blessing observed matrix statuses.
+
+
+Inventory 1.0.1 refreshes only the full `kdef231-reference.md` evidence hash in
+three ring cases after the cinf body/trap documentation correction. Ring dispatch
+at 0x76c4 and the separately pinned detailed ring evidence remain unchanged.
+The exact case inputs, source payload pins and expected outcomes are unchanged;
+the prior 1.0.0 review is retained in `expectations.json`.
