@@ -34,6 +34,13 @@ jobs:
           name: unreviewed-rendering-golden-candidates
           path: |
             tests/rendering-options/goldens/
+            test-results/rendering-evidence/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: rendering-golden-candidate-failure-evidence
+          path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
           retention-days: 14

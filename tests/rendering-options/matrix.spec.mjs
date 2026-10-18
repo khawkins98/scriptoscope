@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { test, expect, openHarness, attachCase } from './fixtures.mjs';
+import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { listCases } from './cases.mjs';
 const catalog = JSON.parse(readFileSync(new URL('../../demo/themes-manifest.json', import.meta.url)));
 
@@ -99,8 +99,9 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
     }
     // Keep a compact executed-case inventory even on success. It distinguishes
     // absent source art from an asserted fallback and exposes actual coverage.
-    await testInfo.attach('coverage.json', { body: JSON.stringify({ slug, profile, cases: summary }), contentType: 'application/json' });
+    await attachObservations(testInfo, 'contracts', slug, { slug, profile, complete: true, cases: summary });
   } catch (error) {
+    await attachObservations(testInfo, 'contracts', slug, { slug, profile, complete: false, cases: summary }).catch(() => {});
     await attachCase(activePage, testInfo, { slug, profile, mode, case: current, result, completed: summary }, error);
     throw error;
   } finally {

@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { test as base, expect } from '@playwright/test';
 import { startServers } from './servers.mjs';
 
@@ -18,6 +18,19 @@ export async function openHarness(page, servers, mode) {
   await page.goto(harnessUrl(servers, mode));
   await page.waitForFunction(() => !!window.controlMatrix);
   await page.evaluate(() => window.controlMatrix.ready);
+}
+
+/** Executed observations, never an independently established availability oracle.
+ * Keep these outside Playwright's per-run output directory so a subsequent golden
+ * run does not erase the contract inventory before CI uploads it. */
+export async function attachObservations(testInfo, kind, name, observations) {
+  const safe = value => value.replace(/[^a-zA-Z0-9_.-]/g, '-');
+  const directory = new URL(`../../test-results/rendering-evidence/${safe(testInfo.project.name)}/${safe(kind)}/`, import.meta.url);
+  await mkdir(directory, { recursive: true });
+  const body = JSON.stringify({ schema: 1, evidence: 'observed-execution', project: testInfo.project.name, ...observations }, null, 2);
+  const path = new URL(`${safe(name)}.json`, directory);
+  await writeFile(path, body + '\n');
+  await testInfo.attach(`${kind}-${name}.json`, { body, contentType: 'application/json' });
 }
 
 /** Save the failing inputs and raw backing pixels, not just a scaled screenshot. */
