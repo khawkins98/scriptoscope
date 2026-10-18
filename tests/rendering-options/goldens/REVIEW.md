@@ -104,3 +104,24 @@ QuickDraw text transfer, original device color/palette, managed port propagation
 this update. See [known limits](../KNOWN-LIMITS.md) and the
 [direct pattern](../../../docs/spec/control-pattern-context.md) and
 [text sample](../../../docs/spec/control-text-colors.md) contracts.
+
+
+## Reviewed CDEF 8 tab body delta — 2026-10-18
+
+[Capture run 39143358902](https://github.com/khawkins98/scriptoscope/actions/runs/39143358902)
+records runtime commit `a7b46ecb` (full provenance retained in the manifest).
+All 36 pages passed exact repeat verification. Independent automated root and
+Astra review inspected all 13 changed page-2 sheets: 24,872 pixels inside 78 tab
+cases (52 direct, 26 declarative), with unchanged alpha and sheet dimensions.
+The other 23 sheets are unchanged, including Crayon's retained legacy pattern
+center. No tab paint-resolution trace is exposed; expected catalog source
+bindings are separate evidence, not observed painting dependencies.
+
+Changes follow the pinned CDEF 8 full-source end strips, first-column/native-tile
+bands and separate solid-center contract. Hand-written literal rows, prior-code
+negative tests, and exact pinned 1138/1990 source-coordinate assertions establish
+the bounded body requirement independently of these regression images. The
+AgjpQy checks exclude the current browser glyph ink rather than certifying fonts.
+No unexplained delta was identified. Original typography, variant selection,
+pattern-center phase, full layout and device/transfer behavior remain open;
+these snapshots do not certify whole tabs or historical reference equality.
