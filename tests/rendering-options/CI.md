@@ -16,6 +16,14 @@ Install those browsers with `npx playwright install chromium firefox webkit`.
 **Extended rendering matrix** workflow runs all four projects. This is broader
 option coverage, not proof of period rendering fidelity for every combination.
 
+The workflow's `browsers` input defaults to `all`; select `firefox`, `chromium`,
+or `webkit` for a focused diagnostic rerun. Every configured engine first launches
+and opens a page in global setup, so a broken browser environment fails before
+the matrix. The extended container uses UID 1001, matching the Actions-mounted
+home directory and [Playwright's container CI example](https://playwright.dev/docs/ci#via-containers).
+Firefox rejects a root process with a home directory owned by another user.
+The Chromium-only golden workflow does not require this Firefox launch change.
+
 CI uses the immutable Playwright Linux image named in the workflows and the
 matching exact npm version. The same image is available locally:
 
