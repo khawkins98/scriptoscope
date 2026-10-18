@@ -9,6 +9,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Extend opt-in byte provenance to actual `ppat` catalog occurrences and preserve raw signed `cinf` body requests, including zero; no pattern-paint claim or rendering change (#260).
+
 - Clean installed-tarball consumer check: strict public declaration resolution,
   isolated production bundling, real archive loading/native interaction and
   teardown, with missing assets and declaration-escape negatives in pinned CI.

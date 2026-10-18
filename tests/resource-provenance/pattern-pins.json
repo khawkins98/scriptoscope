@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "status": "byte-identity-expectations-not-original-lookup-approval",
+  "slug": "crayon-os",
+  "archivePath": "themes/crayon-os/scheme.sit",
+  "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+  "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+  "entryIndex": 0,
+  "entryName": "Crayon OS Folder/Crayon OS",
+  "patterns": [
+    { "signedId": 17, "byteLength": 2198, "payloadSha256": "35c7aa22b9da7e01f83fa5dbd6443e5c93459a3450401ab2c18050f37cdcfea4" },
+    { "signedId": -10238, "byteLength": 4582, "payloadSha256": "32fd8e7323e68df932f6f723b1bdf97dcbf7206fce5b4b382616836fd900f97f" }
+  ]
+}

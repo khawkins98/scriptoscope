@@ -19,7 +19,7 @@ export async function beginLoadProvenance(bytes, container) {
     },
     observer: {
       begin(entry, resourceIndex) {
-        if (entry.type !== 'cicn' && entry.type !== 'cinf') return undefined;
+        if (entry.type !== 'cicn' && entry.type !== 'cinf' && entry.type !== 'ppat') return undefined;
         const record = { resourceIndex, type: entry.type, signedId: entry.id, byteLength: entry.data.length,
           sha256: null, status: 'pending' };
         resources.push(record);
@@ -30,7 +30,7 @@ export async function beginLoadProvenance(bytes, container) {
       },
       bindAsset(reference, path) {
         if (!reference) return;
-        if (assetBindings.has(path)) throw new Error('Byte provenance unsupported: duplicate cicn asset binding');
+        if (assetBindings.has(path)) throw new Error(`Byte provenance unsupported: duplicate ${resources.find(record => record.resourceIndex === reference.resourceIndex).type} asset binding`);
         assetBindings.set(path, reference.resourceIndex);
       },
       end(reference, status) {
@@ -41,7 +41,7 @@ export async function beginLoadProvenance(bytes, container) {
     async finish() {
       await Promise.all(pending);
       if (failures.length) throw failures[0];
-      return freeze({ version: 1, loadId, scope: { resourceTypes: ['cicn', 'cinf'], evidence: 'decoder-input-bytes' }, input, fork, resources });
+      return freeze({ version: 1, loadId, scope: { resourceTypes: ['cicn', 'cinf', 'ppat'], evidence: 'decoder-input-bytes' }, input, fork, resources });
     },
   };
 }

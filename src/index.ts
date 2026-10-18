@@ -130,4 +130,4 @@ export {
   type ParsedWindow, type ParsedButton, type SizeMode,
 } from './declarative/index.js';
 
-export type { ElementByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
+export type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';

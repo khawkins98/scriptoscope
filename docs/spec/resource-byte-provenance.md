@@ -32,14 +32,17 @@ null archive entry identity. Other containers record their actual output fork
 hash but use `unverified-container-unwrapping`: their container-selection
 semantics have not been independently assessed here.
 
-At the existing chrome decoder dispatch, the observer hashes the exact cicn/cinf
+At the existing chrome decoder dispatch, the observer hashes the exact cicn/cinf/ppat
 payload view passed into that decoder and records its parser occurrence index,
 signed ID, type, byte length and conversion outcome (`decoded`, `skipped`,
 `error`). No resource is parsed or selected again to obtain this evidence. The
 index distinguishes repeated IDs. The existing manifest builder carries exact
 successful resource references into each generated key, including the last
 successful same-ID cinf used by its existing metadata map. Missing cinf metadata
-has a null reference; other types have no payload evidence in this version.
+has a null reference. Version1 now declares an expanded `scope.resourceTypes`
+list (`cicn`, `cinf`, `ppat`); older version1 records can declare only cicn/cinf.
+Consumers must inspect scope rather than infer observation from the version alone.
+Other types still have no payload evidence.
 
 Each chrome entry's frozen `byteProvenance` contains the generated key, load ID,
 and cicn/cinf occurrence indexes. The existing control trace copies this reference
@@ -66,7 +69,7 @@ produced no manifest entry. Existing encoding failure cleanup and idempotent
 `dispose()` ownership are unchanged. Disposing a theme revokes its URLs; its
 scalar evidence remains readable if the caller retained it.
 
-Duplicate cicns that collide on the same converted asset binding are an explicit
+Duplicate cicns or ppats that collide on the same converted asset binding are an explicit
 opt-in limitation. The existing encoder map would keep the last URL while two
 manifest keys can retain different metadata. A provenance load rejects this
 ambiguity before URL allocation, even if the payload bytes are equal, rather than
@@ -95,3 +98,33 @@ archive decompression, resource parsing, cicn/cinf decoding, image encoding,
 original-engine selection, or historical pixels independently. The remaining
 families/types/containers and independent decoder fixtures remain work under
 [#221](https://github.com/khawkins98/scriptoscope/issues/221).
+
+## Pattern catalog bindings and raw body requests
+
+Each successfully converted pattern entry carries its own frozen
+`PatternByteProvenance { loadId, manifestKey, ppatResourceIndex }` when opted in.
+The converter carries that exact parser occurrence into its generated catalog key;
+it does not reconstruct the join from filenames, labels, signed/absolute IDs, or
+URLs. Distinct same-ID/name-different assets remain distinct. A skipped bit14
+pattern or decoder error retains its input record and outcome but no catalog
+binding. This extends the existing pre-encoding collision rejection to ppat paths.
+
+`ChromeElement.bodyRequest` preserves raw cinf byte3 `mode` (0..255) and signed
+bytes4..5 `resourceId` (-32768..32767), including zero. Null/absent is unknown.
+Mode5's original branch requests cicn; other modes request ppat. The retained
+legacy `bgPattern` link still uses its previous nonzero-ID/same-catalog policy;
+it must not be mistaken for this raw request or historical Resource Manager
+ownership. This change adds metadata without changing that policy or rendering.
+
+`pattern-provenance.spec.mjs` observes source and built catalog bindings for two
+independently pinned Crayon payloads, plus hand-encoded own/base catalogs and an
+unobserved borrowed owner. The exact fixture and archive/fork/payload pins are
+in `tests/resource-provenance/pattern-pins.json`; matching that declared fork is
+not original lookup approval. Occurrence/key/load/payload negative fixtures,
+concurrent loads and unsupported bit14 outcomes are checked separately. Independent
+indexed ppat pixel fixtures are documented in [ppat-decoding.md](ppat-decoding.md).
+
+No pattern paint dependency is added to control traces: the current face body
+compositor does not consume these catalog bindings. A later compositor change
+must observe its actual requested/selected owner and paint usage at the real
+resolution boundary. Catalog presence alone cannot satisfy that obligation.
