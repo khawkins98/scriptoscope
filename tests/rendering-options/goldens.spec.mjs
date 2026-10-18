@@ -58,7 +58,7 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
       result = await page.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug, retain: true, includeReferences: false }), { c, slug });
       observed.push({ id: c.id, family: c.family, mode: c.mode, options: c.options, status: result.status,
         renderPath: result.renderPath, canvases: result.canvases.map(({ width, height, opaqueBounds }) => ({ width, height, opaqueBounds })),
-        controlRects: result.controls.map(({ rect }) => rect), error: result.error });
+        controlRects: result.controls.map(({ rect }) => rect), error: result.error, resolutionTrace: result.resolutionTrace });
       expect(result.status, result.error ?? c.id).not.toBe('error');
     }
     // Hide transient server URLs; the cases, labels, dimensions and native DOM

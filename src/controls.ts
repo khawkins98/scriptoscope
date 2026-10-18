@@ -4,6 +4,7 @@ import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
+import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
  *  a 15px button face (FUN_30a8): floor((min(w,h)-3)/2). */
@@ -62,22 +63,58 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * horizontal scrollbar track); bundle slugs for the same resource vary
  * wildly between schemes ("normal-horizontal-scrollbar" vs
  * "horizontal-scrollbar-active" vs "horizontal-scroll-bar-track-arrows"),
- * so resolving by id is the only thing that works across every theme.
- * Asset filenames encode the id as `cicn-n8286-...` / `cicn--10240-...`;
- * control resources are all negative, so we match on the absolute value.
+ * so these generic lookups use structured sourceCicnId metadata. The runtime
+ * matches its absolute value for compatibility with signed corpus aliases;
+ * diagnostics preserve the actual sign instead of claiming an original alias.
  */
-interface ResolvedControlFace { buffer: PixelBuffer; element: ChromeElement; }
+interface ResolvedFaceMetadata { theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
+interface ResolvedControlFace extends ResolvedFaceMetadata { buffer: PixelBuffer; }
+type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
+const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
 
-function resolveFaceById(theme: LoadedTheme, id: number) {
+function resourceIdentity(hit: ResolvedFaceMetadata): NonNullable<ControlResolutionStep['resource']> {
+  return { type: 'cicn', signedId: Number.isInteger(hit.element.sourceCicnId) ? hit.element.sourceCicnId! : null,
+    sourceCinfId: Number.isInteger(hit.element.sourceCinfId) ? hit.element.sourceCinfId! : null, manifestKey: hit.key,
+    assetUrl: assetUrl(hit.theme, hit.element.asset) };
+}
+
+function traceHit(trace: ControlTraceCollector | undefined, lookup: TraceLookup, id: number,
+  hit: ResolvedFaceMetadata, action: 'selected' | 'rejected', reason: string): void {
+  trace?.record({ ...lookup, requestedId: -Math.abs(id), action, reason,
+    owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth }, resource: resourceIdentity(hit) });
+}
+
+function traceOwner(trace: ControlTraceCollector | undefined, lookup: TraceLookup, id: number,
+  theme: LoadedTheme, chainDepth: number, action: 'missing' | 'fallback', reason: string): void {
+  trace?.record({ ...lookup, requestedId: -Math.abs(id), action, reason,
+    ...(action === 'fallback' ? { basis: 'compatibility-policy' as const } : {}),
+    owner: { baseUrl: theme.baseUrl, chainDepth } });
+}
+
+function traceFallback(trace: ControlTraceCollector | undefined, id: number, reason: string,
+  lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' }): void {
+  trace?.record({ ...lookup, requestedId: -Math.abs(id), action: 'fallback', reason });
+}
+
+function resolveFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
+  lookup: TraceLookup = FACE_LOOKUP): ResolvedFaceMetadata | undefined {
+  let chainDepth = -1;
   return resolveInChain(theme, (t) => {
-    const element = elementById(t, id);
-    return element ? { theme: t, element } : null;
+    chainDepth++;
+    if (chainDepth > 0) traceOwner(trace, lookup, id, t, chainDepth, 'fallback', 'base-inheritance');
+    const entry = elementEntryById(t, id);
+    if (!entry) { traceOwner(trace, lookup, id, t, chainDepth, 'missing', 'missing-resource'); return null; }
+    const hit = { theme: t, element: entry[1], key: entry[0], chainDepth };
+    traceHit(trace, hit.element.sourceCicnId! > 0 ? { ...lookup, basis: 'compatibility-policy' } : lookup,
+      id, hit, 'selected', hit.element.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id');
+    return hit;
   });
 }
 
-async function loadFaceById(theme: LoadedTheme, id: number): Promise<ResolvedControlFace | null> {
-  const hit = resolveFaceById(theme, id);
-  return hit ? { buffer: await loadCicnBuffer(assetUrl(hit.theme, hit.element.asset)), element: hit.element } : null;
+async function loadFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
+  lookup: TraceLookup = FACE_LOOKUP): Promise<ResolvedControlFace | null> {
+  const hit = resolveFaceById(theme, id, trace, lookup);
+  return hit ? { ...hit, buffer: await loadCicnBuffer(assetUrl(hit.theme, hit.element.asset)) } : null;
 }
 
 async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
@@ -159,11 +196,11 @@ function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
   return face.height <= APPLE_REASONABLE_FACE_MAX ? face.height : APPLE_PUSH_BUTTON_HEIGHT;
 }
 
-/** Canonical bundle-author role names for the push-button face, by state. The
+/** Runtime named-key preferences for the push-button face, by state. The
  *  list captures the synonyms different Kaleidoscope authoring tools emitted
  *  (`push-button-active` / `active-push-button` / `active-button` / bare
  *  `push-button`). Used by {@link loadPushButtonFace} to resolve via the
- *  manifest's STRUCTURED role instead of trusting the raw kDEF id slot — the
+ *  manifest's friendly key before the raw kDEF id slot — the
  *  monkey-paradise + animals fix (both authored `solo-menu-background-2` onto
  *  id -10239 leaving no active push-button cicn, just inactive + pressed). */
 const PUSH_BUTTON_FACE_KEYS = {
@@ -172,23 +209,22 @@ const PUSH_BUTTON_FACE_KEYS = {
   inactive: ['push-button-inactive', 'inactive-push-button', 'inactive-button'],
 } as const;
 
-/** Anti-roles for the push-button face: when a bundle ships id -10239/-10238/-10240
- *  under one of these keys, the author repurposed the kDEF slot for an unrelated
- *  resource (menu wallpaper, tab pane, popup background). Loading it as a button
- *  face produces the "menu cicn in the OK slot" misrender.
+/** Compatibility rejection heuristic for labels/keys on push-button slots.
+ * A matching label is observed metadata, not proof that the original engine
+ * rejected the resource or that its author intended a different runtime role.
  *
  *  TWO detection paths share this regex:
  *    - PRIMARY: the bundle's `authorLabel` (the verbatim NAMED-resource label;
  *      e.g. animals + monkey-paradise both ship `-10239` with authorLabel
- *      "Solo Menu Background"). This is far more precise than the friendly-key
- *      check below because it matches the AUTHOR's own role tag.
+ *      "Solo Menu Background"). It preserves the author's words, while our
+ *      interpretation of those words remains a runtime policy.
  *    - FALLBACK: the friendly chromeElement key (decoder-emitted slug). Used
  *      when authorLabel is missing — 9 of 18 bundles (1138, apple-platinum-2,
  *      etc.) ship no labels on the push-button slots.
  *
  *  The substring match is over-broad on the friendly-key path (parked #185:
  *  `dialog-button-active` would false-positive) but is the necessary fallback
- *  shape for unlabelled bundles. The authorLabel path is strictly tighter. */
+ *  shape retained for compatibility with unlabelled bundles. */
 const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialog|scroll/i;
 
 /** Resolve a push-button face via named keys, then numeric ID with an
@@ -208,14 +244,22 @@ export async function loadPushButtonFace(
 async function resolvePushButtonFace(
   theme: LoadedTheme,
   state: keyof typeof PUSH_BUTTON_FACE_KEYS,
+  trace?: ControlTraceCollector,
 ): Promise<ResolvedControlFace | null> {
   const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
+  let chainDepth = -1;
   // Resource ownership outranks lookup spelling: a child's canonical slot wins
   // over a named base resource. Within each owner, authored role names win.
   const found = resolveInChain(theme, (t) => {
+    chainDepth++;
+    if (chainDepth > 0) traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'fallback', 'base-inheritance');
     const ce = t.manifest.chromeElements ?? {};
     for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
-      if (ce[k]?.asset) return { theme: t, element: ce[k]! };
+      if (ce[k]?.asset) {
+        const hit = { theme: t, element: ce[k]!, key: k, chainDepth };
+        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'selected', 'named-role');
+        return hit;
+      }
     }
     // Reject repurposed id slots before considering the next base theme.
     const ces = t.manifest.chromeElements ?? {};
@@ -223,15 +267,25 @@ async function resolvePushButtonFace(
       if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
       // Prefer the verbatim source label for this rejection heuristic.
       // The label itself is provenance; interpreting its words is policy.
-      if (v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(v.authorLabel)) return null;
+      const hit = { theme: t, element: v, key: k, chainDepth };
+      if (v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(v.authorLabel)) {
+        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'rejected', 'anti-role-label');
+        return null;
+      }
       // Fallback check: the friendly key. Only consulted when the bundle
       // ships no authorLabel (9 of 18 corpus bundles — kept for back-compat).
-      if (!v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) return null;
-      return { theme: t, element: v };
+      if (!v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) {
+        traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'rejected', 'anti-role-key');
+        return null;
+      }
+      traceHit(trace, v.sourceCicnId! > 0 ? { ...FACE_LOOKUP, basis: 'compatibility-policy' } : FACE_LOOKUP,
+        id, hit, 'selected', v.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id');
+      return hit;
     }
+    traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'missing', 'missing-resource');
     return null;
   });
-  return found ? { buffer: await loadCicnBuffer(assetUrl(found.theme, found.element.asset)), element: found.element } : null;
+  return found ? { ...found, buffer: await loadCicnBuffer(assetUrl(found.theme, found.element.asset)) } : null;
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -244,11 +298,17 @@ async function resolvePushButtonFace(
  *  textAnchors silently un-themed). `sourceCicnId` is the decoder's own field, lives
  *  in `theme.json`, survives the URL rewrite, and is what `lint-themes` reads too. */
 function elementById(theme: LoadedTheme, id: number) {
+  return elementEntryById(theme, id)?.[1];
+}
+
+function elementEntryById(theme: LoadedTheme, id: number): [string, ChromeElement] | undefined {
   const abs = Math.abs(id);
-  for (const v of Object.values(theme.manifest.chromeElements ?? {})) {
-    if (typeof v.sourceCicnId === 'number' && Math.abs(v.sourceCicnId) === abs) return v;
+  const elements = theme.manifest.chromeElements ?? {};
+  for (const key of Object.keys(elements)) {
+    const element = elements[key]!;
+    if (typeof element.sourceCicnId === 'number' && Math.abs(element.sourceCicnId) === abs) return [key, element];
   }
-  return null;
+  return undefined;
 }
 
 /**
@@ -958,6 +1018,8 @@ export async function composeProgress(
 }
 
 export interface ButtonOptions {
+  /** Opt-in completed resource-resolution trace; does not certify fidelity. */
+  diagnostics?: ControlDiagnostics;
   label?: string;
   default?: boolean;
   pressed?: boolean;
@@ -973,6 +1035,8 @@ export interface ButtonOptions {
 }
 
 export interface BevelButtonOptions {
+  /** Opt-in completed resource-resolution trace; does not certify fidelity. */
+  diagnostics?: ControlDiagnostics;
   label?: string;
   on?: boolean;       // set / selected (latched)
   pressed?: boolean;  // momentary press
@@ -1122,6 +1186,14 @@ function composeControlBorder(source: PixelBuffer, element: ChromeElement, width
  * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
  */
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
+  const state = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
+  return withControlDiagnostics(opts.diagnostics, 'push-button', {
+    state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
+  }, trace => composeButtonWithTrace(theme, opts, trace));
+}
+
+async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
+  trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
   const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
   // Compatibility policy: try named roles/ID slots with anti-role rejection,
@@ -1130,10 +1202,24 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // states. These choices handle that corpus convention; they are not proven
   // original Appearance Manager/kDEF state fallbacks. Keep the final raw-ID
   // fallback visible to diagnostics rather than inferring historical intent.
-  let face = await resolvePushButtonFace(theme, state);
-  if (!face && state === 'active') face = await resolvePushButtonFace(theme, 'pressed');
-  if (!face && state === 'inactive') face = await resolvePushButtonFace(theme, 'active');
-  if (!face) face = (await loadFaceById(theme, faceId)) ?? (await loadFaceById(theme, 10239)); // last-resort id path
+  let face = await resolvePushButtonFace(theme, state, trace);
+  if (!face && state === 'active') {
+    traceFallback(trace, 10238, 'active-to-pressed');
+    face = await resolvePushButtonFace(theme, 'pressed', trace);
+  }
+  if (!face && state === 'inactive') {
+    traceFallback(trace, 10239, 'inactive-to-active');
+    face = await resolvePushButtonFace(theme, 'active', trace);
+  }
+  if (!face) {
+    const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
+    traceFallback(trace, faceId, 'raw-id-escape');
+    face = await loadFaceById(theme, faceId, trace, lookup);
+    if (!face) {
+      traceFallback(trace, 10239, 'active-id-fallback');
+      face = await loadFaceById(theme, 10239, trace, lookup);
+    }
+  }
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(face, opts);
   // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
@@ -1144,15 +1230,23 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // or pressed state never shifts neighboring controls.
   // Footprint reservation needs metadata only. Unused state rasters must not
   // add decode work or make a plain button fail because another state is bad.
-  const activeRing = resolveFaceById(theme, 10231);
-  const pressedRing = resolveFaceById(theme, 10230);
-  const inactiveRing = resolveFaceById(theme, 10232);
-  if (!activeRing && !pressedRing && !inactiveRing) return faceBuf;
+  const reservation: TraceLookup = { role: 'default-ring', basis: 'compatibility-policy', usage: 'layout-reservation' };
+  const activeRing = resolveFaceById(theme, 10231, trace, reservation);
+  const pressedRing = resolveFaceById(theme, 10230, trace, reservation);
+  const inactiveRing = resolveFaceById(theme, 10232, trace, reservation);
   // The original dispatch uses inactive -10232; pressed -10230 falls back
   // to active -10231 when absent (0x76b8–0x770e).
   const ring = opts.default
     ? opts.disabled ? inactiveRing : opts.pressed ? pressedRing ?? activeRing : activeRing
     : null;
+  if (opts.default) {
+    const ringId = opts.disabled ? 10232 : opts.pressed ? 10230 : 10231;
+    const paint: TraceLookup = { role: 'default-ring', basis: 'source-dispatch', usage: 'paint' };
+    if (opts.pressed && !opts.disabled && !pressedRing) traceFallback(trace, 10231, 'pressed-ring-to-active', paint);
+    if (ring) traceHit(trace, paint, ringId, ring, 'selected', 'ring-paint');
+    else trace?.record({ ...paint, requestedId: -ringId, action: 'missing', reason: 'ring-unavailable' });
+  }
+  if (!activeRing && !pressedRing && !inactiveRing) return faceBuf;
   const outset = 4;
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
   out.drawOver(faceBuf, outset, outset);
@@ -1175,13 +1269,26 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
  * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
  */
 export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
+  const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
+  return withControlDiagnostics(opts.diagnostics, 'bevel-button', {
+    state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
+  }, trace => composeBevelButtonWithTrace(theme, opts, trace));
+}
+
+async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButtonOptions,
+  trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
   const sizeBase = opts.small ? 10171 : 10162;
   const valueOff = opts.on ? 0 : 3;                          // set/on group, then clear/off (+3)
   const stateOff = opts.pressed ? 0 : opts.disabled ? 2 : 1; // pressed · unpressed · inactive
   const reqId = sizeBase + valueOff + stateOff;
   const ids = [reqId, sizeBase + valueOff + 1, 10163];
   let face: ResolvedControlFace | null = null;
-  for (const id of ids) { face = await loadFaceById(theme, id); if (face) break; }
+  for (const [index, id] of ids.entries()) {
+    const lookup = index === 0 ? FACE_LOOKUP : { ...FACE_LOOKUP, basis: 'compatibility-policy' as const };
+    if (index > 0) traceFallback(trace, id, index === 1 ? 'bevel-unpressed-fallback' : 'bevel-default-fallback');
+    face = await loadFaceById(theme, id, trace, lookup);
+    if (face) break;
+  }
   if (!face) return null; // → platinumBevelButton
   const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;

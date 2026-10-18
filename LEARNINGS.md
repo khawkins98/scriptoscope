@@ -3644,3 +3644,21 @@ held-select reproduction reached four completed controls while the observer saw
 counts `[0,1,2,3,3]`: scanner updates stats after the DOM-commit microtask, and no
 later mutation is guaranteed. Poll the public completed state with Playwright;
 do not widen timeouts or treat platform-dependent task ordering as runtime failure.
+
+### 2026-10-18 — Observe resource selection where it happens
+
+A candidate-art gallery cannot establish which resource a compositor selected.
+Keep the manifest key, owner and base depth in the private resolved-face result,
+and emit diagnostics from the same lookup loops. Do not rebuild a second resolver
+in the harness or introduce a global trace sink. Actual signed IDs come from
+selected metadata; missing IDs stay unknown, and positive-ID aliases remain
+positive even when the canonical request is negative.
+
+Selection steps distinguish numeric dispatch from compatibility policies and
+ring metadata reservation from paint. A rejected label is observed provenance,
+not proof of author intent. A selected metadata record can still fail decoding;
+the completed outcome is needed to interpret it. Frozen per-invocation records
+contain scalar metadata only, so concurrent callbacks share neither mutable steps
+nor theme ownership. Callback failure after successful rendering propagates once;
+a renderer failure remains the primary error even if its diagnostic callback also
+throws. See `docs/spec/control-resolution-diagnostics.md`.

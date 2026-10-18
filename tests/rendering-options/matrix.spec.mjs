@@ -94,9 +94,11 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
     for (const c of cases) {
       current = c;
       const versions = {};
+      const resolutionTraces = {};
       for (mode of ['source', 'built']) {
         activePage = pages[mode];
         result = await activePage.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug }), { c, slug });
+        resolutionTraces[mode] = result.resolutionTrace;
         assertOutput(result, c);
         if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
         versions[mode] = { status: result.status, pixels: await pixels(activePage, result.canvases) };
@@ -113,7 +115,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
       }
       expect(versions.built, `${c.id}: actual published entry preserves source pixels`).toEqual(versions.source);
       const { domPng, ...record } = versions.built;
-      summary.push({ id: c.id, ...record, nativeScreenshotCompared: !!domPng });
+      summary.push({ id: c.id, ...record, resolutionTraces, nativeScreenshotCompared: !!domPng });
     }
     // Keep a compact executed-case inventory even on success. It distinguishes
     // absent source art from an asserted fallback and exposes actual coverage.
