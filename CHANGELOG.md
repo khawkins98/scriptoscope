@@ -24,6 +24,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   font, transfer and list-header limits; refresh only the three affected
   availability document pins without changing its 27 cases or outcomes.
 
+- Record the independent public Dialog Manager, kDEF default-data, and PACH
+  FrameRoundRect contracts. Pin exact pen/color/erase guards without assigning
+  the quarantined default-border observations to an unobserved painter (#277).
+
 - Extend the partial rendering requirement inventory to sixteen exact direct
   cases, with bounded authored RGB16 text/emboss and pattern phase/clip evidence.
   Preserve the original eight cases, all OPEN closures and explicit unknown
