@@ -80,7 +80,6 @@
     "test:requirements": "node tests/rendering-requirements/run.mjs",
     "test:availability:sources": "node tests/control-availability/validate-source.mjs",
     "test:package": "npm run build && node tests/package-consumer/run.mjs",
-
     "test:references": "node tests/reference-captures/run.mjs"
   },
   "engines": {

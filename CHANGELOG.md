@@ -13,11 +13,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   isolated production bundling, real archive loading/native interaction and
   teardown, with missing assets and declaration-escape negatives in pinned CI.
 
-- Provisional independent reference-capture requests and evidence intake checks:
-  exact source/condition/provenance bindings, separate independent review, known
-  self-image contamination checks, and an honest report of twelve missing
-  captures. Author previews and selfgoldens remain non-independent evidence.
-
 - Versioned fidelity compatibility-contract draft defining proposed source inputs,
   family boundaries, evidence obligations and explicit substitutions. Its target
   remains OPEN; partial requirement and availability inventories do not establish
@@ -88,6 +83,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   ([#204](https://github.com/khawkins98/scriptoscope/pull/204))
 
 ### Documentation (2026-10-18)
+
+- Provisional independent reference-capture requests and evidence intake checks:
+  exact source/condition/provenance bindings, separate independent review, known
+  self-image contamination checks, and an honest report of twelve missing
+  captures. Author previews and selfgoldens remain non-independent evidence.
 
 - Reconcile the fidelity plan with delivered solid-face geometry and loaded-byte
   provenance; keep remaining decoder, pattern and reference requirements explicit.
