@@ -31,6 +31,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Solid button, bevel, and list-header faces sample their authored cinf background
+  pixel instead of a guessed offset from the text marker. Windows 95 normal and
+  disabled faces now use the source gray rather than white border pixels. Face
+  fallbacks retain the selected resource's own slicing/sample metadata.
+
 - Scope the optional window shadow to the actual rendered window part, including
   imperative windows and hosts stretched by consumer grid/flex layouts. Promoted buttons, selects, and checkables no longer receive an extra
   rectangular shadow over their scheme-authored art (related to #207).

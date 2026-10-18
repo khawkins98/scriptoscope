@@ -111,3 +111,14 @@ Uses the optional Playwright setup above. Exercises the actual Windows 95 source
 art, full centered label pixels, all 18 schemes' state geometry, explicit heights,
 and showcase buttons/select interaction. Diagnostic Scene controls request fixed
 heights and therefore do not cover this automatic-sizing path.
+
+## Control fill and shell styling
+
+```sh
+node --test --experimental-strip-types tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs
+```
+
+Uses optional Playwright and isolated Vite servers. The fill test compares rendered
+interiors with original cinf background samples and checks state/base fallback
+metadata. The shell test checks computed styles and actual frame/canvas bounds
+for Windows 95 and System 7, including stretched grid/flex hosts and print.

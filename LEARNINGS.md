@@ -3369,3 +3369,36 @@ below short windows. The optional rule therefore targets its `::part(window)`,
 exported on the actual rendered frame in both rendering paths. Browser checks
 compare this shadow-bearing rectangle with the chrome canvas in grid and stretched
 flex layouts; consumer layout remains unchanged.
+
+
+## 2026-10-18 — cinf background pixels are samples, not tile origins
+
+TMPL 129 bytes 6/8 are the y/x coordinates of a source background-color pixel.
+kDEF 2.3.1 `0x10904..0x1091a` samples them into a background RGB; `0x109b2`
+passes it to RGBBackColor. The cached-color loader independently samples the
+same coordinates into cinf+20 at `0x117c0..0x117ce` (see
+`docs/spec/cinf-extended-decode.md`). The public `bgAnchor` name is historical;
+its type documentation must not call it a pattern origin.
+
+Windows 95 active/inactive face samples at [2,3] are #cacaca. The previous
+`textAnchor.x - 3` guess clamped to x=0 and sampled the white bevel instead.
+The pressed face samples [6,9], also #cacaca. Solid faces now use valid opaque
+authored samples. Pattern-backed faces retain their existing approximation,
+and masked samples retain the legacy fallback because the decoded RGBA raster
+has discarded the RGB under the mask. This is not complete pattern/label fidelity.
+
+The face and its metadata must travel together through state and base-theme
+fallbacks. Animals and Monkey Paradise resolve missing active faces to pressed
+-10238, but previously sliced that buffer with unrelated -10239 menu metadata.
+The same ownership rule now applies to bevel and list-header faces. No lookup
+priority or author-label filter changes are involved.
+
+A 216-render comparison (18 schemes × four push states × automatic/6/22 heights)
+found no geometry changes. Seven schemes changed pixels; System 7 and the other
+ten unchanged schemes stayed byte-identical. Seven diagnostic scenes changed
+only inside button faces/borders; eleven scenes stayed byte-identical. Focused
+browser checks independently sample the original Windows 95 pixels across push,
+bevel, and list states and exercise fallback/inherited face metadata. Separate
+DOM shell-style checks are necessary: canvas parity alone missed the unrelated
+optional-stylesheet shadow bug. Native select popups and consumer text fields
+remain native; default-ring geometry and patterned fills need separate evidence.

@@ -159,10 +159,9 @@ export interface ChromeElement {
    */
   bgPattern?: string | null;
   /**
-   * The cinf-declared `(x, y)` anchor for tiling this element's bgPattern (TMPL 129
-   * `bgPixel`). Tile origin offsets propagate when a scheme wants the ppat to align
-   * to a specific feature of the cicn (e.g. a list-header's column seam). Default
-   * is `(0, 0)` — that's what unconsumed callsites currently assume.
+   * The cinf-declared `(x, y)` source pixel used to sample the background RGB
+   * (TMPL 129 `bgPixel`; kDEF 0x10904 / 0x117c0). Despite the historical property
+   * name this is a color-sample coordinate, not a background-pattern tile origin.
    */
   bgAnchor?: [number, number] | null;
   /**

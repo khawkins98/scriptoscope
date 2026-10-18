@@ -1,4 +1,4 @@
-import type { LoadedTheme } from './types.js';
+import type { LoadedTheme, ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
 import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
@@ -66,12 +66,18 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * Asset filenames encode the id as `cicn-n8286-...` / `cicn--10240-...`;
  * control resources are all negative, so we match on the absolute value.
  */
-async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+interface ResolvedControlFace { buffer: PixelBuffer; element: ChromeElement; }
+
+async function loadFaceById(theme: LoadedTheme, id: number): Promise<ResolvedControlFace | null> {
   const hit = resolveInChain(theme, (t) => {
-    const el = elementById(t, id);
-    return el ? { theme: t, asset: el.asset } : null; // first theme in the chain that ships it
+    const element = elementById(t, id);
+    return element ? { theme: t, element } : null;
   });
-  return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
+  return hit ? { buffer: await loadCicnBuffer(assetUrl(hit.theme, hit.element.asset)), element: hit.element } : null;
+}
+
+async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
+  return (await loadFaceById(theme, id))?.buffer ?? null;
 }
 
 /**
@@ -197,13 +203,20 @@ export async function loadPushButtonFace(
   theme: LoadedTheme,
   state: keyof typeof PUSH_BUTTON_FACE_KEYS,
 ): Promise<PixelBuffer | null> {
+  return (await resolvePushButtonFace(theme, state))?.buffer ?? null;
+}
+
+async function resolvePushButtonFace(
+  theme: LoadedTheme,
+  state: keyof typeof PUSH_BUTTON_FACE_KEYS,
+): Promise<ResolvedControlFace | null> {
   const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
   // Resource ownership outranks lookup spelling: a child's canonical slot wins
   // over a named base resource. Within each owner, authored role names win.
   const found = resolveInChain(theme, (t) => {
     const ce = t.manifest.chromeElements ?? {};
     for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
-      if (ce[k]?.asset) return { theme: t, asset: ce[k]!.asset };
+      if (ce[k]?.asset) return { theme: t, element: ce[k]! };
     }
     // Reject repurposed id slots before considering the next base theme.
     const ces = t.manifest.chromeElements ?? {};
@@ -215,11 +228,11 @@ export async function loadPushButtonFace(
       // Fallback check: the friendly key. Only consulted when the bundle
       // ships no authorLabel (9 of 18 corpus bundles — kept for back-compat).
       if (!v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(k)) return null;
-      return { theme: t, asset: v.asset };
+      return { theme: t, element: v };
     }
     return null;
   });
-  return found ? loadCicnBuffer(assetUrl(found.theme, found.asset)) : null;
+  return found ? { buffer: await loadCicnBuffer(assetUrl(found.theme, found.element.asset)), element: found.element } : null;
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -989,9 +1002,9 @@ interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; f
  * corner = the cinf `cornerSize` (0x107fe), else a derived inset. Shared by
  * composeButton (which wraps a default ring around it) and composeBevelButton.
  */
-async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: number, opts: FaceOptions): Promise<PixelBuffer> {
+async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOptions): Promise<PixelBuffer> {
   const label = opts.label ?? '';
-  const faceEl = elementById(theme, faceId) ?? elementById(theme, 10239);
+  const { buffer: face, element: faceEl } = resolved;
   // The cinf carries TWO independent 9-slice insets:
   //   cornerSize / `slice.corner`  — horizontal corner block width (l/r)
   //   sideThickness / `slice.side` — vertical corner block height (t/b)
@@ -1002,12 +1015,21 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const fSide = faceEl?.slice?.side ?? fIns;
   const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
-  // Sample the interior FILL colour OFFSET from the marker (which often sits at
-  // [fIns,fIns]); sampling the marker would flood the flattened interior with the
-  // light label colour — a stripe across the button.
-  const ta = faceEl?.textAnchor;
-  const sx = ta ? Math.max(0, Math.min(face.width - 1, ta[0] - 3)) : fIns;
-  const sy = ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
+  // TMPL 129 bgPixel is a source RGB sample, not a tiling origin. kDEF
+  // 0x10904–0x1091a samples cinf+6/+8; 0x109b2 applies RGBBackColor.
+  // Keep the metadata attached to the actual resolved face (including state
+  // and base-theme fallbacks), never to the originally requested resource ID.
+  const bg = faceEl.bgAnchor;
+  const validBg = !faceEl.bgPattern && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
+    && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
+    && face.getPixel(bg[0], bg[1])[3] > 0;
+  // Pattern-backed faces require a separate pattern-fill path; retain their
+  // existing approximation instead of treating bgPixel as a solid fill. Masked pixels have lost their original RGB
+  // in the decoded raster, so retain the existing fallback for those and for
+  // legacy manifests without sample coordinates.
+  const ta = faceEl.textAnchor;
+  const sx = validBg ? bg[0] : ta ? Math.max(0, Math.min(face.width - 1, ta[0] - 3)) : fIns;
+  const sy = validBg ? bg[1] : ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
   const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
   const fg = opts.fg ?? (opts.disabled
@@ -1066,7 +1088,7 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // active-state slot was empty, and what the bundle author was clearly
   // aiming at (they shipped pressed + inactive + ring; the missing active
   // slot is a bundle-side gap, not a kDEF requirement to render menu wallpaper).
-  let face = await loadPushButtonFace(theme, state);
+  let face = await resolvePushButtonFace(theme, state);
   // AppearanceManager-style state-fallback chain (documented behaviour when a
   // state's slot is empty): active misses → try pressed; inactive misses → try
   // active (the convention; classic Mac drew the active art with a desaturated
@@ -1074,11 +1096,11 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   // active→pressed direction; the inactive→active case fell through to a raw
   // `loadById(theme, 10240)` which could return a misrouted cicn the anti-role
   // filter would have caught one layer up.
-  if (!face && state === 'active') face = await loadPushButtonFace(theme, 'pressed');
-  if (!face && state === 'inactive') face = await loadPushButtonFace(theme, 'active');
-  if (!face) face = (await loadById(theme, faceId)) ?? (await loadById(theme, 10239)); // last-resort id path
+  if (!face && state === 'active') face = await resolvePushButtonFace(theme, 'pressed');
+  if (!face && state === 'inactive') face = await resolvePushButtonFace(theme, 'active');
+  if (!face) face = (await loadFaceById(theme, faceId)) ?? (await loadFaceById(theme, 10239)); // last-resort id path
   if (!face) return null; // baseline path
-  const faceBuf = await composeFaceButton(theme, face, faceId, opts);
+  const faceBuf = await composeFaceButton(face, opts);
   // Probe the active ring REGARDLESS of `opts.default` so plain buttons reserve the same outer
   // footprint as defaults would. Classic Mac convention: all buttons in a dialog row share an outer
   // rect — the default's ring is drawn at those outer bounds; a plain button leaves the same area as
@@ -1159,16 +1181,15 @@ export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOp
   const stateOff = opts.pressed ? 0 : opts.disabled ? 2 : 1; // pressed · unpressed · inactive
   const reqId = sizeBase + valueOff + stateOff;
   const ids = [reqId, sizeBase + valueOff + 1, 10163];
-  let face: PixelBuffer | null = null;
-  let usedId = reqId;
-  for (const id of ids) { const f = await loadById(theme, id); if (f) { face = f; usedId = id; break; } }
+  let face: ResolvedControlFace | null = null;
+  for (const id of ids) { face = await loadFaceById(theme, id); if (face) break; }
   if (!face) return null; // → platinumBevelButton
   const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;
   if (opts.height != null) faceOpts.height = opts.height;
-  return composeFaceButton(theme, face, usedId, faceOpts);
+  return composeFaceButton(face, faceOpts);
 }
 
 export interface ListHeaderColumn { label: string; width: number; }
@@ -1182,7 +1203,7 @@ export interface ListHeaderOptions { columns?: ListHeaderColumn[]; height?: numb
  */
 export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
   const cellId = opts.inactive ? 9568 : 9567;
-  const cell = await loadById(theme, cellId);
+  const cell = await loadFaceById(theme, cellId);
   if (!cell) return null; // → platinumListHeader
   const cols = opts.columns ?? [{ label: 'Name', width: 140 }, { label: 'Size', width: 56 }, { label: 'Kind', width: 90 }];
   // List-header cells follow the same clamp rule as buttons — crayon-os ships
@@ -1190,12 +1211,12 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   // to ~70 px without the Apple-metric cap. `Math.max(16, …)` here is a floor
   // (the cicn can't shrink below a usable size); `resolveControlHeight` is the
   // CEILING (the cicn can't blow up beyond Apple's metric).
-  const H = Math.max(16, resolveControlHeight(cell, opts.height));
+  const H = Math.max(16, resolveControlHeight(cell.buffer, opts.height));
   const W = cols.reduce((a, c) => a + c.width, 0);
   const out = PixelBuffer.alloc(W, H);
   let x = 0;
   for (const c of cols) {
-    const cellBuf = await composeFaceButton(theme, cell, cellId, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 });
+    const cellBuf = await composeFaceButton(cell, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 });
     out.drawOver(cellBuf, x, 0);
     x += c.width;
   }
