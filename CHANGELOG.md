@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Preserve six original-environment control observations as quarantined partial
+  research, with native frames, fixture sources, external input/tool pins and
+  integrity checks. Palette/provider/font gaps remain open; reference intake
+  still has no admitted captures or approvals (#190).
+
 - Extend opt-in byte provenance to actual `ppat` catalog occurrences and preserve raw signed `cinf` body requests, including zero; no pattern-paint claim or rendering change (#260).
 
 - Clean installed-tarball consumer check: strict public declaration resolution,

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "scope": "included-file-integrity-only",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 12025,
+      "sha256": "87667f805ea178fff50506f00895bcc9a9928c3707f584e2c1e0bdbf706ce15a"
+    },
+    {
+      "path": "color-probes.json",
+      "bytes": 6353,
+      "sha256": "ba1362e13d74c7e90f5eb627a217d8212c8bc1ba424c241017c6473c245fc89d"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 13374,
+      "sha256": "2cd36b6710809b945d3de3deb65988972ef046a05bb02eb39f8be75e82f86347"
+    },
+    {
+      "path": "fixtures/v4.c",
+      "bytes": 3714,
+      "sha256": "cac6d5afc21fe2ce991969b08cf2c3598dde4359244ba0c206501b055730f654"
+    },
+    {
+      "path": "fixtures/v5.c",
+      "bytes": 3715,
+      "sha256": "8aa8a85f290131cac2c2a35f1990a87d0534cc7cb18b5a6eadf5d5a5ba3bd4ab"
+    },
+    {
+      "path": "images/face-color-v5-frame.png",
+      "bytes": 34828,
+      "sha256": "372973d3c8f960bea347b774c9c840bdb2be3f7ba2f1bc911a366a422cdca8f8"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-disabled-controlWithMargin.png",
+      "bytes": 372,
+      "sha256": "f41d3405cc60682c6d905a79f94121f4d15d46b35c611cfe6e73c0b9573f8ab1"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-disabled-frame.png",
+      "bytes": 33756,
+      "sha256": "7844b7ef7a2d6e5ab67106d1ec3bdcc4df21b9126d8f48148726e95df9859fa8"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-disabled-port.png",
+      "bytes": 764,
+      "sha256": "47a1fc16e5adcc482bc2d41522296a4589fb19efe86040fbd3130afe268aeab2"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-controlWithMargin.png",
+      "bytes": 439,
+      "sha256": "1e6b6db6b22382c04b4d2991681ebaeb5ff3b43d59d72faf87b86872d8fd129c"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-frame.png",
+      "bytes": 33802,
+      "sha256": "d9f88182b115e93fc9056f7dd178745e128aca311bd9ab2f95e45e4359540bba"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-port.png",
+      "bytes": 834,
+      "sha256": "03d8fca8474d15149e97d535a7ea3fee95301df90fb38017a9d7b1cff0f4fcff"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-pressed-controlWithMargin.png",
+      "bytes": 424,
+      "sha256": "ee7e8fc7afeba2405b5f90954933e50806ca248dacf86dcbc87edadee2f45ef5"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-pressed-frame.png",
+      "bytes": 33756,
+      "sha256": "c02e58b629bdeb1ef6eba25c9f3ff88562537b55b0c8edf3c43c81c11ca53220"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-pressed-port.png",
+      "bytes": 817,
+      "sha256": "fb64636dcdb2dba19ccd4137ca96c9e3c8663d5d86cb6afacae494cc592f192f"
+    },
+    {
+      "path": "images/transport-before-rejected.png",
+      "bytes": 13174,
+      "sha256": "1a52cf7d5a4c954e287717e49ef7fe5520335ddfdd7d7b7808b60d11903675d3"
+    },
+    {
+      "path": "images/windows-95-disabled-controlWithMargin.png",
+      "bytes": 296,
+      "sha256": "59fae4e09c05ecccb59b6b24330d4f036ceaaeaace5cfdb309da89f6ed190fd3"
+    },
+    {
+      "path": "images/windows-95-disabled-frame.png",
+      "bytes": 30919,
+      "sha256": "af61cc87de48bb7b56322f40474d035e182a455ef42a17fdfb1d6137aeff7ebe"
+    },
+    {
+      "path": "images/windows-95-disabled-port.png",
+      "bytes": 704,
+      "sha256": "2db1bebfc1cdcc9fc3a89599affc0477a7c42471e8c9314dce023f89301ac58e"
+    },
+    {
+      "path": "images/windows-95-normal-controlWithMargin.png",
+      "bytes": 296,
+      "sha256": "59fae4e09c05ecccb59b6b24330d4f036ceaaeaace5cfdb309da89f6ed190fd3"
+    },
+    {
+      "path": "images/windows-95-normal-frame.png",
+      "bytes": 30840,
+      "sha256": "e1deedca4b9acc6c84e6c2c8781b84dea9bf0f82697c07bd44c749e1786cbb35"
+    },
+    {
+      "path": "images/windows-95-normal-port.png",
+      "bytes": 704,
+      "sha256": "2db1bebfc1cdcc9fc3a89599affc0477a7c42471e8c9314dce023f89301ac58e"
+    },
+    {
+      "path": "images/windows-95-pressed-controlWithMargin.png",
+      "bytes": 416,
+      "sha256": "0249fa802ce9289a11fbcf2025e4f15297ae210d1161c37d2d0a78078920ad5f"
+    },
+    {
+      "path": "images/windows-95-pressed-frame.png",
+      "bytes": 30980,
+      "sha256": "c8b3468cb7c4bc5136dff6f2a6432c057e470ea3703b97c2c9549f293fbc53f0"
+    },
+    {
+      "path": "images/windows-95-pressed-port.png",
+      "bytes": 786,
+      "sha256": "878806009eec74176e253504f7de4df1a941951758c3d047ca8e63f459736a44"
+    },
+    {
+      "path": "observations.json",
+      "bytes": 16412,
+      "sha256": "9f04bf0f19b520e309567a3855775550465397d8a5931a0050df269646fa57df"
+    }
+  ]
+}

@@ -1,0 +1,528 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "purpose": "Preserve original-environment observations for research; no intake eligibility, fidelity acceptance, ledger or golden promotion.",
+  "authorityAtRecording": {
+    "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+    "path": "docs/spec/fidelity-compatibility-contract.md",
+    "version": "0.1.3",
+    "sha256": "9710bb906d402b9461d04bbbb406a8bf2a8c2d9a3128271e2d0add04c40346f2",
+    "requestCatalog": "tests/reference-captures/requests.json",
+    "requestVersion": "0.1.1"
+  },
+  "producer": "Codex resource_correctness_fixes agent (automated; not a human attestation)",
+  "review": null,
+  "observations": [
+    {
+      "id": "windows-95.normal",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "windows-95"
+        },
+        "observedArchiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+        "observedForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 0,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 0,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:01:39.270Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/windows-95-normal-frame.png",
+        "port": "images/windows-95-normal-port.png",
+        "controlWithMargin": "images/windows-95-normal-controlWithMargin.png"
+      },
+      "review": null
+    },
+    {
+      "id": "windows-95.pressed",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "windows-95"
+        },
+        "observedArchiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+        "observedForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 10,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 10,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:01:58.592Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/windows-95-pressed-frame.png",
+        "port": "images/windows-95-pressed-port.png",
+        "controlWithMargin": "images/windows-95-pressed-controlWithMargin.png"
+      },
+      "review": null
+    },
+    {
+      "id": "windows-95.disabled",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "windows-95"
+        },
+        "observedArchiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+        "observedForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 255,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 255,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:02:05.494Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/windows-95-disabled-frame.png",
+        "port": "images/windows-95-disabled-port.png",
+        "controlWithMargin": "images/windows-95-disabled-controlWithMargin.png"
+      },
+      "review": null
+    },
+    {
+      "id": "system7-nostalgia-silver.normal",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "system7-nostalgia-silver"
+        },
+        "observedArchiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+        "observedForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 0,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 0,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:03:09.998Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/system7-nostalgia-silver-normal-frame.png",
+        "port": "images/system7-nostalgia-silver-normal-port.png",
+        "controlWithMargin": "images/system7-nostalgia-silver-normal-controlWithMargin.png"
+      },
+      "review": null
+    },
+    {
+      "id": "system7-nostalgia-silver.pressed",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "system7-nostalgia-silver"
+        },
+        "observedArchiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+        "observedForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 10,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 10,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:03:17.769Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/system7-nostalgia-silver-pressed-frame.png",
+        "port": "images/system7-nostalgia-silver-pressed-port.png",
+        "controlWithMargin": "images/system7-nostalgia-silver-pressed-controlWithMargin.png"
+      },
+      "review": null
+    },
+    {
+      "id": "system7-nostalgia-silver.disabled",
+      "status": "QUARANTINED_PARTIAL",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "system7-nostalgia-silver"
+        },
+        "observedArchiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+        "observedForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "fixture": "v4",
+      "fixtureSource": "fixtures/v4.c",
+      "externalExecutableId": "fixture-v4-appl",
+      "invocation": {
+        "api": "NewControl",
+        "procId": 0,
+        "hilite": 255,
+        "defaultMechanism": "not requested; public default invocation unknown"
+      },
+      "observedTelemetry": {
+        "sysVersionHex": "755",
+        "machineGestalt": 36,
+        "guestDevicePixelSize": 8,
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "actualControlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "actualHilite": 255,
+        "emptyTitle": true,
+        "fontName": "Chicago",
+        "fontId": 0,
+        "fontSize": 12,
+        "fontAscent": 12,
+        "fontDescent": 3,
+        "fontLeading": 1,
+        "targetWindowActive": true
+      },
+      "capture": {
+        "at": "2026-10-18T14:03:27.707Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "viewport": [
+          1280,
+          577
+        ],
+        "method": "Original guest framebuffer via BasiliskII; RGBA channel order verified by original QuickDraw/GetCPixel primary-color sentinels; direct channel copy; canvas backing pixels exported without scaling; crops via getImageData, no resampling",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ]
+      },
+      "images": {
+        "frame": "images/system7-nostalgia-silver-disabled-frame.png",
+        "port": "images/system7-nostalgia-silver-disabled-port.png",
+        "controlWithMargin": "images/system7-nostalgia-silver-disabled-controlWithMargin.png"
+      },
+      "review": null
+    }
+  ],
+  "unknowns": [
+    "Exact palette/device color configuration and producer gray conversion mechanism",
+    "Exact font resource/version/payload, despite Chicago0 size12 observed metrics",
+    "Complete installed patch stack, base/provider chain and original Resource Manager search order",
+    "Public default-button invocation, inactive-window behavior and nonzero-origin invocation",
+    "Complete guest clean-shutdown status; later reboot showed improper-shutdown warning"
+  ]
+}
