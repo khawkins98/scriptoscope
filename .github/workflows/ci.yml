@@ -72,6 +72,11 @@ jobs:
       - name: Gates (typecheck + test + lint --strict + audit --check)
         run: npm run gates
 
+      # Install only the tarball into a separate consumer, typecheck its public
+      # exports, and exercise its production browser build with no source alias.
+      - name: Installed package consumer contract
+        run: npm run test:package
+
       # The immutable Linux image and exact Playwright package pin Chromium. Browser
       # coverage exercises real consumer DOM and the built public entry as well
       # as raw source pixels; gates alone cannot see CSS decoration regressions.

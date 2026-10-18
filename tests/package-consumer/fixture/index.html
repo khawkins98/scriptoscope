@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="icon" href="data:,">
+    <title>Packed Scriptoscope consumer</title>
+  </head>
+  <body>
+    <main id="consumer-root">
+      <article data-scriptoscope-window data-scriptoscope-title="Installed package" style="width:420px">
+        <form id="consumer-form">
+          <label for="consumer-check">Themed</label><input id="consumer-check" name="themed" type="checkbox" checked>
+          <label for="consumer-volume">Volume</label><input id="consumer-volume" name="volume" type="range" min="0" max="100" value="50">
+          <label for="consumer-format">Format</label><select id="consumer-format" name="format"><option value="sit">.sit</option><option value="hqx">.hqx</option></select>
+        </form>
+      </article>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
