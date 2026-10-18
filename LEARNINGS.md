@@ -4185,6 +4185,17 @@ literal coverage tests honest about that limit. Original typography, pattern
 phase and device transfer require separate evidence; see the CDEF 8 body spec.
 
 
+## 2026-10-18 — an expected tab entry is not an observed paint selection
+
+A test can pin the right archive and read the expected tab art while the compositor
+selects a different owner or occurrence. Report the actual resolved face from the
+compositor, join its per-load reference to the owning decoder occurrence, then
+compare independent input/payload pins. Parity alone cannot detect shared wrong
+selection. Body diagnostics likewise belong at the actual branch: a supported
+empty center is different from a solid sampled center, and unsupported pattern
+center falls through current compatibility policy. Keep background sample policy,
+band source evidence, retained API typography and historical lookup truth separate.
+
 ## 2026-10-18 — subtree discovery needs identities and timing, not only selectors
 
 `querySelectorAll` excludes its receiver, so an observer scanning added Elements

@@ -822,6 +822,8 @@ export async function composeDisclosure(
 
 export interface TabOptions {
   label?: string;
+  /** Opt-in actual selection/paint decisions; no historical typography claim. */
+  diagnostics?: ControlDiagnostics;
   /** The SELECTED tab uses the "front"/"on" cicn (taller, raised); an
    *  unselected tab uses the shorter "rear"/"off" cicn. */
   selected?: boolean;
@@ -841,10 +843,18 @@ export interface TabOptions {
  * (SSF/LSF front/rear tabs + tab pane). See docs/spec/kdef231-reference.md.
  */
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
+  return withControlDiagnostics(opts.diagnostics, 'tab', {
+    state: 'active', pressed: false, disabled: false, selected: !!opts.selected,
+  }, trace => composeTabWithTrace(theme, opts, trace));
+}
+
+async function composeTabWithTrace(theme: LoadedTheme, opts: TabOptions, trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
+  const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
   const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
   let face: ResolvedControlFace | null = null;
-  for (const id of ids) {
-    face = await loadFaceById(theme, id);
+  for (const [index, id] of ids.entries()) {
+    if (index > 0) traceFallback(trace, id, 'tab-small-to-large', lookup);
+    face = await loadFaceById(theme, id, trace, lookup);
     if (face) break;
   }
   if (!face) return null;
@@ -871,7 +881,7 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
   const tabEl = face.element;
   const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
   const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
-  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth));
+  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth), trace?.tabBody);
   if (body) {
     // Preserve the previous glyph size and vertical offset; source body height
     // is independent of that still-unverified typography policy.

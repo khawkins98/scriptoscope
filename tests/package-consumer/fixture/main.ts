@@ -1,4 +1,4 @@
-import { VERSION, loadKaleidoscopeScheme } from 'scriptoscope';
+import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -8,6 +8,12 @@ const inputs = [...root.querySelectorAll<HTMLInputElement | HTMLSelectElement>('
 const events: { type: string; value: string }[] = [];
 root.addEventListener('input', event => events.push({ type: event.type, value: (event.target as HTMLInputElement).value }));
 root.addEventListener('change', event => events.push({ type: event.type, value: (event.target as HTMLInputElement).value }));
+
+// Installed declaration graph must expose additive tab diagnostics without
+// resolving repository-only modules. The fixture does not change its UI.
+const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: TabBodyTrace | undefined = trace.tabBody; void body; } };
+const tabOptions: NonNullable<Parameters<typeof composeTab>[1]> = { selected: true, diagnostics: tabDiagnostics };
+void tabOptions;
 
 const consumer = {
   version: VERSION,

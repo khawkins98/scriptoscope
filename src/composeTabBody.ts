@@ -1,33 +1,43 @@
 import { PixelBuffer } from './pixelBuffer.js';
+import type { TabBodyTrace } from './controlDiagnostics.js';
 import type { ChromeElement } from './types.js';
 
 /** CDEF 8 0x16e, ordinary full-color masked body subset. Null explicitly retains
  * the legacy compositor when the needed cinf/sample/pattern contract is absent.
  * See docs/spec/tab-cdef8-body.md; this does not choose variants or lay out text. */
-export function composeTabBody(source: PixelBuffer, element: ChromeElement, width: number): PixelBuffer | null {
+export function composeTabBody(source: PixelBuffer, element: ChromeElement, width: number, observe?: (value: TabBodyTrace) => void): PixelBuffer | null {
+  const legacy = (reason: Extract<TabBodyTrace, { path: 'legacy-three-slice' }>['reason']): null => {
+    observe?.({ path: 'legacy-three-slice', basis: 'compatibility-policy', reason, sourceWidth: source.width, sourceHeight: source.height, requestedWidth: width });
+    return null;
+  };
   const slice = element.slice;
-  if (!slice) return null;
+  if (!slice) return legacy('missing-slice');
   const { corner: c, side: s } = slice;
   if (![c, s, width].every(Number.isInteger) || c < 0 || s < 0 ||
-      c * 2 >= source.width || s > source.height || width < c * 2) return null;
+      c * 2 >= source.width || s > source.height || width < c * 2) return legacy('invalid-slice-or-size');
   const hasCenter = width > c * 2 && source.height > s * 2;
   let background: readonly number[] | undefined;
+  let backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor' = 'none';
   if (hasCenter) {
     // Original tab painter loads a ppat only for nonzero cinf+4. This is not
     // push/bevel's mode-5 cicn branch, and its phase is not implemented here.
-    if (element.bodyRequest?.resourceId !== 0) return null;
+    if (element.bodyRequest?.resourceId !== 0) return legacy(!element.bodyRequest ? 'missing-body-request'
+      : !Number.isInteger(element.bodyRequest.resourceId) || element.bodyRequest.resourceId < -32768 || element.bodyRequest.resourceId > 32767
+        ? 'invalid-body-request' : 'pattern-center');
     const samples = element.colorSamples;
     if (samples?.model === 'kdef-2.3.1-color' && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte') {
       background = samples.background?.displayRgb;
+      if (background) backgroundPolicy = 'raw-sample';
     }
     if (!background) {
       const anchor = element.bgAnchor;
       if (!anchor || !anchor.every(Number.isInteger) || anchor[0] < 0 || anchor[1] < 0 ||
-          anchor[0] >= source.width || anchor[1] >= source.height) return null;
+          anchor[0] >= source.width || anchor[1] >= source.height) return legacy('missing-or-invalid-background-anchor');
       const pixel = source.getPixel(anchor[0], anchor[1]);
       // Canvas transport loses hidden RGB; do not invent a color for mask holes.
-      if (pixel[3] !== 255) return null;
+      if (pixel[3] !== 255) return legacy('masked-background');
       background = pixel;
+      backgroundPolicy = 'decoded-anchor';
     }
   }
   const out = PixelBuffer.alloc(width, source.height);
@@ -51,5 +61,7 @@ export function composeTabBody(source: PixelBuffer, element: ChromeElement, widt
   // solid centers use the independently sampled background (0x56c..0x600).
   if (hasCenter && background) out.fillRect({ x: c, y: s, w: width - 2 * c, h: source.height - 2 * s },
     background[0]!, background[1]!, background[2]!);
+  observe?.({ path: 'source-bands', basis: 'source-dispatch', center: hasCenter ? 'solid' : 'empty', backgroundPolicy,
+    sourceWidth: source.width, sourceHeight: source.height, requestedWidth: width, corner: c, side: s, tile: !!slice.tile });
   return out;
 }
