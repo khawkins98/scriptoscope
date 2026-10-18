@@ -3976,3 +3976,26 @@ observe the actual selected authored object, compare exact-key pixels/geometry,
 and exercise collapse/expand; they establish alias consistency, not historical
 fidelity or original Resource Manager base order. Raw IDs also normalize the
 existing utility/title/background predicates without weakening exact selection.
+
+## 2026-10-18 — Original screenshots need an independently checked transport
+
+The first isolated System 7.5.5 / Kaleidoscope 2.3.1 experiment showed a maroon
+Windows 95 title and yellow desktop. Original QuickDraw RGBForeColor/PaintRect
+sentinels and GetCPixel proved the worker already supplied RGBA; the private
+external browser glue swapped red and blue a second time. Correcting that glue
+was necessary before preserving color observations. It was not a Scriptoscope
+renderer fix.
+
+A separate native fixture then measured face/edge RGB16 values 0xCCCC/0x8888
+while the raw producer and corrected canvas contained 218/165. Primaries alone
+therefore did not certify the device's gray conversion. Guest depth 8, transport
+RGBA32 and browser canvas bytes describe different boundaries. No gamma formula
+or acceptance tolerance follows without further device/palette evidence.
+
+The [quarantined observations](docs/research/original-observations/2026-10-18/README.md)
+preserve six actual native states, full frames and our fixture sources. Their
+mechanical integrity checks do not supply missing palette, font or provider
+conditions and cannot approve the reference intake. Automated agent inspections
+are not human attestations. Preserve independently versioned evidence when
+changing probes; a later source file must not invalidate the earlier capture's
+hash binding.

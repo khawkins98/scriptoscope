@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "transport": {
+    "fixture": "v4",
+    "source": "fixtures/v4.c",
+    "externalExecutableId": "fixture-v4-appl",
+    "beforeFrame": "images/transport-before-rejected.png",
+    "beforeFrameStatus": "REJECTED_COLOR_TRANSPORT",
+    "beforeFrameDerivation": {
+      "externalPagePngSha256": "b94be08ced9d6c8272f2dd5c3fc215d1df29be9588785e3c7a9ddf6ffa999884",
+      "pageSize": [
+        1280,
+        577
+      ],
+      "nativeCanvasRect": [
+        8,
+        8,
+        640,
+        480
+      ],
+      "operation": "Integer rectangle extraction only; no scaling or channel/color conversion"
+    },
+    "afterFrame": "images/windows-95-normal-frame.png",
+    "guestGetCPixelRGB16": [
+      [
+        65535,
+        0,
+        0
+      ],
+      [
+        0,
+        65535,
+        0
+      ],
+      [
+        0,
+        0,
+        65535
+      ]
+    ],
+    "beforeRawAndCanvas": [
+      {
+        "canvas": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "raw": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "x": 470,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "x": 502,
+        "y": 430
+      },
+      {
+        "canvas": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "x": 534,
+        "y": 430
+      },
+      {
+        "canvas": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "raw": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "x": 566,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "x": 598,
+        "y": 430
+      }
+    ],
+    "afterRawAndCanvas": [
+      {
+        "canvas": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "x": 470,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "x": 502,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "x": 534,
+        "y": 430
+      },
+      {
+        "canvas": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "raw": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "x": 566,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "x": 598,
+        "y": 430
+      }
+    ],
+    "system7RawAndCanvas": [
+      {
+        "canvas": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "x": 470,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "x": 502,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "x": 534,
+        "y": 430
+      },
+      {
+        "canvas": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "raw": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "x": 566,
+        "y": 430
+      },
+      {
+        "canvas": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "raw": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "x": 598,
+        "y": 430
+      }
+    ],
+    "glueBeforeExternalId": "capture-glue-before",
+    "glueAfterExternalId": "capture-glue",
+    "conclusion": "Worker bytes already RGBA. Private browser glue incorrectly swapped R/B; corrected copy preserves R/G/B, writes alpha255. Primary/white/black samples establish channel order only."
+  },
+  "deviceGray": {
+    "fixture": "v5",
+    "source": "fixtures/v5.c",
+    "externalExecutableId": "fixture-v5-appl",
+    "frame": "images/face-color-v5-frame.png",
+    "theme": "windows-95",
+    "hilite": 0,
+    "guestDepth": 8,
+    "portGlobalOrigin": [
+      80,
+      90
+    ],
+    "samples": [
+      {
+        "port": [
+          60,
+          30
+        ],
+        "framebuffer": [
+          140,
+          120
+        ],
+        "guestGetCPixelRGB16": [
+          52428,
+          52428,
+          52428
+        ],
+        "rawProducerRGBA": [
+          218,
+          218,
+          218,
+          255
+        ],
+        "correctedCanvasRGBA": [
+          218,
+          218,
+          218,
+          255
+        ]
+      },
+      {
+        "port": [
+          60,
+          38
+        ],
+        "framebuffer": [
+          140,
+          128
+        ],
+        "guestGetCPixelRGB16": [
+          34952,
+          34952,
+          34952
+        ],
+        "rawProducerRGBA": [
+          165,
+          165,
+          165,
+          255
+        ],
+        "correctedCanvasRGBA": [
+          165,
+          165,
+          165,
+          255
+        ]
+      }
+    ],
+    "conclusion": "Guest values204/136 differ from raw producer218/165; remaining conversion occurs before browser copy. No gamma formula, tolerance or palette fidelity is inferred."
+  },
+  "limits": [
+    "Entire raw shared framebuffer was not retained or hashed; only recorded sample bytes and PNG outputs are available.",
+    "Earlier incorrect-color images are excluded from six corrected observations. The one rejected proof is never an intake candidate.",
+    "No Scriptoscope rendering/comparison or acceptance baseline is included."
+  ]
+}

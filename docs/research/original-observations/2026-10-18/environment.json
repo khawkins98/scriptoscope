@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "externalAssets": [
+    {
+      "id": "system755.dsk",
+      "label": "system755.dsk",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "original-input",
+      "bytes": 25165824,
+      "sha256": "fee96c57d038251c497594a1e7f41ac3c44f9bcaa9db7e17ddc95dbf74e12ee0",
+      "preservation": "Original and private preserved copy rehashed unchanged after capture"
+    },
+    {
+      "id": "Quadra-650.rom",
+      "label": "Quadra-650.rom",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "original-input",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca",
+      "preservation": "Original and private preserved copy rehashed unchanged after capture"
+    },
+    {
+      "id": "BasiliskII.js",
+      "label": "BasiliskII.js",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "original-input",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b",
+      "preservation": "Original and private preserved copy rehashed unchanged after capture"
+    },
+    {
+      "id": "BasiliskII.wasm",
+      "label": "BasiliskII.wasm",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "original-input",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb",
+      "preservation": "Original and private preserved copy rehashed unchanged after capture"
+    },
+    {
+      "id": "Kaleidoscope231US.bin",
+      "label": "Kaleidoscope231US.bin",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "original-input",
+      "bytes": 1908736,
+      "sha256": "4173477d60f3081e03e4b18bd1cf17da16ad5381315ff04d8f51e8bb4cb7012a",
+      "preservation": "Original and private preserved copy rehashed unchanged after capture"
+    },
+    {
+      "id": "fixture-v4-appl",
+      "label": "SingleControlProbe-v4 MacBinary APPL with SIZE",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "compiled-fixture",
+      "bytes": 59648,
+      "sha256": "cb4aad87ed833743f4ce4364d11c75880dd998b36e54130315989ccc6819c620",
+      "source": "fixtures/v4.c"
+    },
+    {
+      "id": "fixture-v5-appl",
+      "label": "SingleControlProbe-v5 MacBinary APPL with SIZE",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "compiled-fixture",
+      "bytes": 59648,
+      "sha256": "7940357c5a1d7e9f3497cb31dc883e3169b8d054c62e8a340394f9459a038138",
+      "source": "fixtures/v5.c"
+    },
+    {
+      "id": "compiler-Elf2Mac.mjs",
+      "label": "Elf2Mac.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 81742,
+      "sha256": "253b7349206b5e1e4f953a557441b1d03d70a03c6265f28e96433e661f70515a"
+    },
+    {
+      "id": "compiler-Elf2Mac.wasm",
+      "label": "Elf2Mac.wasm",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 285311,
+      "sha256": "0c36a11182ff9e6f9a5cae5f9f5cb520ebf25fea456a6c3455d6352b84eabbd3"
+    },
+    {
+      "id": "compiler-as.mjs",
+      "label": "as.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 83158,
+      "sha256": "aaed465c013e5e6218d50323c78ff1d22649831b39d4826affb0a9961ff23ecc"
+    },
+    {
+      "id": "compiler-as.wasm",
+      "label": "as.wasm",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 782011,
+      "sha256": "4054a28e99095331bdeb4f391da3db0a5d95905997e20fdea72a49093319f506"
+    },
+    {
+      "id": "compiler-cc1.mjs",
+      "label": "cc1.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 150116,
+      "sha256": "dbebdb0d2d86ab4cd81d5fc40a350040a047f575d3848332b040a05e014ede30"
+    },
+    {
+      "id": "compiler-cc1.wasm",
+      "label": "cc1.wasm",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 12689356,
+      "sha256": "39ad0f27aa171f3fd627eded7df1387974c97570356f360271bebd2ce67b7603"
+    },
+    {
+      "id": "compiler-ld.mjs",
+      "label": "ld.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 82064,
+      "sha256": "5206aaa28a421ecdd3171a57a29791f65c569dc90bd3c1d52758d640be46503b"
+    },
+    {
+      "id": "compiler-ld.wasm",
+      "label": "ld.wasm",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 1030482,
+      "sha256": "295a2c9be53dbcfca9dc46fb70957d7440bdd0d2a173ae3f87983073fed297c8"
+    },
+    {
+      "id": "compiler-sysroot-libs.bin",
+      "label": "sysroot-libs.bin",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 7900742,
+      "sha256": "131b203b18f4dda1db10f740633dac37c758c394ea3ce553cefd664f437fd911"
+    },
+    {
+      "id": "compiler-sysroot-libs.index.json",
+      "label": "sysroot-libs.index.json",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 510,
+      "sha256": "fea708ea84886e648e06b0cabc720283984ec40eff4992c5282b9c740061e384"
+    },
+    {
+      "id": "compiler-sysroot.bin",
+      "label": "sysroot.bin",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 1140785,
+      "sha256": "232cdd0f84843f5d9ef2a33dd688615d4469a15b9537c5199ad4f747a46198a1"
+    },
+    {
+      "id": "compiler-sysroot.index.json",
+      "label": "sysroot.index.json",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 10812,
+      "sha256": "ebfe5d88f798e9630d3d810143ffd5d31418c1a2bc4c825ecdb951630230866c"
+    },
+    {
+      "id": "compile-cli",
+      "label": "compile-c-cli.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 10357,
+      "sha256": "3ead015858925d69397672af98fa3cc1990895fac2e07edd17858e3655633890"
+    },
+    {
+      "id": "capture-exporter",
+      "label": "capture.mjs",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 3111,
+      "sha256": "52e8ad71c13c02c19d39b3795e731058af82fd071bbaded2b61ad9a3a8934342"
+    },
+    {
+      "id": "capture-glue",
+      "label": "private reference.ts RGBA copy",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 1947,
+      "sha256": "41cffc1c7a3c1c55b211b1d859b1b1fe76462fa41d7bf35be7c933682df95875"
+    },
+    {
+      "id": "capture-glue-before",
+      "label": "private reference.ts incorrect R/B swap",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 1947,
+      "sha256": "e664015a10e5206d81b0c9a085b33ee07bae634482235dcc09580ccbcaa94006"
+    },
+    {
+      "id": "private-worker",
+      "label": "private emulator-worker.ts",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 37925,
+      "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+    },
+    {
+      "id": "private-input",
+      "label": "emulator-input.ts",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "id": "private-server",
+      "label": "private fixed-disk Vite middleware",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 1521,
+      "sha256": "e5d741b05e03f94aa53497d1fc1964ed170feb8dfc41e1ab6b0e52ec3e2fc90c"
+    },
+    {
+      "id": "hfs-source",
+      "label": "hfsutils3.2.6 source archive",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 207697,
+      "sha256": "bc9d22d6d252b920ec9cdf18e00b7655a6189b3f34f42e58d5bb152957289840"
+    },
+    {
+      "id": "private-hmount",
+      "label": "hmount built with private hcwd state path",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 183048,
+      "sha256": "02ba874451bf1fa5abe1dfcc6eaaf4b3df151c27066a784994b882bcac817390"
+    },
+    {
+      "id": "private-hcopy",
+      "label": "hcopy built with private hcwd state path",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 183048,
+      "sha256": "02ba874451bf1fa5abe1dfcc6eaaf4b3df151c27066a784994b882bcac817390"
+    },
+    {
+      "id": "private-humount",
+      "label": "humount built with private hcwd state path",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "tool",
+      "bytes": 183048,
+      "sha256": "02ba874451bf1fa5abe1dfcc6eaaf4b3df151c27066a784994b882bcac817390"
+    },
+    {
+      "id": "installed-control-panel",
+      "label": "Installed Kaleidoscope2.3.1 Control Panel MacBinary",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "external-tool-or-installation",
+      "bytes": 1005696,
+      "sha256": "0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091"
+    },
+    {
+      "id": "app-size-splicer",
+      "label": "External build.ts app SIZE resource splicer",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "kind": "external-tool-or-installation",
+      "bytes": 10170,
+      "sha256": "fe114135664ad614ed70eedd02b3445493ce294effb6e638734a0cbc8e2c5791"
+    }
+  ],
+  "originalEnvironment": {
+    "osObserved": "System7.5.5 (Gestalt sysv0x755)",
+    "engineObserved": "Kaleidoscope2.3.1 custom installation: Control Panel and Kaleidoscope extension",
+    "installedComponents": [
+      {
+        "type": "PACH",
+        "id": 130,
+        "bytes": 87914,
+        "sha256": "bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44"
+      },
+      {
+        "type": "PACH",
+        "id": 131,
+        "bytes": 145320,
+        "sha256": "465b312d14eca52ed9e3164caceb7759272613a862b0d4fb8dcee8c0da82fd7c"
+      },
+      {
+        "type": "kDEF",
+        "id": 0,
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+      },
+      {
+        "type": "kDEF",
+        "id": 1,
+        "bytes": 175572,
+        "sha256": "32ed7af07c92e343f4e5ba52a54da601be80d4956e3a5b49b980035ce1b94db5"
+      }
+    ],
+    "componentInspection": {
+      "reviewer": "root Codex agent (automated independent static inspection; not a human attestation)",
+      "at": "2026-10-18T13:54:28.507937+00:00",
+      "method": "Independent Python struct-based MacBinary/resource-map inspection, no project parser and no original code execution in this review",
+      "limits": [
+        "Component identity and original-file preservation only.",
+        "No original capture eligibility, full installation/patch stack, resource search policy or renderer fidelity approved."
+      ]
+    },
+    "guestDepth": 8,
+    "cpu": 4,
+    "modelid": 30,
+    "machineGestalt": 36,
+    "ramMiB": 64,
+    "jit": false,
+    "framebuffer": [
+      640,
+      480
+    ],
+    "hostBrowser": "HeadlessChrome153.0.0.0; canvas backing dimensions640\u00d7480, CSS1:1, DPR1",
+    "guestPalette": null,
+    "fontPayload": null,
+    "providerChain": null
+  },
+  "externalToolSources": [
+    {
+      "repository": "https://github.com/khawkins98/classic-vibe-mac",
+      "commit": "0b7a51a8b2c2fc2eda4f21a56483e210744ca7d8",
+      "licenseInspected": "GPL-3.0; no source copied into this research package",
+      "notes": "Copied private worker was modified only externally for fixed copied-disk I/O; exact observed bytes pinned above.",
+      "upstreamPaths": [
+        "src/web/src/emulator-worker.ts",
+        "src/web/src/emulator-input.ts",
+        "src/web/src/playground/build.ts",
+        "src/web/public/emulator/BasiliskII.js",
+        "src/web/public/emulator/BasiliskII.wasm",
+        "src/web/public/wasm-cc1/"
+      ]
+    },
+    {
+      "repository": "https://github.com/khawkins98/wasm-retro-cc",
+      "commit": "add07be3ea5ab8e888af2a7525b6e0e31157d484",
+      "notes": "Compiler driver and tool bundle remain external; exact used bytes pinned, checkout commit alone does not replace file hashes.",
+      "upstreamPaths": [
+        "scripts/compile-c-cli.mjs",
+        "scripts/build-show-asm-bundle.mjs",
+        "dist/show-asm/ (generated tool bundle)"
+      ]
+    },
+    {
+      "url": "https://ftp.osuosl.org/pub/clfs/conglomeration/hfsutils/hfsutils-3.2.6.tar.gz",
+      "notes": "Private build hardcodes separate hcwd state directory; never uses shared user state."
+    }
+  ],
+  "compilerInvocation": {
+    "cc1": [
+      "-quiet",
+      "-isystem",
+      "/sysroot/gcc-include",
+      "-isystem",
+      "/sysroot/include",
+      "-mcpu=68020",
+      "-O0"
+    ],
+    "assembler": [
+      "-march=68020"
+    ],
+    "linkerScript": "retro68-multiseg.ld",
+    "libraries": [
+      "start.c.obj",
+      "libretrocrt.a",
+      "libInterface.a",
+      "libc.a",
+      "libm.a",
+      "libgcc.a"
+    ],
+    "output": "Elf2Mac MacBinary II APPL, then external build.ts spliceResourceFork(makeRetro68DefaultSizeFork())",
+    "sizeResource": {
+      "type": "SIZE",
+      "id": -1,
+      "payloadHex": "00800010000000100000",
+      "preferredBytes": 1048576,
+      "minimumBytes": 1048576
+    },
+    "sourceBasenames": {
+      "v4": "SingleControlProbe.c",
+      "v5": "SingleControlProbe-v5.c"
+    }
+  },
+  "limits": [
+    "External hashes identify private inputs, not redistribution permission or supplied binaries.",
+    "No original OS/ROM/engine/compiler/compiled-app binary is included.",
+    "Inspection receipts are automated agent observations, not authenticated human approval."
+  ]
+}
