@@ -1,6 +1,10 @@
+import { onAssetUrlReleased } from '../tools/theme-loader/assetLifecycle.js';
 import { PixelBuffer } from './pixelBuffer.js';
 
 const cache = new Map<string, Promise<PixelBuffer>>();
+// A pending decode may still finish for its caller, but it must not keep a
+// disposed theme alive in this shared cache. Completion never reinserts it.
+onAssetUrlReleased((url) => { cache.delete(url); });
 
 /**
  * Load a cicn PNG into a PixelBuffer. Canvas is used ONLY to decode the
