@@ -6,7 +6,7 @@ import { readContract, knownImages, captureTemplate, assessCorpus, markdownRepor
 const args = process.argv.slice(2);
 const value = flag => { const i = args.indexOf(flag); if (i < 0) return undefined; if (!args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`${flag} requires a value`); return args[i + 1]; };
 for (let i = 0; i < args.length; i++) {
-  if (!['--captures', '--reviews', '--output', '--template'].includes(args[i])) throw new Error(`Unknown argument: ${args[i]}`);
+  if (!['--captures', '--reviews', '--output', '--template', '--scope'].includes(args[i])) throw new Error(`Unknown argument: ${args[i]}`);
   i++;
 }
 const contract = readContract();
@@ -14,8 +14,9 @@ const templateId = value('--template');
 if (templateId) {
   const request = contract.requests.find(r => r.id === templateId);
   if (!request) throw new Error(`Unknown request: ${templateId}`);
-  console.log(JSON.stringify({ schemaVersion: 1, captures: [captureTemplate(request)] }, null, 2));
+  console.log(JSON.stringify({ schemaVersion: 1, captures: [captureTemplate(request, { scope: value('--scope') })] }, null, 2));
 } else {
+  if (value('--scope')) throw new Error('--scope requires --template');
   const capturesPath = resolve(value('--captures') ?? resolve(repositoryRoot, 'tests/reference-captures/captures.json'));
   // Reviews are maintained separately. Submitting an intake never creates or approves one.
   const reviewsPath = resolve(value('--reviews') ?? resolve(repositoryRoot, 'tests/reference-captures/reviews.json'));

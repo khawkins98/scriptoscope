@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "requestVersion": "0.1.1",
+  "requestVersion": "0.2.0",
   "status": "provisional-capture-inputs",
   "contractId": "scriptoscope.kaleidoscope-2.3.1",
   "contractVersion": "0.1.9",

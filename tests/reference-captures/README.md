@@ -1,4 +1,4 @@
-# Independent reference capture intake (request draft 0.1.1)
+# Independent reference capture intake (request draft 0.2.0)
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
@@ -96,12 +96,13 @@ requested bytes; they do **not** approve historical Resource Manager selection o
 which provider owned each resource. The known kDEF0 2.3.1 hash identifies one
 component, not a full engine installation, PACH stack or original OS.
 
-## Unknown original conditions must be supplied
+## Full-admission original conditions must be supplied
 
 The templates leave OS, installation, patches, bases, original provider search
 order, font, palette and capture pipeline **null**. No Mac OS version, base theme,
 Charcoal/Virtue substitution, palette or patch configuration is silently assumed.
-A capture becomes eligible for independent review only after its producer records:
+Under the default/full-admission path, a capture becomes eligible for independent
+review only after its producer records:
 
 - Exact source archive/entry/fork and pinned engine component; full original OS
   and Kaleidoscope installation names, versions and artifact SHA-256 identities.
@@ -129,6 +130,26 @@ but remains **partial**, with the missing fields named. An experiment in a
 different environment may be retained as non-independent/qualitative material;
 it cannot silently satisfy this version-matched request.
 
+## Narrow public-API face scope
+
+An explicit version 1 `public-api-empty-face` scope is available only for
+`windows-95.normal` and `system7-nostalgia-silver.normal`. It covers the entire
+fixed 80×20 empty normal face as **composited pixels under recorded conditions**.
+It preserves the full 160×80 request image, 96×36 context and original full frame;
+it cannot certify alpha/masks, fonts, automatic size, other states, rings or
+private provider/painter selection.
+
+Unknown font/patch/base/provider/cache fields may remain explicitly null with
+reasons, while relevant installation, configured scheme, public invocation,
+port/clip/background, indexed palette and producer evidence remain mandatory.
+The capture/review bind the exact scope/version/exclusions. An eligible reviewed
+record is a `reviewed-scoped-observation`; the whole request stays
+`evidence-incomplete`, and all five requirement IDs remain unresolved.
+Associated geometry/fill IDs are not whole requirements verified by one image.
+See the [scoped observation contract](../../docs/spec/scoped-reference-observations.md)
+for fields, artifacts and limits. Omitted scope or explicit `full` keeps every
+old strict gate; no actual observations are admitted by this implementation.
+
 ## Intake and review
 
 ```sh
@@ -137,6 +158,10 @@ npm run test:references
 
 # Write a request template; no image or approval is generated.
 node tests/reference-captures/run.mjs --template windows-95.normal > /tmp/intake.json
+
+# Optional narrow unapproved template; exact face/full context remain mandatory.
+node tests/reference-captures/run.mjs --template windows-95.normal \
+  --scope public-api-empty-face > /tmp/scoped-intake.json
 
 # After external evidence exists, validate it against separately reviewed records.
 node tests/reference-captures/run.mjs --captures /path/to/intake.json \
@@ -175,8 +200,10 @@ intake **never changes ledger statuses** and does not compare renderer output.
 ## Evidence categories and failure cases
 
 `independent-original` records progress through partial, rejected,
-awaiting-independent-review or reviewed-independent-capture. Each request remains
-missing/evidence-incomplete until an eligible reviewed capture exists. Unknown
+awaiting-independent-review or reviewed-independent-capture on the full path, or reviewed-scoped-observation
+on the explicit narrow path. Each request remains
+missing/evidence-incomplete until an eligible full-scope reviewed capture exists; scoped observations appear
+separately and leave all broader obligations unresolved. Unknown
 request environment slots stay visible even when a particular observation fills
 them; accepting that observation does not establish a historical default.
 

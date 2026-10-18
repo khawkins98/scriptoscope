@@ -9,6 +9,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Add a narrow versioned reference-review scope for the two fixed empty normal
+  Windows 95/System 7 faces. Preserve full context, palette/producer and public
+  invocation evidence; report scoped observations separately with every broader
+  requirement unresolved. Existing full/default-ring/Crayon gates and the empty
+  capture corpus remain unchanged (#190).
+
 - Add explicit finite display profiles shared by raw theme conversion, browser
   loading and declarative mounts. Preserve exact RGB16 through one joint device
   mapping/producer stage, reject missing mappings before asset allocation, and
