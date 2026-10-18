@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Reusable public-runtime control matrix with bounded and extended option cases,
+  raw-art references, promoted DOM/style metadata, and grid/flex window fixtures
+  for source-backed assertions and reviewed contact sheets (refs #213).
+
 - Explicit `ThemeEntry.meta` support for catalogs carrying a complete provenance
   sidecar; picker display labels no longer substitute for origin/license metadata.
   ([#198](https://github.com/khawkins98/scriptoscope/pull/198))

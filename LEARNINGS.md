@@ -3402,3 +3402,21 @@ bevel, and list states and exercise fallback/inherited face metadata. Separate
 DOM shell-style checks are necessary: canvas parity alone missed the unrelated
 optional-stylesheet shadow bug. Native select popups and consumer text fields
 remain native; default-ring geometry and patterned fills need separate evidence.
+
+### 2026-10-18 — Control matrices must observe the consumer surface as well as pixels
+
+A canvas can have the correct buffer while the promoted wrapper inherits an
+unwanted window shadow. A window host can also stretch under grid/flex while its
+painted chrome retains a smaller size. Record the host, shadow-bearing part, canvas
+and control rectangles/styles separately, including real declarative and imperative
+paths. Source-vs-built pixel parity alone cannot prove either consumer behavior or
+original fidelity.
+
+The reusable control matrix calls public APIs from shared case data and supplies
+raw decoded resource candidates alongside output. A candidate is provenance, not
+a copied role resolver or a blessed expected render. Keep explicit tiny sizing
+(which can intentionally clip labels) separate from automatic sizing. Name omitted
+axes: native-sized controls have no width/height option, the declarative scanner
+has no scale attribute, and a control matrix is not exhaustive window coverage.
+Pin source-art display zoom and fonts for review sheets; updating self-goldens
+creates review candidates, never evidence that current renderer output is correct.
