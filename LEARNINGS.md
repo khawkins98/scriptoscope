@@ -3678,3 +3678,32 @@ and push-labelled same-ID cinf further demonstrate that names motivate our
 compatibility policy without proving original dispatch intent. Actual resolution
 traces still lack decoder fork/payload provenance, so availability reports retain
 that gap rather than claiming the expected source hash authenticates decoding.
+
+### 2026-10-18 — Native range semantics belong to the native input
+
+The previous promoted range hid its native input from focus/AT and recreated a
+percentage slider. A real Chromium ArrowRight comparison exposed `step=1` moving
+50 → 55 instead of 51, fractional 0.3 → 0 instead of 0.4, numeric 10..20 reported
+as 0..100, and operable disabled inputs (including disabled fieldsets). Readability and listener
+cleanup tests did not establish native input semantics.
+
+Keep the original input as the sole keyboard/AT control and the canvas decorative.
+This reuses platform step=any/Home/End/Page keys, labels, numeric accessibility and
+fieldset/first-legend rules without copying one browser's keyboard policy. The
+existing authored-coordinate pointer surface feeds native valueAsNumber, whose
+sanitizer owns step alignment; do not round to integers first. Native Chromium
+comparison showed input during changed pointer moves, one change on release if
+final differs from start, and no change after a round-trip drag. Keyboard input
+and change happen on each changed keydown/repeat there, not keyup; native routing
+also preserves another browser's own timing.
+
+Observe attribute/fieldset changes and form reset with face-owned cleanup. A bare
+.value property assignment has no native event; consumers dispatch input/change
+for immediate canvas refresh rather than letting the runtime replace property
+descriptors. Initial rendering fixtures should remain unchanged; test the actual
+native keyboard surface and pointer event/form/disabled behavior independently.
+
+This range constraint fix preserves the existing full-canvas pointer mapping.
+Independent no-movement thumb clicks still shift values near the ends; shared
+thumb-center travel and grab-offset correction are tracked separately in #244.
+Native constraint/event correctness is not proof of pointer geometry fidelity.

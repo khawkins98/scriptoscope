@@ -373,6 +373,7 @@ async function buildDraggable(
   scale: number,
   compose: (value: number, state: ControlState) => Promise<PixelBuffer | null> | PixelBuffer,
   onChange?: (value: number) => void,
+  native?: { input: HTMLInputElement; active(): boolean },
 ): Promise<void> {
   let value = clamp01(initial);
   let dragging = false;
@@ -386,11 +387,14 @@ async function buildDraggable(
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
   });
-  el.setAttribute('role', 'slider');
-  el.setAttribute('aria-orientation', orientation);
-  el.setAttribute('aria-valuemin', '0');
-  el.setAttribute('aria-valuemax', '100');
-  el.tabIndex = 0;
+  if (native) el.setAttribute('aria-hidden', 'true');
+  else {
+    el.setAttribute('role', 'slider');
+    el.setAttribute('aria-orientation', orientation);
+    el.setAttribute('aria-valuemin', '0');
+    el.setAttribute('aria-valuemax', '100');
+    el.tabIndex = 0;
+  }
   Object.assign(el.style, {
     display: 'inline-block', lineHeight: '0', userSelect: 'none',
     touchAction: 'none', cursor: 'pointer', outlineOffset: '2px',
@@ -401,18 +405,22 @@ async function buildDraggable(
     alignSelf: 'start', verticalAlign: 'middle',
   } satisfies Partial<CSSStyleDeclaration>);
 
+  const disabled = (): boolean => native?.input.matches(':disabled') ?? false;
+  const live = (): boolean => !events.signal.aborted && (!native || native.active());
+  let dragStart = '';
+  let pointerId = 0;
   const repaint = async (): Promise<void> => {
     if (events.signal.aborted) return;
     const version = ++paintVersion;
     let buf: PixelBuffer | null;
-    try { buf = await compose(value, dragging ? 'pressed' : 'normal'); }
+    try { buf = await compose(value, disabled() ? 'disabled' : dragging ? 'pressed' : 'normal'); }
     catch (error) {
       if (events.signal.aborted || version !== paintVersion) return;
       throw error;
     }
     if (events.signal.aborted || version !== paintVersion) return;
     if (buf) el.replaceChildren(bufferToCanvas(buf, scale));
-    el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+    if (!native) el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
   };
   await repaint();
   // Exposed visual setter — mirrors `_scriptoscopeSetChecked` on toggles.
@@ -422,7 +430,7 @@ async function buildDraggable(
   // repaint is rAF-scheduled).
   (el as unknown as { _scriptoscopeSetValue: (v: number) => void })._scriptoscopeSetValue = (v: number) => {
     if (events.signal.aborted) return;
-    value = clamp01(v);
+    value = native ? nativeRangeValue(native.input) : clamp01(v);
     schedule();
   };
 
@@ -435,24 +443,50 @@ async function buildDraggable(
     return clamp01(t);
   };
   const schedule = (): void => { if (!events.signal.aborted && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
-  const onMove = (e: PointerEvent): void => { value = valueAt(e); onChange?.(value); schedule(); };
-  const onUp = (): void => {
+  const update = (position: number): void => {
+    if (!live() || disabled()) return;
+    if (native) {
+      const input = native.input, before = input.value;
+      const { min, max } = nativeRangeBounds(input);
+      // The native setter applies min/max, fractional step and step-base rules.
+      const span = max - min;
+      input.valueAsNumber = Number.isFinite(span) ? min + position * span
+        : (1 - position) * min + position * max;
+      value = nativeRangeValue(input);
+      if (input.value !== before) input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    } else { value = position; onChange?.(value); }
+  };
+  const onMove = (e: PointerEvent): void => {
+    if (native && e.pointerId !== pointerId) return;
+    update(valueAt(e)); schedule();
+  };
+  const onUp = (e: PointerEvent): void => {
+    if (native && e.pointerId !== pointerId) return;
     dragging = false;
     stopDrag();
+    if (native && live() && !disabled() && native.input.value !== dragStart) {
+      native.input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     void repaint();
   };
   listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
+    if (!live() || disabled() || (native && (e.button !== 0 || dragging))) return;
     e.preventDefault();
-    dragging = true;
-    value = valueAt(e);
-    onChange?.(value);
+    if (native) { native.input.focus({ preventScroll: true }); dragStart = native.input.value; }
+    dragging = true; pointerId = e.pointerId;
+    update(valueAt(e));
+    if (!live()) return;
     stopDrag();
     const removeMove = listenUntilAborted(events.signal, window, 'pointermove', onMove);
     const removeUp = listenUntilAborted(events.signal, window, 'pointerup', onUp);
-    stopDrag = () => { removeMove(); removeUp(); };
+    const removeCancel = native ? listenUntilAborted(events.signal, window, 'pointercancel', event => {
+      if (event.pointerId !== pointerId) return;
+      dragging = false; stopDrag(); void repaint();
+    }) : () => {};
+    stopDrag = () => { removeMove(); removeUp(); removeCancel(); };
     void repaint();
   });
-  listenUntilAborted(events.signal, el, 'keydown', (e) => {
+  if (!native) listenUntilAborted(events.signal, el, 'keydown', (e) => {
     const step = e.shiftKey ? 0.1 : 0.05;
     let next = value;
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clamp01(value + step);
@@ -463,6 +497,78 @@ async function buildDraggable(
     onChange?.(value);
     void repaint();
   });
+  if (native) {
+    let lastDisabled: boolean | undefined;
+    const sync = (): void => {
+      if (events.signal.aborted) return;
+      const next = nativeRangeValue(native.input), off = disabled();
+      const changed = next !== value || off !== lastDisabled;
+      value = next; lastDisabled = off;
+      el.setAttribute('aria-disabled', String(off));
+      el.style.cursor = off ? 'default' : 'pointer';
+      if (off && dragging) { dragging = false; stopDrag(); }
+      if (changed) schedule();
+    };
+    // Attribute changes include disabled fieldsets and changes to their first
+    // legend. Browser :disabled matching owns those rules. Native .value writes
+    // without an event are sampled at the next interaction/pageshow/retheme.
+    const observe = (): void => {
+      observer.disconnect();
+      observer.observe(native.input, { attributes: true,
+        attributeFilter: ['min', 'max', 'step', 'value', 'disabled'] });
+      // Watch the ancestor chain, not every descendant mutation in the document.
+      // Child-list changes detect reparenting and first-legend replacement.
+      for (let parent = native.input.parentElement; parent; parent = parent.parentElement) {
+        observer.observe(parent, { childList: true,
+          ...(parent instanceof HTMLFieldSetElement ? { attributes: true, attributeFilter: ['disabled'] } : {}) });
+      }
+    };
+    const observer = new MutationObserver(records => {
+      if (records.some(record => record.type === 'childList')) observe();
+      sync();
+    });
+    observe();
+    events.signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+    listenUntilAborted(events.signal, native.input, 'input', sync);
+    listenUntilAborted(events.signal, native.input, 'change', sync);
+    listenUntilAborted(events.signal, native.input.getRootNode(), 'reset', event => {
+      if (event.target === native.input.form) queueMicrotask(sync);
+    }, true);
+    sync();
+  }
+}
+
+const rangeProbes = new WeakMap<Document, HTMLInputElement>();
+function nativeRangeBounds(input: HTMLInputElement): { min: number; max: number } {
+  // Use the browser's range sanitizer for HTML numeric-attribute syntax too:
+  // parseFloat incorrectly accepts e.g. min="10px", whitespace and "+10".
+  let probe = rangeProbes.get(input.ownerDocument);
+  if (!probe) {
+    probe = input.ownerDocument.createElement('input'); probe.type = 'range'; probe.step = 'any';
+    rangeProbes.set(input.ownerDocument, probe);
+  }
+  probe.min = input.min; probe.max = input.max;
+  probe.valueAsNumber = -Number.MAX_VALUE; const min = probe.valueAsNumber;
+  probe.valueAsNumber = Number.MAX_VALUE; const max = probe.valueAsNumber;
+  return { min, max };
+}
+function nativeRangeValue(input: HTMLInputElement): number {
+  const { min, max } = nativeRangeBounds(input);
+  if (max <= min) return 0;
+  const span = max - min;
+  return clamp01(Number.isFinite(span) ? (input.valueAsNumber - min) / span
+    : (input.valueAsNumber / 2 - min / 2) / (max / 2 - min / 2));
+}
+
+/** Internal native form adapter; the public imperative API remains normalized. */
+export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInputElement,
+  active: () => boolean): Promise<HTMLElement> {
+  const el = document.createElement('span'); el.className = 'scriptoscope-slider';
+  await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
+    async (value, state) => (await composeSlider(theme, { orientation: 'horizontal', length: 120, value, state }))
+      ?? platinumSlider({ orientation: 'horizontal', length: 120, value }),
+    undefined, { input, active });
+  return el;
 }
 
 /** A draggable slider (themed where the scheme ships slider cicns, else procedural). */

@@ -7,14 +7,15 @@ export function listenUntilAborted<K extends keyof (GlobalEventHandlersEventMap 
   target: EventTarget,
   type: K,
   listener: (event: (GlobalEventHandlersEventMap & WindowEventMap)[K]) => void,
+  capture = false,
 ): () => void {
   if (signal.aborted) return () => {};
   const handler = listener as EventListener;
   const remove = (): void => {
-    target.removeEventListener(type, handler);
+    target.removeEventListener(type, handler, capture);
     signal.removeEventListener('abort', remove);
   };
-  target.addEventListener(type, handler);
+  target.addEventListener(type, handler, capture);
   signal.addEventListener('abort', remove, { once: true });
   return remove;
 }

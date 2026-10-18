@@ -25,6 +25,12 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
       }, { mode, slug });
       // Establish the browser's native accessible-name result before promotion.
       for (let i = 0; i < names.length; i++) await expect(page.locator(`#range-${i}`)).toHaveAccessibleName(names[i]);
+      // Discover the browser's native full-control navigation before promotion.
+      // macOS WebKit uses Option-Tab by default; other engines normally use Tab.
+      await page.locator('#range-before').focus(); await page.keyboard.press('Tab');
+      const tabKey = await page.locator('#range-0').evaluate(el => document.activeElement === el) ? 'Tab' : 'Alt+Tab';
+      await page.locator('#range-before').focus(); await page.keyboard.press(tabKey);
+      await expect(page.locator('#range-0')).toBeFocused();
       await page.evaluate(async () => {
         const f = window.rangeNames;
         // Register borrowed themes before the observer sees the original inputs.
@@ -40,19 +46,20 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
         await page.locator('#range-before').focus();
         for (let i = 0; i < names.length; i++) {
           const slider = sliders.nth(i), native = page.locator(`#range-${i}`);
-          await expect(slider).toHaveAccessibleName(names[i]);
-          await expect(native).toHaveAttribute('aria-hidden', 'true');
-          await expect(native).toHaveAttribute('tabindex', '-1');
-          await page.keyboard.press('Tab'); await expect(slider).toBeFocused();
+          await expect(native).toHaveAccessibleName(names[i]);
+          await expect(page.getByRole('slider', { name: names[i], exact: true })).toHaveCount(1);
+          await expect(slider).toHaveAttribute('aria-hidden', 'true');
+          expect(await slider.evaluate(el => el.tabIndex)).toBe(-1);
+          await page.keyboard.press(tabKey); await expect(native).toBeFocused();
+          await expect(slider).toHaveCSS('outline-style', 'solid');
           await page.keyboard.press('ArrowRight');
-          await expect(native).toHaveValue(phase === 'initial' ? '55' : '60');
-          await expect(slider).toHaveAttribute('aria-valuenow', phase === 'initial' ? '55' : '60');
+          await expect(native).toHaveValue(phase === 'initial' ? '51' : '52');
         }
-        await page.keyboard.press('Tab'); await expect(page.locator('#range-after')).toBeFocused();
+        await page.keyboard.press(tabKey); await expect(page.locator('#range-after')).toBeFocused();
       }
       // Keep ID references live, rather than flattening explicit labelledby text.
       await page.locator('#range-ref-a').evaluate(el => { el.textContent = 'Updated'; });
-      await expect(sliders.nth(4)).toHaveAccessibleName('Updated volume');
+      await expect(page.locator('#range-4')).toHaveAccessibleName('Updated volume');
       await page.evaluate(() => window.rangeNames.handle.disconnect());
       // Naming attributes remain consumer-owned through native restoration.
       await expect(page.locator('#range-4')).toHaveAttribute('aria-labelledby', 'range-ref-a range-ref-b');

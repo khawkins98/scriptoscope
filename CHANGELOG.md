@@ -62,6 +62,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Promoted ranges retain native keyboard and accessibility semantics: fractional
+  steps, numeric bounds, `step="any"`, effective disabled fieldsets and live labels.
+  Pointer values use native sanitization, with change only on a changed drag
+  commit; live attributes/reset refresh the art and teardown releases owned work.
+  The imperative normalized slider API is unchanged.
+
 - Restore promoted checkbox/radio/range/select carriers on disconnect while
   preserving live form state and consumer attributes. Retheme and teardown release
   old face/global drag listeners and pending paints, cancel unfinished promotion,

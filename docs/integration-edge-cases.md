@@ -254,6 +254,25 @@ If your framework expects to manage the lifecycle of the wrapper (React owns the
 
 `handle.disconnect()` restores mounted windows and promoted checkbox/radio/range/select controls, then releases themes loaded by that mount. It removes the form faces and select wrappers while retaining the same native elements and their current value/checked/selection state. It restores only properties the runtime changed (visibility styles, tabindex, aria-hidden, autocomplete and hidden label styles); consumer naming, form association and unrelated style/attribute edits stay intact. If a consumer has since changed an owned property, that newer value is retained.
 
+A promoted range retains its original native keyboard/AT target; the canvas is
+`aria-hidden` and has no tab stop. Native min/max/step, accessible naming and
+`:disabled` rules (including the first-legend exemption) stay browser-owned.
+Pointer positions use the authored canvas bounds and the native value setter's
+step/bounds sanitization. The pointer adapter dispatches synthetic `input` only for changed values;
+release dispatches one `change` when the final value differs from the drag start.
+Disposal or becoming disabled cancels a drag without a late commit. Keyboard
+input/change timing is the browser's own. The optional stylesheet mirrors native
+focus onto the adjacent visible canvas.
+
+Constraint attributes, disabled ancestors and form reset refresh the range art.
+Script assignments to `.value` should dispatch `input` or `change` to request an
+immediate repaint; silent assignments are sampled on later interaction, persisted
+pageshow or retheme. No input property descriptors are replaced. These native form
+semantics do not change the standalone normalized `interactiveSlider` API.
+Pointer hit testing still maps the full canvas extent, so clicking an existing
+thumb away from the midpoint can change its value. Shared thumb-center travel and
+grab-offset correction remain separate work in [#244](https://github.com/khawkins98/scriptoscope/issues/244).
+
 Each form face owns its listeners, slider drag handlers and pending paint work. Retheme disposes the old face after preparing its replacement; disconnect cancels pending form preparation before it can commit. Removed or reparented sources are never pulled back to a captured parent. Mount-owned theme-switcher callbacks and stamps are also removed. You can mount again on the same root immediately.
 
 This restoration contract does not yet cover button, tab or text-field decorations. Form replacement cancellation does not establish global latest-request ordering for window/theme changes; that separate work is tracked in [#237](https://github.com/khawkins98/scriptoscope/issues/237).
