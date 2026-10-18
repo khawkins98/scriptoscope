@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft-requires-review",
+  "sources": [
+    {
+      "slug": "1138",
+      "path": "themes/1138/scheme.rsrc",
+      "format": "rsrc",
+      "archiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "entryIndex": null,
+      "entryName": null,
+      "forkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection."
+    },
+    {
+      "slug": "1984",
+      "path": "themes/1984/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "entryIndex": 0,
+      "entryName": "1984 �/1984",
+      "forkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"1984 �/1984\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "nameDecodingLimit": "Entry name contains a decoder replacement character. Exact index plus archive/fork hashes pin the choice; original filename decoding is not certified."
+    },
+    {
+      "slug": "1990",
+      "path": "themes/1990/scheme.rsrc",
+      "format": "rsrc",
+      "archiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "entryIndex": null,
+      "entryName": null,
+      "forkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection."
+    },
+    {
+      "slug": "animals",
+      "path": "themes/animals/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "entryIndex": 0,
+      "entryName": "Animals/animals",
+      "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "apple-lisa",
+      "path": "themes/apple-lisa/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "entryIndex": 0,
+      "entryName": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+      "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "apple-platinum-2",
+      "path": "themes/apple-platinum-2/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "entryIndex": 0,
+      "entryName": "Apple platinum 2/Apple platinum 2",
+      "forkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Apple platinum 2/Apple platinum 2\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "beos-r503",
+      "path": "themes/beos-r503/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "entryIndex": 0,
+      "entryName": "BeOSr503/BeOS R5.0.3",
+      "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"BeOSr503/BeOS R5.0.3\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "black-platinum",
+      "path": "themes/black-platinum/scheme.rsrc",
+      "format": "rsrc",
+      "archiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "entryIndex": null,
+      "entryName": null,
+      "forkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection."
+    },
+    {
+      "slug": "crayon-os",
+      "path": "themes/crayon-os/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "entryIndex": 0,
+      "entryName": "Crayon OS Folder/Crayon OS",
+      "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Crayon OS Folder/Crayon OS\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "dolphin-som",
+      "path": "themes/dolphin-som/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "entryIndex": 50,
+      "entryName": "dsom/dsom",
+      "forkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"dsom/dsom\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "evolution",
+      "path": "themes/evolution/scheme.rsrc",
+      "format": "rsrc",
+      "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "entryIndex": null,
+      "entryName": null,
+      "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection."
+    },
+    {
+      "slug": "floppies",
+      "path": "themes/floppies/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "entryIndex": 0,
+      "entryName": "Floppies! �/Floppies!",
+      "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Floppies! �/Floppies!\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "nameDecodingLimit": "Entry name contains a decoder replacement character. Exact index plus archive/fork hashes pin the choice; original filename decoding is not certified."
+    },
+    {
+      "slug": "monkey-paradise",
+      "path": "themes/monkey-paradise/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "entryIndex": 1,
+      "entryName": "MonkeyParadise/MonkeyParadise",
+      "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"MonkeyParadise/MonkeyParadise\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "platinum-8",
+      "path": "themes/platinum-8/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "entryIndex": 2,
+      "entryName": "Platinum 8 Folder/Platinum 8",
+      "forkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Platinum 8 Folder/Platinum 8\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "slimes",
+      "path": "themes/slimes/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "entryIndex": 6,
+      "entryName": "slimes.1.5/slimes1.5",
+      "forkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"slimes.1.5/slimes1.5\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "system7-nostalgia-silver",
+      "path": "themes/system7-nostalgia-silver/scheme.rsrc",
+      "format": "rsrc",
+      "archiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "entryIndex": null,
+      "entryName": null,
+      "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection."
+    },
+    {
+      "slug": "windows-31",
+      "path": "themes/windows-31/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "entryIndex": 2,
+      "entryName": "Windows 3.1/Windows 3.1",
+      "forkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Windows 3.1/Windows 3.1\"; readme/icon/font forks excluded by this declared choice, never by size."
+    },
+    {
+      "slug": "windows-95",
+      "path": "themes/windows-95/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+      "entryIndex": 2,
+      "entryName": "Windows 95/Windows 95",
+      "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+      "selectionReviewStatus": "draft-requires-review",
+      "selectionReason": "Explicit scheme-named Colr entry \"Windows 95/Windows 95\"; readme/icon/font forks excluded by this declared choice, never by size."
+    }
+  ]
+}

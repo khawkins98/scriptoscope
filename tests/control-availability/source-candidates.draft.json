@@ -1,0 +1,845 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "unreviewed",
+  "kind": "resource-availability-candidates",
+  "scope": {
+    "queriedResourceTypes": [
+      "cicn",
+      "cinf"
+    ],
+    "queriedSignedIds": [
+      -10240,
+      -10239,
+      -10238,
+      -10232,
+      -10231,
+      -10230,
+      -10167,
+      -10166,
+      -10165
+    ],
+    "expectedAvailabilityForEveryUnreviewedOrUnlistedCase": "unknown"
+  },
+  "toolchain": {
+    "tests/control-availability/candidates.mjs": "48eba4d917f93598f634ffa31b8097ab5eed7661f7e3eaacef84992bbdf5da82",
+    "tests/control-availability/source.mjs": "c36bb5a423fdeac97a16101dd7a771401bd15959c1f34f8e0494b4718518f236",
+    "tools/sit-wasm/index.mjs": "3008f70d3afb98f4208a2bdfa6cef6098f0da9203cfa008a9a19555f019ea6c8",
+    "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
+    "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
+    "tools/theme-loader/decoders/cicn.js": "907d322688536fbbbbc92ce819ee8268795a42d1588cc3681ced7b8c53c2bd27"
+  },
+  "themes": [
+    {
+      "slug": "animals",
+      "reviewStatus": "unreviewed",
+      "expectedAvailability": "unknown",
+      "archive": {
+        "path": "themes/animals/scheme.sit",
+        "format": "sit",
+        "byteLength": 202349,
+        "sha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3"
+      },
+      "selectedFork": {
+        "entryIndex": 0,
+        "entryName": "Animals/animals",
+        "forkType": 1,
+        "fileType": "Colr",
+        "creator": "Acid",
+        "byteLength": 667199,
+        "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5"
+      },
+      "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "selectionReviewStatus": "draft-requires-review",
+      "nameDecodingLimit": null,
+      "totalResources": 808,
+      "candidates": [
+        {
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "Inactive Push Button",
+          "byteLength": 298,
+          "payloadSha256": "a9e62888e7679b16a738e0c448af1b024b8e2fd8cfa53aa1fb8393871e348c1c",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "Solo Menu Background",
+          "byteLength": 314,
+          "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "Pressed Push Button",
+          "byteLength": 314,
+          "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "Inactive Default Ring",
+          "byteLength": 466,
+          "payloadSha256": "6aa09be9942553e4209b28d436e8bfe79826fe4396cee0444999699f453c1cc4",
+          "decodedDimensions": {
+            "width": 23,
+            "height": 22,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "Default Ring",
+          "byteLength": 626,
+          "payloadSha256": "e268128b246b9b315ae7f924d2c037f9dab97c3904dd21b82599c9b2ec14a375",
+          "decodedDimensions": {
+            "width": 23,
+            "height": 22,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cicn",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "Inactive Bevel Button",
+          "byteLength": 150,
+          "payloadSha256": "02a8ecb379ee7c464b1209a9afcd34c37f213f55be8b5d4cde8f2db2a648510b",
+          "decodedDimensions": {
+            "width": 7,
+            "height": 7,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "Bevel Button",
+          "byteLength": 254,
+          "payloadSha256": "c61bce15bccd4a2b89c2edf4c992ad269bcb964f72315220850bbd2b4b140d0a",
+          "decodedDimensions": {
+            "width": 9,
+            "height": 9,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "Pressed Bevel Button",
+          "byteLength": 254,
+          "payloadSha256": "5c7a422e20a8e3addf96fa2386d077412f8462aeadb341316cba2dccc46e888e",
+          "decodedDimensions": {
+            "width": 9,
+            "height": 9,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "Inactive Push Button",
+          "byteLength": 18,
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "Push Button",
+          "byteLength": 18,
+          "payloadSha256": "77915b3acb8858e3a3334d705428676d699f431d1d73bc7f8f14532ad44f9932"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "Pressed Push Button",
+          "byteLength": 18,
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "Inactive Default Ring",
+          "byteLength": 18,
+          "payloadSha256": "13ab4180813d5c12d9c77e10feb15a3e970487d3cbf45fbb850d3cebb4c491ad"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "Default Ring",
+          "byteLength": 18,
+          "payloadSha256": "13ab4180813d5c12d9c77e10feb15a3e970487d3cbf45fbb850d3cebb4c491ad"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "Disabled Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "8080961449e3f465f0067a03e2ad4e21753b2eef0059cdb002f6f4d9719a353f"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "123b3e7d825d8cf0a208a5a14fb2c3701ab7b3f6bc8d9e1730902d5c39c82f3f"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "Pressed Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "c53722373f6c9db81be4f302f0b2df4371929ea6b335f404847dc28aedcbc3a2"
+        }
+      ],
+      "limitations": [
+        "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
+        "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
+        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+      ]
+    },
+    {
+      "slug": "monkey-paradise",
+      "reviewStatus": "unreviewed",
+      "expectedAvailability": "unknown",
+      "archive": {
+        "path": "themes/monkey-paradise/scheme.sit",
+        "format": "sit",
+        "byteLength": 241823,
+        "sha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42"
+      },
+      "selectedFork": {
+        "entryIndex": 1,
+        "entryName": "MonkeyParadise/MonkeyParadise",
+        "forkType": 1,
+        "fileType": "Colr",
+        "creator": "Acid",
+        "byteLength": 493616,
+        "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70"
+      },
+      "selectionReason": "Explicit scheme-named Colr entry \"MonkeyParadise/MonkeyParadise\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "selectionReviewStatus": "draft-requires-review",
+      "nameDecodingLimit": null,
+      "totalResources": 570,
+      "candidates": [
+        {
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "Inactive Push Button",
+          "byteLength": 298,
+          "payloadSha256": "a9e62888e7679b16a738e0c448af1b024b8e2fd8cfa53aa1fb8393871e348c1c",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "Solo Menu Background",
+          "byteLength": 314,
+          "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "Pressed Push Button",
+          "byteLength": 314,
+          "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 14,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "Inactive Default Ring",
+          "byteLength": 466,
+          "payloadSha256": "6aa09be9942553e4209b28d436e8bfe79826fe4396cee0444999699f453c1cc4",
+          "decodedDimensions": {
+            "width": 23,
+            "height": 22,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "Default Ring",
+          "byteLength": 594,
+          "payloadSha256": "44b93a2b551fee66459581069ed455dd75a7bfe5f1dde7e2b8dc2b0f8872a671",
+          "decodedDimensions": {
+            "width": 23,
+            "height": 22,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cicn",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "Inactive Bevel Button",
+          "byteLength": 150,
+          "payloadSha256": "02a8ecb379ee7c464b1209a9afcd34c37f213f55be8b5d4cde8f2db2a648510b",
+          "decodedDimensions": {
+            "width": 7,
+            "height": 7,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "Bevel Button",
+          "byteLength": 254,
+          "payloadSha256": "a4450b240406ba4033d55ac0e7268d1c11669c4f3ac7b1d0492c580bf3548b90",
+          "decodedDimensions": {
+            "width": 9,
+            "height": 9,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "Pressed Bevel Button",
+          "byteLength": 254,
+          "payloadSha256": "4f770c3266c756f535b848e113ea456dd6d17e802560f5703ba5196220bfbb64",
+          "decodedDimensions": {
+            "width": 9,
+            "height": 9,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "Inactive Push Button",
+          "byteLength": 18,
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "Push Button",
+          "byteLength": 18,
+          "payloadSha256": "e1439cb976e79d782327a62c405aa8ae7abd3de3ae41b5788f609eb7f1099396"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "Pressed Push Button",
+          "byteLength": 18,
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "Inactive Default Ring",
+          "byteLength": 18,
+          "payloadSha256": "13ab4180813d5c12d9c77e10feb15a3e970487d3cbf45fbb850d3cebb4c491ad"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "Default Ring",
+          "byteLength": 18,
+          "payloadSha256": "13ab4180813d5c12d9c77e10feb15a3e970487d3cbf45fbb850d3cebb4c491ad"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "Disabled Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "8080961449e3f465f0067a03e2ad4e21753b2eef0059cdb002f6f4d9719a353f"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "3570a980f2a76f9f19c7fdb39f7068208199d07cfdafe845a4996d539b2d21a5"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "Pressed Bevel Button",
+          "byteLength": 18,
+          "payloadSha256": "c53722373f6c9db81be4f302f0b2df4371929ea6b335f404847dc28aedcbc3a2"
+        }
+      ],
+      "limitations": [
+        "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
+        "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
+        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+      ]
+    },
+    {
+      "slug": "system7-nostalgia-silver",
+      "reviewStatus": "unreviewed",
+      "expectedAvailability": "unknown",
+      "archive": {
+        "path": "themes/system7-nostalgia-silver/scheme.rsrc",
+        "format": "rsrc",
+        "byteLength": 130067,
+        "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "selectedFork": {
+        "entryIndex": null,
+        "entryName": null,
+        "forkType": 1,
+        "fileType": null,
+        "creator": null,
+        "byteLength": 130067,
+        "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+      "selectionReviewStatus": "draft-requires-review",
+      "nameDecodingLimit": null,
+      "totalResources": 370,
+      "candidates": [
+        {
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "inactive push button",
+          "byteLength": 322,
+          "payloadSha256": "142e2bf34de2c7fa35500a0bb454c780c2eeefd4a9aeb9ffe253543fe5aaa6fb",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "active push button",
+          "byteLength": 362,
+          "payloadSha256": "5bb8a10b2e18668dba4d071887d3ed411a682b7f87195bdf5b4ec625040ee6fc",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "pressed push button",
+          "byteLength": 354,
+          "payloadSha256": "5ce5e3baf6986071576909d9b79f0bc1f227cc10fcd0bb578212b895349d2431",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "inactive default button ring",
+          "byteLength": 330,
+          "payloadSha256": "269655128cb611c551dc10b71695571144e59cfe492f0f2c63763e1b5aeadb73",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "active default button ring",
+          "byteLength": 362,
+          "payloadSha256": "7973c8e0bfbfc652ae1673e79db2c4d59f83af2c01aad0415aad70c30f08f074",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cicn",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "Bevel button, normal: inactive, clear",
+          "byteLength": 202,
+          "payloadSha256": "bb17ffdd78df23ee6d1f63e46b8499d65ddcb5392fb7b9e839134fea46315d40",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "Bevel button, normal: unpressed, clear",
+          "byteLength": 322,
+          "payloadSha256": "9125186f3531cf9698d5f2cc50f09c1b4c1d443214f7da64c819b7f1200e5ee0",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "Bevel button, normal: pressed, clear",
+          "byteLength": 338,
+          "payloadSha256": "09e89917daf6437bfdf5b39dca1156b0629da6731225c5577f9ea7ff6cb03bcb",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10232,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10167,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10166,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10165,
+          "presence": "absent-from-selected-fork"
+        }
+      ],
+      "limitations": [
+        "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
+        "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
+        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+      ]
+    },
+    {
+      "slug": "windows-95",
+      "reviewStatus": "unreviewed",
+      "expectedAvailability": "unknown",
+      "archive": {
+        "path": "themes/windows-95/scheme.sit",
+        "format": "sit",
+        "byteLength": 78087,
+        "sha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622"
+      },
+      "selectedFork": {
+        "entryIndex": 2,
+        "entryName": "Windows 95/Windows 95",
+        "forkType": 1,
+        "fileType": "Colr",
+        "creator": "Acid",
+        "byteLength": 424716,
+        "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "selectionReason": "Explicit scheme-named Colr entry \"Windows 95/Windows 95\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "selectionReviewStatus": "draft-requires-review",
+      "nameDecodingLimit": null,
+      "totalResources": 1139,
+      "candidates": [
+        {
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 146,
+          "payloadSha256": "91af9e1b40b147f9da45618e213869b719c9cf1952b0f8f3df546050a760aff5",
+          "decodedDimensions": {
+            "width": 6,
+            "height": 6,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 146,
+          "payloadSha256": "59912b61e1a606d1416af5e5e12c0e08f9a757f8d447e4870ba90e5c3e6b3aa2",
+          "decodedDimensions": {
+            "width": 5,
+            "height": 6,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 282,
+          "payloadSha256": "941481c70a95a575e6242f4a0d5540d317ce44aafd5b125dbbedc6146a2acc7f",
+          "decodedDimensions": {
+            "width": 14,
+            "height": 20,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 434,
+          "payloadSha256": "779f22adbcb3192855d9721396aba5a1beb26bd7ee5f41461bc71d9725ec5878",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 426,
+          "payloadSha256": "4fe4c5f9224ffac5ed847f8314dc1cdcbdd6acbca387a33d0ffa7b1042e3aedf",
+          "decodedDimensions": {
+            "width": 16,
+            "height": 16,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cicn",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 146,
+          "payloadSha256": "63e3fc4d9f46390ccd26c436b3221b96a495dd995d5ccad4184645955dd725f9",
+          "decodedDimensions": {
+            "width": 6,
+            "height": 6,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 146,
+          "payloadSha256": "6a6eb6973997fa33b4495aa177e10d7aa520a6b7d7a01bd96605cf192a38224e",
+          "decodedDimensions": {
+            "width": 5,
+            "height": 6,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cicn",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 138,
+          "payloadSha256": "cd996aade6d8417961dba424a17e7797b65f6591b328f49730096b283d19d80e",
+          "decodedDimensions": {
+            "width": 5,
+            "height": 6,
+            "evidence": "shared-decoder observation, not independent pixel verification"
+          }
+        },
+        {
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "33b042378a62a608c48957d556975139372cbdd8cb8dd3da1df127b8b2cc4e09"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "7da4022bbfb99b5391884b8c9d6f280f0f791b66484a904ccdb078aff4946b92"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10232,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "53d219c2fd8be52fb779ffd1d88f23c8bd362e2b9bdeacd82a938ee7eac671fa"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "53d219c2fd8be52fb779ffd1d88f23c8bd362e2b9bdeacd82a938ee7eac671fa"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10167,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "33b042378a62a608c48957d556975139372cbdd8cb8dd3da1df127b8b2cc4e09"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10166,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62"
+        },
+        {
+          "type": "cinf",
+          "signedId": -10165,
+          "presence": "present",
+          "authorName": "",
+          "byteLength": 18,
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62"
+        }
+      ],
+      "limitations": [
+        "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
+        "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
+        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+      ]
+    }
+  ]
+}
