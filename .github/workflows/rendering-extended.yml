@@ -1,0 +1,32 @@
+name: Extended rendering matrix
+on:
+  workflow_dispatch:
+# Deliberately explicit: the bounded Chromium suite runs on every code PR in CI.
+concurrency:
+  group: rendering-extended-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  rendering:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:themes
+      - run: npm run test:rendering:extended
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: extended-rendering-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+          if-no-files-found: ignore
+          retention-days: 14

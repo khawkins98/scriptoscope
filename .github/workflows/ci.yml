@@ -28,8 +28,11 @@ concurrency:
 jobs:
   test:
     name: Gates + build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
@@ -68,3 +71,20 @@ jobs:
       # Mirrors `npm run gates` locally — see CLAUDE.md "Commands".
       - name: Gates (typecheck + test + lint --strict + audit --check)
         run: npm run gates
+
+      # The pinned Playwright package chooses an exact Chromium revision. Browser
+      # coverage exercises real consumer DOM and the built public entry as well
+      # as raw source pixels; gates alone cannot see CSS decoration regressions.
+      - name: Rendering option contracts (bounded corpus matrix)
+        run: npm run test:rendering
+
+      - name: Upload rendering failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-options-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+          if-no-files-found: ignore
+          retention-days: 14

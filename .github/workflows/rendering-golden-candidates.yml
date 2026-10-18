@@ -1,0 +1,32 @@
+name: Record rendering golden candidates
+on:
+  workflow_dispatch:
+# This uploads candidates for visual review. It never commits or approves them.
+concurrency:
+  group: rendering-golden-candidates-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  record:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:themes
+      - run: npm run test:rendering:goldens:update
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unreviewed-rendering-golden-candidates
+          path: |
+            tests/rendering-options/goldens/
+            test-results/rendering-options/
+            playwright-report/rendering-options/
+          retention-days: 14
