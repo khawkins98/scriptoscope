@@ -3887,6 +3887,34 @@ no later Image.src may start. This isolates sequential-start cancellation from a
 image request already started at disposal, which remains a separate lifetime
 question. Do not substitute frame-delay disposal or a permanent revoked-URL cache.
 
+### 2026-10-18 — Capture requests are not reference evidence
+
+A pinned scheme plus a familiar-looking author thumbnail does not establish an
+original rendering oracle. Separate provisional requested Rect/state/port/crop
+inputs from observed original environment and separately reviewed captures. A
+known kDEF0 hash identifies one component, not the installed engine/patch stack;
+draft archive selection pins are not original Resource Manager ownership proof.
+Empty-label requests can isolate body work without claiming original typography.
+
+Bind review to exact request, image and metadata digests, record explicit unknowns,
+and reject selfgolden/preview bytes submitted under an original-evidence label.
+Byte matching detects known contamination, not authenticity or truthful human
+identity. Missing captures must remain actionable missing evidence; a successful
+metadata gate cannot become a historical-fidelity result or overall percentage.
+
+The compatibility document remains the single ID/version authority. Validate
+request pins against its explicit header and bind its full-file hash into request
+digests: a stale catalog version must fail, and a document change must invalidate
+previous attestations even if someone omitted the required version increment.
+
+The origin experiments need a separate invocation precondition: Apple's SetOrigin
+reference forbids assuming ordinary Window/Control Manager calls work at nonzero
+origins. Fixed D with shifted O moves physical placement; translating both D and
+the crop with O instead holds physical placement fixed. Neither establishes an
+observed pattern phase without the actual invocation and per-port pattern-origin
+state. Capture intake now requires that evidence and independent review, keeps
+all observations null, and separates the two experiments (13 requests total).
+
 ### 2026-10-18 — Repository typechecking does not establish tarball type closure
 
 The emitted root declaration preserves the loader re-export's `../tools` path,

@@ -12,7 +12,7 @@ keyed by slug.
 | `apple-platinum-2.png` | Apple Platinum 2 |
 | `beos-r503.png` | BeOS R5.0.3 |
 | `evolution.png` | Evolution |
-| `platinum-8.png` | Platinum 8 (Russell Silver Jr., 1998) — **provenance KNOWN**: the scheme author's own rendering, from the Kaleidoscope archive (kaleidoscope.hryjksn.com). Unlike the others below, this is a trustworthy reference for the theme's true appearance. |
+| `platinum-8.png` | Platinum 8 (Russell Silver Jr., 1998) — **provenance KNOWN**: the scheme author's own rendering, from the Kaleidoscope archive (kaleidoscope.hryjksn.com). Author attribution is known; version and capture conditions remain unknown, so this is qualitative evidence only. |
 | `system7-nostalgia-silver.png` | System 7 Nostalgia Silver (mollusc, 1997) — **provenance KNOWN**: author's own rendering from the Kaleidoscope archive. Platinum-adjacent silver scheme. |
 
 ## Provenance is undocumented — not a trustworthy pixel-diff oracle
@@ -33,3 +33,8 @@ For the full analysis of this oracle-trust problem and what a properly
 version-matched ground truth would require, see
 [#190](https://github.com/khawkins98/scriptoscope/issues/190) (design context archived at
 [`../../../docs/archive/golden-reference-todo.md`](../../../docs/archive/golden-reference-todo.md)).
+
+The [versioned capture intake](../../../tests/reference-captures/README.md) keeps
+these previews separate from independently reviewed, version-matched captures.
+Neither known author attribution nor a passing self-regression image supplies the
+missing capture conditions. The initial original-capture manifest is empty.
