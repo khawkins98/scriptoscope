@@ -98,6 +98,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   the root entrypoint, with its LoadedTheme import pointing at emitted types.
   Clean TypeScript consumers no longer need repository files or skipLibCheck.
 
+- Overlapping theme requests no longer let delayed chrome replace a newer window
+  batch. Window preparation is isolated from live canvases, failed newer requests
+  cannot revive superseded work, and declarative completion/default/URL updates
+  follow successful work. Dynamic scans join the current request boundary; native
+  focus and state survive face replacement. (Refs #237.)
+
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab
   offsets, and track clicks center the thumb without changing imperative slider

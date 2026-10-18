@@ -115,6 +115,8 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?
         if (label?.textContent?.trim()) setStyleOwned(label, hiddenStyle, restore);
       }
     }
+    const focusedNative = document.activeElement === el;
+    const focusedFace = !!previous?.face.contains(document.activeElement);
     if (kind === 'select') {
       const anchor = previous?.face === parent ? previous.face : el;
       anchor.before(face);
@@ -129,6 +131,8 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?
     } });
     committed = true;
     face.dataset.scriptoscopePromoted = '';
+    if (focusedNative) el.focus({ preventScroll: true });
+    else if (focusedFace) face.focus({ preventScroll: true });
     if (kind !== 'select') {
       const input = el as HTMLInputElement;
       const sync = (): void => syncInput(input, kind, currentFace);

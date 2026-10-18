@@ -6,9 +6,8 @@ import type { LoadedTheme } from '../types.js';
 import { interactiveButton } from '../interactive.js';
 import { parseButtonAttrs } from './parse.js';
 
-export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement> {
+export async function promoteButton(el: HTMLElement, theme: LoadedTheme, signal?: AbortSignal): Promise<HTMLElement | null> {
   const parsed = parseButtonAttrs(el.dataset as Record<string, string | undefined>, el.textContent ?? '');
-  el.dataset.scriptoscopePromoted = '';
   const skinned = await interactiveButton(theme, {
     default: parsed.isDefault, // the OK ring (falls back to baseline button if the theme ships none)
     disabled: parsed.disabled,
@@ -19,6 +18,8 @@ export async function promoteButton(el: HTMLElement, theme: LoadedTheme): Promis
       else el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     },
   });
+  if (signal?.aborted || !el.isConnected) return null;
+  el.dataset.scriptoscopePromoted = '';
   const aria = el.getAttribute('aria-label') ?? parsed.label;
   if (aria) skinned.setAttribute('aria-label', aria);
   skinned.dataset.scriptoscopePromoted = '';

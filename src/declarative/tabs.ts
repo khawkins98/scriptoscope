@@ -22,6 +22,7 @@ import type { LoadedTheme } from '../types.js';
 import { composeTab, bufferToCanvas } from '../controls.js';
 import { debug } from '../debug.js';
 
+const generations = new WeakMap<HTMLElement, object>();
 const STYLE_ID = 'scriptoscope-tabs-css';
 
 /** One-time stylesheet: layout for the tab strip + CSS fallback styling for the case where
@@ -67,7 +68,7 @@ function panelIdFor(tab: HTMLElement): string {
 /** Promote a [data-scriptoscope-tabs] wrapper. Idempotent — re-promoting a promoted wrapper is a no-op
  *  unless `forceRescan` is true (used by retheme to swap the canvas faces in-place). */
 export async function promoteTabs(
-  el: HTMLElement, theme: LoadedTheme, opts: { forceRescan?: boolean } = {},
+  el: HTMLElement, theme: LoadedTheme, opts: { forceRescan?: boolean; signal?: AbortSignal } = {},
 ): Promise<void> {
   if (!opts.forceRescan && el.dataset.scriptoscopeTabsPromoted != null) return;
   ensureTabsCSS();
@@ -77,9 +78,33 @@ export async function promoteTabs(
   if (tabs.length === 0) return;
 
   // Pick the initial selection: explicit data-scriptoscope-selected, else the first tab.
-  let selectedId = tabs.find((t) => t.dataset.scriptoscopeSelected != null && t.dataset.scriptoscopeSelected !== 'false')?.dataset.scriptoscopeTab
+  let selectedId = (opts.forceRescan ? tabs.find(t => t.getAttribute('aria-selected') === 'true')?.dataset.scriptoscopeTab : undefined) ?? tabs.find((t) => t.dataset.scriptoscopeSelected != null && t.dataset.scriptoscopeSelected !== 'false')?.dataset.scriptoscopeTab
     ?? tabs[0]?.dataset.scriptoscopeTab ?? '';
 
+  // Keep existing faces/panels intact while every replacement raster prepares.
+  const selectedNow = (): string => tabs.find(t => t.getAttribute('aria-selected') === 'true')?.dataset.scriptoscopeTab ?? selectedId;
+  let buffers;
+  for (;;) {
+    buffers = await Promise.all(tabs.map(tab => composeTab(theme, {
+      label: tab.textContent ?? '', selected: panelIdFor(tab) === selectedId,
+    })));
+    if (opts.signal?.aborted) return;
+    if (!opts.forceRescan || selectedNow() === selectedId) break;
+    selectedId = selectedNow();
+  }
+  if (opts.signal?.aborted || !el.isConnected) return;
+  const generation = {};
+  generations.set(el, generation);
+  const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab-skinned]'));
+  const focusedIndex = tabs.findIndex((tab, i) => document.activeElement === tab || document.activeElement === oldFaces[i]);
+  if (opts.forceRescan) {
+    for (const old of el.querySelectorAll(':scope > [data-scriptoscope-tab-skinned]')) old.remove();
+    for (const tab of tabs) {
+      tab.style.display = '';
+      delete tab.dataset.scriptoscopePromoted;
+      delete tab.dataset.scriptoscopeTabFallback;
+    }
+  }
   el.setAttribute('role', 'tablist');
   el.setAttribute('aria-orientation', 'horizontal');
 
@@ -102,6 +127,7 @@ export async function promoteTabs(
   /** Apply selection — flip ARIA + tabindex on tabs, hide/show panels, and (if available) swap
    *  the canvas face for the new selected state. */
   const setSelected = async (newId: string): Promise<void> => {
+    if (generations.get(el) !== generation || !el.isConnected) return;
     selectedId = newId;
     for (const s of skinned) {
       const isSel = s.panelId === newId;
@@ -113,6 +139,7 @@ export async function promoteTabs(
       // selectors on the native button, so no canvas swap needed there.
       if (s.face.tagName === 'SPAN') {
         const buf = await composeTab(theme, { label: s.tab.textContent ?? '', selected: isSel });
+        if (generations.get(el) !== generation || !el.isConnected) return;
         if (buf) s.face.replaceChildren(bufferToCanvas(buf, 1));
       }
     }
@@ -128,7 +155,7 @@ export async function promoteTabs(
     const isSel = panelId === selectedId;
     tab.id = tab.id || tabElId(panelId);
     tab.setAttribute('aria-controls', panelElId(panelId));
-    const buf = await composeTab(theme, { label: tab.textContent ?? '', selected: isSel });
+    const buf = buffers[i];
 
     let face: HTMLElement;
     if (buf) {
@@ -190,6 +217,7 @@ export async function promoteTabs(
     });
   }
 
+  if (focusedIndex >= 0) skinned[focusedIndex]?.face.focus({ preventScroll: true });
   el.dataset.scriptoscopeTabsPromoted = '';
   debug('promote', `tabs: ${tabs.length} tabs, selected=${selectedId}`);
 }

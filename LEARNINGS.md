@@ -3825,3 +3825,30 @@ packed path and rebase its source-type import to emitted public declarations.
 The new installed-consumer check compiles both public entrypoints without source
 aliases, builds a production site and removes its installed inputs before serving
 it. This checks distribution closure; it supplies no original-engine pixel truth.
+
+### 2026-10-18 — request tokens must guard the actual paint boundary
+
+A source/built public mount test held System7's first real image decode, completed
+BeOS on two existing windows plus native controls, then released System7. The
+old manager loop repainted both windows while metadata and the completion event
+still named BeOS. The form cancellation checks could not protect window chrome.
+Checking after `renderWindow` is too late when it receives the live pooled canvas:
+it has already painted and moved that node during asynchronous preparation.
+
+Stage chrome off-DOM, then commit the entire current window batch synchronously.
+Preserve pooled canvas identity only at that commit, accepting temporary staging
+storage. A per-entry epoch detects focus/resize changes and removal; request
+ownership handles overlap and caller abort. Real archive/decode barriers also
+cover newer failures, retry, disconnect and failure preparing the second window.
+Do not describe this as whole-desktop transaction rollback: controls commit
+individually after chrome. Keep requested and completed defaults distinct, and
+capture only already-running scan promises before queuing new scans behind the
+request, otherwise the scanner can await its own request barrier.
+
+A MutationObserver can start a new request between chrome commit and an awaited
+scanner continuation. Host theme metadata must therefore commit with those exact
+window pixels, even when the next request fails before a desktop completion.
+Title-widget press/release is another pooled-canvas writer: an old delayed pressed
+render or pointerup can overwrite new chrome unless it checks chrome identity,
+entry epoch and press generation. Public caller-supplied `reuseCanvas` must also
+be stripped from every asynchronous preparation, then adopted only at commit.
