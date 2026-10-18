@@ -1,1103 +1,194 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Scriptoscope — eighteen schemes, one runtime</title>
-  <meta name="description" content="Render any classic-Mac Kaleidoscope theme pixel-faithfully in the browser. Drop a script tag, add a few attributes, ship 1997 to production." />
-  <!-- Font preloads: start the woff fetches in parallel with the JS
-       download instead of waiting until the module evaluates and the
-       @font-face rules trigger discovery. Without these, on Fast 3G,
-       the fonts didn't start loading until ~2s into the page life;
-       with them, the network kicks them off at <100ms (same time as
-       the JS chunks). Perf agent finding 2026-05-30. -->
-  <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff" />
-  <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/virtue.woff" />
-  <!-- Runtime affordance stylesheet — drop-shadow, focus rings, the boot-
-       affordance CSS (chrome wipe-in, dotted picker placeholders). The a11y
-       reviewer (2026-05-30) caught that omitting this link silently kills
-       the entire boot-affordance system; the runtime now also warns on
-       mount when the stylesheet isn't reachable. Path is relative — works
-       both in `npm run dev` (Vite resolves through the alias) and in the
-       prod bundle (where `scriptoscope.css` is copied next to the HTML). -->
-  <link rel="stylesheet" href="scriptoscope.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10100f">
+  <title>Scriptoscope — a whole new way to look at the web</title>
+  <meta name="description" content="Give the web a little personality. Scriptoscope brings original classic Mac Kaleidoscope schemes to your real, live HTML. Eighteen schemes. One runtime.">
+  <link rel="stylesheet" href="scriptoscope.css">
+  <link rel="preload" as="image" href="assets/landing/portrait.jpg" fetchpriority="high">
+  <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff">
   <style>
-    /* ── Font stack ─────────────────────────────────────────────────────────
-       The window/control text stacks ask for "Charcoal" (Mac OS 8.5/8.6 system
-       font). Apple's Charcoal is proprietary, so this @font-face uses it when
-       LOCALLY installed, else falls back to VIRTUE — Marty P. Pfeiffer's free
-       Charcoal recreation (Scooter Graphics, 1999), itself built on Greg
-       Landweber's reverse-engineered Charcoal from Aaron + Kaleidoscope.
-       Charcoal 12 — Jeremy Sachs' CC BY-SA bitmap clone of Mac OS 8/9 Charcoal
-       at 12px. Used by the title-bar rasterizer. */
-    @font-face {
-      font-family: 'Charcoal';
-      src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff');
-      font-display: swap;
-    }
     @font-face {
       font-family: 'Charcoal 12';
       src: url('assets/fonts/charcoal-12.woff') format('woff');
       font-display: swap;
     }
-    :root { color-scheme: light; }
-    /* Reset the page to a clean white sheet — the #powers section IS the page
-       on this landing. No diagnostic-page slate-gray bg, no header chrome. */
-    html, body { margin: 0; padding: 0; background: #ffffff; color: #2a2a2a; }
-    body { font: 14px/1.5 -apple-system, system-ui, sans-serif; }
-
-    /* ── "Eighteen schemes. One runtime." — the landing intro ──────────────
-       Iteration 5 (2026-05-30) reorganised after a 90s-Mac-designer review:
-       - The PICKER moves to the top as the page header (open-the-folder is
-         the FIRST eye-move; Mac Themes Garden's per-scheme grid convention).
-       - Tiles carry author credits in 9px italic underneath the name (the
-         Kaleidoscope.net / scheme-author-as-celebrity convention).
-       - Cards break 2×2 → 1+1 heavy (kDEF Replay + data-scriptoscope-*)
-         then 2-up demoted footnotes (ResourceForkLib + About).
-       - OFF state goes BRAVER period-raw-HTML: Times Roman not Georgia,
-         narrower 720px column, electric-blue #0000EE underlined links,
-         hr separators — looks like an actual 1999 browser-default page so
-         the ON-state chrome reveal hits twice as hard.
-       - Skin toggle promoted to an explicit action-labelled button (the
-         disbelief beat needs an INVITATION to flip, not a state report).
-       - Top-right /aaron-ui breadcrumb retired (the historical repo slug;
-         today it would have leaked /scriptoscope/, same problem — also
-         period homepages didn't breadcrumb); replaced by a version line
-         under the install snippet (every Mac shareware Read Me started
-         with Version / License / Requires). */
-    #powers { background: #ffffff; color: #1c1c1c; padding: 32px 24px 48px; border-bottom: 1px solid #d0d0d0; position: relative; }
-    /* OFF state uses 1999-browser-default Times Roman, 720px max-width
-       (the typical pre-CSS narrow-column homepage feel). SKINNED keeps
-       the Mac-window playground at 960px wide so the floating cards
-       have room to stagger. */
-    /* ONE inner width across OFF + ON. The previous design widened from
-       720→960 on skinning, but that was a layout-affecting rule on the
-       .skinned class — exactly the foot-gun the runtime auto-position
-       documentation now warns against. The runtime captures each window's
-       getBoundingClientRect at scan time; if our CSS changes layout when
-       .skinned flips, the runtime captures the WRONG geometry. So .skinned
-       in this stylesheet only touches VISUAL chrome (filter, mask, border)
-       — never display/max-width/grid-template. */
-    #powers .powers-inner { max-width: 880px; margin: 0 auto; font: 16px/1.55 "Times New Roman", Times, serif; color: #1c1c1c; }
-    #powers .powers-inner > * { max-width: 100%; }
-    /* H2: confident 36px Times for the OFF state period; survives skinned. */
-    #powers h2 { font: 400 36px/1.05 "Times New Roman", Times, serif; margin: 14px 0 12px; letter-spacing: -0.005em; color: #1c1c1c; }
-    #powers > .powers-inner > p.powers-lede { font-size: 17px; line-height: 1.55; margin: 0 0 18px; max-width: 64ch; }
-    /* 1999 browser-default link blue + underline. Period browsers used
-       #0000EE for unvisited links; the Apple page used mauve as the
-       OUTLIER. Going default-blue makes the OFF state read as "untouched
-       webpage" so the SKINNED state is the dramatic transformation. */
-    #powers a { color: #0000EE; text-decoration: underline; }
-    #powers a:visited { color: #551A8B; } /* the default period :visited mauve */
-    #powers a:hover { color: #cc0000; }   /* the default period :hover red */
-    /* Install snippet — softened from VSCode-dark to a Stickies-yellow
-       Monaco-bg that reads as "shareware Read Me snippet" not "modern
-       terminal output". Period Mac shareware Read Mes were SimpleText
-       windows; this is the homage. */
-    #powers .powers-install { margin: 0 0 6px; padding: 10px 14px; background: #fff9d6; color: #1c1c1c; border: 1px solid #d4c97a; border-radius: 0; font: 12px/1.55 Monaco, "Courier New", monospace; max-width: 64ch; overflow-x: auto; }
-    /* Tools row: Controls palette + Install snippet palette tiled
-       side-by-side on wider viewports. Both are titled-utility-window
-       chromes. On narrow viewports (<700px) they stack. The grid
-       columns are 1fr 1fr (equal split) which is fine since each
-       window's chrome sizes to fit its content + the grid cell sets
-       the upper bound. */
-    #powers .powers-tools-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-      margin: 0 0 22px;
+    :root { color-scheme: dark; background: #10100f; color: #f4f1e8; }
+    * { box-sizing: border-box; }
+    body { position: relative; margin: 0; font: 18px/1.45 'Times New Roman', Times, serif; -webkit-font-smoothing: antialiased; }
+    /* A little ink-and-paper texture, without a full-page bitmap download. */
+    body::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 100;
+      opacity: .075;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.8' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
     }
-    @media (max-width: 700px) {
-      #powers .powers-tools-row { grid-template-columns: minmax(0, 1fr); }
+    a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    a:hover { color: #e8c975; }
+    a:focus-visible { outline: 2px solid #e8c975; outline-offset: 6px; }
+    .skip-link { position: absolute; top: 12px; left: 16px; transform: translateY(-160%); z-index: 101; }
+    .skip-link:focus { transform: translateY(0); }
+    .advertisement { max-width: 980px; margin: auto; padding: 38px 32px 28px; text-align: center; }
+    .edition { margin: 0; color: #b8b4ab; font: 10px/1.5 Monaco, 'Courier New', monospace; letter-spacing: .17em; text-transform: uppercase; }
+    .portrait { margin: 24px auto 0; }
+    .collage-space { width: min(100%, 440px); aspect-ratio: 500 / 480; margin: auto; position: relative; }
+    /* Size the windows in local CSS pixels, rather than transforming their
+       parent, so the native window manager tracks pointer movement exactly. */
+    .collage {
+      position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+      isolation: isolate; z-index: 1;
+      --scriptoscope-content-padding: 0;
+      --scriptoscope-window-shadow: 4px 5px 0 rgba(0, 0, 0, .45);
     }
-    /* Install meta footer. Extends the snippet's cream box (same
-       background + same border, minus the top edge so they read as
-       ONE block). Keeps the meta legible regardless of the active
-       theme's content-area chrome (a green/blue/dark theme would
-       otherwise wash out gray Monaco text on the slot background).
-       Flex layout with gap replaces the prior &nbsp;·&nbsp; HTML
-       separators. */
-    #powers .powers-install-meta {
-      margin: 0 0 6px; padding: 6px 12px 7px;
-      background: #fff9d6; border: 1px solid #d4c97a; border-top: 0;
-      color: #1c1c1c;
-      display: flex; align-items: center; flex-wrap: wrap;
-      gap: 4px 12px;
-      font: 11.5px/1.5 Monaco, "Courier New", monospace;
-      max-width: 64ch;
+    .collage[data-interactive] > [data-scriptoscope-window] { display: none; }
+    .collage .scriptoscope-fit { height: 100%; }
+    .collage .scriptoscope-slot { overflow: hidden !important; }
+    .collage [data-scriptoscope-window-host]::part(window) { animation: none; }
+    .fragment { position: absolute; background: #242021; }
+    .crop { min-height: 100%; width: 100%; height: 100%; background-image: url('assets/landing/portrait.jpg'); background-repeat: no-repeat; }
+    /* Each panel is the SAME photograph, independently cropped and tinted.
+       Window borders come from the original scheme archives, never imitation CSS. */
+    .crop-face { height: calc(293px * var(--portrait-scale, 1)); background-size: calc(325px * var(--portrait-scale, 1)); background-position: calc(-38px * var(--portrait-scale, 1)) calc(-4px * var(--portrait-scale, 1)); filter: sepia(1) saturate(1.6) hue-rotate(221deg); }
+    .crop-hair { height: calc(140px * var(--portrait-scale, 1)); background-size: calc(340px * var(--portrait-scale, 1)); background-position: calc(-36px * var(--portrait-scale, 1)) calc(-2px * var(--portrait-scale, 1)); filter: sepia(1) saturate(1.5) hue-rotate(235deg); }
+    .crop-ear { height: calc(175px * var(--portrait-scale, 1)); background-size: calc(570px * var(--portrait-scale, 1)); background-position: calc(-62px * var(--portrait-scale, 1)) calc(-210px * var(--portrait-scale, 1)); filter: sepia(1) saturate(2.1) hue-rotate(4deg); }
+    .crop-eye { height: calc(124px * var(--portrait-scale, 1)); background-size: calc(620px * var(--portrait-scale, 1)); background-position: calc(-215px * var(--portrait-scale, 1)) calc(-198px * var(--portrait-scale, 1)); filter: sepia(.35) saturate(1.1) hue-rotate(166deg); }
+    .crop-mouth { height: calc(160px * var(--portrait-scale, 1)); background-size: calc(480px * var(--portrait-scale, 1)); background-position: calc(-210px * var(--portrait-scale, 1)) calc(-282px * var(--portrait-scale, 1)); filter: sepia(1) saturate(3.5) hue-rotate(332deg); }
+    /* Keep the unpromoted crops visible while the original schemes decode. */
+    .fragment:not([data-scriptoscope-window-host]) { border: 1px solid #aba89f; }
+    .collage-controls { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 0 14px; margin-top: 4px; }
+    .reset-collage { min-height: 40px; padding: 8px 3px; border: 0; background: transparent; color: #f4f1e8; font: italic 13px 'Times New Roman', Times, serif; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .reset-collage:hover { color: #e8c975; }
+    .reset-collage:focus-visible { outline: 2px solid #e8c975; outline-offset: 3px; }
+    .reset-collage:disabled { opacity: .5; cursor: wait; }
+    .reset-collage[hidden] { display: none; }
+    .art-caption { margin: 8px 0 0; color: #b8b4ab; font: italic 13px/1.4 'Times New Roman', Times, serif; }
+    h1 { margin: 33px -12px 0; font-size: clamp(45px, 6.5vw, 76px); font-weight: 400; line-height: .96; letter-spacing: -.055em; text-wrap: balance; }
+    h1 span { display: block; }
+    .invitation { margin: 12px 0 0; font-size: clamp(19px, 2.5vw, 25px); line-height: 1.2; font-style: italic; letter-spacing: -.025em; }
+    .signature { margin: 35px 0 0; }
+    .spectrum { display: grid; grid-template-columns: repeat(3, 10px); grid-template-rows: repeat(2, 10px); gap: 2px; width: max-content; margin: 0 auto 10px; transform: rotate(-8deg); }
+    .spectrum i:nth-child(1) { background: #70ab65; } .spectrum i:nth-child(2) { background: #e5c34a; }
+    .spectrum i:nth-child(3) { background: #dc8f42; } .spectrum i:nth-child(4) { background: #b95c87; }
+    .spectrum i:nth-child(5) { background: #8174ae; } .spectrum i:nth-child(6) { background: #5d99b6; }
+    .wordmark { margin: 0; font-size: 32px; font-weight: 400; line-height: 1; letter-spacing: -.055em; }
+    .tagline { margin: 9px 0 0; font-style: italic; font-size: 16px; }
+    .pitch { max-width: 540px; margin: 24px auto 0; font-size: 17px; line-height: 1.45; text-wrap: pretty; }
+    .pitch strong { font-weight: 400; font-style: italic; }
+    .experience { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; margin: 17px 0 0; font-size: 23px; letter-spacing: -.025em; }
+    .experience .arrow { display: inline-block; text-decoration: none; transition: transform 160ms ease-out; }
+    .experience:hover .arrow { transform: translateX(4px); }
+    .fine-print { margin: 8px 0 0; color: #b8b4ab; font-size: 13px; font-style: italic; }
+    .example-pages { max-width: 630px; margin: 25px auto 0; }
+    .example-pages p { margin: 0 0 3px; color: #b8b4ab; font-size: 13px; font-style: italic; }
+    .example-pages nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 20px; }
+    .example-pages a { display: inline-flex; align-items: center; min-height: 40px; font-size: 15px; }
+    .colophon { margin: 36px auto 0; padding-top: 20px; border-top: 1px solid #ffffff25; }
+    .scheme-line { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0; list-style: none; font-size: 17px; }
+    .scheme-line button { display: inline-block; min-height: 40px; padding: 9px 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .scheme-line button:hover, .scheme-line button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 5px; }
+    .scheme-line button:focus-visible { outline: 2px solid #e8c975; outline-offset: 4px; }
+    .scheme-line button:disabled { opacity: .5; cursor: wait; }
+    .scheme-hint { margin: 0 0 7px; color: #b8b4ab; font-size: 13px; font-style: italic; }
+    .scheme-line li:nth-child(1) { color: #b5a4d0; } .scheme-line li:nth-child(2) { color: #dcb569; }
+    .scheme-line li:nth-child(3) { color: #9ab9c7; } .scheme-line li:nth-child(4) { color: #d89772; }
+    .scheme-line li:nth-child(5) { color: #b0bc89; }
+    .credits { max-width: 650px; margin: 9px auto 0; color: #b8b4ab; font-size: 11px; line-height: 1.6; text-wrap: pretty; }
+    .footer-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 24px; margin: 16px 0 0; font: 11px/1.5 Monaco, 'Courier New', monospace; }
+    .footer-nav a { display: inline-flex; min-height: 40px; align-items: center; }
+    @media (max-width: 600px) {
+      .advertisement { padding: 26px 22px 20px; }
+      .edition { font-size: 9px; letter-spacing: .11em; }
+      .portrait { margin-top: 18px; }
+      h1 { margin-top: 28px; font-size: clamp(38px, 8.6vw, 52px); }
+      .invitation { max-width: 290px; margin: 13px auto 0; }
+      .signature { margin-top: 28px; }
+      .pitch { font-size: 16px; }
+      .scheme-line { gap: 0 19px; font-size: 16px; }
+      .example-pages { max-width: 630px; margin: 25px auto 0; }
+    .example-pages p { margin: 0 0 3px; color: #b8b4ab; font-size: 13px; font-style: italic; }
+    .example-pages nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 0 20px; }
+    .example-pages a { display: inline-flex; align-items: center; min-height: 40px; font-size: 15px; }
+    .colophon { margin-top: 28px; }
     }
-    #powers .powers-install-meta a { color: #0000EE; text-decoration: underline; }
-    #powers .powers-install-meta .powers-install-version { color: #5a5a5a; }
-    /* Copy button is promoted to themed chrome via data-scriptoscope-
-       button. The auto-promotion wraps the native button; the native
-       sizing stays compact for inline use. .copied is the post-click
-       confirmation tint. */
-    #powers .powers-install-copy.copied { background: #d9f0d9 !important; }
-    #powers .powers-install .c { color: #8b6914; }
-    #powers .powers-install .a { color: #1c1c1c; }
-    #powers .powers-install .s { color: #af1010; }
-    /* Version/license caption — period Read Me convention: tiny Geneva-like
-       line right under the install block stating what you're getting. */
-    #powers .powers-meta { margin: 0 0 22px; font: 11px/1.4 Monaco, "Courier New", monospace; color: #5a5a5a; max-width: 64ch; }
-    #powers .powers-meta a { color: #0000EE; }
-    /* Aaron-repo-name footnote — the deep cut three readers will catch.
-       Small italic Times, indented like a real PS, no border / no box —
-       it's a footnote, not a callout. */
-    #powers .powers-meta-aaron { margin: -8px 0 22px 0; padding: 8px 0 0 12px; font: italic 13px/1.5 "Times New Roman", Times, serif; color: #5a5a5a; max-width: 64ch; border-top: 1px dotted #c8c8c8; }
-    #powers .powers-meta-aaron strong { font-style: normal; font-weight: 700; color: #1c1c1c; }
-    /* DROP-YOUR-OWN-SCHEME zone — period dashed-box style, fits the
-       schemes-folder strip's visual register without competing with it.
-       The button has zero browser chrome (background:none, border via
-       inline below) so it reads as a callout, not a UI button. Active
-       drag state lifts the border + background slightly. */
-    #powers .powers-byo { margin: 0 0 18px; }
-    #powers .powers-byo-zone {
-      display: flex; flex-direction: column; gap: 4px;
-      width: 100%; padding: 12px 16px;
-      border: 1.5px dashed #8a8a8a; border-radius: 0;
-      background: #ffffff66; color: #1c1c1c;
-      font-family: inherit; text-align: left;
-      cursor: pointer;
-      transition: background .12s, border-color .12s;
-    }
-    #powers .powers-byo-zone:hover,
-    #powers .powers-byo-zone:focus-visible { background: #fafaf3; border-color: #5a5a5a; outline: none; }
-    #powers .powers-byo-zone.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
-    #powers .powers-byo-headline { font: 600 16px "Times New Roman", Times, serif; }
-    #powers .powers-byo-hint { font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; }
-    #powers .powers-byo-hint code { font-family: Monaco, "Courier New", monospace; font-style: normal; font-size: 11.5px; color: #444; }
-    #powers .powers-byo-hint a { color: #0000EE; }
-    #powers .powers-byo-out { margin-top: 6px; font: italic 12.5px "Times New Roman", Times, serif; color: #5a5a5a; min-height: 1em; }
-    #powers .powers-byo-out .ok { color: #1c5d1c; }
-    #powers .powers-byo-out .err { color: #a01818; }
-    /* Active-theme contrast defense — dark schemes (evolution, black-platinum)
-       paint a near-black body fill behind the slot's prose, dropping our
-       default #1c1c1c text to ~1.5:1 contrast. This isn't a library-side
-       concern (each scheme's body fill is faithful by design); it's a
-       page-author responsibility. We override locally inside #powers when
-       the runtime stamps one of those slugs onto a window host. UX review
-       2026-05-31. */
-    /* Override every element that hard-codes its own color in the demo's
-       page CSS (h1-h3, .powers-meta-aaron, .powers-meta-aaron strong, etc.).
-       The bare `.scriptoscope-fit { color: ... }` rule alone doesn't reach
-       descendants whose own selectors set color explicitly — color isn't
-       inherited through an element with a hard-coded value of its own.
-       Use one combined selector list to avoid the per-element repetition.
-       Set !important to win against the page's existing
-       `#powers h2 { color: #1c1c1c }` (specificity tied; cascade order
-       would otherwise depend on file position). */
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h1,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h2,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit h3,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit p,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit em,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit strong,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron,
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit .powers-meta-aaron strong,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h1,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h2,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit h3,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit p,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit em,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit strong,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit .powers-meta-aaron strong { color: #f0f0f0 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a { color: #87CEEB !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit a:visited,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
-    #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
-    #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
-    /* READ ME window — the lede wears chrome. Custom content padding
-       (Apple HIG Read Me's typically used ~16-20px inside the frame).
-       Sits in flow automatically (Posture B 2026-05-30: hosts default
-       to `position: static`; the position:static!important workaround
-       this rule once carried has been retired). */
-    #powers .powers-readme { --scriptoscope-content-padding: 18px 22px 14px; margin: 0 0 22px; }
-    #powers .powers-readme h2 { margin-top: 0; }
-    #powers .powers-readme > .powers-meta-aaron { margin-bottom: 0; }
-    /* HERO CONTROL STRIP — one row of every promotable control, themed live
-       by the active scheme. The breadth proof in the first viewport. */
-    /* Hero window — wraps the controls strip. OFF mode wears a labeled
-       bordered box (same Finder-window-y treatment the picker uses);
-       the structural marker that flips it is `:not(:has(.scriptoscope-slot))`,
-       so the box styling disappears the moment the runtime promotes
-       the element into chrome. */
-    #powers .powers-hero-window { margin: 0 0 22px; position: relative; }
-    #powers .powers-hero-window:not(:has(.scriptoscope-slot)) {
-      border: 1px solid #b8b8b8; background: #ffffff;
-      padding: 12px 14px 10px; position: relative; display: block;
-    }
-    #powers .powers-hero-window:not(:has(.scriptoscope-slot))::before {
-      content: "Controls — drag, click, type"; position: absolute;
-      top: -10px; left: 12px; background: #ffffff; padding: 0 8px;
-      font: italic 11px "Times New Roman", serif; color: #5a5a5a;
-    }
-    /* Strip layout — transparent (chrome provides the frame in ON mode;
-       the .powers-hero-window box above provides it in OFF mode). */
-    #powers .powers-hero-strip { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; font: 13px "Times New Roman", Times, serif; background: transparent; }
-    #powers .powers-hero-strip .hs-group { display: inline-flex; align-items: center; gap: 6px; }
-    #powers .powers-hero-strip input[type=range] { width: 110px; }
-    #powers .powers-hero-strip input[type=text] { font: 12px "Times New Roman", serif; padding: 2px 6px; border: 1px solid #888; background: #fff; width: 120px; }
-    #powers .powers-hero-strip select { font: 12px "Times New Roman", serif; padding: 2px 6px; border: 1px solid #888; background: #fff; }
-    /* ── PICKER (top) — folder-icon theme switcher ───────────────────────
-       Now the page header. When skinned it's a Mac window titled "Schemes
-       Folder" floating inside `.powers-picker-host`; in OFF mode it's a
-       labeled bordered box with a strip of folder tiles + each scheme's
-       author/year in 9px italic under the name. Both modes scope styles
-       off `.powers-picker-host` (the picker is no longer inside the cards
-       grid as of iteration 5). */
-    /* Always position:relative for the stable coordinate system (see grid
-       comment above); min-height is set inline from boot to the captured
-       natural pre-mount height so absolute children don't collapse it. */
-    #powers .powers-picker-host { margin: 0 0 22px; position: relative; }
-    /* OFF mode: thin border + floating top-label that reads as a
-       Finder-window-y container without faking Mac chrome. Selector uses
-       `:not(:has(.scriptoscope-slot))` instead of a custom `.skinned` class
-       — that way the off/on state is tied to the RUNTIME's structural
-       marker (added by mountDeclarative at promotion), not to a separate
-       layout-affecting class our boot would have to manage carefully. */
-    #powers .powers-picker:not(:has(.scriptoscope-slot)) {
-      border: 1px solid #b8b8b8; background: #ffffff;
-      padding: 12px 14px 10px; position: relative; display: block;
-    }
-    #powers .powers-picker:not(:has(.scriptoscope-slot))::before {
-      content: "Schemes Folder — pick one to wear"; position: absolute;
-      top: -10px; left: 12px; background: #ffffff; padding: 0 8px;
-      font: italic 11px "Times New Roman", serif; color: #5a5a5a;
-    }
-    /* The library promotes [data-scriptoscope-theme-picker] into a folder
-       strip with tile class `.scriptoscope-theme-picker-tile`. Consumer
-       CSS targets those classes — they're a stable part of the public
-       contract (T2.2). */
-    #powers [data-scriptoscope-theme-picker] { display: flex; gap: 10px; align-items: flex-start; overflow-x: auto; padding: 4px 24px 4px 4px; max-width: 100%; mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 24px), transparent 100%); }
-    /* When the picker lives inside chrome (the picker IS a window),
-       use CSS grid with auto-fill columns at the tile's fixed width
-       (86px from .scriptoscope-theme-picker-tile). Columns recompute
-       as the window resizes; rows flow naturally; vertical scroll
-       engages when more rows than fit. Cleaner alignment than
-       flex-wrap (grid aligns to the column grid; flex packs
-       greedily). Chrome edge is the boundary so the OFF-mode fade
-       mask stays off. The resize feedback loop this would otherwise
-       trigger (shrink → more rows → auto-fit grows back) was
-       neutralized by the userresize fix (commit beb78a4) — auto-fit
-       disconnects once the user manually sizes the window. */
-    #powers .scriptoscope-slot [data-scriptoscope-theme-picker] {
-      mask-image: none; -webkit-mask-image: none;
-      padding: 4px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, 86px);
-      gap: 10px;
-      justify-content: start;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-    /* Folder tile: name on top, author/year underneath. Mac Themes Garden /
-       Aaron-About-box convention — the scheme authors were the celebrities. */
-    #powers .scriptoscope-theme-picker-tile { flex: 0 0 auto; display: grid; gap: 2px; justify-items: center; padding: 8px 8px 6px; border: 1px solid transparent; cursor: pointer; min-width: 86px; max-width: 86px; background: transparent; font: inherit; }
-    #powers .scriptoscope-theme-picker-tile:hover { background: #f0f0f0; }
-    #powers .scriptoscope-theme-picker-tile:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
-    #powers .scriptoscope-theme-picker-tile.active { border-color: #4a4a4a; background: #efefef; }
-    #powers .scriptoscope-theme-picker-icon { image-rendering: pixelated; display: block; margin-bottom: 2px; }
-    #powers .scriptoscope-theme-picker-tile .name { font: 700 10.5px/1.1 "Times New Roman", serif; color: #1c1c1c; text-align: center; max-width: 80px; }
-    #powers .scriptoscope-theme-picker-tile .author { font: italic 9px/1.15 "Times New Roman", serif; color: #6a6a6a; text-align: center; max-width: 80px; }
-    /* Keep a stable coordinate system for the opt-in card cascade. The
-       runtime promotes cards in flow, then positions the cascade and
-       reserves its vertical extent with a container min-height. */
-    #powers .powers-grid { --powers-cascade-step-x: 24; display: block; margin: 0; position: relative; }
-    /* Two card rows in bare HTML; the opt-in cascade positions their
-       promoted windows using the container's declared step attributes. */
-    #powers .powers-card-row.heavy { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 0 0 14px; }
-    #powers .powers-card-row.minor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0; }
-    #powers .powers-card { display: grid; grid-template-columns: 56px 1fr; gap: 14px; padding: 12px 14px; border: 1px solid #c0c0c0; background: #ffffff; }
-    /* Heavy-row cards get a fixed max-height so the ResourceForkLib long-
-       form body actually overflows — that's the scrollbar demo. The runtime
-       inherits this height into the chrome via getBoundingClientRect, then
-       paints themed scrollbars around the overflow. OFF mode falls back to
-       native browser scrollbars; either way, the content reads as scrollable. */
-    #powers .powers-card-row.heavy .powers-card { max-height: 280px; overflow: auto; }
-    #powers .powers-card-row.minor .powers-card { background: #fafafa; }
-    /* When promoted, the card's children move into the window's content
-       slot. The glyph (an OFF-mode-only affordance — chrome itself signals
-       what kind of thing the card is) should disappear inside the slot.
-       Scope this off `.scriptoscope-slot` rather than a custom `.skinned`
-       class — the runtime adds the slot wrapper structurally, no consumer
-       class management needed. Pure visual hide; doesn't affect parent
-       layout because the parent (the card content) was already measured
-       at promotion time. */
-    #powers .scriptoscope-slot .powers-glyph { display: none; }
-    #powers .powers-card .powers-glyph { width: 48px; height: 48px; border: 1px solid #c0c0c0; background: #fafafa; display: grid; place-items: center; font: 26px/1 "Times New Roman", serif; color: #666; image-rendering: pixelated; }
-    #powers .powers-card h3 { margin: 0 0 6px; font: 700 15px/1.2 "Times New Roman", Times, serif; color: #1c1c1c; }
-    #powers .powers-card h3 a { color: #0000EE; text-decoration: underline; }
-    #powers .powers-card-row.minor .powers-card h3 { font-size: 13.5px; }
-    #powers .powers-card p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
-    #powers .powers-card-row.minor .powers-card p { font-size: 12px; }
-    #powers .powers-card pre.powers-code {
-      font: 11px/1.45 Monaco, "Courier New", monospace; background: #fff9d6;
-      border: 1px solid #d4c97a; padding: 6px 8px;
-      margin: 6px 0 0; overflow-x: auto; color: #1c1c1c;
-    }
-    #powers button.powers-demo-btn {
-      font: 12px "Times New Roman", Times, serif; padding: 4px 14px;
-      background: linear-gradient(#fefefe, #d8d8d8); border: 1px solid #888;
-      border-radius: 3px; cursor: pointer; color: #1c1c1c;
-    }
-    #powers button.powers-demo-btn:hover { background: linear-gradient(#fefefe, #c8c8c8); }
-    #powers label.powers-checkable { font: 12px "Times New Roman", serif; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-    #powers .powers-utility-caption { font: italic 11.5px "Times New Roman", serif; color: #5a5a5a; margin: 6px 0 0; }
-    #powers .powers-glyph img { width: 32px; height: 32px; image-rendering: pixelated; display: block; }
-    /* ── Skin toggle (top right) — now a button-style affordance ─────────
-       The disbelief beat needs an INVITATION to flip, not a state report.
-       Period precedent: BBEdit's "Show Source" preview toggle, CityDesk's
-       "Show HTML" / "Show Rendered" pair. Two-state button with action
-       label, not "skinned: on" checkbox-style. */
-    /* Toolbar — in-flow right-aligned strip ABOVE the picker. Previously
-       three absolute-positioned elements with brittle right:calc() math
-       that assumed a 960px container width; they collided on 1280px
-       viewports (the user-reported overlap that motivated this refactor).
-       Flexbox handles alignment + spacing without per-element calc(). */
-    #powers .powers-toolbar { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; padding: 14px 24px 0; max-width: 880px; margin: 0 auto; }
-    #powers .powers-skin-btn { font: 12px/1.1 "Times New Roman", serif; color: #0000EE; background: #ffffff; border: 1px solid #888; padding: 4px 10px; cursor: pointer; }
-    #powers .powers-skin-btn:hover { background: #fffae6; }
-    #powers .powers-skin-btn:focus-visible { outline: 2px solid #0000EE; outline-offset: 1px; }
-    #powers .powers-skin-btn .arrow { color: #5a5a5a; padding-left: 4px; }
-    #powers .powers-skin-btn-sep { font: 12px serif; color: #c0c0c0; }
-    /* Footer — period-1999 reflow: hr separators, smaller centered text. */
-    #powers .powers-divider { margin-top: 26px; padding-top: 14px; border-top: 1px solid #b8b8b8; font: 12px "Times New Roman", serif; color: #5a5a5a; display: flex; flex-direction: column; gap: 10px; }
-    #powers .powers-divider a { color: #0000EE; }
-    #powers .powers-footnav { font: 12px "Times New Roman", serif; color: #5a5a5a; text-align: center; }
-    #powers .powers-footnav a { color: #0000EE; text-decoration: underline; padding: 0 6px; }
-    #powers .powers-footnav span { color: #0000EE; padding: 0 4px; } /* pipe in link color, period-style */
-    @keyframes powers-pulse-glow {
-      0%, 100% { box-shadow: 0 0 0 0 #0000ee00; }
-      50% { box-shadow: 0 0 12px 2px #0000ee33; }
-    }
-    #powers [data-scriptoscope-theme-picker].powers-pulse { animation: powers-pulse-glow 1.6s ease-in-out 2; }
-    @media (prefers-reduced-motion: reduce) {
-      #powers [data-scriptoscope-theme-picker].powers-pulse { animation: none; }
-    }
-    @media (max-width: 720px) {
-      /* Leave room for native frame insets and title widgets outside the
-         measured body (including ornate schemes at a 320px viewport). */
-      #powers { padding-right: 56px; }
-      #powers h2 { overflow-wrap: anywhere; }
-      /* Constrain the grid before the runtime measures its host; long
-         code keeps its local scroll range instead of widening the page. */
-      #powers .powers-tools-row > *, #powers .powers-card-row > *,
-      #powers .powers-card > * { min-width: 0; }
-      #powers .powers-card { grid-template-columns: 56px minmax(0, 1fr); }
-      #powers .powers-card-row.heavy, #powers .powers-card-row.minor { grid-template-columns: minmax(0, 1fr); }
-      /* Use a shallower cascade and reserve its final 3 × 8px offset.
-         This leaves room for the runtime's minimum body width at 320px
-         without scaling the native chrome or changing drag behavior. */
-      #powers .powers-grid { --powers-cascade-step-x: 8; padding-right: 24px; box-sizing: border-box; }
-      #powers .powers-toolbar { padding: 12px 16px 0; flex-wrap: wrap; }
-    }
-    /* PICKER SPECIAL TILES — "No theme" and "Load your own" inside the
-       picker strip, replacing the top-right toggle + the dashed drop zone
-       below it. CSS `order` puts No theme first, Load your own last,
-       theme tiles fall in between (default order 0). Distinct class so the
-       library's keyboard nav (scoped to `.scriptoscope-theme-picker-tile`)
-       doesn't try to switchTheme(undefined) on them. */
-    #powers .powers-picker-special-tile {
-      flex: 0 0 86px; min-width: 86px;
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: 4px 4px 6px; background: transparent; border: 1px solid transparent;
-      font: 9.5px/1.1 "Charcoal", "Geneva", "Lucida Grande", sans-serif;
-      color: #1c1c1c; cursor: pointer;
-    }
-    #powers .powers-picker-special-tile:hover { background: #f0f0f0; }
-    #powers .powers-picker-special-tile:focus-visible { outline: 2px solid #0000EE; outline-offset: -2px; }
-    #powers .powers-picker-special-tile .glyph { width: 32px; height: 32px; display: grid; place-items: center; font-size: 20px; color: #666; image-rendering: pixelated; }
-    #powers .powers-picker-special-tile .name { font-weight: 700; }
-    #powers .powers-picker-special-tile .author { font-size: 8.5px; font-style: italic; color: #5a5a5a; }
-    #powers .powers-picker-special-tile[data-special="none"] { order: -1; }
-    #powers .powers-picker-special-tile[data-special="load"] { order: 99; }
-    /* Author credit — period-correct in-place byline that updates on every
-       retheme. Sits inside the Schemes Folder window below the tile strip;
-       small, italic, deferential (the corpus authors are the people; the
-       picker just points). Empty by default (boot text written on first
-       retheme); hidden if it never gets populated. */
-    #powers .powers-credit {
-      margin: 6px 4px 0; padding: 0;
-      font: italic 11.5px/1.4 "Times New Roman", Times, serif;
-      color: #5a5a5a; min-height: 1em;
-    }
-    #powers .powers-credit:empty { display: none; }
-    #powers .powers-credit strong { font-style: normal; font-weight: 600; color: #1c1c1c; }
-    /* BYO MODAL — fixed-position backdrop + themed modal window inside.
-       Initially hidden (visibility + opacity for transition, pointer-events
-       off). On `[data-scriptoscope-modal-open]` (toggled by the library's
-       handle.openModal helper, 2026-05-31), all three flip on. The library
-       also owns backdrop click + Esc + focus trap + chrome-close — the
-       CSS just describes the visual state. */
-    #powers-byo-modal-wrap {
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(40, 40, 60, 0.42);
-      display: flex; align-items: center; justify-content: center;
-      visibility: hidden; opacity: 0; pointer-events: none;
-      transition: opacity 140ms ease-out, visibility 0s linear 140ms;
-    }
-    #powers-byo-modal-wrap[data-scriptoscope-modal-open] { visibility: visible; opacity: 1; pointer-events: auto; transition-delay: 0s; }
-    @media (prefers-reduced-motion: reduce) { #powers-byo-modal-wrap { transition: none; } }
-    /* Measure a responsive body before promotion. Leave space for the frame;
-       the prepared canvas keeps its native pixel scale and centers normally. */
-    .powers-byo-modal:not(:has(.scriptoscope-slot)) { width: min(460px, calc(100vw - 64px)); }
-    .powers-byo-modal-content { padding: 4px 4px 8px; font: 13px/1.5 "Times New Roman", Times, serif; color: #1c1c1c; max-width: 460px; }
-    .powers-byo-modal-content p { margin: 0 0 10px; }
-    .powers-byo-modal-content code { font: 11.5px Monaco, "Courier New", monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
-    .powers-byo-zone-modal {
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      width: 100%; padding: 18px 16px;
-      border: 1.5px dashed #8a8a8a; background: #fafaf3;
-      font-family: inherit; cursor: pointer;
-      transition: background .12s, border-color .12s;
-    }
-    .powers-byo-zone-modal:hover,
-    .powers-byo-zone-modal:focus-visible { background: #fff5d6; border-color: #5a5a5a; outline: none; }
-    .powers-byo-zone-modal.scriptoscope-drop-active { background: #fff5d6; border-color: #5a5a5a; border-style: solid; }
-    .powers-byo-zone-modal strong { font: 600 14px serif; }
-    .powers-byo-zone-modal .subhint { font: italic 12px serif; color: #5a5a5a; }
-    .powers-byo-modal-out { margin-top: 8px; min-height: 1em; font: italic 12px serif; color: #5a5a5a; }
-    .powers-byo-modal-out .ok { color: #1c5d1c; }
-    .powers-byo-modal-out .err { color: #a01818; }
-    .powers-byo-modal-meta { margin-top: 8px; font: italic 11.5px serif; color: #767676; }
-    .powers-byo-modal-meta a { color: #0000EE; }
+    @media (prefers-reduced-motion: reduce) { .experience .arrow { transition: none; } }
   </style>
 </head>
 <body>
-  <section id="powers" aria-label="Scriptoscope">
-    <!-- Skin toggle (top-right, button-style affordance), the disbelief
-         beat. "See the bare HTML →" is the INVITATION; the prior checkbox
-         merely reported state. Period precedent: BBEdit's Preview/Source
-         toggle, CityDesk's HTML/Rendered switch. The previous sibling
-         `diagnostics →` link was moved into the Install window's meta
-         line because it clashed visually with theme chrome art that
-         bleeds past the title-bar edge (monkey-paradise's mascot, etc.).
-         User direction 2026-05-31. -->
-    <div class="powers-toolbar">
-      <!-- Skin-toggle button is now only shown when un-skinned (see syncToggleUI
-           in boot block). When skinned, the picker's 'No theme' tile is the
-           un-skin path; the toolbar button only re-appears in OFF mode as
-           the 'Restore the chrome' affordance. -->
-      <button type="button" id="powers-skin-toggle" class="powers-skin-btn"
-              aria-pressed="true" hidden
-              title="Restore the live Mac chrome. Off shows the bare 1999 HTML — the same DOM, no skinning runtime.">Restore the chrome <span class="arrow">←</span></button>
-    </div>
-    <div class="powers-inner">
-      <!-- ── PICKER as page header — open-the-folder is the FIRST eye-move.
-           Mac Themes Garden's per-scheme grid + the Kaleidoscope.net 1998
-           browser convention. Scheme authors were the celebrities of this
-           scene, so each tile renders name + author/year underneath.
-           When skinned, this becomes a "Schemes Folder" Mac window the
-           user can drag/resize like any other; in OFF mode it's a
-           labeled bordered box with a folder-strip inside. -->
-      <div class="powers-picker-host" id="powers-picker-host">
-        <!-- SCHEMES FOLDER — `document-window` (Mac OS 9's Appearance
-             control panel scheme picker was a document-window for the
-             same overflow reason). `widgets="zoom,collapse"` keeps close
-             inert (picker shouldn't dismiss; closing it leaves the user
-             unable to re-skin). `height="110"` constrains the slot to
-             ~one tile row so the grid (auto-fill 86px columns + flex-
-             wrap) overflows into the themed Kaleidoscope vertical
-             scrollbar — the picker's UX is "1 row visible, scroll for
-             more." The credit byline + 'Load your own' tile sit BELOW
-             the first row in the picker DOM, so they're reachable via
-             scroll (not initially visible — by design, the picker is a
-             tile chooser, the credit is just a current-state readout).
-             User-iterated 2026-05-31. -->
-        <article class="powers-picker" data-scriptoscope-window
-                 data-scriptoscope-title="Schemes Folder"
-                 data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-widgets="zoom,collapse"
-                 data-scriptoscope-height="110">
-          <!-- The folder strip — one attribute. The library renders one tile
-               per registered theme (icon + name + author/year credit) with
-               full ARIA tab pattern + keyboard nav + retheme on click.
-               Themes come from the `themes` array passed to mountDeclarative.
-               The two `.powers-picker-special-tile` buttons pre-seeded
-               inside are demo-side extras (No theme + Load your own); CSS
-               `order` puts No theme first and Load your own last, theme
-               tiles fall in between. Distinct class so the library's
-               keyboard nav skips them. -->
-          <div data-scriptoscope-theme-picker id="powers-folders" class="powers-folders">
-            <button type="button" class="powers-picker-special-tile" data-special="none"
-                    aria-label="Switch to bare HTML — no theme applied">
-              <span class="glyph" aria-hidden="true">⊘</span>
-              <span class="name">No theme</span>
-              <span class="author">bare HTML</span>
-            </button>
-            <button type="button" class="powers-picker-special-tile" data-special="load"
-                    aria-label="Load your own Kaleidoscope scheme — opens an upload modal">
-              <span class="glyph" aria-hidden="true">↑</span>
-              <span class="name">Load your own</span>
-              <span class="author">.sit · .rsrc</span>
-            </button>
+  <a class="skip-link" href="#experience">Skip to the demo</a>
+  <main class="advertisement">
+    <p class="edition">Original Mac schemes. A new life on the web.</p>
+    <figure class="portrait">
+      <div class="collage-space">
+        <div class="collage" id="collage" role="group" aria-label="Interactive portrait windows" aria-describedby="collage-instructions">
+          <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Portrait" data-scriptoscope-theme="1984" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="140" data-scriptoscope-y="76" data-scriptoscope-width="235" data-scriptoscope-height="293" data-scriptoscope-z="1" style="left:140px;top:76px;width:235px;height:293px">
+            <div class="crop crop-face"></div>
           </div>
-          <!-- AUTHOR CREDIT — updates on every retheme. The lightweight P0
-               version of period-historian-reviewer's "About this Scheme"
-               recommendation (#12, 2026-05-31): credits the corpus authors
-               in-place, period-correct (every Mac Read Me had its author's
-               name on the first line). The full About dialog awaits the
-               P1/P2 menu bar work (Apple menu → About this Scheme). Boot
-               text seeded by the first retheme event from the runtime. -->
-          <p class="powers-credit" id="powers-credit" aria-live="polite"></p>
-        </article>
-      </div>
-      <!-- BYO modal — themed `movable-modal` window with the drop-zone UI
-           inside. Triggered by the picker's 'Load your own' tile (see
-           the boot block below). The wrap is `position: fixed` with a
-           backdrop; clicking the backdrop OR the modal's close widget
-           hides the wrap. Initially `visibility: hidden` + `opacity: 0`
-           + `pointer-events: none` so the runtime promotes the modal
-           normally at mount-time (its rect captures fine), then we just
-           toggle the wrap's class to show/hide. -->
-      <div id="powers-byo-modal-wrap" role="presentation">
-        <article id="powers-byo-modal" class="powers-byo-modal" data-scriptoscope-window
-                 data-scriptoscope-title="Bring your own theme"
-                 data-scriptoscope-window-type="document-window"
-                 data-scriptoscope-height="220">
-          <div class="powers-byo-modal-content">
-            <p>Drop a Kaleidoscope scheme file here, or click to choose one. Decoded entirely in your browser — nothing uploaded; refreshing the page throws the bytes away.</p>
-            <button type="button" id="powers-byo-modal-drop" class="powers-byo-zone-modal"
-                    aria-label="Drop a Kaleidoscope scheme — decoded entirely in your browser">
-              <strong>Drop a .sit / .rsrc / .hqx file here</strong>
-              <span class="subhint">or click to choose</span>
-            </button>
-            <div id="powers-byo-modal-out" class="powers-byo-modal-out" role="status" aria-live="polite"></div>
-            <p class="powers-byo-modal-meta">Don't have one? <a href="https://macthemes.garden/" target="_blank" rel="noopener">Mac Themes Garden</a> has 4,400+ themes.</p>
+          <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Hair" data-scriptoscope-theme="1138" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="131" data-scriptoscope-y="15" data-scriptoscope-width="232" data-scriptoscope-height="140" data-scriptoscope-z="2" style="left:131px;top:15px;width:232px;height:140px">
+            <div class="crop crop-hair"></div>
           </div>
-        </article>
-      </div>
-      <!-- READ ME window — the lede prose itself wears chrome. Period
-           shareware convention: every download came with a "Read Me" you
-           opened before installing. The PERIOD-CORRECT type is
-           `document-window` (TeachText/SimpleText shipped Read Mes in
-           `kThemeDocumentWindow` — closable, with the user re-opening from
-           the Apple menu when needed; per period-historian-reviewer
-           2026-05-31). The `widgets="zoom,collapse"` opt-out drops the
-           close widget's click handler — the cicn art still paints close
-           but it's inert. Until we ship a menu bar with "Open Read Me"
-           in the Apple menu (P1 candidate), this is the right shape:
-           visually period-correct, functionally non-dismissible. -->
-      <article class="powers-readme" data-scriptoscope-window
-               data-scriptoscope-title="Scriptoscope: Read Me"
-               data-scriptoscope-window-type="document-window"
-               data-scriptoscope-widgets="zoom,collapse">
-        <h2>Scriptoscope: Hundreds of Kaleidoscope schemes running on your site, twenty-five years too late.</h2>
-        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly. Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with 4,400-plus schemes from 900-plus people, preserved today by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. Then OS X arrived in 2001 and the whole format went quiet.</p>
-        <p class="powers-lede">There was hope for a while that Kaleidoscope might survive into the OS X era — but the refactor was enormous, and OS X's own theming layer was never as stable as classic Mac OS had been. The various third-party attempts that did ship (ShapeShifter, Magnifique, et al.) had a reputation for corrupting installs more often than they worked. A few macOS versions later, the platform was locked down enough that no third-party chrome layer could ever ship again.</p>
-        <p class="powers-lede">Decades on, the schemes are remembered with nostalgia but largely unreachable — the only way to actually see them is through period Macintosh emulators, fun for archaeology but hardly practical. What if, through the beauty of JavaScript and a <code>&lt;canvas&gt;</code>, we could just apply them to our websites?</p>
-        <p class="powers-lede">If you're in that very small Venn diagram overlap, behold: Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
-        <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
-        <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
-        <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
-        <p class="powers-lede"><strong>A note on authorship.</strong> I've tried to contact the original Kaleidoscope authors (Greg Landweber, Arlo Rose, and a handful of scheme authors I could find addresses for) about this project, and haven't heard back. <strong>If you can put me in touch with any of them, or if you ARE one of them reading this, please email me: <a href="mailto:khawkins98@gmail.com">khawkins98@gmail.com</a>.</strong></p>
-        <p class="powers-lede">The runtime is a clean-room reimplementation of the kDEF rendering interpreter, written from the decompile used only as a test oracle. No original Kaleidoscope code ships or executes. This is the same legal posture every modern emulator operates under; the canonical precedent is <em>Sony v. Connectix</em> (2000), where the Ninth Circuit held that clean-room reverse engineering of the PlayStation BIOS for compatibility was fair use. The bundled scheme files are third-party freeware from the 1990s; Scriptoscope ships them under the same good-faith preservation posture <a href="https://macintoshgarden.org/">Macintosh Garden</a> and the <a href="https://archive.org/details/softwarelibrary_apple">Internet Archive</a> use, including take-down-on-request.</p>
-        <p class="powers-lede">Beyond the legal questions, this is really a technical curiosity, a way to bring back to life a corner of computing that's effectively dead and bit-rotting. Maybe someone will be crazy enough to author a new Kaleidoscope scheme. If you do, I'd love to see it.</p>
-        <p class="powers-lede">For the full project background, the design history, and the integration guide, see the <a href="https://github.com/khawkins98/scriptoscope">README and source on GitHub</a>.</p>
-        <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
-      </article>
-      <!-- TOOLS ROW: Controls + Install tiled side-by-side. Both are
-           titled-utility-window palettes (slim title bar, period
-           floating-tool feel). The 2-column flex layout reads as two
-           Mac OS palette windows opened next to each other, matching
-           the period desktop convention. User direction 2026-05-31. -->
-      <div class="powers-tools-row">
-        <article class="powers-hero-window" data-scriptoscope-window
-                 data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
-          <div class="powers-hero-strip" aria-label="Live themed controls, one of each kind">
-            <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
-            <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
-            <span class="hs-group"><label class="powers-checkable"><input type="radio" name="powers-hero-r" checked /> A</label><label class="powers-checkable"><input type="radio" name="powers-hero-r" /> B</label></span>
-            <span class="hs-group"><label for="powers-hero-vol">Vol</label><input id="powers-hero-vol" type="range" min="0" max="100" value="50" /><span id="powers-hero-vol-out" aria-live="polite">50%</span></span>
-            <span class="hs-group"><input type="text" value="A theme name" aria-label="Text input" /></span>
-            <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
+          <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Ear" data-scriptoscope-theme="crayon-os" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="67" data-scriptoscope-y="139" data-scriptoscope-width="125" data-scriptoscope-height="175" data-scriptoscope-z="3" style="left:67px;top:139px;width:125px;height:175px">
+            <div class="crop crop-ear"></div>
           </div>
-        </article>
-        <article class="powers-install-host" data-scriptoscope-window
-                 data-scriptoscope-title="Install"
-                 data-scriptoscope-window-type="titled-utility-window"
-                 data-scriptoscope-widgets="zoom,collapse">
-          <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet"><span class="c">&lt;!-- two URLs, eighteen scheme bundles --&gt;</span>
-<span class="a">&lt;link rel=</span><span class="s">"stylesheet"</span><span class="a"> href=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.css"</span><span class="a">&gt;</span>
-<span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
-<span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>Hello world<span class="a">&lt;/article&gt;</span></pre>
-          <!-- Install meta line. Styled as a footer continuation of the
-               snippet's cream box so it reads cleanly regardless of the
-               active theme's content-area chrome. Copy is a themed
-               `data-scriptoscope-button` so it picks up the scheme's
-               button art (consistent with the Controls strip's OK /
-               Cancel). User direction 2026-05-31. -->
-          <div class="powers-install-meta">
-            <button type="button" data-scriptoscope-button class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button>
-            <span class="powers-install-version">v<span id="powers-ver">0.x</span> · MIT · <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">mid-2023+</span></span>
-            <a href="https://github.com/khawkins98/scriptoscope">view source</a>
-            <a href="./personal.html" title="Real-world example pages: personal blog, shareware Read Me, product landing, docs site">examples →</a>
-            <a href="./diagnostic.html" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
+          <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Eye" data-scriptoscope-theme="beos-r503" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="213" data-scriptoscope-y="112" data-scriptoscope-width="195" data-scriptoscope-height="124" data-scriptoscope-z="4" style="left:213px;top:112px;width:195px;height:124px">
+            <div class="crop crop-eye"></div>
           </div>
-        </article>
-      </div>
-      <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
-           actually reads), 2-up minor row below (footnotes). NO explicit
-           x/y/width/height on any card: mountDeclarative reads each card's
-           getBoundingClientRect() at promotion time, so the chrome wraps
-           IN PLACE — bare HTML and skinned chrome occupy IDENTICAL
-           positions. The "wait, that's HTML?" disbelief beat lands as a
-           pure chrome-on/off swap with no layout shift. (Drag + resize
-           still work — WindowManager owns those; reload resets to CSS
-           defaults because no persistKey on the mount.) -->
-      <div class="powers-grid" id="powers-grid"
-           data-scriptoscope-cascade
-           data-scriptoscope-cascade-step-x="24"
-           data-scriptoscope-cascade-step-y="20">
-        <!-- HEAVY row: kDEF Replay Engine + ResourceForkLib (the long-form
-             card). ResourceForkLib carries ~360 words deliberately so the
-             card is tall enough to demo the runtime's themed scrollbars
-             with real content (per the 2026-05-30 writer's recommendation:
-             "yes, real windows scroll, real chrome paints around real
-             content"). The card-row.heavy max-height constraint in CSS
-             forces the overflow + scrollbar reveal. -->
-        <div class="powers-card-row heavy">
-          <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="kDEF Replay Engine" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="folder">⌘</div>
-            <div>
-              <h3><a href="./diagnostic.html#detail">One engine, eighteen looks</a></h3>
-              <p>A from-scratch implementation of the 2.3.1 <code>WDEF</code> Kaleidoscope shipped (the <strong>kDEF replay engine</strong>): same part-code jump table, same <code>wnd#</code> rect-list walk, same nine-slice of every <code>cicn</code>. Get the engine right once and every scheme renders for free. The deliberate divergences are written down in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the faithfulness ledger</a>, one entry at a time, with the reason.</p>
-            </div>
-          </article>
-          <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="ResourceForkLib" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="document">↘</div>
-            <div>
-              <h3><a href="./diagnostic.html#byo">Bring your own scheme</a></h3>
-              <p>A Kaleidoscope scheme is a Mac resource fork: a tiny relational database of typed records (<code>cicn</code>, <code>ppat</code>, <code>wnd#</code>, <code>cinf</code>, <code>Colr</code>, <code>clut</code>, <code>ics4</code>, <code>ics8</code>) authored against a Mac OS that hasn't shipped since 2001. To get one onto the web you have to read it the way the Finder read it.</p>
-              <p>So that's what this does. Drop a <code>.sit</code> on the page — say, the original <code>beosr503.sit</code> Jon Alexander uploaded in 2002 — and the runtime hands the bytes to a WebAssembly StuffIt decoder, lifts the resource fork out of the unpacked MacBinary wrapper, walks the resource map, and pulls each typed record into memory. The 8-bit <code>cicn</code> color icons get their CLUTs applied and Mac 1.8 → sRGB 2.2 gamma-corrected; the <code>wnd#</code> rect list becomes the four-sided recipe the compositor walks part-code by part-code; the <code>ppat</code> patterns become tile sources for the desktop and the dialog grays. All of it in your browser — no upload, no server, no telemetry, no account. Refresh the tab and the bytes are gone.</p>
-              <p>Two things this enables that nothing else does. First: the eighteen bundled schemes ship as their <em>original archives</em> — <code>scheme.sit</code> straight from kaleidoscope.net's 1999 mirror, or <code>scheme.rsrc</code> recovered from a Wayback crawl when the StuffIt is no longer reachable — with a <code>meta.json</code> that records who made it and where it came from. Nothing's been re-encoded or &ldquo;cleaned up.&rdquo; If a 1998 byte was wrong, it's wrong here.</p>
-              <p>Second: the demo's drop zone is the same code path as the bundled corpus. Drag any of the 3,000-plus schemes from the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a> onto the page and watch it render — the runtime doesn't know or care that you didn't ship it.</p>
-              <p>The decoder lives in <a href="https://github.com/khawkins98/scriptoscope/tree/main/tools/theme-loader"><code>tools/theme-loader/</code></a> and has no dependency on the renderer, the DOM, Node, or anything else app-specific. If you want to read resource forks in a browser for some other reason — a Mac archaeology project, a Hypercard stack viewer, a Mac OS save-game inspector — it's MIT licensed and it'll work.</p>
-            </div>
-          </article>
-        </div>
-        <!-- MINOR row: short footnotes. data-scriptoscope-* keeps its code
-             snippet (the API surface in 12 chars — kept verbatim per the
-             writer's "do not change" note). About the Library names real
-             authors where credit's known; preserves the period-Mac
-             "schemes were signed" convention. -->
-        <div class="powers-card-row minor">
-          <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="data-scriptoscope-*" data-scriptoscope-window-type="document-window">
-            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="prefs">✎</div>
-            <div>
-              <h3><a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/adr/0001-consumption-architecture.md">data-scriptoscope-*</a></h3>
-              <p>Tag an element, tell the runtime what it is — window, button, checkbox, slider, scrollbar — and it wears the current scheme. No React, no Web Components dependency, no build step required. The children stay live HTML; only the chrome is canvas.</p>
-              <pre class="powers-code">&lt;button data-scriptoscope-button&gt;OK&lt;/button&gt;
-&lt;input type=&quot;range&quot; data-scriptoscope-slider /&gt;
-&lt;article data-scriptoscope-window&gt;…&lt;/article&gt;</pre>
-            </div>
-          </article>
-          <article class="powers-card" data-scriptoscope-window
-                   data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window">
-            <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="suitcase">✦</div>
-            <div>
-              <h3><a href="./diagnostic.html#ribbon">The Scheme Library</a></h3>
-              <p>Eighteen schemes, each loaded from the original archive its author posted: Erik Ekengren's <em>1138</em>, Jon Alexander's <em>BeOS R5.0.3</em>, Karl von Laudermann's <em>Crayon OS</em>, R. Bensam &amp; E. Deans' <em>Apple Lisa for K2.1</em>, plus <em>Apple Platinum 2</em>, <em>Monkey Paradise</em>, <em>Windows 95</em>, and eleven more — preserved by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>, credited where credit's known.</p>
-            </div>
-          </article>
+          <div class="fragment" data-scriptoscope-window data-scriptoscope-title="Smile" data-scriptoscope-theme="windows-95" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="close,zoom,collapse" data-scriptoscope-state="inactive" data-scriptoscope-x="242" data-scriptoscope-y="260" data-scriptoscope-width="180" data-scriptoscope-height="160" data-scriptoscope-z="5" style="left:242px;top:260px;width:180px;height:160px">
+            <div class="crop crop-mouth"></div>
+          </div>
         </div>
       </div>
-      <div class="powers-divider">
-        <span>Compatible with Kaleidoscope version 2. No original code shipped or executed.</span>
-        <nav class="powers-footnav" aria-label="Section nav">
-          <a href="./diagnostic.html#ribbon">Schemes</a><span>|</span><a href="./diagnostic.html#byo">Bring your own</a><span>|</span><a href="./diagnostic.html">Runtime diagnostics</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope">Source</a><span>|</span><a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">Ledger</a>
-        </nav>
-      </div>
+      <noscript>
+        <style>.collage-space { display: none; }</style>
+        <img src="assets/landing/portrait.jpg" width="240" height="240" alt="An expressive black-and-white portrait" style="max-width:100%;height:auto">
+      </noscript>
+      <figcaption>
+        <p class="art-caption">Five original schemes. One very expressive face.</p>
+        <div class="collage-controls">
+          <p class="art-caption" id="collage-instructions">Real Scriptoscope windows. Drag the frames. Resize the corners.</p>
+          <button class="reset-collage" id="reset-collage" type="button" hidden>Reassemble the face</button>
+        </div>
+        <span id="collage-status" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span>
+      </figcaption>
+    </figure>
+    <h1>There’s a whole new way<span>to look at the web.</span></h1>
+    <p class="invitation">And you’re invited to make it your own.</p>
+    <div class="signature">
+      <span class="spectrum" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <p class="wordmark">Scriptoscope</p>
+      <p class="tagline">Eighteen schemes. Your HTML. A whole new personality.</p>
     </div>
-  </section>
-
-  <script type="module">
-    // ── The standalone landing-page boot ────────────────────────────────────
-    // Minimal vs the dev/diagnostic page: no ribbon, no #detail, no syncHooks,
-    // no per-scheme inspectors. Just enough to (a) mount the #powers section's
-    // chrome, (b) light up the folder strip with each theme's authentic folder
-    // icon, (c) re-skin everything on folder click, (d) wire the toggle.
-    //
-    // Imports use the bare `scriptoscope` specifier — same string a third-
-    // party consumer would write. Vite (dev + prod) aliases it to
-    // src/index.ts so the landing is a faithful consumer example.
-    import { mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme, VERSION } from 'scriptoscope';
-    import THEMES from './themes-manifest.json';
-
-    // (Removed: the inline `await Promise.all(document.fonts.load(...))`
-    // that used to gate this whole module — perf agent caught ~700ms of
-    // wasted blocking on Fast 3G because the library's own preloadFonts()
-    // gate runs inside mountDeclarative anyway. The script-tag preload
-    // links in <head> below let the browser start the woff fetches in
-    // parallel with the JS download instead of after it.)
-
-    // Theme bundles live under the deploy base: `/` in dev, `/scriptoscope/` on
-    // GH Pages. BASE_URL carries the prefix + trailing slash.
-    const BASE = import.meta.env.BASE_URL;
-    const themeBaseUrl = `${BASE}themes`.replace(/\/+$/, '');
-    // (The loadOnce theme cache, themesBySlug map, and loadTheme import
-    // are GONE — the library's createThemeResolver caches per-mount
-    // internally; declarative theme-picker / icon promotions both use it.)
-
-    // ── DOM handles ─────────────────────────────────────────────────────────
-    const powersSection = document.getElementById('powers');
-    const toggleBtn = document.getElementById('powers-skin-toggle');
-    const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
-    const verEl = document.getElementById('powers-ver');
-
-    // Version sync — the meta line under the install snippet shows the live
-    // package version (period Mac shareware convention: "Version x.y.z" was
-    // the FIRST line of every Read Me).
-    if (verEl) verEl.textContent = VERSION;
-
-    // Copy-snippet button: grabs the install snippet's text content
-    // (stripping the syntax-highlight spans) + writes it to the
-    // clipboard. Visual confirmation via a .copied class + label flip
-    // that reverts after 1.6s. Falls back gracefully if the Clipboard
-    // API is unavailable (older browsers / non-HTTPS pages).
-    const copyBtn = document.getElementById('powers-install-copy');
-    const snippetEl = document.getElementById('powers-install-snippet');
-    if (copyBtn && snippetEl) {
-      copyBtn.addEventListener('click', async () => {
-        const text = snippetEl.textContent.trim();
-        try {
-          await navigator.clipboard.writeText(text);
-          const original = copyBtn.textContent;
-          copyBtn.textContent = 'Copied';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = original;
-            copyBtn.classList.remove('copied');
-          }, 1600);
-        } catch {
-          copyBtn.textContent = 'Copy failed';
-          setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600);
-        }
-      });
-    }
-
-    // ── Skinning state ──────────────────────────────────────────────────────
-    // The toggle is a real button with aria-pressed (was a checkbox before
-    // the 2026-05-30 90s-designer pass — disbelief beat needs an INVITATION
-    // to flip, not a state report). Two visible states with explicit action
-    // labels: "See the bare HTML →" (when skinned) and "Restore the chrome ←"
-    // (when bare). The class .powers-bare on #powers tracks the visible state
-    // so the auto-cycle logic can suspend itself when the page is unskinned.
-    //
-    // ?theme= URL param: the landing is the shareable URL. Default 1138 if
-    // absent or unknown. Source-of-truth flow: URL → activeSlug → switchTheme
-    // mirrors slug back to URL via history.replaceState.
-    // The library now owns ?theme= reading + auto-cycle's first-interaction
-    // detector — we just pass `syncToUrlParam: 'theme'` + `autoCycle: 4000`
-    // and `themes: THEMES` to mountDeclarative below.
-    let mountToken = 0;
-    let handle = null;
-
-    // Single state setter — toggle button only. The library auto-adds
-    // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
-    // resolves and removes it on disconnect, so any consumer CSS that
-    // wants "is the runtime live?" scopes off `#powers.scriptoscope-ready`
-    // instead of a class our code juggles. Keeps boot + library state in
-    // lockstep without needing a separate setter.
-    const syncToggleUI = (skinned) => {
-      toggleBtn.setAttribute('aria-pressed', String(skinned));
-      toggleBtn.firstChild.textContent = 'Restore the chrome ';
-      const arrow = toggleBtn.querySelector('.arrow');
-      if (arrow) arrow.textContent = '←';
-      // Show the toolbar button ONLY when un-skinned — when skinned, the
-      // picker's 'No theme' tile is the un-skin path. Toolbar button
-      // re-appears in OFF mode as the 'Restore the chrome' affordance.
-      toggleBtn.hidden = skinned;
-    };
-
-    // Random default theme per page load — landing-page only. Picked
-    // ONCE per mount so it's stable across the various windows on the
-    // page (Read Me, Schemes Folder, cards, BYO modal all wear the
-    // same scheme). Overridden by `?theme=<slug>` via syncToUrlParam
-    // when the URL carries a deep-link. User direction 2026-05-31:
-    // the demo should surface different schemes on every visit, not
-    // park on 1138 as a permanent default.
-    const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
-
-    const mountPowers = async () => {
-      if (handle) return;
-      const grid = document.getElementById('powers-grid');
-      grid.setAttribute('data-scriptoscope-cascade-step-x',
-        getComputedStyle(grid).getPropertyValue('--powers-cascade-step-x').trim() || '24');
-      const my = ++mountToken;
-      let h;
-      try {
-        h = await mountDeclarative({
-          root: powersSection,
-          themeBaseUrl,
-          pageThemeDefault: randomDefaultSlug,
-          themes: THEMES,
-          // syncToUrlParam: '?theme=animals' on the URL sets the initial
-          // theme + history.replaceState mirrors every retheme back. The
-          // landing IS the shareable URL.
-          syncToUrlParam: 'theme',
-          // autoCycle: step through `themes` every 4s until first
-          // pointerdown/keydown/wheel. Suppressed if syncToUrlParam came
-          // in with a deep-link (the user chose a scheme) or if
-          // prefers-reduced-motion. Library owns all the bookkeeping.
-          autoCycle: 4000,
-          // No persistKey: layout is dictated by CSS. Drag + resize work
-          // (WindowManager owns those); reload resets to CSS defaults.
-          // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
-          // in ONE place — was a 16-line post-mount canvas probe before.
-          rejectOnEmptyMount: true,
-        });
-      } catch (err) {
-        if (my === mountToken) syncToggleUI(false);
-        console.warn('[scriptoscope] mountDeclarative failed:', err);
-        return;
-      }
-      const wantsSkinned = toggleBtn.getAttribute('aria-pressed') === 'true';
-      if (my !== mountToken || !wantsSkinned) {
-        try { h.disconnect(); } catch {}
-        return;
-      }
-      handle = h;
-      syncToggleUI(true);
-      // AUTHOR CREDIT — listen for retheme to update the in-place byline
-      // in the Schemes Folder window. The `ready` event fires once on
-      // initial promote BEFORE retheme fires for the boot theme, so we
-      // also seed off the resolved initial slug. Aligns with the period
-      // convention that the AUTHOR of a Mac scheme was visible — every
-      // Read Me's first line was the credit (P0-5, 2026-05-31).
-      const creditEl = document.getElementById('powers-credit');
-      const findEntry = (ref) => {
-        // The retheme ref may be a slug, a URL, or `dropped:<filename>`.
-        // Strip the dropped prefix; otherwise match by slug suffix.
-        if (typeof ref !== 'string') return null;
-        if (ref.startsWith('dropped:')) {
-          return { slug: ref.slice(8), name: ref.slice(8), author: null, year: null };
-        }
-        return THEMES.find((t) => t.slug === ref || ref.endsWith('/' + t.slug)) ?? null;
-      };
-      const renderCredit = (entry) => {
-        if (!creditEl) return;
-        if (!entry) { creditEl.textContent = ''; return; }
-        const bits = [];
-        bits.push(`Now wearing <strong>${entry.name ?? entry.slug}</strong>`);
-        if (entry.author) bits.push(`by ${entry.author}`);
-        if (entry.year) bits.push(`· ${entry.year}`);
-        creditEl.innerHTML = bits.join(' ');
-      };
-      // Seed off the URL param / page default — covers the boot render
-      // before the first retheme event fires.
-      const url = new URL(window.location.href);
-      const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
-      renderCredit(findEntry(initialSlug));
-      h.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
-    };
-
-    const unmountPowers = () => {
-      mountToken++;
-      if (handle) { try { handle.disconnect(); } catch {} handle = null; }
-      syncToggleUI(false);
-      const credit = document.getElementById('powers-credit');
-      if (credit) credit.textContent = '';
-    };
-    toggleBtn.addEventListener('click', () => {
-      // Toolbar button is only visible when un-skinned (syncToggleUI hides
-      // it otherwise). One job: restore the chrome.
-      toggleBtn.setAttribute('aria-pressed', 'true');
-      mountPowers();
-    });
-
-    // BYO MODAL — opened by the picker's 'Load your own' tile, hidden by
-    // backdrop click OR the modal's own close widget. The library's
-    // `handle.openModal(wrap)` (architect-reviewer 2026-05-31) owns:
-    // visibility toggle (data-scriptoscope-modal-open attribute),
-    // backdrop click, Esc key, focus trap (cycles Tab/Shift+Tab inside
-    // including the shadow-DOM chrome buttons), focus restore on close,
-    // bubbled scriptoscope:close listener (so the chrome close widget
-    // also closes the wrap). The demo just OPENS and lets the library
-    // do the rest. The drop zone INSIDE the modal is wired via
-    // attachThemeDropZone. onFile decodes via loadKaleidoscopeScheme (no
-    // upload), registers under a synthetic ref, and rethemes the page.
-    // Modal stays open after a successful load so the user sees the
-    // status; they close it via backdrop / Esc / close widget.
-    const modalWrap = document.getElementById('powers-byo-modal-wrap');
-    const modalDrop = document.getElementById('powers-byo-modal-drop');
-    const modalOut = document.getElementById('powers-byo-modal-out');
-    let modalHandle = null;
-    let modalTrigger = null; // captured by the picker click handler before openModal
-    const openModal = () => {
-      // Library helper needs a live mount handle. If we're in OFF mode,
-      // skip (the picker click handler awaits mountPowers first).
-      if (!handle || !modalWrap) return;
-      // Pass the trigger explicitly: mouse clicks on buttons don't reliably
-      // focus the button (Safari especially), so the library's
-      // activeElement-at-open-time auto-capture often catches BODY. The
-      // caller knows the trigger; pass it for accurate focus restore on
-      // close. Falls back to library auto-capture if undefined.
-      modalHandle = handle.openModal(modalWrap, modalTrigger ? { returnFocusTo: modalTrigger } : {});
-    };
-    const closeModal = () => { modalHandle?.close(); modalHandle = null; };
-    if (modalDrop && modalOut) {
-      attachThemeDropZone(modalDrop, {
-        accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
-        onFile: async (file) => {
-          const name = file.name.replace(/\.[^.]+$/, '') || file.name;
-          modalOut.className = 'powers-byo-modal-out';
-          modalOut.textContent = `Decoding ${file.name}…`;
-          // If currently in OFF mode, mount first so we have a handle
-          // to register against (and to render the dropped theme).
-          if (!handle) await mountPowers();
-          if (!handle) {
-            modalOut.className = 'powers-byo-modal-out err';
-            modalOut.textContent = `Couldn't bring up the runtime to render ${file.name}.`;
-            return;
-          }
-          try {
-            const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
-            const ref = `dropped:${file.name}`;
-            handle.registerTheme(ref, theme);
-            await handle.retheme(ref);
-            modalOut.className = 'powers-byo-modal-out ok';
-            modalOut.textContent = `Now wearing ${name} — preview only, gone on reload.`;
-          } catch (err) {
-            modalOut.className = 'powers-byo-modal-out err';
-            modalOut.textContent = `Couldn't read ${file.name} as a Kaleidoscope theme (${(err && err.message) || err}).`;
-          }
-        },
-        onError: (err) => {
-          modalOut.className = 'powers-byo-modal-out err';
-          modalOut.textContent = `Drop failed: ${(err && err.message) || err}`;
-        },
-      });
-    }
-    // (No backdrop / Esc / scriptoscope:close listeners here — the library's
-    // handle.openModal owns all three, plus the focus trap. That's why the
-    // helper exists: the demo's previous hand-rolled version was ~20 LoC of
-    // wiring AND was missing the focus trap, a real a11y gap.)
-
-    // PICKER CLICK HANDLER — delegated, capture phase. Three cases:
-    //   1. Special tile ('No theme' / 'Load your own') → demo-side action.
-    //      These tiles aren't promoted through the library's tile wiring
-    //      (deliberately — they're demo-side extras, not real themes), so
-    //      this delegation IS the wiring.
-    //   2. Theme tile clicked WHILE IN OFF MODE → re-mount + retheme to
-    //      that slug. The picker article is restored to the DOM after
-    //      unmount with all its tiles + library-wired click handlers, but
-    //      the handlers now close over a dead scanner closure and silently
-    //      no-op. Without this intercept, clicking BeOS in OFF mode does
-    //      nothing — the user-reported 2026-06-01 P0 (after the No-theme
-    //      tile unmount path landed and surfaced the symmetry gap).
-    //   3. Theme tile clicked WHILE MOUNTED → let the library's per-tile
-    //      handler take it. We don't stopPropagation; event continues to
-    //      target phase normally.
-    //
-    // Capture-phase (third arg = true) so we intercept BEFORE the
-    // library's per-tile handlers fire. stopPropagation prevents them in
-    // cases 1 + 2; case 3 falls through.
-    foldersEl?.addEventListener('click', async (e) => {
-      const target = e.target;
-      // CASE 1 — special tiles
-      const special = target.closest('.powers-picker-special-tile');
-      if (special) {
-        e.stopPropagation();
-        const kind = special.dataset.special;
-        if (kind === 'none') {
-          unmountPowers();
-        } else if (kind === 'load') {
-          // Defensive: only open the modal if the runtime is mounted (the
-          // modal article needs to be a promoted themed window, not bare
-          // HTML). If pre-mount or post-disconnect, await first. Same
-          // aria-pressed flip pattern as the theme-tile case below.
-          if (!handle) {
-            toggleBtn.setAttribute('aria-pressed', 'true');
-            await mountPowers();
-          }
-          if (handle) {
-            modalTrigger = special; // captured before openModal for focus restore on close
-            openModal();
-          }
-        }
-        return;
-      }
-      // CASE 2 — theme tile clicked while OFF
-      if (!handle) {
-        const themeTile = target.closest('.scriptoscope-theme-picker-tile');
-        const slug = themeTile?.dataset?.slug;
-        if (slug) {
-          e.stopPropagation();
-          // mountPowers bails if toggleBtn.aria-pressed === 'false' (the
-          // 'consumer toggled off mid-mount' guard). The click here IS the
-          // consumer toggling back on, so flip the intent first.
-          toggleBtn.setAttribute('aria-pressed', 'true');
-          await mountPowers();
-          if (handle) await handle.retheme(slug);
-        }
-      }
-      // CASE 3 — theme tile clicked while ON: no stopPropagation,
-      // event proceeds to the tile's own library-wired handler.
-    }, true);
-
-    // (The 40-line folder-strip-with-ARIA-keyboard-nav boot is GONE —
-    // `<div data-scriptoscope-theme-picker>` in the markup + `themes: THEMES`
-    // passed to mountDeclarative covers it. The library handles tile
-    // building, name + author/year, ARIA tab pattern, keyboard nav,
-    // active-state sync on retheme. Pointerdown still counts as
-    // engagement (auto-cycle stops below), which the section-wide
-    // first-interaction listener picks up.)
-
-    // (Auto-cycle, URL-sync, and the switchTheme orchestrator are GONE —
-    // all three are now mountDeclarative options:
-    //   - autoCycle: 4000        — library handles the timer + interaction
-    //                              stop + reduced-motion + deep-link suppress
-    //   - syncToUrlParam: 'theme'— library reads at boot + replaceState
-    //                              on every retheme
-    //   - themes: THEMES         — drives both autoCycle + the theme-picker
-    // Click handlers on the picker tiles call handle.retheme(slug)
-    // internally. No consumer-side switchTheme orchestrator needed.)
-
-    // (The parallel folder-icon preload Promise.allSettled is GONE — the
-    // library's promoteThemePicker fills tile icons concurrently on its
-    // own, harvesting each theme's -3983/-3999 from its iconIndex.)
-
-    // (slider wire-up moved into the boot-init block below — needs to run
-    // alongside syncToggleUI so the readout sync defends against the same
-    // form-state-cache restore class as the toggle.)
-
-    // First-load pulse on the folder strip — directs the eye, cancellable on
-    // hover OR keyboard focus, respects prefers-reduced-motion (CSS @media).
-    foldersEl.classList.add('powers-pulse');
-    const dropPulse = () => foldersEl.classList.remove('powers-pulse');
-    foldersEl.addEventListener('mouseenter', dropPulse, { once: true });
-    foldersEl.addEventListener('focusin', dropPulse, { once: true });
-    setTimeout(dropPulse, 1600 * 2 + 200);
-
-    // Force the toggle state at boot — defends against Firefox/Safari
-    // bfcache restoring aria-pressed='false' even when HTML says true.
-    // Safe to call any time now that .scriptoscope-mounted is a decorative
-    // class with no layout-affecting CSS rules tied to it.
-    syncToggleUI(true);
-    // Slider readout — just mirror the live value to the % span. The
-    // library auto-resyncs the slider's themed face from native state on
-    // pageshow.persisted (T1.4), and the input event fires whenever the
-    // user moves either the themed face OR the native input — so no
-    // boot-time sync is needed for the readout to stay honest.
-    const slider = document.getElementById('powers-hero-vol');
-    const sliderOut = document.getElementById('powers-hero-vol-out');
-    slider?.addEventListener('input', () => { if (sliderOut) sliderOut.textContent = `${slider.value}%`; });
-    queueMicrotask(async () => {
-      // (The runtime now auto-reserves min-height on positioned ancestors
-      // before lifting children out of flow — was a manual ~12-line dance
-      // before T1.5. Layout-shift-free OFF↔ON toggle is now the default,
-      // no consumer code needed. Per-card glyph resolution happens via
-      // <div data-scriptoscope-icon="..."> automatically — no boot-time
-      // refreshCardGlyphs call needed.)
-      await mountPowers();
-    });
-  </script>
+    <p class="pitch">Remember when your computer could look like <em>you?</em> Now your website can, too. Add a few attributes to the HTML you already have, load Scriptoscope, and ordinary elements become classic Mac windows and controls. Your content stays live underneath. <strong>A few little tags. A whole lot of character.</strong></p>
+    <a class="experience" id="experience" href="./showcase.html">Explore the possibilities <span class="arrow" aria-hidden="true">→</span></a>
+    <p class="fine-print">No framework. No build step. No time machine required.</p>
+    <div class="example-pages">
+      <p>Or see what a little character can do.</p>
+      <nav aria-label="Example websites built with Scriptoscope">
+        <a href="./personal.html">A personal page</a>
+        <a href="./shareware.html">A shareware Read Me</a>
+        <a href="./landing.html">A product page</a>
+        <a href="./docs.html">A documentation site</a>
+      </nav>
+    </div>
+    <footer class="colophon">
+      <p class="scheme-hint">Give the face a different look.</p>
+      <ul class="scheme-line" aria-label="Apply a scheme to the portrait windows">
+        <li><button type="button" data-portrait-theme="1138" aria-pressed="false" disabled>1138</button></li>
+        <li><button type="button" data-portrait-theme="crayon-os" aria-pressed="false" disabled>Crayon OS</button></li>
+        <li><button type="button" data-portrait-theme="beos-r503" aria-pressed="false" disabled>BeOS R5.0.3</button></li>
+        <li><button type="button" data-portrait-theme="windows-95" aria-pressed="false" disabled>Windows 95</button></li>
+        <li><button type="button" data-portrait-theme="1984" aria-pressed="false" disabled>1984</button></li>
+        <li><button type="button" data-portrait-theme="mix" aria-pressed="true" disabled>Original mix</button></li>
+      </ul>
+      <p class="credits">Schemes by Erik Ekengren, Karl von Laudermann, Jon Alexander, Scott Naness, and Geoffrey Hamilton. Made possible by Greg Landweber &amp; Arlo Rose’s Kaleidoscope, and the people who gave the Mac a thousand faces.</p>
+      <p class="credits">Art direction inspired by <a href="./assets/landing/inspiration-apple-new-media-forum-1995.png">Apple’s New Media Forum: World Tour ’95 advertisement</a> (1995).</p>
+      <nav class="footer-nav" aria-label="Project links">
+        <a href="https://github.com/khawkins98/scriptoscope#five-minute-setup">Put it on your site</a>
+        <a href="./diagnostic.html">Runtime diagnostics</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source &amp; story</a>
+      </nav>
+    </footer>
+  </main>
+  <script type="module" src="./advertisement.mjs"></script>
 </body>
 </html>

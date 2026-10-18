@@ -3707,3 +3707,21 @@ This range constraint fix preserves the existing full-canvas pointer mapping.
 Independent no-movement thumb clicks still shift values near the ends; shared
 thumb-center travel and grab-offset correction are tracked separately in #244.
 Native constraint/event correctness is not proof of pointer geometry fidelity.
+## 2026-10-18 — A fixed multi-theme portrait collage on the landing page
+
+The ad-style landing uses `ScriptoscopeWindow.promote` with a shared
+`WindowManager` and theme resolver to render five schemes at once. Its original
+static composition scaled a 500px canvas and pinned z-order in CSS. Once the
+windows became interactive, both constraints had to go: pointer movement needs
+native CSS coordinates, and focus needs control of stacking. Responsive layout
+now scales the declared geometry and photo crops while leaving chrome at its
+native pixel size. All windows start inactive so declared z-order composes the
+face; pointer or keyboard focus can subsequently raise any window. Reassemble
+unmounts and re-promotes the original panels using cached themes, restoring
+closed, resized and shaded windows. A width change also reassembles the collage.
+The footer scheme buttons call `WindowManager.retheme` in place, preserving
+user positions/sizes and closed or shaded state. Retheme and reassemble are
+serialized to avoid replacing hosts during an async repaint. Geometry reset
+keeps the chosen scheme; Original mix restores the initial five-theme composition.
+The interactive demo is preserved at `showcase.html`; old root `?theme=` links
+redirect there with their query and hash intact.

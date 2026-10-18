@@ -33,6 +33,12 @@ await copy(
   resolve(outAssets, 'references'),
 );
 
+// User-supplied period advertisement linked from the landing's inspiration credit.
+await copy(
+  resolve(root, 'demo/assets/landing/inspiration-apple-new-media-forum-1995.png'),
+  resolve(outAssets, 'landing/inspiration-apple-new-media-forum-1995.png'),
+);
+
 // themes-manifest.json — the canonical theme catalog the README's integration guide
 // publicizes at https://khawkins98.github.io/scriptoscope/themes-manifest.json. Vite bundles
 // it as a JSON import for the demos, but the published URL itself needs a static copy.
