@@ -110,6 +110,12 @@ A more complete page with the script wired in, one window, and a button:
 
 **That's it.** The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
+New declared windows and controls can be appended directly or inside a container
+after mounting. An initial Element `root` remains a scan scope, and later additions
+inside an already-promoted window are excluded. See the
+[scoped insertion boundary](docs/spec/scanner-insertion.md), including the
+previous accidental wrapped-control path now excluded.
+
 ### Three things to know up front
 
 If you only need it to work, you can skip this section. If something looks slightly off after you've dropped Scriptoscope on your page, one of these is probably why:

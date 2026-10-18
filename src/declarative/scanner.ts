@@ -461,7 +461,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   };
 
   const promoteBtn = async (el: HTMLElement): Promise<void> => {
-    if (isPromoted(el)) return; // buttons inside window content ARE wanted
+    if (lifetime.signal.aborted || !root.contains(el) || isPromoted(el)) return; // buttons inside window content ARE wanted
     ownedButtonSources.add(el);
     inFlight.add(el);
     const eligible = (): boolean => !lifetime.signal.aborted && el.isConnected && root.contains(el);
@@ -498,45 +498,52 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   };
 
   const promoteTabsEl = async (el: HTMLElement): Promise<void> => {
-    if (el.dataset.scriptoscopeTabsPromoted != null) return;
+    if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeTabsPromoted != null) return;
     inFlight.add(el);
     try {
-      await promoteTabs(el, await resolver.load(refForEl(el)), { signal: lifetime.signal });
+      const theme = await resolver.load(refForEl(el));
+      if (lifetime.signal.aborted || !root.contains(el)) return;
+      await promoteTabs(el, theme, { signal: lifetime.signal });
+      if (lifetime.signal.aborted || !root.contains(el)) return;
       skinnedTabs.push(el);
       markInertIfWiping(el);
       stats.tabs += 1;
     } catch (err) {
-      reportPromoteError('tabs', el, err);
+      if (!lifetime.signal.aborted) reportPromoteError('tabs', el, err);
     } finally {
       inFlight.delete(el);
     }
   };
 
   const promoteFld = async (el: HTMLInputElement | HTMLTextAreaElement): Promise<void> => {
-    if (el.dataset.scriptoscopeFieldPromoted != null) return;
+    if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeFieldPromoted != null) return;
     inFlight.add(el);
     try {
-      promoteField(el, await resolver.load(refForEl(el)));
+      const theme = await resolver.load(refForEl(el));
+      if (lifetime.signal.aborted || !root.contains(el)) return;
+      promoteField(el, theme);
       stats.fields += 1;
     } catch (err) {
-      reportPromoteError('field', el, err);
+      if (!lifetime.signal.aborted) reportPromoteError('field', el, err);
     } finally {
       inFlight.delete(el);
     }
   };
 
   const promoteIco = async (el: HTMLImageElement | HTMLElement): Promise<void> => {
-    if (el.dataset.scriptoscopeIconPromoted != null) return;
+    if (lifetime.signal.aborted || !root.contains(el) || inFlight.has(el) || el.dataset.scriptoscopeIconPromoted != null) return;
+    inFlight.add(el);
     try {
       const theme = await resolver.load(refForEl(el));
+      if (lifetime.signal.aborted || !root.contains(el)) return;
       if (promoteIcon(el, theme)) { skinnedIcons.push(el); markInertIfWiping(el); }
     } catch (err) {
-      reportPromoteError('icon', el, err);
-    }
+      if (!lifetime.signal.aborted) reportPromoteError('icon', el, err);
+    } finally { inFlight.delete(el); }
   };
 
   const promotePicker = async (el: HTMLElement): Promise<void> => {
-    if (el.dataset.scriptoscopeThemePickerPromoted != null) return;
+    if (lifetime.signal.aborted || !root.contains(el) || el.dataset.scriptoscopeThemePickerPromoted != null) return;
     if (!opts.themes?.length) return; // no manifest → picker stays empty (consumer didn't opt in)
     try {
       const result = await promoteThemePicker(el, opts.themes, {
@@ -546,17 +553,18 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         initialSlug: lastThemeRef ?? pageDefault,
       });
       if (result) {
+        if (lifetime.signal.aborted || !root.contains(el)) { result.teardown(); return; }
         skinnedPickers.push(result.el);
         pickerTeardowns.push(result.teardown);
         markInertIfWiping(result.el);
       }
     } catch (err) {
-      reportPromoteError('control', el, err); // no 'picker' kind; reuse 'control' (kept tight for now)
+      if (!lifetime.signal.aborted) reportPromoteError('control', el, err); // no 'picker' kind
     }
   };
 
   const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
-    if (isPromoted(el)) return;
+    if (lifetime.signal.aborted || !root.contains(el) || isPromoted(el)) return;
     inFlight.add(el);
     const parent = el.parentNode, connected = el.isConnected;
     try {
@@ -571,7 +579,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       }
       debug('promote', `control: ${el.tagName.toLowerCase()}${el.type ? `[type=${el.type}]` : ''}`);
     } catch (err) {
-      reportPromoteError('control', el, err);
+      if (!lifetime.signal.aborted) reportPromoteError('control', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -693,7 +701,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // deterministically (WindowManager focus follows add-order). This moves window content — including
   // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
   // concurrently. Stamps make this safe to run repeatedly.
-  const runScan = async (within: Document | Element): Promise<void> => {
+  const scanTargets = (within: Document | Element, selector: string, includeSelf: boolean): Element[] => [
+    ...(includeSelf && within instanceof Element && within.matches(selector) ? [within] : []),
+    ...Array.from(within.querySelectorAll(selector)),
+  ];
+  const runScan = async (within: Document | Element, includeSelf: boolean): Promise<void> => {
     if (lifetime.signal.aborted) return;
     // Posture B (2026-05-30 refactor): hosts default to `position: static`
     // and sit in flow at the source element's DOM position. The browser's
@@ -704,7 +716,12 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // absolute path is still available for overlay use cases via the
     // `-x`/`-y` attributes, and ScriptoscopeWindow.promote measures the
     // source element JIT for THAT path's positioning.
-    const windowTargets = Array.from(within.querySelectorAll(WINDOW_SEL)) as HTMLElement[];
+    // Snapshot identities before promoting a window detaches its source and
+    // moves its children. Re-querying that detached source would lose controls.
+    const targets = (selector: string): Element[] => scanTargets(within, selector, includeSelf);
+    const windowTargets = targets(WINDOW_SEL) as HTMLElement[];
+    const tabs = targets(TABS_SEL), buttons = targets(BUTTON_SEL), controls = targets(CONTROL_SEL);
+    const fields = targets(FIELD_SEL), icons = targets(ICON_SEL), pickers = targets(THEME_PICKER_SEL);
     for (const el of windowTargets) {
       await promoteWindow(el);
       if (lifetime.signal.aborted) return;
@@ -721,28 +738,33 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // hand-writing position math for each one." Run after all windows
     // in this scan pass have promoted so containers are accurate.
     applyCascadeLayout(within, mounted);
+    // Preserve discoveries made during initial/connected-subtree preparation:
+    // the initial observer is not installed yet, and tabs can also await paint.
+    // A promoted window source is detached, so only its retained identities are
+    // available; never follow its new parent or expand to the mount root.
+    const currentTargets = (saved: Element[], selector: string): Element[] => [...new Set([
+      ...saved, ...(root.contains(within) ? targets(selector) : []),
+    ])];
     // Tabs FIRST among the in-window controls — the button promotion later will skip any tab
     // <button> because promoteTabs stamps them with data-scriptoscope-promoted.
-    for (const el of Array.from(within.querySelectorAll(TABS_SEL))) await promoteTabsEl(el as HTMLElement);
+    for (const el of currentTargets(tabs, TABS_SEL)) await promoteTabsEl(el as HTMLElement);
     await Promise.all([
-      ...Array.from(within.querySelectorAll(BUTTON_SEL), (el) => promoteBtn(el as HTMLElement)),
-      ...Array.from(within.querySelectorAll(CONTROL_SEL), (el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),
-      ...Array.from(within.querySelectorAll(FIELD_SEL), (el) => promoteFld(el as HTMLInputElement | HTMLTextAreaElement)),
-      ...Array.from(within.querySelectorAll(ICON_SEL), (el) => promoteIco(el as HTMLImageElement | HTMLElement)),
-      ...Array.from(within.querySelectorAll(THEME_PICKER_SEL), (el) => promotePicker(el as HTMLElement)),
+      ...currentTargets(buttons, BUTTON_SEL).map((el) => promoteBtn(el as HTMLElement)),
+      ...currentTargets(controls, CONTROL_SEL).map((el) => promoteCtl(el as HTMLInputElement | HTMLSelectElement)),
+      ...currentTargets(fields, FIELD_SEL).map((el) => promoteFld(el as HTMLInputElement | HTMLTextAreaElement)),
+      ...currentTargets(icons, ICON_SEL).map((el) => promoteIco(el as HTMLImageElement | HTMLElement)),
+      ...currentTargets(pickers, THEME_PICKER_SEL).map((el) => promotePicker(el as HTMLElement)),
     ]);
   };
 
-  const scanAndPromote = async (within: Document | Element): Promise<void> => {
-    let waited = false;
+  const scanAndPromote = async (within: Document | Element, includeSelf = false): Promise<void> => {
     while (pendingTheme) {
-      waited = true;
       try { await pendingTheme; } catch { /* a failed request keeps the completed default */ }
     }
     if (lifetime.signal.aborted || !root.contains(within)) return;
-    // The observer coalesces additions while this scan waits. Include additions
-    // from the entire root once, after the request barrier, rather than losing them.
-    const scan = runScan(waited ? root : within);
+    // Observer additions stay queued across the theme barrier; retain this
+    // scoped subtree and its include-self semantics instead of scanning root.
+    const scan = runScan(within, includeSelf);
     activeScans.add(scan);
     try { await scan; } finally { activeScans.delete(scan); }
   };
@@ -914,44 +936,40 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (armAutoCycle) armAutoCycle();
   });
 
-  // Promote dynamically-added elements. Coalesce bursts to a microtask; the full re-scan is
-  // idempotent (stamps), so we don't need to diff records precisely. Reset `scheduled` in a
-  // .finally() so an unexpected throw from scanAndPromote/wireThemeSwitchers doesn't permanently
-  // freeze the observer (fix from 2026-05-28 review — defensive against future regressions).
+  // Retain added subtrees while a scan or theme request is pending. Initial
+  // mount intentionally scans descendants only; observer additions include self.
+  const addedSubtrees = new Set<Element>();
   let scheduled = false;
+  const drainAddedSubtrees = async (): Promise<void> => {
+    try {
+      while (!lifetime.signal.aborted && addedSubtrees.size) {
+        const batch = [...addedSubtrees]; addedSubtrees.clear();
+        const results = await Promise.allSettled(batch.map(s => scanAndPromote(s, true)));
+        for (const result of results) if (result.status === 'rejected' && !lifetime.signal.aborted) {
+          console.error('[scriptoscope] added-subtree scan failed', result.reason);
+        }
+        if (!lifetime.signal.aborted) wireThemeSwitchers(root);
+      }
+    } finally { scheduled = false; }
+  };
   const obs = new MutationObserver((records) => {
     if (lifetime.signal.aborted) return;
     // Existing owned faces can move without requiring another promotion. Keep
-    // this before scan coalescing so a move during an in-flight scan isn't lost.
+    // enrollment before host exclusion and scan coalescing so moves are retained.
     for (const record of records) for (const node of record.addedNodes) {
       if (node instanceof Element) bindManagedSubtree(node);
     }
-    if (scheduled) return;
-    // Walk records and collect ONLY the added Element subtrees (not the
-    // whole root). On a busy host page — CMS with rotating banners,
-    // tooltips, modals — the prior "rescan root" path triggered the
-    // entire promote pipeline on every unrelated DOM mutation, doing
-    // ~free work via stamps but burning a measurable querySelectorAll
-    // budget per mutation. Scoped rescan: do work proportional to what
-    // actually changed (T3.3 from the lib-reviewer audit).
-    const subtrees: Element[] = [];
-    for (const r of records) {
-      for (const n of Array.from(r.addedNodes)) {
-        if (!(n instanceof Element)) continue;
-        if (n.closest('.scriptoscope-window')) continue; // our own chrome churn
-        subtrees.push(n);
-      }
+    for (const r of records) for (const n of Array.from(r.addedNodes)) {
+      if (!(n instanceof Element) || n.closest('.scriptoscope-window, [data-scriptoscope-window-host]')) continue;
+      // Collapse only containment within the pending batch. Captured targets in
+      // an active scan retain their own in-flight/stamp ownership checks.
+      if ([...addedSubtrees].some(queued => queued.contains(n))) continue;
+      for (const queued of addedSubtrees) if (n.contains(queued)) addedSubtrees.delete(queued);
+      addedSubtrees.add(n);
     }
-    if (subtrees.length === 0) return;
+    if (scheduled || !addedSubtrees.size) return;
     scheduled = true;
-    queueMicrotask(() => {
-      // Promise.all rather than sequential — each subtree scan is
-      // independent. wireThemeSwitchers still runs at root because the
-      // theme-switcher binding is page-scope (only one usually).
-      void Promise.all(subtrees.map((s) => scanAndPromote(s)))
-        .then(() => { if (!lifetime.signal.aborted) wireThemeSwitchers(root); })
-        .finally(() => { scheduled = false; });
-    });
+    queueMicrotask(() => { void drainAddedSubtrees(); });
   });
   const target = root instanceof Document ? (root.body ?? root.documentElement) : root;
   if (target) obs.observe(target, { childList: true, subtree: true });
@@ -960,7 +978,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // original element, disconnects its ResizeObserver), restore owned button/form
   // mutations, and release their replacement listeners. Tabs/fields are separate.
   // Also note: declarative elements added INSIDE an already-promoted window's content are not
-  // promoted (the observer ignores `.scriptoscope-window` subtrees) — a documented current-shape limitation.
+  // promoted (the observer ignores existing window hosts and chrome) — a documented current-shape limitation.
   const teardownPersistence = (): void => {
     unsubCrossTab?.();
     manager.setChangeListener(undefined);
@@ -982,6 +1000,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       wiredSwitchers.clear();
       teardownPersistence();
       obs.disconnect();
+      addedSubtrees.clear();
       stopCycle();
       // Picker teardowns: disconnect every promoted picker's IntersectionObserver
       // + clear its in-flight decode queue. Before this, an SPA that

@@ -320,6 +320,21 @@ The runtime uses these DOM attributes as re-entrancy guards. Consumers should no
 
 `SCRIPTOSCOPE_PROMOTED_ATTR` is exported as a constant for SSR setups that need to assert the attribute is absent.
 
+## Dynamically inserted declarative targets
+
+After mount, append a new declared window together with its child controls, or
+append supported standalone controls directly. Both the added Element and its
+descendants are scanned. Preparation/theme barriers retain later additions in a
+scoped queue; an initial Element mount root itself is still not a target.
+
+Later additions inside an existing window host are excluded for both direct and
+container-wrapped controls. Before #281, wrapped additions could accidentally
+promote because the shadow-DOM chrome was invisible to the ancestry check; this
+path is now excluded to enforce the documented ownership boundary. Initial
+children moved into a newly promoted window remain supported. Ancestor cascade
+containers are not re-laid out by this change. See the
+[scanner insertion contract](spec/scanner-insertion.md) for ordering and limits.
+
 ## Framework integration notes
 
 - **React**: promote AFTER React's first render — wrap `mountDeclarative` in a `useEffect(() => { mountDeclarative(...) }, [])` that runs once. React's reconciler doesn't know the host's children were moved into a slot; treat the promoted host as managed by Scriptoscope, not React. If you need React state changes to drive content INSIDE a window, render that content normally (React still owns the slot's content) — just don't re-render the wrapper element.
