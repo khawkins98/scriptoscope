@@ -489,6 +489,12 @@ uses solid bodies, binary masks and verified current-display sampling; patterns,
 device caches and recording remain outside it. See the [header-surface contract](./docs/spec/header-surface.md)
 for state selection, list-view extension before clipping, diagnostics and limits.
 
+### Button label sizing
+
+Themed push and bevel buttons accept an explicit `fontSize` (finite, at least
+6px), with a 12px compatibility default independent of face height. See the
+[font-size policy and source boundary](docs/spec/control-font-size.md).
+
 ### Managed button pattern context
 
 Push buttons promoted inside a window owned by the same declarative mount follow

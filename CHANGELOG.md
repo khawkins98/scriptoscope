@@ -7,6 +7,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Fixed (2026-10-19)
+
+- Decouple themed push/bevel label size from face height. `fontSize` now accepts
+  finite sizes of at least 6px, defaulting to an explicit 12px compatibility
+  policy for measurement, foreground and emboss (#310).
+
 ### Added (2026-10-19)
 
 - Admit two independently AI-reviewed original empty normal button observations

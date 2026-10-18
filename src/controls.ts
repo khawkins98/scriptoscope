@@ -1080,6 +1080,8 @@ export interface ButtonOptions {
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
+  /** Nominal CSS pixel size, finite and >= 6. Defaults to 12 independently of face height. */
+  fontSize?: number;
   default?: boolean;
   pressed?: boolean;
   disabled?: boolean;
@@ -1089,7 +1091,7 @@ export interface ButtonOptions {
    *  a template shorter than its label raster also uses 20px. Otherwise the
    *  native height is retained. Cinf slicing preserves the source border art. */
   height?: number;
-  /** Title color (themed buttons carry no text-color metadata yet). */
+  /** Override the authored foreground color; suppresses authored emboss. */
   fg?: string;
 }
 
@@ -1099,6 +1101,8 @@ export interface BevelButtonOptions {
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
+  /** Nominal CSS pixel size, finite and >= 6. Defaults to 12 independently of face height. */
+  fontSize?: number;
   on?: boolean;       // set / selected (latched)
   pressed?: boolean;  // momentary press
   disabled?: boolean;
@@ -1110,7 +1114,13 @@ export interface BevelButtonOptions {
   fg?: string;
 }
 
-interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; fontSize?: number; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+
+function buttonFontSize(value: number | undefined): number {
+  const size = value === undefined ? 12 : value;
+  if (!Number.isFinite(size) || size < 6) throw new RangeError('fontSize must be finite and at least 6 CSS pixels');
+  return size;
+}
 
 function assertControlAlive(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
@@ -1277,14 +1287,20 @@ async function composeFaceButton(
   if (geometry === 'button') opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
     deviceMode: 'full-color-policy', sourceManifestKey: resolved.key, sourceOwnerDepth: resolved.chainDepth });
   let lineH = resolveControlHeight(face, opts.height);
-  let glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
+  // kDEF reads effective port txSize (0x7546/0x754a), not Rect height.
+  // Keep the separate multi-column compatibility helper's existing typography.
+  let fontSize = geometry === 'button' ? opts.fontSize! : Math.max(8, Math.round(lineH * 0.6));
+  let glyphs = label ? rasterizeText(label, fontSize, fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
   // templates (e.g. a 5×6 face) cannot contain even our smallest label raster.
-  // Use the existing standard height in that case, and size the label again.
+  // Use the existing standard height without changing the button font size.
   // Caller-specified heights remain authoritative, including compact controls.
   if (opts.height == null && glyphs && glyphs.height > lineH) {
     lineH = APPLE_PUSH_BUTTON_HEIGHT;
-    glyphs = rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg);
+    if (geometry === 'legacy-list-header') {
+      fontSize = Math.max(8, Math.round(lineH * 0.6));
+      glyphs = rasterizeText(label, fontSize, fg);
+    }
   }
   const padX = opts.padX ?? 12;
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
@@ -1416,7 +1432,7 @@ async function composeFaceButton(
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
     const gy = Math.round((innerH - glyphs.height) / 2);
-    if (colors.emboss) out.drawOver(rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), colors.emboss), gx + 1, gy + 1);
+    if (colors.emboss) out.drawOver(rasterizeText(label, fontSize, colors.emboss), gx + 1, gy + 1);
     out.drawOver(glyphs, gx, gy);
   }
   if (geometry === 'button' && context.clip.kind === 'rect') {
@@ -1536,7 +1552,8 @@ export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOp
     state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
   }, async trace => {
     const composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
-    result = await composeButtonWithTrace(theme, opts, composition, trace, signal);
+    const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
+    result = await composeButtonWithTrace(theme, preparedOptions, composition, trace, signal);
     return result?.buffer ?? null;
   });
   return result;
@@ -1644,7 +1661,8 @@ export async function composeBevelButtonWithLayout(theme: LoadedTheme, opts: Bev
     state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
   }, async trace => {
     const composition = snapshotControlComposition(opts.compositionContext);
-    const buffer = await composeBevelButtonWithTrace(theme, opts, composition, trace);
+    const preparedOptions = { ...opts, fontSize: buttonFontSize(opts.fontSize) };
+    const buffer = await composeBevelButtonWithTrace(theme, preparedOptions, composition, trace);
     result = buffer ? { buffer, layout: { faceRect: { x: 0, y: 0, w: buffer.width, h: buffer.height } } } : null;
     return buffer;
   });
@@ -1666,7 +1684,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
     if (face) break;
   }
   if (!face) return null; // → platinumBevelButton
-  const faceOpts: FaceOptions = { composition, trace, padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
+  const faceOpts: FaceOptions = { composition, trace, fontSize: opts.fontSize!, padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;

@@ -1,5 +1,5 @@
 import { VERSION, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
-  type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
+  type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -17,6 +17,9 @@ const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: Tab
   void body; void legacyOccupancy; } };
 const tabOptions: NonNullable<Parameters<typeof composeTab>[1]> = { selected: true, diagnostics: tabDiagnostics };
 void tabOptions;
+const buttonTypography: ButtonOptions = { label: 'OK', fontSize: 12, height: 24 };
+const bevelTypography: BevelButtonOptions = { label: 'OK', fontSize: 16 };
+void buttonTypography; void bevelTypography;
 const samplingDeclaration: CicnSamplingEquivalence = {
   model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
   displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 4, height: 2,
