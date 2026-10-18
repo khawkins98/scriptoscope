@@ -1080,7 +1080,7 @@ export interface ButtonOptions {
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
-  /** Nominal CSS pixel size, finite and >= 6. Defaults to 12 independently of face height. */
+  /** Resolved nominal CSS pixel size, finite and >= 6. Compatibility default: 12, independent of face height. */
   fontSize?: number;
   default?: boolean;
   pressed?: boolean;
@@ -1101,7 +1101,7 @@ export interface BevelButtonOptions {
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
-  /** Nominal CSS pixel size, finite and >= 6. Defaults to 12 independently of face height. */
+  /** Resolved nominal CSS pixel size, finite and >= 6. Compatibility default: 12, independent of face height. */
   fontSize?: number;
   on?: boolean;       // set / selected (latched)
   pressed?: boolean;  // momentary press
