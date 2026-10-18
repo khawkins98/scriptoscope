@@ -1,98 +1,143 @@
 #!/usr/bin/env node
-// scripts/capture-visual-baselines.mjs
-//
-// Re-capture the per-theme "Scene" panel baselines under tests/visual-baselines/scenes/.
-// One PNG per theme, taken from the demo's gallery row at a fixed viewport + state — the
-// committed art the maintainer eyeballs to spot a render regression. (Owner-directed: a
-// proper pixel-diff harness can come later; for now this is a manual sanity-check fixture.)
-//
-//   node scripts/capture-visual-baselines.mjs            # capture every theme
-//   node scripts/capture-visual-baselines.mjs <slug>     # one theme
-//
-// Requires Playwright (transitively present via the gstack browse skill — we don't take a
-// hard devDependency to keep CI light). A missing Playwright prints a one-liner explaining
-// how to install it locally and exits 1.
-
-import { spawn } from 'node:child_process';
+// Capture the diagnostic Scene · reference panel. These are browser regression
+// fixtures, not an independent oracle for the original Kaleidoscope engine.
 import { mkdir, writeFile } from 'node:fs/promises';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createServer as createSocketServer } from 'node:net';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const outRoot = resolve(repoRoot, 'tests/visual-baselines/scenes');
+export const baselineDir = resolve(repoRoot, 'tests/visual-baselines/scenes');
+export const freshDir = resolve(repoRoot, '.tmp/visual-baselines/fresh');
+export const catalog = JSON.parse(readFileSync(resolve(repoRoot, 'demo/themes-manifest.json'), 'utf8'));
 
-let chromium;
-try {
-  ({ chromium } = await import('playwright'));
-} catch {
-  console.error('✗ Playwright not available. Install with:  npm i -D playwright && npx playwright install chromium');
-  process.exit(1);
+export function selectedThemes(slug) {
+  const themes = slug ? catalog.filter(t => t.slug === slug) : catalog;
+  if (!themes.length) throw new Error(`Unknown theme: ${slug}`);
+  return themes;
 }
 
-const onlySlug = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : null;
-const catalog = JSON.parse(readFileSync(resolve(repoRoot, 'demo/themes-manifest.json'), 'utf8'));
-const slugs = onlySlug ? catalog.filter((t) => t.slug === onlySlug) : catalog;
-
-await mkdir(outRoot, { recursive: true });
-
-// Boot a dev server unless one is already running on 5173.
-let viteProc = null;
-async function ensureDev() {
-  try {
-    const r = await fetch('http://localhost:5173/');
-    if (r.ok) return; // already running
-  } catch { /* no server yet */ }
-  console.log('  starting vite dev server…');
-  viteProc = spawn('npm', ['run', 'dev'], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'pipe'] });
-  // Wait up to 15s for the port to come up.
-  for (let i = 0; i < 30; i++) {
-    await new Promise((r) => setTimeout(r, 500));
-    try { const r = await fetch('http://localhost:5173/'); if (r.ok) return; } catch { /* keep waiting */ }
+export function parseArgs(args, { verify = false } = {}) {
+  let slug, outDir, diffOnly = false;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--out-dir' && !verify && args[i + 1] && !args[i + 1].startsWith('--')) outDir = resolve(args[++i]);
+    else if (arg === '--diff-only' && verify) diffOnly = true;
+    else if (!arg.startsWith('--') && !slug) slug = arg;
+    else throw new Error(`Unexpected argument: ${arg}`);
   }
-  throw new Error('vite dev server did not come up on :5173');
+  selectedThemes(slug);
+  return { slug, outDir, diffOnly };
 }
 
-await ensureDev();
+// Vite 7 treats port:0 as its default port. Ask the OS for an ephemeral port,
+// then use strictPort so a rare bind race fails instead of silently choosing
+// another server/port. We never probe or reuse an ambient :5173 instance.
+async function availablePort() {
+  const socket = createSocketServer();
+  await new Promise((resolve, reject) => { socket.once('error', reject); socket.listen(0, '127.0.0.1', resolve); });
+  const port = socket.address().port;
+  await new Promise((resolve, reject) => socket.close(error => error ? reject(error) : resolve()));
+  return port;
+}
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1024, height: 720 }, deviceScaleFactor: 1 });
-const page = await ctx.newPage();
-
-let captured = 0, skipped = 0;
-for (const t of slugs) {
-  const slug = t.slug;
-  process.stdout.write(`  ${slug.padEnd(28)} `);
-  await page.goto(`http://localhost:5173/?theme=${slug}`, { waitUntil: 'networkidle' });
-  // The Scene section in the detail panel — `#d-scene`, the "Scene · reference" row.
-  // Wait for it to be present + for its live canvas to be non-zero (the renderer
-  // paints to canvas, not DOM; a 0×0 canvas means the scene is still composing).
-  // Then wait for `document.fonts.ready` so Charcoal 12 / Virtue are loaded before
-  // title text gets rasterized — without this, fresh-machine captures (where the
-  // font may not be in the system cache yet) differ from re-runs in subtle ways.
-  // If any wait FAILS, skip the screenshot instead of writing a broken baseline
-  // (silently captured broken baselines would just propagate the regression).
-  const scene = page.locator('#d-scene');
+async function bounded(promise, ms, label) {
+  let timer;
   try {
-    await scene.waitFor({ state: 'visible', timeout: 10000 });
-    await page.waitForFunction(() => {
-      const c = document.querySelector('#d-scene canvas');
-      return c && c.width > 0 && c.height > 0;
-    }, null, { timeout: 10000 });
-    await page.evaluate(() => document.fonts.ready);
-  } catch (e) {
-    console.log(`✗ skipped (${e.message.split('\n')[0]})`);
-    skipped++;
-    continue;
-  }
-  const buf = await scene.screenshot();
-  const out = resolve(outRoot, `${slug}.png`);
-  await writeFile(out, buf);
-  console.log(`→ ${out.replace(repoRoot + '/', '')} (${buf.length} bytes)`);
-  captured++;
+    return await Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    })]);
+  } finally { clearTimeout(timer); }
 }
 
-await browser.close();
-if (viteProc) viteProc.kill();
-console.log(`\n-- captured ${captured} baseline(s)${skipped ? `, ${skipped} skipped` : ''} --`);
-if (skipped) process.exit(1); // make a partial run a CI failure: a skipped baseline went stale
+/** Own an isolated Vite instance unless BASE explicitly names an existing site.
+ * The verifier calls this in-process and writes directly to scratch, so neither
+ * failed capture nor interruption can overwrite the committed fixtures. */
+export async function captureVisualBaselines({ slug, outDir = baselineDir, base = process.env.BASE } = {}) {
+  const themes = selectedThemes(slug);
+  const timeout = Number(process.env.CAPTURE_TIMEOUT_MS ?? 30000);
+  if (!Number.isFinite(timeout) || timeout <= 0) throw new Error('CAPTURE_TIMEOUT_MS must be a positive number');
+  let chromium;
+  try { ({ chromium } = await import('playwright')); }
+  catch { throw new Error('Install optional browser tooling: npm install --no-save --package-lock=false playwright && npx playwright install chromium'); }
+
+  let server, browser, interrupted = false;
+  // Closing the browser interrupts pending navigation/waits. The outer finally
+  // then closes Vite; there is no npm wrapper or detached Vite child to orphan.
+  const interrupt = () => { interrupted = true; void browser?.close().catch(() => {}); };
+  process.once('SIGINT', interrupt);
+  process.once('SIGTERM', interrupt);
+  let captured = 0;
+  const failures = [];
+  try {
+    if (!base) {
+      const { createServer } = await import('vite');
+      server = await createServer({
+        configFile: resolve(repoRoot, 'vite.config.js'), root: resolve(repoRoot, 'demo'),
+        server: { host: '127.0.0.1', port: await availablePort(), strictPort: true, open: false },
+      });
+      await bounded(server.listen(), Math.min(timeout, 15000), 'Vite startup');
+      base = server.resolvedUrls.local[0];
+      console.log(`  isolated Vite: ${base}`);
+    }
+    const site = new URL(base);
+    if (!site.pathname.endsWith('/') && !site.pathname.endsWith('.html')) site.pathname += '/';
+    if (interrupted) throw new Error('Capture interrupted');
+    browser = await chromium.launch({ timeout });
+    console.log(`  Chromium: ${browser.version()}`);
+    if (interrupted) throw new Error('Capture interrupted');
+    const context = await browser.newContext({ viewport: { width: 1024, height: 720 }, deviceScaleFactor: 1 });
+    const page = await context.newPage();
+    page.setDefaultTimeout(timeout);
+    page.setDefaultNavigationTimeout(timeout);
+    await mkdir(outDir, { recursive: true });
+    for (const theme of themes) {
+      if (interrupted) throw new Error('Capture interrupted');
+      process.stdout.write(`  ${theme.slug.padEnd(28)} `);
+      try {
+        const url = new URL('diagnostic.html', site);
+        url.searchParams.set('theme', theme.slug);
+        await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+        await page.waitForFunction(slug => document.querySelector('.ribbon-item.active')?.dataset.slug === slug, theme.slug);
+        const scene = page.locator('#d-scene');
+        await scene.waitFor({ state: 'visible' });
+        // The diagnostic boot preloads title fonts BEFORE composition. Verify
+        // fonts, completed scene canvases and reference images before capture.
+        await page.waitForFunction(() => {
+          const scene = document.querySelector('#d-scene');
+          const canvases = [...(scene?.querySelectorAll('canvas') ?? [])];
+          const images = [...(scene?.querySelectorAll('img') ?? [])];
+          return document.fonts.status === 'loaded' && canvases.length > 0
+            && canvases.every(c => c.width > 0 && c.height > 0)
+            && images.every(img => img.complete && img.naturalWidth > 0);
+        });
+        const bytes = await scene.screenshot({ animations: 'disabled' });
+        const out = resolve(outDir, `${theme.slug}.png`);
+        await writeFile(out, bytes);
+        console.log(`→ ${out} (${bytes.length} bytes)`);
+        captured++;
+      } catch (error) {
+        if (interrupted) throw new Error('Capture interrupted');
+        console.log(`✗ ${error.message.split('\n')[0]}`);
+        failures.push(theme.slug);
+      }
+    }
+    console.log(`\n-- captured ${captured} baseline(s), ${failures.length} failed --`);
+    if (failures.length) throw new Error(`Capture failed for: ${failures.join(', ')}`);
+  } finally {
+    try { await browser?.close(); }
+    finally {
+      try { await server?.close(); }
+      finally {
+        process.removeListener('SIGINT', interrupt);
+        process.removeListener('SIGTERM', interrupt);
+      }
+    }
+  }
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { await captureVisualBaselines(parseArgs(process.argv.slice(2))); }
+  catch (error) { console.error(`✗ ${error.message}`); process.exitCode = 1; }
+}

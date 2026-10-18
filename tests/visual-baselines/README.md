@@ -1,39 +1,65 @@
 # Visual baselines
 
-Committed eyeball-comparison fixtures for the runtime. Each PNG under `scenes/<slug>.png`
-captures the demo's **Scene · reference** panel for one theme — the live render on the
-left, the period reference screenshot on the right. The maintainer eyeballs these against
-the current dev demo when chasing a "did this look right before?" question.
+Each committed `scenes/<slug>.png` captures the diagnostic demo's **Scene · reference**
+panel: the live render on the left and the period reference image on the right.
+These are browser regression fixtures for reviewing visible changes. They are not
+an independent pixel-fidelity oracle for the original Kaleidoscope engine; focused
+compositor tests separately check allocation and original corpus RGBA pixels.
 
-These are sanity-check fixtures, not an automated pixel-diff harness. A regression that
-loses theming (e.g. buttons silently un-themed) is obvious from a side-by-side glance.
+## Capture and compare
 
-## Regenerate
+Install the optional browser tooling (not required for `npm test`):
 
 ```sh
-npm run baseline:scenes               # all 18 themes
-npm run baseline:scenes -- <slug>     # one theme
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+npm run verify:scenes                         # capture all themes to scratch, compare
+npm run verify:scenes -- monkey-paradise      # capture and compare one theme
+npm run verify:scenes -- --diff-only          # compare existing scratch captures
+npm run verify:scenes -- monkey-paradise --diff-only
+npm run baseline:scenes                      # overwrite all committed fixtures
+npm run baseline:scenes -- platinum-8        # overwrite one committed fixture
+npm run baseline:scenes -- monkey-paradise --out-dir /tmp/scene-review
 ```
 
-The script (`scripts/capture-visual-baselines.mjs`) launches a headless Chromium via
-Playwright, boots the dev server (or reuses one already on :5173), navigates to
-`/?theme=<slug>`, waits for the Scene canvas to compose, and screenshots `#d-scene`.
+Capture opens `/diagnostic.html?theme=<slug>` at 1024×720, device scale 1, verifies
+the selected theme, and waits for composed canvases, fonts, and reference images
+before screenshotting `#d-scene`. An unknown slug or failed capture exits nonzero.
+Verification writes only to `.tmp/visual-baselines/fresh`; failure or interruption
+never overwrites committed fixtures. `--diff-only` compares those scratch files,
+and missing files or byte differences exit nonzero. A single-theme capture clears
+the previous scratch set; pass the same slug to subsequent `--diff-only` checks.
 
-## Why these aren't pixel-diffed in CI
+By default capture starts an isolated Vite server on an available localhost port
+and closes it and Chromium in `finally`, including on failure or SIGINT/SIGTERM.
+It never silently reuses a server on port 5173. Set `BASE` explicitly to use an
+existing dev or preview site; the script leaves that server running. Root URLs,
+path prefixes, and landing-page URLs resolve to their sibling `diagnostic.html`:
 
-We're prototype-mode: the theme renders are deterministic when the bundle source is
-unchanged (which `npm run lint:themes` verifies via sha256), so an automated pixel-diff
-would mostly catch *intentional* improvements to the renderer and force a baseline
-re-capture. Eyeballing is faster than chasing flake. If the renderer ever stabilises
-enough to benefit, the shape is here: drop a pixelmatch import into a tiny diff script.
+```sh
+BASE=http://localhost:4173/scriptoscope/ npm run verify:scenes -- platinum-8
+CAPTURE_TIMEOUT_MS=10000 npm run verify:scenes -- platinum-8
+```
 
-## When to recapture
+The default navigation/readiness timeout is 30 seconds per operation; owned Vite
+startup is capped at 15 seconds. The script logs its Chromium version. Use the
+same browser build, OS, and fonts when interpreting byte comparisons: browser
+layout, clipping, antialiasing, and PNG encoding can change without a renderer bug.
+These optional captures are not part of the portable static CI gates.
 
-- After a runtime change that affects rendering (composeChrome, controls, renderWindow…).
-- After a theme bundle is re-imported or a new bundle is added.
-- After a decoder change in `tools/theme-loader/`.
+## When to refresh
 
-Eyeball the diff against the previous commit (`git diff tests/visual-baselines/`).
+Review fresh images against the committed ones after an intentional renderer,
+decoder, theme, or diagnostic scene change. Keep the reference source images
+unchanged. Only regenerate the affected scene fixtures after checking the diff.
+
+The 2026-10-18 refresh uses Chromium 156.0.8078.4 on macOS after the whole-tile
+allocation correction and migration of the scene to `diagnostic.html`. All 18
+captures repeated byte for byte in independent runs. Fourteen retained their
+exact dimensions; apple-lisa, slimes, windows-31, and windows-95 gained one pixel
+of screenshot height from layout/clipping rounding. All remain 1024 pixels wide.
+The combined PNG size changed from 545,675 to 544,743 bytes. The side-by-side panel
+retains the same intended live scene and reference content.
 
 ## Boot-affordance smoke test
 
