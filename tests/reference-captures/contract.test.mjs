@@ -46,10 +46,21 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
   return { root, capture, approve, assess: (c = capture, reviews = [approve(c)], known = []) => assessCapture(c, request, reviews, { intakeRoot: root, known }) };
 }
 
-test('actual checked-in corpus reports every provisional request missing and never a fidelity percentage', () => {
-  const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: repositoryRoot, known: knownImages() });
-  assert.equal(report.requests.length, 13); assert.ok(report.requests.every(r => r.status === 'missing'));
-  assert.equal(report.captures.length, 0); assert.equal(report.knownNonIndependent.filter(r => r.kind === 'qualitative-author-preview').length, 18);
+test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
+  const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
+  assert.equal(report.requests.length, 13);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 11);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'system7-nostalgia-silver.normal']);
+  assert.equal(report.captures.length, 2);
+  for (const capture of report.captures) {
+    assert.equal(capture.status, 'reviewed-scoped-observation');
+    assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
+    assert.deepEqual(capture.verifiedRequirementIds, []);
+    assert.deepEqual(capture.unresolvedRequirementIds, contract.requests.find(r => r.id === capture.requestId).targetRequirementIds);
+    const requestReport = report.requests.find(r => r.id === capture.requestId);
+    assert.deepEqual(requestReport.scopedEligibleObservations, [capture.captureId]);
+  }
+  assert.equal(report.knownNonIndependent.filter(r => r.kind === 'qualitative-author-preview').length, 18);
   assert.equal(Object.hasOwn(report, 'percentage'), false);
 });
 test('complete synthetic validator fixture exercises eligibility without adding an original capture', t => {

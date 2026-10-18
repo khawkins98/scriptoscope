@@ -2,7 +2,10 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**There are no original captures or capture approvals in this initial corpus.**
+**Two original observations have independent AI review under the narrow
+`public-api-empty-face` scope.** They do not satisfy either whole request or
+verify any requirement. Eleven requests remain missing; both observed normal
+requests remain evidence-incomplete. See [original observations and limits](./ORIGINALS.md).
 [Six quarantined v4/v5 observations](../../docs/research/original-observations/2026-10-18/README.md)
 and [four v6 default-dialog observations](../../docs/research/default-dialog-observations/2026-10-18/README.md)
 are preserved separately. They are not admitted here and do not satisfy any request.
@@ -148,12 +151,13 @@ record is a `reviewed-scoped-observation`; the whole request stays
 Associated geometry/fill IDs are not whole requirements verified by one image.
 See the [scoped observation contract](../../docs/spec/scoped-reference-observations.md)
 for fields, artifacts and limits. Omitted scope or explicit `full` keeps every
-old strict gate; no actual observations are admitted by this implementation.
+old strict gate. Defining the scope alone approves no observation; the two
+current records have separate [evidence reviews](./reviews.json).
 
 ## Intake and review
 
 ```sh
-# Honest repository report: currently thirteen missing requests, zero approvals.
+# Honest report: two scoped observations, eleven missing requests, zero verified requirements.
 npm run test:references
 
 # Write a request template; no image or approval is generated.

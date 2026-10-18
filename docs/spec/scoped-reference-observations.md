@@ -108,5 +108,6 @@ Omitting `reviewScope` retains the old full-admission path. Explicit
 patch/base/provider and all prior review checks. Default-ring, pressed, inactive,
 Crayon and nonzero-origin gates are unchanged. Unknown scope IDs, expanded face
 regions/claims, stale versions or a review with different scope reject intake.
-Actual capture/review additions require a separate evidence review; the corpus
-remains empty in this implementation change.
+Actual capture/review additions require a separate evidence review. The
+[current corpus](../../tests/reference-captures/ORIGINALS.md) contains two such
+separately reviewed scoped observations, with every broader target unresolved.

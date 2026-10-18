@@ -1,0 +1,31 @@
+{
+  "originalIndexSha256": "2f7077ccbebc224a0e63987f75bc1a94fb5208e5e6907be55a0dc3e5e767e96e",
+  "captureReceiptSha256": "0adab58f9f9fd66b01eeedc81009e56b106da879332eac25334773b5212dacc9",
+  "originalProducer": {
+    "bytes": 1228800,
+    "sha256": "555a1c2c786d92c16378ed2bb141ed99cedb0942ad5fc69b5d5089fc2aa0d047"
+  },
+  "rawProducerEqualsDecodedFullPng": true,
+  "repeatedRawChangedBytes": 0,
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "noResampling": true,
+  "profileLink": {
+    "profileObservation": "Windows95v9",
+    "thisObservation": "V7D-20261018-01",
+    "relationship": "Different sealed run; identical recorded deviceColorTable and gamma bytes only",
+    "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "notClaimed": "Same hidden provider/cache/font/patch state or complete transfer equivalence"
+  }
+}

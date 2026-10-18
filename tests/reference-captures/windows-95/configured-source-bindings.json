@@ -1,0 +1,70 @@
+{
+  "configuredScheme": {
+    "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+    "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+    "evidence": "capture-log.json native public Copl status0/ref1318, successful FCB fileID440/parent2; configured-source-bindings.json stopped resource fork equality to canonical input. Not selected-paint provider attribution."
+  },
+  "nativeEvidence": "capture-log.json",
+  "stoppedForkJoins": [
+    {
+      "stoppedFileName": "v9-stopped-Windows95.bin",
+      "stoppedFileSha256": "a5b135e51f277502616db728636d70d422b8d719bb896a047523c1d5e7d0e9a5",
+      "resourceForkBytes": 424716,
+      "resourceForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+      "scope": "Stopped file identity, not selected paint ownership"
+    },
+    {
+      "stoppedFileName": "v9-stopped-Kaleidoscope.bin",
+      "stoppedFileSha256": "0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091",
+      "resourceForkBytes": 1005535,
+      "resourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+      "scope": "Stopped file identity, not selected paint ownership"
+    },
+    {
+      "stoppedFileName": "v9-stopped-fixture.bin",
+      "stoppedFileSha256": "658e322b570e2da0feaeb04f80fb5b5551003b2923ed1e72771b8ad3af8d6b64",
+      "resourceForkBytes": 71095,
+      "resourceForkSha256": "d78b5fa6b56556ffb714646da18f2a6175448d162fcc78eb602f517aa352232b",
+      "scope": "Stopped file identity, not selected paint ownership"
+    }
+  ],
+  "engineComponents": [
+    {
+      "type": "CDEF",
+      "id": 0,
+      "bytes": 174,
+      "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+    },
+    {
+      "type": "PACH",
+      "id": 130,
+      "bytes": 87914,
+      "sha256": "bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44"
+    },
+    {
+      "type": "PACH",
+      "id": 131,
+      "bytes": 145320,
+      "sha256": "465b312d14eca52ed9e3164caceb7759272613a862b0d4fb8dcee8c0da82fd7c"
+    },
+    {
+      "type": "WDEF",
+      "id": 0,
+      "bytes": 176,
+      "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+    },
+    {
+      "type": "kDEF",
+      "id": 0,
+      "bytes": 107726,
+      "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+    },
+    {
+      "type": "kDEF",
+      "id": 1,
+      "bytes": 175572,
+      "sha256": "32ed7af07c92e343f4e5ba52a54da601be80d4956e3a5b49b980035ce1b94db5"
+    }
+  ],
+  "sharedEngineJoin": "Both observations have byte-identical stopped installed Kaleidoscope file/fork; actual CDEF/WDEF wrappers match. No full patch ordering claim."
+}
