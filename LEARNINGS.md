@@ -3183,3 +3183,9 @@ Vite 7's default build target is newer than Vite 5's. The library config previou
 ### 2026-10-18 — Window aliases must survive opaque asset URLs
 
 The utility/mini/floating/palette resolver ranked PNG filename words, even though the browser loader replaces those names with opaque blob URLs. This selected movable-modal instead of titled-utility-window in 11 corpus schemes. Rank the decoder's canonical wnd# keys instead; use the chrome element's structured authorLabel to reject grow-box mispairs. Joining a chrome URL to its matching chromeElements entry is safe because both references are rewritten together; interpreting the URL's text is not. The resolver now has a corpus regression that checks all generic aliases and exact window types with filename and opaque URL encoders.
+
+### 2026-10-18 — Failed asynchronous resource loads need terminal cleanup
+
+A promise cache must evict rejected entries to permit recovery after transient fetch or decode failures. Compare the cached promise before evicting: an in-flight theme load can fail after register() replaces it, and the older failure must not delete the replacement. Successful and pending results remain shared.
+
+Asset encoders run concurrently. Promise.all's first rejection does not stop sibling workers, so cleanup at that point misses URLs minted later. Wait for every encoder to settle, revoke the completed decode's URLs on failure, and propagate the error. Deferred factory invocation captures synchronous throws too. Cleanup owns only this decode's URLs; neither failure cleanup nor dispose traverses shared/base themes.

@@ -97,7 +97,11 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.name) loadOpts.meta = { name: hint.name, ...(hint.author ? { author: { name: hint.author, ...(hint.year ? { year: hint.year } : {}) } } : {}) };
       return loadTheme(url, loadOpts);
-    })();
+    })().catch((error: unknown) => {
+      // A later register() may already have replaced this failed attempt.
+      if (cache.get(url) === p) cache.delete(url);
+      throw error;
+    });
     cache.set(url, p);
     return p;
   };
