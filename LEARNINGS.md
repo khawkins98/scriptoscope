@@ -4200,3 +4200,30 @@ An outer host's light-DOM content cannot find its shadow-DOM chrome with
 the existing unsupported late-content boundary, including the previously
 accidental container-wrapped promotion path. This boundary is separate from
 moving already-owned control faces or discovering initial window children.
+
+## 2026-10-18: source-reference summaries must follow implemented evidence
+
+A new focused source-model document can be accurate while older canonical
+references still describe the replaced approximation. After #279, the solid-face
+and kDEF border summaries incorrectly said all pattern bodies and authored text
+colors remained approximate. Raw background samples are retained, but the solid
+body still requires an opaque decoded anchor; a metadata field does not prove
+that every renderer consumes it. Reconcile
+those summaries with the exact newer evidence and preserve the remaining
+font/device/transfer/lookup boundaries. Full-document source hashes must then be
+reviewed and refreshed even if the pinned ring instruction ranges and all
+availability outcomes are unchanged; retain the prior review and prove semantic
+case identity rather than quietly accepting a new digest.
+
+## 2026-10-18 — retained background metadata is not painted background color
+
+Raw RGB16 samples survived loading after #279, but the solid body still read
+decoded alpha/RGB. A hand-encoded masked gray anchor therefore produced a blue
+rectangular fallback instead of its gray unequal-inset union in both runtimes.
+The source applies RGBBackColor independently of mask, then reaches solid only
+when its pattern lookup returns NULL; even ID0 is a real pattern request. Keep
+that admission distinct from unsupported or ambiguous lookup, and consume the
+actual selected owner's display sample once. An opaque palette-policy collision
+proves the same rule cannot depend on mask state. The finite 270-selection corpus
+survey found no affected solid case; diagnostic evidence and real impact remain
+separate, and neither establishes original device color or resource ownership.

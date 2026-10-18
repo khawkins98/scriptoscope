@@ -1091,16 +1091,16 @@ function assertControlAlive(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
 }
 
-async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<PixelBuffer | null> {
+async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean }> {
   const request = face.element.bodyRequest;
-  if (!request) return null; // Legacy manifests have no observed raw request.
+  if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
     requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
     basis: 'compatibility-policy' as const, usage: 'paint' as const,
     owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
   if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
     opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
-    return null;
+    return { buffer: null, solidFallback: false };
   }
   const patterns = face.theme.manifest.patterns ?? {};
   let key: string | null = null;
@@ -1128,7 +1128,7 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
       if (patterns[candidate]!.sourcePpatId !== request.resourceId) continue;
       if (key !== null) {
         opts.trace?.record({ ...common, action: 'missing', reason: 'ambiguous-legacy-pattern-order' });
-        return null;
+        return { buffer: null, solidFallback: false };
       }
       key = candidate;
     }
@@ -1136,7 +1136,11 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
   const pattern = key ? patterns[key] : undefined;
   if (!pattern) {
     opts.trace?.record({ ...common, action: 'missing', reason: 'same-face-owner-pattern-unavailable' });
-    return null;
+    // Current same-owner lookup miss corresponds to the full-color solid path.
+    // This is not proof of historical Resource Manager search ownership.
+    const solidFallback = Number.isInteger(request.resourceId) && request.resourceId >= -32768 && request.resourceId <= 32767
+      && [face.element.slice.corner, face.element.slice.side].every(value => Number.isInteger(value) && value >= 0 && value <= 255);
+    return { buffer: null, solidFallback };
   }
   assertControlAlive(opts.signal);
   const url = assetUrl(face.theme, pattern.asset);
@@ -1146,7 +1150,7 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
     type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
     ...(pattern.byteProvenance ? { byteProvenance: pattern.byteProvenance } : {}),
   } });
-  return buffer;
+  return { buffer, solidFallback: false };
 }
 
 /**
@@ -1174,10 +1178,9 @@ async function composeFaceButton(
   const validBg = !faceEl.bgPattern && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
     && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
     && face.getPixel(bg[0], bg[1])[3] > 0;
-  // Pattern-backed faces require a separate pattern-fill path; retain their
-  // existing approximation instead of treating bgPixel as a solid fill. Masked pixels have lost their original RGB
-  // in the decoded raster, so retain the existing fallback for those and for
-  // legacy manifests without sample coordinates.
+  // These decoded-raster samples retain the prior legacy fallback policy.
+  // Supported solid bodies below prefer raw color metadata, while resolved
+  // pattern bodies remain independent of bgPixel and raster-mask eligibility.
   const ta = faceEl.textAnchor;
   const sx = validBg ? bg[0] : ta ? Math.max(0, Math.min(face.width - 1, ta[0] - 3)) : fIns;
   const sy = validBg ? bg[1] : ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
@@ -1213,7 +1216,24 @@ async function composeFaceButton(
   if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
-  const pattern = geometry === 'button' ? await loadBodyPattern(resolved, opts) : null;
+  const body = geometry === 'button' ? await loadBodyPattern(resolved, opts) : { buffer: null, solidFallback: false };
+  const pattern = body.buffer;
+  const samples = faceEl.colorSamples;
+  const rawBg = samples?.background;
+  const triple = (values: readonly number[] | undefined, max: number): boolean =>
+    Array.isArray(values) && values.length === 3 && values.every(value => Number.isInteger(value) && value >= 0 && value <= max);
+  // 10904..1091a samples source RGB independently of the mask; 109b2..109b6
+  // applies it before a NULL pattern result reaches solid fill at10b72.
+  // Prefer its already-transformed display triple even for opaque raster pixels:
+  // source palette lookup can differ from the ordinary raster decoder's policy.
+  // Loader validation binds RGB16/display consistency. Direct hand-built theme
+  // metadata remains caller-declared; do not apply or duplicate that LUT here.
+  const sourceBg = body.solidFallback && faceEl.slice && !faceEl.colorSamplesUnavailableReason
+    && samples?.model === 'kdef-2.3.1-color' && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte'
+    && rawBg && triple(rawBg.rgb16, 65535) && triple(rawBg.displayRgb, 255)
+    && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
+    && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
+    ? rawBg.displayRgb : null;
   if (pattern && faceEl.slice && faceEl.bodyRequest) {
     const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
     // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
@@ -1228,13 +1248,14 @@ async function composeFaceButton(
       out.setPixel(x, y, ...pattern.getPixel(px, py));
     }
     out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
-  } else if (geometry === 'button' && faceEl.slice && validBg) {
+  } else if (geometry === 'button' && faceEl.slice && (sourceBg || validBg)) {
     // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
     // inset(horizontal=corner, vertical=side), then the transposed insets.
     // Their union is a cross when corner != side. Fill precedes the border,
     // so transparent edge samples reveal the body without erasing earlier art.
-    out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, cr, cg, cb, 255);
-    if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, cr, cg, cb, 255);
+    const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
+    out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, br!, bgc!, bb!, 255);
+    if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, br!, bgc!, bb!, 255);
     out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
   } else {
     // Retained approximation for unsupported pattern modes, unresolved legacy

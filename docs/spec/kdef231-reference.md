@@ -789,9 +789,14 @@ For a false repeat flag, top/bottom use the first source column at x=corner
 the final tile. Thus a 21px source with corner7/side14 is valid overlapping
 art, not malformed or a pair of 14px vertical corner insets.
 
-The runtime applies this border model to default rings and to solid push/bevel
-faces with explicit cinf and a valid background sample. Solid faces fill the
-inset-union body first; [details and remaining limits](control-face-geometry.md).
-Pattern-backed/legacy faces and list headers retain their approximation. Reserving the four-pixel margin on plain buttons is
-a runtime layout policy to keep state changes stable, not an additional
-claim about the original Control Manager's layout.
+The runtime applies this border model to default rings and supported push/bevel
+faces with explicit cinf metadata. Solid and full-color ppat bodies fill the
+inset union before masked border art. Raw RGB16 text/emboss samples survive
+canvas mask holes; the [supported solid fallback](control-solid-background.md)
+consumes the selected face owner's raw background display sample as well,
+including masked anchors. Selected pattern bodies retain priority. See [solid geometry](control-face-geometry.md)
+and [the pattern/context model](control-pattern-context.md) for exact source
+fixtures and remaining device, transfer, lookup and font limits. Mode5 cicn bodies remain unsupported; missing/unusable background metadata and
+list headers retain their existing compatibility behavior. Reserving the four-pixel margin on plain buttons is a runtime layout
+policy to keep state changes stable, not an additional claim about the original
+Control Manager's layout.
