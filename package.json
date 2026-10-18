@@ -56,7 +56,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc -p tsconfig.build.json && node scripts/copy-css-to-dist.mjs",
+    "build": "vite build && tsc -p tsconfig.build.json && node scripts/copy-css-to-dist.mjs && node scripts/copy-loader-declarations.mjs",
     "prepublishOnly": "npm run build",
     "build:demo": "npm run build && vite build --config vite.demo.config.js && node scripts/copy-demo-assets.mjs",
     "preview": "vite preview",
@@ -78,7 +78,8 @@
     "test:rendering:goldens:update": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 SCRIPTOSCOPE_UPDATE_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:container": "node tests/rendering-options/container.mjs",
     "test:requirements": "node tests/rendering-requirements/run.mjs",
-    "test:availability:sources": "node tests/control-availability/validate-source.mjs"
+    "test:availability:sources": "node tests/control-availability/validate-source.mjs",
+    "test:package": "npm run build && node tests/package-consumer/run.mjs"
   },
   "engines": {
     "node": ">=20"

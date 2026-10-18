@@ -46,6 +46,11 @@ toolchain requirement.
    Existing window/Scene browser checks remain documented in
    [`tests/visual-baselines/README.md`](./tests/visual-baselines/README.md).
 
+   For package exports, declarations, build assets or lazy-loading changes, also
+   run `npm run test:package`. It installs an actual tarball into a clean consumer
+   and verifies the production browser path; repository aliases cannot satisfy
+   its imports. See [`tests/package-consumer/README.md`](./tests/package-consumer/README.md).
+
    Golden updates are review candidates. Inspect source evidence and the
    expected/actual/diff artifacts before accepting a changed image; recording
    current output alone does not establish fidelity to Kaleidoscope. Keep

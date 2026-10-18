@@ -3814,3 +3814,14 @@ track, revokes resolver-owned assets synchronously, then releases the compositor
 no later Image.src may start. This isolates sequential-start cancellation from an
 image request already started at disposal, which remains a separate lifetime
 question. Do not substitute frame-delay disposal or a permanent revoked-URL cache.
+
+### 2026-10-18 — Repository typechecking does not establish tarball type closure
+
+The emitted root declaration preserves the loader re-export's `../tools` path,
+but TypeScript does not copy the input `.d.ts` shim into `dist`. A clean packed
+consumer with `skipLibCheck: false` therefore failed TS2307 even though repository
+build/typecheck passed. Copy the authoritative loader shim into the matching
+packed path and rebase its source-type import to emitted public declarations.
+The new installed-consumer check compiles both public entrypoints without source
+aliases, builds a production site and removes its installed inputs before serving
+it. This checks distribution closure; it supplies no original-engine pixel truth.

@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Clean installed-tarball consumer check: strict public declaration resolution,
+  isolated production bundling, real archive loading/native interaction and
+  teardown, with missing assets and declaration-escape negatives in pinned CI.
+
 - Versioned fidelity compatibility-contract draft defining proposed source inputs,
   family boundaries, evidence obligations and explicit substitutions. Its target
   remains OPEN; partial requirement and availability inventories do not establish
@@ -89,6 +93,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Native slider composition stops at disposal boundaries between image decodes;
   a held track cannot resume and request a thumb after owned theme URLs revoke.
   Native restoration stays synchronous; public/imperative rendering is unchanged.
+
+- Packed public types now include the browser-loader declaration referenced by
+  the root entrypoint, with its LoadedTheme import pointing at emitted types.
+  Clean TypeScript consumers no longer need repository files or skipLibCheck.
 
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab
