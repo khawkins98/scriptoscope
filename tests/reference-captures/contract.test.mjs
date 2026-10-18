@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 13);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 11);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'system7-nostalgia-silver.normal']);
-  assert.equal(report.captures.length, 2);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 7);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive']);
+  assert.equal(report.captures.length, 6);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -273,6 +273,8 @@ function scopedFixture(t, req = request) {
   const f = fixture(t, req), c = f.capture;
   const template = captureTemplate(req, { scope: 'public-api-empty-face' });
   c.reviewScope = template.reviewScope;
+  c.observed.controlDefinition.hilite = template.reviewScope.publicInvocation.hilite;
+  c.observed.controlDefinition.enabled = req.conditions.enabled;
   for (const key of ['font', 'patchStack', 'baseChain', 'resourceSearchOrder', 'selectedProvider', 'resourceCache', 'privateDefaultState']) c.observed[key] = null;
   c.observed.unknownConditions = Object.fromEntries(Object.keys(template.observed.unknownConditions).map(k => [k, `TEST ONLY: ${k} was not observed; no dependent claim.`]));
   const artifacts = { 'indexed-palette': Buffer.from('TEST PALETTE'),
@@ -284,7 +286,7 @@ function scopedFixture(t, req = request) {
   c.observed.palette.sha256 = sha256(artifacts['indexed-palette']);
   c.observed.publicApiFace = {
     configuredScheme: { archiveSha256: req.source.archiveSha256, forkSha256: req.source.forkSha256, evidence: 'TEST configured file only; private selection unknown' },
-    invocation: { api: 'NewControl', drawApi: 'Draw1Control', controlRect: [20,20,80,20], title: '', state: 'normal', defaultRing: false, defaultApiInvoked: false },
+    invocation: { api: 'NewControl', drawApi: 'Draw1Control', controlRect: [20,20,80,20], title: '', state: req.conditions.state, defaultRing: false, defaultApiInvoked: false, ...(template.reviewScope.version === 2 ? {stateApi:'HiliteControl'} : {}) },
     port: { origin: [0,0], bounds: [0,0,160,80], effectiveClipRect: [0,0,160,80], backgroundRGB: [255,255,255], backgroundOpaque: true },
     producer: { name: 'TEST producer', buildArtifacts: [{name:'TEST external emulator build',sha256:'1'.repeat(64)}], tableSha256: sha256(artifacts['producer-table']),
       pixelEncoding: 'rgba8', colorRealization: 'TEST ONLY recorded display/producer conditions, not general transfer proof',
@@ -330,9 +332,11 @@ test('scope wording, version, face region and excluded-claim expansion reject fr
   }
 });
 
-test('normal scoped inputs cannot expand to labels, defaults, pressed states or Crayon',t=>{
+test('normal v1 scope cannot expand to labels, defaults, other states or Crayon',t=>{
   for(const id of ['windows-95.default','windows-95.pressed','system7-nostalgia-silver.inactive','crayon-os.normal']) {
-    const req=contract.requests.find(r=>r.id===id);assert.throws(()=>captureTemplate(req,{scope:'public-api-empty-face'}),/unsupported review scope/);
+    const req=contract.requests.find(r=>r.id===id);
+    if (id.endsWith('.default') || id.startsWith('crayon')) assert.throws(()=>captureTemplate(req,{scope:'public-api-empty-face'}),/unsupported review scope/);
+    else assert.equal(captureTemplate(req,{scope:'public-api-empty-face'}).reviewScope.version,2);
     const f=scopedFixture(t);f.capture.requestId=req.id;f.capture.requestDigest=req.requestDigest;f.capture.source=req.source;f.capture.conditions=structuredClone(req.conditions);
     const result=assessCapture(f.capture,req,[f.approve(f.capture)],{intakeRoot:f.root});assert.equal(result.status,'rejected');
   }
@@ -399,4 +403,38 @@ test('scope policy is bound in request identity while exact13 request objects re
   c.requestVersion='0.1.1';writeFileSync(path,JSON.stringify(c));assert.notEqual(readContract(root).requests[0].requestDigest,contract.requests[0].requestDigest);
   const scoped=publicFaceScope(request);assert.equal(scoped.version,1);assert.deepEqual(scoped.faceImageRect,[20,20,80,20]);
   assert.equal(publicFaceScope({...request,conditions:{...request.conditions,controlRect:[20,20,40,20]}}),null);
+});
+
+
+test('state scope v2 admits only logical highlight or disabled faces in an active window', t => {
+  for (const slug of ['windows-95','system7-nostalgia-silver']) for (const state of ['pressed','inactive']) {
+    const req=contract.requests.find(r=>r.id===`${slug}.${state}`),f=scopedFixture(t,req),result=f.assess();
+    assert.equal(f.capture.reviewScope.version,2);assert.equal(result.status,'reviewed-scoped-observation');
+    assert.equal(f.capture.observed.controlDefinition.hilite,state==='pressed'?10:255);
+    assert.deepEqual(result.verifiedRequirementIds,[]);assert.deepEqual(result.unresolvedRequirementIds,req.targetRequirementIds);
+    assert.equal(result.unresolvedRequirementIds.length,5);
+    assert.ok(result.excludedClaims.includes('physical-mouse-gesture'));assert.ok(result.excludedClaims.includes('inactive-window'));
+    const report=assessCorpus(contract,{schemaVersion:1,captures:[f.capture]},{schemaVersion:1,reviews:[f.approve(f.capture)]},{intakeRoot:f.root,known:[]});
+    assert.equal(report.requests.find(r=>r.id===req.id).status,'evidence-incomplete');
+    for (const mutate of [c=>c.observed.controlDefinition.hilite=0,c=>c.observed.controlDefinition.hilite=state==='pressed'?255:10,
+      c=>c.observed.controlDefinition.enabled=!req.conditions.enabled,c=>c.observed.controlDefinition.windowActive=false,
+      ...['procedureId','variant','value'].map(k=>c=>c.observed.controlDefinition[k]=1),
+      c=>c.observed.publicApiFace.invocation.state='normal',c=>c.observed.publicApiFace.invocation.stateApi='TrackControl',
+      c=>delete c.observed.publicApiFace.invocation.stateApi,c=>c.observed.publicApiFace.invocation.api='TrackControl',
+      c=>c.observed.publicApiFace.invocation.drawApi='DrawControls',c=>c.reviewScope.version=1,
+      c=>c.reviewScope.excludedClaims=c.reviewScope.excludedClaims.filter(v=>v!=='physical-mouse-gesture'),
+      c=>c.reviewScope.faceImageRect[2]=40,c=>c.observed.publicApiFace.invocation.title='OK',
+      c=>c.observed.publicApiFace.invocation.defaultApiInvoked=true]) {
+      const altered=structuredClone(f.capture);mutate(altered);
+      assert.ok(['partial','rejected'].includes(f.assess(altered).status));
+    }
+    const reviewed=f.approve(f.capture);reviewed.reviewScope.version=1;
+    assert.equal(f.assess(f.capture,[reviewed]).status,'rejected');
+    const stale=f.approve(f.capture);stale.requestDigest='0'.repeat(64);
+    assert.equal(f.assess(f.capture,[stale]).status,'rejected');
+    assert.equal(f.assess(f.capture,[]).status,'awaiting-independent-review');
+    const full=structuredClone(f.capture);delete full.reviewScope;
+    assert.equal(f.assess(full).status,'partial');
+    assert.equal(publicFaceScope({...req,conditions:{...req.conditions,windowActive:false}}),null);
+  }
 });

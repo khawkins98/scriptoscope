@@ -1,0 +1,37 @@
+{
+  "originalIndexSha256": "efea416c37ca09d551db25e49bcba7c0648c530d09be1c25f00b5355f53454f2",
+  "captureReceiptSha256": "8ae13a23cf39a5bd1fdb477281587f1e5f1d2360d5236540b7a6c9d3ac49f1ac",
+  "originalProducer": {
+    "bytes": 1228800,
+    "sha256": "a822b6ae6354d811971e40f9194ffa9c75b4614165473c756ec001361eab5ae6"
+  },
+  "rawProducerEqualsDecodedFullPng": true,
+  "repeatedRawChangedBytes": 0,
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "noResampling": true,
+  "captureNonceSequence": {
+    "nonce": "V10W-20261019-01",
+    "launchTicks": 113,
+    "launchDateMacSeconds": 3875215347,
+    "sequence": 3
+  },
+  "profileLink": {
+    "profileObservation": "Windows95v9",
+    "thisObservation": "V10W-20261019-01",
+    "relationship": "Different sealed run; identical recorded device ColorTable and gamma bytes only",
+    "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "notClaimed": "Same hidden provider/cache/font/patch state or full transfer equivalence"
+  }
+}

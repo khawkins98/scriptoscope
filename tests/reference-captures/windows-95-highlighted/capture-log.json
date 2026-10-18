@@ -1,0 +1,2455 @@
+{
+  "status": "UNREVIEWED_SANITIZED_EXCERPT",
+  "originalRawLog": {
+    "bytes": 64785,
+    "sha256": "d4fee845b0b1c307b54ed81847906fae551225a2027ea214fec6084e38d7a1e3"
+  },
+  "readableDerivative": {
+    "bytes": 64785,
+    "sha256": "562a7d22f983016d9b6cbefd4c33a8bf1ede1d0faab2c5ca42a3998d0823deff"
+  },
+  "lineNumberBasis": "1-based readable derivative, CR converted to LF",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=V10W-20261019-01 launchDate=3875215347 launchTicks=113 sequence=2"
+    },
+    {
+      "line": 2,
+      "text": "telemetryFile.volumeRef=-32653 directoryID=2"
+    },
+    {
+      "line": 3,
+      "text": "activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN"
+    },
+    {
+      "line": 4,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2446 queryHasOSErr=0"
+    },
+    {
+      "line": 5,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 6,
+      "text": "callerResourceFile.file.name=Conditioned States v10w volumeRef=-1 parentDir=384 fileID=492 flags=768 logicalEOF=67634 physicalEOF=68096"
+    },
+    {
+      "line": 7,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000526 callerAfterGetter=2446"
+    },
+    {
+      "line": 8,
+      "text": "resourceContext.Copl.signedLow16Ref=1318"
+    },
+    {
+      "line": 9,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 10,
+      "text": "CoplResourceFile.file.name=Windows 95 volumeRef=-1 parentDir=2 fileID=440 flags=512 logicalEOF=424716 physicalEOF=424960"
+    },
+    {
+      "line": 11,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 12,
+      "text": "phase=before-public-draw ticks=3205"
+    },
+    {
+      "line": 13,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 14,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 15,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 16,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 17,
+      "text": "control.hilite=10 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 18,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 19,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd328 actualWindowDefinitionHandle=00012b68"
+    },
+    {
+      "line": 20,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 21,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 22,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 23,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 24,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 28,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 29,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 30,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 31,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 35,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 36,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 37,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 39,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 40,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 42,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 43,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 44,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 45,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 47,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 48,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 49,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 50,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 51,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 85,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 86,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 87,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 89,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 90,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 96,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 97,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 98,
+      "text": "body.GetCPixel=cccc,cccc,cccc"
+    },
+    {
+      "line": 99,
+      "text": "edge.GetCPixel=8888,8888,8888"
+    },
+    {
+      "line": 100,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 101,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 102,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 103,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 104,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 105,
+      "text": "immediateBeforePublicFace.CurResFile=2446"
+    },
+    {
+      "line": 106,
+      "text": "immediateAfterPublicFace.CurResFile=2446"
+    },
+    {
+      "line": 107,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2446 queryHasOSErr=0"
+    },
+    {
+      "line": 108,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 109,
+      "text": "callerResourceFile.file.name=Conditioned States v10w volumeRef=-1 parentDir=384 fileID=492 flags=768 logicalEOF=67634 physicalEOF=68096"
+    },
+    {
+      "line": 110,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=00000526 callerAfterGetter=2446"
+    },
+    {
+      "line": 111,
+      "text": "resourceContext.Copl.signedLow16Ref=1318"
+    },
+    {
+      "line": 112,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 113,
+      "text": "CoplResourceFile.file.name=Windows 95 volumeRef=-1 parentDir=2 fileID=440 flags=512 logicalEOF=424716 physicalEOF=424960"
+    },
+    {
+      "line": 114,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 115,
+      "text": "phase=after-public-draw ticks=3206"
+    },
+    {
+      "line": 116,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 117,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 118,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 119,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 120,
+      "text": "control.hilite=10 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 121,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 122,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=000dd328 actualWindowDefinitionHandle=00012b68"
+    },
+    {
+      "line": 123,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 124,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 125,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 126,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 127,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 131,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 132,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 133,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 134,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 138,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 139,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 140,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 142,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 143,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 145,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 146,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 147,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 148,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 150,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 151,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 152,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 153,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 154,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 188,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 189,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 190,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 192,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 193,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 199,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 200,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 201,
+      "text": "body.GetCPixel=cccc,cccc,cccc"
+    },
+    {
+      "line": 202,
+      "text": "edge.GetCPixel=8888,8888,8888"
+    },
+    {
+      "line": 203,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 204,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 205,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 206,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 207,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 503,
+      "text": "logicalHighlightNotPhysicalGesture=1 requestedHilite=10"
+    },
+    {
+      "line": 504,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactions": [
+    {
+      "line": 25,
+      "sourceLineSha256": "56ecc6036916d69540cbd92dfe1502ad1518df8094cf306715c5877f34dbf64d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 26,
+      "sourceLineSha256": "229f8b6c2b46f5bac4999314dd503f289e4df0d0dccd0e828e4c212dffef2e59",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 27,
+      "sourceLineSha256": "0d263fe7735dfc55f98fa45109a01847c8fd420f5d75f3344625a1c5dfeca28d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 32,
+      "sourceLineSha256": "fde845e8045b5fbe376c580f8f2d88c272e8e0f87578f91220b2c0319d3f6268",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 33,
+      "sourceLineSha256": "157fedb3c03ce773ef4a7eab1ce64b3ac317e0da860591595cac9a00eeeda82c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 34,
+      "sourceLineSha256": "8e7769955d8a7ca980c4f18d3783617b69587ebc5adc623990235e5e623b6fd9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 38,
+      "sourceLineSha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 41,
+      "sourceLineSha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 46,
+      "sourceLineSha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 52,
+      "sourceLineSha256": "e7545af45b26deb1c4b6d7b3026b04b55b9cf1be06f01e02628a8bddfc14e553",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 53,
+      "sourceLineSha256": "b2af53d09707c8df42d1db1d611fd332bb67080daaccb63b4c2e1d8b6d207973",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 54,
+      "sourceLineSha256": "a18918cda9c6dc7cf05913a10ea6a2544ad26e647e714b839aca884d0f19e6da",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 55,
+      "sourceLineSha256": "ac8b3746384fa5801535d2d9d4b5df790419a4148e116543c845a7a8588414fd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 56,
+      "sourceLineSha256": "a2067fe00a9b39313c09d60a282b264a7690c1c7882d97ca714e0e82fb6c38c8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 57,
+      "sourceLineSha256": "b755547aa7a0028fe81f0b00ae008bf86f462889e7d1688dc76f372f6eb8b657",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 58,
+      "sourceLineSha256": "11dca82da92e0db7c6a7b310459612089c81732a815e511a6e704bc81b84351e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 59,
+      "sourceLineSha256": "dab9f37844f866995d29475e5d85362fa865f1575d80edb9edf6d8d35219e477",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 60,
+      "sourceLineSha256": "e1960ac2783558827250b17820073383097c4895d078afbeb05ea7c848eee7c2",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 61,
+      "sourceLineSha256": "3144c0c25b924fc0c33b9c7ed5d1d72038132642c05d96714ba35c6b894b8c01",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 62,
+      "sourceLineSha256": "5b4d023ebec1c65abbbda4003ece19d600a78377b8a8a8fa84872593fdbd2107",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 63,
+      "sourceLineSha256": "52655cb60eb063e499deae5252fa8234ab4baf8d7c19b3f46d57059335150ee9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 64,
+      "sourceLineSha256": "1e9573929e619b179d7daa58ab1df856fe138dabf8fe7f121b197ec662cc1220",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 65,
+      "sourceLineSha256": "3379b8c9ec2f9713aadb561f40541fbd14c025808f187746db05f5104a69c92f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 66,
+      "sourceLineSha256": "c10a969bdf3f29eea7338efade1efc749f2594747367e1e4d18ead50ea91a949",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 67,
+      "sourceLineSha256": "98378917d2312bc407812765afb32a4cabe3aac392cd1f4e816dc10a519ea39e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 68,
+      "sourceLineSha256": "a5a6ca1511c5526556820aa5062b0f2e408dc256a002a1c395a92b2d8f56dc5c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 69,
+      "sourceLineSha256": "7f66b80bd305362deb187983a89d467b00369ef1e82481b6be3f8d686ac84fed",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 70,
+      "sourceLineSha256": "d45b8fefad72e91b01d9f1706075d5860a98509410addc2b4e6190eb8445d872",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 71,
+      "sourceLineSha256": "d54009a868c234806ff0b063a21573d402dcf7b45a22078ae2a3763a03f56632",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 72,
+      "sourceLineSha256": "80149df43a2b794067dcea7770798decedc76345086e7c835caf428c87357215",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 73,
+      "sourceLineSha256": "d1e2954f90f7beda654a8e39b6b4a824b605d3bcb0682ef8af2fff6e9da6bccc",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 74,
+      "sourceLineSha256": "e5212ad5c17484c947d413ae273ea01d93406c2e7a4ac2fde2bd4821643ff992",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 75,
+      "sourceLineSha256": "765ae96e88a22d5f6a3bde6ce26f6d85bab063d96f6275f2d9f2e1047427cd1b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 76,
+      "sourceLineSha256": "15be5a27d83dcd3aa7296ce94cfb4b3542774c88af61d8d799b3b7227d6a0a57",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 77,
+      "sourceLineSha256": "37ec76796c42619e8651f2601a89fe1f3f02f7dc96adfa403d01fe8d92ff756a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 78,
+      "sourceLineSha256": "1ca92e20dffddec9b96f7491283f8419e7e71240dca35878ff88004a0fe20e2e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 79,
+      "sourceLineSha256": "0a0e4010053b822a06fda0fd20fbb0449b8229210eaa01b54d106fb6fa9e4f26",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 80,
+      "sourceLineSha256": "3484c04c7484c3ee98c934db1347c12b3a3ee1c40497114ecf6d20c02b91a214",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 81,
+      "sourceLineSha256": "74bc8451c928f4eb89113aaa2b75869841b722a7f495300fa59396f7c67d9149",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 82,
+      "sourceLineSha256": "cbc457e7623b4f70008ccb5dafca45af8cfbcad2a6969d9ac75c289cd40e8f26",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 83,
+      "sourceLineSha256": "f2e206633c01758022de761f94c1fa90432757d0aefce1edf27388dd2f46c7a5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 84,
+      "sourceLineSha256": "9c9c1b527bf935468dd05622139f9b1f05e3a89ee3958ab1f0514903b36a99db",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 88,
+      "sourceLineSha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 91,
+      "sourceLineSha256": "860ef3ea818bd05c473342f9ccbd40dc752d5ab67aee3a091cf54fa98a0f63e6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 92,
+      "sourceLineSha256": "68cc4b56fecc2885ca49c5e060b56e89ead0d443de517fa28ea8c800ff5beb70",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 93,
+      "sourceLineSha256": "6494b4b20afaf6bf225aaed17688bb0ce763586a894ef1af9d480275e2a62680",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 94,
+      "sourceLineSha256": "cadef6207cd382c2e883db294abe93e333241bc91b9bdeaafa93db8c4cf79cbb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 95,
+      "sourceLineSha256": "138dd3cdaa10b7e5c57ad62d2966e45d1d97843fd96ad4fa87fe92e17cb4579d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 128,
+      "sourceLineSha256": "56ecc6036916d69540cbd92dfe1502ad1518df8094cf306715c5877f34dbf64d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 129,
+      "sourceLineSha256": "229f8b6c2b46f5bac4999314dd503f289e4df0d0dccd0e828e4c212dffef2e59",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 130,
+      "sourceLineSha256": "0d263fe7735dfc55f98fa45109a01847c8fd420f5d75f3344625a1c5dfeca28d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 135,
+      "sourceLineSha256": "fde845e8045b5fbe376c580f8f2d88c272e8e0f87578f91220b2c0319d3f6268",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 136,
+      "sourceLineSha256": "157fedb3c03ce773ef4a7eab1ce64b3ac317e0da860591595cac9a00eeeda82c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 137,
+      "sourceLineSha256": "8e7769955d8a7ca980c4f18d3783617b69587ebc5adc623990235e5e623b6fd9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 141,
+      "sourceLineSha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 144,
+      "sourceLineSha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 149,
+      "sourceLineSha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 155,
+      "sourceLineSha256": "e7545af45b26deb1c4b6d7b3026b04b55b9cf1be06f01e02628a8bddfc14e553",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 156,
+      "sourceLineSha256": "b2af53d09707c8df42d1db1d611fd332bb67080daaccb63b4c2e1d8b6d207973",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 157,
+      "sourceLineSha256": "a18918cda9c6dc7cf05913a10ea6a2544ad26e647e714b839aca884d0f19e6da",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 158,
+      "sourceLineSha256": "ac8b3746384fa5801535d2d9d4b5df790419a4148e116543c845a7a8588414fd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 159,
+      "sourceLineSha256": "a2067fe00a9b39313c09d60a282b264a7690c1c7882d97ca714e0e82fb6c38c8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 160,
+      "sourceLineSha256": "b755547aa7a0028fe81f0b00ae008bf86f462889e7d1688dc76f372f6eb8b657",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 161,
+      "sourceLineSha256": "11dca82da92e0db7c6a7b310459612089c81732a815e511a6e704bc81b84351e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 162,
+      "sourceLineSha256": "dab9f37844f866995d29475e5d85362fa865f1575d80edb9edf6d8d35219e477",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 163,
+      "sourceLineSha256": "e1960ac2783558827250b17820073383097c4895d078afbeb05ea7c848eee7c2",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 164,
+      "sourceLineSha256": "3144c0c25b924fc0c33b9c7ed5d1d72038132642c05d96714ba35c6b894b8c01",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 165,
+      "sourceLineSha256": "5b4d023ebec1c65abbbda4003ece19d600a78377b8a8a8fa84872593fdbd2107",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 166,
+      "sourceLineSha256": "52655cb60eb063e499deae5252fa8234ab4baf8d7c19b3f46d57059335150ee9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 167,
+      "sourceLineSha256": "1e9573929e619b179d7daa58ab1df856fe138dabf8fe7f121b197ec662cc1220",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 168,
+      "sourceLineSha256": "3379b8c9ec2f9713aadb561f40541fbd14c025808f187746db05f5104a69c92f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 169,
+      "sourceLineSha256": "c10a969bdf3f29eea7338efade1efc749f2594747367e1e4d18ead50ea91a949",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 170,
+      "sourceLineSha256": "98378917d2312bc407812765afb32a4cabe3aac392cd1f4e816dc10a519ea39e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 171,
+      "sourceLineSha256": "a5a6ca1511c5526556820aa5062b0f2e408dc256a002a1c395a92b2d8f56dc5c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 172,
+      "sourceLineSha256": "7f66b80bd305362deb187983a89d467b00369ef1e82481b6be3f8d686ac84fed",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 173,
+      "sourceLineSha256": "d45b8fefad72e91b01d9f1706075d5860a98509410addc2b4e6190eb8445d872",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 174,
+      "sourceLineSha256": "d54009a868c234806ff0b063a21573d402dcf7b45a22078ae2a3763a03f56632",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 175,
+      "sourceLineSha256": "80149df43a2b794067dcea7770798decedc76345086e7c835caf428c87357215",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 176,
+      "sourceLineSha256": "d1e2954f90f7beda654a8e39b6b4a824b605d3bcb0682ef8af2fff6e9da6bccc",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 177,
+      "sourceLineSha256": "e5212ad5c17484c947d413ae273ea01d93406c2e7a4ac2fde2bd4821643ff992",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 178,
+      "sourceLineSha256": "765ae96e88a22d5f6a3bde6ce26f6d85bab063d96f6275f2d9f2e1047427cd1b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 179,
+      "sourceLineSha256": "15be5a27d83dcd3aa7296ce94cfb4b3542774c88af61d8d799b3b7227d6a0a57",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 180,
+      "sourceLineSha256": "37ec76796c42619e8651f2601a89fe1f3f02f7dc96adfa403d01fe8d92ff756a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 181,
+      "sourceLineSha256": "1ca92e20dffddec9b96f7491283f8419e7e71240dca35878ff88004a0fe20e2e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 182,
+      "sourceLineSha256": "0a0e4010053b822a06fda0fd20fbb0449b8229210eaa01b54d106fb6fa9e4f26",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 183,
+      "sourceLineSha256": "3484c04c7484c3ee98c934db1347c12b3a3ee1c40497114ecf6d20c02b91a214",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 184,
+      "sourceLineSha256": "74bc8451c928f4eb89113aaa2b75869841b722a7f495300fa59396f7c67d9149",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 185,
+      "sourceLineSha256": "cbc457e7623b4f70008ccb5dafca45af8cfbcad2a6969d9ac75c289cd40e8f26",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 186,
+      "sourceLineSha256": "f2e206633c01758022de761f94c1fa90432757d0aefce1edf27388dd2f46c7a5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 187,
+      "sourceLineSha256": "9c9c1b527bf935468dd05622139f9b1f05e3a89ee3958ab1f0514903b36a99db",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 191,
+      "sourceLineSha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 194,
+      "sourceLineSha256": "860ef3ea818bd05c473342f9ccbd40dc752d5ab67aee3a091cf54fa98a0f63e6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 195,
+      "sourceLineSha256": "68cc4b56fecc2885ca49c5e060b56e89ead0d443de517fa28ea8c800ff5beb70",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 196,
+      "sourceLineSha256": "6494b4b20afaf6bf225aaed17688bb0ce763586a894ef1af9d480275e2a62680",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 197,
+      "sourceLineSha256": "cadef6207cd382c2e883db294abe93e333241bc91b9bdeaafa93db8c4cf79cbb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 198,
+      "sourceLineSha256": "138dd3cdaa10b7e5c57ad62d2966e45d1d97843fd96ad4fa87fe92e17cb4579d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 208,
+      "sourceLineSha256": "c45b7317cfcf4b7ffb2d5f29e3f4b2bf1c676c85deea262cd9e62e88b3254349",
+      "reason": "Outside finite public condition excerpt"
+    },
+    {
+      "line": 209,
+      "sourceLineSha256": "bbd98226e7796e33b89c60c6e528f1009903eee0c3cbe46b19b1a63f26c8d300",
+      "reason": "Outside finite public condition excerpt"
+    },
+    {
+      "line": 210,
+      "sourceLineSha256": "ce59568a0625ec635731e472ec297b92e494a0f620605b984f48b449a235f408",
+      "reason": "Outside finite public condition excerpt"
+    },
+    {
+      "line": 211,
+      "sourceLineSha256": "637602e30b1e9d40ab6d93b67a8f2e9b6d87d28f46b0dce2c1d6f5adb07bc96b",
+      "reason": "Outside finite public condition excerpt"
+    },
+    {
+      "line": 212,
+      "sourceLineSha256": "0816c72b3aea032082c18cb54849086a8db3c3c3ae1f1440b947b39dcd5df08c",
+      "reason": "Outside finite public condition excerpt"
+    },
+    {
+      "line": 213,
+      "sourceLineSha256": "2c00210e8bb2bb9d0a26618235c22d2b96e9fcd903264ef2a614e074ce2e9eed",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 214,
+      "sourceLineSha256": "00808bfa4d9f6b199a09859c3529a353a2d7eafaa84582541e0c670aa3da8225",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 215,
+      "sourceLineSha256": "9527632cf2b579c59f64c18aaa17d2d4e2c5385861b41c82a75f49b50478453c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 216,
+      "sourceLineSha256": "56e5d00be6f6f388d1441b89c7e567b25cde61d976760e857b60213980c6bfec",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 217,
+      "sourceLineSha256": "d3d04661e23ed415b752056f04ec7eaac82389299852eb4159e031a24094d08a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 218,
+      "sourceLineSha256": "aacf18c062abf6eec757d204d945d3eac244500f8127c3dd2ebeaede8e9c5e1e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 219,
+      "sourceLineSha256": "3e3571974fc4579c9a9cd882df656fd13b64e19237ce62dc449979e235198843",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 220,
+      "sourceLineSha256": "7d76524f0e585838eea6c95181cebfb3f595fce778fc691efe0090617ff60c74",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 221,
+      "sourceLineSha256": "6ab852e374e0b7d8cdcbe6b64958e340cd02172d6cd12377fb328e083f11f32e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 222,
+      "sourceLineSha256": "1efa26c4b6104d880c0aa04a29326e42e02dca4f99e11bf9579cf5ac25e8c5a7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 223,
+      "sourceLineSha256": "87b7aca599360b4ca75e47618d79e45504e74b4bb1250f2c5d5da08d4a723809",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 224,
+      "sourceLineSha256": "d7eda0cda8ec289181ec6d82592ed0ab07f809cf9d0a923deae22434443182ad",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 225,
+      "sourceLineSha256": "5099b05039d7474317a93df289c0b221ef418c0d8801f0c3ad76960b55a5c46e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 226,
+      "sourceLineSha256": "b799d71df9f76079d61772a184995028ebcd6efae4a414086c1f80e03283b5a3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 227,
+      "sourceLineSha256": "7193e2291099a7fd5d62af32e6dceeb42cae6fe5a72bf089c706d8efa72a739e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 228,
+      "sourceLineSha256": "962c292a31912ad57bb7b87852c667d6f4b03c8f953ad54e159e82c480b0bb28",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 229,
+      "sourceLineSha256": "3bf2b04e56fea403c0cb7680e51fe9ef2c6db7704f8e6a51f94f473ca7245ef9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 230,
+      "sourceLineSha256": "dc253a6088fc1f01d26a80ef13ed5c328a5b1be71e008f048340416ddc7867f7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 231,
+      "sourceLineSha256": "1515648525aa7638479daaec928924bc54b1cd61eac2b9caa6676c75e573c1c0",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 232,
+      "sourceLineSha256": "df5b2ad8c4aa8d2a61bb79026537760e21b2cbe255422dc4710b659f9b93bb50",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 233,
+      "sourceLineSha256": "278ba11beee9fee0516a411cd396f33916f48531a63f1a03bc90d7630cf1d460",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 234,
+      "sourceLineSha256": "b6051a8ecb2e5ededac1d83ac6816babb773a5fe01ea090cc479512863209262",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 235,
+      "sourceLineSha256": "9fd5afd78471f4667ab42571f48f3d30ac2468360b8011c7d2f4ff83f838bb94",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 236,
+      "sourceLineSha256": "6fd34b9ee8387ca46a202487daba9d7ca836cfd6a14add7e21d18bde3533e4e9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 237,
+      "sourceLineSha256": "ff0e214dde3a031b35c420603f4ecf9be6d8a23581644a2b8d4193f3d2961c11",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 238,
+      "sourceLineSha256": "5c312d3492d24737c2b9b286fdb13766a00cd3caa4ea126da32b90c94f120450",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 239,
+      "sourceLineSha256": "493fea6a1c3255ba6e8173072a6c0b4a3244076acc2c77138508b0e6ed01f1d9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 240,
+      "sourceLineSha256": "b271ce0d5d02b7c2d042c5fcca51d8d818d40edbc62db17a51ea8f6e15c16ec3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 241,
+      "sourceLineSha256": "206a87bea640a847ad865d2ea6030c4a1c94ac72bb461cfe9ca01a87c7c17112",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 242,
+      "sourceLineSha256": "b4adfa395f20eb61ccb0bf98fd8c705e34da04c2e0ce16323f6f0d1dc9c280a6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 243,
+      "sourceLineSha256": "b14d0d4e5194d8a6742a878a7a6b51233d250bbc6d9e1fd6be33ddc317c8b463",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 244,
+      "sourceLineSha256": "9ab5bf1fe13d16ea29661b58c58511f0835763187087615422ecec2e746cbf74",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 245,
+      "sourceLineSha256": "f03104fee6f3f2d9f10384c45c16307235b8e38e37f4715665859341d274ecf3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 246,
+      "sourceLineSha256": "1d4e050d1441b33232b952e5b89ec6a2dceab102bd73f9ff0afc19bdf6a645c9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 247,
+      "sourceLineSha256": "1a21e789fea4b2814b79cbfc9bc79786af46e4d67ebbfe83ef84218d507e3ffc",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 248,
+      "sourceLineSha256": "d58bbe45ac11b234306826436bb6eba81edf61c1ee85b1616cd6fe74834a4001",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 249,
+      "sourceLineSha256": "7eeb3911520c40a5117cc4a84932e0f1e7729a901e29ea6cd484b38afbaaf055",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 250,
+      "sourceLineSha256": "9c5a76b56a81400e34c9bbca3e5674c9d3b94cc979b0ace5fc10f098ee0170f8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 251,
+      "sourceLineSha256": "f32213c545ef39235be2d7c39282289a8b1a7a7f89d0234d7b2eb3de88bee097",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 252,
+      "sourceLineSha256": "0c06810ac40ddc96e2b6a5a32ef211d8977031002f4db4d4c191149cc9eb59fb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 253,
+      "sourceLineSha256": "0945a800641b5a358adb04e75b54a43f1ef270bd18f587ba442597c251c679ad",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 254,
+      "sourceLineSha256": "b6cafe7a84e6d41f0b0fd99a2b8b5ba5e664bbaef71caf1989e9adaa5da69ac8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 255,
+      "sourceLineSha256": "d9c3ac07f711ba8a623701b32807515d6c24d7d7f194bcba94fcdf3fa103e97f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 256,
+      "sourceLineSha256": "0c845fffd0b9849a2e8e8b173201bfb042eb1cf2112662a9bb4089acccc393a5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 257,
+      "sourceLineSha256": "68189f3daa629a104190d3db25537715af9df8a07e816b46c29b5c2054307c49",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 258,
+      "sourceLineSha256": "9b07530b82ff7266f771de559f908590e20724f45805ab961c89e709818ad44b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 259,
+      "sourceLineSha256": "8b0aa6293cefdc2782118600e468f87cba89ee07e2f4bcfb31071bb065425997",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 260,
+      "sourceLineSha256": "63d80de319980b8ee89660d4a7579c93191a0b2e897a3774f12459cac2ed0356",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 261,
+      "sourceLineSha256": "2498b91151f56c1b38e26f16558d82075e41ece135f6b8df9de3760b0d3e889e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 262,
+      "sourceLineSha256": "4c1e45247a141ddeaf7e2f66eb867d65edfdc9f8b2233dfc770ed7cfa6bb65da",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 263,
+      "sourceLineSha256": "7a62034b8e80780b95ba73909d36c86c8ee770414928e3011f2f9231c81e75fe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 264,
+      "sourceLineSha256": "245ff9d87d2b5ab109048920cc3486aa7ea0aa9f38c32ee397a13601d7187073",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 265,
+      "sourceLineSha256": "bf88fd217656f41b30b09701d810b8359fe8b24cf59d4e7f28c57361c1515743",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 266,
+      "sourceLineSha256": "0ba7f6ed2462a86f813600fa4c9a2711f43c0326a0cb4aab69271efb9abbd04c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 267,
+      "sourceLineSha256": "ef847523c3a2b0921dbfb7f496e7c9db7bbbcc01766d8270881d97e05a0d3f46",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 268,
+      "sourceLineSha256": "9dbaa9293780c12b28f0b4d20cd9c57fd5a6c2f4485b596790cccfa460310387",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 269,
+      "sourceLineSha256": "0d3478b1bd5c520d0486216de4e9647f698f8840bfd51ae9cd12351a0b491a07",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 270,
+      "sourceLineSha256": "ff0b8457065f561bfafb9a66bc9b9bd6d08c777fe0a590a555e6278db7252bdd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 271,
+      "sourceLineSha256": "b36c9b093149a1f193e89c0d7a855db8eb4c91e3e7d8a9a883e99d302e1b5316",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 272,
+      "sourceLineSha256": "f3d05a5325aee3c6051694432f2c80963cc5feee9fbcd191d62c118258bd1f9d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 273,
+      "sourceLineSha256": "cb6744253b94e8b91474eac404a2a21a15c26a160f0f5bfb8f6571674132d2f3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 274,
+      "sourceLineSha256": "4665d25c3b928d674b5e8bd23af926337594b447067253da8b70ec4b8bb26455",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 275,
+      "sourceLineSha256": "b607883da92379ad13060e8c33d616e5e9b531a24c834c69eddefd46c616186b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 276,
+      "sourceLineSha256": "2743605644f80f68d49365ff245b96996595488e26a63fc0b54d181dae2964e8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 277,
+      "sourceLineSha256": "a790f40cfe3eee5c3d34ca192fdf66e380b387fce3261d318acce41aa0b761fe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 278,
+      "sourceLineSha256": "01e726b2ab7a07edc81b81ce1ab44466403933afd38bce90d55a644bb8283504",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 279,
+      "sourceLineSha256": "ab2dc93c1f3904cb93b47c0439dbc6f889b96e67a77d9194ded3510e00f32153",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 280,
+      "sourceLineSha256": "4177642d4153a5bf057ad3562e1550ce9f071847af027163757d6258fdbfa681",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 281,
+      "sourceLineSha256": "5a5c3a65c50bca8d2d3e0f73fed18e93db3af877c7a7f4f78f685279050cea64",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 282,
+      "sourceLineSha256": "660a687e664063720b86f26d4dda82259e212cd0c86cd8af067271a174d8a847",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 283,
+      "sourceLineSha256": "82a428ee1227b2c8da324cf457ea796c50126dc53adf1df81b863db4347e37ac",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 284,
+      "sourceLineSha256": "c1d54ce68e5b2286c7611a0d30737090707ae44daaeb9bd98f4fa714651f28ac",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 285,
+      "sourceLineSha256": "03960de2657dd45266e35d13dcada3ba65348980652887408c756328a38c6835",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 286,
+      "sourceLineSha256": "56ac4ab572daa8fbc638dcf588f945aeed0eb646eb0d627c3d194b38106adfe1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 287,
+      "sourceLineSha256": "dd1b7d1b6c8340388c3d5db7401acf748fe1ad95f997a5531ab95b71f64a1dfe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 288,
+      "sourceLineSha256": "e63c9740f69da959240f20e3b2f6211aad42a270180ed114d1ce108eebcd8d77",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 289,
+      "sourceLineSha256": "db4213d822b86eaa2e39b950f78eebddd737bfb2e93dae07f70e97b6b657b8b7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 290,
+      "sourceLineSha256": "9515c3a1a3cd2981a5a081252032baf83784f35630541e7d897b3e8ffdff8387",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 291,
+      "sourceLineSha256": "ceb8d80f49792be35a3f5f876ce01a37cb6aa5b42601b06fd3cfbecd818b8230",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 292,
+      "sourceLineSha256": "c8d51aea469bceb460fa9820ed1ba6ef0fae8f5f746e665a9180d9cdb5395f82",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 293,
+      "sourceLineSha256": "d4db9cb64172dbc5ba961deb64fba8268a5de1a7fd6f547c1a1f89f4fbdbb198",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 294,
+      "sourceLineSha256": "b0248c613e49dec9fd3d23d94c9753408bcdc092976a8ee35ceae9bc73369e56",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 295,
+      "sourceLineSha256": "c0f6e3f29cce5264df6e4d55d6687fc2ebdc7891099c3d17f4f23c90722c21b7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 296,
+      "sourceLineSha256": "aad6a93efed91cf9f735e31982de0e93ec5ac6f22e71c323f4b01a7d259349e6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 297,
+      "sourceLineSha256": "ebb75122a9ddae5fcec98d5b3cf080717db2ca5e8fed5ec51785823e994965e1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 298,
+      "sourceLineSha256": "17f8ee41327f977445aca745487792d7d3336bd9c9c2738b00f235709623d382",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 299,
+      "sourceLineSha256": "12ae87a3a92f15a26f869e77f687a41b4eacfd9d591d430b730d008ce68e62bf",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 300,
+      "sourceLineSha256": "0e449eeebf1183144d8c1ae20e51c5e67556cff009ad1618bc056917a9b1f36f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 301,
+      "sourceLineSha256": "b7e49e009c0303c938fe78f5bc56425d45621ff7366f429bc584003e9b375559",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 302,
+      "sourceLineSha256": "5378028a7dba2e6b9fb65463e10260ad8b030af4f632d672f57b709e70e6572d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 303,
+      "sourceLineSha256": "882ca39c0c9e825f460a31ceb7e9dc1de6cea91ce09aa435b81323baea94ab77",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 304,
+      "sourceLineSha256": "618c191d9ebb6fff1b543d39411ae3470cff8ac94897e57c22d59e6be98a9ce6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 305,
+      "sourceLineSha256": "083c0a4e43ab8806cabdbf48940f4ef418fe037f25549231be105735421d714b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 306,
+      "sourceLineSha256": "83f16edeef0b9d3295772445a15414c54ef419b2d46db8cb2efc209568f1d9e3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 307,
+      "sourceLineSha256": "7055a1155daf4ce54e8659a0eb009282e9f8f6e506b273ff119069dddbbdc80f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 308,
+      "sourceLineSha256": "53f5621ae6403884c51a297de4e73c9d10b062cfeb7cc46b9a07eb60ab94b4d6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 309,
+      "sourceLineSha256": "6aaeacbe63babba0ea576c3f897ea6b2629c6a609fd55a54f1e34bcff9a3fe4e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 310,
+      "sourceLineSha256": "51946085bc92b06be8599b4af4329f5a600b450bccc1493260df59617ef92015",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 311,
+      "sourceLineSha256": "444d98f75ec44dbceaf0f5139a33827d52b957f4bf4e6e306be75c44ed9240de",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 312,
+      "sourceLineSha256": "c2e77ea81127f9dab4c412bbe9fa07adbcc367a8d66674d03077a13ef5308256",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 313,
+      "sourceLineSha256": "dcc01683e3c5392268ac26c5573e8c68f808730f081305668201fb49f003a977",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 314,
+      "sourceLineSha256": "f9df9808861f8edc1e1355817aa54e1aecdca6f0340ea092991db510a4b87479",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 315,
+      "sourceLineSha256": "eef7315783c6013be9b6850323adc1ef3979dd1da68e8dccf62de28f8ec96aab",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 316,
+      "sourceLineSha256": "b62aee04979c20f6795cec49c2ba403fa227251d85833ea06a5300a4c1fcfb38",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 317,
+      "sourceLineSha256": "05269f09ae6e6018e3f8b6561c58dd2150b9b1e896c0c147e53b345a12dd0e6b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 318,
+      "sourceLineSha256": "4b49c65e2c4775b997a264be08ac6dfe156ee7034102152f8382eacdff3b0a60",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 319,
+      "sourceLineSha256": "09c327cf1da2d76a55350a97f0d077a06d36a5292b08a336f498f0311c258eff",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 320,
+      "sourceLineSha256": "dc24c017bfea67220515b51db493b326d3198fb8cfa7a0e92001b6266c8d198b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 321,
+      "sourceLineSha256": "8454a0fd0476e68a0cba3974dbf547802de2be3c1ce5eb1975232645bbb9a99e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 322,
+      "sourceLineSha256": "fe3cd450a40b059579ff8eee11e72fc65a54edf230dc7bdbccbf0a1767b35ea1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 323,
+      "sourceLineSha256": "e086188e9c744110fdf2df6b9c4bb393e8bf8bfab10bd97da6ca91ea6cb854d4",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 324,
+      "sourceLineSha256": "970d893f029538cdb3ea3794b393c3e4ffe3b3da4a93dea2febe46c2374a8de6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 325,
+      "sourceLineSha256": "299f99e871439f641136ca9dfd872d32db1dc6a576d1c25a420a046bb8949461",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 326,
+      "sourceLineSha256": "a26801be1b0f8795547cc5944968d116d6a462a6469680af2952d31a1aaa81fd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 327,
+      "sourceLineSha256": "b6ed528ea8c0eac439d52d008f66dd33d9cae37a1aa5ef68f41d19dde344ff68",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 328,
+      "sourceLineSha256": "de01af13a0c3d826cebd7c70571c57be4097815fb8125b9824b29e1d38eb740d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 329,
+      "sourceLineSha256": "42fb37cf06de24208d6ffd39cf8ae67b77259e22f072c227120aa8f8f0cc1349",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 330,
+      "sourceLineSha256": "804abb77c95c748f421fee7ae3d4a08701e91d19c6d0c5595c558a9157eb28a6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 331,
+      "sourceLineSha256": "ac2db2c14c0c3e690278756a947eacf1c4667b967dfbcee2d032d0639e095ea6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 332,
+      "sourceLineSha256": "d713c3386f05805ba940a87397ebd687258516c4173dfc2d544634675534f621",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 333,
+      "sourceLineSha256": "c7c89129d11c0e64d0b0f4e09282f3ac8293f145ba897c128d1b7a24b6e30b12",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 334,
+      "sourceLineSha256": "87c8c1e2aab32a1a1c736e87334f5e811ee9eb41fede42c250896ea92c4b458c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 335,
+      "sourceLineSha256": "3d198651a0ae9e6c7e4fe5053c1ba3f9a2400322bedd6b4084a99c6933f24324",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 336,
+      "sourceLineSha256": "06a07f8518f60c62bbfcc13f1374b96544d6b95b1ac7623484665c3cfd30ec94",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 337,
+      "sourceLineSha256": "413ca806a013878bb95a200153873d0e331201137a72f16da6d37d1a916b7dfc",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 338,
+      "sourceLineSha256": "e298772eb23caef7ca88f4147d6be4bd21d599bacf45ec8c5d23f2ad1b39a853",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 339,
+      "sourceLineSha256": "ef89777cf345a4719631881d6e182574e1a4b6155b50abccc76460bf07a85380",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 340,
+      "sourceLineSha256": "ed2077a4c8ac6e7e1fd5b8857ba7286d9efe47987dccc447be2cd223fbe270a6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 341,
+      "sourceLineSha256": "1a73db3ec1ef7f3c1a431084b4cf335dd0480f65c84fcecdd4423c98b27f1b48",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 342,
+      "sourceLineSha256": "cb099e2b5210a92abb7f8191d2a8e12914741835f00fbe341d6206a3898cf4ea",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 343,
+      "sourceLineSha256": "4fceceac1ab3ef610272fc689d82efd4d3c39b0f63ad1dabdae69e3b5639757e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 344,
+      "sourceLineSha256": "0e952cab851502f298ff17325a67bc68122b3f01ac44ae536024f3e7b50ab0c6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 345,
+      "sourceLineSha256": "ea5244704db1af7effd65c6a4d86010bcb3fda658b59f9de2f713cbbcf1b0d7f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 346,
+      "sourceLineSha256": "7db4cfeb5a5b9fcb560fe652e19229cad8c2494845dd8d8fe5e25855f60e09de",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 347,
+      "sourceLineSha256": "8d03bbcd45b5922921b782df3fa53111d1905bea4e5cddc8cf400dcdb6ebfc77",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 348,
+      "sourceLineSha256": "cd0e5c5739d0cbac559711b36a21b53932bc078fe1f28a992a5d96498f67f0c6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 349,
+      "sourceLineSha256": "8ed51f95d664fad6616cdd22fa8e1bb04836e0b290bc5344490bd6cddd9b3a80",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 350,
+      "sourceLineSha256": "76343e0901e44f72b60e20e9b9ce5a476fe067914ee36f283e7ba45cb65fe44f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 351,
+      "sourceLineSha256": "9c7dab1d1e794c5e3c5bedba76153dfa9647ee9ae99a22436f4a26b92712617c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 352,
+      "sourceLineSha256": "08e71a54a5464dc5b11fef7f5403a5fb873a5adbfe8803041891a05371bc2cee",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 353,
+      "sourceLineSha256": "181023f9bcc2f62db8d5b522e7463f8279c9e97aabc2e7b0d6107ce4778299d1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 354,
+      "sourceLineSha256": "3ee2d782f30484086143ac5aebf847b09951eb8cf0d5409454ea79d3a6c191e5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 355,
+      "sourceLineSha256": "971d78c9ad326b8a48b2908d7c90c1ddb117393f242047067d5fcc42098c1950",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 356,
+      "sourceLineSha256": "f5fe2f1d322ed6c2b2ac509bd21bdc198120f2504525e2c1d9165d153aa971d5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 357,
+      "sourceLineSha256": "cc0839aee03902a26779f3245e37bd2b6ea520827cdc8c44560dea391c894a75",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 358,
+      "sourceLineSha256": "a33162ec6faad31547322584930846f82d646b841a7a7b07e228624f047c7081",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 359,
+      "sourceLineSha256": "e925b3e36da45ef435c9a39a8c7cfadd9dffa38d57b56a731f15249934cfb2a8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 360,
+      "sourceLineSha256": "dd78c7521afb668a2fd1f073835532113b935ac5320faff5b61b6d9b87319ad0",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 361,
+      "sourceLineSha256": "d599e162ba583b00c3d473b63582e937b5bb2230632f5228bf1f0934e912588f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 362,
+      "sourceLineSha256": "e49974ba5b1ca5fe31366907564450551ff201bc11e4abccc0b01e5ee9f5d43c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 363,
+      "sourceLineSha256": "e2681cb844e5c16ac8ad97579914eaca67e2a7b5549a4a17d693d4612b293534",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 364,
+      "sourceLineSha256": "23fd115bcc3f6810e2fb5510a28eaa8e882038453d8ce440e7e5b74c2ed6c6ff",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 365,
+      "sourceLineSha256": "835f916ec03d166a181744e06bebc505139291b430b183a3103f2f93ce142ed9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 366,
+      "sourceLineSha256": "5c790b8e624a6f7626d336275bf9a55a34db31661ae04b419350c3c1ae39da7a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 367,
+      "sourceLineSha256": "faa7942a1463fb50f42dd8b1d901defa7d6db3d84fee653a4cb29a26694034ba",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 368,
+      "sourceLineSha256": "6fa7d4e5eb6540210fbd33b0ef59b2904263573459739af93a6e8dd5e2c2c9b5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 369,
+      "sourceLineSha256": "c35f372aa54d495de8b7123136c12a73239e1e9b49bfd142f5da09e5b729ca2f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 370,
+      "sourceLineSha256": "7fd9c2b0579c9d1606bc1b8ee6b02571a1fdc0672c63be8610d11a38e82e6ef5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 371,
+      "sourceLineSha256": "53f6e99a14ffb9808cc2ff0e7ed6f1f876d3bcbbf72c1c0fe5cc455be7cddb7e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 372,
+      "sourceLineSha256": "84a1182fe44737345e50f9a73e88bcbbe9ea9427d74ea634590505a62ec7e110",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 373,
+      "sourceLineSha256": "fa2a67c8d3e5d4cbab0820eeba0752c447e4eb399d4d38d7e33e6d9b973b21d7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 374,
+      "sourceLineSha256": "654e057f0ff9f7e053276bcc7e09f575abee742cd6bfce4d8d1f4ec53f57dc58",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 375,
+      "sourceLineSha256": "24b58125eb3923b2dadffa0a9fab902b01b9eeb34dd6f20782436cfcd2962080",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 376,
+      "sourceLineSha256": "67deb69cd57639e6f042c309222a3bdba988f5004c6d7e23db4f8693cd4de0d9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 377,
+      "sourceLineSha256": "9dfcdecde999bb5119220807a85adf6cb367bb9000d2b8b529192bbed817ec69",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 378,
+      "sourceLineSha256": "df861acd4d368b45092ee7f2d4a2f1910362b0c5e21544375afa1b64c5d942f7",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 379,
+      "sourceLineSha256": "fbab8bd9a14fda6483227cc016317fa047f13937700d85a95f2bb0ebeb31e142",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 380,
+      "sourceLineSha256": "aeca6788447942f3db3612e72f249ba8a2fef93281aa8683cfb334467c300c45",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 381,
+      "sourceLineSha256": "7c0fcb662445383ba2c8e22b65699983988124a084ea685a8d503e50007fe6ce",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 382,
+      "sourceLineSha256": "08eda492cde08211c2109cc1fc3d15f02e8e918994a18902db5e761da17889fd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 383,
+      "sourceLineSha256": "0bef66587002806870764af3807b603207b4fa40c5935a23ee296233ea53e218",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 384,
+      "sourceLineSha256": "5c670db873aeb79f185f49f38c61ce15e722a28241c74b57812e9f5a156125f9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 385,
+      "sourceLineSha256": "12a41ec0bc7323b0e64c8054b3fc856972cc252e1526e5a54764599900af5be8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 386,
+      "sourceLineSha256": "6e3b644108ac45b8f9d662d4a55423bedb2e8053c1cfb8834eb540f8e4b77556",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 387,
+      "sourceLineSha256": "18d3f432eab0cceb0063f82a6bc04f8b651d93c3a074a2b65110dec23fbb7d8f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 388,
+      "sourceLineSha256": "c41f90c2fa8cce9ef676b753097ac244bbf7424237e040927565959a2aa04fda",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 389,
+      "sourceLineSha256": "755d9558aac2778c95aa05c60aac35203a57eb0f57f1b1bb7e52c3ea7b973051",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 390,
+      "sourceLineSha256": "6676e16010666c6d73384e26495747434c604facecd8ca5ca32876278a680f6d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 391,
+      "sourceLineSha256": "49c8af6a4f050b6212b6748416a74966c206262e1762a6b790bb711a5bb59c23",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 392,
+      "sourceLineSha256": "134a49c90df00566b744c3f21491a60e501fc05dd4fa800261d09fd287fc1675",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 393,
+      "sourceLineSha256": "a47d69635f64c2991dfac7404d014f9da0b5ae8a20b1cd9b0eb7f55a372ad20a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 394,
+      "sourceLineSha256": "50be4ee023966645ad5e9630f8c5de55af82fb9929eda6ecc52e834127b83bdf",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 395,
+      "sourceLineSha256": "650efd28e5bfacb0cdaf42bb48c93c1ba0f0e89ba15cf58c9b202d4c5e320914",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 396,
+      "sourceLineSha256": "bc52903660c0b8003d7e213a733da46b78488c4fe35378ab0b9fbf7b93a3bc85",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 397,
+      "sourceLineSha256": "11bb3f9f46772549598cb365e34244e57eb3bbb06eb1411a1611a637e6c026db",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 398,
+      "sourceLineSha256": "4a4b2d985407699ef61e7655f18dbfaa700d4c57f03982481b0685d58b7b81c5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 399,
+      "sourceLineSha256": "4efc78e6ab7d0b17cfae4438a623446a2f12c2b4e90ce8dcc6732672b1c41f3d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 400,
+      "sourceLineSha256": "7f06ca30b4fc5e7fa4e9fa87a1f4b8b26c59164639123f875bd28113fae21462",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 401,
+      "sourceLineSha256": "29aa3bbd7cf113889d1845ec049152652c7e7be27e553b0256a997157e24d28e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 402,
+      "sourceLineSha256": "e847b3a79668779415d70131cbc5110f66c99d1789e057bcd0cb7412b33289de",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 403,
+      "sourceLineSha256": "897944855030aaaeada29470e387a36673bc84f3982136a21ba4617f5ef42da5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 404,
+      "sourceLineSha256": "a2fee87082bd4bb2129c662c831439b9ae919f27892039939b916ec22d183ecf",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 405,
+      "sourceLineSha256": "f78a948cdaa764d1b0b57fca2eac28bd196a415715b94d8d9b3e70c3fd19a703",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 406,
+      "sourceLineSha256": "5c2efc987c1e2bfa2c434e0147531ddb3a893c8f01136549c363fdb1f8f7e7f2",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 407,
+      "sourceLineSha256": "65672b8874aa0027b8efddb190560e7c33071adafde2d6350dd906e9e2aabfdb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 408,
+      "sourceLineSha256": "87e54accf420534aef05cb0cbc696e3ae0b9c123887306406cbf945dbaa4a0fe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 409,
+      "sourceLineSha256": "87003d1dffbaa9f947b81f12facbd78efaf9720d4f88758930b3020b3d613927",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 410,
+      "sourceLineSha256": "de9e9b5c44efa8b2a989e19a94709240c33fcdea68b375a9a1c9fc5d728b5570",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 411,
+      "sourceLineSha256": "1004ca19253406e56adce841bd03da6d4b310d7a3d27bcc7a35ab6c252369fee",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 412,
+      "sourceLineSha256": "21b99d93865213518daf9a9801c58b2354de72b0132f89e410c57671ea5be4da",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 413,
+      "sourceLineSha256": "4e63a80531ec7fc6102766984e03f270614c9a5b132911254d57992c750fb586",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 414,
+      "sourceLineSha256": "dd8aa348f4d345b70d7b519da1be3b7ab245329a62f908da052408be614c0d4b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 415,
+      "sourceLineSha256": "5cd48da048e48da4faadcde129f86ddbc8dcb0e9ace5228d34620d81bdebb392",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 416,
+      "sourceLineSha256": "7358c53b95fe28ae8c01d839a7142d9663a115bfa689ec85acabc699e82e227e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 417,
+      "sourceLineSha256": "518f46ce7d27c6d6263bddc1717a16c0533cf30869f08f686f776fc0e378b77f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 418,
+      "sourceLineSha256": "a1fa8fdf326dc9f5d6c70635320346bc8cb623d8d856e3519f849c8c533f94e3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 419,
+      "sourceLineSha256": "198c16f404f04ab9e7d9e4fa025fc1c2083f58795092a0c35c7f0f5af1798161",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 420,
+      "sourceLineSha256": "ac717316e9b0175c5916f10bdd12d7bf36b3cf048e9a20a6d37ce95da5240374",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 421,
+      "sourceLineSha256": "0fb537ac2247fdedd5c76f900a713359373d472c20c256fb31dd9c9c59c278af",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 422,
+      "sourceLineSha256": "7b89b703905f99231968e3c074f58dca9ed2e26f393d0d2b5e6745498f6e3907",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 423,
+      "sourceLineSha256": "f205a98a53fa1a171ee0babffcaf735b377b5f5792d89792fd16447855ac4951",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 424,
+      "sourceLineSha256": "297f5fdf6b28400c8935c4145860ee7e0187e2770521435a0ba401a875e943e2",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 425,
+      "sourceLineSha256": "f99e043e7eb3be07c4ebf51c060a1aa56896581b22165e524f08fafa3528c51f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 426,
+      "sourceLineSha256": "73c9db80e241d5e33e675b919d0c0f88d2663f80556c765245e8f3b1daf60da1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 427,
+      "sourceLineSha256": "a1c32fafd05714fb7f09a3a89be695459156aa099b7ea1915807c730ddf35099",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 428,
+      "sourceLineSha256": "806c9345b71721e2754555752c66b0db5e2f434ae9befa51249c0785d94ed7fe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 429,
+      "sourceLineSha256": "20894eb7bbe810feb4bf84b2e6e21cd49219ddf3bd28ca1785b140c5f354224b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 430,
+      "sourceLineSha256": "9569442947b41263bb1f674eea361b697a3451387c99fbadf683b7ee6f3e6335",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 431,
+      "sourceLineSha256": "2ff2a11020497549b4089503cea4851596fae8995803f3f0f5bc3884afc3a8f6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 432,
+      "sourceLineSha256": "f9b33f2c2b5c19bb82c1ff6c7be2c04604a8ef337d7e86eefacf66626532c23d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 433,
+      "sourceLineSha256": "02b0cdfae483d7c6742c3ec75fbbf7a994e450892f9f171d3d4c953a120b5f21",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 434,
+      "sourceLineSha256": "ba8e66aadb6a81b3215a0019b114eeb131151ba4146d88360aa52bd2220d0d35",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 435,
+      "sourceLineSha256": "7bdaa6fa88e86737223b5706ec086135da642c5e96bbee7fa5d921a9b1e6e191",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 436,
+      "sourceLineSha256": "11f94d157116d70325f951986e92846b154b78d0664cdc34a3aa36c4c409c6a1",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 437,
+      "sourceLineSha256": "cb062d8a73d3c48c72c483a98a5659bfebe5f1c14c925ab36f583c4a91e6bfbd",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 438,
+      "sourceLineSha256": "057a7ac94032782c7eaa2c5821408df7e1facb58d07af08dc2fed74a1b448b95",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 439,
+      "sourceLineSha256": "5e7f8d908f3e0c201c5196995874b3ecf75dcf7c2b0375a374e12e6f52f86933",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 440,
+      "sourceLineSha256": "1316ad7bcdd5965ebaac6af294731da430da1020d3e3dc66003babcc3219f1fe",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 441,
+      "sourceLineSha256": "298feaad001de21bb79d4d44300fbbb6ba06be0122be06e0706814ae5c93d360",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 442,
+      "sourceLineSha256": "1c140902260f69f52e375641d6f2668ba6694674adefc906467d13e3a784a63c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 443,
+      "sourceLineSha256": "63e6b9300d130ac1100c3669cf9813f15831ea886bb0007b31c66e13667a7cff",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 444,
+      "sourceLineSha256": "43781c1d3d27c44298371a7c5495a7ff403b4fcf853beaa0f33c2722a4f0698c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 445,
+      "sourceLineSha256": "27447d1b748246cba20851a32f3fd954d4f42620d30f7667c10eac5c9bf34493",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 446,
+      "sourceLineSha256": "26714c724ac112c84222f03a1bdd243e323be03cb56e3b6fcfb7c2a630f412a4",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 447,
+      "sourceLineSha256": "739e13b7624df30f62822c2e3609a144ed24f3ed20794680c0de1576282fa056",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 448,
+      "sourceLineSha256": "edc1b913c1bca4be0b052fb6ccad58acf50d544b1defdda5647d5cf81f110854",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 449,
+      "sourceLineSha256": "5bc4c0c990c59b7e71bcfffdd818c86b33c1a796fc1289b3c54215cc923864e3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 450,
+      "sourceLineSha256": "43040d3ac3db9d9d691dc6b2f7971012932a74991403c35189e843d02254efcb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 451,
+      "sourceLineSha256": "0b5c272c60449beced4c88e69455cc31688e4769e283d5b906a9afe6128d58a6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 452,
+      "sourceLineSha256": "3b5a9323f874332ba5f112a9a991df73648193e56be8c06d75b3a6e88f6646d4",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 453,
+      "sourceLineSha256": "58010a6f77d3276620148769a87dcbc140a4034a7ab77bf53644d345e9dc699f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 454,
+      "sourceLineSha256": "930899a4219e562e4556e6cdccf732effad02fe4f2c113cb20805f1c7f12fe6c",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 455,
+      "sourceLineSha256": "4820e15d9f10facdf3f42e41a955ac09787007e2a5cb824911880f6cbe2b628f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 456,
+      "sourceLineSha256": "c772b9d31b91c6f1612c34794fcb28578e9aef6c59c3c0971dd52a81d981bd79",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 457,
+      "sourceLineSha256": "cd5b059f78fd0e5ddcf248c6167b9262e95f2c340c66de0d81b2ebedb641e24e",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 458,
+      "sourceLineSha256": "e140b7e09d61da1665eb5d7bc3bd69e03837cd3572778b3e2bc1dce6cb3736ca",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 459,
+      "sourceLineSha256": "78d2b5f291d2ac1e3aee65a84ee527f6a2be753754636d650d6aab40a9caacb8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 460,
+      "sourceLineSha256": "984bb07efaa4842a43813e2ab0368a6a33edea69b144bb8e41b394c094b6519b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 461,
+      "sourceLineSha256": "3c284ee6727c5b87c1f00af46b3325d2c9925b10d983dfdbc75fae4277592c98",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 462,
+      "sourceLineSha256": "b3c4e1c95bb1b12c1693c2afc8d73058c67a1b30b1a7db30f2063f85b01a66e8",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 463,
+      "sourceLineSha256": "c348e74b70a90e4946ffb54ec62f8f985edeaf8b2a34c0f92f141e844b08002f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 464,
+      "sourceLineSha256": "b46271f27c1dfe182151f56a1a7298e77f3a2396649606ccceb74179cacdf77f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 465,
+      "sourceLineSha256": "8f9e4bd5e24ca5f51db3c71cb1888b499f0350cf1fd34f928acafa97d458733a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 466,
+      "sourceLineSha256": "17c57aa02f5eb28644d222cee5c2bdcf19aefcbcf0f3a7454d02b9a389d66bdc",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 467,
+      "sourceLineSha256": "8a12d21f63406233c4a153621b3b91140704781168afeb37774bd33919aaebc5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 468,
+      "sourceLineSha256": "888de84d0b172f621a5f48b481f644b49e7f23960d60c14ab16f47cf2a44375a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 469,
+      "sourceLineSha256": "cb53d37a9bd987d37be2b487a601df10e727fd8149d1c210df3016206736ac3f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 470,
+      "sourceLineSha256": "ef9d01cd0465ecc9511c320950e1acf6f15ab1da54b4b803b20cb3ad6710f43a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 471,
+      "sourceLineSha256": "d276062a26fb9328f074753e1cc5a935a7d0c68ad42bea6ac9fcdadff3245c4a",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 472,
+      "sourceLineSha256": "6672ada199bed07be2c9cf7d5b144b94efcf5849e3b78e5a8928ed0826437c12",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 473,
+      "sourceLineSha256": "49399d210f29fb83d72ffb7b860106413e0e43f17355678620bf97bbd5c77429",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 474,
+      "sourceLineSha256": "8c93f047580f1c8ce31872f5437b196e00186dff8d4495b19ad64ca106fce1c9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 475,
+      "sourceLineSha256": "4bd85d9a230fe47ff236682eac8b78e103c3fa85d1d68492f0c70de6ab705dcb",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 476,
+      "sourceLineSha256": "7187b1d76a6f40a112e21803749226a029fcbc275c14b27817986c8f3bbb4bb5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 477,
+      "sourceLineSha256": "1155f8ef522d38fbbd5f7c0095de6285b18956b57cba19a75e9213c7fabb1e9d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 478,
+      "sourceLineSha256": "516d765e2435b262957b4a9c0c98d89c077890c7ea0748421cb065bb07fea3df",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 479,
+      "sourceLineSha256": "24894e430d3a003aab99c9bca15977990b120cc1799f6ca8ca25b43b0d4af4c9",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 480,
+      "sourceLineSha256": "43e18979075589ef778ef4fc122a6f091f51942f84bc40780432e9f6e7890687",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 481,
+      "sourceLineSha256": "4bcdbcde23188718b0dee26aabdf76628f44dc2f89ff127f99728ffd786725f4",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 482,
+      "sourceLineSha256": "17c5154d5ed207b88b3555e874db2968e8914a5f99221637d6e3d39a97eaaa34",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 483,
+      "sourceLineSha256": "24e020d0ebd6401f061e3f3a34ac9021a34d5b845dccdab185edefcf214f44ad",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 484,
+      "sourceLineSha256": "aad7c2f002b82d97b3c8bfe471f1a2df63a5393b111c8917c54f09768e9843a4",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 485,
+      "sourceLineSha256": "60c7fcc648f3da9683ee0522591c2a553e9d7e13163ec7c6bcab97a4bcba6016",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 486,
+      "sourceLineSha256": "b48ee41009e36391885620cae1b75a866412160ddc5e13c8870d32275099a688",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 487,
+      "sourceLineSha256": "62e6cdef68910b15e64e91181cd24befce49311e4964c41ed7012a8126d0f72b",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 488,
+      "sourceLineSha256": "8a640b50de12e0b65aa3a5dde873fd326eb7c83ad1d44731d6c5d26caeb9dff5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 489,
+      "sourceLineSha256": "b1a9eec6d953e72a306f8b9fee14f4c9b738fb71738fd8108ef7610b4c4682a6",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 490,
+      "sourceLineSha256": "84fa8a15c4f34327738cb997fc80ce30b98e0bc5a9a0134a52e4d53574f84261",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 491,
+      "sourceLineSha256": "3b0494e672bddf8aec6993eebea1531cf579d1534685051bb55eb3ad262093d2",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 492,
+      "sourceLineSha256": "d96819afc7c57a4e49f89b1c8b78abdd1661639fd7dad434fc71ed2080051f6d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 493,
+      "sourceLineSha256": "2584d3443c29b8570cb17ea068a4e0b6959e2601dc9728945cd4cd7c981ecc4f",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 494,
+      "sourceLineSha256": "f4f54b219baa35f1af0972aa965ab13daf18a2d3e76970279ce1fb0732973384",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 495,
+      "sourceLineSha256": "dc5d72dae3fbe18d1d58cd29426a8fd7bba4b3adc42051c78b2c3789bfa30a97",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 496,
+      "sourceLineSha256": "d92ee5d3f056fc49b26f29f6f448caf957a64881f4a09126f9e83b5be603beb5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 497,
+      "sourceLineSha256": "9b395eb27305088da919be7a3868c390e24956a52890633ee62fd32def2ba0e3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 498,
+      "sourceLineSha256": "235649cbfdf70312a28d6be741ee64a1015327c8fcee412007f5af65691c1330",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 499,
+      "sourceLineSha256": "9b901c522500a7e87f87d4ce3ae1e6860a54ccc5ba4957a74d0e4e1243107e47",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 500,
+      "sourceLineSha256": "bb4778b8f9f2cc74ebfe11473addfcef75a966bef14009dd298ee16f26abe11d",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 501,
+      "sourceLineSha256": "b56146c2ea693ffd315fd98096a23ed0bd66a6575b1c5f413195a0db246f13d3",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    },
+    {
+      "line": 502,
+      "sourceLineSha256": "ae7fb6084bb311b59cf3d827d2ed1d0094cd7248b4d61e030e47bbc0b645bbc5",
+      "reason": "Original binary/font/cache/palette payload omitted; permitted palette/gamma separately preserved"
+    }
+  ],
+  "fixtureSource": {
+    "bytes": 15543,
+    "sha256": "dbe4c6eb2bc689ca0b295fa9abd67d37579c1af833c8fe108fa67c94f30a12de"
+  },
+  "fixtureInvocationLines": [
+    {
+      "line": 2,
+      "text": " * Public NewControl(proc0), empty normal control. No default/Acid/trap writes."
+    },
+    {
+      "line": 73,
+      "text": "static void face(void){RGBColor white={65535,65535,65535};SetPort(target);TextFont(0);TextSize(12);TextFace(0);RGBBackColor(&white);EraseRect(&target->portRect);Draw1Control(control);HiliteControl(control,requestedHilite);}"
+    },
+    {
+      "line": 79,
+      "text": " line(\"invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API\");line(\"requestedControlProc=0 actualControlDefinitionHandle=%08lx actualWindowDefinitionHandle=%08lx\",(unsigned long)(*control)->contrlDefProc,(unsigned long)((WindowPeek)target)->windowDefProc);"
+    },
+    {
+      "line": 80,
+      "text": " line(\"control.variant.query=GetControlVariant actual=%d queryHasOSErr=0\",GetControlVariant(control));resource(\"actualControlDefinition\",(*control)->contrlDefProc);resource(\"actualWindowDefinition\",((WindowPeek)target)->windowDefProc);"
+    },
+    {
+      "line": 103,
+      "text": " board=NewCWindow(0,&br,\"\\pRGBWK v7\",true,0,(WindowPtr)-1,false,0);info=NewCWindow(0,&ir,\"\\pSame-run Conditions v7\",true,0,(WindowPtr)-1,false,0);target=NewCWindow(0,&tr,\"\\pOriginal Normal v7\",true,0,(WindowPtr)-1,true,0);SetPort(target);TextFont(0);TextSize(12);TextFace(0);control=NewControl(target,&cr,empty,true,0,0,1,0,0);SelectWindow(target);sentinel();face();metadata();"
+    }
+  ],
+  "captureNonceSequence": {
+    "nonce": "V10W-20261019-01",
+    "launchTicks": 113,
+    "launchDateMacSeconds": 3875215347,
+    "sequence": 2
+  }
+}

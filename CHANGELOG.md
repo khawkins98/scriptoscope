@@ -18,6 +18,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Extend the existing empty-face reference scope to four recorded Windows95/System7
+  logical-highlight/disabled states in active windows. Preserve normal v1 evidence,
+  exact request inputs and every broader unresolved requirement; v2 excludes
+  physical gestures and inactive-window claims. Admit four separately reviewed
+  original observations and reuse existing profile comparisons for all six faces (#190).
+
 - Add a narrow versioned reference-review scope for the two fixed empty normal
   Windows 95/System 7 faces. Preserve full context, palette/producer and public
   invocation evidence; report scoped observations separately with every broader
