@@ -79,3 +79,13 @@ painted selection and no canvas in addition to real keyboard/name semantics.
 Astra independently ran all 22 source/reference/comparison tests and approved
 the gate pending the full browser/CI checks. These strengthen validation without
 changing any of the 27 reviewed inputs or proposed outcomes.
+
+
+## Evidence-only revision 1.0.1
+
+The full reference-document pin changes for the three Windows95 ring cases
+because the body-fill section and directly implicated trap names were corrected.
+The ring dispatch paragraph, address 0x76c4, detailed source evidence and all
+API-policy expectations are unchanged. The previous 1.0.0 review is preserved in
+`expectations.json`; this revision does not widen the approved case set or mark
+any additional historical behavior verified.

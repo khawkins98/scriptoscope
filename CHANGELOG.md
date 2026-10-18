@@ -14,6 +14,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   remains OPEN; partial requirement and availability inventories do not establish
   an overall fidelity percentage.
 
+- Corrected source evidence for cinf body dispatch and a reproducible raw-field
+  survey of all 18 pinned scheme forks. Pixel-pattern fills apply outside mode5;
+  mode5 requests color-icon art. Rendering behavior remains unchanged.
+
 - Interactive period-ad landing with five live themed portrait windows, scheme
   switching and composition resets; the previous demonstration remains available
   at `showcase.html`, including legacy theme links. ([#245](https://github.com/khawkins98/scriptoscope/pull/245))

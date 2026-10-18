@@ -90,7 +90,7 @@ not original-engine pixels.
 
 The current [ledger 1.0.1](../../tests/rendering-requirements/ledger.json) contains
 eight OPEN cases and 51 declared obligations: 7 narrowly verified, 2 mismatched,
-42 unknown. The separate [availability inventory 1.0.0](../../tests/control-availability/expectations.json)
+42 unknown. The separate [availability inventory 1.0.1](../../tests/control-availability/expectations.json)
 contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains
 **unclosed; no overall fidelity percentage is established**.

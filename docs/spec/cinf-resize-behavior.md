@@ -1,254 +1,173 @@
-# cinf byte[2] + byte[3] — the "resize behavior" decode
+# cinf body dispatch: source evidence and limits
 
-**Status:** Decoded against the 2.3.1 kDEF (68k m68k disassembly at
-`.scratch/k231-kdef/kDEF/k231-kdef0.asm`). The runtime label table in
-`tools/theme-loader/decoders/cinf.js` is correct for what the kDEF actually
-dispatches on; the "anchor-corner" labels (indices 10..14) are an editor-side
-vocabulary that the kDEF does NOT decode.
+This corrects the earlier branch interpretation under [#218](https://github.com/khawkins98/scriptoscope/issues/218).
+The `cinf` header contains independent edge-repeat and body-mode fields. A
+background resource ID is **not restricted to mode 5**. Mode 5 requests a color
+icon; the other modes request a pixel pattern. No runtime behavior changes with
+this evidence correction, and the pattern-backed face approximation remains open.
 
-This doc closes `kdef231-reference.md §7.2` gap #2's residual question
-("the full 15 resize behaviors from Scheme Factory MENU 139") and supersedes
-the speculative TBD encoding in `cinf.js`'s `RESIZE_BEHAVIOR_LABELS` array.
+The earlier five-theme survey and claim that all bodies come from their face
+interiors are superseded by the pinned 18-fork survey below. The previous
+identification of `$AA25` as `SetBackPixPat` was also wrong: it disposes a color
+icon. Do not implement body filling from the previous prose or from the legacy
+`resizeBehavior` label names.
 
----
+## Primary identities
 
-## TL;DR
+Offline inspection uses Kaleidoscope 2.3.1 `kDEF 0`, 107,726 bytes, SHA-256
+`2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342`.
+Addresses are file offsets in the extraction described in
+[kdef-binary-inventory.md](./kdef-binary-inventory.md). Original code is neither
+executed nor included here. Push faces (`0x7572..0x7594`) and bevel faces
+(`0x7770..0x7778`) call the body-enabled wrapper `0x10fc0 → 0x107fe`.
+That establishes this painter's relevance to those callers, not to list headers
+or segmented tabs.
 
-The "15-value resize behavior" model is **Scheme Factory's authoring vocabulary**
-(MENU 139). On-disk and in the kDEF, it collapses to **two independent fields**:
+Apple Universal Interfaces 3.4.1 supplies the trap identities, from
+[Traps.h](https://github.com/elliotnunn/UniversalInterfaces/blob/328d38f2b72b2d4ceda30170eea32ca6b9de218a/3.4.1/Universal/Interfaces/CIncludes/Traps.h)
+(Apple header preserved in a source mirror; file SHA-256
+`53f1e9da1006604b006aa152bd79efda6cda548a928fe5aac7624ca41f9b0168`).
+Relevant identities: `$AA0C` GetPixPat, `$AA1E` GetCIcon, `$AA25` DisposeCIcon,
+`$AA08` DisposePixPat, `$AA0E` FillCRect, `$A8A5` FillRect,
+`$A8B2` EraseRoundRect, `$AA14/$AA15` RGBForeColor/RGBBackColor.
+Trap names establish API identity; they do not by themselves establish all
+QuickDraw transfer, palette or mask semantics.
 
-| field | byte | semantic | values the kDEF actually branches on |
-|---|---|---|---|
-| `tileSides` | `[2]` | boolean — tile vs stretch the 4 EDGE BANDS | `0` (stretch) / nonzero (tile) |
-| `patternAnchor` | `[3]` | 5-way switch — which DST-RECT corner anchors the body pattern phase | `0` (origin) / `1..4` (TL/TR/BL/BR corner) / `5` (use bgPattern resource) |
+## Address-backed decision table
 
-That's **6 distinct byte[3] values × 2 distinct byte[2] values = 12 combos**.
-Scheme Factory's MENU 139 was a CONVENIENCE that paired the two for the
-author ("Stretch • Top" sets byte[2]=0, byte[3]=1, etc.). The kDEF reads each
-byte independently, never as a combined 1..15 enum.
+Let `c` be header byte 0 (corner), `s` byte 1 (side), `tile` byte 2,
+`mode` byte 3, and `backgroundId` the signed big-endian word at bytes 4–5.
+`D` is the caller's destination Rect; source sample coordinates occupy bytes
+6–17 and are color samples, not evidence of destination text placement.
 
-**Byte[3] is NOT a 1..15 enum.** Any disassembler reading would find exactly
-one `cmpib` against byte[3] in the entire kDEF (`0x109be: cmpib #5,%a0@(3)`)
-and exactly one `subq`-chain switch (`0x10ab2`), and the chain only counts
-down through cases 1..4 with a default for everything else. There is no
-`cmpib #6..#15` anywhere against byte[3] (verified by grep).
+| Condition | Original path | Established requirement |
+| --- | --- | --- |
+| Body flag false | `0x109aa..0x109ae → 0x10bc0` | Ring wrapper skips body work; border work continues. |
+| Body enabled, `mode == 5` | Compare at `0x109be`; equality falls through `0x109c8..0x109d0` | Pass `backgroundId` to `0x10472`, whose uncached lookup uses GetCIcon at `0x10698`. This is a **cicn** request. |
+| Mode 5 icon found | `0x109da..0x10a1a` | Source Rect comes from the icon's bitmap bounds at offsets70/74; destination is inset by `s` on all four sides. Call `0xfdf8`, then DisposeCIcon at `0x10a14`. This is not a ppat fill or the inset-cross union. |
+| Mode 5 icon absent | `0x109d8 → 0x10a1e..0x10a66` | Erase the two inset rectangles described below using the sampled background. |
+| Body enabled, `mode != 5` | `0x109c4 → 0x10a6c` | Pass the **same** `backgroundId` to cached `0xeeea` or uncached `0x10440`, selected by `a4+1220`. Both use GetPixPat (`0xef24`, `0x10460`). This is a **ppat** request. |
+| Pixel pattern found | `0x10a96..0x10b5a` | Select phase from `mode`, then fill the two inset rectangles through `0xf930`. |
+| Pixel pattern absent | `0x10a9a → 0x10b72..0x10bb8` | Erase the two inset rectangles using the sampled background. |
 
----
+A zero background ID is still passed to the loader in these paths; the source
+shown does not special-case zero as “none.” Same-fork absence alone cannot prove
+absence from the original Resource Manager's search chain.
 
-## kDEF dispatch in detail
+The two rectangles, relative to D's top-left, are
+`(c,s,W−2c,H−2s)` and `(s,c,W−2s,H−2c)`. The second is skipped when `c == s`.
+The solid fallback calls EraseRoundRect with both oval dimensions zero, so the
+previously implemented [solid inset-union geometry](./control-face-geometry.md)
+is unchanged by correcting the trap name. These rectangles are followed by the
+square-corner/independent-band border painter, not a rectangular nine-slice.
 
-### Byte[2] — Tile Sides (boolean)
+### Pixel-pattern phase
 
-The 9-slice routine reads byte[2] **once per edge band** as a plain boolean:
+Only the non-5, successfully loaded ppat path reaches this switch:
 
-```
-10bc4:  moveal %a3@,%a0          ; reload cinf addr
-10bc6:  tstb %a0@(2)             ; TileSides flag
-10bca:  beqs 0x10c00             ; if 0 → skip to next edge (use scaled blit)
-                                 ; if nonzero → fall through to TILE path
-10bcc..10bf8: build pattern-rect, call 0xea6c (the tile-fill primitive)
-```
+| Mode byte | Phase argument `(x,y)` | Address |
+| --- | --- | --- |
+| 1 | `(D.left,D.top)` | `0x10ac8` |
+| 2 | `(D.right,D.top)` | `0x10ad2` |
+| 3 | `(D.left,D.bottom)` | `0x10adc` |
+| 4 | `(D.right,D.bottom)` | `0x10ae8` |
+| 0 or 6–255 | `(0,0)` | `0x10af4` |
 
-Repeated at `0x10cf0`, `0x10e4e`, `0x10ec6`, `0x10f3e` (the four edge bands)
-and at `0x11262`, `0x112da`, `0x11358`, `0x113d8` (the inactive twin path).
+`0x10b14..0x10b22` passes phase and first rectangle to `0xf930`; the transposed
+rectangle follows at `0x10b48..0x10b56`. That helper adjusts port origin and
+rectangle coordinates before `0xf7cc`, then restores them. `0xf7cc` has a
+FillCRect path at `0xf85e` and a separate FillRect path at `0xf848` selected by
+`a4+1222`. The phase arguments are established; translating all port-origin,
+clip-region, color-depth and alternate-path behavior into canvas pixel indices
+still needs its own hand-derived requirements. No full pattern implementation is
+certified by this table.
 
-The kDEF **only tests `!= 0`**, never compares against any specific value
-above 1. So byte[2]=2 (or 7, or 15) would behave identically to byte[2]=1.
+### Edge repeat is separate
 
-### Byte[3] — Pattern Anchor (5-way switch)
+Byte 2 is tested as zero/nonzero at the four edge branches (`0x10cf0`,
+`0x10e4e`, `0x10ec6`, `0x10f3e`). Zero reduces the source middle to its first
+column/row; nonzero repeats the full middle strip through `0xfeae`. It is not
+whole-band scaling. See the independently tested
+[control-face geometry](./control-face-geometry.md). The additional byte-2 test
+at `0x10bc6` precedes corner painting; it must not be described as a fifth edge.
 
-The dispatch at `0x109be..0x10af6` is two stacked decisions:
+## Reproducible current corpus survey
 
-**First decision: is byte[3] == 5?**
+Run from the repository root:
 
-```
-109be:  cmpib #5,%a0@(3)         ; byte[3] vs literal 5
-109c4:  bnew 0x10a6c             ; if NOT 5 → normal slice fill (corner anchor)
-                                 ; if == 5 → "use bgPattern" path
-```
-
-The `bnew 0x10a6c` branch is the **bgPattern path**: it loads the cicn pointed
-to by `cinf.bgPatternId` (byte[4..5]) via `0x10472`, sets the GWorld's
-background pattern via `aa25` (`SetBackPixPat`), and FillRect-erases the body.
-This is the "fill with a separate texture" mode — the body texture comes from
-a per-cinf ppat resource, not from the chrome cicn's interior.
-
-**Second decision: subq-chain on byte[3] (for values ≠ 5)**
-
-```
-10ab0:  moveq #0,%d0
-10ab2:  moveb %a0@(3),%d0        ; d0 = byte[3]
-10ab6:  subqw #1,%d0
-10ab8:  beqs 0x10ac8             ; if was 1 → CASE 1
-10aba:  subqw #1,%d0
-10abc:  beqs 0x10ad2             ; if was 2 → CASE 2
-10abe:  subqw #1,%d0
-10ac0:  beqs 0x10adc             ; if was 3 → CASE 3
-10ac2:  subqw #1,%d0
-10ac4:  beqs 0x10ae8             ; if was 4 → CASE 4
-10ac6:  bras 0x10af4             ; default → CASE 0 / 6+ (origin)
-```
-
-Each case loads two int16 from `%a2@` (the destination Rect at
-`{top@0, left@2, bottom@4, right@6}` per §3.6) into the pair `(d6, fp@(-38))`
-which is then passed to the slice-fill primitive at `0xf930` as the
-**pattern phase / origin (x, y)**:
-
-| byte[3] | case addr | `d6` (anchor X) | `fp@(-38)` (anchor Y) | semantic |
-|---|---|---|---|---|
-| 1 | `0x10ac8` | `a2@(2)` = dst.left | `a2@(0)` = dst.top | anchor TOP-LEFT corner of dst |
-| 2 | `0x10ad2` | `a2@(6)` = dst.right | `a2@(0)` = dst.top | anchor TOP-RIGHT corner of dst |
-| 3 | `0x10adc` | `a2@(2)` = dst.left | `a2@(4)` = dst.bottom | anchor BOTTOM-LEFT corner of dst |
-| 4 | `0x10ae8` | `a2@(6)` = dst.right | `a2@(4)` = dst.bottom | anchor BOTTOM-RIGHT corner of dst |
-| 0 (or ≥6) | `0x10af4` | `0` | `0` | anchor at window ORIGIN (no per-rect phase) |
-| 5 | `0x10a6c` (separate path above) | — | — | use the per-cinf bgPattern (`byte[4..5]`) instead of the cicn body |
-
-The "pattern phase" terminology is the QuickDraw convention: when you tile a
-ppat across a region, the phase tells the blit where the pattern's (0,0)
-sits relative to the dst's origin — shifting the phase translates the tile.
-For byte[3] = 1..4, the phase tracks a corner of the dst rect, so the
-pattern stays "stuck" to that corner as the window resizes.
-
----
-
-## The Scheme Factory MENU 139 vs the kDEF
-
-Scheme Factory (the period authoring tool — not in our corpus, only its
-output formats are) shipped a 15-item dropdown in MENU 139 that mapped to
-a labeled UI:
-
-```
-Stretch
-Stretch • Top
-Stretch • Left
-Stretch • Bottom
-Stretch • Right
-Tile
-Tile • Top
-Tile • Left
-Tile • Bottom
-Tile • Right
-Anchor (??)        ← suspected: 5 anchor-to-corner / center options
-...
+```sh
+node scripts/survey-cinf-body.mjs > /tmp/cinf-body-observations.json
 ```
 
-The first 10 (indices 0..9) correspond 1:1 to `(byte[2] ∈ {0,1}, byte[3] ∈ {0..4})`
-via `index = tileSides * 5 + patternAnchor`. The remaining 5 (indices 10..14)
-**would have to encode through some other byte the kDEF doesn't read** —
-neither byte[2] (just a bool) nor byte[3] (capped at 5) supports them.
+The script reads raw fields directly, without `decodeCinf`, generated theme
+manifests, role labels or compositor output. It enumerates containers and uses
+the existing explicit archive/entry/fork pins in
+[`source-choices.json`](../../tests/control-availability/source-choices.json),
+whose file SHA-256 for this survey is
+`fdec3d378ec944d9718b148c3a1e199b5d3a1354de029b65348ee4132a3c8b88`.
+It fails on archive/entry/fork drift. The JSON retains each payload hash, parser
+occurrence, raw fields, same-ID cicn/ppat candidates, source pins and tool hashes.
+The source-choice registry remains `draft-requires-review`; this survey does not
+promote its choices, runtime selection or decoder correctness to verified.
+Archive extraction and resource parsing are shared tools, explicitly not an
+independent decoder oracle.
 
-Two plausible explanations:
+`mode:count` below counts all cinf records, not only control faces. “No local
+candidate” means a nonzero background ID has no same-fork candidate of the type
+requested by the table; it says nothing about inherited/system resources.
 
-1. **Scheme Factory's MENU 139 was authoring-only.** The editor exposed
-   "anchor center" / "anchor top-left" / etc. as conveniences that wrote out
-   the same 5-corner byte[3] codes but adjusted the cicn's per-frame
-   `bgPixel`/`textPixel`/`embossPixel` anchor points instead. The "anchor"
-   semantics live in the **pixel-marker triples** (bytes [6..17]), not in
-   byte[3].
+| Scheme | cinf records | Raw mode:count | Nonzero background ID | No local candidate |
+| --- | ---: | --- | ---: | ---: |
+| 1138 | 69 | 0:69 | 0 | 0 |
+| 1984 | 66 | 0:66 | 3 | 0 |
+| 1990 | 91 | 0:82, 1:3, 2:3, 3:2, 4:1 | 13 | 3 |
+| Animals | 80 | 0:64, 1:15, 2:1 | 17 | 2 |
+| Apple Lisa | 46 | 0:40, 1:6 | 4 | 2 |
+| Apple Platinum 2 | 15 | 0:15 | 0 | 0 |
+| BeOS R5.0.3 | 86 | 0:86 | 0 | 0 |
+| Black Platinum | 0 | — | 0 | 0 |
+| Crayon OS | 67 | 0:67 | 42 | 0 |
+| Dolphin SOM | 91 | 0:82, 1:3, 2:2, 3:3, 4:1 | 12 | 10 |
+| Evolution | 91 | 0:83, 1:2, 2:2, 3:3, 4:1 | 9 | 1 |
+| Floppies | 73 | 0:66, 1:7 | 7 | 0 |
+| Monkey Paradise | 63 | 0:49, 1:13, 2:1 | 15 | 2 |
+| Platinum 8 | 0 | — | 0 | 0 |
+| Slimes | 0 | — | 0 | 0 |
+| System 7 Nostalgia Silver | 0 | — | 0 | 0 |
+| Windows 3.1 | 96 | 0:96 | 1 | 0 |
+| Windows 95 | 99 | 0:99 | 2 | 0 |
 
-2. **MENU 139 had fewer than 15 active items.** The 15-count is from
-   prior-pass agent inspection of the MENU resource; if `MENU 139` had
-   disabled/separator entries, the live item count could be 10 or 11.
-   We can't confirm without Scheme Factory's resource fork (not extracted
-   in our corpus; would need a copy of the v2.x Scheme Factory app).
+There are **1,033 cinfs**: mode0=964, mode1=49, mode2=9, mode3=8, mode4=3;
+none use mode5 or higher. Tile byte0=818 and byte1=215; no other tile values
+occur. **125** have a nonzero background ID; **20** lack a local ppat candidate.
+No short cinf headers were encountered. These are source inventory facts, not
+counts of supported or correctly rendered controls.
 
-Either way, **the kDEF runtime is the ground truth.** It dispatches on
-exactly 6 byte[3] values and 1 byte[2] bit; the rest of the MENU 139
-vocabulary is editor-side sugar that compiles down to those 6 codes plus
-the pixel-marker coords.
+Concrete #218 leads:
 
----
+- Crayon OS active/inactive push cinfs `-10239/-10240` use mode0 and ppat17;
+  pressed `-10238` uses mode0 and ppat-10238. All three patterns are present.
+  Mode5 is not needed to reach the patterned-body path.
+- Animals cinf-10239 uses mode2 and background ID-12239; both cicn and ppat
+  candidates exist at that ID. The branch determines the requested type.
+- Monkey Paradise cinf-10239 uses mode2 and ppat128. These raw active slots
+  do not override the runtime's separately documented anti-role fallback policy.
+- 1990 finder headers use mode1/2 and ppat-9567/-9568. This is resource evidence,
+  not proof that list headers call the same original painter as push buttons.
 
-## Corpus distribution (5 baked themes)
+## Remaining implementation boundary
 
-Surveyed `themes/<slug>/theme.json` `chromeElements.*.slice` for the 5
-themes that bake from `scheme.rsrc` (the other 13 `.sit`-only bundles
-decode in-browser at runtime and don't write a local theme.json). Each
-themed element's slice carries the decoded `(tile, resizeBehavior)` —
-unthemed elements (procedural controls) have `slice: null`.
+The decoder's `bg-pattern`/`stretch-*`/`repeat-*` strings are compatibility
+labels. They do not encode resource type, full body geometry or historical phase
+semantics. The manifest currently resolves `bgPattern` through the ppat catalog;
+mode5 color-icon bodies would require a distinct representation before support.
+The focused byte fixture tests field offsets/signedness, not those label names.
 
-| `(tile, byte[3])` pair | label | n | themes (of 5) | sample slots |
-|---|---|---|---|---|
-| `(0, 0)` | `stretch-whole` | 170 | 1138, 1990, evolution | most cicns, chrome bands, button faces, menu bars |
-| `(0, 1)` | `stretch-top` | 5 | 1990, evolution | finder header, desktop icon bg, tabs bg |
-| `(0, 2)` | `stretch-left` | 1 | 1990 | finder-header-inactive |
-| `(0, 3)` | `stretch-bottom` | 5 | 1990, evolution | menubar items |
-| `(0, 4)` | `stretch-right` | 0 | — | (not observed in corpus) |
-| `(1, 0)` | `repeat-whole` | 64 | 1138, 1990, evolution | slider tracks, progress fills |
-| `(1, 1)` | `repeat-top` | 0 | — | (not observed) |
-| `(1, 2)` | `repeat-left` | 4 | 1990, evolution | progress-bar-track-active, inactive-progress-indicator-track |
-| `(1, 3)` | `repeat-bottom` | 0 | — | (not observed) |
-| `(1, 4)` | `repeat-right` | 2 | 1990, evolution | full-progress-indicator-section |
-| `(*, 5)` | "use bgPattern" | 0 | — | (not observed at runtime — bgPattern paths go through the separate body fill) |
-
-`black-platinum` and `system7-nostalgia-silver` ship NO chromeElements with
-cinf slices (they are corner-sprite schemes that draw the frame procedurally
-per `composeCornerSprite.ts`; cinfs exist only for cicn-template recipes).
-
-### Findings
-
-- **The corpus uses 7 of 10 low-range pairs.** The unobserved `(0,4)` /
-  `(1,1)` / `(1,3)` pairs are valid codes the kDEF would dispatch correctly,
-  just unused by these authors.
-- **No `byte[3]` ≥ 5 in the corpus.** The "bgPattern" path is theoretically
-  reachable (a cinf could set byte[3]=5 and point byte[4..5] at a ppat) but
-  no observed cinf does so. The body texture is drawn from the cicn's
-  interior in every observed case.
-- **No `byte[2]` > 1 in the corpus.** The kDEF wouldn't distinguish it from
-  `=1` anyway.
-
----
-
-## Implication for the runtime
-
-The current `tools/theme-loader/decoders/cinf.js` decoder:
-
-1. Reads `byte[2]` and `byte[3]` as separate fields. **Correct.**
-2. Combines them via `tileSides * 5 + patternAnchor` to a single
-   `resizeBehavior` string. **Correct for 0..9; speculative for 10..14
-   (those indices are unreachable from the kDEF's byte[3] dispatch).**
-3. The `'anchor-center' | 'anchor-top-left' | ...` labels in
-   `RESIZE_BEHAVIOR_LABELS[10..14]` will **never be returned** by the current
-   `resizeBehavior(ts, pa)` function (the function caps at `tileSides ≤ 1`
-   and `patternAnchor ≤ 4`).
-
-The post-decode change (this pass): drop the speculative `10..14` slot and
-document that the model is a `(boolean, 0..5)` pair, not a 15-value enum.
-See the cinf.js edit alongside this doc.
-
-**No live bug surfaces.** Because no corpus cinf hits byte[3] ≥ 5 or
-byte[2] > 1, the existing runtime never reaches the speculative range —
-the labels are dead code. The doc-side change makes the model match the
-kDEF; the runtime stays bit-identical.
-
----
-
-## Open / parked
-
-1. **MENU 139's actual string list** — would need a copy of Scheme Factory
-   v2.x to extract. Not in our installer corpus. Would settle whether the
-   "anchor" entries existed and what they meant authoring-side.
-2. **The bgPattern (byte[3]=5) path** — decoded but unexercised. If a future
-   bundle ships byte[3]=5 + a per-cinf bgPattern ppat, the runtime would
-   need to honor it. Currently we'd fall back to "stretch-whole" (the
-   `tileSides ≤ 1 && patternAnchor ≤ 4` clamp). Worth a runtime test bundle.
-3. **pixel-marker triples (bytes [6..17])** — likely where Scheme Factory's
-   "anchor center" etc. authoring sugar actually wrote to. See §3.5 for
-   the field map. Their semantics are decoded as "sample pixel for
-   bg/text/emboss tinting" but the kDEF's reading of them as
-   *layout anchors* (vs just color samples) is not fully traced — that's
-   gap #6 in §7 of the reference.
-
----
-
-## References
-
-- `docs/spec/kdef231-reference.md` §3.5 (cinf byte layout), §4 (part-code
-  dispatch tables) — the parent spec.
-- `docs/spec/compositor-spec.md` — the consumer model (what the runtime
-  needs the cinf to mean).
-- `.scratch/k231-kdef/kDEF/k231-kdef0.asm` lines 22137 (0x109be cmpib #5)
-  and 22205-22229 (0x10ab2 subq-chain) — the disassembled source of truth.
-- `tools/theme-loader/decoders/cinf.js` — the decoder. Its
-  `RESIZE_BEHAVIOR_LABELS[0..9]` are the kDEF-faithful 10-pair model;
-  indices 10..14 are dropped per this decode.
+Next, trace the observed Crayon mode0 ppat body path, including `0xf930/0xf7cc`
+and the relevant environment flags, and derive asymmetric-pattern coordinates
+for both inset rectangles before changing the runtime. Separately investigate
+mode5 icon copy/mask behavior and the missing/legacy-sample path. Resource lookup
+outside the selected fork, nonzero destination/port origins and transparency
+must stay unknown until covered by source requirements. List-header and tab
+call-site/body/font behavior remains open under #218/#223; do not erase sample
+markers or bless the held tab prototype from this body table.
