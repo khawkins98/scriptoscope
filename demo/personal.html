@@ -32,8 +32,11 @@
       grid-template-columns: 200px 1fr 240px;
       align-items: start;
     }
+    /* Let prose/code overflow scroll inside its window; the longest code
+       line must not become the grid's minimum width before promotion. */
     @media (max-width: 920px) {
-      .page { grid-template-columns: 1fr; }
+      .page { grid-template-columns: minmax(0, 1fr); }
+      .page > * { min-width: 0; }
     }
 
     /* Sidebar windows: smaller body type, denser lists. */
