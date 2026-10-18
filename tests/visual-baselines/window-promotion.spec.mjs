@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer as createPortReservation } from 'node:net';
 
 let server, browser, base;
-const root = fileURLToPath(new URL('../..', import.meta.url));
+const root = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
 test.before(async () => {
   // Vite 7 treats port: 0 as its default port. Reserve an OS-assigned port
   // first, then fail safely if another process takes it before Vite listens.
@@ -157,4 +157,110 @@ test('failed content-fit render rolls back committed content without a close eve
   });
   assert.deepEqual(result, { message: 'fit failed', closes: 0, sameInput: true, connected: true,
     style: 'none', followedBySibling: true, promoted: false, registered: false, clicks: 1 });
+});
+
+for (const action of ['remove', 'reparent']) {
+  test(`consumer ${action} during preparation cancels without resurrecting or stealing content`, async (t) => {
+    const page = await fixture(t);
+    const result = await page.evaluate(async (action) => {
+      const f = window.fixture;
+      const add = f.manager.add.bind(f.manager);
+      let release, preparedHost;
+      f.manager.add = async (...args) => {
+        await new Promise((resolve) => { release = resolve; });
+        preparedHost = await add(...args);
+        return preparedHost;
+      };
+      const pending = f.ScriptoscopeWindow.promote(f.source, f);
+      const destination = document.createElement('section');
+      document.body.append(destination);
+      if (action === 'remove') f.source.remove();
+      else destination.append(f.source);
+      release();
+      let errorName;
+      try { await pending; } catch (error) { errorName = error.name; }
+      f.button.click();
+      return { errorName, connected: f.source.isConnected,
+        expectedParent: f.source.parentNode === (action === 'remove' ? null : destination),
+        sameInput: f.source.querySelector('input') === f.input, clicks: f.clicks,
+        promoted: f.source.hasAttribute('data-scriptoscope-promoted'),
+        registered: f.manager.describe(preparedHost) !== null };
+    }, action);
+    assert.deepEqual(result, { errorName: 'AbortError', connected: action === 'reparent',
+      expectedParent: true, sameInput: true, clicks: 1, promoted: false, registered: false });
+  });
+}
+
+test('disconnect cancels pending chrome and old completion cannot disturb an immediate remount', { timeout: 15000 }, async (t) => {
+  const page = await fixture(t);
+  await page.evaluate(async (root) => {
+    const f = window.fixture;
+    const { mountDeclarative } = await import(`/@fs${root}/src/declarative/scanner.ts`);
+    f.mountDeclarative = mountDeclarative;
+    f.root = document.createElement('main'); document.body.append(f.root);
+    f.opts = { root: f.root, themeBaseUrl: '/themes', pageThemeDefault: '1138',
+      themes: [{ slug: '1138', source: 'scheme.rsrc' }], bootAffordance: false };
+    f.handle = await mountDeclarative(f.opts);
+    f.handle.registerTheme('1138', f.theme);
+    const prototype = f.manager.constructor.prototype;
+    f.originalAdd = prototype.add;
+    f.started = new Promise((resolve) => { f.markStarted = resolve; });
+    f.prepared = new Promise((resolve) => { f.markPrepared = resolve; });
+    prototype.add = async function (...args) {
+      f.markStarted();
+      await new Promise((resolve) => { f.release = resolve; });
+      const host = await f.originalAdd.apply(this, args);
+      f.oldManager = this; f.oldHost = host; f.markPrepared();
+      return host;
+    };
+    f.source.dataset.scriptoscopeWindow = '';
+    f.source.dataset.scriptoscopeWidth = '200'; f.source.dataset.scriptoscopeHeight = '100';
+    const wrapper = document.createElement('section'); wrapper.append(f.source); f.root.append(wrapper);
+    await f.started;
+  }, root);
+  const result = await page.evaluate(async () => {
+    const f = window.fixture;
+    f.handle.disconnect();
+    const cancelled = { connected: f.source.isConnected, sameInput: f.source.querySelector('input') === f.input,
+      promoted: f.source.hasAttribute('data-scriptoscope-promoted') };
+    f.manager.constructor.prototype.add = f.originalAdd;
+    const next = await f.mountDeclarative(f.opts);
+    const host = f.input.closest('.scriptoscope-slot').parentElement;
+    f.release(); await f.prepared;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const completed = { oldWindows: f.handle.stats.windows, newWindows: next.stats.windows,
+      hosts: f.root.querySelectorAll('.scriptoscope-slot').length,
+      sameHost: f.input.closest('.scriptoscope-slot').parentElement === host,
+      stillPromoted: f.source.hasAttribute('data-scriptoscope-promoted'),
+      oldRegistered: f.oldManager.describe(f.oldHost) !== null };
+    next.disconnect();
+    return { cancelled, completed, restored: f.source.isConnected && f.source.contains(f.input) };
+  });
+  assert.deepEqual(result, { cancelled: { connected: true, sameInput: true, promoted: false },
+    completed: { oldWindows: 0, newWindows: 1, hosts: 1, sameHost: true, stillPromoted: true, oldRegistered: false }, restored: true });
+});
+
+test('abort during initial content fitting restores committed content immediately', { timeout: 15000 }, async (t) => {
+  const page = await fixture(t);
+  const result = await page.evaluate(async () => {
+    const f = window.fixture;
+    const controller = new AbortController();
+    f.source.style.display = 'none';
+    let release, entered, host;
+    const fitting = new Promise((resolve) => { entered = resolve; });
+    f.manager.setContentSize = async (target) => {
+      host = target; entered();
+      await new Promise((resolve) => { release = resolve; });
+    };
+    const pending = f.ScriptoscopeWindow.promote(f.source, { ...f, signal: controller.signal });
+    await fitting;
+    controller.abort();
+    const immediate = f.source.isConnected && f.source.contains(f.input) && !host.isConnected;
+    release();
+    let errorName;
+    try { await pending; } catch (error) { errorName = error.name; }
+    return { immediate, errorName, promoted: f.source.hasAttribute('data-scriptoscope-promoted'),
+      registered: f.manager.describe(host) !== null };
+  });
+  assert.deepEqual(result, { immediate: true, errorName: 'AbortError', promoted: false, registered: false });
 });

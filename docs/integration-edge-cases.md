@@ -172,7 +172,10 @@ readable until the prepared host is ready. The runtime moves the same child node
 and replaces the source element in one synchronous commit, preserving listeners
 and the focused descendant without scrolling. If preparation or initial content
 fitting fails, it restores the original element and clears the promotion stamp so
-it can be retried. The final frame dimensions can still change the page layout;
+it can be retried. Removing or reparenting the source during preparation cancels
+that promotion; the runtime does not move it back. Disconnect also cancels pending
+window preparation, so a late completion cannot attach chrome after teardown or
+interfere with a newer mount. The final frame dimensions can still change the page layout;
 this avoids an intermediate empty source element, not every possible layout shift.
 
 Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag, keyboard-arrow move, or grow-box resize. When the handoff happens, the runtime inserts an invisible `<div data-scriptoscope-placeholder>` in the host's original static slot so siblings don't collapse upward — the page stays put while the window floats out. The placeholder persists until the window is unmounted (cleaned up by `WindowManager.remove`). Once converted, the host stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).

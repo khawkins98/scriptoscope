@@ -3240,3 +3240,9 @@ entry if rendering rejects, because the caller never receives that host. Promoti
 must clear its stamp and restore live nodes if the later content-fit pass fails.
 The browser regression delays preparation across frames and checks DOM identity,
 focus, inherited CSS, sibling geometry, rollback, retry, and unmount.
+
+Cancellation is separate from rollback: before commit, the consumer still owns the
+source's location. If it moves or is removed while rendering awaits, discard only
+the prepared host. A mount AbortSignal cancels pending promotion on disconnect;
+per-preparation stamp ownership lets a new mount start immediately without an old
+completion clearing its stamp or attaching a late window.

@@ -14,11 +14,16 @@ import { SCRIPTOSCOPE_SLOT_CLASS } from './markers.js';
 export interface ScriptoscopeWindowDeps {
   manager: WindowManager;
   theme: LoadedTheme;
+  /** Cancels pending preparation when its declarative mount disconnects. */
+  signal?: AbortSignal;
 }
 
 const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render size for content-fit (corrected after measure)
 const FIT_MAX_W = 720; // cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40;
+// A cancelled mount may be replaced before its async render finishes. Only the
+// current preparation owns the source's stamp; old completions cannot clear it.
+const pendingPromotions = new WeakMap<HTMLElement, object>();
 
 
 // findPositionedAncestor moved to ../positioning.ts so the runtime layer
@@ -81,6 +86,7 @@ export class ScriptoscopeWindow {
   static async promote(
     el: HTMLElement, deps: ScriptoscopeWindowDeps, fallbackPos: { x: number; y: number } = { x: 24, y: 24 },
   ): Promise<ScriptoscopeWindow> {
+    if (deps.signal?.aborted) throw new DOMException('Window promotion cancelled', 'AbortError');
     const parsed = parseWindowAttrs(el.dataset as Record<string, string | undefined>);
     // ── POSTURE B: in-flow host by default; absolute opt-in via -x/-y ─────────
     // The host is created as a `position: static` block element sitting in the
@@ -115,6 +121,8 @@ export class ScriptoscopeWindow {
       naturalX = Math.round(elRect.left - ancRect.left);
       naturalY = Math.round(elRect.top - ancRect.top);
     }
+    const preparation = {};
+    pendingPromotions.set(el, preparation);
     el.dataset.scriptoscopePromoted = ''; // stamp BEFORE mutating (MutationObserver re-entrancy guard)
 
     // Persistent slot → fit wrapper holding the consumer's moved children.
@@ -160,6 +168,7 @@ export class ScriptoscopeWindow {
     slot.append(fit);
 
     const restore = { parent: el.parentNode, next: el.nextSibling, el };
+    const wasConnected = el.isConnected;
     // Initial size: declared > inherited from DOM rect > content-fit default.
     // `extraWidth` / `extraHeight` pad the auto-captured rect for the
     // "runtime adds content after promote" case (e.g. a theme-picker whose
@@ -187,6 +196,21 @@ export class ScriptoscopeWindow {
     // surfaced the wider widget-subset need).
     const enabledWidgets = (parsed.enabledWidgets as ReadonlySet<TitleWidget> | undefined);
     let host: HTMLElement | undefined;
+    let committed = false;
+    const cancel = (): void => {
+      if (committed) inst?.restoreOriginalElement();
+      if (pendingPromotions.get(el) === preparation) {
+        pendingPromotions.delete(el);
+        delete el.dataset.scriptoscopePromoted;
+      }
+    };
+    deps.signal?.addEventListener('abort', cancel, { once: true });
+    const assertCurrent = (): void => {
+      if (deps.signal?.aborted || pendingPromotions.get(el) !== preparation
+          || (!committed && (el.parentNode !== restore.parent || el.isConnected !== wasConnected))) {
+        throw new DOMException('Window promotion cancelled', 'AbortError');
+      }
+    };
     try {
       host = await deps.manager.add(
         deps.theme,
@@ -329,11 +353,15 @@ export class ScriptoscopeWindow {
       // throughout preparation. Capture focus now, since the user may have moved
       // it while chrome was loading. Moving nodes keeps listeners and selection,
       // but append removes focus, so restore it without scrolling the page.
+      // Consumer removal/reparenting during the await cancels preparation.
+      // Never move live children or restore a stale parent in that case.
+      assertCurrent();
       const active = document.activeElement;
       const focused = active instanceof HTMLElement && el.contains(active) ? active : null;
       fit.append(...Array.from(el.childNodes));
       if (restore.parent) restore.parent.insertBefore(host, restore.el);
       restore.el.remove();
+      committed = true;
       focused?.focus({ preventScroll: true });
 
       // Once the user manually resizes the window via the chrome grow box
@@ -369,15 +397,19 @@ export class ScriptoscopeWindow {
           ...(parsed.title !== undefined ? { title: parsed.title } : {}),
         });
       }
+      assertCurrent();
       return inst;
     } catch (error) {
       // add() owns cleanup when its first render fails. Later failures (including
       // content-fit rendering) must also release the host and return the same
       // live content to the source element, without reporting a user close.
-      if (inst) inst.restoreOriginalElement();
+      if (committed) inst?.restoreOriginalElement();
       else if (host) deps.manager.remove(host);
-      delete el.dataset.scriptoscopePromoted;
+      cancel();
       throw error;
+    } finally {
+      deps.signal?.removeEventListener('abort', cancel);
+      if (pendingPromotions.get(el) === preparation) pendingPromotions.delete(el);
     }
   }
 
@@ -444,6 +476,7 @@ export class ScriptoscopeWindow {
     this.last = { w, h };
     await this.deps.manager.setContentSize(this.host, w, h);
     this.rendering = false;
+    if (this.unmounted) return;
     if (startObserving && !this.observing) {
       sharedRO.observe(this.fit, () => this.scheduleFit());
       this.observing = true;
@@ -526,6 +559,7 @@ export class ScriptoscopeWindow {
 
   /** Shared rollback/unmount cleanup; failed promotion must not dispatch close. */
   private restoreOriginalElement(): void {
+    if (this.unmounted) return;
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.growthTimer) { clearTimeout(this.growthTimer); this.growthTimer = 0; }
