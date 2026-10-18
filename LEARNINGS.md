@@ -4117,3 +4117,17 @@ when byte provenance faithfully records both occurrences. `bodyPattern` carries
 that compatibility binding independently of observation; ambiguous unbound legacy
 catalogs retain fallback instead of inventing order. The complete mode dispatch
 also matters: only raw5 selects cicn, while0 and6–255 use the zero ppat anchor.
+
+## 2026-10-18 — Evidence kind and requirement ID do not bind the case input
+
+The ledger rejected missing source pins and unrelated requirement IDs, but a
+Lisa square-corner assessment could still cite a source-art row whose inputs
+had been replaced with Windows95. Both input IDs existed and the requirement
+matched, so validation passed. Assessment evidence now needs an intersection
+between its named non-engine inputs and that case's primary/base inputs.
+Engine-only source rules remain general; a note explicitly covering two tab
+archives remains usable for either case. The guard rejects wholly unrelated
+archive/synthetic evidence, not incomplete parameter authentication: source
+coordinates, ordering, exact options and claim scope still need independent
+review and the registered executable assertion. The original51 obligations and
+all OPEN closures remain unchanged (#274).

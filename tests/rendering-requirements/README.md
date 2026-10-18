@@ -77,3 +77,11 @@ reimplementing the control compositor.
 Inventory 1.0.1 aligns Lisa with the exact 80px-wide, 20px-high empty normal
 input covered by the merged #233 corner oracle. Only that geometry assessment
 changes from mismatched to verified; all eight inventories remain OPEN.
+
+Evidence used by an assessment must share at least one named non-engine input
+with that exact case's `inputs` or `baseInputs`. Engine-only source rules can
+apply generally. A combined source-art note can support multiple cases whose
+inputs it explicitly names, such as the two tab sources. This guard rejects
+wholly unrelated archive/fixture evidence; it does not authenticate all options,
+resource coordinates, base ordering or the completeness of the source claim.
+Those still require independent review and exact executable coverage (#274).

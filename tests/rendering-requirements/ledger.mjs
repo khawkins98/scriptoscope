@@ -95,7 +95,16 @@ export function validateLedger(ledger, { root, read = path => readFileSync(path)
     check(declared.has(key), `undeclared assessment ${key}`); check(STATUSES.includes(row.status), `${key}: invalid status`);
     text(row.rationale, `${key}.rationale`); text(row.review, `${key}.review`);
     const evIds = refs(row.evidence, evidence, `${key}.evidence`, row.status === 'verified' || row.status === 'mismatched');
-    for (const id of evIds) check(evidence.get(id)?.requirementIds?.includes(row.requirementId), `${key}: evidence does not establish this requirement`);
+    const c = cases.get(row.caseId);
+    const caseInputs = new Set([...(Array.isArray(c?.inputs) ? c.inputs : []), ...(Array.isArray(c?.baseInputs) ? c.baseInputs : [])]);
+    for (const id of evIds) {
+      const ev = evidence.get(id);
+      check(ev?.requirementIds?.includes(row.requirementId), `${key}: evidence does not establish this requirement`);
+      // Engine-only source rules can apply generally. Named art/fixture inputs
+      // must overlap this case, but overlap does not authenticate every option.
+      const specific = (Array.isArray(ev?.inputs) ? ev.inputs : []).filter(input => inputs.get(input)?.kind !== 'engine');
+      if (specific.length) check(specific.some(input => caseInputs.has(input)), `${key}: evidence inputs do not intersect exact case inputs/baseInputs (${id})`);
+    }
     const assertionIds = refs(row.assertions, assertions, `${key}.assertions`, row.status === 'verified');
     if (row.status === 'verified') {
       check(evIds.some(id => independent.has(evidence.get(id)?.kind)), `${key}: verified without independent evidence`);

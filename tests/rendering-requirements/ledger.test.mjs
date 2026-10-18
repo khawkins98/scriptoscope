@@ -126,3 +126,28 @@ test('git cleanliness measures actual source changes while ignoring generated ou
     rmSync(join(temp, '.git'), { recursive: true }); assert.equal(gitIdentity(temp).workingTreeDirty, null);
   } finally { rmSync(temp, { recursive: true, force: true }); }
 });
+
+test('evidence from a wholly unrelated archive or synthetic input cannot support an assessment', () => {
+  for (const unrelated of ['theme.windows-95', 'synthetic.ring-c3-s1']) {
+    reject(l => { l.evidence.find(e => e.id === 'art.lisa-corner').inputs = [unrelated]; }, /evidence inputs do not intersect exact case inputs\/baseInputs/);
+  }
+});
+test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
+  const result = validateLedger(original, { root });
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 51);
+  assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
+  const shared = original.evidence.find(e => e.id === 'art.tab-crop');
+  assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
+  for (const input of shared.inputs) assert(original.cases.some(c => c.inputs.includes(input) && original.assessments.some(a => a.caseId === c.id && a.evidence.includes(shared.id))));
+});
+test('a declared base input can satisfy the evidence join without rewriting the primary input', () => {
+  const ledger = copy(), c = ledger.cases.find(c => c.id === 'lisa.push.normal.empty.h20');
+  ledger.evidence.find(e => e.id === 'art.lisa-corner').inputs = ['theme.windows-95'];
+  c.baseInputs = ['theme.windows-95']; ledger.inventorySha256 = inventoryDigest(ledger);
+  assert.deepEqual(validateLedger(ledger, { root }).errors, []);
+});
+test('invalid evidence and case references report errors without throwing from the input join', () => {
+  reject(l => { l.assessments[0].evidence = ['missing-evidence']; }, /invalid reference missing-evidence/);
+  reject(l => { l.assessments[0].caseId = 'missing-case'; }, /undeclared assessment/);
+  reject(l => { l.evidence[0].inputs = null; }, /inputs: missing list/);
+});
