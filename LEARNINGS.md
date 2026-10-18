@@ -3217,8 +3217,32 @@ ThemeEntry name/author/year describe picker labels; they omit meta.json's origin
 ### 2026-10-18 — Resolve each owner's button face before inheriting
 
 Role-name lookup across the entire base chain followed by id lookup across the chain let a base's named push-button override a child's canonical, unlabelled -10239 face. The base chain must be the outer traversal: within each theme prefer the named role, then accept the canonical id only if its authorLabel/key does not identify an unrelated role. Only then consult the base. This preserves per-theme author intent and existing anti-role rejection while keeping cycle protection and owner-relative asset URLs.
+
 ### 2026-10-18 — Picker previews should decode icons, not whole themes
 
 Visible picker tiles previously called the full theme resolver, converting and PNG-encoding thousands of unrelated chrome, pattern and glyph assets. The picker now reuses the active theme's folder icon and extracts only the requested folder-family ids for background tiles, encoding one chosen icon. Full scheme loading waits for selection. Source archives and existing mask/palette/depth/fallback semantics remain intact; background icons are tiny PNG data URLs so retained OFF-mode tiles need no global blob lifetime. The CSP recipe already permits data images.
 
 Three-run local production trials with the prior audit's same CPU/network settings reduced median mobile cold long-task excess from 1175ms to 476ms and warm-reload excess from 1961ms to 575ms; created blob URLs fell from 2575 to 542. Initial archive transfer is unchanged: this optimization reduces conversion and asset allocation, not source downloads. Chrome-ready timings did not improve consistently, so do not advertise a general startup-time speedup from these measurements.
+
+## 2026-10-18 — Keep live content connected while chrome prepares
+
+`ScriptoscopeWindow.promote` used to move children into a detached fit wrapper
+before awaiting `WindowManager.add`. Image decoding then yielded with an empty
+source element still in normal flow. Mobile traces caught following content
+jumping upward and back down (the showcase Read Me moved y166 → y88 → y210).
+Keeping children in the original element until the chrome is ready removes that
+intermediate collapse without pinning dimensions or changing Posture B. Move
+children and insert the prepared host synchronously, then restore the focused
+descendant with `preventScroll`; moving the same nodes alone does not retain focus.
+
+Failure ownership matters too: `WindowManager.add` must discard its registered
+entry if rendering rejects, because the caller never receives that host. Promotion
+must clear its stamp and restore live nodes if the later content-fit pass fails.
+The browser regression delays preparation across frames and checks DOM identity,
+focus, inherited CSS, sibling geometry, rollback, retry, and unmount.
+
+Cancellation is separate from rollback: before commit, the consumer still owns the
+source's location. If it moves or is removed while rendering awaits, discard only
+the prepared host. A mount AbortSignal cancels pending promotion on disconnect;
+per-preparation stamp ownership lets a new mount start immediately without an old
+completion clearing its stamp or attaching a late window.

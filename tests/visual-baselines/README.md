@@ -52,3 +52,14 @@ dev server or production preview instead, pass its full landing-page URL in `BAS
 ```sh
 BASE=http://localhost:4173/scriptoscope/ node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
 ```
+
+## Atomic window promotion
+
+```sh
+node --test --experimental-strip-types tests/visual-baselines/window-promotion.spec.mjs
+```
+
+Uses the same optional Playwright installation above and an isolated Vite server.
+The test delays chrome preparation across painted frames and checks that the
+original content, inherited styles, focus, and following sibling stay intact.
+It also exercises first-render and content-fit failures, retry, and unmount.

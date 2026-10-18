@@ -709,8 +709,16 @@ export class WindowManager {
     this.windows.push(entry);
     // mousedown (not click) so focus lands before any inner control acts.
     host.addEventListener('pointerdown', () => { void this.focus(entry); });
-    await this.render(entry);
-    return host;
+    try {
+      await this.render(entry);
+      return host;
+    } catch (error) {
+      // The caller never receives this detached host when preparation fails.
+      // Drop its entry/listeners here so retrying does not leave a phantom
+      // window behind or make the first successful window start inactive.
+      this.remove(host);
+      throw error;
+    }
   }
 
   /** Stop managing a window (its host was/will be removed by the caller). Aborts its scrollbar

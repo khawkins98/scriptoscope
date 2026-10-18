@@ -264,6 +264,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     if (handled === false) return;
     console.error(`[scriptoscope] ${kind} promote failed:`, cause);
   };
+  const lifetime = new AbortController();
   const mounted: ScriptoscopeWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
@@ -366,11 +367,12 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   };
 
   const promoteWindow = async (el: HTMLElement): Promise<void> => {
-    if (isPromoted(el) || el.closest('.scriptoscope-window')) return; // skip done / nested-in-chrome
+    if (lifetime.signal.aborted || isPromoted(el) || el.closest('.scriptoscope-window')) return; // skip done / nested-in-chrome
     inFlight.add(el);
     try {
       const ref = refForEl(el);
       const theme = await resolver.load(ref);
+      if (lifetime.signal.aborted || !root.contains(el)) return;
       // Resolve persistence identity + restored geometry BEFORE promotion. If persistedWindows has
       // an entry for this id, apply the saved x/y/w/h/collapsed via temporary data attrs so
       // ScriptoscopeWindow.promote's existing parseWindowAttrs picks them up. Original attrs are restored
@@ -394,7 +396,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         if (persisted.h != null) el.dataset.scriptoscopeHeight = String(persisted.h);
         if (persisted.collapsed) el.dataset.scriptoscopeCollapsed = '';
       }
-      const aw = await ScriptoscopeWindow.promote(el, { manager, theme }, pos);
+      const aw = await ScriptoscopeWindow.promote(el, { manager, theme, signal: lifetime.signal }, pos);
+      if (lifetime.signal.aborted) { aw.unmount(); return; }
       aw.host.dataset.scriptoscopeTheme = ref;
       if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
@@ -407,7 +410,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // original `el` was just removed from DOM by ScriptoscopeWindow.
       aw.host.dispatchEvent(new CustomEvent('scriptoscope:promoted', { bubbles: true, detail: { kind: 'window', host: aw.host } }));
     } catch (err) {
-      reportPromoteError('window', el, err);
+      if (!lifetime.signal.aborted && !(err instanceof DOMException && err.name === 'AbortError')) {
+        reportPromoteError('window', el, err);
+      }
     } finally {
       inFlight.delete(el);
     }
@@ -597,6 +602,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // any buttons — into the chrome; THEN promote buttons anywhere (now in their final location),
   // concurrently. Stamps make this safe to run repeatedly.
   const scanAndPromote = async (within: Document | Element): Promise<void> => {
+    if (lifetime.signal.aborted) return;
     // Posture B (2026-05-30 refactor): hosts default to `position: static`
     // and sit in flow at the source element's DOM position. The browser's
     // own layout engine places + sizes them; we don't need to pre-capture
@@ -607,7 +613,10 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     // `-x`/`-y` attributes, and ScriptoscopeWindow.promote measures the
     // source element JIT for THAT path's positioning.
     const windowTargets = Array.from(within.querySelectorAll(WINDOW_SEL)) as HTMLElement[];
-    for (const el of windowTargets) await promoteWindow(el);
+    for (const el of windowTargets) {
+      await promoteWindow(el);
+      if (lifetime.signal.aborted) return;
+    }
     // Cascade layout — if any ancestor container carries
     // `data-scriptoscope-cascade`, the windows inside it get a
     // Mac-OS-classic "newly-opened windows cascade" treatment: each
@@ -803,7 +812,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // freeze the observer (fix from 2026-05-28 review — defensive against future regressions).
   let scheduled = false;
   const obs = new MutationObserver((records) => {
-    if (scheduled) return;
+    if (scheduled || lifetime.signal.aborted) return;
     // Walk records and collect ONLY the added Element subtrees (not the
     // whole root). On a busy host page — CMS with rotating banners,
     // tooltips, modals — the prior "rescan root" path triggered the
@@ -826,7 +835,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // independent. wireThemeSwitchers still runs at root because the
       // theme-switcher binding is page-scope (only one usually).
       void Promise.all(subtrees.map((s) => scanAndPromote(s)))
-        .then(() => wireThemeSwitchers(root))
+        .then(() => { if (!lifetime.signal.aborted) wireThemeSwitchers(root); })
         .finally(() => { scheduled = false; });
     });
   });
@@ -850,6 +859,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const handle = events as unknown as MountHandle;
   Object.assign(handle, {
     disconnect: () => {
+      if (lifetime.signal.aborted) return;
+      lifetime.abort();
       teardownPersistence();
       obs.disconnect();
       stopCycle();
