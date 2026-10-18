@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { compareByteProvenance } from '../resource-provenance/compare.mjs';
 import { gitIdentity } from '../rendering-requirements/execution.mjs';
+import { preservePrimaryFailure } from '../rendering-requirements/observation-execution.mjs';
 import { sha256 } from '../control-availability/source.mjs';
 const pins = JSON.parse(readFileSync(new URL('../control-availability/source-candidates.json', import.meta.url))).themes;
 const inventory = JSON.parse(readFileSync(new URL('../control-availability/expectations.json', import.meta.url)));
@@ -11,7 +12,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 
 for (const mode of ['source', 'built']) {
   test(`${mode}: actual selected resources join four pinned archives, forks and decoder inputs`, async ({ page, servers }, info) => {
-    const rows = [], loads = []; let complete = false;
+    const rows = [], loads = []; let complete = false, hasPrimaryFailure = false;
     try {
       await openHarness(page, servers, mode);
       for (const pin of pins) {
@@ -50,14 +51,16 @@ for (const mode of ['source', 'built']) {
       }
       expect(rows.map(row => row.id).sort()).toEqual(cases.map(c => c.id).sort());
       complete = true;
-    } catch (error) { await attachCase(page, info, { mode, rows }, error); throw error; }
+    } catch (error) { hasPrimaryFailure = true; await attachCase(page, info, { mode, rows }, error); throw error; }
     finally {
+      await preservePrimaryFailure(hasPrimaryFailure, async () => {
       await attachObservations(info, 'byte-provenance-expectations', 'four-archive-pins', { evidence: 'independently-pinned-input-identities', pins, caseIds: cases.map(c => c.id),
         cases: cases.map(c => ({ id: c.id, family: c.family, options: c.options, paint: c.proposed.paint })) });
       await attachObservations(info, 'byte-provenance', mode, { execution: { ...gitIdentity(root), mode,
         browserVersion: page.context().browser().version(), builtBundleSha256: sha256(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))) },
         complete, loads, rows, limitations: ['Actual input identity only; shared archive/resource decoding and historical pixel correctness remain unverified.',
           'Only the four pinned archives and finite cicn/cinf paint selections are independently joined; all other inputs remain unassessed.'] });
+      }, description => info.annotations.push({ type: 'observation-metadata-error', description }));
     }
   });
 

@@ -1,4 +1,5 @@
-import { execFileSync } from 'node:child_process';
+import { gitIdentity } from '../rendering-requirements/execution.mjs';
+import { fileURLToPath } from 'node:url';
 // Linux golden verification is a separate CI command beside browser contracts.
 // Verification never creates a missing baseline. Update produces candidates only.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -15,7 +16,7 @@ const update = process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1';
 const pages = goldenCasePages();
 const caseDigest = createHash('sha256').update(JSON.stringify(pages)).digest('hex');
 const executionProvenance = {
-  gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  gitCommit: gitIdentity(fileURLToPath(new URL('../../', import.meta.url))).executionCommit,
   bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex'),
   stylesheetSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.css', import.meta.url))).digest('hex'),
   packageLockSha256: createHash('sha256').update(readFileSync(new URL('../../package-lock.json', import.meta.url))).digest('hex'),
@@ -43,7 +44,7 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
   let current, result;
   const observed = [];
   const attachObserved = complete => attachObservations(testInfo, 'golden-pages', `${slug}-page-${pageIndex + 1}`, {
-    slug, page: pageIndex + 1, complete, operation: update ? 'record-candidates' : 'verify',
+    slug, page: pageIndex + 1, declaredRuntimeModes: ['built'], complete, operation: update ? 'record-candidates' : 'verify',
     environment, executionProvenance,
     interpretation: 'Statuses and dimensions describe this execution, not independent expected availability or fidelity.',
     cases: observed,

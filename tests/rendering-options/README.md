@@ -140,3 +140,14 @@ case evidence. Other paths report null. These observations expose selected owner
 resource IDs and compatibility decisions; they are not independent availability
 or fidelity expectations. Candidate-art cards remain candidates. See the
 [diagnostic contract](../../docs/spec/control-resolution-diagnostics.md).
+
+Every shared-fixture observation now carries an execution envelope with the
+actual Git HEAD and cleanliness, built library/built CSS/package-lock hashes, Playwright and
+actual browser versions, platform, and configured DPR. Declared coverage modes are explicit
+(`source`/`built`, or an empty list when unreported); filenames do not establish
+which runtime executed. Declared modes are intended coverage, not proof that a failed run reached every mode; completed per-case assertions remain separate. Caller-supplied execution fields cannot override those
+observations. Environment commit declarations are retained separately, including
+disagreement with the checkout; missing Git identity stays unknown. This is
+portable writer metadata, not authentication of assertions or historical fidelity.
+The requirement summary reads the canonical envelope and retains legacy golden
+provenance as such; old artifacts without cleanliness remain unknown.

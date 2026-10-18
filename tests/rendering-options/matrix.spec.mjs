@@ -119,9 +119,9 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
     }
     // Keep a compact executed-case inventory even on success. It distinguishes
     // absent source art from an asserted fallback and exposes actual coverage.
-    await attachObservations(testInfo, 'contracts', slug, { slug, profile, complete: true, cases: summary });
+    await attachObservations(testInfo, 'contracts', slug, { slug, profile, declaredRuntimeModes: ['source', 'built'], complete: true, cases: summary });
   } catch (error) {
-    await attachObservations(testInfo, 'contracts', slug, { slug, profile, complete: false, cases: summary }).catch(() => {});
+    await attachObservations(testInfo, 'contracts', slug, { slug, profile, declaredRuntimeModes: ['source', 'built'], complete: false, cases: summary }).catch(() => {});
     await attachCase(activePage, testInfo, { slug, profile, mode, case: current, result, completed: summary }, error);
     throw error;
   } finally {

@@ -14,6 +14,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   integrity checks. Palette/provider/font gaps remain open; reference intake
   still has no admitted captures or approvals (#190).
 
+- Portable browser-observation metadata binds the actual checkout, built assets
+  and browser version. Environment commit claims and supplied metadata cannot
+  silently replace observed execution identity; this remains regression evidence.
+
 - Extend opt-in byte provenance to actual `ppat` catalog occurrences and preserve raw signed `cinf` body requests, including zero; no pattern-paint claim or rendering change (#260).
 
 - Clean installed-tarball consumer check: strict public declaration resolution,
