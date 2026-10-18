@@ -4362,3 +4362,26 @@ clip. Similarly, a rejected header sampling path has no painted companion:
 its no-paint assertion is API admission policy, while source-required color
 remains explicitly unsupported. Synthetic literal/current-display evidence does
 not become original capture, historical ownership or whole-control certification.
+
+### 2026-10-18 — Display preparation must share one exact RGB16 policy
+
+A raw color is not yet a browser display color. The finite measured two-theme
+profile maps exact joint RGB16 triples to observed device indices/RGB16, then
+uses the recorded producer tables. Low input bits and cross-channel selection
+matter; a per-channel curve or nearest-color guess cannot substitute for the
+observed tuple. Ordinary palette decoding and the engine's independent sampler
+can choose different raw colors, but must use the same final realization policy.
+
+Keep hidden RGB until mode-5 body preparation, preserve mask/flood decisions in
+their original domains, and never transform sampled companions twice. Missing
+mappings must fail conversion before any URL encoder runs, including colors
+under transparent pixels. A copied policy ID cannot recolor already prepared
+assets; base chains and resolver caches need coherent ownership. Caller CSS,
+procedural colors and meta.palette remain display-domain declarations.
+
+The measured fixture remains QUARANTINED_PARTIAL and finite: device/producer
+conditions, fixed-icon RGB8 × 257 convention and evidence hashes travel with its
+content identity. The default 18-theme conversion is unchanged. Independent
+original full-face comparisons and current-output regression goldens answer
+different questions; neither admits an unreviewed whole-theme fidelity claim.
+See [the display-profile contract](docs/spec/display-profile.md).

@@ -443,6 +443,26 @@ The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs 
 
 See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
+### Optional measured display preparation
+
+Load raw scheme colors through an explicit finite display profile when you have
+reviewed mappings for a particular device/producer environment:
+
+```js
+import { prepareDisplayProfile, loadTheme } from 'scriptoscope';
+const data = await fetch('/my-reviewed-display-profile.json').then(r => r.json());
+const displayProfile = await prepareDisplayProfile(data);
+const theme = await loadTheme('/themes/windows-95', { displayProfile });
+```
+
+The same option is available to `loadKaleidoscopeScheme` and `mountDeclarative`.
+Missing exact RGB16 mappings reject the load before asset URLs are allocated;
+base themes must use the same profile. Omitting the option preserves the default
+colors and reviewed goldens. A profile is finite environment data, not a general
+original-device emulator or whole-theme fidelity claim. See the
+[display-profile contract](./docs/spec/display-profile.md) for producer tables,
+fixed-icon conventions, ownership and unsupported inputs.
+
 ### Whole-header pixel surfaces
 
 `composeHeaderSurface` draws a whole Appearance header rectangle without labels

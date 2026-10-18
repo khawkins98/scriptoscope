@@ -10,6 +10,8 @@ const jsonSnapshot = (value, seen = new Set()) => {
   if (!value || typeof value !== 'object' || seen.has(value)
       || (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype))
     throw new DisplayProfileError('Display profile must contain finite plain JSON data');
+  if (Array.isArray(value) && Array.from({ length: value.length }, (_, i) => i).some(i => !Object.prototype.hasOwnProperty.call(value, i)))
+    throw new DisplayProfileError('Display profile arrays must not contain missing entries');
   seen.add(value);
   const out = Array.isArray(value) ? value.map(v => jsonSnapshot(v, seen))
     : Object.fromEntries(Object.entries(value).map(([k,v]) => [k, jsonSnapshot(v, seen)]));

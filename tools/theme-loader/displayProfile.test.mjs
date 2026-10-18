@@ -14,7 +14,7 @@ test('profile snapshots exact joint RGB16, low bits and producer stage into immu
  const same=syntheticDisplayProfile();same.mappings.reverse();same.devicePalette.reverse();assert.equal((await prepareDisplayProfile(same)).id,p.id);
  const different=syntheticDisplayProfile();different.producer.channels[0][90]=91;assert.notEqual((await prepareDisplayProfile(different)).id,p.id);
  assert.ok(Object.isFrozen(p.data.mappings[0].rgb16));assert.throws(()=>p.data.producer.channels[0][0]=99);
- for(const mutate of [d=>d.mappings.push(d.mappings[0]),d=>d.mappings[0].deviceIndex=99,d=>d.mappings[0].deviceRgb16=[1,2,3],d=>d.producer.channels[0].pop(),d=>d.conditions.bad=NaN]){const d=syntheticDisplayProfile();mutate(d);await assert.rejects(prepareDisplayProfile(d),DisplayProfileError);}
+ for(const mutate of [d=>d.mappings.push(d.mappings[0]),d=>d.mappings[0].deviceIndex=99,d=>d.mappings[0].deviceRgb16=[1,2,3],d=>d.producer.channels[0].pop(),d=>delete d.producer.channels[0][90],d=>delete d.mappings[0].rgb16[1],d=>d.conditions.bad=NaN]){const d=syntheticDisplayProfile();mutate(d);await assert.rejects(prepareDisplayProfile(d),DisplayProfileError);}
 });
 test('same mapper prepares ordinary pixels, independent samples, companion, ppat and header without a second transform',async()=>{
  const p=await prepareDisplayProfile(syntheticDisplayProfile()),out=convertScheme(fork(),{displayProfile:p});
