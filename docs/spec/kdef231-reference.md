@@ -797,6 +797,9 @@ consumes the selected face owner's raw background display sample as well,
 including masked anchors. Selected pattern bodies retain priority. See [solid geometry](control-face-geometry.md)
 and [the pattern/context model](control-pattern-context.md) for exact source
 fixtures and remaining device, transfer, lookup and font limits. Mode5 cicn bodies remain unsupported; missing/unusable background metadata and
-list headers retain their existing compatibility behavior. Reserving the four-pixel margin on plain buttons is a runtime layout
+the per-column list-header helper retain their existing compatibility behavior.
+The separate [whole-header surface](header-surface.md) uses the PACH130 Appearance
+callback and a bounded solid/masked drawing model; it is not a kDEF push-face or
+per-column equivalence claim. Reserving the four-pixel margin on plain buttons is a runtime layout
 policy to keep state changes stable, not an additional claim about the original
 Control Manager's layout.

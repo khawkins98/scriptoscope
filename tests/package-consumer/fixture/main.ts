@@ -1,4 +1,5 @@
-import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset } from 'scriptoscope';
+import { VERSION, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
+  type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -26,10 +27,16 @@ const companionDeclaration: CicnSampledBandAsset = {
   asset: 'cicn-sampled/fixture.png', derivedPath: 'cicn-sampled/fixture.png',
 };
 void companionDeclaration;
+const headerOptions: HeaderSurfaceOptions = { kind: 'window-header', width: 80, height: 18, drawState: 1,
+  compositionContext: { controlOrigin: [0, 0], portOrigin: [0, 0], patternOrigin: { status: 'unknown' }, clip: { kind: 'unbounded' } },
+  diagnostics: { onComplete(trace) { const surface: HeaderSurfaceTrace | undefined = trace.headerSurface; void surface; } } };
+const headerResult: HeaderSurfaceResult = { status: 'unsupported', reason: 'unverified-line-sampling' };
+void headerOptions; void headerResult;
 
 const consumer = {
   version: VERSION,
   decoderExport: typeof loadKaleidoscopeScheme,
+  headerSurfaceExport: typeof composeHeaderSurface,
   root, article, inputs, events,
   handle: null as MountHandle | null,
   ready: Promise.resolve(),

@@ -443,6 +443,32 @@ The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs 
 
 See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
+### Whole-header pixel surfaces
+
+`composeHeaderSurface` draws a whole Appearance header rectangle without labels
+or column layout. `composeListHeader` and `platinumListHeader` retain their
+existing multi-column behavior. The new API requires explicit dimensions, raw
+state and a declared coordinate/clip context:
+
+```js
+import { composeHeaderSurface, bufferToCanvas } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
+
+const result = await composeHeaderSurface(theme, {
+  kind: 'list-view-header', width: 180, height: 18, drawState: 1,
+  compositionContext: {
+    controlOrigin: [12, 24], portOrigin: [0, 0],
+    patternOrigin: { status: 'unknown' },
+    clip: { kind: 'rect', rect: { x: 12, y: 24, w: 180, h: 18 } },
+  },
+});
+if (result.status === 'rendered') document.body.append(bufferToCanvas(result.buffer));
+```
+
+Handle `unavailable` and `unsupported` explicitly. The initial supported subset
+uses solid bodies, binary masks and verified current-display sampling; patterns,
+device caches and recording remain outside it. See the [header-surface contract](./docs/spec/header-surface.md)
+for state selection, list-view extension before clipping, diagnostics and limits.
+
 ### Managed button pattern context
 
 Push buttons promoted inside a window owned by the same declarative mount follow

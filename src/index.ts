@@ -43,6 +43,7 @@ export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTh
 export { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
 export type { ControlDiagnostics, ControlRenderTrace, ControlResolutionStep, TabBodyTrace } from './controlDiagnostics.js';
+export type { HeaderSurfaceOptions, HeaderSurfaceResult, HeaderSurfaceUnsupportedReason, HeaderSurfaceTrace } from './headerSurface.js';
 
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
@@ -72,6 +73,7 @@ export {
   composeButton,
   composeBevelButton,
   composeListHeader,
+  composeHeaderSurface,
   composeCheckable,
   composeGrowBox,
   baselineButton,

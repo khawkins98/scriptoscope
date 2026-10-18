@@ -2,6 +2,7 @@ import type { ControlColorSamples } from './types.js';
 import type { ControlCompositionSnapshot, ControlRect } from './controlComposition.js';
 import type { ElementByteProvenance, PatternByteProvenance } from './loadProvenance.js';
 import type { PixelBuffer } from './pixelBuffer.js';
+import type { HeaderSurfaceTrace } from './headerSurface.js';
 
 /** Observed selection decisions, not proof of original-engine fidelity. */
 export interface ControlResolutionStep {
@@ -23,7 +24,7 @@ export interface ControlResolutionStep {
     | { readonly type: 'ppat'; readonly byteProvenance?: PatternByteProvenance });
   readonly reason: string;
   readonly basis: 'source-dispatch' | 'compatibility-policy';
-  readonly usage: 'paint' | 'layout-reservation';
+  readonly usage: 'paint' | 'layout-reservation' | 'admission';
 }
 
 /** Actual tab assembly decision. Legacy reasons describe current compatibility
@@ -56,7 +57,7 @@ export interface ControlBandPaint {
 export interface ControlRenderTrace {
   readonly version: 1;
   readonly correlationId?: string;
-  readonly family: 'push-button' | 'bevel-button' | 'tab';
+  readonly family: 'push-button' | 'bevel-button' | 'tab' | 'header-surface';
   readonly requested: {
     readonly state: 'active' | 'pressed' | 'inactive';
     readonly pressed: boolean;
@@ -69,6 +70,7 @@ export interface ControlRenderTrace {
   readonly steps: readonly ControlResolutionStep[];
   readonly tabBody?: TabBodyTrace;
   readonly bandPaints?: readonly ControlBandPaint[];
+  readonly headerSurface?: HeaderSurfaceTrace;
   /** Actual label policy for the selected face; no original font/device claim. */
   readonly textColors?: {
     readonly foreground: string; readonly emboss: string | null;
@@ -100,6 +102,7 @@ export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
   bandPaint(value: ControlBandPaint): void;
   tabBody(value: TabBodyTrace): void;
+  headerSurface(value: HeaderSurfaceTrace): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
   composition(value: NonNullable<ControlRenderTrace['composition']>): void;
 }
@@ -123,9 +126,14 @@ export async function withControlDiagnostics(
   const steps: ControlResolutionStep[] = [];
   let tabBody: TabBodyTrace | undefined;
   const bandPaints: ControlBandPaint[] = [];
+  let headerSurface: HeaderSurfaceTrace | undefined;
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
-  const collector: ControlTraceCollector = { bandPaint: value => { bandPaints.push(value); }, tabBody: value => { tabBody = value; }, record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
+  const collector: ControlTraceCollector = {
+    bandPaint: value => { bandPaints.push(value); }, headerSurface: value => { headerSurface = value; },
+    tabBody: value => { tabBody = value; }, record: step => { steps.push(step); },
+    composition: value => { composition = value; }, textColors: value => { textColors = value; },
+  };
   let result: PixelBuffer | null = null;
   let failed = false;
   let error: unknown;
@@ -134,7 +142,7 @@ export async function withControlDiagnostics(
   const trace: ControlRenderTrace = freezeRecord({
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
-    family, requested, steps, ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
+    family, requested, steps, ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }
       : { status: 'unavailable' },

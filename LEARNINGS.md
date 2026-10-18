@@ -4302,3 +4302,33 @@ can legitimately paint different colors from the same resource. Also exclude
 stable derivation paths from recursive asset URL rewriting, and record a
 painted dependency only after visible opaque pixels contribute. See
 [sampled control bands](docs/spec/sampled-control-bands.md), #296.
+
+## 2026-10-18 — Whole header surfaces are not column button cells (#292)
+
+The PACH130 Appearance callbacks take one Rect and a UInt32 draw state, not a
+column list or text. State zero selects -9568 and every nonzero state selects
+-9567. The list-view callback increments the drawing bottom before intersecting
+with the original rectangle; extending an already clipped bitmap loses the last
+row's source geometry. A separate `composeHeaderSurface` API preserves this
+boundary while `composeListHeader` remains the existing compatibility text/cell
+helper. The ordinary (-1,-1) origin follows additional port/window-state logic
+and remains explicitly unsupported by the bounded new API.
+
+The helper paints the solid inset union before square corners and independently
+thick masked bands. Full-raster geometry can overlap when side exceeds corner,
+and clip intersections must retain the original tile phase. Independently
+handwritten c2/s1 and c2/s3 rows expose mask holes, overlap order, partial tails
+and bottom-extension differences. The old helper's 146/176-pixel difference in
+the first experiment demonstrates an API boundary, not authorization to change
+existing consumers.
+
+A one-column or one-row expansion invokes the raw indexed color sampler even
+with repeat enabled. Thus decoded RGBA repetition is admitted only with matching
+whole-raster opaque current-display equivalence metadata; a real bit15 palette
+collision remains unsupported. The initial surface requires binary masks and a
+raw solid background, excludes selected patterns, recording/device behavior and
+unknown selection history, and does not certify font or original captures.
+Diagnostics record preparation as admission and only actual pixel writes as
+paint; a rendered empty clip carries no paint dependency claim. See the
+[bounded source model](docs/spec/header-surface.md) for the pinned helper ranges
+and explicit unsupported conditions.

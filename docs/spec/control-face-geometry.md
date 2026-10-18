@@ -6,7 +6,7 @@ model](control-pattern-context.md), delivered by #279, adds bounded full-color
 `ppat` bodies and raw RGB16 background/text/emboss samples, including sampled RGB
 under mask holes. Together these paths require usable explicit `cinf` metadata
 and supported body/sample inputs; they do not establish complete control fidelity.
-List headers, mode5 color-icon bodies, mono/device paths, original typography,
+The per-column list-header compatibility helper, mode5 color-icon bodies, mono/device paths, original typography,
 transfer and resource lookup remain explicit limits under #218/#221.
 
 ## Original call sites and rectangles
@@ -49,8 +49,10 @@ case, which is still unsupported by the source-backed body path;
 `0x10a6c..0x10b70` handles non5 pattern lookup/phase. The latter now has independent
 asymmetric-tile, phase, inset-union and bounded clip checks; see
 [the current pattern/context evidence and limits](control-pattern-context.md).
-List headers share implementation in Scriptoscope, but their original call-site
-equivalence has not been established; they retain legacy geometry and text policy.
+The existing per-column list-header helper retains its shared compatibility
+geometry and text policy; equivalence to the original whole-header call is not
+established. The separate [whole-header surface](header-surface.md) uses its own
+PACH130 call-site proof and explicit finite admission, without migrating columns.
 
 A transparent decoded canvas pixel does not preserve hidden source RGB. The
 loader retains raw background/text/emboss samples before that transport. The
