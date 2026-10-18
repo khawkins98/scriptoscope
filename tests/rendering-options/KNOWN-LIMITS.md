@@ -29,6 +29,11 @@ Known boundaries requiring explicit consideration during image review:
   tracks broader independent evidence and coverage. The 70-case bounded profile is
   a deliberate sample; even the 660-case extended profile is not every possible
   API value or Cartesian combination.
+- Slider retention assertions compare every opaque source-thumb pixel and test
+  the explicit groove/thumb centering policy. They do not establish the original
+  slider drawer's still-untraced alignment arithmetic or transparent-mask painter
+  behavior. [Slider clipping #222](https://github.com/khawkins98/scriptoscope/issues/222)
+  distinguishes the demonstrated source-cell loss from those remaining questions.
 - Closed selects show the themed closed face; the browser owns the open native
   popup. Keyboard focus and selection have separate behavioral assertions.
 - Explicit tiny face heights can clip labels by caller request. Automatic sizing
