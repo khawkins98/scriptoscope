@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "0.1.0-draft",
-  "reviewStatus": "draft-requires-independent-review",
+  "inventoryVersion": "1.0.0",
+  "reviewStatus": "reviewed",
   "scope": {
-    "description": "14 real archive cases and 13 synthetic direct/interactive cases, one deliberately unknown. No executable gates until #226 is merged and these expectations are independently approved.",
+    "description": "14 real archive cases and 13 synthetic direct/interactive cases; 26 reviewed API availability expectations and one explicit UNKNOWN. All unlisted combinations remain unknown.",
     "unlistedAvailability": "unknown",
     "wholeCorpusCompletion": "not claimed"
   },
-  "sourceCandidateFile": "tests/control-availability/source-candidates.draft.json",
+  "sourceCandidateFile": "tests/control-availability/source-candidates.json",
   "sourceChoicesFile": "tests/control-availability/source-choices.json",
-  "fixturesFile": "tests/control-availability/fixtures.draft.json",
+  "fixturesFile": "tests/control-availability/fixtures.json",
   "policy": {
     "id": "compatibility-policy.v1-draft",
     "basis": "declared-public-api-policy",
@@ -60,8 +60,8 @@
   "cases": [
     {
       "id": "windows-95.push.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -123,8 +123,8 @@
     },
     {
       "id": "windows-95.push.pressed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -186,8 +186,8 @@
     },
     {
       "id": "windows-95.push.disabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -249,8 +249,8 @@
     },
     {
       "id": "system7-nostalgia-silver.push.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.system7-nostalgia-silver",
@@ -310,8 +310,8 @@
     },
     {
       "id": "system7-nostalgia-silver.push.pressed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.system7-nostalgia-silver",
@@ -371,8 +371,8 @@
     },
     {
       "id": "system7-nostalgia-silver.push.disabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.system7-nostalgia-silver",
@@ -432,8 +432,8 @@
     },
     {
       "id": "animals.push.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.animals",
@@ -518,8 +518,8 @@
     },
     {
       "id": "monkey-paradise.push.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.monkey-paradise",
@@ -604,8 +604,8 @@
     },
     {
       "id": "windows-95.default.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -700,8 +700,8 @@
     },
     {
       "id": "windows-95.default.pressed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -813,8 +813,8 @@
     },
     {
       "id": "windows-95.default.disabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "theme.windows-95",
@@ -909,8 +909,8 @@
     },
     {
       "id": "windows-95.bevel.normal",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "bevel-button",
       "input": "theme.windows-95",
@@ -972,8 +972,8 @@
     },
     {
       "id": "windows-95.bevel.pressed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "bevel-button",
       "input": "theme.windows-95",
@@ -1035,8 +1035,8 @@
     },
     {
       "id": "windows-95.bevel.disabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "bevel-button",
       "input": "theme.windows-95",
@@ -1098,8 +1098,8 @@
     },
     {
       "id": "synthetic.child-canonical",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.child-canonical",
@@ -1151,8 +1151,8 @@
     },
     {
       "id": "synthetic.child-missing",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.child-missing",
@@ -1204,8 +1204,8 @@
     },
     {
       "id": "synthetic.child-repurposed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.child-repurposed",
@@ -1265,8 +1265,8 @@
     },
     {
       "id": "synthetic.named-preference",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.named-preference",
@@ -1316,8 +1316,8 @@
     },
     {
       "id": "synthetic.named-unknown-id",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.named-unknown-id",
@@ -1367,8 +1367,8 @@
     },
     {
       "id": "synthetic.active-to-pressed",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.active-to-pressed",
@@ -1425,8 +1425,8 @@
     },
     {
       "id": "synthetic.inactive-to-active",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.inactive-to-active",
@@ -1482,8 +1482,8 @@
     },
     {
       "id": "synthetic.empty-chain",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "unavailable",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.empty-chain",
@@ -1522,8 +1522,8 @@
     },
     {
       "id": "synthetic.empty-cycle",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "unavailable",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.empty-cycle",
@@ -1562,8 +1562,8 @@
     },
     {
       "id": "synthetic.bevel-child-base",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "bevel-button",
       "input": "fixture.bevel-child-base",
@@ -1612,7 +1612,7 @@
     },
     {
       "id": "synthetic.raw-repurposed-only",
-      "reviewStatus": "draft-requires-independent-review",
+      "reviewStatus": "reviewed",
       "effectiveAvailability": "unknown",
       "mode": "direct",
       "family": "push-button",
@@ -1643,8 +1643,8 @@
     },
     {
       "id": "synthetic.native-empty.enabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "native-procedural",
       "mode": "interactive",
       "family": "push-button",
       "input": "fixture.empty-chain",
@@ -1684,8 +1684,8 @@
     },
     {
       "id": "synthetic.native-empty.disabled",
-      "reviewStatus": "draft-requires-independent-review",
-      "effectiveAvailability": "unknown",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "native-procedural",
       "mode": "interactive",
       "family": "push-button",
       "input": "fixture.empty-chain",
@@ -1905,7 +1905,7 @@
       ]
     }
   ],
-  "inventorySha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
+  "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
   "engineEvidence": {
     "id": "Kaleidoscope2.3.1-kDEF0",
     "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
@@ -1925,5 +1925,16 @@
       ]
     ]
   },
-  "manifestKeyPolicy": "Keys are manually pinned expectations for the declared bundle naming policy (raw-ID key for unnamed source, normalized author label otherwise), not historical identities. Synthetic keys are exact declared graph keys. Competing keys are never interchangeable."
+  "manifestKeyPolicy": "Keys are manually pinned expectations for the declared bundle naming policy (raw-ID key for unnamed source, normalized author label otherwise), not historical identities. Synthetic keys are exact declared graph keys. Competing keys are never interchangeable.",
+  "review": {
+    "date": "2026-10-18",
+    "reviewers": [
+      "root: independent source and policy review",
+      "Astra architecture: independent source identity and dispatch review"
+    ],
+    "inventoryVersion": "1.0.0",
+    "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+    "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
+    "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+  }
 }

@@ -3662,3 +3662,19 @@ contain scalar metadata only, so concurrent callbacks share neither mutable step
 nor theme ownership. Callback failure after successful rendering propagates once;
 a renderer failure remains the primary error even if its diagnostic callback also
 throws. See `docs/spec/control-resolution-diagnostics.md`.
+
+### 2026-10-18 — availability needs explicit source identity and policy
+
+Equal source/built null is only parity, not proof that a control is unavailable.
+The bounded availability inventory pins independently reviewed exact outcomes,
+owner/depth/key and signed resource metadata, while keeping every unlisted case
+unknown. Default-ring layout reservation is a different event from ring paint.
+
+Source archive extraction also needs explicit entry identity: Apple Platinum
+contains an unrelated application with cicns and Dolphin has many text forks.
+Entry index/name and archive/fork/payload hashes make selection reviewable; size
+or cicn presence cannot act as an oracle. Animals/Monkey's menu-labelled cicn
+and push-labelled same-ID cinf further demonstrate that names motivate our
+compatibility policy without proving original dispatch intent. Actual resolution
+traces still lack decoder fork/payload provenance, so availability reports retain
+that gap rather than claiming the expected source hash authenticates decoding.

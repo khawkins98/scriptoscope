@@ -7,8 +7,8 @@ import { sha256, sourceCandidate } from './source.mjs';
 import { validateInventory } from './inventory.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const json = name => JSON.parse(readFileSync(new URL(name, import.meta.url)));
-export const readDraft = () => ({ inventory: json('./expectations.draft.json'), choices: json('./source-choices.json'),
-  candidates: json('./source-candidates.draft.json'), fixtures: json('./fixtures.draft.json') });
+export const readInventory = () => ({ inventory: json('./expectations.json'), choices: json('./source-choices.json'),
+  candidates: json('./source-candidates.json'), fixtures: json('./fixtures.json') });
 const check = (condition, message) => { if (!condition) throw new Error(message); };
 const unique = (items, predicate, description) => {
   const found = items.filter(predicate);
@@ -93,4 +93,4 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
   return { sourceArchives: actualSources.size, candidateThemes: candidates.themes.length, cases: inventory.cases.length,
     result: 'Source evidence references and byte identities validated; availability approval and execution remain unchecked.' };
 }
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) console.log(JSON.stringify(await validateSourceEvidence(readDraft()), null, 2));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) console.log(JSON.stringify(await validateSourceEvidence(readInventory()), null, 2));

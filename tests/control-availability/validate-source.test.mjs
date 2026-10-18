@@ -1,14 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readDraft, validateSourceEvidence } from './validate-source.mjs';
+import { readInventory, validateSourceEvidence } from './validate-source.mjs';
 import { sha256 } from './source.mjs';
 const changed = mutate => {
-  const draft = readDraft(); mutate(draft);
+  const draft = readInventory(); mutate(draft);
   draft.inventory.inventorySha256 = sha256(JSON.stringify(draft.inventory.cases));
+  draft.inventory.review.inventorySha256 = draft.inventory.inventorySha256;
   return draft;
 };
 test('every finite source reference and all 18 archive identities validate without runtime observations', async () => {
-  const result = await validateSourceEvidence(readDraft());
+  const result = await validateSourceEvidence(readInventory());
   assert.equal(result.sourceArchives, 18); assert.equal(result.cases, 27);
 });
 test('dangling resource evidence and forged presence/payload pins fail independently of case digest', async () => {

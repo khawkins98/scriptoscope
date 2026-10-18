@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readDraft } from './validate-source.mjs';
+import { readInventory } from './validate-source.mjs';
 import { compareAvailability } from './compare.mjs';
-// Only unit-fixture copies are activated. Committed draft data remains inactive.
+// Unit observations exercise the independent comparator without invoking a renderer.
 const expected = id => {
-  const c = readDraft().inventory.cases.find(c => c.id === id);
+  const c = readInventory().inventory.cases.find(c => c.id === id);
   return { ...c, reviewStatus: 'reviewed', effectiveAvailability: c.proposed?.outcome ?? 'unknown' };
 };
 const observation = c => ({ caseId: c.id, options: c.options, result: { kind: 'themed', width: 80, height: 28 },
@@ -42,7 +42,7 @@ test('unknown signed metadata cannot be replaced by canonical request ID', () =>
 test('UNKNOWN and unreviewed cases remain non-passing, and missing executions remain not run', () => {
   const unknown = expected('synthetic.raw-repurposed-only');
   assert.equal(compareAvailability(unknown, { result: { kind: 'themed' } }).status, 'unknown');
-  const draft = readDraft().inventory.cases[0];
+  const draft = { ...readInventory().inventory.cases[0], reviewStatus: 'draft-requires-independent-review', effectiveAvailability: 'unknown' };
   assert.equal(compareAvailability(draft, observation(draft)).status, 'unknown');
   assert.equal(compareAvailability(expected('windows-95.push.normal'), null).status, 'not-run');
 });

@@ -1,8 +1,8 @@
 # #228 finite expectation review
 
-**Draft for independent review. No executable availability gate is active.**
+**Reviewed finite API-policy inventory. Executable source/built gates compare actual traces against these expectations.**
 
-27 exact cases; all currently have effective availability UNKNOWN. The proposed API outcomes below are source/policy expectations, never generated from renderer or matrix outcomes.
+27 exact cases: 26 approved API-policy outcomes and one explicit UNKNOWN. The outcomes below are source/policy expectations, never generated from renderer or matrix outcomes.
 
 | Case | Proposed outcome | Painted owner / signed resource / exact key | Policy / source boundary |
 | --- | --- | --- | --- |
@@ -34,12 +34,12 @@
 | synthetic.native-empty.enabled | native-procedural | none / not asserted | native-fallback |
 | synthetic.native-empty.disabled | native-procedural | none / not asserted | native-fallback |
 
-All real cases use explicit no-base input. Synthetic graph/base identity is defined in fixtures.draft.json. Public options are recorded per case (80px minimum width /20px height for direct controls); the native fallback is a separate interactive API input.
+All real cases use explicit no-base input. Synthetic graph/base identity is defined in fixtures.json. Public options are recorded per case (80px minimum width /20px height for direct controls); the native fallback is a separate interactive API input.
 
 ## Review boundaries
 
 - Approve the finite identities and public policy choices independently of current rendering.
-- Source archive entry/fork and signed payload identities are pinned in source-candidates.draft.json and source-choices.json.
+- Source archive entry/fork and signed payload identities are pinned in source-candidates.json and source-choices.json.
 - Windows95 pressed default requests missing -10230 but paints active -10231 under source dispatch; plain-button reservation must not satisfy this paint expectation.
 - Raw-ID-only repurposed art remains unknown even if current rendering returns pixels.
 - Missing direct output means no realization; native fallback must be checked as a separate DOM/interaction contract.
@@ -48,7 +48,7 @@ All real cases use explicit no-base input. Synthetic graph/base identity is defi
 - Historical face fallback, whole-control pixels and actual decoder/fork provenance are not certified.
 - All other 18-theme family/state/option/base combinations remain unknown.
 
-Frozen draft case digest: 410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a.
+Reviewed pre-activation draft case digest: 410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a.
 
 ## Independent review record
 
@@ -63,7 +63,11 @@ dispatch intent; every asserted cicn/cinf identity has a presence/hash reference
 exact manifest key. The digest above identifies the refined case inventory.
 
 This records review of expected API outcomes and their limited evidence. The
-JSON remains explicitly draft/inactive until the trace dependency lands and the
-executable gate is integrated. Source candidates remain unreviewed observations;
-approving an API expectation does not turn extraction into independently
-verified decoder behavior.
+source candidates remain unreviewed shared-decoder observations; approving an API
+expectation does not turn extraction into independently verified decoding.
+
+On activation after #239 merged, inventory version 1.0.0 changed only case
+reviewStatus and effectiveAvailability. Active case digest:
+`3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97`.
+The original refined draft digest is retained in `expectations.json` review data.
+The raw-only repurposed case remains UNKNOWN and never counts as passed.
