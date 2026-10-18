@@ -85,6 +85,12 @@
   outline: var(--scriptoscope-focus-width) solid var(--scriptoscope-focus-color);
   outline-offset: 2px;
 }
+/* The native select is transparent; paint focus on the visible wrapper.
+   Keep this separate from :focus-visible so older browsers retain the rule. */
+.scriptoscope-select:focus-within {
+  outline: var(--scriptoscope-focus-width) solid var(--scriptoscope-focus-color);
+  outline-offset: 2px;
+}
 
 /* ─── Pointer cursor over drag targets ─────────────────────────────────── */
 /* The runtime sets cursor:default on the chrome canvas (faithful Mac behavior
