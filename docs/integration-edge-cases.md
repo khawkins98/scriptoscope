@@ -167,6 +167,14 @@ Two postures, decided by whether you set `data-scriptoscope-x` or `data-scriptos
 - **In-flow (default).** No `-x`/`-y` → the host is created as `position: static` and sits exactly where your source element sat in the DOM. Grid cells, flex children, normal flow, everything works because the browser's own layout engine places it. Siblings push down naturally — the runtime doesn't pin ancestor heights or cascade-shift. Inline `position` is cleared, so your own `.my-class { position: relative }` for stacking contexts is respected.
 - **Absolute (opt-in via `-x`/`-y`).** Either coordinate present → host flips to `position: absolute` resolved against the nearest positioned ancestor. Use for desktop scatters, overlays, palettes. The `cascade` fallback (`24+26·n`, `24+26·n`) applies only when the source element has no bounding rect (e.g. `display: none` at promotion time). Coordinates must be in **px**; percentages / em / vh aren't parsed.
 
+Chrome preparation is asynchronous, but the original content stays connected and
+readable until the prepared host is ready. The runtime moves the same child nodes
+and replaces the source element in one synchronous commit, preserving listeners
+and the focused descendant without scrolling. If preparation or initial content
+fitting fails, it restores the original element and clears the promotion stamp so
+it can be retried. The final frame dimensions can still change the page layout;
+this avoids an intermediate empty source element, not every possible layout shift.
+
 Width/height inherit from the source element's bounding rect either way. The drag handler converts a static host to absolute on the first drag, keyboard-arrow move, or grow-box resize. When the handoff happens, the runtime inserts an invisible `<div data-scriptoscope-placeholder>` in the host's original static slot so siblings don't collapse upward — the page stays put while the window floats out. The placeholder persists until the window is unmounted (cleaned up by `WindowManager.remove`). Once converted, the host stays a floater for the rest of its life. Reload restores the in-flow default unless you pass `persistKey` (persisted absolute positions also restore as absolute).
 
 ## Auto-resize: content growing after promote

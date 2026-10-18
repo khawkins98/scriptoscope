@@ -154,7 +154,9 @@ export class ScriptoscopeWindow {
     } else {
       Object.assign(fit.style, { width: '100%', minHeight: '100%', padding, boxSizing: 'border-box' });
     }
-    fit.append(...Array.from(el.childNodes)); // MOVE children (identity + listeners preserved)
+    // Keep the consumer's children connected while chrome prepares asynchronously.
+    // Moving them into this detached wrapper now collapses the source element for
+    // every paint before manager.add resolves (and loses content if rendering fails).
     slot.append(fit);
 
     const restore = { parent: el.parentNode, next: el.nextSibling, el };
@@ -184,179 +186,199 @@ export class ScriptoscopeWindow {
     // shipped 2026-05-31, reverted same day after the reviewer round
     // surfaced the wider widget-subset need).
     const enabledWidgets = (parsed.enabledWidgets as ReadonlySet<TitleWidget> | undefined);
-    const host = await deps.manager.add(
-      deps.theme,
-      {
-        windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
-        ...(parsed.title != null ? { title: parsed.title } : {}),
-      },
-      { onClose: () => inst?.unmount() },
-      {
-        contentEl: slot,
-        ...(parsed.z != null ? { z: parsed.z } : {}),
-        ...(parsed.collapsed ? { collapsed: true } : {}),
-        ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
-      },
-    );
-    inst = new ScriptoscopeWindow(
-      host, fit, deps, restore,
-      // Spread to omit undefined fields — exactOptionalPropertyTypes:true.
-      {
-        ...(parsed.width !== undefined ? { w: parsed.width } : {}),
-        ...(parsed.height !== undefined ? { h: parsed.height } : {}),
-      },
-      { w: w0, h: h0 },
-    );
+    let host: HTMLElement | undefined;
+    try {
+      host = await deps.manager.add(
+        deps.theme,
+        {
+          windowType: parsed.windowType, width: w0, height: h0, state: parsed.state,
+          ...(parsed.title != null ? { title: parsed.title } : {}),
+        },
+        { onClose: () => inst?.unmount() },
+        {
+          contentEl: slot,
+          ...(parsed.z != null ? { z: parsed.z } : {}),
+          ...(parsed.collapsed ? { collapsed: true } : {}),
+          ...(enabledWidgets !== undefined ? { enabledWidgets } : {}),
+        },
+      );
+      inst = new ScriptoscopeWindow(
+        host, fit, deps, restore,
+        // Spread to omit undefined fields — exactOptionalPropertyTypes:true.
+        {
+          ...(parsed.width !== undefined ? { w: parsed.width } : {}),
+          ...(parsed.height !== undefined ? { h: parsed.height } : {}),
+        },
+        { w: w0, h: h0 },
+      );
 
-    // Position handling — Posture B.
-    //   - Absolute opt-in (consumer declared -x or -y): use the declared
-    //     coordinates, falling back to the captured natural position for
-    //     whichever axis the consumer omitted, falling back further to
-    //     fallbackPos for the display:none / detached case.
-    //   - Default (no -x/-y): leave the host as a normal in-flow block.
-    //     The browser's own layout puts it where the source element was —
-    //     no top/left needed, no flow disruption, no pin/shift gymnastics.
-    //     (See WindowManager.add — it sets position:absolute initially;
-    //     we override here for the in-flow case.)
-    if (wantsAbsolute) {
-      // Route initial absolute placement through the WindowManager chokepoint
-      // so v2 reflow features (snap-to-grid, collision detection) see boot
-      // positions too. Without this, persistence-restore positions skipped
-      // the seam future features intercept at. FE-reviewer 2026-06-01.
-      const x = parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x);
-      const y = parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y);
-      deps.manager.setPosition(host, x, y);
-    } else {
-      // In-flow path. WindowManager.add sets `position: absolute` inline
-      // unconditionally (line ~636 of interactive.ts — the historical
-      // default before Posture B). CLEAR the inline value so it falls
-      // back to consumer-class CSS (if any) or the UA default `static`.
-      // Setting `'static'` inline here would CLOBBER a consumer's class-
-      // based positioning intent (e.g. `.my-window { position: relative }`
-      // for stacking-context purposes); clearing the inline value lets
-      // that intent through. Drag handler flips to absolute on first
-      // drag/move (interactive.ts).
-      host.style.position = '';
-    }
-    // Carry consumer-side identity from the source element to the runtime
-    // host so CSS / JS / AT that targeted the source (`.my-class`,
-    // `#my-id`, `[data-foo]`, `aria-label`, etc.) keeps working post-
-    // promote. Without this, any consumer style/script was orphaned when
-    // the original was removed below.
-    //
-    // `classList.add` (not `host.className = el.className`) so runtime-
-    // added classes survive — assignment was a latent clobber bug. ID is
-    // only copied if the host doesn't already have one; ARIA + non-
-    // scriptoscope `data-*` + `lang` / `dir` / `title` likewise. Lib-
-    // reviewer follow-up 2026-05-30.
-    //
-    // CAVEAT: consumer classes carry their CSS verbatim, including
-    // LAYOUT-affecting properties (display:grid on `.powers-card`,
-    // flex/contain/etc). Those would re-size the host's box and break
-    // the host↔chrome-canvas correspondence. So we force the layout-
-    // critical properties on the host directly — these win over inherited
-    // class CSS via inline-style specificity. Consumer styles for color,
-    // font, position offsets, custom properties, etc. all still apply.
-    if (el.id && !host.id) host.id = el.id;
-    for (const cls of el.classList) host.classList.add(cls);
-    for (const attr of ['lang', 'dir', 'title']) {
-      const v = el.getAttribute(attr);
-      if (v != null && !host.hasAttribute(attr)) host.setAttribute(attr, v);
-    }
-    for (const a of Array.from(el.attributes)) {
-      if (host.hasAttribute(a.name)) continue;
-      if (a.name.startsWith('aria-')) host.setAttribute(a.name, a.value);
-      else if (a.name.startsWith('data-') && !a.name.startsWith('data-scriptoscope-')) {
-        host.setAttribute(a.name, a.value);
+      // Position handling — Posture B.
+      //   - Absolute opt-in (consumer declared -x or -y): use the declared
+      //     coordinates, falling back to the captured natural position for
+      //     whichever axis the consumer omitted, falling back further to
+      //     fallbackPos for the display:none / detached case.
+      //   - Default (no -x/-y): leave the host as a normal in-flow block.
+      //     The browser's own layout puts it where the source element was —
+      //     no top/left needed, no flow disruption, no pin/shift gymnastics.
+      //     (See WindowManager.add — it sets position:absolute initially;
+      //     we override here for the in-flow case.)
+      if (wantsAbsolute) {
+        // Route initial absolute placement through the WindowManager chokepoint
+        // so v2 reflow features (snap-to-grid, collision detection) see boot
+        // positions too. Without this, persistence-restore positions skipped
+        // the seam future features intercept at. FE-reviewer 2026-06-01.
+        const x = parsed.x ?? (hasNaturalRect ? naturalX : fallbackPos.x);
+        const y = parsed.y ?? (hasNaturalRect ? naturalY : fallbackPos.y);
+        deps.manager.setPosition(host, x, y);
+      } else {
+        // In-flow path. WindowManager.add sets `position: absolute` inline
+        // unconditionally (line ~636 of interactive.ts — the historical
+        // default before Posture B). CLEAR the inline value so it falls
+        // back to consumer-class CSS (if any) or the UA default `static`.
+        // Setting `'static'` inline here would CLOBBER a consumer's class-
+        // based positioning intent (e.g. `.my-window { position: relative }`
+        // for stacking-context purposes); clearing the inline value lets
+        // that intent through. Drag handler flips to absolute on first
+        // drag/move (interactive.ts).
+        host.style.position = '';
       }
-    }
-    // Lock down layout + decoration properties AFTER inheriting the
-    // consumer's classes — inline styles override class-based CSS via
-    // specificity. Without these, consumer styling intended for the
-    // bare-HTML state of the source element bleeds onto the host where
-    // it no longer makes sense:
-    //   - `display: grid/flex` collapses the host's box, decoupling it
-    //     from the chrome canvas it's supposed to wrap.
-    //   - `padding` offsets the canvas inside the host's box, leaving
-    //     stripes of host-background showing around the chrome edges.
-    //   - `border` draws a second frame around the canvas — the chrome
-    //     IS the intended visual frame; the consumer's border was for
-    //     the bare HTML, not the chromed state.
-    //   - `background` paints under the chrome — invisible if chrome is
-    //     opaque, ugly if chrome has any transparent corners.
-    // Consumer styles for color, font, position offsets, custom
-    // properties, etc. still apply (they're not in this lockdown set).
-    Object.assign(host.style, {
-      display: 'block',
-      boxSizing: 'border-box',
-      padding: '0',
-      border: '0',
-      background: 'transparent',
-      // The chrome canvas's outer dimensions can extend a pixel or two
-      // past the host's CSS box (chrome adds a frame; w0 vs fullWidth
-      // diverge by 2-6px depending on theme). A consumer-class
-      // `overflow: auto` (e.g. `.powers-card-row.heavy .powers-card`
-      // sets it for slot-scroll behaviour) would clip those edge
-      // pixels — visible as the chrome's right/bottom edge being
-      // 'sliced off' on the demo's heavy-row cards. Force visible so
-      // the canvas paints fully. The slot inside still has its own
-      // overflow:auto for actual content scrolling.
-      overflow: 'visible',
-      // The next-to-bite predictions from the 2026-06-01 FE review.
-      // `margin` on the consumer's source class would shift the host
-      // relative to its neighbours (DOM-position-respect contract);
-      // `transform`/`filter` would silently make the host its own
-      // containing block for absolute descendants (positioning.ts:28
-      // even calls this out as the iOS scroll-perf-hack pattern). The
-      // lockdown set grows monotonically as new consumer-CSS patterns
-      // emerge — same shape as the previous six properties.
-      margin: '0',
-      transform: 'none',
-      filter: 'none',
-      // `contain: layout` / `contain: paint` create a containing block
-      // the same way transform/filter do (per CSS Containment spec).
-      // Material + Tailwind v4 utilities both ship `contain` rules now —
-      // worth pre-empting before the bleed surfaces. FE-reviewer P1
-      // 2026-06-01.
-      contain: 'none',
-    });
-    if (restore.parent) restore.parent.insertBefore(host, restore.el);
-    restore.el.remove();
-
-    // Once the user manually resizes the window via the chrome grow box
-    // (or the keyboard arrow-resize), they OWN the size. Auto-fit's
-    // "only grows" rule × flex-wrap content × user shrink = feedback
-    // loop where shrinking width re-wraps the content taller, then
-    // auto-fit grows the window back to fit the new taller content
-    // (the user's bug report — "whenever I try to make smaller it just
-    // gets bigger"). Fix: on userresize event, disconnect the observer
-    // + pin last to the user's choice so future scheduleFit calls are
-    // no-ops. The grow box dispatches this event from interactive.ts.
-    host.addEventListener('scriptoscope:userresize', (e) => {
-      if (inst) inst.acceptUserSize((e as CustomEvent).detail.w, (e as CustomEvent).detail.h);
-    });
-
-    // Content-fit only when NEITHER w/h was declared AND we didn't capture a natural rect:
-    // the captured rect already gives the right initial size, and triggering a fit-to-content
-    // pass would override it with content's max-content size (often smaller than the
-    // visually-occupied element). When the natural rect is missing (display:none, etc.),
-    // fall back to content-fit so the window at least picks up the body's intrinsic size.
-    if (parsed.sizeMode === 'fit' && !hasNaturalRect) {
-      await inst.fitToContent(true);
-    } else if (parsed.width === undefined || parsed.height === undefined) {
-      // The window was sized from a natural rect (or partly-declared), AND
-      // at least one dimension is open. Observe `fit` for post-promote
-      // growth — the picker case (runtime populates tiles after promote)
-      // and the "image loaded inside content" case both get auto-resized
-      // without consumer intervention. Declared dimensions are preserved
-      // inside fitToContent (declaredW / declaredH). FE-reviewer follow-up
-      // 2026-05-30 P1.
-      inst.startGrowthObserver({
-        initialH: h0, initialW: w0,
-        ...(parsed.title !== undefined ? { title: parsed.title } : {}),
+      // Carry consumer-side identity from the source element to the runtime
+      // host so CSS / JS / AT that targeted the source (`.my-class`,
+      // `#my-id`, `[data-foo]`, `aria-label`, etc.) keeps working post-
+      // promote. Without this, any consumer style/script was orphaned when
+      // the original was removed below.
+      //
+      // `classList.add` (not `host.className = el.className`) so runtime-
+      // added classes survive — assignment was a latent clobber bug. ID is
+      // only copied if the host doesn't already have one; ARIA + non-
+      // scriptoscope `data-*` + `lang` / `dir` / `title` likewise. Lib-
+      // reviewer follow-up 2026-05-30.
+      //
+      // CAVEAT: consumer classes carry their CSS verbatim, including
+      // LAYOUT-affecting properties (display:grid on `.powers-card`,
+      // flex/contain/etc). Those would re-size the host's box and break
+      // the host↔chrome-canvas correspondence. So we force the layout-
+      // critical properties on the host directly — these win over inherited
+      // class CSS via inline-style specificity. Consumer styles for color,
+      // font, position offsets, custom properties, etc. all still apply.
+      if (el.id && !host.id) host.id = el.id;
+      for (const cls of el.classList) host.classList.add(cls);
+      for (const attr of ['lang', 'dir', 'title']) {
+        const v = el.getAttribute(attr);
+        if (v != null && !host.hasAttribute(attr)) host.setAttribute(attr, v);
+      }
+      for (const a of Array.from(el.attributes)) {
+        if (host.hasAttribute(a.name)) continue;
+        if (a.name.startsWith('aria-')) host.setAttribute(a.name, a.value);
+        else if (a.name.startsWith('data-') && !a.name.startsWith('data-scriptoscope-')) {
+          host.setAttribute(a.name, a.value);
+        }
+      }
+      // Lock down layout + decoration properties AFTER inheriting the
+      // consumer's classes — inline styles override class-based CSS via
+      // specificity. Without these, consumer styling intended for the
+      // bare-HTML state of the source element bleeds onto the host where
+      // it no longer makes sense:
+      //   - `display: grid/flex` collapses the host's box, decoupling it
+      //     from the chrome canvas it's supposed to wrap.
+      //   - `padding` offsets the canvas inside the host's box, leaving
+      //     stripes of host-background showing around the chrome edges.
+      //   - `border` draws a second frame around the canvas — the chrome
+      //     IS the intended visual frame; the consumer's border was for
+      //     the bare HTML, not the chromed state.
+      //   - `background` paints under the chrome — invisible if chrome is
+      //     opaque, ugly if chrome has any transparent corners.
+      // Consumer styles for color, font, position offsets, custom
+      // properties, etc. still apply (they're not in this lockdown set).
+      Object.assign(host.style, {
+        display: 'block',
+        boxSizing: 'border-box',
+        padding: '0',
+        border: '0',
+        background: 'transparent',
+        // The chrome canvas's outer dimensions can extend a pixel or two
+        // past the host's CSS box (chrome adds a frame; w0 vs fullWidth
+        // diverge by 2-6px depending on theme). A consumer-class
+        // `overflow: auto` (e.g. `.powers-card-row.heavy .powers-card`
+        // sets it for slot-scroll behaviour) would clip those edge
+        // pixels — visible as the chrome's right/bottom edge being
+        // 'sliced off' on the demo's heavy-row cards. Force visible so
+        // the canvas paints fully. The slot inside still has its own
+        // overflow:auto for actual content scrolling.
+        overflow: 'visible',
+        // The next-to-bite predictions from the 2026-06-01 FE review.
+        // `margin` on the consumer's source class would shift the host
+        // relative to its neighbours (DOM-position-respect contract);
+        // `transform`/`filter` would silently make the host its own
+        // containing block for absolute descendants (positioning.ts:28
+        // even calls this out as the iOS scroll-perf-hack pattern). The
+        // lockdown set grows monotonically as new consumer-CSS patterns
+        // emerge — same shape as the previous six properties.
+        margin: '0',
+        transform: 'none',
+        filter: 'none',
+        // `contain: layout` / `contain: paint` create a containing block
+        // the same way transform/filter do (per CSS Containment spec).
+        // Material + Tailwind v4 utilities both ship `contain` rules now —
+        // worth pre-empting before the bleed surfaces. FE-reviewer P1
+        // 2026-06-01.
+        contain: 'none',
       });
+      // Commit the live content and prepared host in the same task. No placeholder
+      // or style pin is needed: the original element held its natural footprint
+      // throughout preparation. Capture focus now, since the user may have moved
+      // it while chrome was loading. Moving nodes keeps listeners and selection,
+      // but append removes focus, so restore it without scrolling the page.
+      const active = document.activeElement;
+      const focused = active instanceof HTMLElement && el.contains(active) ? active : null;
+      fit.append(...Array.from(el.childNodes));
+      if (restore.parent) restore.parent.insertBefore(host, restore.el);
+      restore.el.remove();
+      focused?.focus({ preventScroll: true });
+
+      // Once the user manually resizes the window via the chrome grow box
+      // (or the keyboard arrow-resize), they OWN the size. Auto-fit's
+      // "only grows" rule × flex-wrap content × user shrink = feedback
+      // loop where shrinking width re-wraps the content taller, then
+      // auto-fit grows the window back to fit the new taller content
+      // (the user's bug report — "whenever I try to make smaller it just
+      // gets bigger"). Fix: on userresize event, disconnect the observer
+      // + pin last to the user's choice so future scheduleFit calls are
+      // no-ops. The grow box dispatches this event from interactive.ts.
+      host.addEventListener('scriptoscope:userresize', (e) => {
+        if (inst) inst.acceptUserSize((e as CustomEvent).detail.w, (e as CustomEvent).detail.h);
+      });
+
+      // Content-fit only when NEITHER w/h was declared AND we didn't capture a natural rect:
+      // the captured rect already gives the right initial size, and triggering a fit-to-content
+      // pass would override it with content's max-content size (often smaller than the
+      // visually-occupied element). When the natural rect is missing (display:none, etc.),
+      // fall back to content-fit so the window at least picks up the body's intrinsic size.
+      if (parsed.sizeMode === 'fit' && !hasNaturalRect) {
+        await inst.fitToContent(true);
+      } else if (parsed.width === undefined || parsed.height === undefined) {
+        // The window was sized from a natural rect (or partly-declared), AND
+        // at least one dimension is open. Observe `fit` for post-promote
+        // growth — the picker case (runtime populates tiles after promote)
+        // and the "image loaded inside content" case both get auto-resized
+        // without consumer intervention. Declared dimensions are preserved
+        // inside fitToContent (declaredW / declaredH). FE-reviewer follow-up
+        // 2026-05-30 P1.
+        inst.startGrowthObserver({
+          initialH: h0, initialW: w0,
+          ...(parsed.title !== undefined ? { title: parsed.title } : {}),
+        });
+      }
+      return inst;
+    } catch (error) {
+      // add() owns cleanup when its first render fails. Later failures (including
+      // content-fit rendering) must also release the host and return the same
+      // live content to the source element, without reporting a user close.
+      if (inst) inst.restoreOriginalElement();
+      else if (host) deps.manager.remove(host);
+      delete el.dataset.scriptoscopePromoted;
+      throw error;
     }
-    return inst;
   }
 
   /** Wire the shared ResizeObserver on `fit` so post-promote content growth
@@ -499,20 +521,30 @@ export class ScriptoscopeWindow {
     this.host.dispatchEvent(new CustomEvent('scriptoscope:close', {
       bubbles: true, composed: true,
     }));
+    this.restoreOriginalElement();
+  }
+
+  /** Shared rollback/unmount cleanup; failed promotion must not dispatch close. */
+  private restoreOriginalElement(): void {
     this.unmounted = true;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     if (this.growthTimer) { clearTimeout(this.growthTimer); this.growthTimer = 0; }
     if (this.observing) { sharedRO.unobserve(this.fit); this.observing = false; }
     this.deps.manager.remove(this.host); // stop the manager re-rendering/re-theming a closed window
     const { el, parent, next } = this.restore;
+    const active = document.activeElement;
+    const focused = active instanceof HTMLElement && this.fit.contains(active) ? active : null;
     el.append(...Array.from(this.fit.childNodes));
     delete el.dataset.scriptoscopePromoted;
     // The captured nextSibling may itself have been removed (e.g. an adjacent promoted window) —
     // only insert before it if it's still a child of the parent, else append.
-    if (parent) {
+    if (this.host.parentNode === parent && parent) {
+      parent.replaceChild(el, this.host);
+    } else if (parent && el.parentNode !== parent) {
       if (next && next.parentNode === parent) parent.insertBefore(el, next);
       else parent.appendChild(el);
     }
     this.host.remove();
+    focused?.focus({ preventScroll: true });
   }
 }
