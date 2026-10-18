@@ -17,7 +17,7 @@
 
 import {
   Reader, readPixMap, readBitMap, readColorTable,
-  expandIndexedPixels, expandMask, indexToRgb,
+  expandIndexedPixels, expandMask,
 } from './shared.js';
 
 /**
@@ -25,12 +25,34 @@ import {
  * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}}
  */
 export function decodeCicn(bytes) {
+  requireBytes(bytes, 0, 82, 'headers');
   const r = new Reader(bytes);
 
   const pmap = readPixMap(r);
   const mask = readBitMap(r);
   const bmap = readBitMap(r);
   const iconDataHandle = r.readUInt32(); // ignored (0 in resource)
+
+  // Validate required ranges before any expanded-pixel allocation. The shared
+  // Reader intentionally has no policy/bounds checks for other resource types.
+  if (![1, 2, 4, 8].includes(pmap.pixelSize)) throw new Error(`Unsupported pixelSize: ${pmap.pixelSize}`);
+  validateBitmap(pmap, pmap.pixelSize, 'pixel map');
+  validateBitmap(mask, 1, 'mask');
+  validateBitmap(bmap, 1, 'monochrome bitmap', true);
+  const maskLength = mask.rowBytes * mask.height;
+  const bitmapLength = bmap.rowBytes * bmap.height;
+  const tableOffset = 82 + maskLength + bitmapLength;
+  requireBytes(bytes, 82, maskLength + bitmapLength, 'mask and monochrome bitmap');
+  requireBytes(bytes, tableOffset, 8, 'color table header');
+  const tableHeader = new Reader(bytes, tableOffset);
+  tableHeader.readUInt32();
+  const tableFlags = tableHeader.readUInt16();
+  const tableCount = tableHeader.readInt16() + 1;
+  if (tableCount < 0) throw new Error('Invalid cicn color table size');
+  if (tableFlags & 0x4000) throw new Error('Unsupported cicn destination-window palette (ctFlags bit14)');
+  const tableLength = 8 + tableCount * 8;
+  requireBytes(bytes, tableOffset, tableLength, 'color table records');
+  requireBytes(bytes, tableOffset + tableLength, pmap.rowBytes * pmap.height, 'pixel data');
 
   // Pixel data sections in order.
   const maskBytes = r.readBytes(mask.rowBytes * mask.height);
@@ -43,7 +65,8 @@ export function decodeCicn(bytes) {
     pixelBytes, pmap.width, pmap.height, pmap.pixelSize, pmap.rowBytes,
   );
   // Decode mask -> alpha. Mask dimensions match pixmap dimensions in practice
-  // for cicn resources; if they differ (rare), we resize via nearest-neighbor.
+  // for the pinned corpus. Different dimensions retain the legacy top-left
+  // overlap/opaque-outside policy; its historical semantics remain unverified.
   const maskAlpha = expandMask(maskBytes, mask.width, mask.height, mask.rowBytes);
 
   const rgba = composeRgba(indices, maskAlpha, pmap, mask, colorTable);
@@ -63,6 +86,14 @@ export function decodeCicn(bytes) {
 }
 
 function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
+  // Apple TN QD13: bit15 clear uses ColorSpec.value; set uses position.
+  // Resolve once per decode. Duplicate values retain first-match compatibility;
+  // missing values retain black. Neither policy claims historical semantics.
+  const palette = new Map();
+  colorTable.entries.forEach((entry, position) => {
+    const index = colorTable.flags & 0x8000 ? position : entry.value;
+    if (!palette.has(index)) palette.set(index, [entry.r >> 8, entry.g >> 8, entry.b >> 8]);
+  });
   const w = pmap.width, h = pmap.height;
   const rgba = new Uint8Array(w * h * 4);
   const sameDims = (mask.width === w && mask.height === h);
@@ -71,7 +102,7 @@ function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
     for (let x = 0; x < w; x++) {
       const i = y * w + x;
       const idx = indices[i];
-      const [r, g, b] = indexToRgb(idx, colorTable);
+      const [r, g, b] = palette.get(idx) ?? [0, 0, 0];
 
       let alpha = 255;
       if (sameDims) {
@@ -88,4 +119,22 @@ function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
     }
   }
   return rgba;
+}
+
+function requireBytes(bytes, offset, length, section) {
+  if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0
+      || offset > bytes.length || length > bytes.length - offset) {
+    throw new Error(`Truncated cicn ${section}`);
+  }
+}
+
+function validateBitmap(map, depth, label, allowEmpty = false) {
+  if (map.width < 0 || map.height < 0 || (!allowEmpty && (!map.width || !map.height))) {
+    throw new Error(`Invalid cicn ${label} dimensions`);
+  }
+  // A NIL monochrome fallback is valid; it has no rows to decode.
+  if (allowEmpty && (!map.width || !map.height || !map.rowBytes)) return;
+  if (map.rowBytes < Math.ceil(map.width * depth / 8)) {
+    throw new Error(`Invalid cicn ${label} rowBytes`);
+  }
 }

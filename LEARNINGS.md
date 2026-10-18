@@ -3780,6 +3780,23 @@ sourced solid geometry: its two oval dimensions are zero. Pattern phase under
 nonzero port origins, alternate drawing flags, masks, list-header/tab callers
 and legacy metadata still need independent requirements before implementation.
 
+### 2026-10-18 — indexed palette position is conditional, not a fallback heuristic
+
+Apple TN QD13 makes ColorSpec.value authoritative when ctFlags bit15 is clear;
+bit15 set instead uses array position. Our position-first lookup silently
+miscolored permuted tables even though the shipped sparse tables happened to
+render identically. Hand-encoded rows and literal expected colors expose the
+error independently of shared decoder outputs. Undefined entries still use
+black as an explicit compatibility policy; five such pixels occur in the
+pinned corpus, so inventing strict palette completeness would reject real art.
+
+The shared Reader's out-of-range reads become zero-like values rather than
+throwing. cicn now checks its own sequential byte ranges and minimum row strides
+before expanded allocation, without changing other format readers. A monochrome
+fallback can be NIL; validating it as a required populated bitmap would reject
+valid color-only data. Mask dimension mismatch and duplicate palette-value
+semantics remain separate unknowns. See [the bounded contract](docs/spec/cicn-decoding.md).
+
 ### 2026-10-18 — resource IDs do not identify the bytes actually converted
 
 A correctly traced owner/key/signed ID can still conceal a different archive fork

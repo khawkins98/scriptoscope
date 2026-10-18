@@ -26,7 +26,7 @@
     "tools/sit-wasm/index.mjs": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19",
     "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
     "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
-    "tools/theme-loader/decoders/cicn.js": "907d322688536fbbbbc92ce819ee8268795a42d1588cc3681ced7b8c53c2bd27"
+    "tools/theme-loader/decoders/cicn.js": "00ad44bb7aa784bada7eb236e50b90c062fde7f44c1958d6b2734e45f84abf5c"
   },
   "themes": [
     {
