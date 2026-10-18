@@ -33,8 +33,8 @@ and the observed control-definition hilite must match the request's v2 scope.
 The public normal v1 scope, its request digests and existing records remain exact.
 Catalog version0.2.0, all thirteen request objects, compatibility authority and
 ledger are unchanged. Only these four requests gain new scope-bound digests;
-previous attestations cannot silently acquire v2 eligibility. This change adds
-no capture or review records.
+previous attestations cannot silently acquire v2 eligibility. Four existing v10 observations are separately reviewed under this scope;
+the validator does not generate original evidence.
 
 ## Fixed comparison extent and limits
 
@@ -130,5 +130,5 @@ patch/base/provider and all prior review checks, including for pressed/inactive
 requests. Default-ring, Crayon and nonzero-origin gates are unchanged. Unknown scope IDs, expanded face
 regions/claims, stale versions or a review with different scope reject intake.
 Actual capture/review additions require a separate evidence review. The
-[current corpus](../../tests/reference-captures/ORIGINALS.md) contains two such
+[current corpus](../../tests/reference-captures/ORIGINALS.md) contains six such
 separately reviewed scoped observations, with every broader target unresolved.

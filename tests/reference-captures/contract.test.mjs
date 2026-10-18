@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 13);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 11);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'system7-nostalgia-silver.normal']);
-  assert.equal(report.captures.length, 2);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 7);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive']);
+  assert.equal(report.captures.length, 6);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);

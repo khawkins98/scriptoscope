@@ -1,0 +1,30 @@
+[
+  {
+    "name": "BasiliskII.js",
+    "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+  },
+  {
+    "name": "BasiliskII.wasm",
+    "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+  },
+  {
+    "name": "reference-v10s.ts",
+    "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+  },
+  {
+    "name": "vite-v10s.config.mjs",
+    "sha256": "a05bd63fecf91816443d16077366ec57e273756af2828bcdbe6fbe082190bf06"
+  },
+  {
+    "name": "emulator-worker.ts",
+    "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+  },
+  {
+    "name": "emulator-input.ts",
+    "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+  },
+  {
+    "name": "capture-v10s-frame.mjs",
+    "sha256": "7d7d8af3eae2ca7f8d0e4858e10f6c785166ebe25aa329aa3b72079595f5416e"
+  }
+]

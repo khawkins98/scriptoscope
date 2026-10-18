@@ -1,0 +1,75 @@
+{
+  "canonicalSource": {
+    "slug": "system7-nostalgia-silver",
+    "path": "themes/system7-nostalgia-silver/scheme.rsrc",
+    "format": "rsrc",
+    "archiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+    "entryIndex": null,
+    "entryName": null,
+    "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
+    "selectionReviewEvidence": "system7-nostalgia-silver"
+  },
+  "publicConfiguredScheme": {
+    "CoplStatus": 0,
+    "CoplFullResponseHex": "00000526",
+    "CoplSignedRef": 1318,
+    "FCBFileID": 441,
+    "parentDir": 2,
+    "volumeRef": -1,
+    "notActualSelectedProvider": true
+  },
+  "stoppedForkJoins": [
+    {
+      "role": "scheme",
+      "actualFileID": 441,
+      "parentDir": 2,
+      "stoppedFileSha256": "fe4d5ec2c28f38dc46c9912ffab4310b980ea53a4e2feee2f042f29628e5afb4",
+      "resourceForkBytes": 130067,
+      "resourceForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    },
+    {
+      "role": "Kaleidoscope",
+      "actualFileID": 435,
+      "parentDir": 176,
+      "stoppedFileSha256": "0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091",
+      "resourceForkBytes": 1005535,
+      "resourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    },
+    {
+      "role": "fixture",
+      "actualFileID": 477,
+      "parentDir": null,
+      "stoppedFileSha256": "59e87239acb6d991cb11de6cabedb9f0c01d1afc5616378c8892830749528f69",
+      "resourceForkBytes": 67634,
+      "resourceForkSha256": "17ea3379d17ef46179b74607c3bce838be0a690d7315a9c3b0ae9e2cc8cfc7b3",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    }
+  ],
+  "actualDefinitions": {
+    "before-public-draw": {
+      "actualControlDefinition": {
+        "bytes": 174,
+        "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+      },
+      "actualWindowDefinition": {
+        "bytes": 176,
+        "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+      }
+    },
+    "after-public-draw": {
+      "actualControlDefinition": {
+        "bytes": 174,
+        "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+      },
+      "actualWindowDefinition": {
+        "bytes": 176,
+        "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+      }
+    }
+  },
+  "scope": "Configured identity and actual wrapper handles, not selected paint provider/private cache."
+}

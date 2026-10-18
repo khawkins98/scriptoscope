@@ -1,0 +1,7 @@
+{
+  "originalClarificationSha256": "fda870cd5b1176e41290248b802bcfc7f21d3058c567fbf8e634b729694539c5",
+  "originalFrameReceiptSha256": "8ae13a23cf39a5bd1fdb477281587f1e5f1d2360d5236540b7a6c9d3ac49f1ac",
+  "inheritedIncorrectSubject": "Copied System7-selected environment; private provider order not inferred",
+  "correctedConfiguredTheme": "Windows95",
+  "basis": "Same-run native Copl/FCB fileID440 plus stopped canonical Windows95 fork; static reused wrapper label is not theme/state authority. Original receipt remains unchanged."
+}

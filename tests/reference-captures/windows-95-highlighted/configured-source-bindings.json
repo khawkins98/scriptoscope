@@ -1,0 +1,75 @@
+{
+  "canonicalSource": {
+    "slug": "windows-95",
+    "path": "themes/windows-95/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+    "entryIndex": 2,
+    "entryName": "Windows 95/Windows 95",
+    "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Windows 95/Windows 95\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "windows-95"
+  },
+  "publicConfiguredScheme": {
+    "CoplStatus": 0,
+    "CoplFullResponseHex": "00000526",
+    "CoplSignedRef": 1318,
+    "FCBFileID": 440,
+    "parentDir": 2,
+    "volumeRef": -1,
+    "notActualSelectedProvider": true
+  },
+  "stoppedForkJoins": [
+    {
+      "role": "scheme",
+      "actualFileID": 440,
+      "parentDir": 2,
+      "stoppedFileSha256": "a5b135e51f277502616db728636d70d422b8d719bb896a047523c1d5e7d0e9a5",
+      "resourceForkBytes": 424716,
+      "resourceForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    },
+    {
+      "role": "Kaleidoscope",
+      "actualFileID": 435,
+      "parentDir": 176,
+      "stoppedFileSha256": "0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091",
+      "resourceForkBytes": 1005535,
+      "resourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    },
+    {
+      "role": "fixture",
+      "actualFileID": 492,
+      "parentDir": null,
+      "stoppedFileSha256": "76059c019b31b5634659e5b63b4549b3a8dd59ede43635b917c3a776f8377d46",
+      "resourceForkBytes": 67634,
+      "resourceForkSha256": "155a2cc52a03ac0fb90308056f39b8e908c04713dfbe70635b2eb22242eace19",
+      "scope": "Stopped file identity plus public FCB observations; not selected paint/cache ownership"
+    }
+  ],
+  "actualDefinitions": {
+    "before-public-draw": {
+      "actualControlDefinition": {
+        "bytes": 174,
+        "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+      },
+      "actualWindowDefinition": {
+        "bytes": 176,
+        "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+      }
+    },
+    "after-public-draw": {
+      "actualControlDefinition": {
+        "bytes": 174,
+        "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+      },
+      "actualWindowDefinition": {
+        "bytes": 176,
+        "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+      }
+    }
+  },
+  "scope": "Configured identity and actual wrapper handles, not selected paint provider/private cache."
+}
