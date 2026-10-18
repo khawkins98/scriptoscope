@@ -48,6 +48,7 @@ for (const mode of ['source', 'built']) {
           expect(comparisons.every(c => c.status === 'passed'), JSON.stringify(comparisons)).toBe(true);
         }
       }
+      expect(rows.map(row => row.id).sort()).toEqual(cases.map(c => c.id).sort());
       complete = true;
     } catch (error) { await attachCase(page, info, { mode, rows }, error); throw error; }
     finally {
