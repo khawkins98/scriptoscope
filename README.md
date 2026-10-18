@@ -262,6 +262,19 @@ paints and mount-owned theme-switcher listeners are released. Unrelated consumer
 attribute/style changes are preserved. Pending preparation cannot insert a form
 face after disconnect or move a removed/reparented source back.
 
+Promoted ranges retain the original input as their sole keyboard and accessibility
+control. Native bounds, fractional steps, `step="any"`, labels, disabled fieldsets
+and keyboard event timing remain browser-owned. The themed canvas handles pointer
+position; the native input sanitizes each value. The pointer adapter dispatches synthetic
+`input` when it changes and `change` when a drag commits a changed value. The optional stylesheet paints native
+focus on the visible canvas. Live constraint/disabled attributes and form reset
+refresh the art; after assigning `.value` in script, dispatch `input` or `change`
+to refresh it immediately. A bare property assignment is sampled on the next
+interaction, persisted pageshow or retheme. The imperative `interactiveSlider`
+API still uses normalized values and its existing keyboard/callback behavior.
+Pointer hit testing still uses full canvas bounds; thumb-center travel and grab
+offset correction remain tracked in [#244](https://github.com/khawkins98/scriptoscope/issues/244).
+
 Button, tab and text-field decoration restoration remains outside this contract.
 Global overlapping theme-switch ordering, including window renders, remains tracked
 in [#237](https://github.com/khawkins98/scriptoscope/issues/237).

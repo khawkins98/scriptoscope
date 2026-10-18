@@ -2,7 +2,7 @@
 // Prepare off-DOM; commit only while the source location and mount are still valid.
 import { listenUntilAborted } from '../listenUntilAborted.js';
 import type { LoadedTheme } from '../types.js';
-import { interactiveCheckbox, interactiveRadio, interactiveSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
+import { interactiveCheckbox, interactiveRadio, interactiveNativeSlider, interactiveButton, disposeInteractiveControl } from '../interactive.js';
 
 type Promotable = HTMLInputElement | HTMLSelectElement;
 type Kind = 'checkbox' | 'radio' | 'range' | 'select';
@@ -108,8 +108,10 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme, signal?
         }, restore);
       } else {
         setStyleOwned(el, hiddenStyle, restore);
-        setAttributeOwned(el, 'tabindex', '-1', restore);
-        setAttributeOwned(el, 'aria-hidden', 'true', restore);
+        if (kind !== 'range') {
+          setAttributeOwned(el, 'tabindex', '-1', restore);
+          setAttributeOwned(el, 'aria-hidden', 'true', restore);
+        }
         if (label?.textContent?.trim()) setStyleOwned(label, hiddenStyle, restore);
       }
     }
@@ -177,31 +179,9 @@ async function prepareInput(input: HTMLInputElement, kind: Exclude<Kind, 'select
     if (input.name) skinned.dataset.scriptoscopeRadioGroup = input.name;
     (skinned as unknown as { _scriptoscopeNative: HTMLInputElement })._scriptoscopeNative = input;
   } else {
-    const min = numOr(input.min, 0), max = numOr(input.max, 100);
-    const range = max - min;
-    const initial = range > 0 ? clamp01((numOr(input.value, min) - min) / range) : 0;
-    skinned = await interactiveSlider(theme, {
-      orientation: 'horizontal',
-      length: 120,
-      value: initial,
-      onChange: (v) => {
-        if (!active()) return;
-        const out = range > 0 ? Math.round(min + v * range) : min;
-        input.value = String(out);
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      },
-    });
-    // The native carrier becomes AT-hidden below. Preserve naming on its sole
-    // accessible replacement: live labelledby references outrank aria-label,
-    // which outranks associated labels; title remains the browser's fallback.
-    const labelledby = input.getAttribute('aria-labelledby');
-    if (labelledby) skinned.setAttribute('aria-labelledby', labelledby);
-    const explicitLabel = input.getAttribute('aria-label');
-    const rangeLabel = explicitLabel?.trim() ? explicitLabel
-      : [...(input.labels ?? [])].map((label) => label.textContent?.trim() ?? '').filter(Boolean).join(' ');
-    if (rangeLabel) skinned.setAttribute('aria-label', rangeLabel);
-    if (input.hasAttribute('title')) skinned.setAttribute('title', input.title);
+    // Keep the native range as the sole keyboard/AT surface. Its browser-owned
+    // steps, names, numeric bounds and effective disabled state remain live.
+    skinned = await interactiveNativeSlider(theme, input, active);
   }
 
   return skinned;

@@ -52,7 +52,7 @@ for (const mode of ['source', 'built']) {
     const slider = page.getByRole('slider', { name: 'Custom volume' });
     await slider.focus(); await page.keyboard.press('ArrowRight');
     await page.locator('#select').selectOption('b');
-    await expect(page.locator('#range')).toHaveValue('55');
+    await expect(page.locator('#range')).toHaveValue('51');
     await page.evaluate(() => {
       const f = window.lifecycle;
       f.oldFaces = [...f.root.querySelectorAll('.scriptoscope-checkbox,.scriptoscope-radio,.scriptoscope-slider')];
@@ -337,7 +337,8 @@ for (const mode of ['source', 'built']) {
       const decode = HTMLImageElement.prototype.decode; let lateDecodes = 0;
       HTMLImageElement.prototype.decode = function () { lateDecodes++; return decode.call(this); };
       native.addEventListener('input', () => f.handle.disconnect(), { once: true });
-      face.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      const rect = face.getBoundingClientRect();
+      face.dispatchEvent(new PointerEvent('pointerdown', { clientX: rect.left + rect.width * 0.55, clientY: rect.top + 2, bubbles: true }));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       HTMLImageElement.prototype.decode = decode;
       const result = { lateDecodes, value: native.value, faceCount: f.holder.querySelectorAll('.scriptoscope-slider').length,

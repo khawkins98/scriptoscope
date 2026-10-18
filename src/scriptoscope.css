@@ -85,9 +85,10 @@
   outline: var(--scriptoscope-focus-width) solid var(--scriptoscope-focus-color);
   outline-offset: 2px;
 }
-/* The native select is transparent; paint focus on the visible wrapper.
+/* Native selects/ranges own focus; paint it on the visible decoration.
    Keep this separate from :focus-visible so older browsers retain the rule. */
-.scriptoscope-select:focus-within {
+.scriptoscope-select:focus-within,
+input[type="range"][data-scriptoscope-promoted]:focus + .scriptoscope-slider {
   outline: var(--scriptoscope-focus-width) solid var(--scriptoscope-focus-color);
   outline-offset: 2px;
 }
