@@ -38,6 +38,8 @@ export default defineConfig({
         index: resolve(import.meta.dirname, 'demo/index.html'),
         // The original interactive landing, preserved as the hands-on demo.
         showcase: resolve(import.meta.dirname, 'demo/showcase.html'),
+        story: resolve(import.meta.dirname, 'demo/story.html'),
+        acknowledgements: resolve(import.meta.dirname, 'demo/acknowledgements.html'),
         // The developer / contributor diagnostic — was demo/index.html until the
         // 2026-05-30 swap. Houses the ribbon, per-scheme scene + reference comparison,
         // control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone.

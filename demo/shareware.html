@@ -69,21 +69,45 @@
     }
     .footer-credit a { color: #0000EE; }
   </style>
+  <link rel="stylesheet" href="./site-shell.css">
+  <script type="module" src="./site-shell.mjs"></script>
 </head>
-<body>
+<body class="site-support site-example site-example-shareware">
 
-  <nav class="topnav">
-    <span class="examples-nav">
-      <a href="./">← Showcase</a><span>·</span>
-      <a href="./personal.html">Personal blog</a><span>·</span>
-      <strong>Shareware Read Me</strong><span>·</span>
-      <a href="./landing.html">Product landing</a><span>·</span>
-      <a href="./docs.html">Documentation</a>
-    </span>
-    <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
-  </nav>
+  <a class="site-skip" href="#page-content">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+      <nav class="site-primary-nav" aria-label="Main navigation">
+        <a href="./">Home</a>
+        <a href="./showcase.html">Try & install</a>
+        <a href="./showcase.html#examples" aria-current="location">Examples</a>
+        <a href="./story.html">Story</a>
+        <a href="./diagnostic.html">Diagnostics</a>
+        <a href="./acknowledgements.html">Acknowledgements</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source</a>
+      </nav>
+    </div>
+  </header>
+  <section class="site-intro" aria-labelledby="site-page-title">
+    <p class="site-eyebrow">02 / EXAMPLES — SHAREWARE READ ME</p>
+    <h1 id="site-page-title">A Read Me worth opening.</h1>
+    <p class="site-deck">Release notes, installation steps, and a little personality. A stack of real, movable documents, just like opening a freshly unzipped archive.</p>
+    <div class="site-intro-links"><a href="./showcase.html#install">Use this on your site →</a><a href="https://github.com/khawkins98/scriptoscope/blob/main/demo/shareware.html">View this page’s HTML →</a></div>
+  </section>
+  <p class="site-example-note">SimpleNote is a fictional product. No registration or payment is required.</p>
+  <div class="site-example-bar">
+    <nav class="site-example-nav" aria-label="Example layouts">
+        <a href="./personal.html">Personal page</a>
+        <a href="./shareware.html" aria-current="page">Shareware Read Me</a>
+        <a href="./landing.html">Product page</a>
+        <a href="./docs.html">Docs layout</a>
+    </nav>
+    <label class="site-theme-control">Try a scheme <select data-scriptoscope-theme-switcher data-scriptoscope-control="off" aria-label="Switch theme"></select></label>
+  </div>
 
-  <main class="page">
+
+  <main class="page" id="page-content" aria-label="Shareware Read Me example">
 
     <!-- LEFT: cascade of three Read Me windows. DOM order is reversed
          from visual stacking order so the FIRST-thing-a-user-opens
@@ -96,24 +120,24 @@
              data-scriptoscope-cascade-step-y="36">
 
       <!-- bottom of cascade -->
-      <article class="doc" data-scriptoscope-window
-               data-scriptoscope-title="License + Credits"
+      <article class="doc site-paper-window" data-scriptoscope-window
+               data-scriptoscope-title="License + Credits" data-example-compact-title="Credits"
                data-scriptoscope-window-type="titled-utility-window"
                data-scriptoscope-width="380" data-scriptoscope-height="280">
         <h2>License</h2>
         <p>SimpleNote 2.0 is <strong>shareware</strong>. Try it for 30 days. If you keep using it, please register: $15 individual, $40 site license (one school or company), $120 educational network (one district).</p>
-        <p>Send a check or money order to the address in the About window, or use the <a href="#">online registration form</a>.</p>
+        <p>This is sample shareware copy, included to demonstrate a Read Me layout. There is no payment or registration form.</p>
         <h3>Credits</h3>
         <ul>
           <li><strong>Code:</strong> Margot Sandoval</li>
           <li><strong>Icon design:</strong> Sam Park</li>
           <li><strong>Testing:</strong> the WSU Computer Lab crew</li>
-          <li><strong>Sound effects:</strong> from the Mac OS 8.5 SoundSet (Apple, used with permission)</li>
+          <li><strong>Sound effects:</strong> from the Mac OS 8.5 SoundSet (sample credit)</li>
         </ul>
       </article>
 
       <!-- middle of cascade -->
-      <article class="doc" data-scriptoscope-window
+      <article class="doc site-paper-window" data-scriptoscope-window
                data-scriptoscope-title="Installation"
                data-scriptoscope-window-type="titled-utility-window"
                data-scriptoscope-width="380" data-scriptoscope-height="310">
@@ -136,15 +160,15 @@
       <!-- TOP of cascade: the first thing a user reads when they unzip
            a shareware archive. The period convention. -->
       <article class="doc" data-scriptoscope-window
-               data-scriptoscope-title="About SimpleNote 2.0"
+               data-scriptoscope-title="About SimpleNote 2.0" data-example-compact-title="SimpleNote"
                data-scriptoscope-window-type="document-window"
                data-scriptoscope-width="460" data-scriptoscope-height="380">
         <h2>SimpleNote 2.0</h2>
         <p class="lead">A tiny note-taking application for Mac OS 8 / 9. One window, no folders, plain text. Indexed for instant search.</p>
         <p>Version 2.0 ships with full-text indexing, a System 8.5 Appearance Manager-aware look, and AppleScript support. Backward-compatible with 1.x note files.</p>
-        <p>SimpleNote is <strong>shareware</strong>: try it for 30 days; if you keep using it, please send $15 to the address below. Site licenses available for classrooms.</p>
+        <p>SimpleNote is <strong>shareware</strong>: the kind of small application that once came with a 30-day trial and a $15 registration card. This one is a layout example. Site licenses available for classrooms.</p>
         <h3>Author</h3>
-        <p>Margot Sandoval<br>Tacoma, WA<br><a href="mailto:margot@example.com">margot@example.com</a></p>
+        <p>Margot Sandoval<br>Tacoma, WA<br>margot@example.com (sample address)</p>
       </article>
 
     </section>
@@ -154,8 +178,8 @@
          Changes" panel. Pulled out of the cascade so users don't have
          to dig past the About to read the changelog. -->
     <aside class="sidebar">
-      <article class="doc" data-scriptoscope-window
-               data-scriptoscope-title="What's New in 2.0"
+      <article class="doc site-paper-window" data-scriptoscope-window
+               data-scriptoscope-title="What's New in 2.0" data-example-compact-title="What’s new"
                data-scriptoscope-window-type="titled-utility-window"
                data-scriptoscope-widgets="zoom,collapse">
         <h2>What's New in 2.0</h2>
@@ -183,8 +207,15 @@
     A <a href="./">Scriptoscope</a> example: vintage shareware Read Me, four windows cascading like a freshly-unzipped archive. Now wearing <span id="page-theme-credit">…</span>.
   </p>
 
+  <p class="site-example-feedback" id="example-feedback" role="status" aria-live="polite"></p>
+  <section class="site-next" aria-label="Continue exploring">
+    <div><h2>Your HTML could wear this, too.</h2><p>A few attributes. Your content stays yours.</p></div>
+    <a href="./showcase.html#install">Put it on your page →</a>
+    <a href="./showcase.html#examples">Explore another example →</a>
+  </section>
+
   <script type="module">
-    import { mountDeclarative } from 'scriptoscope';
+    import { mountResponsiveExample } from './example-responsive.mjs';
     import THEMES from './themes-manifest.json';
 
     // Shareware Read Me: Platinum 8 (Russell Silver Jr., 1998). The
@@ -199,18 +230,29 @@
         const opt = document.createElement('option');
         opt.value = t.slug;
         opt.textContent = t.name ?? t.slug;
-        if (t.slug === PAGE_DEFAULT_THEME) opt.selected = true;
+        if (t.slug === (new URL(location.href).searchParams.get('theme') ?? PAGE_DEFAULT_THEME)) opt.selected = true;
         switcher.appendChild(opt);
       }
     }
 
     const BASE = import.meta.env.BASE_URL;
-    const handle = await mountDeclarative({
+    const cascade = document.querySelector('.cascade-area');
+    const prepareCascade = () => {
+      const compact = matchMedia('(max-width: 900px)').matches;
+      cascade.dataset.scriptoscopeCascadeStepX = compact ? '10' : '44';
+      cascade.dataset.scriptoscopeCascadeStepY = compact ? '18' : '36';
+      const available = cascade.clientWidth - (compact ? 45 : 130);
+      for (const window of cascade.querySelectorAll('[data-scriptoscope-window]')) {
+        const desktop = Number(window.dataset.scriptoscopeWidth);
+        window.dataset.scriptoscopeWidth = String(Math.max(80, Math.min(desktop, available)));
+      }
+    };
+    const handle = await mountResponsiveExample({
       themeBaseUrl: `${BASE}themes`.replace(/\/+$/, ''),
       pageThemeDefault: PAGE_DEFAULT_THEME,
       themes: THEMES,
       syncToUrlParam: 'theme',
-    });
+    }, prepareCascade);
 
     const creditEl = document.getElementById('page-theme-credit');
     const findEntry = (ref) => {

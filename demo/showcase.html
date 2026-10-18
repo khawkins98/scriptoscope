@@ -208,6 +208,14 @@
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
+    /* Utility palettes have light interiors even when a scheme's document
+       windows are dark. Give their live HTML an explicit paper surface. */
+    #powers .powers-paper .scriptoscope-fit {
+      background: #fcfaf5; color: #28251f !important;
+    }
+    #powers .powers-paper .scriptoscope-fit :is(h1,h2,h3,p,em,strong,label,output,code) { color: #28251f !important; }
+    #powers .powers-paper .scriptoscope-fit a { color: #0000ee !important; }
+    #powers .powers-paper .scriptoscope-fit a:visited { color: #551a8b !important; }
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
        Sits in flow automatically (Posture B 2026-05-30: hosts default
@@ -379,7 +387,10 @@
     @media (max-width: 720px) {
       /* Leave room for native frame insets and title widgets outside the
          measured body (including ornate schemes at a 320px viewport). */
-      #powers { padding-right: 56px; }
+      body.site-support.site-showcase #powers { padding-right: 64px; }
+      /* Document chrome can add 104px; utility chrome adds 56px. */
+      #powers .powers-picker-host { padding-right: 48px; }
+      #powers .powers-byo-modal:not(:has(.scriptoscope-slot)) { width: calc(100vw - 168px); }
       #powers h2 { overflow-wrap: anywhere; }
       /* Constrain the grid before the runtime measures its host; long
          code keeps its local scroll range instead of widening the page. */
@@ -390,7 +401,7 @@
       /* Use a shallower cascade and reserve its final 3 × 8px offset.
          This leaves room for the runtime's minimum body width at 320px
          without scaling the native chrome or changing drag behavior. */
-      #powers .powers-grid { --powers-cascade-step-x: 8; padding-right: 24px; box-sizing: border-box; }
+      #powers .powers-grid { --powers-cascade-step-x: 8; padding-right: 72px; box-sizing: border-box; }
       #powers .powers-toolbar { padding: 12px 16px 0; flex-wrap: wrap; }
     }
     /* PICKER SPECIAL TILES — "No theme" and "Load your own" inside the
@@ -464,9 +475,37 @@
     .powers-byo-modal-meta { margin-top: 8px; font: italic 11.5px serif; color: #767676; }
     .powers-byo-modal-meta a { color: #0000EE; }
   </style>
+  <link rel="stylesheet" href="./site-shell.css">
+  <script type="module" src="./site-shell.mjs"></script>
 </head>
-<body>
-  <section id="powers" aria-label="Scriptoscope">
+<body class="site-support site-showcase">
+  <a class="site-skip" href="#powers">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+      <nav class="site-primary-nav" aria-label="Main navigation">
+        <a href="./">Home</a>
+        <a href="./showcase.html" aria-current="page">Try & install</a>
+        <a href="./showcase.html#examples">Examples</a>
+        <a href="./story.html">Story</a>
+        <a href="./diagnostic.html">Diagnostics</a>
+        <a href="./acknowledgements.html">Acknowledgements</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source</a>
+      </nav>
+    </div>
+  </header>
+  <section class="site-intro" aria-labelledby="site-page-title">
+    <p class="site-eyebrow">01 / TRY & INSTALL</p>
+    <h1 id="site-page-title">A little HTML. A lot of character.</h1>
+    <p class="site-deck">Choose a scheme. Try the real controls. Then copy a small snippet onto your own page. The windows change; your content stays live.</p>
+    <div class="site-intro-links"><a href="#install">Put it on your page →</a><a href="#examples">See it in context →</a></div>
+  </section>
+  <div class="site-steps" aria-label="How to try Scriptoscope">
+    <p><span>01</span>Pick a look from the Schemes Folder.</p>
+    <p><span>02</span>Click, type, drag. It’s still HTML.</p>
+    <p><span>03</span>Add attributes. Load the runtime.</p>
+  </div>
+  <main id="powers" aria-label="Interactive demo">
     <!-- Skin toggle (top-right, button-style affordance), the disbelief
          beat. "See the bare HTML →" is the INVITATION; the prior checkbox
          merely reported state. Period precedent: BBEdit's Preview/Source
@@ -476,7 +515,7 @@
          bleeds past the title-bar edge (monkey-paradise's mascot, etc.).
          User direction 2026-05-31. -->
     <div class="powers-toolbar">
-      <a href="./" style="margin-right:auto;font:12px Times,serif">← Scriptoscope</a>
+
       <!-- Skin-toggle button is now only shown when un-skinned (see syncToggleUI
            in boot block). When skinned, the picker's 'No theme' tile is the
            un-skin path; the toolbar button only re-appears in OFF mode as
@@ -581,33 +620,16 @@
            but it's inert. Until we ship a menu bar with "Open Read Me"
            in the Apple menu (P1 candidate), this is the right shape:
            visually period-correct, functionally non-dismissible. -->
-      <article class="powers-readme" data-scriptoscope-window
-               data-scriptoscope-title="Scriptoscope: Read Me"
-               data-scriptoscope-window-type="document-window"
-               data-scriptoscope-widgets="zoom,collapse">
-        <h2>Scriptoscope: Hundreds of Kaleidoscope schemes running on your site, twenty-five years too late.</h2>
-        <p class="powers-lede"><a href="https://en.wikipedia.org/wiki/Kaleidoscope_(software)">Kaleidoscope</a> was a classic Mac OS themer many of us remember fondly. Greg Landweber and Arlo Rose wrote it, and a community of authors filled it out with 4,400-plus schemes from 900-plus people, preserved today by <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. Then OS X arrived in 2001 and the whole format went quiet.</p>
-        <p class="powers-lede">There was hope for a while that Kaleidoscope might survive into the OS X era — but the refactor was enormous, and OS X's own theming layer was never as stable as classic Mac OS had been. The various third-party attempts that did ship (ShapeShifter, Magnifique, et al.) had a reputation for corrupting installs more often than they worked. A few macOS versions later, the platform was locked down enough that no third-party chrome layer could ever ship again.</p>
-        <p class="powers-lede">Decades on, the schemes are remembered with nostalgia but largely unreachable — the only way to actually see them is through period Macintosh emulators, fun for archaeology but hardly practical. What if, through the beauty of JavaScript and a <code>&lt;canvas&gt;</code>, we could just apply them to our websites?</p>
-        <p class="powers-lede">If you're in that very small Venn diagram overlap, behold: Scriptoscope is a compatibility layer that reads those same scheme files — the actual <code>.sit</code> and <code>.rsrc</code> bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.</p>
-        <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
-        <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
-        <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
-        <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
-        <p class="powers-lede"><strong>A note on authorship.</strong> I've tried to contact the original Kaleidoscope authors (Greg Landweber, Arlo Rose, and a handful of scheme authors I could find addresses for) about this project, and haven't heard back. <strong>If you can put me in touch with any of them, or if you ARE one of them reading this, please email me: <a href="mailto:khawkins98@gmail.com">khawkins98@gmail.com</a>.</strong></p>
-        <p class="powers-lede">The runtime is a clean-room reimplementation of the kDEF rendering interpreter, written from the decompile used only as a test oracle. No original Kaleidoscope code ships or executes. This is the same legal posture every modern emulator operates under; the canonical precedent is <em>Sony v. Connectix</em> (2000), where the Ninth Circuit held that clean-room reverse engineering of the PlayStation BIOS for compatibility was fair use. The bundled scheme files are third-party freeware from the 1990s; Scriptoscope ships them under the same good-faith preservation posture <a href="https://macintoshgarden.org/">Macintosh Garden</a> and the <a href="https://archive.org/details/softwarelibrary_apple">Internet Archive</a> use, including take-down-on-request.</p>
-        <p class="powers-lede">Beyond the legal questions, this is really a technical curiosity, a way to bring back to life a corner of computing that's effectively dead and bit-rotting. Maybe someone will be crazy enough to author a new Kaleidoscope scheme. If you do, I'd love to see it.</p>
-        <p class="powers-lede">For the full project background, the design history, and the integration guide, see the <a href="https://github.com/khawkins98/scriptoscope">README and source on GitHub</a>.</p>
-        <p class="powers-meta-aaron">P.S. This project was originally <em>Aaron UI</em> — <strong>Aaron</strong> was Landweber's <em>earlier</em> extension, the one that faked the Mac OS 8 Platinum look on System 7 before Kaleidoscope existed. Three people would have caught that. Hello, three people. Renamed to Scriptoscope once the project pivoted to a Kaleidoscope-compatibility runtime + the etymology stopped paying rent.</p>
-      </article>
+
       <!-- TOOLS ROW: Controls + Install tiled side-by-side. Both are
            titled-utility-window palettes (slim title bar, period
            floating-tool feel). The 2-column flex layout reads as two
            Mac OS palette windows opened next to each other, matching
            the period desktop convention. User direction 2026-05-31. -->
       <div class="powers-tools-row">
-        <article class="powers-hero-window" data-scriptoscope-window
+        <article class="powers-hero-window powers-paper" data-scriptoscope-window
                  data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
+          <p class="site-controls-note">Ordinary buttons, inputs and sliders. Try them: the browser handles their behavior while Scriptoscope draws the scheme.</p>
           <div class="powers-hero-strip" aria-label="Live themed controls, one of each kind">
             <span class="hs-group"><button class="powers-demo-btn" data-scriptoscope-button data-scriptoscope-default>OK</button><button class="powers-demo-btn" data-scriptoscope-button>Cancel</button></span>
             <span class="hs-group"><label class="powers-checkable"><input type="checkbox" checked /> Themed</label></span>
@@ -617,10 +639,12 @@
             <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
           </div>
         </article>
-        <article class="powers-install-host" data-scriptoscope-window
+        <article class="powers-install-host powers-paper" id="install" data-scriptoscope-window
                  data-scriptoscope-title="Install"
                  data-scriptoscope-window-type="titled-utility-window"
                  data-scriptoscope-widgets="zoom,collapse">
+          <h2 class="site-install-heading">Put it on your page.</h2>
+          <p class="site-install-note">Tag an ordinary element, then mount Scriptoscope. Copy this complete example to get started.</p>
           <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet">&lt;link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css"&gt;
 &lt;article data-scriptoscope-window data-scriptoscope-title="Hello"&gt;
   Hello world
@@ -647,6 +671,18 @@
           </div>
         </article>
       </div>
+      <section class="site-examples" id="examples" aria-labelledby="examples-title">
+        <p class="site-section-label">02 / EXAMPLES</p>
+        <h2 id="examples-title">A page for whatever you have in mind.</h2>
+        <div class="site-example-grid">
+          <article class="site-example-card" style="--card-accent:#af9857"><a href="./personal.html">Personal page<span aria-hidden="true">↗</span></a><p>A journal, two sidebars, and interactive form controls.</p></article>
+          <article class="site-example-card" style="--card-accent:#8c9d85"><a href="./shareware.html">Shareware Read Me<span aria-hidden="true">↗</span></a><p>A freshly opened archive of movable Read Me windows.</p></article>
+          <article class="site-example-card" style="--card-accent:#bf896a"><a href="./landing.html">Product page<span aria-hidden="true">↗</span></a><p>Features, testimonials, and buttons with real feedback.</p></article>
+          <article class="site-example-card" style="--card-accent:#879ca4"><a href="./docs.html">Docs layout<span aria-hidden="true">↗</span></a><p>A contents panel, a guide, and useful in-page anchors.</p></article>
+        </div>
+      </section>
+      <p class="site-engine-intro">Curious about what’s under the chrome? <a href="./diagnostic.html">Open the runtime diagnostics →</a></p>
+
       <!-- CARD GRID — 1+1 heavy row up top (the two cards a developer
            actually reads), 2-up minor row below (footnotes). NO explicit
            x/y/width/height on any card: mountDeclarative reads each card's
@@ -706,7 +742,7 @@
 &lt;article data-scriptoscope-window&gt;…&lt;/article&gt;</pre>
             </div>
           </article>
-          <article class="powers-card" data-scriptoscope-window
+          <article class="powers-card powers-paper" data-scriptoscope-window
                    data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="suitcase">✦</div>
             <div>
@@ -723,7 +759,7 @@
         </nav>
       </div>
     </div>
-  </section>
+  </main>
 
   <script type="module">
     // ── The standalone landing-page boot ────────────────────────────────────
@@ -806,6 +842,13 @@
     // and `themes: THEMES` to mountDeclarative below.
     let mountToken = 0;
     let handle = null;
+    let mountingPowers = null;
+    const registeredThemes = new Map();
+    let activeRef = null;
+    let userInteracted = false;
+    for (const type of ['pointerdown', 'keydown', 'wheel']) {
+      window.addEventListener(type, () => { userInteracted = true; }, { once: true, passive: true });
+    }
 
     // Single state setter — toggle button only. The library auto-adds
     // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
@@ -833,8 +876,13 @@
     // park on 1138 as a permanent default.
     const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
 
-    const mountPowers = async () => {
-      if (handle) return;
+    const mountPowers = () => {
+      if (handle) return Promise.resolve();
+      if (mountingPowers) return mountingPowers;
+      mountingPowers = mountPowersOnce().finally(() => { mountingPowers = null; });
+      return mountingPowers;
+    };
+    const mountPowersOnce = async () => {
       const grid = document.getElementById('powers-grid');
       grid.setAttribute('data-scriptoscope-cascade-step-x',
         getComputedStyle(grid).getPropertyValue('--powers-cascade-step-x').trim() || '24');
@@ -844,7 +892,7 @@
         h = await mountDeclarative({
           root: powersSection,
           themeBaseUrl,
-          pageThemeDefault: randomDefaultSlug,
+          pageThemeDefault: THEMES.some(t => t.slug === activeRef) ? activeRef : randomDefaultSlug,
           themes: THEMES,
           // syncToUrlParam: '?theme=animals' on the URL sets the initial
           // theme + history.replaceState mirrors every retheme back. The
@@ -854,7 +902,7 @@
           // pointerdown/keydown/wheel. Suppressed if syncToUrlParam came
           // in with a deep-link (the user chose a scheme) or if
           // prefers-reduced-motion. Library owns all the bookkeeping.
-          autoCycle: 4000,
+          autoCycle: userInteracted ? 0 : 4000,
           // No persistKey: layout is dictated by CSS. Drag + resize work
           // (WindowManager owns those); reload resets to CSS defaults.
           // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
@@ -871,6 +919,16 @@
         try { h.disconnect(); } catch {}
         return;
       }
+      try {
+        for (const [ref, theme] of registeredThemes) h.registerTheme(ref, theme);
+        if (registeredThemes.has(activeRef)) await h.retheme(activeRef);
+      } catch (err) {
+        h.disconnect();
+        if (my === mountToken) syncToggleUI(false);
+        console.warn('[scriptoscope] Could not restore the dropped scheme:', err);
+        return;
+      }
+      if (my !== mountToken) { h.disconnect(); return; }
       handle = h;
       syncToggleUI(true);
       // AUTHOR CREDIT — listen for retheme to update the in-place byline
@@ -902,8 +960,12 @@
       // before the first retheme event fires.
       const url = new URL(window.location.href);
       const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
+      activeRef = initialSlug;
       renderCredit(findEntry(initialSlug));
-      h.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
+      h.addEventListener('retheme', (e) => {
+        activeRef = e.detail.ref;
+        renderCredit(findEntry(e.detail.ref));
+      });
     };
 
     const unmountPowers = () => {
@@ -950,6 +1012,36 @@
       modalHandle = handle.openModal(modalWrap, modalTrigger ? { returnFocusTo: modalTrigger } : {});
     };
     const closeModal = () => { modalHandle?.close(); modalHandle = null; };
+    // Natural HTML is measured at mount time. Re-mount on width changes so
+    // native pixels fit the new layout; retain decoded BYO themes and form DOM.
+    let viewportWidth = innerWidth;
+    let resizeTimer;
+    let resizing = false;
+    let resizePending = false;
+    async function reflowPowers() {
+      if (resizing) { resizePending = true; return; }
+      resizing = true;
+      try {
+        do {
+          resizePending = false;
+          await mountingPowers;
+          if (toggleBtn.getAttribute('aria-pressed') !== 'true') return;
+          const focused = document.activeElement;
+          closeModal();
+          unmountPowers();
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          await mountPowers();
+          if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
+        } while (resizePending);
+      } finally { resizing = false; }
+    }
+    window.addEventListener('resize', () => {
+      if (innerWidth === viewportWidth) return;
+      viewportWidth = innerWidth;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => void reflowPowers(), 160);
+    });
+
     if (modalDrop && modalOut) {
       attachThemeDropZone(modalDrop, {
         accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
@@ -968,6 +1060,7 @@
           try {
             const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
             const ref = `dropped:${file.name}`;
+            registeredThemes.set(ref, theme);
             handle.registerTheme(ref, theme);
             await handle.retheme(ref);
             modalOut.className = 'powers-byo-modal-out ok';

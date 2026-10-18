@@ -68,50 +68,74 @@
     }
     .footer-credit a { color: #0000EE; }
   </style>
+  <link rel="stylesheet" href="./site-shell.css">
+  <script type="module" src="./site-shell.mjs"></script>
 </head>
-<body>
+<body class="site-support site-example site-example-personal">
 
-  <nav class="topnav">
-    <span class="examples-nav">
-      <a href="./">← Showcase</a><span>·</span>
-      <strong>Personal blog</strong><span>·</span>
-      <a href="./shareware.html">Shareware Read Me</a><span>·</span>
-      <a href="./landing.html">Product landing</a><span>·</span>
-      <a href="./docs.html">Documentation</a>
-    </span>
-    <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
-  </nav>
+  <a class="site-skip" href="#page-content">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+      <nav class="site-primary-nav" aria-label="Main navigation">
+        <a href="./">Home</a>
+        <a href="./showcase.html">Try & install</a>
+        <a href="./showcase.html#examples" aria-current="location">Examples</a>
+        <a href="./story.html">Story</a>
+        <a href="./diagnostic.html">Diagnostics</a>
+        <a href="./acknowledgements.html">Acknowledgements</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source</a>
+      </nav>
+    </div>
+  </header>
+  <section class="site-intro" aria-labelledby="site-page-title">
+    <p class="site-eyebrow">02 / EXAMPLES — PERSONAL PAGE</p>
+    <h1 id="site-page-title">A personal corner of the web.</h1>
+    <p class="site-deck">A place for writing, a sidebar for wandering, and interactive form controls. Three columns of live HTML, wearing an original Mac scheme.</p>
+    <div class="site-intro-links"><a href="./showcase.html#install">Use this on your site →</a><a href="https://github.com/khawkins98/scriptoscope/blob/main/demo/personal.html">View this page’s HTML →</a></div>
+  </section>
+  <p class="site-example-note">Sample content. Real HTML. Original scheme.</p>
+  <div class="site-example-bar">
+    <nav class="site-example-nav" aria-label="Example layouts">
+        <a href="./personal.html" aria-current="page">Personal page</a>
+        <a href="./shareware.html">Shareware Read Me</a>
+        <a href="./landing.html">Product page</a>
+        <a href="./docs.html">Docs layout</a>
+    </nav>
+    <label class="site-theme-control">Try a scheme <select data-scriptoscope-theme-switcher data-scriptoscope-control="off" aria-label="Switch theme"></select></label>
+  </div>
 
-  <main class="page">
+
+  <main class="page" id="page-content" aria-label="Personal page example">
 
     <!-- LEFT SIDEBAR — navigation + tags. Titled-utility = slim title
          bar, matches period blog sidebar widgets. -->
-    <article class="sidebar sidebar-left" data-scriptoscope-window
+    <article class="sidebar sidebar-left site-paper-window" data-scriptoscope-window
              data-scriptoscope-title="Navigation"
              data-scriptoscope-window-type="titled-utility-window"
              data-scriptoscope-widgets="zoom,collapse">
       <h2>Sections</h2>
       <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Posts</a></li>
-        <li><a href="#">Projects</a></li>
-        <li><a href="#">Now</a></li>
+        <li><a href="#sample-post">Home</a></li>
+        <li><a href="#sample-about">About</a></li>
+        <li><a href="#sample-post">Posts</a></li>
+        <li><span>Projects</span></li>
+        <li><span>Now</span></li>
       </ul>
       <h2>Tags</h2>
       <ul>
-        <li><a href="#">mac</a> (12)</li>
-        <li><a href="#">retro</a> (8)</li>
-        <li><a href="#">canvas</a> (6)</li>
-        <li><a href="#">archaeology</a> (5)</li>
-        <li><a href="#">typescript</a> (4)</li>
+        <li><span>mac</span> (12)</li>
+        <li><span>retro</span> (8)</li>
+        <li><span>canvas</span> (6)</li>
+        <li><span>archaeology</span> (5)</li>
+        <li><span>typescript</span> (4)</li>
       </ul>
       <h2>Archives</h2>
       <ul>
-        <li><a href="#">May 2026</a></li>
-        <li><a href="#">April 2026</a></li>
-        <li><a href="#">March 2026</a></li>
-        <li><a href="#">Older…</a></li>
+        <li><span>May 2026</span></li>
+        <li><span>April 2026</span></li>
+        <li><span>March 2026</span></li>
+        <li><span>Older…</span></li>
       </ul>
     </article>
 
@@ -119,12 +143,12 @@
          a document (Mac OS 8 convention: TeachText / SimpleText for
          long-form). Close kept inert so visitors don't accidentally
          dismiss the page's main content. -->
-    <article class="post" data-scriptoscope-window
-             data-scriptoscope-title="The kDEF replay engine"
+    <article class="post" id="sample-post" data-scriptoscope-window
+             data-scriptoscope-title="The kDEF replay engine" data-example-compact-title="Journal"
              data-scriptoscope-window-type="document-window"
              data-scriptoscope-widgets="zoom,collapse">
       <h1>The kDEF replay engine</h1>
-      <p class="post-meta">Posted May 22, 2026 by Ken · 9 minute read · <a href="#">5 comments</a></p>
+      <p class="post-meta">Posted May 22, 2026 by Ken · 9 minute read · <span>5 comments</span></p>
 
       <p>The Mac OS 8 / 9 window decorator was a 68k <code>WDEF</code> resource. Apple shipped about a dozen of them; Kaleidoscope shipped its own, the kDEF, which let theme authors override the system's window-drawing routines entirely. To render a Kaleidoscope scheme today, you have to re-implement the kDEF.</p>
 
@@ -151,26 +175,26 @@ switch (classification.kind) {
     </article>
 
     <!-- RIGHT SIDEBAR — about author, subscribe form, recent posts. -->
-    <article class="sidebar sidebar-right" data-scriptoscope-window
+    <article class="sidebar sidebar-right site-paper-window" data-scriptoscope-window
              data-scriptoscope-title="About + more"
              data-scriptoscope-window-type="titled-utility-window"
              data-scriptoscope-widgets="zoom,collapse">
-      <h2>Ken Hawkins</h2>
-      <p class="bio">Building <a href="./">Scriptoscope</a>, classic-vibe-mac, and other small things on the web. Based in &nbsp;[wherever], &nbsp;[year].</p>
+      <h2 id="sample-about">Ken Hawkins</h2>
+      <p class="bio">Building <a href="./">Scriptoscope</a>, classic-vibe-mac, and other small things on the web. An example author bio for a personal corner of the web.</p>
 
       <h2>Subscribe</h2>
       <form class="subscribe" onsubmit="event.preventDefault(); document.getElementById('sub-out').textContent = 'Thanks! (Demo: nothing sent.)';">
         <input type="email" required placeholder="your@email.com" aria-label="Email">
         <button type="submit" data-scriptoscope-button data-scriptoscope-default>Subscribe</button>
-        <p class="helper" id="sub-out">~1 email per month, no spam.</p>
+        <p class="helper" id="sub-out">Demo form — no email is sent or stored.</p>
       </form>
 
       <h2>Recent posts</h2>
       <ul>
-        <li><a href="#">The kDEF replay engine</a></li>
-        <li><a href="#">Why I emailed Greg Landweber</a></li>
-        <li><a href="#">Vintage UI as a category</a></li>
-        <li><a href="#">A WASM StuffIt decoder</a></li>
+        <li><a href="#sample-post">The kDEF replay engine</a></li>
+        <li><span>Why I emailed Greg Landweber</span></li>
+        <li><span>Vintage UI as a category</span></li>
+        <li><span>A WASM StuffIt decoder</span></li>
       </ul>
 
       <h2>Links</h2>
@@ -187,8 +211,15 @@ switch (classification.kind) {
     A <a href="./">Scriptoscope</a> example: personal blog with classic three-column sidebars. Now wearing <span id="page-theme-credit">…</span>.
   </p>
 
+  <p class="site-example-feedback" id="example-feedback" role="status" aria-live="polite"></p>
+  <section class="site-next" aria-label="Continue exploring">
+    <div><h2>Your HTML could wear this, too.</h2><p>A few attributes. Your content stays yours.</p></div>
+    <a href="./showcase.html#install">Put it on your page →</a>
+    <a href="./showcase.html#examples">Explore another example →</a>
+  </section>
+
   <script type="module">
-    import { mountDeclarative } from 'scriptoscope';
+    import { mountResponsiveExample } from './example-responsive.mjs';
     import THEMES from './themes-manifest.json';
 
     // Personal blog: Crayon OS (Karl von Laudermann, 2000). Soft,
@@ -202,13 +233,13 @@ switch (classification.kind) {
         const opt = document.createElement('option');
         opt.value = t.slug;
         opt.textContent = t.name ?? t.slug;
-        if (t.slug === PAGE_DEFAULT_THEME) opt.selected = true;
+        if (t.slug === (new URL(location.href).searchParams.get('theme') ?? PAGE_DEFAULT_THEME)) opt.selected = true;
         switcher.appendChild(opt);
       }
     }
 
     const BASE = import.meta.env.BASE_URL;
-    const handle = await mountDeclarative({
+    const handle = await mountResponsiveExample({
       themeBaseUrl: `${BASE}themes`.replace(/\/+$/, ''),
       pageThemeDefault: PAGE_DEFAULT_THEME,
       themes: THEMES,
