@@ -25,7 +25,10 @@ export function loadCicnBuffer(url: string): Promise<PixelBuffer> {
     ctx.drawImage(img, 0, 0);
     const id = ctx.getImageData(0, 0, w, h);
     return new PixelBuffer(w, h, id.data);
-  })();
+  })().catch((error: unknown) => {
+    if (cache.get(url) === p) cache.delete(url);
+    throw error;
+  });
   cache.set(url, p);
   return p;
 }

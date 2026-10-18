@@ -77,11 +77,21 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // a serial await-loop spent 30–50 ms × N = a 15–25 s freeze. Promise.all hands the
   // pool off to the browser's encode workers and reduces wall time to a few seconds.
   const urlByPath = new Map();
-  const encoded = await Promise.all(
-    assets.map((a) => Promise.resolve(urlFor(a.rgba, a.width, a.height, a.path))
+  // Wait for every encoder to settle before cleaning up: Promise.all rejects
+  // early while other workers can still mint URLs. Defer factory invocation so
+  // synchronous exceptions participate in the same cleanup path.
+  const encoded = await Promise.allSettled(
+    assets.map((a) => Promise.resolve().then(() => urlFor(a.rgba, a.width, a.height, a.path))
       .then((url) => [a.path, url])),
   );
-  for (const [path, url] of encoded) urlByPath.set(path, url);
+  for (const result of encoded) {
+    if (result.status === 'fulfilled') urlByPath.set(...result.value);
+  }
+  const failed = encoded.find((result) => result.status === 'rejected');
+  if (failed) {
+    revokeAssetUrls(urlByPath);
+    throw failed.reason;
+  }
 
   // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
   // proxy, patterns, body pattern — all stored as path strings that match an asset).
@@ -103,17 +113,20 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // it, an app that switches themes 50× across a session leaks 25k blob URLs — each
   // pins a decoded ImageBitmap in WebKit until the tab unloads. Idempotent + safe
   // to call before the theme is rendered (the consumer accepts the references go bad).
-  const dispose = () => {
-    for (const url of urlByPath.values()) {
-      if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
-    }
-    urlByPath.clear();
-  };
+  const dispose = () => revokeAssetUrls(urlByPath);
 
   return {
     manifest: theme, baseUrl: '', inspector, dispose,
     ...(Object.keys(glyphs).length ? { glyphs } : {}),
   };
+}
+
+/** Release the URLs owned by one decode, once even if an encoder reused a URL. */
+function revokeAssetUrls(urlByPath) {
+  for (const url of new Set(urlByPath.values())) {
+    if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+  }
+  urlByPath.clear();
 }
 
 /** Build the inspector catalog from the decode output. Mirrors the on-disk JSON
