@@ -129,8 +129,23 @@
     }
     @media (prefers-reduced-motion: reduce) { .experience .arrow { transition: none; } }
   </style>
+  <link rel="stylesheet" href="./site-shell.css">
+  <script type="module" src="./site-shell.mjs"></script>
 </head>
-<body>
+<body class="site-landing">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+      <nav class="site-primary-nav" aria-label="Main navigation">
+        <a href="./" aria-current="page">Home</a>
+        <a href="./showcase.html">Try & install</a>
+        <a href="./showcase.html#examples">Examples</a>
+        <a href="./story.html">Story</a>
+        <a href="./diagnostic.html">Diagnostics</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source</a>
+      </nav>
+    </div>
+  </header>
   <a class="skip-link" href="#experience">Skip to the demo</a>
   <main class="advertisement">
     <p class="edition">Original Mac schemes. A new life on the web.</p>

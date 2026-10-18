@@ -48,3 +48,17 @@ for (const entry of ['personal', 'shareware', 'landing', 'docs']) {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   });
 }
+
+
+test('landing navigation exposes the story as its own page', async ({ page, demo }) => {
+  await page.goto(demo);
+  const nav = page.locator('.site-primary-nav');
+  await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  await nav.getByRole('link', { name: 'Story', exact: true }).click();
+  await expect(page).toHaveURL(/story.html$/);
+  await expect(page.getByRole('heading', { name: 'The story behind the schemes.' })).toBeVisible();
+  await expect(page.locator('.site-primary-nav a[aria-current]')).toHaveText('Story');
+  await page.locator('.site-next').getByRole('link', { name: /Try & install/ }).click();
+  await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+  await expect(page.locator('details.site-story')).toHaveCount(0);
+});

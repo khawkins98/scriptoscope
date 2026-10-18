@@ -89,12 +89,29 @@ export async function mountResponsiveExample(options, prepare = () => {}) {
     viewportWidth = innerWidth;
     schedule();
   };
+  // Promotion is asynchronous: a viewport change can arrive after the first
+  // host appears but before the initial mount has finished. Listen before
+  // awaiting it, and serialize that early resize with the initial mount.
+  running = true;
+  window.addEventListener('resize', resize);
   prepare();
-  handle = await mountDeclarative(options);
+  try {
+    handle = await mountDeclarative(options);
+  } catch (error) {
+    disposed = true;
+    clearTimeout(timer);
+    window.removeEventListener('resize', resize);
+    throw error;
+  } finally {
+    running = false;
+  }
   wire();
   measureBorders();
-  if (overflows()) await reflow();
-  window.addEventListener('resize', resize);
+  if (pending || overflows()) {
+    pending = false;
+    clearTimeout(timer);
+    await reflow();
+  }
   return Object.assign(facade, {
     retheme: ref => handle.retheme(ref),
     disconnect: () => {

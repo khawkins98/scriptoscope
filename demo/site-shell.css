@@ -52,11 +52,6 @@ body.site-support {
 .site-showcase #powers .site-example-card a { color: var(--site-ink); display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font: 400 24px/1.05 'Instrument Serif', Georgia, serif; text-decoration: none; }
 .site-showcase #powers .site-example-card a:hover { color: var(--site-accent); }
 .site-example-card p { margin: 10px 0 0; color: #62594c; font: 13px/1.65 Georgia, serif; }
-.site-story { margin: 32px 0; border-top: 1px solid var(--site-rule); border-bottom: 1px solid var(--site-rule); }
-.site-story > summary { cursor: pointer; padding: 23px 0; font: 30px/1.1 'Instrument Serif', Georgia, serif; }
-.site-story > summary span { color: var(--site-muted); font: italic 14px Georgia, serif; margin-left: 15px; }
-.site-story-copy { max-width: 72ch; padding: 6px 0 25px; }
-.site-showcase #powers .site-story-copy h2 { font: 400 28px/1.15 'Times New Roman', serif; }
 .site-showcase #powers .site-engine-intro { margin: 32px 0 18px; color: var(--site-muted); font: italic 16px/1.5 Georgia, serif; }
 .site-showcase #powers .powers-grid { margin-bottom: 35px; }
 .site-example-note { max-width: 1200px; margin: 0 auto 22px; padding: 0 32px; box-sizing: border-box; color: var(--site-muted); font: italic 13px/1.6 Georgia, serif; }
@@ -147,3 +142,13 @@ body.site-support {
 .site-example :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="black-platinum"]).site-paper-window .scriptoscope-fit { background: #fcfaf5; color: #28251f; }
 .site-example :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="black-platinum"]).site-paper-window .scriptoscope-fit :is(h1,h2,h3,p,li,blockquote,cite,strong,.bio,.helper,.icon) { color: #28251f; }
 .site-example :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="black-platinum"]).site-paper-window .scriptoscope-fit a { color: #765222; }
+
+.site-landing .site-header-inner { box-sizing: content-box; }
+.site-landing .site-header { padding: 0; background: #151512; border-bottom: 1px solid #ffffff24; }
+.site-story-article { max-width: 1200px; margin: auto; padding: 0 32px 30px; }
+.site-story-article > * { max-width: 70ch; }
+.site-story-article h2 { margin: 10px 0 24px; font: 400 38px/1.1 'Instrument Serif', Georgia, serif; letter-spacing: -.025em; }
+.site-story-article p { font: 17px/1.75 Georgia, serif; margin: 0 0 23px; color: #514a40; }
+.site-story-article a { color: var(--site-accent); text-underline-offset: 4px; }
+.site-story-article code { font-size: .88em; }
+@media (max-width: 760px) { .site-story-article { padding: 0 22px 20px; } }
