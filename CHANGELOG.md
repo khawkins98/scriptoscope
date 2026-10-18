@@ -78,6 +78,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   lazy chunks and resource ownership; preserved superseded historical notes.
   ([#204](https://github.com/khawkins98/scriptoscope/pull/204))
 
+### Documentation (2026-10-18)
+
+- Reconcile the fidelity plan with delivered solid-face geometry and loaded-byte
+  provenance; keep remaining decoder, pattern and reference requirements explicit.
+  Correct the charter's landing/showcase paths and active reference tracking.
+
 ### Fixed (2026-10-18)
 
 - Native slider composition stops at disposal boundaries between image decodes;

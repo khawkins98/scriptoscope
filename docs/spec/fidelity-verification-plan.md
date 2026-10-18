@@ -21,7 +21,7 @@ Implementation: [requirement ledger #227](https://github.com/khawkins98/scriptos
 Maintain one ledger keyed by scheme, surface/family, state and supported option class. Record the source archive/resource identity, requested dimensions, expected availability, evidence link, exact tested configuration, and one status:
 
 - **Verified:** passes a stated independent source-derived or reference-capture requirement. Name the requirement; a passing screenshot baseline alone is insufficient.
-- **Mismatched:** a concrete expected/actual difference exists, linked to an active fix (currently control-face corner/edge semantics in #218 and tab source cropping in #223).
+- **Mismatched:** a concrete expected/actual difference exists, linked to an active fix (including tab source cropping in #223). Keep broader unresolved control-body requirements in #218 distinct from its already corrected solid-face geometry.
 - **Unsupported:** the runtime deliberately does not implement that source variant or surface; record the reason and fallback behavior.
 - **Unknown:** evidence or validation is missing. Candidate art and plausible screenshots do not upgrade this status.
 
@@ -44,13 +44,28 @@ Keep original archives and sidecar provenance. Extend capture metadata with arch
 
 At existing role/state/base resolver decision points, add optional diagnostic tracing: requested role/state, selected owner, signed resource type/id, asset identity, fallback reason, or explicit absence. Do not duplicate the resolver in the harness. Candidate-art galleries remain candidates.
 
+Initial selection tracing is delivered by #239. [Opt-in loaded resource-byte
+provenance](resource-byte-provenance.md), delivered by #251, observes actual
+archive/fork/resource inputs and carries occurrence bindings through selected
+manifest entries to painted push/default/bevel faces. Concurrent load isolation
+and separately pinned byte expectations are checked. This does not establish
+decoder correctness, original Resource Manager ownership, unobserved borrowed
+bases or complete family coverage.
+
 Add hand-authored selection expectations for repurposed active slots (Animals/Monkey), pressed/inactive/default-ring states, and synthetic base ownership. Pair archive/resource hashes with selected decoded pixels so a wrong decoder or selector can be distinguished from a wrong compositor.
 
 **Exit:** the ledger's tested renders have actual selection provenance, and selection fixtures fail for wrong owner/state/alias or unexpected fallback. Tracing itself is observation, not proof that the selection is correct.
 
 ## Phase 3 — Close proven rendering mismatches
 
-Resolve #218 first: original `0x10fc0` sends push/bevel faces into `0x107fe`, whose square corners and independent edge strips differ from `composeFaceButton`'s current rectangular-inset model. Cover unequal pairs in Animals/Monkey, Apple Lisa and Crayon OS, preserving the correct background sample and resource ownership. Validate body fill/pattern behavior explicitly before altering it.
+Solid push/bevel geometry was corrected by #233 and default-ring bands by #219:
+original
+`0x10fc0` sends faces into `0x107fe`, with square corners and independent edge
+strips. Source-backed tests cover unequal corner/side pairs and the body sample.
+#218 remains open for pattern bodies, source dispatch and legacy/masked paths;
+#250 corrected the cinf body decision-table evidence without changing pixels.
+Validate the decoder, actual selected pattern ownership and phase requirements
+before altering patterned body rendering.
 
 Use small hand-derived decoder and coordinate-sentinel fixtures for palette, depth, mask, corner/edge order, tile phase and clipping. Keep original-source addresses and expected coordinate calculations with the tests. Extend distinct DOM interaction contracts for buttons, checkables, sliders and tabs; rendered state cases do not establish activation behavior.
 

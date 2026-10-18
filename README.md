@@ -537,8 +537,15 @@ combinations. Reviewed Linux Chromium goldens catch visual drift, while
 source-backed invariants assess known fidelity requirements. Known face/tab limits
 are tracked in [#218](https://github.com/khawkins98/scriptoscope/issues/218) and
 [#223](https://github.com/khawkins98/scriptoscope/issues/223).
-Original-engine comparison and broader window permutations remain separate work;
-see [#209](https://github.com/khawkins98/scriptoscope/issues/209).
+Original-engine comparison and broader window permutations remain active work in
+[epic #221](https://github.com/khawkins98/scriptoscope/issues/221); the independent
+reference corpus is tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190).
+
+[Actual resource-byte provenance](./docs/spec/resource-byte-provenance.md) can opt in
+to joining loaded archive, fork and resource bytes to selected manifest entries
+and painted push/default/bevel faces. It establishes input identity through shared
+conversion; independent decoder correctness and broader control families remain
+separate requirements.
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and the required checks. The
 [fidelity plan](./docs/spec/fidelity-verification-plan.md) and
