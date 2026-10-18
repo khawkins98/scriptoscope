@@ -67,8 +67,11 @@ test('actual last cinf controls samples; scalar metadata survives conversion wit
   assert.deepEqual(metadata.text.rgb16, [0x2121, 0x2121, 0x2121]);
   assert.deepEqual(metadata.text.displayRgb, [48, 48, 48]);
   assert.deepEqual([...result.assets[0].rgba.slice(4, 8)], [48, 48, 48, 0]);
-  const inspect = value => { if (ArrayBuffer.isView(value)) return; assert.notEqual(typeof value, 'function');
-    if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) { assert.notEqual(key, 'sampleKdefRgb16'); inspect(child); } };
+  const inspect = (value, path = '') => { if (ArrayBuffer.isView(value)) { assert.match(path, /^assets\.\d+\.rgba$/); return; }
+    assert.notEqual(typeof value, 'function');
+    if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
+      assert.notEqual(key, 'sampleKdefRgb16'); inspect(child, path ? `${path}.${key}` : key);
+    } };
   inspect(result);
   assert(Object.isFrozen(metadata)); assert(Object.isFrozen(metadata.text.rgb16));
   assert.equal(colors(colorIcon(), null), null);
