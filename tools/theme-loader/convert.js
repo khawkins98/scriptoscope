@@ -138,6 +138,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       counts.ok++; counts.raster++;
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
       subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
+        ...(payload.samplingEquivalence ? { samplingEquivalence: payload.samplingEquivalence } : {}),
         ...(payload.sampleKdefRgb16 ? { sampleKdefRgb16: payload.sampleKdefRgb16 } : {}) });
     } else {
       counts.ok++; counts.geometry++;

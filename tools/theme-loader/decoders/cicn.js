@@ -19,6 +19,7 @@ import {
   Reader, readPixMap, readBitMap, readColorTable,
   expandIndexedPixels, expandMask,
 } from './shared.js';
+import { compareOpaqueSampling } from '../sampling-equivalence.js';
 import { makeKdefColorSampler } from '../kdef-color-samples.js';
 
 /**
@@ -72,12 +73,15 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
   const maskAlpha = expandMask(maskBytes, mask.width, mask.height, mask.rowBytes);
 
   const rgba = composeRgba(indices, maskAlpha, pmap, mask, colorTable);
+  const sampler = makeKdefColorSampler(indices, pmap.width, pmap.height, colorTable.entries);
+  const samplingEquivalence = compareOpaqueSampling(indices, rgba, pmap, mask, sampler);
 
   return {
     width: pmap.width,
     height: pmap.height,
     rgba,
-    ...(retainKdefColorSampler ? { sampleKdefRgb16: makeKdefColorSampler(indices, pmap.width, pmap.height, colorTable.entries) } : {}),
+    samplingEquivalence,
+    ...(retainKdefColorSampler ? { sampleKdefRgb16: sampler } : {}),
     debug: {
       pixelSize: pmap.pixelSize,
       colorCount: colorTable.count,

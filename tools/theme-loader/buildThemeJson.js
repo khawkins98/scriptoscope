@@ -8,6 +8,7 @@
 // imports are shared pure recipe and identity data.)
 
 import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
+import { samplingEquivalenceRecord } from './sampling-equivalence.js';
 import { controlColorSamples } from './kdef-color-samples.js';
 import { WINDOW_TYPE_IDENTITIES } from './window-type-identities.js';
 
@@ -123,6 +124,9 @@ export function buildThemeJson(manifest, options = {}) {
       embossAnchor: cd ? coordTuple(cd.embossPixel) : null,
       // Bounded immutable scalar samples survive PNG alpha premultiplication.
       // The transient sampler/indices/palette never escape this conversion.
+      samplingEquivalence: cicnPathCounts.get(cicn.file) > 1
+        ? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'ambiguous-asset-path')
+        : (cicn.samplingEquivalence ?? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'missing-sampler')),
       colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd),
       ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
       sourceCicnId: cicn.id,
