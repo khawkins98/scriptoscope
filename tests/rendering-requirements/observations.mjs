@@ -12,8 +12,18 @@ export function collectObservations(root, errors) {
         try {
           const data = JSON.parse(readFileSync(child));
           if (!data || typeof data !== 'object' || (data.cases !== undefined && !Array.isArray(data.cases))) throw new Error('invalid observation shape');
+          // A canonical unknown is authoritative; never replace null with a
+          // convenient legacy/environment claim from the same record.
+          const execution = Object.hasOwn(data, 'execution') ? data.execution ?? {}
+            : data.evidence === 'packed-consumer-execution' ? data : data.executionProvenance ?? {};
+          const executionCommit = execution.identitySource === 'unknown' ? null
+            : Object.hasOwn(execution, 'executionCommit') ? execution.executionCommit : execution.gitCommit ?? null;
           observations.push({ path: relative(root, child), evidence: data.evidence, slug: data.slug, complete: data.complete,
-            executionCommit: data.execution?.gitCommit ?? null, caseCount: data.cases?.length ?? null,
+            executionCommit,
+            workingTreeDirty: execution.workingTreeDirty ?? null,
+            builtBundleSha256: Object.hasOwn(execution, 'builtBundleSha256') ? execution.builtBundleSha256 : execution.bundleSha256 ?? null,
+            browserVersion: execution.browserVersion ?? null, declaredRuntimeModes: execution.declaredRuntimeModes ?? [],
+            caseCount: data.cases?.length ?? null,
             statuses: data.cases?.reduce((counts, c) => { const status = c?.status ?? 'unspecified'; counts[status] = (counts[status] ?? 0) + 1; return counts; }, {}) });
         } catch (error) { errors.push(`Malformed observation ${relative(root, child)}: ${error.message}`); }
       }

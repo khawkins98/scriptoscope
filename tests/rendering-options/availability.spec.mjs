@@ -5,12 +5,13 @@ import { readInventory, validateSourceEvidence } from '../control-availability/v
 import { compareAvailability } from '../control-availability/compare.mjs';
 import { sha256 } from '../control-availability/source.mjs';
 import { gitIdentity } from '../rendering-requirements/execution.mjs';
+import { preservePrimaryFailure } from '../rendering-requirements/observation-execution.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const data = readInventory();
 
 for (const mode of ['source', 'built']) test(`${mode}: reviewed finite availability holds independently of parity`, async ({ page, servers }, testInfo) => {
   const rows = [], failures = [];
-  let complete = false;
+  let complete = false, hasPrimaryFailure = false;
   const git = gitIdentity(root);
   const execution = { ...git, gitCommit: git.executionCommit, mode,
     browser: testInfo.project.use.browserName, browserVersion: page.context().browser().version(),
@@ -65,6 +66,7 @@ for (const mode of ['source', 'built']) test(`${mode}: reviewed finite availabil
     expect(rows.filter(row => row.status === 'unknown').map(row => row.id)).toEqual(['synthetic.raw-repurposed-only']);
     expect(failures, JSON.stringify(failures, null, 2)).toEqual([]);
   } catch (error) {
+    hasPrimaryFailure = true;
     await attachCase(page, testInfo, { mode, oracle: 'reviewed-finite-availability', failures, rows }, error);
     throw error;
   } finally {
@@ -72,10 +74,11 @@ for (const mode of ['source', 'built']) test(`${mode}: reviewed finite availabil
       rows.push({ id: c.id, expectedAvailability: c.effectiveAvailability, status: 'not-run', observed: null,
         comparison: { status: 'not-run', errors: ['Execution did not reach this case'] } });
     }
-    await attachObservations(testInfo, 'availability', mode, { execution, complete,
+    await preservePrimaryFailure(hasPrimaryFailure, () => attachObservations(testInfo, 'availability', mode, { execution, complete,
       inventoryVersion: data.inventory.inventoryVersion, inventorySha256: data.inventory.inventorySha256,
       cases: rows, unlistedAvailability: 'unknown',
       limitations: ['API availability only, not whole-control fidelity or historical compatibility policy.',
-        'Input source hashes are validated separately; trace owner/IDs/key do not prove actual decoder fork/payload.'] });
+        'Input source hashes are validated separately; trace owner/IDs/key do not prove actual decoder fork/payload.'] }),
+    description => testInfo.annotations.push({ type: 'observation-metadata-error', description }));
   }
 });

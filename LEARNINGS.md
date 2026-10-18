@@ -3999,3 +3999,18 @@ conditions and cannot approve the reference intake. Automated agent inspections
 are not human attestations. Preserve independently versioned evidence when
 changing probes; a later source file must not invalidate the earlier capture's
 hash binding.
+
+## 2026-10-18 — Portable observations need an actual execution identity
+
+Successful alias observations included resource keys and pixels but omitted their
+checkout/bundle/browser identity. Copying the JSON away from its Actions artifact
+therefore lost essential context. The shared browser fixture now seals a uniform
+execution envelope around every observation, preserving explicit runtime modes
+and the distinction between expected inputs and executed results.
+
+An environment commit is a declaration: it can be stale or describe a workflow
+trigger rather than the actual checkout. Git HEAD and cleanliness are measured
+locally; environment values and discrepancies remain separate. Missing Git data
+stays unknown. Built bytes are hashed independently because ignored outputs can
+change without changing source HEAD. None of these fields authenticates caller
+assertions or promotes regression output to independent original-engine truth.
