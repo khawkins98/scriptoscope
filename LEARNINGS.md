@@ -4349,3 +4349,16 @@ resource exists. Skipped/error records and duplicate IDs must remain unsupported
 or ambiguous; otherwise they falsely enable source-backed background erasure.
 The [bounded contract](docs/spec/cicn-body-mode5.md) retains those distinctions
 and limits scaling, original provider/device behavior and header reuse (#300).
+
+## 2026-10-18 — A clipped fixture verifies only its retained observations (#301)
+
+The c2/s3 list-view header clip omits the lower corners and partial horizontal
+end tile. It still observes the one-pixel bottom extension through retained
+row10 x8/x9: ordinary height paints lower-band colors there, while extended
+height retains the solid body. A verifier should reject substituted actual
+pixels, not merely a falsified diagnostic height. Keep overlap/tail claims with
+the full-plane case and narrow the clipped case's claim to what survives its
+clip. Similarly, a rejected header sampling path has no painted companion:
+its no-paint assertion is API admission policy, while source-required color
+remains explicitly unsupported. Synthetic literal/current-display evidence does
+not become original capture, historical ownership or whole-control certification.

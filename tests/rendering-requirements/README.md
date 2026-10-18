@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.2.0 declares eighteen exact direct cases and seven explicit dimensions per
+Inventory 1.3.0 declares twenty-two exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -135,3 +135,33 @@ verified and 122 unknown. Original resource ownership,
 remaining geometry/fill, state mapping, placement/port and device color stay
 unknown. Empty-label typography and direct-only interaction are explicit scoped
 exclusions. No original capture, golden or whole-control status is promoted.
+
+
+## Inventory 1.3.0: finite whole-header and sampled-band obligations (#301)
+
+Four exact synthetic cases add 45 obligations while preserving all eighteen
+prior cases and 150 assessments. The proposed applied inventory contains 36
+narrowly verified, one unsupported and 158 unknown requirements; every case
+remains OPEN. No original capture, complete surface or device-color claim follows.
+
+Two c2/s3 whole-header cases exercise the ordinary full-plane and clipped
+list-view rectangles. The clipped case observes body through top-band mask holes
+and retained top-band pixels only; it does not observe cropped side overlap or
+partial tails. Its retained row10 x8/x9 does distinguish bottom extension: an
+ordinary-height output paints tokens7/6 there, whereas the list-view output keeps
+body RGB48. The negative verifier substitutes those actual ordinary pixels while
+leaving trace metadata unchanged, and separately corrupts the reported height.
+
+The collision header remains explicitly unsupported for sampled-line color.
+Its assertion establishes the API's rejection/no-paint policy, not original
+unavailability. The collision push case establishes only two sampled gray pixels
+and an ordinary red corner, with selected dependency joins to actual owning
+load/resource occurrences and independent serialized cicn/cinf payload pins.
+No original Resource Manager selection claim is inferred from those joins.
+
+Three assertion registrations select exactly these four rows. Their negative
+mutations cover wrong invocation/context, literal pixels, owner/load/key/ID,
+occurrence, payload/fork, missing/duplicate rows, sampler branch and false paint
+claims. Other renderer matrix observations do not extend these obligations.
+Original font, broader state/fill/geometry, port conditions, device conversion
+and native interaction remain unknown even for empty/direct synthetic cases.

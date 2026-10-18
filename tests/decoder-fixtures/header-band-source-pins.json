@@ -1,0 +1,833 @@
+{
+  "schema": 1,
+  "approvedProposalDigest": "fd37e7f66a8f6261cd8bbaa4b02fe8184885c8a4356692dc8b2c17048d67b68e",
+  "basis": "Independent serialized source bytes and literal observations; no original capture or runtime-generated expected pixels.",
+  "cases": [
+    {
+      "id": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "options": {
+        "kind": "window-header",
+        "width": 19,
+        "height": 13,
+        "drawState": 1,
+        "compositionContext": {
+          "controlOrigin": [
+            10,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "family": "header-surface",
+      "rowSelector": {
+        "overlap": true,
+        "kind": "window-header",
+        "drawState": 1,
+        "clipped": false
+      },
+      "source": {
+        "archive": {
+          "format": "rsrc",
+          "sha256": "151bde73750f68c61a5d9ffa79925ecb903b1c8ef3a46eb86e47fd840a771ac8",
+          "byteLength": 1314
+        },
+        "selectedFork": {
+          "forkSha256": "151bde73750f68c61a5d9ffa79925ecb903b1c8ef3a46eb86e47fd840a771ac8",
+          "byteLength": 1314,
+          "entryIndex": null,
+          "entryName": null,
+          "forkType": 1,
+          "fileType": null,
+          "creator": null
+        },
+        "candidates": [
+          {
+            "type": "cicn",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc",
+            "byteLength": 568
+          },
+          {
+            "type": "cinf",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99",
+            "byteLength": 18
+          },
+          {
+            "type": "cicn",
+            "signedId": -9568,
+            "presence": "present",
+            "payloadSha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc",
+            "byteLength": 568
+          },
+          {
+            "type": "cinf",
+            "signedId": -9568,
+            "presence": "present",
+            "payloadSha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99",
+            "byteLength": 18
+          }
+        ]
+      },
+      "expectedSelection": {
+        "role": "face",
+        "usage": "admission",
+        "chainDepth": 1,
+        "signedId": -9567,
+        "sourceCinfId": -9567,
+        "manifestKey": "cicn--9567",
+        "cicnIndex": 0,
+        "cinfIndex": 1
+      },
+      "literalRows": [
+        "aaTTTTTTTTTTTTTTTbb",
+        "ccUUUUUUUUUUUUUUUdd",
+        "XY.aB@cDZ@aB@cDZZQR",
+        "LMN@@@@@@@@@@@@@OPQ",
+        "RST@@@@@@@@@@@@@UVW",
+        "xyz@@@@@@@@@@@@@123",
+        "456@@@@@@@@@@@@@789",
+        "XY@@@@@@@@@@@@@@ZQR",
+        "LMN@@@@@@@@@@@@@OPQ",
+        "RST@@@@@@@@@@@@@UVW",
+        "xyz@@@@@76@@@@@7123",
+        "efJJJJJJJJJJJJJJJgh",
+        "ijKKKKKKKKKKKKKKKkl"
+      ],
+      "literalPalette": {
+        "1": [
+          161,
+          0,
+          255
+        ],
+        "2": [
+          166,
+          0,
+          255
+        ],
+        "3": [
+          171,
+          0,
+          255
+        ],
+        "4": [
+          177,
+          0,
+          255
+        ],
+        "5": [
+          182,
+          0,
+          255
+        ],
+        "6": [
+          187,
+          0,
+          255
+        ],
+        "7": [
+          193,
+          0,
+          255
+        ],
+        "8": [
+          198,
+          0,
+          255
+        ],
+        "9": [
+          203,
+          0,
+          255
+        ],
+        "a": [
+          3,
+          0,
+          255
+        ],
+        "T": [
+          13,
+          0,
+          255
+        ],
+        "b": [
+          22,
+          0,
+          255
+        ],
+        "c": [
+          30,
+          0,
+          255
+        ],
+        "U": [
+          38,
+          0,
+          255
+        ],
+        "d": [
+          45,
+          0,
+          255
+        ],
+        "X": [
+          53,
+          0,
+          255
+        ],
+        "Y": [
+          59,
+          0,
+          255
+        ],
+        "B": [
+          66,
+          0,
+          255
+        ],
+        "D": [
+          73,
+          0,
+          255
+        ],
+        "Z": [
+          79,
+          0,
+          255
+        ],
+        "Q": [
+          85,
+          0,
+          255
+        ],
+        "R": [
+          92,
+          0,
+          255
+        ],
+        "L": [
+          98,
+          0,
+          255
+        ],
+        "M": [
+          104,
+          0,
+          255
+        ],
+        "N": [
+          110,
+          0,
+          255
+        ],
+        "O": [
+          116,
+          0,
+          255
+        ],
+        "P": [
+          121,
+          0,
+          255
+        ],
+        "S": [
+          127,
+          0,
+          255
+        ],
+        "V": [
+          133,
+          0,
+          255
+        ],
+        "W": [
+          139,
+          0,
+          255
+        ],
+        "x": [
+          144,
+          0,
+          255
+        ],
+        "y": [
+          150,
+          0,
+          255
+        ],
+        "z": [
+          155,
+          0,
+          255
+        ],
+        "e": [
+          208,
+          0,
+          255
+        ],
+        "f": [
+          213,
+          0,
+          255
+        ],
+        "J": [
+          218,
+          0,
+          255
+        ],
+        "g": [
+          223,
+          0,
+          255
+        ],
+        "h": [
+          229,
+          0,
+          255
+        ],
+        "i": [
+          234,
+          0,
+          255
+        ],
+        "j": [
+          239,
+          0,
+          255
+        ],
+        "K": [
+          243,
+          0,
+          255
+        ],
+        "k": [
+          248,
+          0,
+          255
+        ],
+        "l": [
+          253,
+          0,
+          255
+        ],
+        "@": [
+          48,
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "id": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "options": {
+        "kind": "list-view-header",
+        "width": 19,
+        "height": 13,
+        "drawState": 0,
+        "compositionContext": {
+          "controlOrigin": [
+            10,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 15,
+              "y": 22,
+              "w": 8,
+              "h": 9
+            }
+          }
+        }
+      },
+      "family": "header-surface",
+      "rowSelector": {
+        "overlap": true,
+        "kind": "list-view-header",
+        "drawState": 0,
+        "clipped": true
+      },
+      "source": {
+        "archive": {
+          "format": "rsrc",
+          "sha256": "151bde73750f68c61a5d9ffa79925ecb903b1c8ef3a46eb86e47fd840a771ac8",
+          "byteLength": 1314
+        },
+        "selectedFork": {
+          "forkSha256": "151bde73750f68c61a5d9ffa79925ecb903b1c8ef3a46eb86e47fd840a771ac8",
+          "byteLength": 1314,
+          "entryIndex": null,
+          "entryName": null,
+          "forkType": 1,
+          "fileType": null,
+          "creator": null
+        },
+        "candidates": [
+          {
+            "type": "cicn",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc",
+            "byteLength": 568
+          },
+          {
+            "type": "cinf",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99",
+            "byteLength": 18
+          },
+          {
+            "type": "cicn",
+            "signedId": -9568,
+            "presence": "present",
+            "payloadSha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc",
+            "byteLength": 568
+          },
+          {
+            "type": "cinf",
+            "signedId": -9568,
+            "presence": "present",
+            "payloadSha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99",
+            "byteLength": 18
+          }
+        ]
+      },
+      "expectedSelection": {
+        "role": "face",
+        "usage": "admission",
+        "chainDepth": 1,
+        "signedId": -9568,
+        "sourceCinfId": -9568,
+        "manifestKey": "cicn--9568",
+        "cicnIndex": 2,
+        "cinfIndex": 3
+      },
+      "literalRows": [
+        "...................",
+        "...................",
+        ".....@cDZ@aB@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        ".....@@@@@@@@......",
+        "...................",
+        "..................."
+      ],
+      "literalPalette": {
+        "1": [
+          161,
+          0,
+          255
+        ],
+        "2": [
+          166,
+          0,
+          255
+        ],
+        "3": [
+          171,
+          0,
+          255
+        ],
+        "4": [
+          177,
+          0,
+          255
+        ],
+        "5": [
+          182,
+          0,
+          255
+        ],
+        "6": [
+          187,
+          0,
+          255
+        ],
+        "7": [
+          193,
+          0,
+          255
+        ],
+        "8": [
+          198,
+          0,
+          255
+        ],
+        "9": [
+          203,
+          0,
+          255
+        ],
+        "a": [
+          3,
+          0,
+          255
+        ],
+        "T": [
+          13,
+          0,
+          255
+        ],
+        "b": [
+          22,
+          0,
+          255
+        ],
+        "c": [
+          30,
+          0,
+          255
+        ],
+        "U": [
+          38,
+          0,
+          255
+        ],
+        "d": [
+          45,
+          0,
+          255
+        ],
+        "X": [
+          53,
+          0,
+          255
+        ],
+        "Y": [
+          59,
+          0,
+          255
+        ],
+        "B": [
+          66,
+          0,
+          255
+        ],
+        "D": [
+          73,
+          0,
+          255
+        ],
+        "Z": [
+          79,
+          0,
+          255
+        ],
+        "Q": [
+          85,
+          0,
+          255
+        ],
+        "R": [
+          92,
+          0,
+          255
+        ],
+        "L": [
+          98,
+          0,
+          255
+        ],
+        "M": [
+          104,
+          0,
+          255
+        ],
+        "N": [
+          110,
+          0,
+          255
+        ],
+        "O": [
+          116,
+          0,
+          255
+        ],
+        "P": [
+          121,
+          0,
+          255
+        ],
+        "S": [
+          127,
+          0,
+          255
+        ],
+        "V": [
+          133,
+          0,
+          255
+        ],
+        "W": [
+          139,
+          0,
+          255
+        ],
+        "x": [
+          144,
+          0,
+          255
+        ],
+        "y": [
+          150,
+          0,
+          255
+        ],
+        "z": [
+          155,
+          0,
+          255
+        ],
+        "e": [
+          208,
+          0,
+          255
+        ],
+        "f": [
+          213,
+          0,
+          255
+        ],
+        "J": [
+          218,
+          0,
+          255
+        ],
+        "g": [
+          223,
+          0,
+          255
+        ],
+        "h": [
+          229,
+          0,
+          255
+        ],
+        "i": [
+          234,
+          0,
+          255
+        ],
+        "j": [
+          239,
+          0,
+          255
+        ],
+        "K": [
+          243,
+          0,
+          255
+        ],
+        "k": [
+          248,
+          0,
+          255
+        ],
+        "l": [
+          253,
+          0,
+          255
+        ],
+        "@": [
+          48,
+          48,
+          48
+        ]
+      }
+    },
+    {
+      "id": "synthetic.header.collision.repeat.state1.w11.h16",
+      "options": {
+        "kind": "window-header",
+        "width": 11,
+        "height": 16,
+        "drawState": 1,
+        "compositionContext": {
+          "controlOrigin": [
+            0,
+            0
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "family": "header-surface",
+      "rowSelector": {
+        "tile": true
+      },
+      "source": {
+        "archive": {
+          "format": "rsrc",
+          "sha256": "1d5d627643ddff742f06b35d7bd668e06f8ba67a66f9f18f27ebf5e7e9559729",
+          "byteLength": 289
+        },
+        "selectedFork": {
+          "forkSha256": "1d5d627643ddff742f06b35d7bd668e06f8ba67a66f9f18f27ebf5e7e9559729",
+          "byteLength": 289,
+          "entryIndex": null,
+          "entryName": null,
+          "forkType": 1,
+          "fileType": null,
+          "creator": null
+        },
+        "candidates": [
+          {
+            "type": "cicn",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "ae6a14ab40e4f69489f9444084133376abe2ff5872c3f82c4fa0e56290831231",
+            "byteLength": 177
+          },
+          {
+            "type": "cinf",
+            "signedId": -9567,
+            "presence": "present",
+            "payloadSha256": "ae5b3b23aa3f53a382fa3fbded6b77901350bc9dcd3d50f7fa59b182eba35e11",
+            "byteLength": 18
+          }
+        ]
+      },
+      "expectedSelection": {
+        "role": "face",
+        "usage": "admission",
+        "chainDepth": 0,
+        "signedId": -9567,
+        "sourceCinfId": -9567,
+        "manifestKey": "cicn--9567",
+        "cicnIndex": 0,
+        "cinfIndex": 1
+      },
+      "expectedApi": {
+        "status": "unsupported",
+        "reason": "unverified-line-sampling",
+        "paintDependencies": 0
+      }
+    },
+    {
+      "id": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 17,
+        "default": false
+      },
+      "family": "push",
+      "rowSelector": {
+        "family": "push",
+        "tile": true
+      },
+      "source": {
+        "archive": {
+          "format": "rsrc",
+          "sha256": "04214b802d54bed4f6f14482d899be16575b47f4b0ef76d6d646aa761d8d64e6",
+          "byteLength": 302
+        },
+        "selectedFork": {
+          "forkSha256": "04214b802d54bed4f6f14482d899be16575b47f4b0ef76d6d646aa761d8d64e6",
+          "byteLength": 302,
+          "entryIndex": null,
+          "entryName": null,
+          "forkType": 1,
+          "fileType": null,
+          "creator": null
+        },
+        "candidates": [
+          {
+            "type": "cicn",
+            "signedId": -10239,
+            "presence": "present",
+            "payloadSha256": "5ee1db1a5073e86f05343eefd065909968563aa2c5b5ad0aeb709606a90e248f",
+            "byteLength": 177
+          },
+          {
+            "type": "cinf",
+            "signedId": -10239,
+            "presence": "present",
+            "payloadSha256": "867de162f9727cec7e35ab564a70822cee7451bb965ebb862e5f3ec6401e8793",
+            "byteLength": 18
+          }
+        ]
+      },
+      "expectedSelection": {
+        "role": "face",
+        "usage": "paint",
+        "chainDepth": 0,
+        "signedId": -10239,
+        "sourceCinfId": -10239,
+        "manifestKey": "band-fixture",
+        "cicnIndex": 0,
+        "cinfIndex": 1
+      },
+      "literalPixels": [
+        {
+          "at": [
+            4,
+            0
+          ],
+          "rgba": [
+            48,
+            48,
+            48,
+            255
+          ]
+        },
+        {
+          "at": [
+            0,
+            4
+          ],
+          "rgba": [
+            48,
+            48,
+            48,
+            255
+          ]
+        },
+        {
+          "at": [
+            0,
+            0
+          ],
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ]
+        }
+      ]
+    }
+  ]
+}

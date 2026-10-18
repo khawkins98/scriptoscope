@@ -172,3 +172,28 @@ At 0x10904..0x1091a, fc5c samples the selected cinf background coordinate; 0x109
 The independently encoded 7x7 source has corner3/side1, background index0 at (3,3), RGB16(8481,8481,8481), and a blue opaque (0,0) corner. The masked variant has mask0 at the sample. The opaque variant has ctFlags32768 with ColorSpec values7,0,3: raster positional index0 is red, while the engine sampler selects the gray value0 entry. Current high-byte/LUT maps33 to48 once. At 29x9 the literal gray union is [3,26)x[1,8) UNION [1,28)x[3,6); only (0,0) is blue and all remaining pixels are transparent.
 
 Exact byte/map pins are in `tests/decoder-fixtures/solid-background-source-pins.json`. They were independently transcribed and checked with a separate big-endian raw resource-map walk before registration. The two complete forks have twelve occurrences; push uses0/1, bevel6/7. The test joins actual selected references to these owning load records, never an expected manifest prelookup. Its complete literal output proves sample consumption; the miss trace proves current same-owner policy only. All prior sixteen cases and134 assessments remain semantically unchanged; both new cases retain OPEN closure. Review of proposed statuses is separate from successful execution.
+
+
+## Finite whole-header and sampled-band extension (#301)
+
+Synthetic literals and static source interpretation are separate from original
+engine captures. No original code is executed or redistributed. Exact serialized
+payloads, fork hashes, palette and literal pixels are pinned in
+`tests/decoder-fixtures/header-band-source-pins.json`. Actual selected references
+are joined to the owning load and resource occurrence before comparison.
+
+### source.pach130-header-rect-mask
+
+For the finite whole-header cases, PACH130 c1e8..c1f8 tests the complete UInt32 state for zero and selects -9568 or -9567. The list-view wrapper c524..c546 intersects the original Rect clip and increments drawing bottom before composition. Solid inset union721a..7260 precedes square corners and independent masked bands72a8..7620; ordinary forward repetition5e86..5f84 clips final tiles without resetting phase. This establishes only the declared full-color nonrecording geometry/mask subset, not Resource Manager ownership or device output. Header sampled lines are established independently in PACH130: helper5cb8 enters width1 expansion5d48..5dc4 or height1 expansion5dc4..5e26, invokes5810 with mask checking through5874, and the full-color path calls palette687e via5a32. This is the header sampler source, not an inference from the kDEF push helper.
+
+### fixture.header-overlap-literal
+
+The independently serialized11x9 c2/s3 repeat source and literal19x13 rows are pinned by header-band-source-pins.json. The ordinary full-plane case observes overlapping sides, mask holes and partial tails. The clipped list-view case observes local x5..12,y2..10 only: body survives top-band mask holes, and row10 x8/x9 remains body48 where ordinary-height output contains band tokens7/6. Cropped lower corners, side overlap and the x16 partial tail are not observed by that clipped case.
+
+### source.kdef-sampled-lines
+
+The kDEF0 FEAE helper takes source width1-to-wider before height1-to-taller paths at ff3e..10018. The mask-gated sampler and10702 ColorSpec lookup use positional matching value, last-entry-zero shortcut, reverse matching value, then entry0. A bit15 raster index0 can therefore remain red in ordinary CopyMask while its sampled line color comes from the gray value0 entry. The current high-byte/LUT conversion is a declared display policy, not original-device equivalence.
+
+### fixture.band-collision-literal
+
+The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.
