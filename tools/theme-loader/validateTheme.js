@@ -1,7 +1,7 @@
 // Minimal validator for theme.json bundles, used by the extractor (plain JS, no
 // dependencies, no dist/ build needed). It checks the field shapes of the
 // schema of record, src/types.ts — keep them in sync when the schema changes.
-import { macRgbToSrgb } from './mac-gamma.js';
+import { realizeRgb16, displayRealizer, ownerDisplayPolicyMatches } from './display-profile.js';
 
 export class ThemeValidationError extends Error {
   constructor(message, path) {
@@ -13,6 +13,7 @@ export class ThemeValidationError extends Error {
 
 export function validateTheme(input) {
   const root = assertObject(input, 'theme.json');
+  displayRealizer(root.displayProfile);
   if (root.version !== '0.1') {
     throw new ThemeValidationError(
       `expected version "0.1", got ${JSON.stringify(root.version)}`,
@@ -29,7 +30,7 @@ export function validateTheme(input) {
   if ('origin' in root) validateOrigin(root.origin, 'theme.json.origin');
   if ('options' in root) validateOptions(root.options, 'theme.json.options');
   if ('windowTypes' in root) validateWindowTypes(root.windowTypes, 'theme.json.windowTypes');
-  if ('chromeElements' in root) validateChromeElements(root.chromeElements, 'theme.json.chromeElements');
+  if ('chromeElements' in root) validateChromeElements(root.chromeElements, 'theme.json.chromeElements', root);
   if ('patterns' in root) validatePatterns(root.patterns, 'theme.json.patterns');
   if ('palette' in root) validatePalette(root.palette, 'theme.json.palette');
 
@@ -117,7 +118,7 @@ function validateWindowTypes(value, path) {
   }
 }
 
-function validateChromeElements(value, path) {
+function validateChromeElements(value, path, owner) {
   const obj = assertObject(value, path);
   for (const [key, entry] of Object.entries(obj)) {
     const c = assertObject(entry, `${path}.${key}`);
@@ -164,7 +165,7 @@ function validateChromeElements(value, path) {
         throw new ThemeValidationError('invalid cicn body binding/request/decision', bodyPath);
       if (b.status === 'ready') {
         const target = obj[b.manifestKey], r = b.sourceRect;
-        if (!target || target.sourceCicnId !== b.requestedId || b.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+        if (!target || target.sourceCicnId !== b.requestedId || !ownerDisplayPolicyMatches(owner, b.displayPolicy)
             || ![1, 2, 4, 8].includes(b.pixelSize) || !r || r.x !== 0 || r.y !== 0
             || !Number.isInteger(r.w) || r.w <= 0 || r.w !== target.width
             || !Number.isInteger(r.h) || r.h <= 0 || r.h !== target.height
@@ -181,7 +182,7 @@ function validateChromeElements(value, path) {
       const reasons = { equivalent: ['all-opaque-display-rgb-equal'], different: ['opaque-display-mismatch'],
         unknown: ['unsupported-layout', 'missing-sampler', 'unsafe-palette-access', 'ambiguous-asset-path'] };
       if (proof.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
-          || proof.comparison !== 'opaque-current-display-rgb' || proof.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+          || proof.comparison !== 'opaque-current-display-rgb' || !ownerDisplayPolicyMatches(owner, proof.displayPolicy)
           || !Object.prototype.hasOwnProperty.call(reasons, proof.status) || !reasons[proof.status].includes(proof.reason)
           || !Number.isSafeInteger(proof.width) || proof.width <= 0 || proof.width !== c.width
           || !Number.isSafeInteger(proof.height) || proof.height <= 0 || proof.height !== c.height) {
@@ -192,7 +193,7 @@ function validateChromeElements(value, path) {
       const samplePath = `${path}.${key}.sampledBandAsset`;
       const a = assertObject(c.sampledBandAsset, samplePath);
       if (a.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
-          || a.comparison !== 'opaque-current-display-rgb' || a.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+          || a.comparison !== 'opaque-current-display-rgb' || !ownerDisplayPolicyMatches(owner, a.displayPolicy)
           || !Number.isSafeInteger(a.width) || a.width <= 0 || a.width !== c.width
           || !Number.isSafeInteger(a.height) || a.height <= 0 || a.height !== c.height
           || typeof a.asset !== 'string' || !a.asset || typeof a.derivedPath !== 'string'
@@ -203,7 +204,7 @@ function validateChromeElements(value, path) {
     if ('colorSamples' in c && c.colorSamples !== null) {
       const samplePath = `${path}.${key}.colorSamples`;
       const colors = assertObject(c.colorSamples, samplePath);
-      if (colors.model !== 'kdef-2.3.1-color' || colors.displayPolicy !== 'mac-1.8-to-2.2-high-byte') {
+      if (colors.model !== 'kdef-2.3.1-color' || !ownerDisplayPolicyMatches(owner, colors.displayPolicy)) {
         throw new ThemeValidationError('unknown color sample model/display policy', samplePath);
       }
       for (const role of ['background', 'text', 'emboss']) {
@@ -215,7 +216,7 @@ function validateChromeElements(value, path) {
             throw new ThemeValidationError(`expected three integers in [0, ${max}]`, `${samplePath}.${role}.${field}`);
           }
         }
-        const display = macRgbToSrgb(sample.rgb16.map(value => value >> 8));
+        const display = realizeRgb16(sample.rgb16, owner.displayProfile);
         if (sample.displayRgb.some((value, i) => value !== display[i])) {
           throw new ThemeValidationError('display RGB disagrees with raw RGB16/display policy', `${samplePath}.${role}.displayRgb`);
         }

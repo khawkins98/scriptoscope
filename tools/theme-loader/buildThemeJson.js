@@ -127,11 +127,11 @@ export function buildThemeJson(manifest, options = {}) {
       // Bounded immutable scalar samples survive PNG alpha premultiplication.
       // The transient sampler/indices/palette never escape this conversion.
       samplingEquivalence: cicnPathCounts.get(cicn.file) > 1
-        ? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'ambiguous-asset-path')
+        ? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'ambiguous-asset-path', options.displayProfile?.id)
         : (cicn.samplingEquivalence ?? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'missing-sampler')),
       ...(cicn.sampledBandAsset && cicnPathCounts.get(cicn.file) === 1
         ? { sampledBandAsset: Object.freeze({ ...cicn.sampledBandAsset }) } : {}),
-      colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd),
+      colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd, options.displayProfile),
       ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
       sourceCicnId: cicn.id,
       sourceCinfId: cinf?.id ?? null,
@@ -154,7 +154,7 @@ export function buildThemeJson(manifest, options = {}) {
     keyByCicn.set(cicn, slug);
   }
 
-  bindCicnBodies(chromeElements, manifest.assets, keyByCicn, cicnPathCounts);
+  bindCicnBodies(chromeElements, manifest.assets, keyByCicn, cicnPathCounts, options.displayProfile?.id);
 
   // ─── Window types ─────────────────────────────────────────────────────
   // Each wnd# becomes a windowType entry. Parts re-key from array to
@@ -341,6 +341,7 @@ export function buildThemeJson(manifest, options = {}) {
   if (Object.keys(chromeElements).length > 0) theme.chromeElements = chromeElements;
   if (Object.keys(patterns).length > 0)       theme.patterns = patterns;
 
+  if (options.displayProfile) theme.displayProfile = options.displayProfile;
   return theme;
 }
 

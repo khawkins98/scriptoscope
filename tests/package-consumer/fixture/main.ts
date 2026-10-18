@@ -1,4 +1,4 @@
-import { VERSION, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
+import { VERSION, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
   type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
@@ -47,6 +47,18 @@ const consumer = {
 declare global { interface Window { packedConsumer: typeof consumer } }
 window.packedConsumer = consumer;
 consumer.ready = (async () => {
+  const channel = Array.from({ length: 256 }, (_, i) => i);
+  const data: DisplayProfileData = { version: 1, conditions: { kind: 'package-boundary-negative' },
+    evidence: [{ sha256: '0'.repeat(64), description: 'Synthetic finite profile, not original evidence' }],
+    devicePalette: [{ index: 0, rgb16: [0, 0, 0] }],
+    mappings: [{ rgb16: [0, 0, 0], deviceIndex: 0, deviceRgb16: [0, 0, 0] }],
+    producer: { model: 'rgb16-high-byte-table', channels: [channel, channel, channel] } };
+  const displayProfile = await prepareDisplayProfile(data);
+  let encoded = 0, rejected = false;
+  const bytes = new Uint8Array(await (await fetch(`${import.meta.env.BASE_URL}themes/windows-95/scheme.sit`)).arrayBuffer());
+  try { await loadKaleidoscopeScheme(bytes, { displayProfile, assetUrlFactory: () => { encoded++; return 'invalid'; } }); }
+  catch (error) { if (!(error instanceof DisplayProfileError) || error.code !== 'MISSING_MAPPING') throw error; rejected = true; }
+  if (!rejected || encoded) throw new Error('Packed profile failed to reject missing colors before encoding');
   consumer.handle = await mountDeclarative({
     root, pageThemeDefault: 'windows-95',
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,

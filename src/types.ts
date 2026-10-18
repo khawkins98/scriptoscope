@@ -1,3 +1,4 @@
+import type { DisplayProfile, DisplayPolicy } from '../tools/theme-loader/display-profile.js';
 import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
 // is the schema of record; the full bundle (produced by the extractor) is
@@ -115,7 +116,7 @@ export interface ControlColorSample {
 
 export interface ControlColorSamples {
   readonly model: 'kdef-2.3.1-color';
-  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly displayPolicy: DisplayPolicy;
   readonly background: ControlColorSample | null;
   readonly text: ControlColorSample | null;
   readonly emboss: ControlColorSample | null;
@@ -127,7 +128,7 @@ export interface ControlColorSamples {
 export interface CicnSamplingEquivalence {
   readonly model: 'kaleidoscope-2.3.1-opaque-sampling-v1';
   readonly comparison: 'opaque-current-display-rgb';
-  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly displayPolicy: DisplayPolicy;
   readonly width: number;
   readonly height: number;
   readonly status: 'equivalent' | 'different' | 'unknown';
@@ -140,7 +141,7 @@ export interface CicnSamplingEquivalence {
 export interface CicnSampledBandAsset {
   readonly model: 'kaleidoscope-2.3.1-opaque-sampling-v1';
   readonly comparison: 'opaque-current-display-rgb';
-  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly displayPolicy: DisplayPolicy;
   readonly width: number; readonly height: number;
   readonly asset: string;
   /** Stable generated path; unlike asset, never rewritten to a blob URL. */
@@ -155,7 +156,7 @@ export type CicnBodyBinding = {
   readonly requestedId: number;
 } & ({ readonly status: 'missing' | 'unsupported' | 'ambiguous'; readonly reason: string } | {
   readonly status: 'ready'; readonly reason: 'unique-source-occurrence';
-  readonly manifestKey: string; readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly manifestKey: string; readonly displayPolicy: DisplayPolicy;
   readonly pixelSize: 1 | 2 | 4 | 8;
   readonly sourceRect: { readonly x: 0; readonly y: 0; readonly w: number; readonly h: number };
   readonly copy: 'masked' | 'unmasked'; readonly asset: string;
@@ -274,6 +275,8 @@ export interface HeaderColors {
 }
 
 export interface ThemeManifest {
+  /** Prepared immutable display profile; absent preserves the legacy display policy. */
+  readonly displayProfile?: DisplayProfile;
   name: string;
   palette?: Palette;
   headerColors?: { active?: HeaderColors; inactive?: HeaderColors };

@@ -1,3 +1,5 @@
+import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
+import type { ThemeManifest } from './types.js';
 import { snapshotControlComposition, type ControlCompositionContext, type ControlCompositionSnapshot, type ControlRect } from './controlComposition.js';
 import type { ControlDiagnostics } from './controlDiagnostics.js';
 import type { ChromeElement } from './types.js';
@@ -78,12 +80,12 @@ export function headerMetadataRejection(element: ChromeElement): HeaderSurfaceUn
   return request.mode === 5 ? 'cicn-body' : null;
 }
 
-export function headerBackground(source: PixelBuffer, element: ChromeElement): readonly number[] | null {
+export function headerBackground(source: PixelBuffer, element: ChromeElement, owner?: ThemeManifest): readonly number[] | null {
   const samples = element.colorSamples, sample = samples?.background, anchor = element.bgAnchor;
   const triple = (value: readonly number[] | undefined, max: number): boolean => Array.isArray(value)
     && value.length === 3 && value.every(v => Number.isInteger(v) && v >= 0 && v <= max);
   return !element.colorSamplesUnavailableReason && samples?.model === 'kdef-2.3.1-color'
-    && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte' && sample
+    && ownerDisplayPolicyMatches(owner, samples.displayPolicy) && sample
     && triple(sample.rgb16, 65535) && triple(sample.displayRgb, 255)
     && anchor && anchor.length === 2 && anchor.every(Number.isInteger)
     && anchor[0] >= 0 && anchor[0] < source.width && anchor[1] >= 0 && anchor[1] < source.height
@@ -116,7 +118,7 @@ function headerRegions(source: PixelBuffer, element: ChromeElement, width: numbe
 /** Internal admitted solid painter. Full-color, ordinary nonrecording display
  * policy only; optional original device caches are not reproduced. */
 export function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, plan: HeaderSurfacePlan,
-  background: readonly number[]): { result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean } {
+  background: readonly number[], owner?: ThemeManifest): { result: HeaderSurfaceResult; lineSampling: NonNullable<HeaderSurfaceTrace['lineSampling']>; painted: boolean } {
   const { w: width, h: height } = plan.requestedRect, paintHeight = plan.paintRect.h;
   const clip = plan.effectiveClip!;
   const x0 = Math.max(0, clip.x - plan.requestedRect.x), y0 = Math.max(0, clip.y - plan.requestedRect.y);
@@ -133,7 +135,7 @@ export function paintHeaderSurface(source: PixelBuffer, element: ChromeElement, 
   // Optional additive decoder field; older manifests remain explicitly unsupported.
   const proof = element.samplingEquivalence;
   if (needsSampling && !(proof?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && proof.comparison === 'opaque-current-display-rgb'
-    && proof.displayPolicy === 'mac-1.8-to-2.2-high-byte' && proof.width === source.width && proof.height === source.height
+    && ownerDisplayPolicyMatches(owner, proof.displayPolicy) && proof.width === source.width && proof.height === source.height
     && proof.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal')) return { result: { status: 'unsupported', reason: 'unverified-line-sampling' }, lineSampling: 'unverified', painted: false };
   const lineSampling = needsSampling ? 'equivalent-current-display' : 'not-required';
   for (let i = 3; i < source.data.length; i += 4) if (source.data[i] !== 0 && source.data[i] !== 255)

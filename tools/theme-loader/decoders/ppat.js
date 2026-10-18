@@ -1,3 +1,4 @@
+import { DisplayProfileError } from '../display-profile.js';
 // Decode a 'ppat' (pixel pattern) resource into an RGBA pixel buffer.
 //
 // Serialized layout (per Inside Macintosh: Imaging With QuickDraw, ch. 4):
@@ -29,7 +30,7 @@ import {
  *   Returns null for unsupported pattern types or palette-relative color tables.
  *   Existing direct-color/type2 handling is outside the indexed-table contract.
  */
-export function decodePpat(bytes) {
+export function decodePpat(bytes, { realizeRgb16 } = {}) {
   const r = new Reader(bytes);
 
   const patType = r.readUInt16();
@@ -62,6 +63,7 @@ export function decodePpat(bytes) {
   // example for 32 bpp — previously failed with "Unsupported pixelSize: 32".
   // 16 bpp = 1 padding bit + 5R + 5G + 5B big-endian; 32 bpp = $00 $RR $GG $BB.
   if (pmap.pixelSize === 32 || pmap.pixelSize === 16) {
+    if (realizeRgb16) throw new DisplayProfileError('Direct-color ppat source precision is outside this profile contract', 'UNSUPPORTED_SOURCE_COLOR');
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const o = (y * w + x) * 4;
@@ -121,17 +123,21 @@ export function decodePpat(bytes) {
   const colors = new Map();
   colorTable.entries.forEach((entry, position) => {
     const index = colorTable.flags & 0x8000 ? position : entry.value;
-    if (!colors.has(index)) colors.set(index, [entry.r >> 8, entry.g >> 8, entry.b >> 8]);
+    if (!colors.has(index)) colors.set(index, [entry.r, entry.g, entry.b]);
   });
 
   const indices = expandIndexedPixels(
     pixelBytes, pmap.width, pmap.height, pmap.pixelSize, pmap.rowBytes,
   );
 
+  const realized = new Map();
   for (let i = 0; i < indices.length; i++) {
     // Preserve the existing visible black fallback for missing values. The
     // original foreground/background interpolation is not implemented here.
-    const [rR, gR, bR] = colors.get(indices[i]) ?? [0, 0, 0];
+    let rgb = realized.get(indices[i]);
+    if (realizeRgb16 && !colors.has(indices[i])) throw new DisplayProfileError('Missing pattern palette index', 'UNSUPPORTED_SOURCE_COLOR');
+    if (!rgb) { const raw = colors.get(indices[i]) ?? [0,0,0]; rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(v => v >> 8); realized.set(indices[i],rgb); }
+    const [rR,gR,bR] = rgb;
     const o = i * 4;
     rgba[o] = rR;
     rgba[o + 1] = gR;

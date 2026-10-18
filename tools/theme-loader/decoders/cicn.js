@@ -1,3 +1,4 @@
+import { DisplayProfileError } from '../display-profile.js';
 // Decode a 'cicn' (color icon) resource into an RGBA pixel buffer.
 //
 // Serialized layout (per Inside Macintosh: Imaging With QuickDraw, ch. 4):
@@ -27,7 +28,7 @@ import { makeKdefColorSampler } from '../kdef-color-samples.js';
  * @param {Uint8Array} bytes  Raw cicn resource bytes
  * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}|null} null for a structurally valid unsupported destination-palette variant
  */
-export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
+export function decodeCicn(bytes, { retainKdefColorSampler = false, realizeRgb16, displayPolicy } = {}) {
   requireBytes(bytes, 0, 82, 'headers');
   const r = new Reader(bytes);
 
@@ -73,9 +74,9 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
   // overlap/opaque-outside policy; its historical semantics remain unverified.
   const maskAlpha = expandMask(maskBytes, mask.width, mask.height, mask.rowBytes);
 
-  const rgba = composeRgba(indices, maskAlpha, pmap, mask, colorTable);
+  const rgba = composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16);
   const sampler = makeKdefColorSampler(indices, pmap.width, pmap.height, colorTable.entries);
-  const samplingEquivalence = compareOpaqueSampling(indices, rgba, pmap, mask, sampler);
+  const samplingEquivalence = compareOpaqueSampling(indices, rgba, pmap, mask, sampler, realizeRgb16, displayPolicy);
 
   return {
     width: pmap.width,
@@ -83,7 +84,7 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
     rgba,
     samplingEquivalence,
     bodyCicnSource: inspectCicnBody(pmap, mask, bmap, colorTable, indices),
-    sampledBandRgba: sampledBandPixels(indices, rgba, pmap, sampler, samplingEquivalence),
+    sampledBandRgba: sampledBandPixels(indices, rgba, pmap, sampler, samplingEquivalence, realizeRgb16),
     ...(retainKdefColorSampler ? { sampleKdefRgb16: sampler } : {}),
     debug: {
       pixelSize: pmap.pixelSize,
@@ -95,15 +96,16 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
   };
 }
 
-function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
+function composeRgba(indices, maskAlpha, pmap, mask, colorTable, realizeRgb16) {
   // Apple TN QD13: bit15 clear uses ColorSpec.value; set uses position.
   // Resolve once per decode. Duplicate values use an explicit first-entry compatibility policy;
   // missing values retain black. Neither policy claims historical semantics.
   const palette = new Map();
   colorTable.entries.forEach((entry, position) => {
     const index = colorTable.flags & 0x8000 ? position : entry.value;
-    if (!palette.has(index)) palette.set(index, [entry.r >> 8, entry.g >> 8, entry.b >> 8]);
+    if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
   });
+  const realized = new Map();
   const w = pmap.width, h = pmap.height;
   const rgba = new Uint8Array(w * h * 4);
   const sameDims = (mask.width === w && mask.height === h);
@@ -112,7 +114,14 @@ function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
     for (let x = 0; x < w; x++) {
       const i = y * w + x;
       const idx = indices[i];
-      const [r, g, b] = palette.get(idx) ?? [0, 0, 0];
+      let rgb = realized.get(idx);
+      if (!rgb) {
+        if (realizeRgb16 && !palette.has(idx)) throw new DisplayProfileError('Missing ordinary palette index', 'UNSUPPORTED_SOURCE_COLOR');
+        const raw = palette.get(idx) ?? [0, 0, 0];
+        rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(v => v >> 8);
+        realized.set(idx, rgb);
+      }
+      const [r, g, b] = rgb;
 
       let alpha = 255;
       if (sameDims) {

@@ -12,6 +12,7 @@
 import { beginLoadProvenance } from './loadProvenance.js';
 import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
+import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
 import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
 
@@ -41,6 +42,8 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  *   `{ manifest, assets, iconIndex }`.
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
+  const displayProfile = options.displayProfile;
+  displayRealizer(displayProfile);
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
   if (options.provenance && input instanceof Uint8Array) input = new Uint8Array(input);
@@ -70,7 +73,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   let converted;
   try {
     converted = convertScheme(fork, {
-      meta: options.meta, source: options.source ?? 'resource-fork',
+      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile,
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {
@@ -196,6 +199,7 @@ function rewriteAssetRefs(node, urlByPath) {
   if (node && typeof node === 'object') {
     for (const k of Object.keys(node)) {
       const v = node[k];
+      if (k === 'displayProfile') continue; // immutable condition/evidence data, never asset references
       // Stable derivation identity is not an asset URL. Replace this immutable
       // scalar link as a unit; never recursively rewrite its derivedPath.
       if ((k === 'sampledBandAsset' || k === 'cicnBody') && v && typeof v === 'object') {

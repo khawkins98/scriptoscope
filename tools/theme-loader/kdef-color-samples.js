@@ -2,7 +2,7 @@
 // fc5c -> 10702 reads a serialized palette with its own search/shortcut rules;
 // it neither consults ctFlags nor substitutes transparent RGB with black.
 // See docs/spec/control-text-colors.md for addresses and unsupported devices.
-import { macRgbToSrgb } from './mac-gamma.js';
+import { realizeRgb16, displayPolicy } from './display-profile.js';
 
 /** Transient sampler: never placed in a returned manifest or loaded theme. */
 export function makeKdefColorSampler(indices, width, height, entries) {
@@ -24,12 +24,12 @@ export function makeKdefColorSampler(indices, width, height, entries) {
 }
 
 /** Pair only the actual decoded cicn and consumed same-ID cinf. */
-export function controlColorSamples(sample, cinf) {
+export function controlColorSamples(sample, cinf, profile) {
   if (!sample || !cinf) return null;
   const read = point => {
     const rgb16 = sample(point.x, point.y);
     return rgb16 ? Object.freeze({ rgb16: Object.freeze(rgb16),
-      displayRgb: Object.freeze(macRgbToSrgb(rgb16.map(value => value >> 8))) }) : null;
+      displayRgb: Object.freeze(realizeRgb16(rgb16, profile)) }) : null;
   };
   const background = read(cinf.bgPixel), text = read(cinf.textPixel);
   const absent = cinf.embossPixel.x === 0 && cinf.embossPixel.y === 0;
@@ -38,6 +38,6 @@ export function controlColorSamples(sample, cinf) {
     : emboss.rgb16[0] === 0x1234 ? 'sentinel'
     : !background ? 'unknown'
     : emboss.rgb16.every((value, i) => value === background.rgb16[i]) ? 'same-as-background' : 'present';
-  return Object.freeze({ model: 'kdef-2.3.1-color', displayPolicy: 'mac-1.8-to-2.2-high-byte',
+  return Object.freeze({ model: 'kdef-2.3.1-color', displayPolicy: displayPolicy(profile),
     background, text, emboss, embossDecision });
 }

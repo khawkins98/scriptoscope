@@ -1,3 +1,5 @@
+import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
+import type { ThemeManifest } from './types.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import type { TabBodyTrace } from './controlDiagnostics.js';
 import type { ChromeElement } from './types.js';
@@ -5,7 +7,7 @@ import type { ChromeElement } from './types.js';
 /** CDEF 8 0x16e, ordinary full-color masked body subset. Null explicitly retains
  * the legacy compositor when the needed cinf/sample/pattern contract is absent.
  * See docs/spec/tab-cdef8-body.md; this does not choose variants or lay out text. */
-export function composeTabBody(source: PixelBuffer, element: ChromeElement, width: number, observe?: (value: TabBodyTrace) => void): PixelBuffer | null {
+export function composeTabBody(source: PixelBuffer, element: ChromeElement, width: number, observe?: (value: TabBodyTrace) => void, owner?: ThemeManifest): PixelBuffer | null {
   const legacy = (reason: Extract<TabBodyTrace, { path: 'legacy-three-slice' }>['reason']): null => {
     observe?.({ path: 'legacy-three-slice', basis: 'compatibility-policy', reason, sourceWidth: source.width, sourceHeight: source.height, requestedWidth: width });
     return null;
@@ -25,7 +27,7 @@ export function composeTabBody(source: PixelBuffer, element: ChromeElement, widt
       : !Number.isInteger(element.bodyRequest.resourceId) || element.bodyRequest.resourceId < -32768 || element.bodyRequest.resourceId > 32767
         ? 'invalid-body-request' : 'pattern-center');
     const samples = element.colorSamples;
-    if (samples?.model === 'kdef-2.3.1-color' && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte') {
+    if (samples?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(owner, samples.displayPolicy)) {
       background = samples.background?.displayRgb;
       if (background) backgroundPolicy = 'raw-sample';
     }

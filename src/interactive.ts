@@ -769,11 +769,11 @@ interface ManagedWindow {
    *  render() the just-painted title strip is captured here for the CURRENT state; on a focus flip
    *  where the OPPOSITE state's strip is cached AND no other render-affecting state changed, we
    *  putImageData the cached strip into the existing chromeCanvas instead of recomposing. Key
-   *  encodes (theme.baseUrl, slug, width, height); any change invalidates. Optimization is
+   *  encodes (theme identity, slug, width, height); any change invalidates. Optimization is
    *  intentionally skipped for side-titled palettes (frame.top < 10px — the "title" lives on a
    *  vertical strip those windows don't expose as a horizontal block). */
   titleStripCache?: {
-    themeBaseUrl: string;
+    theme: LoadedTheme;
     slug: string;
     width: number;
     height: number;
@@ -1124,15 +1124,15 @@ export class WindowManager {
     // Skip side-titled palettes (title lives on a vertical strip the cache can't represent as a
     // single horizontal block). The full render() path still applies for those — just no fast-path.
     if (stripHeight < 10) return;
-    const themeBaseUrl = entry.theme.baseUrl;
+    const theme = entry.theme;
     const width = composed.fullWidth;
     const height = composed.fullHeight;
     // If any key changed, reset the cache for the new key (the previous state's strips no longer
     // apply — different theme or different dimensions render different pixels).
     const c = entry.titleStripCache;
-    const sameKey = c && c.themeBaseUrl === themeBaseUrl && c.slug === slug && c.width === width && c.height === height;
+    const sameKey = c && c.theme === theme && c.slug === slug && c.width === width && c.height === height;
     if (!sameKey) {
-      entry.titleStripCache = { themeBaseUrl, slug, width, height, stripHeight };
+      entry.titleStripCache = { theme, slug, width, height, stripHeight };
     }
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1157,7 +1157,7 @@ export class WindowManager {
    *  only the title-bar tinting). */
   private tryFastFocusFlip(entry: ManagedWindow): boolean {
     const c = entry.titleStripCache;
-    if (!c) return false;
+    if (!c || c.theme !== entry.theme) return false;
     const canvas = entry.chromeCanvas;
     if (!canvas) return false;
     // Canvas dims are the source-of-truth gate (any size mismatch means the strip is the wrong
