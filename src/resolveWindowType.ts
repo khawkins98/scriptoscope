@@ -1,5 +1,5 @@
 import type { LoadedTheme, WindowType } from './types.js';
-import { cascadeFallbackSlugs } from './wndCascade.js';
+import { canonicalWindowTypeSlug, cascadeFallbackSlugs } from './wndCascade.js';
 
 /**
  * Resolve a window type robustly across bundles. Some schemes use the
@@ -40,9 +40,10 @@ export function resolveWindowType(theme: LoadedTheme, slug: string): WindowType 
     let bestScore = 0;
     let bestSegs = -1;
     for (const [k, v] of Object.entries(wts)) {
-      if (/collapsed/.test(k) || !v.edges?.top?.length || !v.parts?.['part-0']?.rect) continue;
+      const identity = canonicalWindowTypeSlug(k);
+      if (/collapsed/.test(identity) || !v.edges?.top?.length || !v.parts?.['part-0']?.rect) continue;
       if (!v.chrome?.active || !looksLikeWindow(theme, v)) continue;
-      const score = /titled-utility/.test(k) ? 4 : /utility/.test(k) ? 3 : /floating|palette/.test(k) ? 2 : 0;
+      const score = /titled-utility/.test(identity) ? 4 : /utility/.test(identity) ? 3 : /floating|palette/.test(identity) ? 2 : 0;
       if (score === 0) continue;
       const segs = v.edges.top.length;
       if (score > bestScore || (score === bestScore && segs > bestSegs)) { bestScore = score; bestSegs = segs; best = v; }

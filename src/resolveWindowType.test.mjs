@@ -28,6 +28,21 @@ test('utility aliases use type identity and reject author-labelled grow boxes', 
   assert.equal(resolveWindowType(theme, 'utility'), modal);
 });
 
+test('legacy raw wnd# keys retain utility identity with opaque assets', () => {
+  const titled = frame('blob:raw-titled');
+  const side = frame('blob:raw-side');
+  const theme = { manifest: { windowTypes: {
+    'wnd--14300': frame('blob:collapsed'),
+    'movable-modal': frame('blob:modal'),
+    'wnd--14296': side,
+    'wnd--14304': titled,
+  } } };
+  for (const alias of ['utility', 'mini', 'floating', 'palette']) assert.equal(resolveWindowType(theme, alias), titled);
+  assert.equal(resolveWindowType(theme, 'wnd--14296'), side);
+  delete theme.manifest.windowTypes['wnd--14304'];
+  assert.equal(resolveWindowType(theme, 'utility'), side);
+});
+
 test('every corpus alias and canonical type resolves identically with filenames and opaque URLs', async () => {
   const root = new URL('../themes/', import.meta.url);
   let checked = 0;
