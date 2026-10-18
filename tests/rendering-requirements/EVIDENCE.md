@@ -56,13 +56,15 @@ solely from a snapshot. The `AgjpQy` unselected automatic-size cases are scoped
 here. Font choice/size and complete historical tab placement remain unknown.
 No claim of Windows95/Windows31 glyph clipping is made.
 
-## Known face mismatch (#218, before its runtime correction)
+## Narrow Lisa square-corner retention (corrected by PR233)
 
 Apple Lisa active cicn -10239 is 9x9 with cinf corner4/side1. The original square4x4 corner rule retains source(2,2); the rectangular4x1 face slicer can substitute source(2,1).
 
-This claim concerns square source-corner retention only, with empty label and
-explicit 20px face. The source-backed correction and independent full-corner
-oracle are reviewed in [PR233](https://github.com/khawkins98/scriptoscope/pull/233).
-When that correction merges, update the assessment and executable assertion
-reference before closing #218. This does not certify Lisa's complete face,
-text, pattern, decoder or state model.
+The previous rectangular slicer caused that mismatch. Merged
+[PR233](https://github.com/khawkins98/scriptoscope/pull/233) corrects the source
+geometry. The registered oracle compares alpha and opaque color for every pixel
+in all four Lisa source corner blocks with an empty label, normal state,
+`minWidth: 80` and `height: 20`. This exact geometry requirement is verified.
+The other face requirements remain unknown; #218 stays open for patterns, list
+headers and legacy-path limits. No whole-face, text, decoder or state fidelity
+is inferred. Inventory 1.0.1 explicitly aligns the Lisa input with this 80px oracle.

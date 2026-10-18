@@ -3607,3 +3607,8 @@ reporter records actual source/built test results and execution commit independe
 of reviewed fidelity statuses; missing or stale results are not run. A source-fix
 PR must update its mismatch assessment before closing the tracked issue, because
 CI checks issue liveness rather than treating a stale issue link as active work.
+
+The Lisa follow-up also exposed an input-scope distinction: the existing corner
+oracle uses `minWidth: 80`, while the initial ledger omitted that option. Inventory
+1.0.1 declares the exact 80px/20px empty normal input before attaching the
+verified corner-retention assertion; a nearby input is not silently equivalent.

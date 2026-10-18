@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.0.0",
+  "inventoryVersion": "1.0.1",
   "scope": {
     "description": "Eight exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
@@ -177,7 +177,7 @@
       "locator": "Apple Lisa active cicn -10239 is 9x9 with cinf corner4/side1. The original square4x4 corner rule retains source(2,2); the rectangular4x1 face slicer can substitute source(2,1).",
       "excerptSha256": "b85e0b3df91e059e26d82bb1a26d9257ca976171c16cee389ffab9d89a378794",
       "claim": "Retain square authored corner blocks.",
-      "limits": "Exact normal empty20px scope, not whole face; pending233 changes status.",
+      "limits": "Exact normal empty minWidth80/height20 scope. Verifies decoded square-corner retention only, not full face/text/pattern, decoder or state selection.",
       "requirementIds": [
         "face.square-corner-retention"
       ]
@@ -282,6 +282,19 @@
         "win95.slider.vertical.normal.v0.l64"
       ],
       "claim": "Every decoded opaque cell pixel retained; test also checks project placement policy without claiming historical proof.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "face.corpus-square-corners",
+      "path": "tests/rendering-options/face-bands.spec.mjs",
+      "marker": "description: 'face.corpus-square-corners'",
+      "caseIds": [
+        "lisa.push.normal.empty.h20"
+      ],
+      "claim": "Retain all four Lisa source corner blocks (alpha and opaque colors) for normal empty label, minWidth80 and height20. No other face requirement inferred.",
       "modes": [
         "source",
         "built"
@@ -613,7 +626,10 @@
       "family": "push",
       "options": {
         "label": "",
-        "height": 20
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false
       },
       "dimensions": {
         "resourceSelection": [
@@ -1144,17 +1160,17 @@
     {
       "caseId": "lisa.push.normal.empty.h20",
       "requirementId": "face.square-corner-retention",
-      "status": "mismatched",
+      "status": "verified",
       "evidence": [
         "kdef.square-corners",
         "art.lisa-corner"
       ],
-      "assertions": [],
-      "issues": [
-        218
+      "assertions": [
+        "face.corpus-square-corners"
       ],
-      "rationale": "Current rectangular corner inset substitutes rows within authored square corner; source-backed correction233 pending merge.",
-      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+      "issues": [],
+      "rationale": "Merged PR233 retains every sampled opaque corner pixel and alpha in all four authored square blocks for Lisa normal empty minWidth80/height20. Only corner retention is independently verified; other face obligations remain unknown.",
+      "review": "Narrow geometry update after reviewed PR233 at b879bb1393974ed68f43622b7817e6c8fbb6f9fb; original source coordinates plus executable exact-input oracle."
     },
     {
       "caseId": "lisa.push.normal.empty.h20",
@@ -1197,5 +1213,5 @@
       "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
     }
   ],
-  "inventorySha256": "c299de15b6ab82bfe51fe303a211ec26fc2cfc1c067e55daf765df259a7ffc70"
+  "inventorySha256": "1cefbc190b52b72cbe893d14c924081eaf9179ae62fd8f2cb42471bcab984a75"
 }

@@ -61,6 +61,7 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
 });
 
 for (const mode of ['source', 'built']) test(`${mode}: unequal solid corpus faces retain authored corners across state and height`, async ({ page, servers }, testInfo) => {
+  testInfo.annotations.push({ type: 'fidelity-assertion', description: 'face.corpus-square-corners' });
   await openHarness(page, servers, mode);
   let rows;
   try {

@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Version 1 declares eight exact direct cases and seven explicit dimensions per
+Inventory 1.0.1 declares eight exact direct cases and seven explicit dimensions per
 case. **Every initial case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -73,3 +73,7 @@ The validator's negative tests cover disappearing obligations, invalid evidence,
 wrong assertion scope, changed inputs, closed tracking issues, and stale/missing
 execution evidence. Tests deliberately exercise trust boundaries instead of
 reimplementing the control compositor.
+
+Inventory 1.0.1 aligns Lisa with the exact 80px-wide, 20px-high empty normal
+input covered by the merged #233 corner oracle. Only that geometry assessment
+changes from mismatched to verified; all eight inventories remain OPEN.
