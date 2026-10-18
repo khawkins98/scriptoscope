@@ -9,6 +9,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Promote directly inserted declarative subtree roots and their moved child
+  controls, retaining queued additions through theme/preparation barriers. Keep
+  initial mount-root semantics and late initial control discovery. Existing
+  window hosts now exclude both direct and wrapped late controls; this removes
+  the accidental wrapped path that bypassed the documented boundary (#281).
+
 - Extend the partial rendering requirement inventory to sixteen exact direct
   cases, with bounded authored RGB16 text/emboss and pattern phase/clip evidence.
   Preserve the original eight cases, all OPEN closures and explicit unknown

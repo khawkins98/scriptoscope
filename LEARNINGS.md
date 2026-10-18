@@ -4183,3 +4183,20 @@ rectangles maps identical source coordinates, so its source order is statically
 known but cannot be distinguished by swapping those two pixel operations. Keep
 literal coverage tests honest about that limit. Original typography, pattern
 phase and device transfer require separate evidence; see the CDEF 8 body spec.
+
+
+## 2026-10-18 — subtree discovery needs identities and timing, not only selectors
+
+`querySelectorAll` excludes its receiver, so an observer scanning added Elements
+missed direct declarative roots (#281). Including self alone is insufficient:
+window promotion detaches that root and moves its children. Retain pre-move target
+identities, but also union fresh descendants while the original receiver remains
+owned. Otherwise the initial asynchronous scan loses controls added while chrome
+prepares, before the observer is installed. Keep later observer additions queued
+through active scans rather than dropping records behind a scheduled flag.
+
+An outer host's light-DOM content cannot find its shadow-DOM chrome with
+`closest('.scriptoscope-window')`. The explicit outer window-host marker enforces
+the existing unsupported late-content boundary, including the previously
+accidental container-wrapped promotion path. This boundary is separate from
+moving already-owned control faces or discovering initial window children.
