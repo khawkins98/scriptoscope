@@ -7,6 +7,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Corrected the rendering matrix tab fixture to place the tab strip before its
+  panels, matching consumer markup and avoiding a misleading contact-sheet layout.
+
 ### Added (2026-10-18)
 
 - Reusable public-runtime control matrix with bounded and extended option cases,

@@ -3480,3 +3480,12 @@ are provenance only. Verification refuses missing baselines and never writes the
 An exact Playwright package plus immutable Linux browser image makes recording and
 comparison repeatable; source-art inspection and semantic assertions remain the
 fidelity evidence, even after image goldens are approved.
+
+### 2026-10-18 — Golden fixtures need independent layout contracts
+
+The control matrix initially interleaved each tab button with its panel. Because
+the runtime preserves consumer order, selecting the first tab put the other tab
+below the visible panel. Group all buttons before panels, as in the documented
+consumer markup; check that order and the visible panel's geometry independently
+before approving snapshots. A deterministic image can faithfully preserve a bad
+test fixture.
