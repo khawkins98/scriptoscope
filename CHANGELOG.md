@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Interactive period-ad landing with five live themed portrait windows, scheme
+  switching and composition resets; the previous demonstration remains available
+  at `showcase.html`, including legacy theme links. ([#245](https://github.com/khawkins98/scriptoscope/pull/245))
+
 - Finite independently reviewed control availability expectations: 26 API-policy
   outcomes plus an explicit unknown, checked against actual source/built resource
   traces, pinned archive evidence and native fallback keyboard behavior.
