@@ -27,14 +27,12 @@ toolchain requirement.
    npm run preview:demo # serve the PROD bundle at http://localhost:4173/scriptoscope/ — use before push to catch bundling/minification regressions the dev server hides
    ```
 
-3. **Check your work.** Run the unit tests and static gates; use render/audit diagnostics for chrome changes:
-   ```sh
-   npm run typecheck  # tsc --noEmit
-   npm test           # decoder and runtime regression tests
-   npm run diag:render  # render a window off a bundle to a PNG for eyeballing
-   npm run diag:audit   # audit part placement against the recipe
-   npm run lint:themes  # validate theme bundles
-   ```
+3. **Reproduce, fix, and validate.** Start with a targeted reproducer and an
+   acceptance case for the behavior being changed. For fidelity fixes, derive
+   expected values independently from source evidence or a reviewed original
+   reference with matching inputs; renderer output alone is not an oracle.
+   Use the relevant unit/browser test while iterating. For chrome diagnosis,
+   `npm run diag:render` and `npm run diag:audit` help inspect the result.
 
    Before pushing, run `npm run build:themes`, `npm run build`, then `npm run gates`.
    The build supplies the library used by strict lint; theme extraction supplies
@@ -56,6 +54,13 @@ toolchain requirement.
    current output alone does not establish fidelity to Kaleidoscope. Keep
    unsupported cases visible and distinguish regression coverage from original
    engine evidence.
+
+   Run the required change-appropriate checks on the finished implementation.
+   `gates` already includes typechecking, unit tests and strict theme lint;
+   running each again adds no evidence unless something changed or failed.
+   Rerun affected checks after changes, failures or unresolved concerns, and
+   broaden coverage when those findings justify it. Retain existing CI requirements;
+   do not repeat a successful full suite just for an unchanged implementation.
 
 4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
@@ -136,6 +141,9 @@ feat(api)!: rename ScriptoscopeWindow constructor option `theme` to `themeId`
 - Keep PRs focused — one logical change per PR when practical.
 - Include a brief description of *why*, not just *what*.
 - Link related issues.
+- Obtain one independent review of the focused change and its evidence. Revisit
+  that review when material changes or unresolved findings require it; retain
+  the existing source-evidence and golden-update review requirements.
 
 ### Merging
 
