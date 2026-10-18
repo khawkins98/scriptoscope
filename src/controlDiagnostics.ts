@@ -26,10 +26,26 @@ export interface ControlResolutionStep {
   readonly usage: 'paint' | 'layout-reservation';
 }
 
+/** Actual tab assembly decision. Legacy reasons describe current compatibility
+ * policy, not an original-engine fallback. No font/device fidelity is implied. */
+export type TabBodyTrace = {
+  readonly sourceWidth: number; readonly sourceHeight: number;
+  readonly requestedWidth: number;
+} & ({
+  readonly path: 'source-bands'; readonly basis: 'source-dispatch';
+  readonly center: 'empty' | 'solid';
+  readonly backgroundPolicy: 'none' | 'raw-sample' | 'decoded-anchor';
+  readonly corner: number; readonly side: number; readonly tile: boolean;
+} | {
+  readonly path: 'legacy-three-slice'; readonly basis: 'compatibility-policy';
+  readonly reason: 'missing-slice' | 'invalid-slice-or-size' | 'missing-body-request'
+    | 'invalid-body-request' | 'pattern-center' | 'missing-or-invalid-background-anchor' | 'masked-background';
+});
+
 export interface ControlRenderTrace {
   readonly version: 1;
   readonly correlationId?: string;
-  readonly family: 'push-button' | 'bevel-button';
+  readonly family: 'push-button' | 'bevel-button' | 'tab';
   readonly requested: {
     readonly state: 'active' | 'pressed' | 'inactive';
     readonly pressed: boolean;
@@ -37,8 +53,10 @@ export interface ControlRenderTrace {
     readonly default?: boolean;
     readonly on?: boolean;
     readonly small?: boolean;
+    readonly selected?: boolean;
   };
   readonly steps: readonly ControlResolutionStep[];
+  readonly tabBody?: TabBodyTrace;
   /** Actual label policy for the selected face; no original font/device claim. */
   readonly textColors?: {
     readonly foreground: string; readonly emboss: string | null;
@@ -68,6 +86,7 @@ export interface ControlDiagnostics {
 /** Private per-invocation collector. Never stores themes or decoded buffers. */
 export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
+  tabBody(value: TabBodyTrace): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
   composition(value: NonNullable<ControlRenderTrace['composition']>): void;
 }
@@ -89,9 +108,10 @@ export async function withControlDiagnostics(
   if (!diagnostics) return render();
   const { onComplete, correlationId } = diagnostics;
   const steps: ControlResolutionStep[] = [];
+  let tabBody: TabBodyTrace | undefined;
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
-  const collector: ControlTraceCollector = { record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
+  const collector: ControlTraceCollector = { tabBody: value => { tabBody = value; }, record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
   let result: PixelBuffer | null = null;
   let failed = false;
   let error: unknown;
@@ -100,7 +120,7 @@ export async function withControlDiagnostics(
   const trace: ControlRenderTrace = freezeRecord({
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
-    family, requested, steps, ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
+    family, requested, steps, ...(tabBody ? { tabBody } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }
       : { status: 'unavailable' },

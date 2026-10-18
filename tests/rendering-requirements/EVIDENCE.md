@@ -150,3 +150,13 @@ Exact archive/cicn/cinf pins live in `tests/decoder-fixtures/tab-body-source-pin
 The assertion checks the exact existing AgjpQy options outside the browser glyph
 mask; that mask excludes text, not the middle band. No actual tab paint-selection
 trace or original font/device/transfer claim is inferred from catalog identity.
+
+## Additional actual tab diagnostics (not a ledger transition)
+
+The finite `tab-trace.spec.mjs` source/built cases now observe `composeTab`'s actual
+selected owner/key/cicn/cinf reference and body branch. The reference joins to that
+owner's decoder resource occurrence before comparison with independent archived
+input and payload hashes. Existing `expectedEntryBinding` records in the body
+assertions remain expected catalog evidence; they are not silently relabeled as
+actual paint. No assessment or denominator changes here. Font, device transfer,
+original variant selection and Resource Manager ownership remain separate.

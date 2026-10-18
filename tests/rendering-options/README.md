@@ -180,3 +180,14 @@ This is diagnostic retention, not a passing result or
 fidelity approval. Run logs remain separate. Archives persist until explicitly
 removed after review; they are ignored by Git and included in CI failure uploads.
 Keep custom `--output` directories separate from this archive and its ancestors.
+
+### Actual tab paint evidence
+
+`tab-trace.spec.mjs` tests the opt-in public tab diagnostic callback in source and
+built modes. It joins actual face selection to the owning decoder occurrence and
+independent 1138/1990 byte pins, with wrong-owner/request/key/depth/payload/branch
+negatives, explicit missing/ambiguous evidence, concurrent shared callbacks and
+on/off pixel/decode parity. The matrix also attaches direct tab traces. Successful
+observations retain only selected resource records; failures retain the full load
+records. This extends diagnostic coverage, not the separately reviewed requirement
+ledger or historical typography/device/variant-selection claims.

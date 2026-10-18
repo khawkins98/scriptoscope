@@ -59,6 +59,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   integrity checks. Palette/provider/font gaps remain open; reference intake
   still has no admitted captures or approvals (#190).
 
+- Add opt-in tab paint diagnostics with actual selected owner/resource occurrence,
+  source-band versus legacy branch reasons and independent byte-join negatives.
+  Preserve output, decode counts and theme ownership; no fidelity assessment is
+  promoted (#284).
+
 - Portable browser-observation metadata binds the actual checkout, built assets
   and browser version. Environment commit claims and supplied metadata cannot
   silently replace observed execution identity; this remains regression evidence.

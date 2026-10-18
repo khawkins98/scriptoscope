@@ -1,6 +1,6 @@
 # Control resource-resolution diagnostics
 
-`composeButton` (plain/default) and `composeBevelButton` accept optional
+`composeButton` (plain/default), `composeBevelButton` and `composeTab` accept optional
 `diagnostics: { onComplete, correlationId? }`. Each invocation owns a private
 collector and calls `onComplete` once with a deeply frozen `ControlRenderTrace`.
 Nothing is emitted or retained globally. Tracing does not own themes, dispose
@@ -17,7 +17,7 @@ const pixels = await composeButton(theme, {
 ```
 
 The public package exports `ControlDiagnostics`, `ControlRenderTrace` and
-`ControlResolutionStep` types. Completion is per compositor invocation, not per
+`ControlResolutionStep` and `TabBodyTrace` types. Completion is per compositor invocation, not per
 DOM mount or interaction; a higher-level caller can invoke a compositor more
 than once. The declarative mount/closed-select path does not yet forward a
 consumer diagnostic callback. Other control families remain outside this trace.
@@ -86,7 +86,7 @@ separate and frozen; one callback cannot mutate another invocation's evidence.
 
 ## Harness and validation
 
-The matrix records `resolutionTrace` for direct push/default/bevel cases and null
+The matrix records `resolutionTrace` for direct push/default/bevel/tab cases and null
 for uninstrumented paths. Source/built case artifacts retain their own actual
 traces; transient URLs are not compared as stable IDs. Golden page observations
 retain the built trace. Source-art galleries remain candidate art, not a second
@@ -100,3 +100,44 @@ concurrent callbacks, error precedence and tracing-on/off pixel equality. Unit
 checks isolate completion ordering and deep immutability. These tests establish
 the diagnostic contract and declared runtime policies; independent availability
 expectations and full historical fidelity remain separate work under #228/#221.
+
+## Tab paint diagnostics
+
+`composeTab(theme, { label, selected, diagnostics })` uses the same completion,
+freeze and error contract. The additive `family: 'tab'` record retains
+`requested.selected`; its requested state is active (this API has no disabled or
+pressed tab option). Resolution records the actual requested front IDs
+`-9972`/`-9980` or rear IDs `-9975`/`-9983`, actual selected face and owner, and
+`tab-small-to-large` when the small-art attempt is unavailable. This order and
+base/alias resolution remain explicit **compatibility policy**. No expected
+catalog lookup is substituted for the actual compositor selection.
+
+The exported `TabBodyTrace` type describes `trace.tabBody`, emitted by the body
+helper at the branch it actually executes:
+
+- `source-bands` records source dimensions, requested output width, corner/side,
+  repeat flag, and `center: 'empty' | 'solid'`. Background policy is `none`,
+  `raw-sample`, or `decoded-anchor`. An empty center needs no background request
+  and must not be confused with an unsupported positive center.
+- `legacy-three-slice` records a precise reason: missing/invalid slice or size,
+  missing/invalid body request, nonzero pattern center, missing/invalid anchor,
+  or masked decoded background. These are current compatibility decisions,
+  **not** proof of the original engine's fallback behavior. A missing face or
+  failed decode has no body decision; use the completed outcome and steps.
+
+`source-dispatch` on a supported body identifies the implemented source-derived
+band geometry. It does not authenticate a decoded-anchor sample as raw RGB16,
+certify device/display conversion, or validate retained text layout and variant
+selection. Requested width includes the existing API label-width policy; the
+completed outcome reports the actual returned dimensions, including legacy
+cropping. Diagnostics do not add a decode, change pixels, or assume ownership.
+No detailed branch record is constructed when diagnostics are disabled.
+
+`tab-trace.spec.mjs` joins actual selected face references to the **owning load's
+resource occurrence**, then to independent 1138/1990 archive/fork and cicn/cinf
+payload pins. Missing trace/provenance remains unknown and cannot pass. Wrong
+owner, base depth, manifest key, request, load ID, occurrence, payload or branch
+fails even if source and built would agree with each other. Concurrent same-ID
+loads carry distinct invocation references; ambiguous generated asset identity
+is rejected by the opted-in loader. These finite assertions add diagnostic
+coverage only; no requirement-ledger assessment or historical scope is promoted.

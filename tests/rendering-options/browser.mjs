@@ -132,7 +132,7 @@ async function compose(theme, c, record) {
   const functions = { push: 'composeButton', default: 'composeButton', bevel: 'composeBevelButton',
     'list-header': 'composeListHeader', slider: 'composeSlider', progress: 'composeProgress',
     tab: 'composeTab', scrollbar: 'composeScrollbar', disclosure: 'composeDisclosure', growbox: 'composeGrowBox' };
-  const options = ['push', 'default', 'bevel'].includes(c.family)
+  const options = ['push', 'default', 'bevel', 'tab'].includes(c.family)
     ? { ...c.options, diagnostics: { correlationId: c.id, onComplete: trace => { record.resolutionTrace = trace; } } }
     : c.options;
   return c.family === 'checkbox' || c.family === 'radio'
