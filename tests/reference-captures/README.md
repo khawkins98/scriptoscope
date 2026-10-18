@@ -37,8 +37,14 @@ and review the request instead of relabeling a different capture as a match.
 `requests.json` is authoritative for exact inputs. It references the existing
 [source-choice registry](../control-availability/source-choices.json); it does not
 create a competing source catalog. A request digest includes its version/content,
-source entry/archive/fork pins and selection-review status, compatibility version,
-ledger version and engine component pin. These draft source choices identify
+source entry/archive/fork pins and selection-review status, authoritative compatibility
+document ID/version/full-file SHA-256, ledger version, exact target requirement
+wording and engine component pin. Source-registry/ledger paths are also checked
+against their existing authorities.
+The compatibility document is the single identity/version authority: request pins must match its explicit header (currently
+draft 0.1.1). Even an unversioned document edit invalidates prior request digests;
+reviewed document changes still require a version increment. These draft source
+choices identify
 requested bytes; they do **not** approve historical Resource Manager selection or
 which provider owned each resource. The known kDEF0 2.3.1 hash identifies one
 component, not a full engine installation, PACH stack or original OS.

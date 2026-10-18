@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, repositoryRoot } from './contract.mjs';
 
@@ -140,4 +140,56 @@ test('a swapped environment manifest or changed capture log is rejected independ
   assert.equal(result.status, 'rejected'); assert.ok(result.rejected.some(s => s.startsWith('environment-manifest')));
   writeFileSync(join(f.root, 'test-only.txt'), 'CHANGED');
   assert.ok(f.assess(f.capture, [updatedReview]).rejected.some(s => s.includes('capture-log: hash mismatch')));
+});
+
+function contractRoot(t) {
+  const root = mkdtempSync(join(tmpdir(), 'reference-contract-authority-test-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  for (const path of ['tests/reference-captures/requests.json', 'tests/control-availability/source-choices.json', 'tests/rendering-requirements/ledger.json', 'docs/spec/fidelity-compatibility-contract.md']) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), readFileSync(join(repositoryRoot, path)));
+  }
+  symlinkSync(join(repositoryRoot, 'themes'), join(root, 'themes'), 'dir');
+  return root;
+}
+for (const [field, value, expected] of [['contractId', 'another.contract', /contractId/], ['contractVersion', '0.1.0', /contractVersion/]]) {
+  test(`wrong or stale ${field} fails against the authoritative document`, t => {
+    const root = contractRoot(t), path = join(root, 'tests/reference-captures/requests.json');
+    const catalog = JSON.parse(readFileSync(path)); catalog[field] = value;
+    writeFileSync(path, JSON.stringify(catalog));
+    assert.throws(() => readContract(root), expected);
+  });
+}
+test('a changed authoritative document invalidates prior request and review bindings even without a version increment', t => {
+  const root = contractRoot(t), path = join(root, 'docs/spec/fidelity-compatibility-contract.md');
+  const original = readContract(root); assert.equal(original.compatibility.version, '0.1.1');
+  writeFileSync(path, readFileSync(path, 'utf8') + '\nA changed acceptance boundary requires fresh review.\n');
+  const changed = readContract(root), nextRequest = changed.requests.find(r => r.id === request.id);
+  assert.notEqual(changed.compatibility.sha256, original.compatibility.sha256);
+  assert.notEqual(nextRequest.requestDigest, request.requestDigest);
+  const f = fixture(t), review = f.approve(f.capture);
+  const result = assessCapture(f.capture, nextRequest, [review], { intakeRoot: f.root });
+  assert.equal(result.status, 'rejected');
+  assert.ok(result.rejected.some(r => r.startsWith('requestDigest')));
+  assert.ok(result.rejected.some(r => r.startsWith('review.requestDigest')));
+});
+test('missing or ambiguous authoritative identity/version headers fail closed', t => {
+  const root = contractRoot(t), path = join(root, 'docs/spec/fidelity-compatibility-contract.md'), document = readFileSync(path, 'utf8');
+  writeFileSync(path, document.replace('Contract ID:', 'Old identity:'));
+  assert.throws(() => readContract(root), /one explicit identity/);
+  writeFileSync(path, document + '\nContract ID: `another.contract`. Draft version: **0.1.1**,\n');
+  assert.throws(() => readContract(root), /one explicit identity/);
+});
+
+for (const field of ['sourceRegistry', 'requirementLedger']) test(`${field} cannot redirect to a second mutable authority`, t => {
+  const root = contractRoot(t), path = join(root, 'tests/reference-captures/requests.json');
+  const catalog = JSON.parse(readFileSync(path)); catalog[field] = 'alternative.json';
+  writeFileSync(path, JSON.stringify(catalog));
+  assert.throws(() => readContract(root), /authoritative/);
+});
+test('changed target requirement wording invalidates bindings even if its ID and ledger version stay unchanged', t => {
+  const root = contractRoot(t), path = join(root, 'tests/rendering-requirements/ledger.json'), ledger = JSON.parse(readFileSync(path));
+  ledger.requirements.find(r => r.id === request.targetRequirementIds[0]).claim = 'A different claimed obligation';
+  writeFileSync(path, JSON.stringify(ledger));
+  assert.notEqual(readContract(root).requests.find(r => r.id === request.id).requestDigest, request.requestDigest);
 });

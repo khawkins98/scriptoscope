@@ -3841,3 +3841,8 @@ and reject selfgolden/preview bytes submitted under an original-evidence label.
 Byte matching detects known contamination, not authenticity or truthful human
 identity. Missing captures must remain actionable missing evidence; a successful
 metadata gate cannot become a historical-fidelity result or overall percentage.
+
+The compatibility document remains the single ID/version authority. Validate
+request pins against its explicit header and bind its full-file hash into request
+digests: a stale catalog version must fail, and a document change must invalidate
+previous attestations even if someone omitted the required version increment.

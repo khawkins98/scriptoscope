@@ -25,11 +25,20 @@ const inside = (root, path) => {
 /** Reuse source/requirement authorities; this contract never approves their draft selections. */
 export function readContract(root = repositoryRoot) {
   const catalog = readJSON(resolve(root, 'tests/reference-captures/requests.json'));
+  const contractPath = 'docs/spec/fidelity-compatibility-contract.md';
+  const document = readFileSync(resolve(root, contractPath));
+  const headers = [...document.toString().matchAll(/^Contract ID: `([^`]+)`\. Draft version: \*\*(\d+\.\d+\.\d+)\*\*,/gm)];
+  check(headers.length === 1, 'compatibility contract must have one explicit identity/version header');
+  const compatibility = { id: headers[0][1], version: headers[0][2], path: contractPath, sha256: sha256(document) };
+  check(catalog.contractId === compatibility.id, 'capture request contractId does not match authoritative compatibility contract');
+  check(catalog.contractVersion === compatibility.version, 'capture request contractVersion is stale or mismatched');
+  check(catalog.sourceRegistry === 'tests/control-availability/source-choices.json', 'capture requests must reuse the authoritative source registry');
+  check(catalog.requirementLedger === 'tests/rendering-requirements/ledger.json', 'capture requests must reuse the authoritative requirement ledger');
   const choices = readJSON(resolve(root, catalog.sourceRegistry));
   const ledger = readJSON(resolve(root, catalog.requirementLedger));
   check(catalog.schemaVersion === 1 && text(catalog.requestVersion), 'unsupported request schema/version');
   const engine = ledger.inputs.find(input => input.id === catalog.engineComponentId);
-  check(engine && hash(engine.sha256), 'missing pinned engine component');
+  check(engine?.kind === 'engine' && hash(engine.sha256), 'missing pinned engine component');
   const ids = new Set();
   const requests = catalog.requests.map(request => {
     check(text(request.id) && !ids.has(request.id), 'missing/duplicate request id'); ids.add(request.id);
@@ -44,12 +53,12 @@ export function readContract(root = repositoryRoot) {
     check(isDeepStrictEqual(c.cropImageRect, [c.cropPortRect[0] - c.portOrigin[0], c.cropPortRect[1] - c.portOrigin[1], ...c.cropPortRect.slice(2)]), `${request.id}: inconsistent crop transform`);
     const [x, y, w, h] = c.cropImageRect;
     check(x >= 0 && y >= 0 && w > 0 && h > 0 && x + w <= c.imageSize[0] && y + h <= c.imageSize[1], `${request.id}: crop outside image`);
-    const pinned = { contractId: catalog.contractId, contractVersion: catalog.contractVersion, requestVersion: catalog.requestVersion,
-      ledgerVersion: ledger.inventoryVersion, sourceRegistrySchema: choices.schemaVersion, sourceRegistryReview: choices.reviewStatus,
+    const pinned = { compatibility, requestVersion: catalog.requestVersion,
+      ledgerVersion: ledger.inventoryVersion, targetRequirements: request.targetRequirementIds.map(id => ledger.requirements.find(r => r.id === id)), sourceRegistrySchema: choices.schemaVersion, sourceRegistryReview: choices.reviewStatus,
       request, source, engineComponent: engine };
     return { ...request, source, engineComponent: engine, requestDigest: digest(pinned) };
   });
-  return { catalog, requests };
+  return { catalog, compatibility, requests };
 }
 
 /** Known-byte contamination screen, NOT authentication of unknown external images. */
@@ -190,7 +199,7 @@ export function assessCorpus(contract, corpus, reviewFile, options) {
   check(ids.every(text) && new Set(ids).size === ids.length, 'missing/duplicate capture id');
   check(reviewFile.reviews.every(review => ids.includes(review.captureId)), 'orphan review does not name an intake capture');
   const captures = corpus.captures.map(capture => assessCapture(capture, contract.requests.find(r => r.id === capture.requestId), reviewFile.reviews, options));
-  return { schemaVersion: 1, contractId: contract.catalog.contractId, requestVersion: contract.catalog.requestVersion,
+  return { schemaVersion: 1, compatibilityContract: contract.compatibility, contractId: contract.compatibility.id, requestVersion: contract.catalog.requestVersion,
     interpretation: 'Evidence eligibility only. Missing captures are not passes; reviewed intake does not verify renderer output, original decoder, whole cases or complete fidelity.',
     requests: contract.requests.map(request => {
       const records = captures.filter(c => c.requestId === request.id && c.kind === 'independent-original');
