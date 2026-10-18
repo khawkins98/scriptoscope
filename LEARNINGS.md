@@ -275,7 +275,7 @@ Surfaced while iterating `demo/themes-raster.html` with actual extracted cicn ra
 
 **Addendum 2026-05-16 — building from the geometry spec works.** Within the same day we (a) wrote `docs/kaleidoscope-geometry-spec.md` from the TMPL data, (b) extended the scheme-extractor with `cinf` and `wnd#` decoders that emit a draft `theme.json` per the spec's §7 schema, and (c) rewrote the demo's JS to fetch theme.json at runtime and position widget hit-targets by scaling wnd# part rects to current titlebar dimensions. Result: the per-theme hand-tuned magic numbers for "where is the close box click area" disappeared, replaced by one positioning function that works for both themes by reading the same data Kaleidoscope itself reads. Independent proof that the spec is workable as Aaron UI's Phase 4 contract: hand-coded JS in the demo today, TypeScript WM code in Phase 1+4, both consume the same JSON. Functional checkboxes/radios/buttons added in the same pass — they swap the underlying cicn URL via `[data-checked]` selectors, no JS-controlled image manipulation needed. This iteration also clarified the architectural truth that `cicn` (raster) and `cinf`/`wnd#` (geometry) are *paired but not always 1:1*: window-chrome cicns pair with `wnd#` (parts + edge recipes), individual control cicns pair with `cinf` (9-slice + bgPattern). The extractor's pairing logic handles both via the shared resource ID convention.
 
-**Addendum 2026-05-16 — Kaleidoscope ships its own spec inside every scheme.** Cont'd from the bitmap-chrome rendering thread: the `cinf` and `wnd#` resources we'd been treating as opaque "Kaleidoscope custom metadata" are actually the canonical 9-slice geometry data + per-window-type composition recipe. Each scheme also embeds the `TMPL` resources that define their structure — the format is self-documenting. `cinf` literally encodes `cornerSize`, `sideThickness`, `tileSides`, and `bgPatternId` (the ppat to layer over the chrome body — i.e., the runtime composition that turns ErgoBox's white-body cicn into the gray you see in the reference thumbnail). `wnd#` encodes named clickable parts with rectangles inside the chrome cicn (the close box rect, the zoom box rect, etc.) plus per-side edge recipes. Full deconstruction + Aaron UI mapping + proposed `theme.json` schema is now in [`docs/kaleidoscope-geometry-spec.md`](docs/kaleidoscope-geometry-spec.md). The implication for the demo: stop guessing slice values, read them from `cinf`. The implication for Phase 4: `theme.json` is essentially a JSON serialization of the relevant Kaleidoscope resources, paths-to-extracted-PNGs included. Several earlier hacks (the multiply-blend gray-tint over ErgoBox) become principled once we honor `cinf.bgPatternId`.
+**Addendum 2026-05-16 — Kaleidoscope ships its own spec inside every scheme.** Cont'd from the bitmap-chrome rendering thread: the `cinf` and `wnd#` resources we'd been treating as opaque "Kaleidoscope custom metadata" are actually the canonical 9-slice geometry data + per-window-type composition recipe. Each scheme also embeds the `TMPL` resources that define their structure — the format is self-documenting. `cinf` literally encodes `cornerSize`, `sideThickness`, `tileSides`, and `bgPatternId` (the ppat to layer over the chrome body — i.e., the runtime composition that turns ErgoBox's white-body cicn into the gray you see in the reference thumbnail). `wnd#` encodes named clickable parts with rectangles inside the chrome cicn (the close box rect, the zoom box rect, etc.) plus per-side edge recipes. Full deconstruction + Aaron UI mapping + proposed `theme.json` schema is now in [archived geometry spec](https://github.com/khawkins98/scriptoscope/blob/fe18ecfb45fe1840b3394f588e05c21c57a0dc1b/docs/kaleidoscope-geometry-spec.md). The implication for the demo: stop guessing slice values, read them from `cinf`. The implication for Phase 4: `theme.json` is essentially a JSON serialization of the relevant Kaleidoscope resources, paths-to-extracted-PNGs included. Several earlier hacks (the multiply-blend gray-tint over ErgoBox) become principled once we honor `cinf.bgPatternId`.
 
 **Addendum 2026-05-16 — never guess `border-image-slice` values, decode the cicn first.** My first attempt at 9-slicing the scrollbar thumb used a 4px slice, which cut INTO the grip-dot art and made the dots stretch with the thumb width. The fix was to actually decode the cicn pixels (via the scheme-extractor's PNG output, parsed back with pngjs, ASCII-printed one row at a time) and discover the grip dots sit at pixels 5/7/9/11 of the 17-wide cicn — so the correct slice is 8px from each side, leaving only the single solid-white pixel 8 to stretch. The discipline this teaches: for every 9-slice CSS rule we write against a Kaleidoscope cicn, inspect the pixels first, pick slice values that fall at color/value boundaries. Phase 4's bundle format should encode these slice positions per-asset in `theme.json` rather than re-deriving them every time, and the scheme-extractor manifest could plausibly compute and emit suggested slice positions automatically by detecting flat-color regions vs detail-rich regions.
 
@@ -2399,6 +2399,13 @@ Visual baselines (`tests/visual-baselines/scenes/<slug>.png`) are now the eyebal
 
 ### 2026-05-29 — The codex pattern: "read the structured field, don't guess"
 
+**Partially superseded 2026-10-18:** the ring-outset and corner/side rows below
+misinterpreted the original drawing model. The source specifies a four-pixel
+ring expansion and square corners with independent edge bands; see
+[verified ring geometry](./docs/spec/kdef231-reference.md#default-push-button-ring-geometry-verified-2026-10-18).
+General face migration remains active in [#218](https://github.com/khawkins98/scriptoscope/issues/218).
+The historical rows are preserved to record how these heuristics arose.
+
 **Context.** After Option A landed, a series of "this looks wrong on theme X" reports surfaced from the maintainer eyeballing per-theme renders against the period references. Each report was traceable to a specific failure mode: the manifest carried the structured answer the artist authored, and the runtime was either parsing a string for the data, falling back to a heuristic, or hard-coding a value. Sixteen commits over a session shipped each fix as a one-line "stop guessing, read the field" — and the cumulative pattern became codified as a documented framework.
 
 **The fixes that surfaced the pattern.** Each row is "what the runtime was doing" → "what it should do":
@@ -2476,6 +2483,14 @@ For any new "this looks wrong" report:
 ---
 
 ### 2026-05-29 — Asymmetric slice insets need a 9-slice clamp (don't relitigate)
+
+**Superseded 2026-10-18 by the [source-backed ring model](./docs/spec/kdef231-reference.md#default-push-button-ring-geometry-verified-2026-10-18).**
+The cinf interpretation below is incorrect: side thickness is not vertical corner
+height, and overlapping bands are valid. The general rectangular nine-slice clamp
+remains useful for its actual callers, but rings now use a separate band assembler.
+Face composition still needs the migration tracked in
+[#218](https://github.com/khawkins98/scriptoscope/issues/218). Preserve this entry
+as history, not current implementation guidance.
 
 **Context.** Pass C wired the cinf's `slice.side` as the VERTICAL 9-slice inset (was collapsed to `corner` for both axes everywhere). Six callers in `controls.ts` started passing `{l: corner, t: side, r: corner, b: side}` to `pixelBuffer.nineSlice`. Almost everything worked.
 

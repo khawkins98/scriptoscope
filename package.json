@@ -2,7 +2,7 @@
   "name": "scriptoscope",
   "version": "0.0.1",
   "private": false,
-  "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes (cicn/wnd#/cinf/ppat/Colr) 1:1 from their original binary resources.",
+  "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
   "license": "MIT",
   "author": "Ken Hawkins",
   "homepage": "https://github.com/khawkins98/scriptoscope",

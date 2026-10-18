@@ -234,7 +234,7 @@ document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finis
 document.body.addEventListener('scriptoscope:promoteError', (e) => { /* e.detail = { kind, el, cause } */ });
 
 // Methods
-handle.disconnect();                       // tear down observers + restore source elements
+handle.disconnect();                       // tear down mount observers + restore window elements
 handle.retheme(slugOrUrl);                 // programmatic theme switch (fires the 'retheme' event)
 handle.registerTheme(ref, loadedTheme);    // register a runtime-decoded theme (used by drop-zones)
 handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (including shadow-DOM chrome
@@ -253,6 +253,11 @@ to `registerTheme`, including their base chains, are borrowed: the caller owns
 their lifetime and calls `theme.dispose?.()` after their last consumer unmounts.
 Standalone `createThemeResolver()` users should call `resolver.dispose()` at the
 same point; disposed resolvers reject loads and registrations.
+
+Current teardown restores window shells but leaves promoted controls in their
+skinned form. Complete control restoration and listener cleanup are tracked in
+[#232](https://github.com/khawkins98/scriptoscope/issues/232); do not assume a
+disconnected mount has restored every native control.
 
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
@@ -498,6 +503,23 @@ Scriptoscope loads what Kaleidoscope schemes actually shipped: **chrome + contro
 
 If a consumer wants period sounds or a desktop picture alongside a loaded scheme, that's a host-page concern: drop in your own `<audio>` and CSS `background-image`. Scriptoscope may eventually add an opt-in `extras/` sidecar concept for bundling sounds with a scheme bundle, but it's not a runtime built-in — and there is no "first-party preset theme that ships sounds." Every theme Scriptoscope ships is a port of an existing Kaleidoscope scheme with the original author's attribution.
 
+## Rendering regression coverage
+
+The [control matrix](./tests/rendering-options/README.md) exercises all 18 schemes
+through source and built APIs, actual promoted DOM and consumer CSS. Its bounded
+profile covers 70 cases per scheme; the extended profile covers 660 valid
+combinations. Reviewed Linux Chromium goldens catch visual drift, while
+source-backed invariants assess known fidelity requirements. Known face/tab limits
+are tracked in [#218](https://github.com/khawkins98/scriptoscope/issues/218) and
+[#223](https://github.com/khawkins98/scriptoscope/issues/223).
+Original-engine comparison and broader window permutations remain separate work;
+see [#209](https://github.com/khawkins98/scriptoscope/issues/209).
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and the required checks. The
+[fidelity plan](./docs/spec/fidelity-verification-plan.md) and
+[epic #221](https://github.com/khawkins98/scriptoscope/issues/221) define the path
+from regression coverage to independently verified rendering.
+
 ## Roadmap — ideas if this project gets traction
 
 A non-binding "things that would be cool to build next" list, organized by theme. Each item links to an existing tracker if one is open. If you want to push any of these forward, open an issue or PR.
@@ -527,7 +549,6 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 - **`<scriptoscope-window>` Custom Element** alongside the data-attribute scanner ([#29](https://github.com/khawkins98/scriptoscope/issues/29) — open decision).
 - ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Spike result.
-- **Visual regression suite** — Playwright snapshots of each control state, cross-referenced against the per-theme reference renders (`demo/assets/references/<slug>.png`). [#79](https://github.com/khawkins98/scriptoscope/issues/79) closed but the framework would live here.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
 - **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.
 - **Period-correct animation polish** — zoom-to-icon close, windowshade collapse, sheet slide-in. Tracked under [#25](https://github.com/khawkins98/scriptoscope/issues/25) Phase 6.

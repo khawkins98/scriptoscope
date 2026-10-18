@@ -8,10 +8,11 @@ compositor tests separately check allocation and original corpus RGBA pixels.
 
 ## Capture and compare
 
-Install the optional browser tooling (not required for `npm test`):
+Install the locked development dependencies and Chromium (Scene capture remains
+separate from `npm test`):
 
 ```sh
-npm install --no-save --package-lock=false playwright
+npm ci
 npx playwright install chromium
 npm run verify:scenes                         # capture all themes to scratch, compare
 npm run verify:scenes -- monkey-paradise      # capture and compare one theme
@@ -45,7 +46,9 @@ The default navigation/readiness timeout is 30 seconds per operation; owned Vite
 startup is capped at 15 seconds. The script logs its Chromium version. Use the
 same browser build, OS, and fonts when interpreting byte comparisons: browser
 layout, clipping, antialiasing, and PNG encoding can change without a renderer bug.
-These optional captures are not part of the portable static CI gates.
+These Scene captures remain a separate diagnostic workflow. The mandatory
+[control rendering matrix](../rendering-options/README.md) uses pinned Linux
+Chromium for CI; these historical macOS Scene fixtures are not its golden seed.
 
 ## When to refresh
 
@@ -63,10 +66,10 @@ retains the same intended live scene and reference content.
 
 ## Boot-affordance smoke test
 
-Install the optional browser tooling once (it is not required for `npm test`):
+Install the locked development dependencies and Chromium:
 
 ```sh
-npm install --no-save --package-lock=false playwright
+npm ci
 npx playwright install chromium
 node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
 ```
@@ -85,7 +88,7 @@ BASE=http://localhost:4173/scriptoscope/ node --test --experimental-strip-types 
 node --test --experimental-strip-types tests/visual-baselines/window-promotion.spec.mjs
 ```
 
-Uses the same optional Playwright installation above and an isolated Vite server.
+Uses the locked Playwright installation above and an isolated Vite server.
 The test delays chrome preparation across painted frames and checks that the
 original content, inherited styles, focus, and following sibling stay intact.
 It also exercises first-render and content-fit failures, retry, and unmount.
@@ -96,7 +99,7 @@ It also exercises first-render and content-fit failures, retry, and unmount.
 node --test --experimental-strip-types tests/visual-baselines/mobile-layout.spec.mjs
 ```
 
-Uses the same optional Playwright setup and an isolated server. At 320px and
+Uses the same Playwright setup and an isolated server. At 320px and
 390px mobile viewports it checks four showcase schemes, the upload modal,
 OFF → Restore chrome, and the personal blog's locally scrolling code. Page
 width and visible window bounds must fit without scaling the chrome canvases.
@@ -107,7 +110,7 @@ width and visible window bounds must fit without scaling the chrome canvases.
 node --test --experimental-strip-types tests/visual-baselines/control-template-size.spec.mjs
 ```
 
-Uses the optional Playwright setup above. Exercises the actual Windows 95 source
+Uses the Playwright setup above. Exercises the actual Windows 95 source
 art, full centered label pixels, all 18 schemes' state geometry, explicit heights,
 and showcase buttons/select interaction. Diagnostic Scene controls request fixed
 heights and therefore do not cover this automatic-sizing path.
@@ -118,7 +121,7 @@ heights and therefore do not cover this automatic-sizing path.
 node --test --experimental-strip-types tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs
 ```
 
-Uses optional Playwright and isolated Vite servers. The fill test compares rendered
+Uses the locked Playwright dependency and isolated Vite servers. The fill test compares rendered
 interiors with original cinf background samples and checks state/base fallback
 metadata. The shell test checks computed styles and actual frame/canvas bounds
 for Windows 95 and System 7, including stretched grid/flex hosts and print.

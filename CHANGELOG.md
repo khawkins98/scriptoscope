@@ -7,17 +7,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- Fixed Firefox startup in the extended rendering workflow by matching the
-  container user to its mounted home. Browser launch preflight now fails before
-  running the matrix; optional focused workflow reruns retain the full default.
-
-- Corrected the rendering matrix tab fixture to place the tab strip before its
-  panels, matching consumer markup and avoiding a misleading contact-sheet layout.
-
-- Slider canvases retain the complete authored thumb cell and center the groove
-  and thumb across their combined thickness, fixing clipped Windows 95 handles
-  in horizontal and vertical orientations (refs #222).
-
 ### Added (2026-10-18)
 
 - Reviewed Linux control-rendering regression seed: 36 bounded contact sheets,
@@ -44,6 +33,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Changed (2026-10-18)
 
+- Contributor and architecture guidance documents rendering acceptance, pinned
+  golden review, and explicit fidelity limits. Historical ring-outset and cinf
+  slicing heuristics are marked superseded by the verified source model.
+
 - Background theme-picker previews decode only folder icons instead of complete
   schemes, reducing conversion work and asset allocation while retaining the
   source archives and icon fallback semantics.
@@ -56,6 +49,17 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   ([#204](https://github.com/khawkins98/scriptoscope/pull/204))
 
 ### Fixed (2026-10-18)
+
+- Fixed Firefox startup in the extended rendering workflow by matching the
+  container user to its mounted home. Browser launch preflight now fails before
+  running the matrix; optional focused workflow reruns retain the full default.
+
+- Slider canvases retain the complete authored thumb cell and center the groove
+  and thumb across their combined thickness, fixing clipped Windows 95 handles
+  in horizontal and vertical orientations (refs #222).
+
+- Corrected the rendering matrix tab fixture to place the tab strip before its
+  panels, matching consumer markup and avoiding a misleading contact-sheet layout.
 
 - Default-button rings use the original four-pixel outset, complete source raster,
   square corners, and independently thick masked edge bands. Pressed defaults

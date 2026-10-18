@@ -38,8 +38,19 @@ toolchain requirement.
 
    Before pushing, run `npm run build:themes`, `npm run build`, then `npm run gates`.
    The build supplies the library used by strict lint; theme extraction supplies
-   the local derivatives used by the scene audit. Optional browser smoke setup
-   is documented in [`tests/visual-baselines/README.md`](./tests/visual-baselines/README.md).
+   the local derivatives used by the scene audit. For controls, CSS, fonts or
+   promotion changes, also run `npm run test:rendering`. Install Chromium with
+   `npx playwright install --with-deps chromium` first. The rendering matrix and
+   pinned Linux golden workflow are documented in
+   [`tests/rendering-options/README.md`](./tests/rendering-options/README.md).
+   Existing window/Scene browser checks remain documented in
+   [`tests/visual-baselines/README.md`](./tests/visual-baselines/README.md).
+
+   Golden updates are review candidates. Inspect source evidence and the
+   expected/actual/diff artifacts before accepting a changed image; recording
+   current output alone does not establish fidelity to Kaleidoscope. Keep
+   unsupported cases visible and distinguish regression coverage from original
+   engine evidence.
 
 4. **Make a change.** Browse the [epic tracker issues](https://github.com/khawkins98/scriptoscope/issues?q=is%3Aissue+is%3Aopen+label%3Atype-epic) and [`docs/spec/glitch-punchlist.md`](./docs/spec/glitch-punchlist.md) for context. Safe first-time targets:
    - Pick a render glitch off the punch-list and tighten the compositor against the recipe.
@@ -166,7 +177,11 @@ A cut-through is not optional polish — it's part of how the project stays trus
 
 Scriptoscope is a Kaleidoscope-compatibility runtime — themes are *ported* (not hand-authored) from existing `.ksc` schemes. Authoring entirely new chrome means using period Kaleidoscope authoring tools (ResEdit + the Kaleidoscope SDK on classic Mac OS or under SheepShaver), then porting the resulting `.ksc` through the same flow.
 
-The porting flow as currently implemented (the corpus today is `1138`, `1984`, `1990`, `apple-platinum-2`, `beos-r503`, `evolution`, `platinum-8`, `system7-nostalgia-silver` — use one of the full schemes, e.g. `beos-r503`, as a worked example; note `platinum-8` and `system7-nostalgia-silver` are controls-only, with no window recipes, so they're atypical examples):
+The porting flow below applies to the 18 bundled schemes listed in
+[`demo/themes-manifest.json`](./demo/themes-manifest.json). Use a full scheme,
+such as `beos-r503`, as a worked example; `platinum-8` and
+`system7-nostalgia-silver` use corner-sprite windows without wnd# edge recipes,
+so they are atypical examples:
 
 1. **Verify the scheme's license permits redistribution.** Check the scheme's readme. When a scheme lacks an explicit license, study it privately but do not port until rights are confirmed.
 2. **Create `themes/<scheme-slug>/` and drop in the scheme's resource fork plus its metadata:**

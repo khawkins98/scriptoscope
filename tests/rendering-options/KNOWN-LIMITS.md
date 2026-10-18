@@ -26,7 +26,7 @@ Known boundaries requiring explicit consideration during image review:
   Separately, font sizing from opaque height is an unverified runtime policy.
   Windows95/Windows3.1's small 8px tab font is visible in the snapshots, but source
   analysis has not established actual glyph clipping there. The separate
-  interleaved-panel fixture error must be corrected before accepting a seed.
+  interleaved-panel fixture error was corrected by #224 before seed approval.
 - [Rendering fidelity epic #221](https://github.com/khawkins98/scriptoscope/issues/221)
   tracks broader independent evidence and coverage. The 70-case bounded profile is
   a deliberate sample; even the 660-case extended profile is not every possible
