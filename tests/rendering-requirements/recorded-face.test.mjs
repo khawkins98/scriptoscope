@@ -13,6 +13,8 @@ test('recorded reference rejects stale/unreviewed, swapped case/profile/crop and
  reject((_c,_b,ctx)=>ctx.report.captures[0].status='awaiting-independent-review',/not currently reviewed/);
  reject((_c,b)=>b.requestDigest='0'.repeat(64),/stale or wrong/);
  reject((_c,b)=>b.captureDigest='0'.repeat(64),/stale or wrong/);
+ reject((c)=>c.mode='declarative',/mode\/family/);
+ reject((c)=>c.family='bevel',/mode\/family/);
  reject((c)=>c.options.disabled=true,/wrong exact case/);
  reject((c)=>c.inputs=['theme.system7-nostalgia-silver'],/source\/base/);
  reject((_c,b)=>b.profile={...b.profile,id:'other-profile'},/stale or wrong/);

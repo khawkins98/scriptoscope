@@ -29,6 +29,7 @@ export function validateRecordedBinding(c, binding, context) {
   check(same(binding, captureBinding(capture)), 'stale or wrong capture/profile/crop binding');
   const slug = capture.source.slug, state = capture.conditions.state;
   check(['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state), 'outside six recorded cases');
+  check(c.mode === 'direct' && c.family === 'push', 'wrong exact mode/family');
   check(c.id === caseId(slug, state) && same(c.options, exactOptions(state)), 'wrong exact case/options');
   check(same(c.inputs, ['theme.' + slug]) && same(c.baseInputs, []), 'wrong exact source/base inputs');
   check(same(c.recordedComparison, binding), 'case/evidence binding differs');
