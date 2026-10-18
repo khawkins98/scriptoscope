@@ -11,6 +11,7 @@ import { promoteControl } from './control.js';
 import { promoteField } from './field.js';
 import { promoteIcon } from './icon.js';
 import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
+import { createPickerIconLoader } from './pickerIcons.js';
 import type { ThemeEntry } from './theme.js';
 import { promoteTabs } from './tabs.js';
 import { openModal, type OpenModalOptions, type OpenModalHandle } from './openModal.js';
@@ -472,6 +473,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     try {
       const result = await promoteThemePicker(el, opts.themes, {
         loadTheme: (slug) => resolver.load(slug),
+        loadIcon: createPickerIconLoader(opts),
         switchTheme: (slug) => retheme(slug),
         initialSlug: lastThemeRef ?? pageDefault,
       });

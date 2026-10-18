@@ -93,3 +93,52 @@ test('old decode completion cannot paint retained tiles or settle a new mount', 
   assert.equal(oldIcon.src, undefined);
   assert.equal(el.getAttribute('aria-busy'), 'true');
 });
+
+test('background tiles use folder-only loading, with active-theme fallback for sparse icons', async (t) => {
+  const el = setup(t);
+  const fullLoads = [];
+  const iconLoads = [];
+  const picker = await promoteThemePicker(el, [...themes, { slug: 'sparse' }], {
+    initialSlug: 'one',
+    loadTheme: async (slug) => { fullLoads.push(slug); return iconTheme; },
+    loadIcon: async (slug, primary, fallback) => {
+      iconLoads.push([slug, primary, fallback]);
+      return slug === 'sparse' ? null : 'data:image/png;base64,two';
+    },
+    switchTheme() {},
+  });
+  t.after(() => picker.teardown());
+  await flush();
+  el.children[1].dispatchEvent(new Event('mouseenter'));
+  el.children[2].dispatchEvent(new Event('mouseenter'));
+  await flush();
+  assert.deepEqual(fullLoads, ['one']);
+  assert.deepEqual(iconLoads, [['two', -3983, -3999], ['sparse', -3983, -3999]]);
+  assert.equal(el.children[1].children[0].src, 'data:image/png;base64,two');
+  assert.equal(el.children[2].children[0].src, 'blob:folder');
+});
+
+test('activating a failed background tile retries its icon and updates busy state', async (t) => {
+  const el = setup(t);
+  let calls = 0, finish;
+  const picker = await promoteThemePicker(el, themes, {
+    initialSlug: 'one', loadTheme: async () => iconTheme, switchTheme() {},
+    loadIcon: async () => {
+      if (++calls === 1) throw new Error('temporary failure');
+      return new Promise((resolve) => { finish = resolve; });
+    },
+  });
+  t.after(() => picker.teardown());
+  await flush();
+  const tile = el.children[1];
+  tile.dispatchEvent(new Event('mouseenter'));
+  await flush();
+  assert.equal(tile.getAttribute('aria-busy'), 'false');
+  tile.dispatchEvent(new Event('click'));
+  assert.equal(tile.getAttribute('aria-busy'), 'true');
+  finish('data:image/png;base64,recovered');
+  await flush();
+  assert.equal(calls, 2);
+  assert.equal(tile.getAttribute('aria-busy'), 'false');
+  assert.equal(tile.children[0].src, 'data:image/png;base64,recovered');
+});

@@ -37,6 +37,8 @@ export interface PickerDeps {
   /** Load a theme by slug — used to harvest each scheme's folder icon for
    *  the tile. Same shape as the resolver's `load` method. */
   loadTheme(slug: string): Promise<LoadedTheme>;
+  /** Optional folder-only decoder. Other tiles avoid full theme conversion. */
+  loadIcon?(slug: string, primaryId: number, fallbackId: number): Promise<string | null>;
   /** Switch the page to a scheme. Same shape as handle.retheme. */
   switchTheme(slug: string): Promise<void> | void;
   /** Initial active slug (highlights the matching tile + sets tabindex=0). */
@@ -172,7 +174,7 @@ export async function promoteThemePicker(
   // decode on mid-range mobile, mostly to fill 32×32 icons users never
   // looked at. Now we:
   //   1. Show a placeholder (CSS dotted outline — already in scriptoscope.css)
-  //   2. Decode a tile's theme only when it intersects the viewport
+  //   2. Decode a tile's folder icon only when it intersects the viewport
   //   3. Decode-on-click as the synchronous fallback (intersection might
   //      not fire if the user tabs to the tile keyboard-only)
   // The active tile is decoded eagerly because its icon is the FIRST one
@@ -200,10 +202,16 @@ export async function promoteThemePicker(
   };
   const pickInChain = (t: LoadedTheme) =>
     resolveInChain(t, (x) => pickIn(x, primaryId) ?? pickIn(x, fallbackId));
+  const iconFor = async (slug: string): Promise<string | null> => {
+    // Reuse the active theme already loaded for page chrome. Background tiles
+    // need only their folder icon, not hundreds of chrome/inspector assets.
+    if (deps.loadIcon && slug !== deps.initialSlug) return deps.loadIcon(slug, primaryId, fallbackId);
+    return pickInChain(await deps.loadTheme(slug))?.url ?? null;
+  };
   // Memoised fallback URL — the first valid folder icon found among
   // initialSlug / themes[]. Single search, reused for every sparse tile.
   // We don't fire this eagerly; it triggers lazily on the first sparse
-  // miss, by which point most non-sparse themes are already cache-warm
+  // miss, by which point visible folder icons are usually cache-warm
   // (loaded by their own IO firings + the page chrome). Sparse-bundle
   // base-chain walk + last-resort theme walk — lib reviewer P2 2026-05-30.
   let cachedFallbackUrl: string | null = null;
@@ -219,10 +227,9 @@ export async function promoteThemePicker(
       for (const c of candidates) {
         if (disposed) return null;
         try {
-          const t = await deps.loadTheme(c);
+          const url = await iconFor(c);
           if (disposed) return null;
-          const hit = pickInChain(t);
-          if (hit?.url) { cachedFallbackUrl = hit.url; return hit.url; }
+          if (url) { cachedFallbackUrl = url; return url; }
         } catch { /* try next candidate */ }
       }
       return null;
@@ -237,13 +244,12 @@ export async function promoteThemePicker(
       queued.delete(slug);
       if (decoded.has(slug)) continue;
       decoded.add(slug);
+      tiles.get(slug)?.setAttribute('aria-busy', 'true');
       inFlight += 1;
       void (async () => {
         try {
-          const theme = await deps.loadTheme(slug);
+          let resolvedUrl = await iconFor(slug);
           if (disposed) return;
-          const hit = pickInChain(theme);
-          let resolvedUrl: string | null = hit?.url ?? null;
           if (resolvedUrl) {
             // Seed the fallback cache from the FIRST successful resolution
             // so subsequent sparse tiles short-circuit without re-walking.
@@ -260,7 +266,11 @@ export async function promoteThemePicker(
             const icon = tile?.querySelector<HTMLImageElement>('.scriptoscope-theme-picker-icon');
             if (icon) icon.src = resolvedUrl;
           }
-        } catch { /* tolerate per-theme failures */ } finally {
+        } catch {
+          // A later click/keyboard activation can retry a transient failure.
+          // Intersection is one-shot, so don't automatically loop failed loads.
+          decoded.delete(slug);
+        } finally {
           inFlight -= 1;
           if (disposed) return;
           // A failed decode has settled too; never leave AT waiting on it.
@@ -324,8 +334,8 @@ export async function promoteThemePicker(
   }
   // Click is the universal fallback — even with IntersectionObserver, a
   // user might tab to a tile keyboard-only (no hover) and click before
-  // the IO fires. switchTheme already calls deps.loadTheme so the icon
-  // resolves through the cache; this just ensures the tile's icon paints.
+  // the IO fires. This ensures its icon paints independently of full chrome
+  // loading; theme selection itself still uses the resolver's full-theme cache.
   for (const [slug, tile] of tiles) {
     listen(tile, 'click', () => requestDecode(slug));
   }
