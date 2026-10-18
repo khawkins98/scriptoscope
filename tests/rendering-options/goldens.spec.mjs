@@ -14,6 +14,12 @@ const update = process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1';
 // and consumer DOM together. This is reviewed sampling, not exhaustive fidelity.
 const pages = goldenCasePages();
 const caseDigest = createHash('sha256').update(JSON.stringify(pages)).digest('hex');
+const executionProvenance = {
+  gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex'),
+  stylesheetSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.css', import.meta.url))).digest('hex'),
+  packageLockSha256: createHash('sha256').update(readFileSync(new URL('../../package-lock.json', import.meta.url))).digest('hex'),
+};
 
 for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()) test(`${slug}: reviewed Linux Chromium contact sheet page${pageIndex + 1}`, async ({ page, browser, browserName, servers }, testInfo) => {
   expect(process.platform, 'goldens are pinned to Linux; use workflow-dispatch to record candidates').toBe('linux');
@@ -29,9 +35,7 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     sourceZoom: 4, labelZoom: 1, runtime: 'built-public-entry' };
   if (update) {
     mkdirSync(directory, { recursive: true });
-    const provenance = { gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-      bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex') };
-    writeFileSync(manifestPath, JSON.stringify({ environment, provenance }, null, 2)+'\n');
+    writeFileSync(manifestPath, JSON.stringify({ environment, provenance: executionProvenance }, null, 2)+'\n');
   } else {
     expect(existsSync(manifestPath), 'Missing reviewed golden manifest. Recording requires explicit update + visual review.').toBe(true);
     expect(JSON.parse(readFileSync(manifestPath)).environment, 'baseline environment/case inventory must match').toEqual(environment);
@@ -40,6 +44,7 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
   const observed = [];
   const attachObserved = complete => attachObservations(testInfo, 'golden-pages', `${slug}-page-${pageIndex + 1}`, {
     slug, page: pageIndex + 1, complete, operation: update ? 'record-candidates' : 'verify',
+    environment, executionProvenance,
     interpretation: 'Statuses and dimensions describe this execution, not independent expected availability or fidelity.',
     cases: observed,
   });
