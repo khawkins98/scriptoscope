@@ -134,3 +134,19 @@ rendered-header SHA-256
 The documentation lists NQD 8.5 / CarbonLib 1.3 / Mac OS X 10.1 availability;
 that is not proof of availability or a known offset in an original captured
 port. See the [direct context contract](../../docs/spec/control-pattern-context.md).
+
+
+### CDEF 8 full-raster tab bands
+
+CDEF 8 reads the full cicn PixMap bounds at 0x420..0x42a, copies full-height end strips at 0x430..0x47e, and paints independent top/bottom bands at 0x484..0x552. When cinf tileSides is zero, 0x4a2..0x4b4 and 0x506..0x518 reduce the band source to its first column. 1138 rear art is 23x16 with corner10/side10; 1990 rear is 32x16 with corner14/side14. Both have empty centers and overlapping bands, so preserving full source coordinates retains their middle strips without repeating the adjacent semantic sample column.
+
+Installer component CDEF 8: 15,902 bytes, SHA-256
+`4c9fecff46f6bfe2171961fa71e0831e5e2b85174f55531ad1a2fe895a82c680`.
+The independently reconstructed installer resource-map chain is in the
+[binary inventory](../../docs/spec/kdef-binary-inventory.md). No original bytes
+are redistributed or executed. [The bounded body contract](../../docs/spec/tab-cdef8-body.md)
+records call sites, masking limitations and the separate center rule.
+Exact archive/cicn/cinf pins live in `tests/decoder-fixtures/tab-body-source-pins.json`.
+The assertion checks the exact existing AgjpQy options outside the browser glyph
+mask; that mask excludes text, not the middle band. No actual tab paint-selection
+trace or original font/device/transfer claim is inferred from catalog identity.

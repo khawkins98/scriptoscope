@@ -103,6 +103,7 @@ for (const mode of ['source', 'built']) test(`${mode}: pinned 1138 and 1990 rear
 });
 
 for (const mode of ['source', 'built']) test(`${mode}: AgjpQy rear tabs preserve the source-coordinate middle strip outside browser glyph ink`, async ({ page, servers }, info) => {
+  info.annotations.push({ type: 'fidelity-assertion', description: 'tabs.full-raster-agjpqy' });
   await openHarness(page, servers, mode);
   const rows = await page.evaluate(async ({ mode, pins }) => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
