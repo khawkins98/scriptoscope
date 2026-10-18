@@ -3758,7 +3758,6 @@ Native pointer input/commit comparisons therefore use numeric values and retain
 the current spelling for unchanged values, including the original spelling when
 a drag returns to its starting step bucket.
 
-
 ## 2026-10-18 — Verify branch polarity and trap identity before pattern work (#218)
 
 The older cinf resize-behavior note inverted the `cmp mode,5` / `bne` paths and
@@ -3800,3 +3799,18 @@ allocating URL assets. Returned scalar evidence can outlive dispose without
 retaining the input buffers or transferring ownership of a borrowed base. A
 byte-identity match verifies the input to shared conversion, not the correctness
 of archive/resource decoding or historically faithful pixels.
+
+### 2026-10-18 — A canceled paint can still start a later asset request
+
+The clean packed consumer exposed a native range pressed repaint that awaited a
+track, survived disconnect, then requested the thumb after owned theme URLs were
+revoked and their decoded cache entries evicted. The paint-version guard correctly
+prevented a DOM commit, but could not prevent that later request. Instrumented
+Image.src showed the same thumb loaded before disposal and re-requested afterward.
+
+Carry the owned native face lifetime through the internal slider composer and
+check every sequential load boundary. The regression holds a genuinely decoded
+track, revokes resolver-owned assets synchronously, then releases the compositor;
+no later Image.src may start. This isolates sequential-start cancellation from an
+image request already started at disposal, which remains a separate lifetime
+question. Do not substitute frame-delay disposal or a permanent revoked-URL cache.

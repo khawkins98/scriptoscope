@@ -372,7 +372,7 @@ async function buildDraggable(
   orientation: Orientation,
   initial: number,
   scale: number,
-  compose: (value: number, state: ControlState) => Promise<PixelBuffer | SliderComposition | null> | PixelBuffer,
+  compose: (value: number, state: ControlState, signal: AbortSignal) => Promise<PixelBuffer | SliderComposition | null> | PixelBuffer,
   onChange?: (value: number) => void,
   native?: { input: HTMLInputElement; active(): boolean },
 ): Promise<void> {
@@ -416,7 +416,7 @@ async function buildDraggable(
     if (events.signal.aborted) return;
     const version = ++paintVersion;
     let composed: PixelBuffer | SliderComposition | null;
-    try { composed = await compose(value, disabled() ? 'disabled' : dragging ? 'pressed' : 'normal'); }
+    try { composed = await compose(value, disabled() ? 'disabled' : dragging ? 'pressed' : 'normal', events.signal); }
     catch (error) {
       if (events.signal.aborted || version !== paintVersion) return;
       throw error;
@@ -626,8 +626,11 @@ export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInp
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
-    async (value, state) => (await composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, state }))
-      ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value }),
+    async (value, state, signal) => {
+      const frame = await composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, state }, signal);
+      if (signal.aborted) return null;
+      return frame ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value });
+    },
     undefined, { input, active });
   return el;
 }

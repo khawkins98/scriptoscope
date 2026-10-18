@@ -23,6 +23,12 @@ starting native value and geometry, so a pressed repaint cannot re-anchor it.
 The browser remains responsible for native numeric bounds, step sanitization,
 keyboard and accessibility semantics.
 
+The native control lifetime also reaches the internal composer. It checks before
+each sequential image load and after awaited decodes, so a track completing after
+disconnect cannot start a thumb/fallback request against revoked owned URLs.
+This does not cancel an image request that already started, defer theme disposal,
+or change public/imperative slider composition semantics.
+
 See the [integration policy](../integration-edge-cases.md#theme-ownership-on-teardown)
 for exact-value thumb grabs, track-click centering, zero-travel/missing-thumb
 behavior and cancellation. The source/built `range-pointer.spec.mjs` contracts
