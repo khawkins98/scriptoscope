@@ -9,7 +9,8 @@ The runner builds a clean library, packs it, installs only the tarball into a
 unique temporary consumer, resolves root/declarative/CSS/package.json exports,
 and compiles both public declaration entrypoints with strict Bundler resolution
 and `skipLibCheck: false`. A missing relative declaration must fail here even
-when repository typechecking passes. The build copies the authoritative browser
+when repository typechecking passes. Every compiled type file must belong to the
+installed consumer or TypeScript's own standard libraries. The build copies the authoritative browser
 loader declaration into `dist/tools/`, rebasing its source-type reference to the
 emitted declarations rather than maintaining a second public interface.
 

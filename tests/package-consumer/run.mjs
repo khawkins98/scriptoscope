@@ -6,7 +6,7 @@ import { copyFile, cp, mkdir, mkdtemp, readFile, readdir, realpath, rm, stat, wr
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import { chromium, expect } from '@playwright/test';
@@ -16,6 +16,7 @@ const root = fileURLToPath(new URL('../..', import.meta.url));
 const output = resolve(process.env.SCRIPTOSCOPE_PACKAGE_EVIDENCE ?? join(root, 'test-results/rendering-evidence/package-consumer'));
 const workspace = await realpath(await mkdtemp(join(tmpdir(), 'scriptoscope-package-')));
 const require = createRequire(import.meta.url);
+const compilerLib = await realpath(dirname(require.resolve('typescript')));
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const inside = (parent, path) => { const part = relative(parent, path); return part === '' || (!part.startsWith(`..${sep}`) && part !== '..' && !isAbsolute(part)); };
@@ -62,8 +63,14 @@ async function prepareConsumer(tarball, name) {
       target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', lib: ['ES2022', 'DOM', 'DOM.Iterable'],
       strict: true, skipLibCheck: false, noEmit: true, types: [],
     }, files: ['main.ts', 'env.d.ts'] }));
-    command(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(consumer, 'tsconfig.json')], consumer);
-    return { consumer, installed, exports: specifiers.map((specifier, index) => ({ specifier, path: relative(installed, fileURLToPath(paths[index])) })) };
+    const typeFiles = command(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(consumer, 'tsconfig.json'), '--listFiles', '--pretty', 'false'], consumer).trim().split('\n').map(file => file.trim());
+    for (const file of typeFiles) {
+      const path = await realpath(file.trim());
+      const standardLib = inside(compilerLib, path) && /^lib\..+\.d\.ts$/.test(relative(compilerLib, path));
+      assert(inside(consumer, path) || standardLib, `Declaration import escaped the installed consumer: ${path}`);
+    }
+    return { consumer, installed, typeFiles: typeFiles.map(file => inside(compilerLib, file) ? `typescript/lib/${relative(compilerLib, file)}` : relative(consumer, file)),
+      exports: specifiers.map((specifier, index) => ({ specifier, path: relative(installed, fileURLToPath(paths[index])) })) };
   } catch (error) { error.phase = phase; throw error; }
 }
 
@@ -119,6 +126,7 @@ try {
   record.package = { name: packed.name, version: packed.version, sha256: sha(await readFile(tarball)), integrity: packed.integrity, files: packed.files };
   const prepared = await prepareConsumer(tarball, 'positive');
   record.exports = prepared.exports;
+  record.typeFiles = prepared.typeFiles;
   const site = join(workspace, 'site');
   const publicRoot = join(site, 'consumer');
   record.bundle = await bundleConsumer(prepared, publicRoot);
