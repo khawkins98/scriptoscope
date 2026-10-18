@@ -3,6 +3,7 @@ const goldens = process.env.SCRIPTOSCOPE_RENDERING_GOLDENS === '1';
 const extended = process.env.SCRIPTOSCOPE_RENDERING_PROFILE === 'extended';
 const browsers = (process.env.SCRIPTOSCOPE_RENDERING_BROWSERS ?? (extended ? 'chromium,firefox,webkit' : 'chromium')).split(',');
 export default defineConfig({
+  globalSetup: './launch-preflight.mjs',
   testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs'],
   updateSnapshots: process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1' ? 'all' : 'none',
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,

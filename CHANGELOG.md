@@ -7,6 +7,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Fixed Firefox startup in the extended rendering workflow by matching the
+  container user to its mounted home. Browser launch preflight now fails before
+  running the matrix; optional focused workflow reruns retain the full default.
+
 - Corrected the rendering matrix tab fixture to place the tab strip before its
   panels, matching consumer markup and avoiding a misleading contact-sheet layout.
 

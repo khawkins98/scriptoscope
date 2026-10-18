@@ -3507,3 +3507,15 @@ placement policy until independent engine-reference evidence resolves it.
 The thumb retains its prior `srcCopy` transfer behavior. Whether its transparent
 mask should preserve the underlying groove is a separate historical unknown,
 not established by an opaque-pixel retention test.
+
+### 2026-10-18 — Browser startup is a prerequisite, not rendering coverage
+
+Extended run 39106440850 passed 120 Chromium/WebKit tests but failed all 40
+Firefox tests before their bodies ran. The root container process inherited
+`/github/home`, owned by `pwuser`; Firefox explicitly refused that mismatch.
+Use the UID 1001 container configuration from Playwright's official GitHub
+Actions example, without changing workspace ownership or disabling the sandbox.
+Launch every requested engine in global setup before the matrix. A focused
+Firefox workflow rerun can establish previously missing coverage without rerunning
+the successful Chromium extended cases first. No assertion or tolerance changes
+are justified by a browser launch failure.

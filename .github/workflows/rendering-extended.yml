@@ -1,6 +1,12 @@
 name: Extended rendering matrix
 on:
   workflow_dispatch:
+    inputs:
+      browsers:
+        description: Browser coverage (all is the full extended matrix)
+        type: choice
+        default: all
+        options: [all, chromium, firefox, webkit]
 # Deliberately explicit: the bounded Chromium suite runs on every code PR in CI.
 concurrency:
   group: rendering-extended-${{ github.ref }}
@@ -10,8 +16,12 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
-      options: --ipc=host
+      # Match the Actions-mounted home owner, as in Playwright's CI example.
+      # Firefox refuses a root process with a non-root-owned home directory.
+      options: --ipc=host --user 1001
     timeout-minutes: 40
+    env:
+      SCRIPTOSCOPE_RENDERING_BROWSERS: ${{ inputs.browsers == 'all' && 'chromium,firefox,webkit' || inputs.browsers }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
