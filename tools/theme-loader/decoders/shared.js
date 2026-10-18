@@ -46,7 +46,8 @@ export class Reader {
  *   baseAddr(4) rowBytes(2) bounds(8) pmVersion(2) packType(2) packSize(4)
  *   hRes(4) vRes(4) pixelType(2) pixelSize(2) cmpCount(2) cmpSize(2)
  *   planeBytes(4) pmTable(4) pmReserved(4)
- * In a resource, baseAddr/pmTable/pmReserved are all 0.
+ * Serialized field meanings depend on the resource format. In ppat resources,
+ * pmTable is a resource-relative color-table offset; it must not be assumed zero.
  * The rowBytes field's high bit (0x8000) flags pixmap (vs bitmap); the
  * actual byte count is the low 14 bits (0x3FFF).
  */
@@ -127,10 +128,10 @@ export function readColorTable(r) {
 /**
  * Resolve an indexed pixel to RGB.
  *
- * Per Inside Macintosh, the ColorSpec.value field is meaningful in some
- * contexts but for icons/pixpats the entries are typically just stored in
- * order, indexed 0..(count-1). We index by position first, fall back to
- * matching the value field if the positional lookup is out of range.
+ * Existing compatibility policy for callers including cicn: prefer record
+ * position, then match value if that position is absent. This is not a verified
+ * general ColorTable rule. The ppat decoder uses its own flag-aware mapping;
+ * changing cicn requires independent resource-format evidence and fixtures.
  */
 export function indexToRgb(index, colorTable) {
   if (index >= 0 && index < colorTable.entries.length) {
