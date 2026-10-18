@@ -16,6 +16,15 @@ Known boundaries requiring explicit consideration during image review:
 - [Face compositing follow-up #218](https://github.com/khawkins98/scriptoscope/issues/218)
   tracks remaining rectangular/pattern face approximations. The source-backed
   default-ring correction does not establish the separate face painter's fidelity.
+- [Automatic tab-label clipping #223](https://github.com/khawkins98/scriptoscope/issues/223)
+  is a demonstrated mismatch: Windows95/Windows3.1 short tab templates clip labels,
+  and 1990 unselected tabs show fragments. This affects automatic direct tabs and
+  themed declarative tab faces, including short/long/ascender-descender labels.
+  `TabOptions` has no height option, so this is not caller-requested tiny clipping.
+  Any reviewed regression image containing these cases records an acknowledged
+  defect while original tab assembly is researched; it does not approve the
+  clipped label as faithful output. The separate interleaved-panel fixture error
+  must be corrected before accepting a seed.
 - [Rendering fidelity epic #221](https://github.com/khawkins98/scriptoscope/issues/221)
   tracks broader independent evidence and coverage. The 70-case bounded profile is
   a deliberate sample; even the 660-case extended profile is not every possible

@@ -64,6 +64,23 @@ async function assertKeyboardFocus(page, result) {
   expect(focus.clip, 'focus must not be hidden by boot animation').toBe('none');
 }
 
+async function assertTabLayout(page, result) {
+  const layout = await page.locator(result.outputSelector).evaluate(root => {
+    const tabs = [...root.querySelectorAll('[role="tab"]')].filter(el => getComputedStyle(el).display !== 'none');
+    const panels = [...root.querySelectorAll('[role="tabpanel"]')];
+    const visiblePanels = panels.filter(el => !el.hidden && getComputedStyle(el).display !== 'none');
+    return { tabs: tabs.map(el => ({ bottom: el.getBoundingClientRect().bottom,
+      precedesPanels: panels.every(panel => !!(el.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING)) })),
+      panelTops: visiblePanels.map(el => el.getBoundingClientRect().top) };
+  });
+  expect(layout.tabs, 'the real tab strip exposes both tab buttons').toHaveLength(2);
+  expect(layout.panelTops, 'exactly one panel is visible').toHaveLength(1);
+  for (const tab of layout.tabs) {
+    expect(tab.precedesPanels, 'all tab buttons precede the panels in consumer markup').toBe(true);
+    expect(tab.bottom, 'every tab stays above the visible panel').toBeLessThanOrEqual(layout.panelTops[0] + 0.01);
+  }
+}
+
 for (const { slug } of catalog) test(`${slug}: option contracts and source/built pixels`, async ({ browser, servers }, testInfo) => {
   const profile = testInfo.project.metadata.caseProfile ?? 'smoke';
   const cases = listCases({ profile }).sort((a, b) => (a.mode === 'declarative') - (b.mode === 'declarative'));
@@ -81,6 +98,7 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         activePage = pages[mode];
         result = await activePage.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug }), { c, slug });
         assertOutput(result, c);
+        if (c.mode === 'declarative' && c.family === 'tab') await assertTabLayout(activePage, result);
         versions[mode] = { status: result.status, pixels: await pixels(activePage, result.canvases) };
         if (c.mode === 'declarative' && result.canvases.length === 0) {
           versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
