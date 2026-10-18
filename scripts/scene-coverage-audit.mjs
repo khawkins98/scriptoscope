@@ -25,6 +25,7 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { resolveSceneInfoBar } from './lib/scene-info-bar.mjs';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 import {
   KDEF_CONTROL_IDS, KDEF_DOC_WIDGET_IDS, KDEF_UTIL_WIDGET_IDS, KDEF_SCROLL_ARROW_IDS,
@@ -55,21 +56,19 @@ const SLOTS = [
         name: 'cinf bgPattern',
         why: 'finder-header cinf -9567 carries the scheme-author-declared bgPatternId',
         resolve: (m) => {
-          const ce = Object.values(m.chromeElements ?? {}).find((v) => v.sourceCicnId === -9567);
-          if (!ce?.bgPattern) return null;
-          const asset = m.patterns?.[ce.bgPattern]?.asset;
-          return asset ? `patterns['${ce.bgPattern}'] → ${asset}` : null;
+          const bg = resolveSceneInfoBar(m);
+          return bg.backgroundTier === 1 ? `patterns['${bg.patternKey}'] → ${bg.pattern}` : null;
         },
       },
       {
         name: 'bodyBackground',
         why: 'cinf -9551 (Icon View) bgPatternId — the body texture, used as a substitute',
-        resolve: (m) => m.bodyBackground?.pattern ? `bodyBackground.pattern → ${m.bodyBackground.pattern}` : null,
+        resolve: (m) => resolveSceneInfoBar(m).backgroundTier === 2 ? `bodyBackground.pattern → ${resolveSceneInfoBar(m).pattern}` : null,
       },
       {
         name: 'headerFill',
         why: 'solid colour from the active title-bar fill — for schemes shipping no ppat',
-        resolve: (m) => m.headerColors?.active?.fill ? `headerColors.active.fill → ${m.headerColors.active.fill}` : null,
+        resolve: (m) => resolveSceneInfoBar(m).backgroundTier === 3 ? `headerColors.active.fill → ${resolveSceneInfoBar(m).fill}` : null,
       },
       { name: 'flat #e6e6e6', why: 'hard fallback', resolve: () => 'flat #e6e6e6' },
     ],
@@ -188,30 +187,20 @@ const SLOTS = [
         name: 'contrast-pick → white',
         why: 'resolved info-bar fill is dark (luminance < 128) — contrast pick returns white',
         resolve: (m) => {
-          const f = m.headerColors?.active?.fill;
-          if (!f) return null;
-          const h = f.replace('#', '');
-          if (h.length !== 6) return null;
-          const r = parseInt(h.slice(0, 2), 16);
-          const g = parseInt(h.slice(2, 4), 16);
-          const b = parseInt(h.slice(4, 6), 16);
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          return lum < 128 ? `headerColors.active.fill ${f} (lum ${Math.round(lum)}) → #fff` : null;
+          const bg = resolveSceneInfoBar(m);
+          if (bg.textTier !== 1) return null;
+          return bg.pattern ? `textured background → ${bg.textColor}`
+            : `resolved fill ${bg.fill} (lum ${Math.round(bg.luminance)}) → ${bg.textColor}`;
         },
       },
       {
         name: 'contrast-pick → black',
         why: 'resolved info-bar fill is light (luminance ≥ 128) OR a textured ppat (we keep black against varied pattern luminance)',
         resolve: (m) => {
-          const f = m.headerColors?.active?.fill;
-          if (!f) return 'no headerColors — defaults to #000 against unknown bg';
-          const h = f.replace('#', '');
-          if (h.length !== 6) return null;
-          const r = parseInt(h.slice(0, 2), 16);
-          const g = parseInt(h.slice(2, 4), 16);
-          const b = parseInt(h.slice(4, 6), 16);
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          return lum >= 128 ? `headerColors.active.fill ${f} (lum ${Math.round(lum)}) → #000` : null;
+          const bg = resolveSceneInfoBar(m);
+          if (bg.textTier !== 2) return null;
+          return bg.pattern ? `textured background → ${bg.textColor}`
+            : `resolved fill ${bg.fill} (lum ${Math.round(bg.luminance)}) → ${bg.textColor}`;
         },
       },
       { name: 'flat #000', why: 'hardcoded fallback for schemes with malformed headerColors', resolve: () => 'flat #000' },

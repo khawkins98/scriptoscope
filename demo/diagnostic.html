@@ -235,6 +235,7 @@
         });
       });
     }
+    import { resolveSceneInfoBar } from '../scripts/lib/scene-info-bar.mjs';
     import THEMES from './themes-manifest.json'; // auto-generated gallery list (gen-themes-manifest.mjs)
     // The BROWSER conversion shell over the portable core: a dropped resource fork →
     // a render-ready in-memory LoadedTheme (blob-URL assets + glyphs), no build step.
@@ -845,17 +846,12 @@
         //      10 of 18 corpus themes land here.
         //   4. Flat #e6e6e6 — no theme currently lands here; kept as a safety net.
         const info = document.createElement('div');
-        const _patterns = theme.manifest?.patterns ?? {};
-        const _hdrCe = Object.values(theme.manifest?.chromeElements ?? {})
-          .find((v) => v.sourceCicnId === -9567);
-        const _hdrPatKey = _hdrCe?.bgPattern; // key into manifest.patterns, e.g. "ppat--9567" or "ppat-129"
-        const _infoPat = (_hdrPatKey && _patterns[_hdrPatKey]?.asset)
-          ?? theme.manifest?.bodyBackground?.pattern
-          ?? null;
+        const _infoBar = resolveSceneInfoBar(theme.manifest);
+        const _infoPat = _infoBar.pattern;
         const _infoPatUrl = !_infoPat ? null
           : /^(?:blob:|https?:|data:)/.test(_infoPat) ? _infoPat
           : `${theme.baseUrl.replace(/\/$/, '')}/${_infoPat}`;
-        const _infoFillColor = theme.manifest?.headerColors?.active?.fill ?? '#e6e6e6';
+        const _infoFillColor = _infoBar.fill;
         Object.assign(info.style, {
           position: 'absolute', left: '0', top: '0', right: '0', height: '18px',
           boxSizing: 'border-box', padding: '0 4px',
@@ -876,16 +872,7 @@
         // composeCornerSpriteChrome path uses for the title bar. The pattern case
         // is harder — patterns vary in luminance across pixels — so we leave the
         // textured info-bar at black until a per-element textColor field exists.
-        const _infoTextColor = (() => {
-          if (_infoPatUrl) return '#000'; // textured bg: keep black (best reading vs varied luminance)
-          const h = _infoFillColor.replace('#', '');
-          if (h.length !== 6) return '#000';
-          const r = parseInt(h.slice(0, 2), 16);
-          const g = parseInt(h.slice(2, 4), 16);
-          const b = parseInt(h.slice(4, 6), 16);
-          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-          return lum < 128 ? '#fff' : '#000';
-        })();
+        const _infoTextColor = _infoBar.textColor;
         Object.assign(vol.style, { font: '400 10px Geneva, "Lucida Grande", Tahoma, sans-serif', color: _infoTextColor, overflow: 'hidden', textOverflow: 'ellipsis' });
         info.appendChild(vol);
         content.appendChild(info);

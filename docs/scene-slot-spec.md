@@ -121,11 +121,11 @@ The label colour applied to the volume name in the Scene's Finder info bar.
 
 | Tier | Source field | Why |
 |---|---|---|
-| T1 | contrast-pick → `#fff` (when `headerColors.active.fill` luminance < 128) | Dark info-bar fills (1990 / animals / dolphin-som / evolution) need white text for legibility |
+| T1 | contrast-pick → `#fff` (solid fill luminance < 128, with no resolved pattern) | Dark solid info bars need white text; textured bars keep black regardless of the unused fill |
 | T2 | contrast-pick → `#000` (when fill ≥ 128 OR a textured ppat is in play) | Light fills + textured backgrounds keep black text |
 | T3 | `flat #000` | Hardcoded fallback for schemes with malformed headerColors (none in corpus) |
 
-Implemented in: `demo/diagnostic.html` buildScene's volume span — luminance threshold mirrors the trick `composeCornerSpriteChrome` uses for the title bar.
+Implemented in: `scripts/lib/scene-info-bar.mjs`, shared by `demo/diagnostic.html` and `scripts/scene-coverage-audit.mjs`. Background selection precedes text contrast; the existing precedence is unchanged.
 
 ### `progress-bar-hue` — Progress-bar accent
 
