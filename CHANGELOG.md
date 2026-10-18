@@ -24,6 +24,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   requirement unresolved. Existing full/default-ring/Crayon gates and the empty
   capture corpus remain unchanged (#190).
 
+- Report completed legacy push/bevel raster paint separately from source-backed
+  band diagnostics, including System 7’s no-cinf face. Bind the actual loaded
+  resource and clipped pre-label alpha occupancy; suppress aborted/failed paint
+  without changing pixels or attributing the compatibility path to kDEF.
+
 - Add explicit finite display profiles shared by raw theme conversion, browser
   loading and declarative mounts. Preserve exact RGB16 through one joint device
   mapping/producer stage, reject missing mappings before asset allocation, and

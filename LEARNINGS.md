@@ -4417,3 +4417,15 @@ a copied preboot volume, not an isolated System file; producer build hashes do
 not establish a semantic release. Sanitized native excerpts retain original log
 hashes and exact line/redaction bindings without redistributing font/cache bytes.
 See [the admitted observations and limits](tests/reference-captures/ORIGINALS.md).
+
+## 2026-10-19 — A planned face lookup is not a completed raster dependency
+
+System 7’s active push face has a real cicn but no matching cinf. Its retained
+nine-slice/sample-fill path produced the measured pixels while diagnostics only
+reported a selected lookup; source-backed `bandPaints` correctly remained absent.
+A separate compatibility-stage record closes that observation gap without
+inventing original band attribution. Snapshot the loaded URL/identity before an
+await, measure clipped nonzero-alpha occupancy before text/rings, and publish only
+when the whole render succeeds. A later ring failure must not turn an offscreen
+intermediate into completed paint evidence. Exact pixels and actual dependency
+identity are complementary observations, not historical provider authentication.

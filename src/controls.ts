@@ -11,7 +11,7 @@ import { controlTextColors } from './controlTextColors.js';
 import { composeTabBody } from './composeTabBody.js';
 import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHeaderSurface,
   type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from './headerSurface.js';
-import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
+import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep, type LegacyFacePaint } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
  *  a 15px button face (FUN_30a8): floor((min(w,h)-3)/2). */
@@ -75,11 +75,11 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * diagnostics preserve the actual sign instead of claiming an original alias.
  */
 interface ResolvedFaceMetadata { theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
-interface ResolvedControlFace extends ResolvedFaceMetadata { buffer: PixelBuffer; }
+interface ResolvedControlFace extends ResolvedFaceMetadata { buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
 type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
 const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
 
-function resourceIdentity(hit: ResolvedFaceMetadata): NonNullable<ControlResolutionStep['resource']> {
+function resourceIdentity(hit: ResolvedFaceMetadata): Extract<NonNullable<ControlResolutionStep['resource']>, { type: 'cicn' }> {
   return { type: 'cicn', signedId: Number.isInteger(hit.element.sourceCicnId) ? hit.element.sourceCicnId! : null,
     sourceCinfId: Number.isInteger(hit.element.sourceCinfId) ? hit.element.sourceCinfId! : null, manifestKey: hit.key,
     assetUrl: assetUrl(hit.theme, hit.element.asset),
@@ -119,10 +119,22 @@ function resolveFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCol
   });
 }
 
+/** Capture the actual requested asset and scalar identity before its decode
+ * await. Diagnostics must not relabel that buffer after consumer metadata edits. */
+async function loadResolvedFace(hit: ResolvedFaceMetadata, trace?: ControlTraceCollector): Promise<ResolvedControlFace> {
+  const url = assetUrl(hit.theme, hit.element.asset);
+  const resource = trace ? resourceIdentity(hit) : undefined;
+  const loadedIdentity = resource ? {
+    owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth },
+    resource: { ...resource, assetUrl: url, ...(resource.byteProvenance ? { byteProvenance: { ...resource.byteProvenance } } : {}) },
+  } : undefined;
+  return { ...hit, buffer: await loadCicnBuffer(url), ...(loadedIdentity ? { loadedIdentity } : {}) };
+}
+
 async function loadFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCollector,
   lookup: TraceLookup = FACE_LOOKUP): Promise<ResolvedControlFace | null> {
   const hit = resolveFaceById(theme, id, trace, lookup);
-  return hit ? { ...hit, buffer: await loadCicnBuffer(assetUrl(hit.theme, hit.element.asset)) } : null;
+  return hit ? loadResolvedFace(hit, trace) : null;
 }
 
 async function loadById(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
@@ -293,7 +305,7 @@ async function resolvePushButtonFace(
     traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'missing', 'missing-resource');
     return null;
   });
-  return found ? { ...found, buffer: await loadCicnBuffer(assetUrl(found.theme, found.element.asset)) } : null;
+  return found ? loadResolvedFace(found, trace) : null;
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
@@ -1282,6 +1294,7 @@ async function composeFaceButton(
   // A completed body dependency describes a published composition, not an
   // intermediate offscreen write. Borders can still decode asynchronously.
   let mode5PaintStep: ControlResolutionStep | undefined;
+  let legacyFacePaint: LegacyFacePaint | undefined;
   if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
@@ -1369,9 +1382,35 @@ async function composeFaceButton(
     const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
     const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
     out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
+    let centerFill: LegacyFacePaint['centerFill'];
     if (ca > 0) {
       const cw = innerW - fIns * 2, ch = innerH - fSide * 2;
-      if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fSide, w: cw, h: ch }, cr, cg, cb, 255);
+      if (cw > 0 && ch > 0) {
+        out.fillRect({ x: fIns, y: fSide, w: cw, h: ch }, cr, cg, cb, 255);
+        if (opts.trace) centerFill = { sourcePoint: [sx, sy], sampledDisplayRgba: [cr, cg, cb, ca],
+          destinationRect: { x: fIns, y: fSide, w: cw, h: ch }, outputAlpha: 255 };
+      }
+    }
+    if (geometry === 'button' && opts.trace && resolved.loadedIdentity) {
+      // Occupancy of this stage under the actual clip, before glyphs. This is
+      // neither historical band attribution nor final surviving contribution.
+      let retainedNonzeroAlphaPixels = 0;
+      for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
+        if (controlPointVisible(context, x, y) && out.getPixel(x, y)[3] > 0) retainedNonzeroAlphaPixels++;
+      if (retainedNonzeroAlphaPixels) {
+        const clip = context.clip;
+        const [ox, oy] = context.controlOrigin;
+        const x = clip.kind === 'rect' ? Math.max(0, Math.min(innerW, clip.rect.x - ox)) : 0;
+        const y = clip.kind === 'rect' ? Math.max(0, Math.min(innerH, clip.rect.y - oy)) : 0;
+        const right = clip.kind === 'rect' ? Math.max(x, Math.min(innerW, clip.rect.x + clip.rect.w - ox)) : innerW;
+        const bottom = clip.kind === 'rect' ? Math.max(y, Math.min(innerH, clip.rect.y + clip.rect.h - oy)) : innerH;
+        legacyFacePaint = { ...resolved.loadedIdentity, basis: 'compatibility-policy', operation: 'legacy-nine-slice-and-sample-fill',
+          coordinateSpace: 'face-local-before-ring', sourceRect: { x: 0, y: 0, w: face.width, h: face.height },
+          destinationRect: { x: 0, y: 0, w: innerW, h: innerH }, requestedInsets: faceIns,
+          insetPolicy: 'pixel-buffer-nine-slice-source-clamp', mode: faceMode, rasterAlpha: 'copy-source-rgba',
+          ...(centerFill ? { centerFill } : {}), controlOrigin: context.controlOrigin, declaredClip: clip,
+          effectiveFaceClip: { x, y, w: right - x, h: bottom - y }, retainedNonzeroAlphaPixels };
+      }
     }
   }
   if (glyphs) {
@@ -1386,6 +1425,7 @@ async function composeFaceButton(
   }
   assertControlAlive(opts.signal);
   if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
+  if (legacyFacePaint) opts.trace?.legacyFacePaint(legacyFacePaint);
   return out;
 }
 
