@@ -208,6 +208,14 @@
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit a:visited { color: #C8A2D8 !important; }
     #powers [data-scriptoscope-theme="evolution"] .scriptoscope-fit code,
     #powers [data-scriptoscope-theme="black-platinum"] .scriptoscope-fit code { color: #ffce88 !important; }
+    /* Utility palettes have light interiors even when a scheme's document
+       windows are dark. Give their live HTML an explicit paper surface. */
+    #powers .powers-paper .scriptoscope-fit {
+      background: #fcfaf5; color: #28251f !important;
+    }
+    #powers .powers-paper .scriptoscope-fit :is(h1,h2,h3,p,em,strong,label,output,code) { color: #28251f !important; }
+    #powers .powers-paper .scriptoscope-fit a { color: #0000ee !important; }
+    #powers .powers-paper .scriptoscope-fit a:visited { color: #551a8b !important; }
     /* READ ME window — the lede wears chrome. Custom content padding
        (Apple HIG Read Me's typically used ~16-20px inside the frame).
        Sits in flow automatically (Posture B 2026-05-30: hosts default
@@ -379,7 +387,10 @@
     @media (max-width: 720px) {
       /* Leave room for native frame insets and title widgets outside the
          measured body (including ornate schemes at a 320px viewport). */
-      #powers { padding-right: 56px; }
+      body.site-support.site-showcase #powers { padding-right: 64px; }
+      /* Document chrome can add 104px; utility chrome adds 56px. */
+      #powers .powers-picker-host { padding-right: 48px; }
+      #powers .powers-byo-modal:not(:has(.scriptoscope-slot)) { width: calc(100vw - 168px); }
       #powers h2 { overflow-wrap: anywhere; }
       /* Constrain the grid before the runtime measures its host; long
          code keeps its local scroll range instead of widening the page. */
@@ -390,7 +401,7 @@
       /* Use a shallower cascade and reserve its final 3 × 8px offset.
          This leaves room for the runtime's minimum body width at 320px
          without scaling the native chrome or changing drag behavior. */
-      #powers .powers-grid { --powers-cascade-step-x: 8; padding-right: 24px; box-sizing: border-box; }
+      #powers .powers-grid { --powers-cascade-step-x: 8; padding-right: 72px; box-sizing: border-box; }
       #powers .powers-toolbar { padding: 12px 16px 0; flex-wrap: wrap; }
     }
     /* PICKER SPECIAL TILES — "No theme" and "Load your own" inside the
@@ -616,7 +627,7 @@
            Mac OS palette windows opened next to each other, matching
            the period desktop convention. User direction 2026-05-31. -->
       <div class="powers-tools-row">
-        <article class="powers-hero-window" data-scriptoscope-window
+        <article class="powers-hero-window powers-paper" data-scriptoscope-window
                  data-scriptoscope-title="Controls" data-scriptoscope-window-type="titled-utility-window">
           <p class="site-controls-note">Ordinary buttons, inputs and sliders. Try them: the browser handles their behavior while Scriptoscope draws the scheme.</p>
           <div class="powers-hero-strip" aria-label="Live themed controls, one of each kind">
@@ -628,7 +639,7 @@
             <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
           </div>
         </article>
-        <article class="powers-install-host" id="install" data-scriptoscope-window
+        <article class="powers-install-host powers-paper" id="install" data-scriptoscope-window
                  data-scriptoscope-title="Install"
                  data-scriptoscope-window-type="titled-utility-window"
                  data-scriptoscope-widgets="zoom,collapse">
@@ -731,7 +742,7 @@
 &lt;article data-scriptoscope-window&gt;…&lt;/article&gt;</pre>
             </div>
           </article>
-          <article class="powers-card" data-scriptoscope-window
+          <article class="powers-card powers-paper" data-scriptoscope-window
                    data-scriptoscope-title="About the Library" data-scriptoscope-window-type="titled-utility-window">
             <div class="powers-glyph" aria-hidden="true" data-scriptoscope-icon="suitcase">✦</div>
             <div>
@@ -831,6 +842,13 @@
     // and `themes: THEMES` to mountDeclarative below.
     let mountToken = 0;
     let handle = null;
+    let mountingPowers = null;
+    const registeredThemes = new Map();
+    let activeRef = null;
+    let userInteracted = false;
+    for (const type of ['pointerdown', 'keydown', 'wheel']) {
+      window.addEventListener(type, () => { userInteracted = true; }, { once: true, passive: true });
+    }
 
     // Single state setter — toggle button only. The library auto-adds
     // `.scriptoscope-ready` to the root (#powers) when mountDeclarative
@@ -858,8 +876,13 @@
     // park on 1138 as a permanent default.
     const randomDefaultSlug = THEMES[Math.floor(Math.random() * THEMES.length)]?.slug ?? '1138';
 
-    const mountPowers = async () => {
-      if (handle) return;
+    const mountPowers = () => {
+      if (handle) return Promise.resolve();
+      if (mountingPowers) return mountingPowers;
+      mountingPowers = mountPowersOnce().finally(() => { mountingPowers = null; });
+      return mountingPowers;
+    };
+    const mountPowersOnce = async () => {
       const grid = document.getElementById('powers-grid');
       grid.setAttribute('data-scriptoscope-cascade-step-x',
         getComputedStyle(grid).getPropertyValue('--powers-cascade-step-x').trim() || '24');
@@ -869,7 +892,7 @@
         h = await mountDeclarative({
           root: powersSection,
           themeBaseUrl,
-          pageThemeDefault: randomDefaultSlug,
+          pageThemeDefault: THEMES.some(t => t.slug === activeRef) ? activeRef : randomDefaultSlug,
           themes: THEMES,
           // syncToUrlParam: '?theme=animals' on the URL sets the initial
           // theme + history.replaceState mirrors every retheme back. The
@@ -879,7 +902,7 @@
           // pointerdown/keydown/wheel. Suppressed if syncToUrlParam came
           // in with a deep-link (the user chose a scheme) or if
           // prefers-reduced-motion. Library owns all the bookkeeping.
-          autoCycle: 4000,
+          autoCycle: userInteracted ? 0 : 4000,
           // No persistKey: layout is dictated by CSS. Drag + resize work
           // (WindowManager owns those); reload resets to CSS defaults.
           // rejectOnEmptyMount catches theme-bundle 404s / decoder errors
@@ -896,6 +919,16 @@
         try { h.disconnect(); } catch {}
         return;
       }
+      try {
+        for (const [ref, theme] of registeredThemes) h.registerTheme(ref, theme);
+        if (registeredThemes.has(activeRef)) await h.retheme(activeRef);
+      } catch (err) {
+        h.disconnect();
+        if (my === mountToken) syncToggleUI(false);
+        console.warn('[scriptoscope] Could not restore the dropped scheme:', err);
+        return;
+      }
+      if (my !== mountToken) { h.disconnect(); return; }
       handle = h;
       syncToggleUI(true);
       // AUTHOR CREDIT — listen for retheme to update the in-place byline
@@ -927,8 +960,12 @@
       // before the first retheme event fires.
       const url = new URL(window.location.href);
       const initialSlug = url.searchParams.get('theme') ?? randomDefaultSlug;
+      activeRef = initialSlug;
       renderCredit(findEntry(initialSlug));
-      h.addEventListener('retheme', (e) => renderCredit(findEntry(e.detail.ref)));
+      h.addEventListener('retheme', (e) => {
+        activeRef = e.detail.ref;
+        renderCredit(findEntry(e.detail.ref));
+      });
     };
 
     const unmountPowers = () => {
@@ -975,6 +1012,36 @@
       modalHandle = handle.openModal(modalWrap, modalTrigger ? { returnFocusTo: modalTrigger } : {});
     };
     const closeModal = () => { modalHandle?.close(); modalHandle = null; };
+    // Natural HTML is measured at mount time. Re-mount on width changes so
+    // native pixels fit the new layout; retain decoded BYO themes and form DOM.
+    let viewportWidth = innerWidth;
+    let resizeTimer;
+    let resizing = false;
+    let resizePending = false;
+    async function reflowPowers() {
+      if (resizing) { resizePending = true; return; }
+      resizing = true;
+      try {
+        do {
+          resizePending = false;
+          await mountingPowers;
+          if (toggleBtn.getAttribute('aria-pressed') !== 'true') return;
+          const focused = document.activeElement;
+          closeModal();
+          unmountPowers();
+          toggleBtn.setAttribute('aria-pressed', 'true');
+          await mountPowers();
+          if (focused instanceof HTMLElement && focused.isConnected) focused.focus({ preventScroll: true });
+        } while (resizePending);
+      } finally { resizing = false; }
+    }
+    window.addEventListener('resize', () => {
+      if (innerWidth === viewportWidth) return;
+      viewportWidth = innerWidth;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => void reflowPowers(), 160);
+    });
+
     if (modalDrop && modalOut) {
       attachThemeDropZone(modalDrop, {
         accept: '.sit,.hqx,.bin,.rsrc,.as,.adf,.cpt',
@@ -993,6 +1060,7 @@
           try {
             const theme = await loadKaleidoscopeScheme(file, { meta: { name }, source: file.name });
             const ref = `dropped:${file.name}`;
+            registeredThemes.set(ref, theme);
             handle.registerTheme(ref, theme);
             await handle.retheme(ref);
             modalOut.className = 'powers-byo-modal-out ok';

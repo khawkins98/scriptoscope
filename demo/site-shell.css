@@ -68,7 +68,7 @@ body.site-support {
 .site-example-docs { --site-scene: #dedfd8; }
 .site-example .page > *, .site-example .features > *, .site-example .testimonials > * { min-width: 0; }
 .site-example .page pre { max-width: 100%; overflow-x: auto; box-sizing: border-box; }
-.site-example .footer-credit { margin: 0 auto; padding: 20px 32px; max-width: 1200px; box-sizing: border-box; color: var(--site-muted); background: var(--site-scene); font-size: 12px; }
+.site-example .footer-credit { margin: 0 auto; padding: 20px 32px; max-width: 1200px; box-sizing: border-box; color: #514a40; background: var(--site-scene); font-size: 12px; }
 .site-example .footer-credit a, .site-example .footer-credit a:visited { color: var(--site-accent); }
 .site-next { max-width: 1136px; margin: 36px auto 0; padding: 28px 0 38px; border-top: 1px solid var(--site-rule); display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
 .site-next h2 { margin: 0 0 5px; font: 400 34px/1 'Instrument Serif', Georgia, serif; letter-spacing: -.02em; }

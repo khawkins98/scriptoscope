@@ -1,5 +1,7 @@
 import { expect } from '@playwright/test';
 import { test } from './demo-fixtures.mjs';
+import { root } from './servers.mjs';
+import { resolve } from 'node:path';
 
 test('wayfinding carries the scheme from installation through examples and back', async ({ page, demo }) => {
   await page.goto(`${demo}/showcase.html?theme=1138`);
@@ -61,4 +63,57 @@ test('landing navigation exposes the story as its own page', async ({ page, demo
   await page.locator('.site-next').getByRole('link', { name: /Try & install/ }).click();
   await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
   await expect(page.locator('details.site-story')).toHaveCount(0);
+});
+
+for (const theme of ['evolution', 'black-platinum']) {
+  test(`showcase ${theme} keeps its real frames and installation readable on phones`, async ({ page, demo }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.goto(`${demo}/showcase.html?theme=1138`);
+    await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+    await page.locator(`[data-slug="${theme}"]`).click();
+    await expect(page.locator('#install')).toHaveAttribute('data-scriptoscope-theme', theme);
+    const framesFit = () => page.locator('#powers [data-scriptoscope-window-host]').evaluateAll(hosts => hosts.every(host => {
+      const frame = host.shadowRoot?.querySelector('.scriptoscope-window');
+      const rect = frame?.getBoundingClientRect();
+      if (frame && getComputedStyle(frame).visibility === 'hidden') return true;
+      return !rect?.width || rect.right <= innerWidth;
+    }));
+    await expect.poll(framesFit).toBe(true);
+    // Both utility palettes have a light author-controlled interior.
+    const luminance = await page.locator('.site-install-heading').evaluate(el => {
+      const rgb = getComputedStyle(el).color.match(/[\d.]+/g).slice(0, 3).map(Number);
+      const linear = rgb.map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; });
+      return .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2];
+    });
+    expect(1.05 / (luminance + .05)).toBeGreaterThanOrEqual(4.5);
+    await page.getByRole('button', { name: /Switch to bare HTML/ }).click();
+    await page.getByRole('button', { name: /Restore the chrome/ }).click();
+    await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+    await expect.poll(framesFit).toBe(true);
+    await page.setViewportSize({ width: 1280, height: 960 });
+    await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+    await page.setViewportSize({ width: 320, height: 800 });
+    await expect.poll(framesFit).toBe(true);
+  });
+}
+
+
+test('showcase reflow retains an uploaded scheme and its modal behavior', async ({ page, demo }) => {
+  await page.goto(`${demo}/showcase.html?theme=1138`);
+  await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+  await page.getByRole('button', { name: /Load your own Kaleidoscope scheme/ }).click();
+  await expect(page.locator('#powers-byo-modal-wrap')).toHaveAttribute('data-scriptoscope-modal-open', '');
+  await page.locator('#powers-byo-modal-drop input[type=file]').setInputFiles(resolve(root, 'themes/1138/scheme.rsrc'));
+  await expect(page.locator('#powers-byo-modal-out')).toContainText('Now wearing');
+  await page.setViewportSize({ width: 320, height: 800 });
+  await expect.poll(() => page.locator('#install').getAttribute('data-scriptoscope-theme')).toBe('dropped:scheme.rsrc');
+  await expect.poll(() => page.evaluate(() => {
+    const frame = document.querySelector('#install')?.shadowRoot?.querySelector('.scriptoscope-window');
+    return frame ? frame.getBoundingClientRect().right <= innerWidth : false;
+  })).toBe(true);
+  await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
+  await page.getByRole('button', { name: /Load your own Kaleidoscope scheme/ }).click();
+  await expect(page.locator('#powers-byo-modal-wrap')).toHaveAttribute('data-scriptoscope-modal-open', '');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#powers-byo-modal-wrap')).not.toHaveAttribute('data-scriptoscope-modal-open', '');
 });
