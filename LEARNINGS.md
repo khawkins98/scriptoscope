@@ -3852,3 +3852,13 @@ Title-widget press/release is another pooled-canvas writer: an old delayed press
 render or pointerup can overwrite new chrome unless it checks chrome identity,
 entry epoch and press generation. Public caller-supplied `reuseCanvas` must also
 be stripped from every asynchronous preparation, then adopted only at commit.
+
+Public promotion and scanner-owned promotion have different lifetime contracts:
+direct calls can prepare disconnected fragments and keep their nonnullable button
+return type. Apply connection cancellation only when the scanner supplies a signal.
+A button insertion also reaches a MutationObserver before the awaiting scanner
+resumes; if that observer requests another theme, dispose and remove the fresh
+unregistered face rather than leaving a duplicate. Tests first reproduced both
+regressions on the proposed change; the detached-fragment test also passed the
+original source and built bundle. Retained discarded faces must stop forwarding
+activation, and a subsequent retheme must still replace exactly one tracked face.

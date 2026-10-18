@@ -102,7 +102,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   batch. Window preparation is isolated from live canvases, failed newer requests
   cannot revive superseded work, and declarative completion/default/URL updates
   follow successful work. Dynamic scans join the current request boundary; native
-  focus and state survive face replacement. (Refs #237.)
+  focus and state survive face replacement. Direct public button/tab preparation
+  remains usable in disconnected fragments; reentrant button insertion disposes
+  discarded faces without leaving duplicate controls. (Refs #237.)
 
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab

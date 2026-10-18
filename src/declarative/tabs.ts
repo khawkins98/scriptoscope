@@ -92,7 +92,7 @@ export async function promoteTabs(
     if (!opts.forceRescan || selectedNow() === selectedId) break;
     selectedId = selectedNow();
   }
-  if (opts.signal?.aborted || !el.isConnected) return;
+  if (opts.signal && (opts.signal.aborted || !el.isConnected)) return;
   const generation = {};
   generations.set(el, generation);
   const oldFaces = Array.from(el.querySelectorAll<HTMLElement>(':scope > [data-scriptoscope-tab-skinned]'));
@@ -127,7 +127,7 @@ export async function promoteTabs(
   /** Apply selection — flip ARIA + tabindex on tabs, hide/show panels, and (if available) swap
    *  the canvas face for the new selected state. */
   const setSelected = async (newId: string): Promise<void> => {
-    if (generations.get(el) !== generation || !el.isConnected) return;
+    if (generations.get(el) !== generation || (opts.signal && !el.isConnected)) return;
     selectedId = newId;
     for (const s of skinned) {
       const isSel = s.panelId === newId;
@@ -139,7 +139,7 @@ export async function promoteTabs(
       // selectors on the native button, so no canvas swap needed there.
       if (s.face.tagName === 'SPAN') {
         const buf = await composeTab(theme, { label: s.tab.textContent ?? '', selected: isSel });
-        if (generations.get(el) !== generation || !el.isConnected) return;
+        if (generations.get(el) !== generation || (opts.signal && !el.isConnected)) return;
         if (buf) s.face.replaceChildren(bufferToCanvas(buf, 1));
       }
     }

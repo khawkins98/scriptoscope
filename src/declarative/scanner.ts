@@ -4,7 +4,7 @@
 // firing on our OWN DOM moves) skip them and settle.
 
 import { listenUntilAborted } from '../listenUntilAborted.js';
-import { WindowManager } from '../interactive.js';
+import { WindowManager, disposeInteractiveControl } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
 import { promoteButton } from './button.js';
@@ -548,9 +548,15 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         if (!current()) return;
         try {
           const fresh = await promoteButton(b.el, theme, replacing.signal);
-          if (!current()) return; // superseded during preparation
+          if (!current()) {
+            // Insertion can synchronously queue a consumer MutationObserver which
+            // requests another theme before this continuation owns the new face.
+            if (fresh) { disposeInteractiveControl(fresh); fresh.remove(); }
+            return;
+          }
           if (!fresh) continue; // source removed during preparation
           const focused = b.skinned.contains(document.activeElement);
+          disposeInteractiveControl(b.skinned);
           b.skinned.remove(); // the replacement is already inserted after the source
           b.skinned = fresh;
           if (focused) fresh.focus({ preventScroll: true });

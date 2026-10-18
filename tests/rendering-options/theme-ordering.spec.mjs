@@ -270,4 +270,63 @@ for (const mode of ['source', 'built']) {
     await page.evaluate(() => { const f = window.ordering; f.manager.remove(f.host); f.root.remove(); f.themes.forEach(t => t.dispose?.()); });
   });
 
+  test(`${mode}: public button and tab promotion can prepare a disconnected fragment`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    expect(await page.evaluate(async mode => {
+      const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const theme = await runtime.loadTheme('/themes/windows-95');
+      const fragment = document.createDocumentFragment();
+      const root = document.createElement('div'); fragment.append(root);
+      root.innerHTML = '<button data-scriptoscope-button>Apply</button><div data-scriptoscope-tabs><button data-scriptoscope-tab="one">One</button><button data-scriptoscope-tab="two">Two</button><div data-scriptoscope-panel="one">First</div><div data-scriptoscope-panel="two">Second</div></div>';
+      const source = root.querySelector('button'), tabs = root.querySelector('[data-scriptoscope-tabs]');
+      let clicks = 0; source.addEventListener('click', () => clicks++);
+      const face = await runtime.promoteButton(source, theme);
+      await runtime.promoteTabs(tabs, theme);
+      const prepared = { face: face instanceof HTMLElement, sibling: source.nextElementSibling === face, tabs: tabs.querySelectorAll('[data-scriptoscope-tab-skinned]').length, connected: root.isConnected };
+      document.body.append(fragment);
+      face?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      face?.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      tabs.querySelectorAll('[data-scriptoscope-tab-skinned]')[1]?.dispatchEvent(new PointerEvent('pointerdown'));
+      // Wait for real selection rendering, not a timer or a mocked tab implementation.
+      await runtime.composeTab(theme, { label: 'Two', selected: true });
+      const result = { ...prepared, clicks, secondSelected: tabs.querySelector('[data-scriptoscope-tab="two"]').getAttribute('aria-selected') };
+      root.remove(); theme.dispose?.(); return result;
+    }, mode)).toEqual({ face: true, sibling: true, tabs: 2, connected: false, clicks: 1, secondSelected: 'true' });
+  });
+
+  test(`${mode}: button insertion reentry leaves one registered latest face and disposes the superseded face`, async ({ page, servers }) => {
+    await openHarness(page, servers, mode);
+    const result = await page.evaluate(async mode => {
+      const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
+      const root = document.createElement('div'); root.innerHTML = '<button data-scriptoscope-button>Apply</button>'; document.body.append(root);
+      const source = root.querySelector('button'); let clicks = 0; source.addEventListener('click', () => clicks++);
+      const handle = await runtime.mountDeclarative({ root, themeBaseUrl: '/themes', pageThemeDefault: 'windows-95', bootAffordance: 'none' });
+      let newer, discarded;
+      const observer = new MutationObserver(records => {
+        const inserted = records.flatMap(r => [...r.addedNodes]).find(n => n instanceof HTMLElement && n.matches('.scriptoscope-button'));
+        if (!inserted) return;
+        observer.disconnect(); discarded = inserted;
+        newer = handle.retheme('beos-r503');
+      });
+      observer.observe(root, { childList: true });
+      await handle.retheme('system7-nostalgia-silver'); await newer;
+      const expectedTheme = await runtime.loadTheme('/themes/beos-r503');
+      const expected = await runtime.interactiveButton(expectedTheme, { label: 'Apply' });
+      const faces = [...root.querySelectorAll('.scriptoscope-button')];
+      const sameArt = faces.length === 1 && faces[0].querySelector('canvas').toDataURL() === expected.querySelector('canvas').toDataURL();
+      discarded.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      discarded.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const staleClicks = clicks;
+      await handle.retheme('windows-95');
+      const countAfterNext = root.querySelectorAll('.scriptoscope-button').length;
+      const finalFace = root.querySelector('.scriptoscope-button');
+      finalFace.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      finalFace.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+      const discardedConnected = discarded.isConnected;
+      handle.disconnect(); root.remove(); expectedTheme.dispose?.();
+      return { count: faces.length, sameArt, discardedConnected, staleClicks, countAfterNext, clicks };
+    }, mode);
+    expect(result).toEqual({ count: 1, sameArt: true, discardedConnected: false, staleClicks: 0, countAfterNext: 1, clicks: 1 });
+  });
+
 }

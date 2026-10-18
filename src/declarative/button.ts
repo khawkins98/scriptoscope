@@ -3,9 +3,13 @@
 // and its listeners all keep working; the skinned control simply forwards clicks to it.
 
 import type { LoadedTheme } from '../types.js';
-import { interactiveButton } from '../interactive.js';
+import { interactiveButton, disposeInteractiveControl } from '../interactive.js';
 import { parseButtonAttrs } from './parse.js';
 
+// Direct callers may prepare a disconnected fragment. Scanner-owned promotion supplies
+// a lifetime signal and additionally requires a connected source at commit.
+export function promoteButton(el: HTMLElement, theme: LoadedTheme): Promise<HTMLElement>;
+export function promoteButton(el: HTMLElement, theme: LoadedTheme, signal: AbortSignal): Promise<HTMLElement | null>;
 export async function promoteButton(el: HTMLElement, theme: LoadedTheme, signal?: AbortSignal): Promise<HTMLElement | null> {
   const parsed = parseButtonAttrs(el.dataset as Record<string, string | undefined>, el.textContent ?? '');
   const skinned = await interactiveButton(theme, {
@@ -18,7 +22,10 @@ export async function promoteButton(el: HTMLElement, theme: LoadedTheme, signal?
       else el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     },
   });
-  if (signal?.aborted || !el.isConnected) return null;
+  if (signal && (signal.aborted || !el.isConnected)) {
+    disposeInteractiveControl(skinned);
+    return null;
+  }
   el.dataset.scriptoscopePromoted = '';
   const aria = el.getAttribute('aria-label') ?? parsed.label;
   if (aria) skinned.setAttribute('aria-label', aria);
