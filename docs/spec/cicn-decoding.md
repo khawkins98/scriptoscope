@@ -8,7 +8,7 @@ complete decoder. Actual input identity is a separate
 
 ## Primary evidence
 
-- Apple, *Inside Macintosh: Imaging With QuickDraw*, Color QuickDraw pp.4-105–106,
+- Apple, [*Inside Macintosh: Imaging With QuickDraw*](https://vintageapple.org/inside_r/pdf/Imaging_With_QuickDraw_1994.pdf), Color QuickDraw pp.4-105–106,
   Figure 4-18: PixMap, mask BitMap, monochrome BitMap and icon-data handle precede
   mask bytes, optional monochrome bytes, ColorTable and indexed pixel bytes.
   Pixel maps and indexed depths are described on pp.4-10–11; bitmap rows on
@@ -72,9 +72,9 @@ dolphin-som/-9504. No required-range/stride or mask-dimension mismatch was found
 in these pinned inputs; other inputs remain unassessed.
 
 The four-theme availability candidate regeneration changes only its cicn decoder
-toolchain hash. Candidates remain schema1/unreviewed; all archive, fork, resource,
+toolchain hash. Candidates remain schema 1/unreviewed; all archive, fork, resource,
 presence and decoded-dimension facts remain identical. The independently reviewed
-availability inventory stays version1.0.1, digest
+availability inventory stays version 1.0.1, digest
 `18780e634b364e281f24dab8b5f470d84ee6b8a7b58d5c853dbbbe8438ec9652`.
 Its validator binds review version/digest to cases, separately from extraction
 provenance, so no case review/version transition occurs in this fix.
