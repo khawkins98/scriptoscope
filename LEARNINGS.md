@@ -3252,3 +3252,19 @@ completion clearing its stamp or attaching a late window.
 A declarative resolver owns themes it loaded, but register() borrows the supplied theme and its base chain. Registration removes previously owned bases from the owned set, with cycle protection, because external callers can keep using them after mount teardown. Dispose the resolver only after removing its windows; invalidate the resolver immediately, and dispose any still-pending internal load when it eventually finishes. Never revoke registered/shared resources by blindly walking the cache or base pointers.
 
 Revoking blob URLs alone leaves decoded PixelBuffers retained in the runtime's module-level image cache. The browser loader now emits per-URL release notifications through a small callback registry in tools/theme-loader; cicnImage subscribes and drops just those cache entries. This keeps the conversion layer independent of the TypeScript runtime and handles both completed and pending decodes without clearing unrelated consumers' caches. Late decode completion does not reinsert a removed entry, and late rejection cannot delete a replacement. The listener registry uses a versioned globalThis Symbol.for key: deployed raw loaders and the bundled runtime can contain separate module copies, but blob URL ownership and eviction must still communicate within the same realm.
+
+### 2026-10-18 — Visual captures must own their server and preserve fixtures
+
+The Scene panel moved to `diagnostic.html`, leaving the old root-route capture
+waiting for a selector that no longer existed. Capture the diagnostic route and
+verify its selected slug before waiting for completed canvases, fonts, and images.
+Use an in-process Vite server with an OS-selected port and `strictPort`: Vite 7
+treats `port: 0` as its default, and killing an npm wrapper can leave Vite running.
+Close the owned browser/server in `finally`; an explicit `BASE` remains caller-owned.
+
+Verification must capture directly to scratch, not overwrite committed fixtures
+and attempt restoration after success. `--diff-only` must compare scratch against
+committed files, rather than comparing the baseline directory to itself. Screenshot
+bytes flag drift in a particular browser/platform; they do not establish original
+Kaleidoscope fidelity. Independent repeat captures check harness determinism,
+while the compositor's raw-pixel tests guard its allocation model.
