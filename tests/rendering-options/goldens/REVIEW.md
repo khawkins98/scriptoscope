@@ -30,3 +30,11 @@ The successful verification retained 36 complete page observations covering 1,26
 cases: 1,168 rendered and 92 unavailable. Those counts describe execution, not
 independently established resource availability. The 42 browser contracts provide
 separate source-art, geometry, label-ink, DOM and keyboard evidence.
+
+[Verification proof run 39109820394](https://github.com/khawkins98/scriptoscope/actions/runs/39109820394)
+ran from later seed head `f615727524a9ad6a3f0134b1ea17635fc765e188` with recording
+disabled. All 36 committed sheets passed. Separate selected-sheet probes failed
+for the missing manifest, missing PNG and exactly one changed opaque pixel.
+Verification did not create/update expected files; their original SHA256 values
+were restored and the restored sheet passed. Expected/actual/diff evidence and
+failure logs are retained in that run's negative-verification artifact.

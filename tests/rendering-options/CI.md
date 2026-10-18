@@ -45,7 +45,10 @@ Golden recording and verification are separate commands:
 - `npm run test:rendering:goldens` verifies reviewed files and fails if a manifest
   or image is missing. It never creates or changes expected images.
 - The **Record rendering golden candidates** workflow uploads candidates for
-  review without committing them. Run it after source-backed renderer fixes.
+  review without committing them. Its default `mode=record` records then verifies;
+  `mode=verify` compares committed images without recording. Optional
+  `negative_probes=true` checks missing manifest/image and one-pixel mutation
+  failures, restores exact expected bytes, then verifies the restored sheet.
 
 All 70 bounded cases are captured in two independent contact-sheet pages per
 corpus theme (at most 35 cases each), yielding 36 reviewable PNGs. Each page gets
@@ -55,10 +58,19 @@ The manifest gates browser/Playwright versions, platform, fonts, archive hashes,
 case inventory and display zoom. Commit and built-bundle hashes are provenance
 only, so ordinary code changes still compare against the approved images.
 
-Golden verification is a separate opt-in command until the initial Linux sheets
-have been reviewed and committed. Do not claim the golden layer is armed before
-that seed and its CI verification step land. Image equality is a regression signal;
-source/cinf evidence and independent geometry/color contracts establish fidelity.
+CI compares all 36 [reviewed seed images](./goldens/REVIEW.md) exactly on every
+code-changing PR, alongside the independent browser contracts. Missing images,
+manifest/input drift and even one changed pixel fail verification. Updates remain
+an explicit candidate-and-review operation. Image equality is a regression signal;
+the [known limits](./KNOWN-LIMITS.md) distinguish source-backed requirements from
+acknowledged mismatches, unverified appearances and interaction gaps.
+
+Compact JSON observations are always uploaded from `test-results/rendering-evidence`,
+including executed case status/dimensions and actual golden-run environment and
+provenance. They survive successive contract/golden commands. Observed unavailable
+output is not an independent expected-availability oracle. Detailed screenshots,
+traces and diffs are uploaded only for failures; optional negative-probe artifacts
+are retained separately even when their expected failures make the proof succeed.
 
 Failures retain exact case/options metadata, raw source/output PNGs, DOM screenshots
 and traces under `test-results/rendering-options`, with an HTML report under

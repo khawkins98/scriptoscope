@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-// Explicit opt-in until Linux captures have been visually reviewed and committed.
+// Linux golden verification is a separate CI command beside browser contracts.
 // Verification never creates a missing baseline. Update produces candidates only.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';

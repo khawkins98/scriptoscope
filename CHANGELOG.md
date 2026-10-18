@@ -21,7 +21,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 ### Added (2026-10-18)
 
 - Reviewed Linux control-rendering regression seed: 36 bounded contact sheets,
-  pinned input provenance and explicit known fidelity/interaction limits.
+  pinned input provenance and explicit known fidelity/interaction limits, with
+  exact comparisons in CI and optional missing-file/one-pixel failure probes.
 
 - Compact rendering observations retained on successful and failed CI runs,
   including executed availability/dimensions and explicit fidelity limits.

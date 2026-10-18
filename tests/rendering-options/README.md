@@ -34,12 +34,12 @@ npm run test:rendering:container -- record
 npm run test:rendering:container -- verify
 ```
 
-Golden verification must fail when the reviewed manifest or image is missing.
-Updates create candidates for review in the pinned Linux/Chromium environment;
-they do not bless current output. Establish the reviewed seed only after the
-System 7 / Windows 95 rendering fixes and source/invariant checks pass. Goldens
-are not part of default CI until that reviewed seed is committed. Browser/font,
-DPR, source and runtime provenance belong with every captured set.
+CI now compares the 36 [reviewed Linux sheets](./goldens/REVIEW.md) exactly on
+code-changing PRs. A missing manifest/image or changed pixel fails verification.
+Updates create candidates for review; they do not automatically bless current
+output. Browser/font, DPR, source and runtime provenance accompany the seed and
+every executed page. Read the [known limits](./KNOWN-LIMITS.md): regression-image
+approval is separate from historical fidelity and interaction correctness.
 
 Interactive contact sheets show ordered case IDs, requested options via metadata, actual
 control output, and decoded source-art candidates. Source canvases use labeled
