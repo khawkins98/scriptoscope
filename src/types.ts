@@ -122,7 +122,22 @@ export interface ControlColorSamples {
   readonly embossDecision: 'absent-coordinates' | 'same-as-background' | 'sentinel' | 'present' | 'unknown';
 }
 
+/** Caller-declared metadata unless joined to an actual loader occurrence.
+ * Equality covers only opaque pixels under the current display policy. */
+export interface CicnSamplingEquivalence {
+  readonly model: 'kaleidoscope-2.3.1-opaque-sampling-v1';
+  readonly comparison: 'opaque-current-display-rgb';
+  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly width: number;
+  readonly height: number;
+  readonly status: 'equivalent' | 'different' | 'unknown';
+  readonly reason: 'all-opaque-display-rgb-equal' | 'opaque-display-mismatch'
+    | 'unsupported-layout' | 'missing-sampler' | 'unsafe-palette-access' | 'ambiguous-asset-path';
+}
+
 export interface ChromeElement {
+  /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
+  readonly samplingEquivalence?: CicnSamplingEquivalence | null;
   /** Actual decoded input references, only from an opted-in load. */
   readonly byteProvenance?: ElementByteProvenance;
   /** Exact selected cicn/cinf color samples before PNG transport. Absent/null

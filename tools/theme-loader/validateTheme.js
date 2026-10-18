@@ -153,6 +153,19 @@ function validateChromeElements(value, path) {
     if ('embossAnchor' in c && c.embossAnchor !== null) {
       assertPair(c.embossAnchor, `${path}.${key}.embossAnchor`);
     }
+    if ('samplingEquivalence' in c && c.samplingEquivalence !== null) {
+      const samplePath = `${path}.${key}.samplingEquivalence`;
+      const proof = assertObject(c.samplingEquivalence, samplePath);
+      const reasons = { equivalent: ['all-opaque-display-rgb-equal'], different: ['opaque-display-mismatch'],
+        unknown: ['unsupported-layout', 'missing-sampler', 'unsafe-palette-access', 'ambiguous-asset-path'] };
+      if (proof.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
+          || proof.comparison !== 'opaque-current-display-rgb' || proof.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+          || !Object.prototype.hasOwnProperty.call(reasons, proof.status) || !reasons[proof.status].includes(proof.reason)
+          || !Number.isSafeInteger(proof.width) || proof.width <= 0 || proof.width !== c.width
+          || !Number.isSafeInteger(proof.height) || proof.height <= 0 || proof.height !== c.height) {
+        throw new ThemeValidationError('invalid sampling equivalence model, dimensions or decision', samplePath);
+      }
+    }
     if ('colorSamples' in c && c.colorSamples !== null) {
       const samplePath = `${path}.${key}.colorSamples`;
       const colors = assertObject(c.colorSamples, samplePath);

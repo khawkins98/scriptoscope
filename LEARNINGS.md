@@ -4277,3 +4277,16 @@ conversion, a full sRGB pipeline or historical monitor appearance. Reconcile
 captured palette, device gamma and producer conditions independently under
 #190; do not tune the default LUT or golden tolerances from an unconditioned
 comparison. The current compatibility contract already records this limit.
+
+## 2026-10-18 — decoded pixels and engine-sampled lines can disagree
+
+The kDEF/PACH one-column/row expansion path reads palette RGB16 through its
+own search order, while raster decoding follows ctFlags and declared duplicate/
+missing-index policies. Tiling does not avoid that fast path. Whole-raster opaque
+current-display equality is a conservative admission check that needs no second
+border geometry implementation; memoize used palette indices and carry only a
+scalar result on the actual occurrence. Raw16 equality, device color, selected
+ownership and consumer correctness remain separate. Missing metadata is unknown,
+and ambiguous output paths cannot certify a source/image join. See
+[indexed sampling equivalence](docs/spec/indexed-sampling-equivalence.md), #295
+and the separate existing-consumer collision in #296.

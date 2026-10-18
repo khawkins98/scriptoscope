@@ -1,4 +1,4 @@
-import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace } from 'scriptoscope';
+import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -14,6 +14,12 @@ root.addEventListener('change', event => events.push({ type: event.type, value: 
 const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: TabBodyTrace | undefined = trace.tabBody; void body; } };
 const tabOptions: NonNullable<Parameters<typeof composeTab>[1]> = { selected: true, diagnostics: tabDiagnostics };
 void tabOptions;
+const samplingDeclaration: CicnSamplingEquivalence = {
+  model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+  displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 4, height: 2,
+  status: 'unknown', reason: 'missing-sampler',
+};
+void samplingDeclaration;
 
 const consumer = {
   version: VERSION,

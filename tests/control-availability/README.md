@@ -45,6 +45,12 @@ npm run test:availability:sources
 node --test tests/control-availability/*.test.mjs
 ```
 
+Candidate `toolchain` pins identify the explicitly listed extraction files only,
+including the cicn sampler/display helpers. They are not a complete transitive
+dependency fingerprint or independent decoder proof. Regenerating these pins
+after additive comparison metadata does not change source facts or reviewed
+availability case policy/version/digest.
+
 Source validation reextracts all 18 archives, compares the saved four-theme
 candidates, validates every present/absent cicn/cinf reference and payload hash,
 fixture graph/hash, and cited document hash/address. It validates review version,
