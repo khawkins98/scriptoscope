@@ -59,21 +59,37 @@ test('window shell shadow belongs to windows, not promoted control art', async (
       const manager = new WindowManager();
       const host = await manager.add(theme, { title: 'Imperative', width: 200, height: 100 });
       document.body.append(host);
-      const imperative = { marker: host.hasAttribute('data-scriptoscope-window-host'), shadow: getComputedStyle(host).boxShadow };
+      const imperative = { marker: host.hasAttribute('data-scriptoscope-window-host'), shadow: getComputedStyle(host.shadowRoot.querySelector('[part=window]')).boxShadow };
+      // A flex item can stretch its outer host without changing the frame.
+      const flex = document.createElement('div');
+      flex.style.cssText = 'display:flex;height:500px';
+      document.body.append(flex);
+      host.style.position = 'relative';
+      flex.append(host);
+      const frame = host.shadowRoot.querySelector('[part=window]');
+      const canvas = frame.querySelector('canvas');
+      const bounds = el => { const r = el.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; };
+      const flexBounds = { host: bounds(host), frame: bounds(frame), canvas: bounds(canvas), shadow: getComputedStyle(frame).boxShadow };
+
       manager.remove(host);
-      return { shadows, windows: hosts.map(el => ({ root: !!el.shadowRoot, shadow: getComputedStyle(el).boxShadow })), imperative };
+      flex.remove();
+      return { shadows, windows: hosts.map(el => { const frame = el.shadowRoot.querySelector('[part=window]'); return { root: !!el.shadowRoot, shadow: getComputedStyle(frame).boxShadow, frame: bounds(frame), canvas: bounds(frame.querySelector('canvas')) }; }), imperative, flexBounds };
     }, root);
     assert.ok(result.shadows.length >= 6, `${slug}: meaningful promoted controls`);
     for (const control of result.shadows) assert.equal(control.shadow, 'none', `${slug}: ${control.name}`);
     assert.ok(result.windows.length >= 3, `${slug}: real window hosts`);
     for (const host of result.windows) {
       assert.equal(host.root, true);
+      assert.deepEqual(host.frame, host.canvas, 'shadow follows rendered chrome in the showcase grid');
       assert.equal(host.shadow, 'rgba(0, 0, 0, 0.35) 2px 2px 0px 0px');
     }
+    assert.deepEqual(result.flexBounds.frame, result.flexBounds.canvas, 'shadow follows chrome in a stretched flex host');
+    assert.ok(result.flexBounds.host[3] > result.flexBounds.frame[3], 'fixture genuinely stretches the outer host');
+    assert.equal(result.flexBounds.shadow, 'rgba(0, 0, 0, 0.35) 2px 2px 0px 0px');
     assert.equal(result.imperative.marker, true);
     assert.equal(result.imperative.shadow, 'rgba(0, 0, 0, 0.35) 2px 2px 0px 0px');
     await page.emulateMedia({ media: 'print' });
-    assert.equal(await page.locator('[data-scriptoscope-window-host]').first().evaluate(el => getComputedStyle(el).boxShadow), 'none');
+    assert.equal(await page.locator('[data-scriptoscope-window-host]').first().evaluate(el => getComputedStyle(el.shadowRoot.querySelector('[part=window]')).boxShadow), 'none');
     await page.emulateMedia({ media: 'screen' });
   }
 });

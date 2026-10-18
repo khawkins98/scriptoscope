@@ -31,8 +31,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
-- Scope the optional window shadow to actual window hosts, including imperative
-  windows. Promoted buttons, selects, and checkables no longer receive an extra
+- Scope the optional window shadow to the actual rendered window part, including
+  imperative windows and hosts stretched by consumer grid/flex layouts. Promoted buttons, selects, and checkables no longer receive an extra
   rectangular shadow over their scheme-authored art (related to #207).
 
 - Share Scene info-bar background/text resolution between the diagnostic and its

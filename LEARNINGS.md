@@ -3362,3 +3362,10 @@ on both imperative and declarative hosts; only the window-shadow and print
 shadow-removal rules use it. General control focus/cursor rules remain general.
 The boot wipe also uses the promotion marker, but is additionally gated by
 `[inert]`; this change does not alter its animation policy.
+
+The host can be taller than the frame when stretched by a consumer grid or flex
+row. Applying the shadow to the newly identified host exposed a ghost rectangle
+below short windows. The optional rule therefore targets its `::part(window)`,
+exported on the actual rendered frame in both rendering paths. Browser checks
+compare this shadow-bearing rectangle with the chrome canvas in grid and stretched
+flex layouts; consumer layout remains unchanged.
