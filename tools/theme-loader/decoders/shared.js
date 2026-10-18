@@ -128,10 +128,10 @@ export function readColorTable(r) {
 /**
  * Resolve an indexed pixel to RGB.
  *
- * Existing compatibility policy for callers including cicn: prefer record
- * position, then match value if that position is absent. This is not a verified
- * general ColorTable rule. The ppat decoder uses its own flag-aware mapping;
- * changing cicn requires independent resource-format evidence and fixtures.
+ * Legacy compatibility helper: prefer record position, then match value if
+ * that position is absent. This is not a general ColorTable rule. Both cicn
+ * and ppat now use local flag-aware mappings with independent format fixtures;
+ * this exported helper retains its prior behavior for other callers.
  */
 export function indexToRgb(index, colorTable) {
   if (index >= 0 && index < colorTable.entries.length) {

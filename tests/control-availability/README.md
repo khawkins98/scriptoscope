@@ -17,7 +17,9 @@ shared-decoder evidence; approving an API expectation does not certify decoding.
 
 `source-choices.json` explicitly pins archive SHA-256, entry index and decoded
 name, and resource-fork SHA-256 for all 18 themes. Standalone `.rsrc` files use
-null entry identity. Missing/ambiguous entries and any byte/name/index drift fail
+null entry identity. [Input-choice review 1.0.0](../source-inputs/README.md)
+independently corroborates these exact choices; generated resource facts and
+original lookup semantics remain unverified. Missing/ambiguous entries and any byte/name/index drift fail
 closed. There is no largest-fork selector. Apple Platinum includes an unrelated
 application with its own cicns; Dolphin includes many text forks. The decoded
 1984/Floppies names contain replacement characters: index and hashes pin those

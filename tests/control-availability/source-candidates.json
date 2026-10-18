@@ -22,7 +22,7 @@
   },
   "toolchain": {
     "tests/control-availability/candidates.mjs": "48eba4d917f93598f634ffa31b8097ab5eed7661f7e3eaacef84992bbdf5da82",
-    "tests/control-availability/source.mjs": "c36bb5a423fdeac97a16101dd7a771401bd15959c1f34f8e0494b4718518f236",
+    "tests/control-availability/source.mjs": "e7fc0348277253839c1362748ce943fd306da7c303629a00f7348de8f668c372",
     "tools/sit-wasm/index.mjs": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19",
     "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
     "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
@@ -49,7 +49,7 @@
         "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5"
       },
       "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
-      "selectionReviewStatus": "draft-requires-review",
+      "selectionReviewStatus": "reviewed-contract-input",
       "nameDecodingLimit": null,
       "totalResources": 808,
       "candidates": [
@@ -235,7 +235,7 @@
       "limitations": [
         "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
         "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
-        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+        "These candidate facts do not observe a runtime load. Opt-in load provenance (#251) separately joins actual selected fork and decoder-input payload identities to manifest selection; neither path certifies complete decoder correctness."
       ]
     },
     {
@@ -258,7 +258,7 @@
         "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70"
       },
       "selectionReason": "Explicit scheme-named Colr entry \"MonkeyParadise/MonkeyParadise\"; readme/icon/font forks excluded by this declared choice, never by size.",
-      "selectionReviewStatus": "draft-requires-review",
+      "selectionReviewStatus": "reviewed-contract-input",
       "nameDecodingLimit": null,
       "totalResources": 570,
       "candidates": [
@@ -444,7 +444,7 @@
       "limitations": [
         "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
         "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
-        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+        "These candidate facts do not observe a runtime load. Opt-in load provenance (#251) separately joins actual selected fork and decoder-input payload identities to manifest selection; neither path certifies complete decoder correctness."
       ]
     },
     {
@@ -467,7 +467,7 @@
         "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
       },
       "selectionReason": "Repository source is an explicit standalone resource fork, with no container selection.",
-      "selectionReviewStatus": "draft-requires-review",
+      "selectionReviewStatus": "reviewed-contract-input",
       "nameDecodingLimit": null,
       "totalResources": 370,
       "candidates": [
@@ -629,7 +629,7 @@
       "limitations": [
         "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
         "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
-        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+        "These candidate facts do not observe a runtime load. Opt-in load provenance (#251) separately joins actual selected fork and decoder-input payload identities to manifest selection; neither path certifies complete decoder correctness."
       ]
     },
     {
@@ -652,7 +652,7 @@
         "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
       },
       "selectionReason": "Explicit scheme-named Colr entry \"Windows 95/Windows 95\"; readme/icon/font forks excluded by this declared choice, never by size.",
-      "selectionReviewStatus": "draft-requires-review",
+      "selectionReviewStatus": "reviewed-contract-input",
       "nameDecodingLimit": null,
       "totalResources": 1139,
       "candidates": [
@@ -838,7 +838,7 @@
       "limitations": [
         "Source facts are produced through shared archive/resource decoders, not independently verified decoding.",
         "Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.",
-        "The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity."
+        "These candidate facts do not observe a runtime load. Opt-in load provenance (#251) separately joins actual selected fork and decoder-input payload identities to manifest selection; neither path certifies complete decoder correctness."
       ]
     }
   ]

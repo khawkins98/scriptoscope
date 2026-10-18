@@ -54,5 +54,5 @@ export async function sourceCandidate(bytes, choice) {
     ...resourceCandidates(selected),
     limitations: ['Source facts are produced through shared archive/resource decoders, not independently verified decoding.',
       'Resource existence alone does not establish public API selection, fallback, historical availability or correct pixels.',
-      'The initial runtime trace does not independently establish actual selected archive fork or decoded payload identity.'] };
+      'These candidate facts do not observe a runtime load. Opt-in load provenance (#251) separately joins actual selected fork and decoder-input payload identities to manifest selection; neither path certifies complete decoder correctness.'] };
 }

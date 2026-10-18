@@ -59,6 +59,9 @@ export async function validateInputs({ choices, evidence, review, candidates }, 
   check(candidates.reviewStatus === 'unreviewed' && candidates.themes.every(c => c.reviewStatus === 'unreviewed' && c.expectedAvailability === 'unknown'), 'Candidate observations must remain unreviewed/unknown');
   const ids = choices.sources.map(c => c.slug);
   check(ids.length === new Set(ids).size, 'Duplicate source choice');
+  const catalogIds = JSON.parse(readFile('demo/themes-manifest.json')).map(theme => theme.slug);
+  check(ids.length === 18, 'Review 1.0.0 covers exactly 18 contract inputs');
+  equal([...ids].sort(), catalogIds.sort(), 'Reviewed input inventory differs from supplied theme catalog');
   equal([...ids].sort(), evidence.rows.map(r => r.slug).sort(), 'Missing/duplicate evidence input');
   equal([...ids].sort(), review.decisions.map(r => r.slug).sort(), 'Missing/duplicate review decision');
   let archives = 0, standalone = 0, forks = 0;

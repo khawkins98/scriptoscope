@@ -3795,6 +3795,19 @@ Native pointer input/commit comparisons therefore use numeric values and retain
 the current spelling for unchanged values, including the original spelling when
 a drag returns to its starting step bucket.
 
+### 2026-10-18 — Archive entry indexes belong to their extractor (#262)
+
+Independent lsar/unar inventories exposed different index namespaces from the
+project's munbox decoder: Dolphin SOM is entry 50 in the registry but entry 51
+in lsar; Apple Lisa is 0 versus 2. All 13 selected archive forks matched exact
+independently extracted bytes and were the unique Colr/Acid file in their
+archive. Never replace an index without its namespace or choose by size. The
+1984/Floppies filename-codec disagreement remains unknown even though bytes
+disambiguate the supplied scheme. Five raw forks have no archive-entry claim.
+The [review record](tests/source-inputs/README.md) approves these finite contract
+inputs only; matching extraction hashes do not approve resource roles, original
+Resource Manager lookup, decoder completeness or historical output.
+
 ### 2026-10-18 — Pixel-pattern tables are addressed data, not adjacent palettes (#255)
 
 Independent hand-encoded ppat fixtures exposed two assumptions that sequential
@@ -3803,6 +3816,11 @@ after image rows, and ColorSpec.value is the pixel index when ctFlags bit15 is
 clear. Apple's QD13 makes the flags distinction explicit: bit15 set instead uses
 entry position; bit14 requires an external destination palette and ignores RGB.
 The standalone decoder now declines that palette-dependent case.
+
+**Follow-up superseded 2026-10-18 by [#261](https://github.com/khawkins98/scriptoscope/pull/261):**
+The separate [cicn contract](docs/spec/cicn-decoding.md) now covers indexed
+ColorSpec mapping and structural validation with independent fixtures. The
+following historical follow-up was resolved without changing the shared helper:
 
 Keep this change ppat-specific. The shared cicn lookup still prefers positional
 entries and needs its own independent fixture/source contract. The corrected

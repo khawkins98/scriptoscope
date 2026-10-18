@@ -29,8 +29,13 @@ test('resealed wrong source index/name/fork/archive pins cannot pass', async () 
   }
 });
 test('missing and duplicate declared choices do not silently shrink the reviewed boundary', async () => {
-  await assert.rejects(tampered(d => d.choices.sources.pop()), /Missing\/duplicate evidence/);
+  await assert.rejects(tampered(d => d.choices.sources.pop()), /exactly 18/);
   await assert.rejects(tampered(d => d.choices.sources.push(structuredClone(win(d)))), /Duplicate source choice/);
+  await assert.rejects(tampered(d => {
+    const removed = d.choices.sources.pop().slug;
+    d.evidence.rows = d.evidence.rows.filter(x => x.slug !== removed);
+    d.review.decisions = d.review.decisions.filter(x => x.slug !== removed);
+  }), /exactly 18/);
 });
 test('resealed removed or forged independent fork observations fail actual full inventory join', async () => {
   await assert.rejects(tampered(d => row(d).entries.splice(row(d).entries.findIndex(e => e.resourceFork), 1)), /complete resource-fork inventory/);

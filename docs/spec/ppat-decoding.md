@@ -33,9 +33,11 @@ bit15. A bit14 table returns `null`: no destination palette is supplied to this
 standalone decoder. Existing extraction accounting classifies this as skipped
 unsupported data; stored RGB is not presented as a substitute palette result.
 
-The implementation stays in `decoders/ppat.js`. The shared `indexToRgb` helper
-and `cicn` decoder are unchanged. That helper's position-first behavior remains
-an unverified boundary requiring separate resource-format evidence and fixtures.
+The implementation stays in `decoders/ppat.js`. The subsequent
+[`cicn` indexed-decoding contract](cicn-decoding.md) added its own flag-aware
+lookup and independent fixtures in [#261](https://github.com/khawkins98/scriptoscope/pull/261).
+Neither decoder uses the legacy position-first `indexToRgb` helper; its behavior
+is unchanged. These bounded contracts do not certify complete decoder correctness.
 
 Existing direct-color/type2 handling is unchanged and is not verified by this
 indexed contract. A missing pixel value retains the existing black fallback;
