@@ -4143,3 +4143,31 @@ a browser-font alpha mask can isolate color and emboss order without establishin
 original glyph metrics or transfer semantics. Keep selected-source sample facts,
 current display policy and original destination-device behavior separate in the
 ledger, and preserve prior case/assessment semantics when adding new scope.
+
+## 2026-10-18 — button pattern phase needs a committed coordinate authority
+
+A direct compositor with correct pattern arithmetic still paints local phase if
+mounted controls never receive their content-port position. Actual Crayon at
+D=(55,65), q=(8,8) reproduced this in both source and built paths: local RGB
+(235,228,207) versus the independently sampled ppat17(63,9) display RGB
+(248,248,221). Window translation cancels; content scrolling changes D. The
+compositor's faceRect supplies the ring inset instead of a second size heuristic.
+
+A measured coordinate is only a request while normal/pressed assets prepare.
+Keep a stable canvas and commit both state buffers/context under the same epoch;
+report requested mapping separately from committed pixels. Terminal port removal
+must cancel subscriptions/pending managed work without stealing caller interaction
+or theme ownership. Scoped scanner child-list enrollment can follow owned button
+moves without a second global provider resolver. Explicit caller context takes
+over that face permanently; a later unrelated DOM mutation must not rebind it.
+
+The managed scale policy is opt-in for imperative controls and preserves ordinary
+HTML size. Current declarative windows have no scale attribute and use 1x. Shared
+tracking is finite but not free: 100 controls under eight wrappers measured about
+1.36 ms/frame in an early unthrottled local geometry probe. A later matched
+100-control/depth8 probe measured 36,120 versus 20,140 computed-style reads over 20
+frames after frame-local ancestor memoization, but 44.2 versus 42.0 ms measured
+time is too close to claim CPU improvement; roughly 2 ms/frame remained. Actual integration tests
+record zero idle/whole-window-drag compositions, one viewport read per frame,
+exactly two state compositions for one logical move, and no work after disposal.
+These are browser/source-model observations, not original-port or field metrics.
