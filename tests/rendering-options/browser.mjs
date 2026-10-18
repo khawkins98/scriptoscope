@@ -152,13 +152,15 @@ function nativeMarkup(c) {
     }
   } else if (c.family === 'tab') {
     native = document.createElement('div'); native.dataset.scriptoscopeTabs = '';
+    const panels = [];
     for (let i = 0; i < 2; i++) {
       const key = `tab-${++serial}`, button = document.createElement('button'), panel = document.createElement('div');
       button.dataset.scriptoscopeTab = key; button.textContent = i ? 'Other' : c.options.label;
       if (i === (c.options.selected ? 0 : 1)) button.dataset.scriptoscopeSelected = '';
       panel.dataset.scriptoscopePanel = key; panel.textContent = `${i ? 'Other' : 'First'} panel`;
-      native.append(button, panel);
+      native.append(button); panels.push(panel);
     }
+    native.append(...panels);
   } else {
     native = document.createElement('input'); native.type = c.family === 'slider' ? 'range' : c.family;
     native.checked = c.options.checked ?? false;
