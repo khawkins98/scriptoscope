@@ -34,6 +34,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Share Scene info-bar background/text resolution between the diagnostic and its
   audit so textured bars report their actual black label instead of unused dark
   header-fill contrast. Rendering precedence stays unchanged (related to #183).
+
+- Gate the boot wipe on inert targets so pending window content stays visible
+  while keyboard focus remains available.
+
 - Include lazy library chunks in the public deployment, extract archive-only
   themes locally, and release picker listeners/timers on teardown. Repair the
   boot smoke harness's server and browser cleanup.

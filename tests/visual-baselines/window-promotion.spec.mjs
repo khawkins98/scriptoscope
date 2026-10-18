@@ -34,6 +34,7 @@ async function fixture(t) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   t.after(() => page.close());
   await page.route('**/__promotion_test', (route) => route.fulfill({ contentType: 'text/html', body: `
+    <link rel="stylesheet" href="/scriptoscope.css">
     <style>
       body { margin: 16px; }
       .source { width: 300px; padding: 12px; color: rgb(34, 51, 68); --consumer-token: preserved; }
@@ -107,6 +108,49 @@ test('keeps live content, layout, and current focus until an atomic commit', asy
       promoted: f.source.hasAttribute('data-scriptoscope-promoted') };
   });
   assert.deepEqual(restored, { sameInput: true, focused: true, connected: true, followedBySibling: true, promoted: false });
+});
+
+test('boot wipe only clips inert targets, keeping pending live content visible and focusable', async (t) => {
+  const page = await fixture(t);
+  const result = await page.evaluate(async () => {
+    const f = window.fixture;
+    document.body.setAttribute('data-scriptoscope-loading', '');
+    const add = f.manager.add.bind(f.manager);
+    f.manager.add = async (...args) => {
+      await new Promise((resolve) => { f.release = resolve; });
+      return add(...args);
+    };
+    f.input.focus();
+    f.pending = f.ScriptoscopeWindow.promote(f.source, f);
+    await new Promise(requestAnimationFrame);
+    // Hold the first animation frame: a focusable source must never be hidden,
+    // even for one frame while its detached window prepares.
+    for (const animation of f.source.getAnimations()) { animation.pause(); animation.currentTime = 0; }
+    const pending = { clip: getComputedStyle(f.source).clipPath,
+      focused: document.activeElement === f.input, connected: f.input.isConnected };
+    const gated = document.createElement('button');
+    gated.textContent = 'Prepared target';
+    gated.setAttribute('data-scriptoscope-promoted', '');
+    gated.inert = true;
+    document.body.append(gated);
+    const animationName = getComputedStyle(gated).animationName;
+    for (const animation of gated.getAnimations()) { animation.pause(); animation.currentTime = 0; }
+    gated.focus();
+    const during = { animationName, clip: getComputedStyle(gated).clipPath,
+      focused: document.activeElement === gated };
+    gated.inert = false;
+    gated.focus();
+    const released = { clip: getComputedStyle(gated).clipPath, focused: document.activeElement === gated };
+    f.release();
+    const promoted = await f.pending;
+    promoted.unmount();
+    return { pending, during, released };
+  });
+  assert.deepEqual(result, {
+    pending: { clip: 'none', focused: true, connected: true },
+    during: { animationName: 'scriptoscope-wipe-in', clip: 'inset(0px 0px 100%)', focused: false },
+    released: { clip: 'none', focused: true },
+  });
 });
 
 test('failed first render leaves the original DOM intact and the manager retryable', async (t) => {

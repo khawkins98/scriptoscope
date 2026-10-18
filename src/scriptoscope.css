@@ -152,7 +152,7 @@
    content remains visible THROUGH the unrevealed area (it's the same
    content gaining chrome, not new content appearing). Mobile gets a
    slightly longer duration via the viewport media query at the bottom.
-   Scoped to `[data-scriptoscope-loading] [data-scriptoscope-promoted]` so
+   Scoped to `[data-scriptoscope-loading] [data-scriptoscope-promoted][inert]` so
    the animation only fires on hosts promoted DURING the initial boot
    window — post-boot dynamic inserts (consumer appends a new
    data-scriptoscope-window element via MutationObserver-driven promote)
@@ -163,7 +163,10 @@
   from { clip-path: inset(0 0 100% 0); }
   to   { clip-path: inset(0 0 0 0); }
 }
-[data-scriptoscope-loading] [data-scriptoscope-promoted] {
+[data-scriptoscope-loading] [data-scriptoscope-promoted][inert] {
+  /* The source also receives the promotion stamp before asynchronous chrome
+     preparation. Only completed targets gated by scanner inertness may wipe;
+     clipping a focusable pending source hides live content from sighted users. */
   animation: scriptoscope-wipe-in var(--scriptoscope-wipe-duration) ease-out;
   /* Compositor hint — the clip-path animation otherwise re-rasterizes
      on every frame on lower-end GPUs. Cleared after promotion settles
@@ -212,7 +215,7 @@
    the `from` keyframe value (chrome fully clipped, invisible). Costs
    nothing; defends a real edge case. A11y review 2026-05-30 A[P2]. */
 @media (prefers-reduced-motion: reduce) {
-  [data-scriptoscope-loading] [data-scriptoscope-promoted] {
+  [data-scriptoscope-loading] [data-scriptoscope-promoted][inert] {
     animation: none;
     clip-path: none;
     will-change: auto;
