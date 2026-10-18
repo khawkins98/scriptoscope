@@ -1,9 +1,12 @@
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { solidBackgroundIcon, solidBackgroundInfo, solidBackgroundRows } from '../decoder-fixtures/solid-background.mjs';
+import { verifySolidCases } from '../rendering-requirements/solid-cases.mjs';
+import { solidMutations } from '../rendering-requirements/solid-negatives.mjs';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 for (const mode of ['source', 'built']) test(`${mode}: solid bodies consume selected-owner raw background beneath masked and opaque palette collisions`, async ({ page, servers }, info) => {
+  info.annotations.push({ type: 'fidelity-assertion', description: 'solid.selected-rgb16-literal' });
   await openHarness(page, servers, mode); let result;
   try {
     result = await page.evaluate(async mode => {
@@ -21,13 +24,14 @@ for (const mode of ['source', 'built']) test(`${mode}: solid bodies consume sele
         } } };
         try { for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) for (const override of [false, true]) {
           let trace;
-          const out = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, {
+          const options = {
+            ...(family === 'push' ? { default: false } : { on: false, small: false }),
             label: '', minWidth: 29, height: 9, pressed: state === 'pressed', disabled: state === 'disabled', ...(override ? { fg: '#ff0000' } : {}),
-            diagnostics: { onComplete: value => { trace = value; } },
-          });
+          };
+          const out = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, { ...options, diagnostics: { onComplete: value => { trace = value; } } });
           const selected = trace.steps.find(s => s.role === 'face' && s.action === 'selected');
           const element = owner.manifest.chromeElements[selected.resource.manifestKey];
-          rows.push({ collision, resourceId, family, state, override, size: [out.width, out.height], trace,
+          rows.push({ collision, resourceId, family, state, override, options, owner: { baseUrl: owner.baseUrl, byteProvenance: owner.byteProvenance }, childBaseUrl: child.baseUrl, childDeclaration: child.manifest, size: [out.width, out.height], trace,
             background: element.colorSamples.background, resources: owner.byteProvenance.resources.filter(r =>
               r.resourceIndex === element.byteProvenance.cicnResourceIndex || r.resourceIndex === element.byteProvenance.cinfResourceIndex),
             pixels: Array.from({ length: 9 }, (_, y) => Array.from({ length: 29 }, (_, x) => {
@@ -51,7 +55,13 @@ for (const mode of ['source', 'built']) test(`${mode}: solid bodies consume sele
       expect(row.trace.textColors.policy).toBe(row.override ? 'caller-override' : 'source-samples');
       expect(row.pixels, `${row.family}/${row.state}/collision=${row.collision}/id=${row.resourceId}/fg=${row.override}`).toEqual(solidBackgroundRows);
     }
-    await attachObservations(info, 'solid-background', `${mode}-source-color`, { mode, result, evidence: 'literal-source-sample-and-inset-union',
+    const verifiedCaseIds = verifySolidCases(result);
+    const negatives = [];
+    for (const [name, mutate] of solidMutations) {
+      const changed = structuredClone(result); mutate(changed);
+      expect(() => verifySolidCases(changed), name).toThrow(); negatives.push(name);
+    }
+    await attachObservations(info, 'solid-background', `${mode}-source-color`, { mode, result, verifiedCaseIds, negatives, evidence: 'literal-source-sample-and-inset-union',
       limits: 'Diagnostic serialized bytes; existing LUT policy, not original device/palette or lookup ownership verification' });
   } catch (error) { await attachCase(page, info, { mode, result, expected: solidBackgroundRows }, error); throw error; }
 });

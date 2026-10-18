@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "claim": "Independent hand-encoded serialized fixtures, not original archives or renderer output",
+  "cinf": {
+    "bytes": 18,
+    "sha256": "18d076947f78e63ad16f71b83a7979274ed76c050720489e06037b593f4296f4",
+    "hex": "030100000000000300030000000000000000"
+  },
+  "cases": [
+    {
+      "id": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "collision": false,
+      "family": "push",
+      "signedId": -10239,
+      "cicnIndex": 0,
+      "cinfIndex": 1,
+      "manifestKey": "cicn--10239",
+      "forkBytes": 1456,
+      "forkSha256": "3a8139d7998eb4dc98de1d8e3014733237fea8f28df22ad704e2f432f980b6e6",
+      "cicnBytes": 169,
+      "cicnSha256": "10bd8f79059451eaa682e8d96d4508a32748047ca007ac634db8df7de5f2249e"
+    },
+    {
+      "id": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "collision": true,
+      "family": "bevel",
+      "signedId": -10166,
+      "cicnIndex": 6,
+      "cinfIndex": 7,
+      "manifestKey": "cicn--10166",
+      "forkBytes": 1504,
+      "forkSha256": "92eba1b3399ba2e9b26f9a19936d613393b48c810fb4dad66ce4de090df2b3aa",
+      "cicnBytes": 177,
+      "cicnSha256": "587db820de11c4f4ba33b12865fe1c9966da8ae6d6a74e82867fd79023d107b8"
+    }
+  ]
+}

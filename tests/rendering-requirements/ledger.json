@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.1.1",
+  "inventoryVersion": "1.2.0",
   "scope": {
-    "description": "Sixteen exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Eighteen exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -12,7 +12,7 @@
       "placement",
       "interaction"
     ],
-    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation."
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
   },
   "inputs": [
     {
@@ -493,6 +493,264 @@
       "sha256": "4c9fecff46f6bfe2171961fa71e0831e5e2b85174f55531ad1a2fe895a82c680",
       "extractionReference": "docs/spec/kdef-binary-inventory.md",
       "redistributed": false
+    },
+    {
+      "id": "synthetic.solid.masked-owner",
+      "kind": "synthetic",
+      "definition": {
+        "kind": "hand-encoded-resource-fork",
+        "fixtureModule": "tests/decoder-fixtures/solid-background.mjs",
+        "forkModule": "tests/resource-provenance/fixtures.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "id": -10239
+          },
+          {
+            "type": "cinf",
+            "id": -10239
+          },
+          {
+            "type": "cicn",
+            "id": -10238
+          },
+          {
+            "type": "cinf",
+            "id": -10238
+          },
+          {
+            "type": "cicn",
+            "id": -10240
+          },
+          {
+            "type": "cinf",
+            "id": -10240
+          },
+          {
+            "type": "cicn",
+            "id": -10166
+          },
+          {
+            "type": "cinf",
+            "id": -10166
+          },
+          {
+            "type": "cicn",
+            "id": -10165
+          },
+          {
+            "type": "cinf",
+            "id": -10165
+          },
+          {
+            "type": "cicn",
+            "id": -10167
+          },
+          {
+            "type": "cinf",
+            "id": -10167
+          }
+        ],
+        "fork": {
+          "bytes": 1456,
+          "sha256": "3a8139d7998eb4dc98de1d8e3014733237fea8f28df22ad704e2f432f980b6e6"
+        },
+        "cicn": {
+          "bytes": 169,
+          "sha256": "10bd8f79059451eaa682e8d96d4508a32748047ca007ac634db8df7de5f2249e",
+          "width": 7,
+          "height": 7,
+          "pixelSize": 8,
+          "rowBytes": 8,
+          "maskRowBytes": 1,
+          "opaqueBackground": false,
+          "ctFlags": 0,
+          "entries": [
+            [
+              0,
+              8481,
+              8481,
+              8481
+            ],
+            [
+              1,
+              0,
+              0,
+              65535
+            ]
+          ],
+          "backgroundIndex": 0,
+          "backgroundCoordinates": [
+            3,
+            3
+          ],
+          "blueCorner": [
+            0,
+            0
+          ]
+        },
+        "cinf": {
+          "bytes": 18,
+          "sha256": "18d076947f78e63ad16f71b83a7979274ed76c050720489e06037b593f4296f4",
+          "hex": "030100000000000300030000000000000000"
+        }
+      },
+      "sha256": "148d3acd3ed7c9d29a23f21f663b465715db76b778a4a43758b23cd58bca6994"
+    },
+    {
+      "id": "synthetic.solid.masked-child",
+      "kind": "synthetic",
+      "definition": {
+        "chromeElements": {
+          "decoy": {
+            "sourceCicnId": -999,
+            "colorSamples": {
+              "background": {
+                "displayRgb": [
+                  255,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        },
+        "base": "synthetic.solid.masked-owner",
+        "baseUrlIdentity": "same-origin/wrong-child/"
+      },
+      "sha256": "c39ecd9f5d1e54481d64819360ff0698429eb3dcfe9e12dda3ee7bbbac8126c4"
+    },
+    {
+      "id": "synthetic.solid.collision-owner",
+      "kind": "synthetic",
+      "definition": {
+        "kind": "hand-encoded-resource-fork",
+        "fixtureModule": "tests/decoder-fixtures/solid-background.mjs",
+        "forkModule": "tests/resource-provenance/fixtures.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "id": -10239
+          },
+          {
+            "type": "cinf",
+            "id": -10239
+          },
+          {
+            "type": "cicn",
+            "id": -10238
+          },
+          {
+            "type": "cinf",
+            "id": -10238
+          },
+          {
+            "type": "cicn",
+            "id": -10240
+          },
+          {
+            "type": "cinf",
+            "id": -10240
+          },
+          {
+            "type": "cicn",
+            "id": -10166
+          },
+          {
+            "type": "cinf",
+            "id": -10166
+          },
+          {
+            "type": "cicn",
+            "id": -10165
+          },
+          {
+            "type": "cinf",
+            "id": -10165
+          },
+          {
+            "type": "cicn",
+            "id": -10167
+          },
+          {
+            "type": "cinf",
+            "id": -10167
+          }
+        ],
+        "fork": {
+          "bytes": 1504,
+          "sha256": "92eba1b3399ba2e9b26f9a19936d613393b48c810fb4dad66ce4de090df2b3aa"
+        },
+        "cicn": {
+          "bytes": 177,
+          "sha256": "587db820de11c4f4ba33b12865fe1c9966da8ae6d6a74e82867fd79023d107b8",
+          "width": 7,
+          "height": 7,
+          "pixelSize": 8,
+          "rowBytes": 8,
+          "maskRowBytes": 1,
+          "opaqueBackground": true,
+          "ctFlags": 32768,
+          "entries": [
+            [
+              7,
+              65535,
+              0,
+              0
+            ],
+            [
+              0,
+              8481,
+              8481,
+              8481
+            ],
+            [
+              3,
+              0,
+              0,
+              65535
+            ]
+          ],
+          "backgroundIndex": 0,
+          "backgroundCoordinates": [
+            3,
+            3
+          ],
+          "blueCorner": [
+            0,
+            0
+          ]
+        },
+        "cinf": {
+          "bytes": 18,
+          "sha256": "18d076947f78e63ad16f71b83a7979274ed76c050720489e06037b593f4296f4",
+          "hex": "030100000000000300030000000000000000"
+        }
+      },
+      "sha256": "85021bb15d0d9c636f3d152f467f22023df6d07d84c7da72692f8aaf618da7d4"
+    },
+    {
+      "id": "synthetic.solid.collision-child",
+      "kind": "synthetic",
+      "definition": {
+        "chromeElements": {
+          "decoy": {
+            "sourceCicnId": -999,
+            "colorSamples": {
+              "background": {
+                "displayRgb": [
+                  255,
+                  0,
+                  0
+                ]
+              }
+            }
+          }
+        },
+        "base": "synthetic.solid.collision-owner",
+        "baseUrlIdentity": "same-origin/wrong-child/"
+      },
+      "sha256": "db8a3ea09d1eb89ec06bcb46e6b8eba744dd09500726053774bdc4ac8d516619"
     }
   ],
   "evidence": [
@@ -793,6 +1051,49 @@
       "requirementIds": [
         "tab.full-raster-coordinates"
       ]
+    },
+    {
+      "id": "kdef.raw-solid-background",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "At 0x10904..0x1091a, fc5c samples the selected cinf background coordinate; 0x109b2..0x109b6 applies RGBBackColor without testing the returned mask. The full-color sampler reads local indices, and 0x10702 applies its positional-match/final-zero shortcuts followed by reverse ColorSpec.value search. For non-mode5 bodies, 0x10a6c..0x10a9a requests the signed pattern ID including zero; a NULL handle reaches 0x10b72..0x10bb8 and erases the union of inset(corner,side) and inset(side,corner).",
+      "excerptSha256": "0de478d8cf546dc315fc5575519279848db895771696300a7c8dd70d59aeca88",
+      "addresses": [
+        "0xfc5c",
+        "0x10702",
+        "0x10904",
+        "0x1091a",
+        "0x109b2",
+        "0x109b6",
+        "0x10a6c",
+        "0x10a9a",
+        "0x10b72",
+        "0x10bb8"
+      ],
+      "requirementIds": [
+        "fill.authored-solid-rgb16"
+      ],
+      "claim": "Selected source background consumption and the exact literal solid union under declared display policy.",
+      "limits": "Not original resource ownership, complete border/mask geometry, device/palette/producer color, original port, typography or whole-control verification."
+    },
+    {
+      "id": "fixture.solid-rgb16",
+      "kind": "source-art",
+      "inputs": [
+        "synthetic.solid.masked-owner",
+        "synthetic.solid.collision-owner"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The independently encoded 7x7 source has corner3/side1, background index0 at (3,3), RGB16(8481,8481,8481), and a blue opaque (0,0) corner. The masked variant has mask0 at the sample. The opaque variant has ctFlags32768 with ColorSpec values7,0,3: raster positional index0 is red, while the engine sampler selects the gray value0 entry. Current high-byte/LUT maps33 to48 once. At 29x9 the literal gray union is [3,26)x[1,8) UNION [1,28)x[3,6); only (0,0) is blue and all remaining pixels are transparent.",
+      "excerptSha256": "99ace155fb2f10a0f6032bf0baa9f0f38400e6523e5698386d13a3ea3f58e9d5",
+      "requirementIds": [
+        "fill.authored-solid-rgb16"
+      ],
+      "claim": "Selected source background consumption and the exact literal solid union under declared display policy.",
+      "limits": "Not original resource ownership, complete border/mask geometry, device/palette/producer color, original port, typography or whole-control verification."
     }
   ],
   "requirements": [
@@ -905,6 +1206,11 @@
       "id": "pattern.selected-source-samples",
       "dimension": "fillMask",
       "claim": "Consume the actual selected ppat payload and match three independently pinned raw source samples under the declared current display transform; not original lookup/device-color fidelity."
+    },
+    {
+      "id": "fill.authored-solid-rgb16",
+      "dimension": "fillMask",
+      "claim": "For the exact empty-label input, consume the selected owner RGB16 background under declared display policy independent of mask/raster palette, and paint the literal two-inset solid union after a known current same-owner ppat miss; no original resource-owner/device claim."
     }
   ],
   "assertions": [
@@ -1039,6 +1345,20 @@
         "1990.tab.unselected.auto.agjpqy"
       ],
       "claim": "Exact pinned 1138/1990 unselected AgjpQy source-coordinate body retention outside browser glyph ink; no original typography or selection claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "solid.selected-rgb16-literal",
+      "path": "tests/rendering-options/solid-background.spec.mjs",
+      "marker": "description: 'solid.selected-rgb16-literal'",
+      "caseIds": [
+        "synthetic.solid.masked.push.normal.empty.w29.h9",
+        "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9"
+      ],
+      "claim": "Exactly two registered rows: owning load/occurrence/payload, request and missing-body decision plus complete literal output. Other46 rows do not extend inventory.",
       "modes": [
         "source",
         "built"
@@ -1915,6 +2235,119 @@
       },
       "substitutions": [
         "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "inputs": [
+        "synthetic.solid.masked-child"
+      ],
+      "baseInputs": [
+        "synthetic.solid.masked-owner"
+      ],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 9,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.authored-solid-rgb16",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": {
+          "excluded": "Exact empty label; no glyph raster or general font/transfer claim.",
+          "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; no DOM/native interaction.",
+          "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-model claim only; original whole-control behavior/environment remain unknown."
+      },
+      "substitutions": [
+        "Current same-owner lookup miss is a declared runtime policy, not original Resource Manager ownership.",
+        "Omitted composition context applies local compatibility defaults; actual original port state is unknown.",
+        "RGB16 high byte followed by the existing 1.8/2.2 LUT is current display policy, not original device color."
+      ]
+    },
+    {
+      "id": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "inputs": [
+        "synthetic.solid.collision-child"
+      ],
+      "baseInputs": [
+        "synthetic.solid.collision-owner"
+      ],
+      "mode": "direct",
+      "family": "bevel",
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 9,
+        "pressed": false,
+        "disabled": false,
+        "on": false,
+        "small": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.authored-solid-rgb16",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": {
+          "excluded": "Exact empty label; no glyph raster or general font/transfer claim.",
+          "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; no DOM/native interaction.",
+          "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-model claim only; original whole-control behavior/environment remain unknown."
+      },
+      "substitutions": [
+        "Current same-owner lookup miss is a declared runtime policy, not original Resource Manager ownership.",
+        "Omitted composition context applies local compatibility defaults; actual original port state is unknown.",
+        "RGB16 high byte followed by the existing 1.8/2.2 LUT is current display policy, not original device color."
       ]
     }
   ],
@@ -3543,7 +3976,225 @@
       ],
       "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
       "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "fill.authored-solid-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.raw-solid-background",
+        "fixture.solid-rgb16"
+      ],
+      "assertions": [
+        "solid.selected-rgb16-literal"
+      ],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "Actual selected owner/sample and serialized payload join, current same-owner missing-pattern decision and complete literal 29x9 solid union under declared LUT only.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.masked.push.normal.empty.w29.h9",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "fill.authored-solid-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.raw-solid-background",
+        "fixture.solid-rgb16"
+      ],
+      "assertions": [
+        "solid.selected-rgb16-literal"
+      ],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "Actual selected owner/sample and serialized payload join, current same-owner missing-pattern decision and complete literal 29x9 solid union under declared LUT only.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221,
+        289
+      ],
+      "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
+      "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
     }
   ],
-  "inventorySha256": "2b729e0bebdfa2624820bbd88f91e719d8a16cd9c7141af82e2dec757c9d1ee6"
+  "inventorySha256": "40689fd24430be97be5bafa034cffcc6eb999cd2ced3a1958671a43cb96271e1"
 }

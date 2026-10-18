@@ -18,7 +18,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 16);
+  assert.equal(report.cases.length, 18);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -140,7 +140,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 134);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 150);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -159,24 +159,20 @@ test('invalid evidence and case references report errors without throwing from t
 });
 
 
-test('1.1.1 changes only two reviewed tab geometry assessments from 1.1.0', () => {
-  const tabCases = ['1138.tab.unselected.auto.agjpqy', '1990.tab.unselected.auto.agjpqy'];
-  const changed = row => tabCases.includes(row.caseId) && row.requirementId === 'tab.full-raster-coordinates';
-  // Frozen reviewed 1.1.0 case inventory and the other 132 assessments.
-  assert.equal(digest(JSON.stringify({ cases: original.cases, assessments: original.assessments.filter(row => !changed(row)) })),
-    '62161d96a38d2ecc012a5862bbb06e74ee02f9599ff3f08befb89286e2a7db77');
-  assert.equal(original.assessments.filter(changed).length, 2);
-  for (const row of original.assessments.filter(changed)) {
-    assert.equal(row.status, 'verified');
-    assert.deepEqual(row.assertions, ['tabs.full-raster-agjpqy']);
-    assert.deepEqual(row.evidence, ['art.tab-crop', 'cdef8.tab-full-raster-bands']);
-  }
-  assert.equal(original.inventoryVersion, '1.1.1');
-  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 26, mismatched: 0, unsupported: 0, unknown: 108 });
+test('1.2.0 preserves all sixteen reviewed cases and134 assessments exactly', () => {
+  assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0, 16), assessments: original.assessments.slice(0, 134) })),
+    'd821c4ce220e1450ad09e71224610963c0e98696807df5e5aaea9acb6fc0870e');
+  assert.equal(original.inventoryVersion, '1.2.0');
+  assert.equal(original.cases.length, 18); assert.equal(original.assessments.length, 150);
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 28, mismatched: 0, unsupported: 0, unknown: 122 });
   assert(original.cases.every(c => c.inventoryClosure.status === 'open'));
+  for (const row of original.assessments.slice(134).filter(a => a.status === 'verified')) {
+    assert.equal(row.requirementId, 'fill.authored-solid-rgb16');
+    assert.deepEqual(row.assertions, ['solid.selected-rgb16-literal']);
+  }
 });
 test('new text and pattern claims fail if executable annotations or exact case scope disappear', () => {
-  const ids = ['text.authored-rgb16', 'text.masked-emboss-order', 'pattern.inset-union-phase', 'pattern.exclusive-anchor-clip', 'pattern.actual-source-samples', 'tabs.full-raster-agjpqy'];
+  const ids = ['text.authored-rgb16', 'text.masked-emboss-order', 'pattern.inset-union-phase', 'pattern.exclusive-anchor-clip', 'pattern.actual-source-samples', 'tabs.full-raster-agjpqy', 'solid.selected-rgb16-literal'];
   for (const id of ids) {
     const assertion = original.assertions.find(a => a.id === id);
     assert(assertion);
@@ -194,4 +190,8 @@ test('new authored-color evidence cannot be reassigned to an unrelated archive',
     const evidence = l.evidence.find(e => row.evidence.includes(e.id) && e.inputs.includes('theme.crayon-os'));
     assert(evidence); evidence.inputs = ['theme.windows-95'];
   }, /evidence inputs do not intersect exact case inputs\/baseInputs/);
+});
+
+test('solid evidence cannot be reassigned to an unrelated fixture', () => {
+  reject(l => { l.evidence.find(e => e.id === 'fixture.solid-rgb16').inputs = ['synthetic.text.masked-owner']; }, /evidence inputs do not intersect exact case inputs\/baseInputs/);
 });

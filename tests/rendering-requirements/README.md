@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.1.1 declares sixteen exact direct cases and seven explicit dimensions per
+Inventory 1.2.0 declares eighteen exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -118,3 +118,20 @@ all 132 other assessments and all case declarations remain unchanged. Counts are
 This is not zero defects or whole-tab verification: original selection, fonts,
 transfer/device behavior, complete geometry and pattern-center handling remain
 unknown. Catalog byte bindings identify expected source art, not a tab paint trace.
+
+## Inventory 1.2.0: two selected solid-background cases
+
+The extension preserves all sixteen prior case objects and 134 assessments. Two
+exact empty-label synthetic cases cover masked push and opaque palette-collision
+bevel backgrounds. Their single new requirement includes the actual selected
+owner/load/occurrence/payload join, declared current same-owner pattern miss,
+raw RGB16 sample consumption under the existing LUT, and complete 29×9 literal
+solid union. The other 46 rows in the same browser test do not extend inventory.
+
+Independent automated root/Astra review approved the exact finite extension on
+2026-10-18 (draft scope digest `16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0`).
+Reviewed counts are eighteen OPEN inventories and 150 obligations: 28 narrowly
+verified and 122 unknown. Original resource ownership,
+remaining geometry/fill, state mapping, placement/port and device color stay
+unknown. Empty-label typography and direct-only interaction are explicit scoped
+exclusions. No original capture, golden or whole-control status is promoted.
