@@ -3305,3 +3305,20 @@ Gate the animation on scanner-owned inertness as well: pending sources remain
 visible, prepared targets cannot take focus while clipped, and removing inert
 removes the animation immediately. Test with the real stylesheet and pause the
 first animation frame; a final-state DOM assertion misses this transient bug.
+
+### 2026-10-18 — Extraction totals must count the fork, not the decoder filter
+
+The chrome converter filtered resource types before incrementing extraction totals.
+Across the 18 shipped forks this reported 4,738 resources instead of 13,577; icons,
+TMPL records, sounds and even the separately consumed header cluts disappeared.
+Inventory every resource and give unhandled types an explicit skipped outcome.
+Count the two header palettes as color extraction using the existing decoder, while
+leaving unrelated palettes unparsed. An extraction status belongs to one pass:
+icons skipped by convertChrome are still handled by convertIcons.
+
+Tests compare resource identity and outcome totals against each original fork; a
+before/after corpus probe confirmed theme manifests and all asset metadata/RGBA
+bytes unchanged. The survey found no pWin resources, so there is no evidence for
+adding that decoder. Filename/id comparisons would currently just cross-check two
+outputs generated from the same resource record; they are not an independent
+identity oracle for the source-only runtime.

@@ -38,6 +38,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Gate the boot wipe on inert targets so pending window content stays visible
   while keyboard focus remains available.
 
+- Inventory every source resource in extraction diagnostics, with explicit skipped
+  types, consumed header palettes, and totals that match the resource fork (#179).
+
 - Include lazy library chunks in the public deployment, extract archive-only
   themes locally, and release picker listeners/timers on teardown. Repair the
   boot smoke harness's server and browser cleanup.

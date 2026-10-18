@@ -25,7 +25,7 @@ The bake pipeline is still useful for **local diagnostics** (lint-themes' `--upd
 ```
 themes/<scheme-slug>/
 ├── theme.json                 # schema-conformant bundle manifest (generated, gitignored)
-├── extraction-manifest.json   # generated diagnostic record of every decoded resource
+├── extraction-manifest.json   # generated inventory of every source resource and its extraction status
 ├── rasters.json               # cicn + ppat catalog (used by demo inspector)
 ├── resource-roles.json        # per-id role classification (used by lint + demo inspector)
 ├── cicns/                     # chrome bitmaps decoded to PNG
@@ -105,6 +105,16 @@ npm run build:themes
 ```
 
 `extract-scheme.mjs` reads `themes/<slug>/scheme.sit`/`scheme.rsrc` + `meta.json`, decodes the resources, writes the PNGs into `cicns/`/`ppats/`, runs `buildThemeJson` with `meta.json` merged in plus the decoded header cluts, validates via `validateTheme`, and writes `theme.json` + `extraction-manifest.json`. All of these outputs are gitignored — the runtime doesn't read them; only the on-disk diagnostic scripts (`diag:render`, `diag:audit`, `lint:themes --update`) do.
+
+The extraction manifest inventories every resource in the source fork, retaining its
+four-character type, signed id, and name. `counts.total` equals
+`ok + skipped + errored`; successful records split into `raster`, `geometry`
+(including scheme flags), and `color` (the two consumed header palettes). Resources
+not handled by the chrome pass have `status: "skipped"` and an explicit reason.
+This is a per-pass report: classic icons may be skipped here and decoded separately
+by `extract-icons.mjs`; skipped does not mean absent from the scheme or unsupported
+by every runtime path. Unused cluts remain skipped rather than adding a new decode
+path just to populate diagnostics.
 
 ## Porting a new scheme
 
