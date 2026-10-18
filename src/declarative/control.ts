@@ -187,6 +187,10 @@ async function promoteSelect(el: HTMLSelectElement, theme: LoadedTheme): Promise
     // The chevron `▾` (U+25BE) signals "this is a dropdown" — universally understood, available in
     // every font we ship; cheaper than a custom cicn for the corner indicator.
     const b = await interactiveButton(theme, { label: `${text}  ▾`, disabled: el.disabled });
+    // The native select owns keyboard interaction and accessibility. Its face
+    // is decoration, including after a selection change or bfcache restore.
+    b.tabIndex = -1;
+    b.setAttribute('aria-hidden', 'true');
     // Pointer-events:none so clicks fall THROUGH to the native select underneath (the real handler).
     Object.assign(b.style, { pointerEvents: 'none' } satisfies Partial<CSSStyleDeclaration>);
     return b;

@@ -3448,3 +3448,14 @@ schemes, 108 default-label cases retain complete ink at automatic and 22px heigh
 Scene changes include downstream control positions because the reserved footprint
 changes; they are not solely recolored ring bands. The face helper's separate
 rectangular/pattern approximation remains explicit follow-up work in #218.
+
+## 2026-10-18 — Transparent native controls need a visible focus surface
+
+The select promotion preserves a real native select at opacity zero over its
+painted face. Its keyboard focus outline is therefore invisible too. The themed
+button behind it also had its own tab stop and button role, creating a dead
+keyboard target and duplicate accessible control. Keep the native select as the
+sole interactive/accessibility target, mark every replacement face decorative,
+and reflect native focus with `:focus-within` on the visible wrapper through the optional
+stylesheet. Verify actual Tab/typeahead behavior and asynchronous face replacement;
+canvas parity cannot establish native keyboard usability.

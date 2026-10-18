@@ -40,6 +40,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   select their authored ring when available. This removes Windows 95's detached
   bracket and preserves overlapping ring art in schemes such as 1990.
 
+- Promoted selects keep one native keyboard target and show its focus indicator
+  on the visible wrapper. Decorative faces stay out of the tab order and
+  accessibility tree when their selected label is repainted.
+
 - Solid button, bevel, and list-header faces sample their authored cinf background
   pixel instead of a guessed offset from the text marker. Windows 95 normal and
   disabled faces now use the source gray rather than white border pixels. Face
