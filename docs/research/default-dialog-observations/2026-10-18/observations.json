@@ -1,0 +1,591 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "producer": "Codex resource_correctness_fixes agent (automated; not a human attestation)",
+  "review": null,
+  "historicalAuthority": {
+    "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+    "path": "docs/spec/fidelity-compatibility-contract.md",
+    "version": "0.1.3",
+    "sha256": "9710bb906d402b9461d04bbbb406a8bf2a8c2d9a3128271e2d0add04c40346f2",
+    "requestCatalog": "tests/reference-captures/requests.json",
+    "requestVersion": "0.1.1"
+  },
+  "observations": [
+    {
+      "status": "QUARANTINED_PARTIAL",
+      "slug": "windows-95",
+      "phase": "normal-default-attempt",
+      "observedNativeTelemetry": {
+        "systemVersionHex": "755",
+        "guestPixelDepth": 8,
+        "portLTRB": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "itemType": 4,
+        "controlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "emptyTitle": true,
+        "frontWindowIsDialog": true,
+        "actualDefaultItem": 1,
+        "initialDefaultItem": 1,
+        "AcidMagic": true,
+        "defaultFlag": 0,
+        "beforeSetterAcidMagic": true,
+        "beforeSetterDefaultFlag": 0,
+        "windowKind": "not instrumented; no inferred value",
+        "standardFilterParticipated": true,
+        "returnedItem": 0,
+        "itemHitCount": 0
+      },
+      "capture": {
+        "at": "2026-10-18T14:51:53.293Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "rawSamples": [
+          {
+            "canvas": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "rgba": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "x": 100,
+            "y": 110
+          },
+          {
+            "canvas": [
+              218,
+              218,
+              218,
+              255
+            ],
+            "rgba": [
+              218,
+              218,
+              218,
+              255
+            ],
+            "x": 140,
+            "y": 120
+          },
+          {
+            "canvas": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "rgba": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "x": 140,
+            "y": 128
+          }
+        ],
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ],
+        "method": "native640x480 canvasbackingpixels; correctedRGBAtransport; integergetImageData,noresampling",
+        "toolSourceSha256": "5ca3c020b90dbf397ba555875a07603bdd12522bd8429d95e7e33e10acf13b14"
+      },
+      "id": "windows-95.normal-default-attempt",
+      "review": null,
+      "fixtureSource": "fixtures/v6.c",
+      "externalExecutableId": "fixture-v6-appl",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "windows-95"
+        },
+        "observedArchiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+        "observedForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "originalPrivateMetadataSha256": "5b8aef0a91a1dba1affaf4013a0c114532a06fd6a8f393583059af645e373e2b",
+      "invocation": {
+        "api": "NewColorDialog + SetDialogDefaultItem(1) + GetStdFilterProc + original standard modal filter delegation",
+        "setDefaultErr": 0,
+        "getStdFilterErr": 0,
+        "dialogProcId": 0,
+        "controlHilite": 0,
+        "initialDefaultItem": 1,
+        "setterRequestedItem": 1,
+        "authoredRingAttribution": "UNKNOWN",
+        "controlVariant": "NOT_INSTRUMENTED",
+        "controlValueMinMax": "NOT_INSTRUMENTED"
+      },
+      "images": {
+        "frame": "images/windows-95-normal-default-attempt-frame.png",
+        "port": "images/windows-95-normal-default-attempt-port.png",
+        "controlWithMargin": "images/windows-95-normal-default-attempt-controlWithMargin.png"
+      }
+    },
+    {
+      "status": "QUARANTINED_PARTIAL",
+      "slug": "windows-95",
+      "phase": "after-return",
+      "observedNativeTelemetry": {
+        "systemVersionHex": "755",
+        "guestPixelDepth": 8,
+        "portLTRB": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "itemType": 4,
+        "controlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "emptyTitle": true,
+        "frontWindowIsDialog": true,
+        "actualDefaultItem": 1,
+        "initialDefaultItem": 1,
+        "AcidMagic": true,
+        "defaultFlag": 0,
+        "beforeSetterAcidMagic": true,
+        "beforeSetterDefaultFlag": 0,
+        "windowKind": "not instrumented; no inferred value",
+        "standardFilterParticipated": true,
+        "returnedItem": 1,
+        "itemHitCount": 1
+      },
+      "capture": {
+        "at": "2026-10-18T14:52:13.994Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "rawSamples": [
+          {
+            "canvas": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "rgba": [
+              255,
+              255,
+              255,
+              255
+            ],
+            "x": 100,
+            "y": 110
+          },
+          {
+            "canvas": [
+              218,
+              218,
+              218,
+              255
+            ],
+            "rgba": [
+              218,
+              218,
+              218,
+              255
+            ],
+            "x": 140,
+            "y": 120
+          },
+          {
+            "canvas": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "rgba": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "x": 140,
+            "y": 128
+          }
+        ],
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ],
+        "method": "native640x480 canvasbackingpixels; correctedRGBAtransport; integergetImageData,noresampling",
+        "toolSourceSha256": "5ca3c020b90dbf397ba555875a07603bdd12522bd8429d95e7e33e10acf13b14"
+      },
+      "id": "windows-95.after-return",
+      "review": null,
+      "fixtureSource": "fixtures/v6.c",
+      "externalExecutableId": "fixture-v6-appl",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "windows-95"
+        },
+        "observedArchiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+        "observedForkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999"
+      },
+      "originalPrivateMetadataSha256": "2eea71912fc33b7bb19b9e5df87d0f34d566b15ab147f1016b07faecd0c7c011",
+      "invocation": {
+        "api": "NewColorDialog + SetDialogDefaultItem(1) + GetStdFilterProc + original standard modal filter delegation",
+        "setDefaultErr": 0,
+        "getStdFilterErr": 0,
+        "dialogProcId": 0,
+        "controlHilite": 0,
+        "initialDefaultItem": 1,
+        "setterRequestedItem": 1,
+        "authoredRingAttribution": "UNKNOWN",
+        "controlVariant": "NOT_INSTRUMENTED",
+        "controlValueMinMax": "NOT_INSTRUMENTED"
+      },
+      "images": {
+        "frame": "images/windows-95-after-return-frame.png",
+        "port": "images/windows-95-after-return-port.png",
+        "controlWithMargin": "images/windows-95-after-return-controlWithMargin.png"
+      }
+    },
+    {
+      "status": "QUARANTINED_PARTIAL",
+      "slug": "system7-nostalgia-silver",
+      "phase": "normal-default-attempt",
+      "observedNativeTelemetry": {
+        "systemVersionHex": "755",
+        "guestPixelDepth": 8,
+        "portLTRB": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "itemType": 4,
+        "controlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "emptyTitle": true,
+        "frontWindowIsDialog": true,
+        "actualDefaultItem": 1,
+        "initialDefaultItem": 1,
+        "AcidMagic": true,
+        "defaultFlag": 0,
+        "beforeSetterAcidMagic": true,
+        "beforeSetterDefaultFlag": 0,
+        "windowKind": "not instrumented; no inferred value",
+        "standardFilterParticipated": true,
+        "returnedItem": 0,
+        "itemHitCount": 0
+      },
+      "capture": {
+        "at": "2026-10-18T14:53:41.764Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "rawSamples": [
+          {
+            "canvas": [
+              192,
+              192,
+              192,
+              255
+            ],
+            "rgba": [
+              192,
+              192,
+              192,
+              255
+            ],
+            "x": 100,
+            "y": 110
+          },
+          {
+            "canvas": [
+              243,
+              243,
+              243,
+              255
+            ],
+            "rgba": [
+              243,
+              243,
+              243,
+              255
+            ],
+            "x": 140,
+            "y": 120
+          },
+          {
+            "canvas": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "rgba": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "x": 140,
+            "y": 128
+          }
+        ],
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ],
+        "method": "native640x480 canvasbackingpixels; correctedRGBAtransport; integergetImageData,noresampling",
+        "toolSourceSha256": "5ca3c020b90dbf397ba555875a07603bdd12522bd8429d95e7e33e10acf13b14"
+      },
+      "id": "system7-nostalgia-silver.normal-default-attempt",
+      "review": null,
+      "fixtureSource": "fixtures/v6.c",
+      "externalExecutableId": "fixture-v6-appl",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "system7-nostalgia-silver"
+        },
+        "observedArchiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+        "observedForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "originalPrivateMetadataSha256": "3a7f78e6e1b96eceb0262c3f5d02e77516dc5864d2e3b8c7f971b61cb951052b",
+      "invocation": {
+        "api": "NewColorDialog + SetDialogDefaultItem(1) + GetStdFilterProc + original standard modal filter delegation",
+        "setDefaultErr": 0,
+        "getStdFilterErr": 0,
+        "dialogProcId": 0,
+        "controlHilite": 0,
+        "initialDefaultItem": 1,
+        "setterRequestedItem": 1,
+        "authoredRingAttribution": "UNKNOWN",
+        "controlVariant": "NOT_INSTRUMENTED",
+        "controlValueMinMax": "NOT_INSTRUMENTED"
+      },
+      "images": {
+        "frame": "images/system7-nostalgia-silver-normal-default-attempt-frame.png",
+        "port": "images/system7-nostalgia-silver-normal-default-attempt-port.png",
+        "controlWithMargin": "images/system7-nostalgia-silver-normal-default-attempt-controlWithMargin.png"
+      }
+    },
+    {
+      "status": "QUARANTINED_PARTIAL",
+      "slug": "system7-nostalgia-silver",
+      "phase": "after-return",
+      "observedNativeTelemetry": {
+        "systemVersionHex": "755",
+        "guestPixelDepth": 8,
+        "portLTRB": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "portGlobalOrigin": [
+          80,
+          90
+        ],
+        "itemType": 4,
+        "controlLTRB": [
+          20,
+          20,
+          100,
+          40
+        ],
+        "emptyTitle": true,
+        "frontWindowIsDialog": true,
+        "actualDefaultItem": 1,
+        "initialDefaultItem": 1,
+        "AcidMagic": true,
+        "defaultFlag": 0,
+        "beforeSetterAcidMagic": true,
+        "beforeSetterDefaultFlag": 0,
+        "windowKind": "not instrumented; no inferred value",
+        "standardFilterParticipated": true,
+        "returnedItem": 1,
+        "itemHitCount": 1
+      },
+      "capture": {
+        "at": "2026-10-18T14:53:42.408Z",
+        "canvasSize": [
+          640,
+          480
+        ],
+        "devicePixelRatio": 1,
+        "rawSamples": [
+          {
+            "canvas": [
+              192,
+              192,
+              192,
+              255
+            ],
+            "rgba": [
+              192,
+              192,
+              192,
+              255
+            ],
+            "x": 100,
+            "y": 110
+          },
+          {
+            "canvas": [
+              243,
+              243,
+              243,
+              255
+            ],
+            "rgba": [
+              243,
+              243,
+              243,
+              255
+            ],
+            "x": 140,
+            "y": 120
+          },
+          {
+            "canvas": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "rgba": [
+              165,
+              165,
+              165,
+              255
+            ],
+            "x": 140,
+            "y": 128
+          }
+        ],
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+        "portFrameRect": [
+          80,
+          90,
+          160,
+          80
+        ],
+        "marginFrameRect": [
+          92,
+          102,
+          96,
+          36
+        ],
+        "method": "native640x480 canvasbackingpixels; correctedRGBAtransport; integergetImageData,noresampling",
+        "toolSourceSha256": "5ca3c020b90dbf397ba555875a07603bdd12522bd8429d95e7e33e10acf13b14"
+      },
+      "id": "system7-nostalgia-silver.after-return",
+      "review": null,
+      "fixtureSource": "fixtures/v6.c",
+      "externalExecutableId": "fixture-v6-appl",
+      "source": {
+        "canonicalRegistry": {
+          "commit": "20c69d9a836a4e1e6735c2a37f68ca48b93cac28",
+          "path": "tests/control-availability/source-choices.json",
+          "slug": "system7-nostalgia-silver"
+        },
+        "observedArchiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+        "observedForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+      },
+      "originalPrivateMetadataSha256": "c6789ffe591cc9996969837ca3ea37c404e4c5af0dcc985ae3fa89b481ea0e93",
+      "invocation": {
+        "api": "NewColorDialog + SetDialogDefaultItem(1) + GetStdFilterProc + original standard modal filter delegation",
+        "setDefaultErr": 0,
+        "getStdFilterErr": 0,
+        "dialogProcId": 0,
+        "controlHilite": 0,
+        "initialDefaultItem": 1,
+        "setterRequestedItem": 1,
+        "authoredRingAttribution": "UNKNOWN",
+        "controlVariant": "NOT_INSTRUMENTED",
+        "controlValueMinMax": "NOT_INSTRUMENTED"
+      },
+      "images": {
+        "frame": "images/system7-nostalgia-silver-after-return-frame.png",
+        "port": "images/system7-nostalgia-silver-after-return-port.png",
+        "controlWithMargin": "images/system7-nostalgia-silver-after-return-controlWithMargin.png"
+      }
+    }
+  ],
+  "limits": [
+    "Idempotent observed aDefItem1 to setter1; transition-specific behavior not tested.",
+    "Acid default flag0 does not exclude separate authored FrameRoundRect interception; observed painter unknown.",
+    "Actual windowKind/control variant/value/min/max/color table and actual font metrics not instrumented.",
+    "Complete palette/font/provider/patch stack and eligibility remain unknown.",
+    "No intake, ledger, golden or human approval."
+  ]
+}
