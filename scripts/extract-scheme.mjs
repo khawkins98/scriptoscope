@@ -62,7 +62,7 @@ async function extract(slug) {
 
   const c = manifest.counts;
   console.log(
-    `[${slug}] ok=${c.ok} (raster=${c.raster}, geometry=${c.geometry}) ` +
+    `[${slug}] total=${c.total} ok=${c.ok} (raster=${c.raster}, geometry=${c.geometry}, color=${c.color}) ` +
     `skipped=${c.skipped} errored=${c.errored} → ${Object.keys(theme.chromeElements || {}).length} chrome elements, ` +
     `${Object.keys(theme.windowTypes || {}).length} window types, headerColors=${!!theme.headerColors}`,
   );

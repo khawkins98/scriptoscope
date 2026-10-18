@@ -77,12 +77,29 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
   const subAssets = [];   // for buildThemeJson (cicns/ + ppats/ paths)
-  const counts = { total: 0, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0 };
+  const counts = { total: 0, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0, color: 0 };
+  const headerCluts = new Map();
 
   for (const e of entries) {
-    if (!['cicn', 'ppat', 'cinf', 'wnd#', 'Colr'].includes(e.type)) continue;
     counts.total++;
     const base = { type: e.type, id: e.id, name: e.name || null };
+    // The diagnostic manifest inventories the entire fork, not just resources
+    // handled by this pass. Icon extraction is a separate convertIcons call.
+    if (e.type === 'clut' && (e.id === -14336 || e.id === -14335)) {
+      // These palettes already supply headerColors below. Record that work as
+      // successful color extraction rather than silently omitting it (or
+      // claiming it was skipped). Preserve header-decoder failure behavior.
+      const decoded = decodeClut(e.data);
+      headerCluts.set(e.id, decoded);
+      counts.ok++; counts.color++;
+      flatAssets.push({ ...base, status: 'ok', data: decoded });
+      continue;
+    }
+    if (!['cicn', 'ppat', 'cinf', 'wnd#', 'Colr'].includes(e.type)) {
+      counts.skipped++;
+      flatAssets.push({ ...base, status: 'skipped', reason: 'not extracted by convertChrome' });
+      continue;
+    }
     let payload = null, error = null;
     try {
       if (e.type === 'cicn') payload = decodeCicn(e.data);
@@ -129,9 +146,9 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
   // Header colours from the window cluts (-14336 active / -14335 inactive), gamma'd
   // so procedural frames + contrast-sampled title text match the gamma'd rasters.
   const cl = (id) => {
-    const r = entries.find((x) => x.type === 'clut' && x.id === id);
-    if (!r) return null;
-    const c = headerColorsFromClut(decodeClut(r.data));
+    const decoded = headerCluts.get(id);
+    if (!decoded) return null;
+    const c = headerColorsFromClut(decoded);
     for (const k of Object.keys(c)) if (c[k] != null) c[k] = gammaCorrectHex(c[k]);
     return c;
   };
