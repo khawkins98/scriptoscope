@@ -58,6 +58,29 @@ export interface ControlBandPaint {
   readonly derived?: { readonly path: string; readonly assetUrl: string; readonly model: string; readonly displayPolicy: string };
 }
 
+/** Completed compatibility raster stage, before label/ring overlays. Occupancy
+ * is not a write count or a claim that these pixels survive later overlays. */
+export interface LegacyFacePaint {
+  readonly basis: 'compatibility-policy';
+  readonly operation: 'legacy-nine-slice-and-sample-fill';
+  readonly coordinateSpace: 'face-local-before-ring';
+  readonly owner: { readonly baseUrl: string; readonly chainDepth: number };
+  readonly resource: NonNullable<ControlResolutionStep['resource']>;
+  readonly sourceRect: ControlRect;
+  readonly destinationRect: ControlRect;
+  readonly requestedInsets: { readonly l: number; readonly t: number; readonly r: number; readonly b: number };
+  readonly insetPolicy: 'pixel-buffer-nine-slice-source-clamp';
+  readonly mode: 'tile' | 'stretch';
+  readonly rasterAlpha: 'copy-source-rgba';
+  readonly centerFill?: { readonly sourcePoint: readonly [number, number]; readonly sampledDisplayRgba: readonly [number, number, number, number];
+    readonly destinationRect: ControlRect; readonly outputAlpha: 255 };
+  readonly controlOrigin: readonly [number, number];
+  /** Declared port-space clip. Unknown/unbounded apply no additional clip. */
+  readonly declaredClip: ControlCompositionSnapshot['clip'];
+  readonly effectiveFaceClip: ControlRect;
+  readonly retainedNonzeroAlphaPixels: number;
+}
+
 export interface ControlRenderTrace {
   readonly version: 1;
   readonly correlationId?: string;
@@ -74,6 +97,7 @@ export interface ControlRenderTrace {
   readonly steps: readonly ControlResolutionStep[];
   readonly tabBody?: TabBodyTrace;
   readonly bandPaints?: readonly ControlBandPaint[];
+  readonly legacyFacePaint?: LegacyFacePaint;
   readonly headerSurface?: HeaderSurfaceTrace;
   /** Actual label policy for the selected face; no original font/device claim. */
   readonly textColors?: {
@@ -105,6 +129,7 @@ export interface ControlDiagnostics {
 export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
   bandPaint(value: ControlBandPaint): void;
+  legacyFacePaint(value: LegacyFacePaint): void;
   tabBody(value: TabBodyTrace): void;
   headerSurface(value: HeaderSurfaceTrace): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
@@ -130,10 +155,12 @@ export async function withControlDiagnostics(
   const steps: ControlResolutionStep[] = [];
   let tabBody: TabBodyTrace | undefined;
   const bandPaints: ControlBandPaint[] = [];
+  let legacyFacePaint: LegacyFacePaint | undefined;
   let headerSurface: HeaderSurfaceTrace | undefined;
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
   const collector: ControlTraceCollector = {
+    legacyFacePaint: value => { legacyFacePaint = value; },
     bandPaint: value => { bandPaints.push(value); }, headerSurface: value => { headerSurface = value; },
     tabBody: value => { tabBody = value; }, record: step => { steps.push(step); },
     composition: value => { composition = value; }, textColors: value => { textColors = value; },
@@ -149,6 +176,7 @@ export async function withControlDiagnostics(
     // A later default-ring failure can invalidate an already composed face.
     // Keep lookup observations, but never label its mode-5 writes as published.
     family, requested, steps: failed ? steps.filter(step => !step.bodyPaint) : steps,
+    ...(!failed && result && legacyFacePaint ? { legacyFacePaint } : {}),
     ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }

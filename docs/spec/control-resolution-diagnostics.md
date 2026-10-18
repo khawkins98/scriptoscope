@@ -167,3 +167,52 @@ step is staged until face completion and omitted if a later default-ring failure
 prevents publication; other diagnostic channels retain their existing meanings. The
 [same-owner binding policy and limits](cicn-body-mode5.md) remain explicit; this
 additive step data does not replace band, text, composition, tab or header channels.
+
+
+## Completed legacy face raster
+
+`legacyFacePaint` observes the existing push/bevel compatibility fallback:
+`legacy-nine-slice-and-sample-fill`, always with `basis: 'compatibility-policy'`.
+It is separate from `bandPaints`; neither a planned `usage: paint` selection nor
+this legacy record establishes an original kDEF painter or private provider.
+System 7’s no-cinf face uses this path. No new fallback or pixel policy is added.
+
+The record captures the owner, key, signed IDs, URL and optional byte-provenance
+scalars at the actual asset-load boundary, before decoding awaits. The source
+rectangle covers that loaded raster. Destination and `effectiveFaceClip` are
+**face-local before ring reservation**, not offsets in the final button buffer.
+`controlOrigin` converts the declared port-space clip into face coordinates;
+unknown/unbounded clips apply no additional clipping. `requestedInsets` and
+`insetPolicy` identify the existing PixelBuffer source-clamping policy, rather
+than claiming original corner geometry. Mode is the executed tile/stretch mode.
+
+`rasterAlpha: 'copy-source-rgba'` describes nearest-neighbor/tile copying,
+including transparent and partially transparent pixels in caller-supplied PNGs.
+If the center overwrite executes, `centerFill` records the sampled source point,
+display RGBA, actual rectangle and forced output alpha255. It is omitted when
+the sample is transparent or either interior dimension is nonpositive.
+
+`retainedNonzeroAlphaPixels` counts occupancy after those raster operations,
+intersected with the actual face clip **before glyph/emboss/ring overlays**. It
+is not a write count, proof of source mask fidelity, or the number of pixels that
+survive later overlays. A fully transparent or fully clipped stage emits no
+record even if a subsequent label paints. Publication requires a successful
+whole composition: face/ring preparation errors or cancellation suppress it.
+No extra decode or occupancy scan occurs with diagnostics disabled.
+
+The source/built test joins actual System 7 raw-fork ownership and decoder
+occurrence to independent fork/payload pins, with missing/wrong joins rejected.
+Concurrent direct/inherited and opt-in-profile calls retain separate records;
+no-cinf paint remains compatibility policy under either display preparation.
+Literal clipped RGBA and hidden-stage tests preserve the distinction between
+raster occupancy and later text, while held loads test identity, abort and error
+precedence. These checks do not admit original reference evidence or promote
+requirement-ledger assessments.
+
+The existing source/built profile checks also compare all 1,600 face pixels with
+the [reviewed original observations](../../tests/reference-captures/ORIGINALS.md),
+using their hash-checked port PNGs and recorded opaque white background. The same
+render must supply its actual modern face-paint identity. This comparison reuses
+the existing renders and remains limited to empty normal faces under the explicit
+measured profile. System 7's palette/gamma link is cross-run; masks, font,
+original private providers and broader requirements remain unresolved.

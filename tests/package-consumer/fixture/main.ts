@@ -12,7 +12,9 @@ root.addEventListener('change', event => events.push({ type: event.type, value: 
 
 // Installed declaration graph must expose additive tab diagnostics without
 // resolving repository-only modules. The fixture does not change its UI.
-const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: TabBodyTrace | undefined = trace.tabBody; void body; } };
+const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: TabBodyTrace | undefined = trace.tabBody;
+  const legacyOccupancy: number | undefined = trace.legacyFacePaint?.retainedNonzeroAlphaPixels;
+  void body; void legacyOccupancy; } };
 const tabOptions: NonNullable<Parameters<typeof composeTab>[1]> = { selected: true, diagnostics: tabDiagnostics };
 void tabOptions;
 const samplingDeclaration: CicnSamplingEquivalence = {
