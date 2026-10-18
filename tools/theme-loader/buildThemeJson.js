@@ -8,6 +8,7 @@
 // imports are shared pure recipe and identity data.)
 
 import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
+import { controlColorSamples } from './kdef-color-samples.js';
 import { WINDOW_TYPE_IDENTITIES } from './window-type-identities.js';
 
 /**
@@ -84,6 +85,8 @@ export function buildThemeJson(manifest, options = {}) {
   // tuples (textAnchor, embossAnchor) flatten from {x,y} dicts to [x,y].
   // bgPattern resolves to a patterns-catalog slug, not the raw ppat ID.
   const chromeElements = {};
+  const cicnPathCounts = new Map();
+  for (const cicn of cicns) cicnPathCounts.set(cicn.file, (cicnPathCounts.get(cicn.file) ?? 0) + 1);
   for (const cicn of cicns) {
     const cinf = byTypeAndId[`cinf:${cicn.id}`];
     const cd = cinf?.data;
@@ -108,12 +111,20 @@ export function buildThemeJson(manifest, options = {}) {
       // Raw request, distinct from the compatibility catalog link below. Zero
       // is a signed resource ID too; mode5 requests cicn, not ppat.
       bodyRequest: cd ? { mode: cd.patternAnchor, resourceId: cd.bgPatternId } : null,
+      // Carry the last successfully decoded occurrence now: integer-like catalog
+      // keys are reordered by JS enumeration, so paint must not reconstruct order.
+      // This is the loader's same-owner policy, not original Resource Manager proof.
+      bodyPattern: cd && cd.patternAnchor !== 5 ? (ppatSlugById[cd.bgPatternId] ?? null) : null,
       bgPattern: cd && cd.bgPatternId !== 0
         ? (ppatSlugById[cd.bgPatternId] ?? null)
         : null,
       bgAnchor:     cd ? coordTuple(cd.bgPixel)     : null,
       textAnchor:   cd ? coordTuple(cd.textPixel)   : null,
       embossAnchor: cd ? coordTuple(cd.embossPixel) : null,
+      // Bounded immutable scalar samples survive PNG alpha premultiplication.
+      // The transient sampler/indices/palette never escape this conversion.
+      colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd),
+      ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
       sourceCicnId: cicn.id,
       sourceCinfId: cinf?.id ?? null,
       // The bundle author's original NAMED-resource label (verbatim, NOT

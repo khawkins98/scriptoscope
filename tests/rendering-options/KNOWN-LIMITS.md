@@ -14,12 +14,19 @@ independently justified expectation. Failed/partial runs carry `complete: false`
 Known boundaries requiring explicit consideration during image review:
 
 - [Face compositing follow-up #218](https://github.com/khawkins98/scriptoscope/issues/218)
-  tracks remaining pattern-backed, list-header and legacy face approximations.
+  tracks mode5 color-icon bodies, list-header and legacy face approximations.
   Solid push/default and bevel faces with explicit slice metadata and an opaque
-  background sample now share the source-backed square-corner/independent-band
-  painter; hand-derived geometry assertions supply separate evidence. That narrow
-  correction does not establish text policies or complete face fidelity. See
-  [control-face geometry](../../docs/spec/control-face-geometry.md).
+  background sample share the source-backed square-corner/independent-band painter.
+  Direct full-color ppat bodies now use the independently tested inset/phase model;
+  omitted port context applies an explicit local-zero compatibility policy, not
+  verified original coordinates. [Managed propagation #270](https://github.com/khawkins98/scriptoscope/issues/270)
+  remains required for position/reflow/scroll-aware public window paths.
+  Authored text/optional emboss samples and their exact RGB16 decisions have
+  separate source-backed assertions; font rasterization, QuickDraw text transfer,
+  monochrome/device palette mapping and original pattern-origin state remain open.
+  See [face geometry](../../docs/spec/control-face-geometry.md),
+  [direct pattern context](../../docs/spec/control-pattern-context.md) and
+  [text-color scope](../../docs/spec/control-text-colors.md).
 - [Tab geometry/font investigation #223](https://github.com/khawkins98/scriptoscope/issues/223)
   includes a demonstrated crop-band mismatch: horizontal slicing combines an
   opaque-bounds-cropped width with `cinf.corner` from the full source raster. For
@@ -42,9 +49,11 @@ Known boundaries requiring explicit consideration during image review:
   distinguishes the demonstrated source-cell loss from those remaining questions.
 - Closed selects show the themed closed face; the browser owns the open native
   popup. Keyboard focus and selection have separate behavioral assertions.
-- Slimes progress endpoint appearance and Evolution's disabled-button pattern/text
-  treatment remain unverified against original source requirements. Snapshot
-  stability does not resolve whether those visual treatments are faithful.
+- Slimes progress endpoint appearance and Evolution's complete disabled-button
+  treatment remain unverified against original rendering. Evolution's selected
+  text RGB16 is now independently sampled, but this does not verify the surrounding
+  face treatment, device colors or text transfer. Snapshot stability does not
+  resolve those remaining requirements.
 - Windows95's scrollbar track appears transparent between its arrows and thumb.
   The original track painter/resource availability is unverified; this screenshot
   observation alone establishes neither a defect nor the correct fix.

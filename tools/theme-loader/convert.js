@@ -104,7 +104,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     if (byteReference) base.byteReference = byteReference;
     let payload = null, error = null;
     try {
-      if (e.type === 'cicn') payload = decodeCicn(e.data);
+      if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true });
       else if (e.type === 'ppat') payload = decodePpat(e.data);
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
@@ -137,7 +137,8 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       assets.push({ path: `${sub}/${fname}`, rgba: payload.rgba, width: payload.width, height: payload.height });
       counts.ok++; counts.raster++;
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
-      subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug });
+      subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
+        ...(payload.sampleKdefRgb16 ? { sampleKdefRgb16: payload.sampleKdefRgb16 } : {}) });
     } else {
       counts.ok++; counts.geometry++;
       flatAssets.push({ ...base, status: 'ok', data: payload });

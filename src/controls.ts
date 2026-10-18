@@ -1,3 +1,4 @@
+import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
@@ -5,6 +6,7 @@ import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
+import { controlTextColors } from './controlTextColors.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -1040,6 +1042,8 @@ export async function composeProgress(
 }
 
 export interface ButtonOptions {
+  /** Logical face/port coordinates. Omission applies local compatibility defaults, not known original state. */
+  compositionContext?: ControlCompositionContext;
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
@@ -1057,6 +1061,8 @@ export interface ButtonOptions {
 }
 
 export interface BevelButtonOptions {
+  /** Logical face/port coordinates. Omission applies local compatibility defaults, not known original state. */
+  compositionContext?: ControlCompositionContext;
   /** Opt-in completed resource-resolution trace; does not certify fidelity. */
   diagnostics?: ControlDiagnostics;
   label?: string;
@@ -1065,27 +1071,83 @@ export interface BevelButtonOptions {
   disabled?: boolean;
   small?: boolean;
   minWidth?: number;
-  /** Force the bevel-button face height. Same rationale as `ButtonOptions.height`:
-   *  crayon-os ships its bevel cicns at 70×70 (small) / matching large size; the
-   *  cicn's native height blows up the rendered button to ~70 px in any UI
-   *  context expecting a normal ~22 px control. Demo passes this to keep the
-   *  Aa / Off / On / disabled-Off row in the Controls panel at consistent
-   *  height across themes (16×16 platinum-family → 70×70 crayon-os). Same
-   *  9-slice + `slice.tile: true` preserves the artist's pixel pattern at the
-   *  shrunken size. */
+  /** Force the face height. Automatic sizing remains a runtime policy;
+   * explicit cinf borders and supported pattern bodies use their source model. */
   height?: number;
   fg?: string;
 }
 
-interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+interface FaceOptions { composition?: ControlCompositionSnapshot; signal?: AbortSignal | undefined; trace?: ControlTraceCollector | undefined; label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+
+function assertControlAlive(signal?: AbortSignal): void {
+  if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
+}
+
+async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<PixelBuffer | null> {
+  const request = face.element.bodyRequest;
+  if (!request) return null; // Legacy manifests have no observed raw request.
+  const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
+    requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
+    basis: 'compatibility-policy' as const, usage: 'paint' as const,
+    owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
+  if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
+    opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
+    return null;
+  }
+  const patterns = face.theme.manifest.patterns ?? {};
+  let key: string | null = null;
+  let selectionReason = 'unique-id-pattern-paint';
+  // The loader carries its last decoded occurrence before numeric catalog keys
+  // can reorder. Legacy links remain supported, but enumeration cannot recover
+  // occurrence order for multiple otherwise-unbound candidates.
+  const links = [
+    [face.element.bodyPattern, 'carried-body-pattern-paint'],
+    [face.element.bgPattern, 'legacy-linked-pattern-paint'],
+  ] as const;
+  const visited = new Set<string>();
+  for (const [candidate, reason] of links) {
+    if (!candidate || visited.has(candidate)) continue;
+    visited.add(candidate);
+    const linked = patterns[candidate];
+    if (linked?.sourcePpatId === request.resourceId) { key = candidate; selectionReason = reason; break; }
+    opts.trace?.record({ ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', ...(linked ? { resource: {
+      type: 'ppat' as const, signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: candidate,
+      assetUrl: assetUrl(face.theme, linked.asset), ...(linked.byteProvenance ? { byteProvenance: linked.byteProvenance } : {}),
+    } } : {}) });
+  }
+  if (!key) {
+    for (const candidate of Object.keys(patterns)) {
+      if (patterns[candidate]!.sourcePpatId !== request.resourceId) continue;
+      if (key !== null) {
+        opts.trace?.record({ ...common, action: 'missing', reason: 'ambiguous-legacy-pattern-order' });
+        return null;
+      }
+      key = candidate;
+    }
+  }
+  const pattern = key ? patterns[key] : undefined;
+  if (!pattern) {
+    opts.trace?.record({ ...common, action: 'missing', reason: 'same-face-owner-pattern-unavailable' });
+    return null;
+  }
+  assertControlAlive(opts.signal);
+  const url = assetUrl(face.theme, pattern.asset);
+  const buffer = await loadCicnBuffer(url);
+  assertControlAlive(opts.signal);
+  opts.trace?.record({ ...common, action: 'selected', reason: selectionReason, resource: {
+    type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
+    ...(pattern.byteProvenance ? { byteProvenance: pattern.byteProvenance } : {}),
+  } });
+  return buffer;
+}
 
 /**
  * Compose a button face and its label. For explicit cinf metadata with a valid
  * solid background sample, use kDEF 0x10fc0 → 0x107fe: fill the inset cross,
- * then paint square corners and independent masked edge bands. Pattern-backed
- * faces and list headers retain the legacy approximation until their separate
- * body/call-site behavior is verified. Text sizing and contrast remain runtime
- * policies; the original samples text/emboss colors at 0x10922–0x10990.
+ * then paint square corners and independent masked edge bands. Full-color pattern bodies use the same
+ * inset union with explicit port phase. Unsupported body modes and list headers
+ * retain the legacy approximation pending separate call-site evidence. Text RGB/emboss use preserved samples
+ * from 0x10922–0x10990; font metrics and browser alpha-over remain policies.
  */
 async function composeFaceButton(
   resolved: ResolvedControlFace,
@@ -1113,9 +1175,18 @@ async function composeFaceButton(
   const sy = validBg ? bg[1] : ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
   const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  const fg = opts.fg ?? (opts.disabled
+  const fallbackFg = opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
-    : lum < 128 ? '#ffffff' : '#000000');
+    : lum < 128 ? '#ffffff' : '#000000';
+  // 0x10922–0x10990 samples exact cicn/cinf colors. Preserve hidden RGB and
+  // 16-bit sentinel/equality decisions through metadata, not canvas readback.
+  // The traced push/bevel call sites draw emboss first at (+1,+1), then text.
+  // List-header dispatch and legacy manifests retain their prior policy.
+  const colors = geometry === 'button' ? controlTextColors(faceEl, opts.fg, fallbackFg)
+    : { foreground: opts.fg ?? fallbackFg, emboss: null, policy: 'contrast-fallback' as const, embossDecision: 'unavailable' as const, sampleFallbackReason: null };
+  const fg = colors.foreground;
+  if (geometry === 'button') opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
+    deviceMode: 'full-color-policy', sourceManifestKey: resolved.key, sourceOwnerDepth: resolved.chainDepth });
   let lineH = resolveControlHeight(face, opts.height);
   let glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
@@ -1130,7 +1201,26 @@ async function composeFaceButton(
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
-  if (geometry === 'button' && faceEl.slice && validBg) {
+  const context = opts.composition ?? snapshotControlComposition();
+  if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
+    faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
+    appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
+  const pattern = geometry === 'button' ? await loadBodyPattern(resolved, opts) : null;
+  if (pattern && faceEl.slice && faceEl.bodyRequest) {
+    const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
+    // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
+    // phase. Their union is filled before the masked border; do not tile each
+    // inset from its own origin or alpha-mask the body by the face raster.
+    for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++) {
+      const inBody = (x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
+        || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns);
+      if (!inBody || !controlPointVisible(context, x, y)) continue;
+      const px = ((phaseX + x) % pattern.width + pattern.width) % pattern.width;
+      const py = ((phaseY + y) % pattern.height + pattern.height) % pattern.height;
+      out.setPixel(x, y, ...pattern.getPixel(px, py));
+    }
+    out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
+  } else if (geometry === 'button' && faceEl.slice && validBg) {
     // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
     // inset(horizontal=corner, vertical=side), then the transposed insets.
     // Their union is a cross when corner != side. Fill precedes the border,
@@ -1139,8 +1229,8 @@ async function composeFaceButton(
     if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, cr, cg, cb, 255);
     out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
   } else {
-    // Deliberately retained approximation: pattern-backed/legacy faces and
-    // list headers have not yet earned the source-backed solid-button path.
+    // Retained approximation for unsupported pattern modes, unresolved legacy
+    // metadata and list headers; no historical body claim for these paths.
     const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
     const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
     out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
@@ -1151,7 +1241,13 @@ async function composeFaceButton(
   }
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
-    out.drawOver(glyphs, gx, Math.round((innerH - glyphs.height) / 2));
+    const gy = Math.round((innerH - glyphs.height) / 2);
+    if (colors.emboss) out.drawOver(rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), colors.emboss), gx + 1, gy + 1);
+    out.drawOver(glyphs, gx, gy);
+  }
+  if (geometry === 'button' && context.clip.kind === 'rect') {
+    for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
+      if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
   return out;
 }
@@ -1202,24 +1298,32 @@ function composeControlBorder(source: PixelBuffer, element: ChromeElement, width
 
 /**
  * Compose a THEMED push button (docs/spec/kdef231-reference.md §1.2 / §2.2,
- * FUN_30a8 — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): 9-slice the
+ * FUN_30a8 — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): compose the
  * push-button face (-10239 active / -10238 pressed / -10240 inactive) into the
  * button rect; for the default button wrap the shipped ring (-10231/-10232) around
  * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
  */
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
-  const state = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  return withControlDiagnostics(opts.diagnostics, 'push-button', {
-    state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
-  }, trace => composeButtonWithTrace(theme, opts, trace, signal));
+  return (await composeButtonWithLayout(theme, opts, signal))?.buffer ?? null;
 }
 
-async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
-  trace?: ControlTraceCollector, signal?: AbortSignal): Promise<PixelBuffer | null> {
-  // A mount may release its owned asset URLs while a preceding decode is held.
-  // Stop before starting another face fallback, font, or default-ring dependency.
-  const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
-  current();
+/** Internal adapter seam: actual face placement, never a second ring resolver. */
+export async function composeButtonWithLayout(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal, preparedContext?: ControlCompositionSnapshot): Promise<ButtonComposition | null> {
+  let result: ButtonComposition | null = null;
+  const state = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
+  await withControlDiagnostics(opts.diagnostics, 'push-button', {
+    state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
+  }, async trace => {
+    const composition = preparedContext ?? snapshotControlComposition(opts.compositionContext);
+    result = await composeButtonWithTrace(theme, opts, composition, trace, signal);
+    return result?.buffer ?? null;
+  });
+  return result;
+}
+
+async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions, composition: ControlCompositionSnapshot,
+  trace?: ControlTraceCollector, signal?: AbortSignal): Promise<ButtonComposition | null> {
+  assertControlAlive(signal);
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
   const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
   // Compatibility policy: try named roles/ID slots with anti-role rejection,
@@ -1229,31 +1333,32 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
   // original Appearance Manager/kDEF state fallbacks. Keep the final raw-ID
   // fallback visible to diagnostics rather than inferring historical intent.
   let face = await resolvePushButtonFace(theme, state, trace);
-  current();
+  assertControlAlive(signal);
   if (!face && state === 'active') {
     traceFallback(trace, 10238, 'active-to-pressed');
     face = await resolvePushButtonFace(theme, 'pressed', trace);
-    current();
+    assertControlAlive(signal);
   }
   if (!face && state === 'inactive') {
     traceFallback(trace, 10239, 'inactive-to-active');
     face = await resolvePushButtonFace(theme, 'active', trace);
-    current();
+    assertControlAlive(signal);
   }
   if (!face) {
     const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
     traceFallback(trace, faceId, 'raw-id-escape');
     face = await loadFaceById(theme, faceId, trace, lookup);
-    current();
+    assertControlAlive(signal);
     if (!face) {
       traceFallback(trace, 10239, 'active-id-fallback');
       face = await loadFaceById(theme, 10239, trace, lookup);
-      current();
+      assertControlAlive(signal);
     }
   }
+  assertControlAlive(signal);
   if (!face) return null; // baseline path
-  const faceBuf = await composeFaceButton(face, opts);
-  current();
+  const faceBuf = await composeFaceButton(face, { ...opts, composition, signal, trace });
+  assertControlAlive(signal);
   // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
   // through 0x7572/0x7594, then expands that SAME rectangle by four pixels
   // (InsetRect(-4,-4), 0x7698–0x76a2) before drawing the default ring.
@@ -1278,19 +1383,23 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
     if (ring) traceHit(trace, paint, ringId, ring, 'selected', 'ring-paint');
     else trace?.record({ ...paint, requestedId: -ringId, action: 'missing', reason: 'ring-unavailable' });
   }
-  if (!activeRing && !pressedRing && !inactiveRing) return faceBuf;
+  if (!activeRing && !pressedRing && !inactiveRing) return { buffer: faceBuf, layout: { faceRect: { x: 0, y: 0, w: faceBuf.width, h: faceBuf.height } } };
   const outset = 4;
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
   out.drawOver(faceBuf, outset, outset);
   if (ring) {
     const { element } = ring;
+    assertControlAlive(signal);
     const buffer = await loadCicnBuffer(assetUrl(ring.theme, element.asset));
-    current();
+    assertControlAlive(signal);
     // Full source raster, including transparent margins. The ring is painted
     // after face/text (0x76c8 onward), with its body-fill flag false.
     out.drawOver(composeControlBorder(buffer, element, out.width, out.height), 0, 0);
   }
-  return out;
+  if (composition.clip.kind === 'rect') for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++) {
+    if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);
+  }
+  return { buffer: out, layout: { faceRect: { x: outset, y: outset, w: faceBuf.width, h: faceBuf.height } } };
 }
 
 /**
@@ -1302,13 +1411,25 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
  * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
  */
 export async function composeBevelButton(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<PixelBuffer | null> {
-  const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
-  return withControlDiagnostics(opts.diagnostics, 'bevel-button', {
-    state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
-  }, trace => composeBevelButtonWithTrace(theme, opts, trace));
+  return (await composeBevelButtonWithLayout(theme, opts))?.buffer ?? null;
 }
 
-async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButtonOptions,
+/** Internal adapter seam; bevel faces have no reserved ring offset. */
+export async function composeBevelButtonWithLayout(theme: LoadedTheme, opts: BevelButtonOptions = {}): Promise<ButtonComposition | null> {
+  let result: ButtonComposition | null = null;
+  const state = opts.pressed ? 'pressed' : opts.disabled ? 'inactive' : 'active';
+  await withControlDiagnostics(opts.diagnostics, 'bevel-button', {
+    state, pressed: !!opts.pressed, disabled: !!opts.disabled, on: !!opts.on, small: !!opts.small,
+  }, async trace => {
+    const composition = snapshotControlComposition(opts.compositionContext);
+    const buffer = await composeBevelButtonWithTrace(theme, opts, composition, trace);
+    result = buffer ? { buffer, layout: { faceRect: { x: 0, y: 0, w: buffer.width, h: buffer.height } } } : null;
+    return buffer;
+  });
+  return result;
+}
+
+async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButtonOptions, composition: ControlCompositionSnapshot,
   trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
   const sizeBase = opts.small ? 10171 : 10162;
   const valueOff = opts.on ? 0 : 3;                          // set/on group, then clear/off (+3)
@@ -1323,7 +1444,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
     if (face) break;
   }
   if (!face) return null; // → platinumBevelButton
-  const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
+  const faceOpts: FaceOptions = { composition, trace, padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;

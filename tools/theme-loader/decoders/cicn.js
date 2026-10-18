@@ -19,12 +19,13 @@ import {
   Reader, readPixMap, readBitMap, readColorTable,
   expandIndexedPixels, expandMask,
 } from './shared.js';
+import { makeKdefColorSampler } from '../kdef-color-samples.js';
 
 /**
  * @param {Uint8Array} bytes  Raw cicn resource bytes
  * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}|null} null for a structurally valid unsupported destination-palette variant
  */
-export function decodeCicn(bytes) {
+export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
   requireBytes(bytes, 0, 82, 'headers');
   const r = new Reader(bytes);
 
@@ -76,6 +77,7 @@ export function decodeCicn(bytes) {
     width: pmap.width,
     height: pmap.height,
     rgba,
+    ...(retainKdefColorSampler ? { sampleKdefRgb16: makeKdefColorSampler(indices, pmap.width, pmap.height, colorTable.entries) } : {}),
     debug: {
       pixelSize: pmap.pixelSize,
       colorCount: colorTable.count,

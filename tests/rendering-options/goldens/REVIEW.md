@@ -70,3 +70,37 @@ and `face-bands.spec.mjs` (120 source/built cases). The screenshots are regressi
 expectations, not the correctness oracle for the new painter. #218 remains open
 for pattern-backed/list-header/legacy faces and text policies, and #223 and the
 other explicitly recorded unknowns remain unresolved.
+
+## Reviewed direct body and label delta — 2026-10-18
+
+[Capture run 39138845407](https://github.com/khawkins98/scriptoscope/actions/runs/39138845407)
+records commit `327fda1f` (full identity in the manifest). It recorded all 36
+pages and then passed exact repeat verification. Only the final combined output
+is adopted: the earlier text-only candidate at `322910b5` was not approved for
+publication because Crayon's authored dark text still sat on the old incorrect
+purple body. Separate implementation commits preserve review of both corrections.
+
+The combined delta changes 26 sheets, 90,472 pixels within 187 case bounds;
+all sheet dimensions and case ordering are unchanged. Of these changed cases,
+115 have direct resolution traces and 72 declarative integration cases do not.
+The untraced cases are not assigned invented resource provenance.
+
+The text-stage review independently joined 111 changed direct traces to raw
+RGB16 samples, exact cicn/cinf payload identities, the declared display transform
+and source emboss decisions. All 342 text decision records remain identical
+between that intermediate candidate and the final combined capture. Against the
+text-only images, body changes are confined to Animals page1 (371 pixels),
+Crayon page1 (22,532 pixels) and Crayon page2 (5,701 pixels). The final review
+covers their actual pattern choices, continuous inset fill and preserved label
+placement. Crayon's normal/disabled bodies now use the cream pattern with authored
+dark/gray text; its pressed body and dark text retain their source colors.
+
+Independent hand-encoded palette/sentinel fixtures, literal asymmetric tile
+rows, exclusive-corner/port-clip assertions, numeric-name occurrence-order
+negatives, pinned actual Crayon paint dependencies and cancellation tests supply
+the correctness evidence. The sheets remain regression expectations. Full
+QuickDraw text transfer, original device color/palette, managed port propagation
+(#270), mode5 color-icon bodies and list-header/tab behavior are not certified by
+this update. See [known limits](../KNOWN-LIMITS.md) and the
+[direct pattern](../../../docs/spec/control-pattern-context.md) and
+[text sample](../../../docs/spec/control-text-colors.md) contracts.

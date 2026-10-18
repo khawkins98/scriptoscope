@@ -218,7 +218,7 @@ async function prepareSelect(el: HTMLSelectElement, theme: LoadedTheme, events: 
       const text = (el.selectedOptions[0]?.textContent ?? '').trim();
       const disabled = el.disabled;
       let button: HTMLElement;
-      try { button = await interactiveButton(theme, { label: `${text}  ▾`, disabled }); }
+      try { button = await interactiveButton(theme, { label: `${text}  ▾`, disabled }, events.signal); }
       catch (error) {
         if (events.signal.aborted || request !== version) return;
         throw error;

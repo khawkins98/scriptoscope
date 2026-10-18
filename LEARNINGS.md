@@ -3946,6 +3946,8 @@ it. This checks distribution closure; it supplies no original-engine pixel truth
 
 ## 2026-10-18 — A pattern catalog binding is not a painted dependency
 
+**Paint-observability limit superseded by [the direct composition stage](docs/spec/control-pattern-context.md); catalog identity alone still proves no paint.**
+
 The ppat converter already visits exact parser occurrences, so the load-local
 observer can carry a reference into each generated catalog key without a second
 ID/filename lookup. Same-ID distinct assets remain separate; same-path aliases
@@ -4076,3 +4078,42 @@ public API behavior/output, source attribution and intake eligibility as separat
 claims. The four v6 observations remain quarantined partial research alongside
 the unchanged earlier six; no default-ring tolerance, ledger or golden follows.
 See docs/research/default-dialog-observations/2026-10-18/CONTEXT.md (#190, #221).
+
+### 2026-10-18 — Control text colors must survive before PNG transport
+
+The original push/bevel path samples text and emboss RGB16 through fc5c→10702;
+it does not select black/white by body luminance. Its palette search has positional
+shortcuts and a reverse-value/entry0 fallback, distinct from ordinary raster
+ColorSpec decoding. A separate transient sampler preserves those rules without
+changing cicn image decoding. Masked pixels retain useful RGB in the source but
+lose it through canvas transport, and high-byte/display conversion can collapse
+distinct RGB16 values. Persist bounded samples and decide emboss equality and
+red0x1234 before conversion, attached to the actual consumed cicn/cinf occurrence.
+
+Crayon's normal/pressed text is raw33, disabled136, with no emboss; the existing
+display policy yields48/152. This source-backed color correction is separate from
+font metrics, original device palette and QuickDraw TextMode1/49. Current browser
+alpha-over glyph composition remains a declared approximation. See
+[the bounded text-color contract](docs/spec/control-text-colors.md).
+
+### 2026-10-18 — A control pattern needs its original face Rect and port state
+
+The f930 wrapper translates both destination and finite clip by the selected
+corner phase while changing the port origin oppositely; physical D−O stays put.
+Right/bottom anchors are exclusive Rect edges. Default-ring buffer reservation
+must not be added to D. QDSetPatternOrigin supplies additional per-port state;
+its signed offset is not inferable from a screenshot or a DOM coordinate.
+
+Literal asymmetric/non-power-of-two fixtures expose inset-local tile resets,
+offset sign errors and right-minus-one mistakes that square periodic art hides.
+Raw-source RGB must be separated from our display transform and the original
+device palette. Direct context support is intermediate: managed layout refresh
+must propagate the same logical state before pattern-backed public surfaces are
+complete. See [the bounded contract](docs/spec/control-pattern-context.md).
+
+The same-owner last-decoded choice must be carried at conversion time. Integer-like
+catalog keys enumerate numerically, so names`2` then`1` reverse source order even
+when byte provenance faithfully records both occurrences. `bodyPattern` carries
+that compatibility binding independently of observation; ambiguous unbound legacy
+catalogs retain fallback instead of inventing order. The complete mode dispatch
+also matters: only raw5 selects cicn, while0 and6–255 use the zero ppat anchor.

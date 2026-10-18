@@ -106,9 +106,31 @@ export interface WindowType {
   widgets?: ('close' | 'collapse' | 'zoom')[];
 }
 
+export interface ControlColorSample {
+  /** Exact serialized ColorSpec channels, before high-byte/display conversion. */
+  readonly rgb16: readonly [number, number, number];
+  /** Current project display policy, not historical destination palette RGB. */
+  readonly displayRgb: readonly [number, number, number];
+}
+
+export interface ControlColorSamples {
+  readonly model: 'kdef-2.3.1-color';
+  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly background: ControlColorSample | null;
+  readonly text: ControlColorSample | null;
+  readonly emboss: ControlColorSample | null;
+  readonly embossDecision: 'absent-coordinates' | 'same-as-background' | 'sentinel' | 'present' | 'unknown';
+}
+
 export interface ChromeElement {
   /** Actual decoded input references, only from an opted-in load. */
   readonly byteProvenance?: ElementByteProvenance;
+  /** Exact selected cicn/cinf color samples before PNG transport. Absent/null
+   * means legacy/unknown; no default cinf or device palette is synthesized. */
+  readonly colorSamples?: ControlColorSamples | null;
+  /** Default loads retain legacy image aliasing; colors cannot claim a unique
+   * source/image join for duplicate generated paths. Observed loads reject them. */
+  readonly colorSamplesUnavailableReason?: 'ambiguous-asset-path';
   asset: string;
   width: number;
   height: number;
@@ -123,8 +145,8 @@ export interface ChromeElement {
   slice?: { corner: number; side: number; tile: boolean; resizeBehavior?: string } | null;
   /**
    * Label/text anchor `[x, y]` from the element's cinf `textPixel` (TMPL
-   * 129): the coordinate the label is anchored at, and whose pixel in the
-   * cicn is the authored text color. Null when the scheme ships no cinf.
+   * 129): the source color-sample coordinate, not label positioning geometry.
+   * Null when the scheme ships no same-ID cinf.
    */
   textAnchor?: [number, number] | null;
   /**
@@ -157,6 +179,11 @@ export interface ChromeElement {
   /** Raw cinf byte3 mode and signed bytes4..5 request, including zero.
    * Absent/null means unknown; this does not identify a selected or painted resource. */
   bodyRequest?: { mode: number; resourceId: number } | null;
+  /** Same-owner ppat key carried from the loader's last decoded occurrence,
+   * including raw ID0 and excluding mode5. Absent means legacy/unknown binding;
+   * null means no catalog binding was selected. This is compatibility policy,
+   * separate from the actual paint trace and original Resource Manager lookup. */
+  bodyPattern?: string | null;
   /** Legacy same-manifest pattern-catalog link derived from nonzero cinf ID.
    * It does not encode the original mode-dependent resource type or lookup scope.
    * See bodyRequest for the raw request, including zero. */
@@ -169,9 +196,9 @@ export interface ChromeElement {
   bgAnchor?: [number, number] | null;
   /**
    * The cinf-declared `(x, y)` anchor for embossing this element's label highlight /
-   * shadow (TMPL 129 `embossPixel`). Used by labelled controls whose label sits over
-   * a beveled surface (the bevel buttons + list-header cells). Today no consumer
-   * reads it; an embossed-label scheme would render flat without it.
+   * shadow (TMPL 129 `embossPixel`). The colorSamples seam preserves its exact
+   * RGB/sentinel decision for push/bevel labels. List-header dispatch remains
+   * separate and unverified.
    */
   embossAnchor?: [number, number] | null;
 }

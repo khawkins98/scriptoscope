@@ -1,6 +1,7 @@
 // Minimal validator for theme.json bundles, used by the extractor (plain JS, no
 // dependencies, no dist/ build needed). It checks the field shapes of the
 // schema of record, src/types.ts — keep them in sync when the schema changes.
+import { macRgbToSrgb } from './mac-gamma.js';
 
 export class ThemeValidationError extends Error {
   constructor(message, path) {
@@ -137,6 +138,9 @@ function validateChromeElements(value, path) {
         }
       }
     }
+    if ('bodyPattern' in c && c.bodyPattern !== null) {
+      assertString(c.bodyPattern, `${path}.${key}.bodyPattern`);
+    }
     if ('bgPattern' in c && c.bgPattern !== null) {
       assertString(c.bgPattern, `${path}.${key}.bgPattern`);
     }
@@ -148,6 +152,34 @@ function validateChromeElements(value, path) {
     }
     if ('embossAnchor' in c && c.embossAnchor !== null) {
       assertPair(c.embossAnchor, `${path}.${key}.embossAnchor`);
+    }
+    if ('colorSamples' in c && c.colorSamples !== null) {
+      const samplePath = `${path}.${key}.colorSamples`;
+      const colors = assertObject(c.colorSamples, samplePath);
+      if (colors.model !== 'kdef-2.3.1-color' || colors.displayPolicy !== 'mac-1.8-to-2.2-high-byte') {
+        throw new ThemeValidationError('unknown color sample model/display policy', samplePath);
+      }
+      for (const role of ['background', 'text', 'emboss']) {
+        if (colors[role] === null) continue;
+        const sample = assertObject(colors[role], `${samplePath}.${role}`);
+        for (const [field, max] of [['rgb16', 65535], ['displayRgb', 255]]) {
+          if (!Array.isArray(sample[field]) || sample[field].length !== 3
+              || sample[field].some(value => !Number.isInteger(value) || value < 0 || value > max)) {
+            throw new ThemeValidationError(`expected three integers in [0, ${max}]`, `${samplePath}.${role}.${field}`);
+          }
+        }
+        const display = macRgbToSrgb(sample.rgb16.map(value => value >> 8));
+        if (sample.displayRgb.some((value, i) => value !== display[i])) {
+          throw new ThemeValidationError('display RGB disagrees with raw RGB16/display policy', `${samplePath}.${role}.displayRgb`);
+        }
+      }
+      if (!['absent-coordinates', 'same-as-background', 'sentinel', 'present', 'unknown'].includes(colors.embossDecision)
+          || (colors.embossDecision === 'present' && !colors.emboss)) {
+        throw new ThemeValidationError('invalid emboss decision/sample', `${samplePath}.embossDecision`);
+      }
+    }
+    if ('colorSamplesUnavailableReason' in c && (c.colorSamplesUnavailableReason !== 'ambiguous-asset-path' || c.colorSamples !== null)) {
+      throw new ThemeValidationError('ambiguous samples must be null', `${path}.${key}.colorSamplesUnavailableReason`);
     }
     if ('tile' in c && c.tile !== null) {
       const t = assertString(c.tile, `${path}.${key}.tile`);
