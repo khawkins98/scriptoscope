@@ -127,6 +127,8 @@ export function buildThemeJson(manifest, options = {}) {
       samplingEquivalence: cicnPathCounts.get(cicn.file) > 1
         ? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'ambiguous-asset-path')
         : (cicn.samplingEquivalence ?? samplingEquivalenceRecord(cicn.width, cicn.height, 'unknown', 'missing-sampler')),
+      ...(cicn.sampledBandAsset && cicnPathCounts.get(cicn.file) === 1
+        ? { sampledBandAsset: Object.freeze({ ...cicn.sampledBandAsset }) } : {}),
       colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd),
       ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
       sourceCicnId: cicn.id,

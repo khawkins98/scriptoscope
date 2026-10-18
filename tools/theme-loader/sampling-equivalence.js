@@ -37,3 +37,24 @@ export function compareOpaqueSampling(indices, rgba, pmap, mask, sample) {
   }
   return unsafe ? record('unknown', 'unsafe-palette-access') : record('equivalent', 'all-opaque-display-rgb-equal');
 }
+
+/** Complete safe pass for a conditional derived image. The early-exit
+ * equivalence decision alone does not establish safety of remaining indices.
+ * Returns RAW high-byte RGB; the ordinary converter applies its LUT once. */
+export function sampledBandPixels(indices, rgba, pmap, sample, equivalence) {
+  if (equivalence.status !== 'different' || !sample) return null;
+  const memo = new Map();
+  for (let i = 0; i < indices.length; i++) {
+    if (!rgba[i * 4 + 3] || memo.has(indices[i])) continue;
+    const rgb16 = sample(i % pmap.width, Math.floor(i / pmap.width));
+    if (!rgb16) return null;
+    memo.set(indices[i], rgb16.map(value => value >> 8));
+  }
+  const out = new Uint8Array(rgba.length);
+  for (let i = 0; i < indices.length; i++) {
+    const alpha = rgba[i * 4 + 3];
+    if (!alpha) continue;
+    out.set(memo.get(indices[i]), i * 4); out[i * 4 + 3] = alpha;
+  }
+  return out;
+}

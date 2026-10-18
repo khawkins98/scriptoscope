@@ -1257,7 +1257,7 @@ async function composeFaceButton(
       const py = ((phaseY + y) % pattern.height + pattern.height) % pattern.height;
       out.setPixel(x, y, ...pattern.getPixel(px, py));
     }
-    out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
+    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else if (geometry === 'button' && faceEl.slice && (sourceBg || validBg)) {
     // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
     // inset(horizontal=corner, vertical=side), then the transposed insets.
@@ -1266,7 +1266,7 @@ async function composeFaceButton(
     const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
     out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, br!, bgc!, bb!, 255);
     if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, br!, bgc!, bb!, 255);
-    out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
+    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else {
     // Retained approximation for unsupported pattern modes, unresolved legacy
     // metadata and list headers; no historical body claim for these paths.
@@ -1296,7 +1296,11 @@ async function composeFaceButton(
  * may exceed corner size (e.g. 7/14 in a 21px ring); these are overlapping
  * masked bands, not a rectangular nine-slice partition. Body fill is disabled
  * by the ring wrapper at 0x107de; solid faces fill it separately first. */
-function composeControlBorder(source: PixelBuffer, element: ChromeElement, width: number, height: number): PixelBuffer {
+async function composeControlBorder(resolved: ResolvedControlFace, width: number, height: number,
+  opts: Pick<FaceOptions, 'trace' | 'signal'>, visible: (x: number, y: number) => boolean,
+  role: 'face' | 'default-ring' = 'face'): Promise<PixelBuffer> {
+  assertControlAlive(opts.signal);
+  const { buffer: source, element } = resolved;
   const out = PixelBuffer.alloc(width, height);
   const c = Math.max(0, element.slice?.corner ?? sliceInset(source.width, source.height));
   const side = Math.max(0, element.slice?.side ?? c);
@@ -1318,19 +1322,59 @@ function composeControlBorder(source: PixelBuffer, element: ChromeElement, width
     [0, c, sw, bandH, 0, c, sw, height - c * 2],
     [source.width - sw, c, sw, bandH, width - sw, c, sw, height - c * 2],
   ];
-  for (const region of regions) {
+  const proof = element.samplingEquivalence;
+  const identityMatches = (a: { model: string; comparison: string; displayPolicy: string; width: number; height: number } | undefined | null) =>
+    a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
+      && a.displayPolicy === 'mac-1.8-to-2.2-high-byte' && a.width === source.width && a.height === source.height;
+  const equivalent = identityMatches(proof) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
+  const companion = element.sampledBandAsset;
+  const eligible = identityMatches(companion) && companion && typeof companion.asset === 'string'
+    && /^cicn-sampled\/[^/]+\.png$/.test(companion.derivedPath);
+  let sampled: PixelBuffer | null = null;
+  let attempted = false;
+  for (const [regionIndex, region] of regions.entries()) {
     const [sx, sy, rw, rh, dx, dy, dw, dh] = region;
     if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
     // Clip allocation to the output, while retaining the original tile phase.
     const x0 = Math.max(0, dx), y0 = Math.max(0, dy);
     const x1 = Math.min(width, dx + dw), y1 = Math.min(height, dy + dh);
     if (x1 <= x0 || y1 <= y0) continue;
+    // FEAE branch uses original source/destination dimensions before clipping,
+    // width expansion first. tile=true does not bypass a one-pixel sampler.
+    const branch = rw === 1 && dw > 1 ? 'horizontal-lines' : rh === 1 && dh > 1 ? 'vertical-lines' : 'copy';
+    let paints = false;
+    for (let y = y0; y < y1 && !paints; y++) for (let x = x0; x < x1; x++) {
+      if (visible(x, y) && source.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh)[3] > 0) { paints = true; break; }
+    }
+    if (!paints) continue;
+    if (branch !== 'copy' && !equivalent && eligible && !attempted) {
+      assertControlAlive(opts.signal);
+      attempted = true;
+      const decoded = await loadCicnBuffer(assetUrl(resolved.theme, companion.asset));
+      assertControlAlive(opts.signal);
+      if (decoded.width === source.width && decoded.height === source.height) {
+        let sameMask = true;
+        for (let i = 3; i < source.data.length; i += 4) if (decoded.data[i] !== source.data[i]) { sameMask = false; break; }
+        if (sameMask) sampled = decoded;
+      }
+    }
+    const pixels = branch !== 'copy' && !equivalent && sampled ? sampled : source;
+    const policy = branch === 'copy' ? 'ordinary-raster' : equivalent ? 'equivalent-raster'
+      : pixels === sampled ? 'sampled-companion' : 'compatibility-raster';
     const band = PixelBuffer.alloc(x1 - x0, y1 - y0);
+    let opaqueUsed = false;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
-      band.setPixel(x - x0, y - y0, ...source.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh));
+      if (!visible(x, y)) continue;
+      const pixel = pixels.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh);
+      if (pixel[3] > 0) opaqueUsed = true;
+      band.setPixel(x - x0, y - y0, ...pixel);
     }
     // FEAE's masked blits preserve earlier bands below transparent samples.
     out.drawOver(band, x0, y0);
+    if (opaqueUsed) opts.trace?.bandPaint({ role, region: regionIndex, branch, policy,
+      owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth }, resource: resourceIdentity(resolved),
+      ...(policy === 'sampled-companion' && companion ? { derived: { path: companion.derivedPath,
+        assetUrl: assetUrl(resolved.theme, companion.asset), model: companion.model, displayPolicy: companion.displayPolicy } } : {}) });
   }
   return out;
 }
@@ -1433,7 +1477,8 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions, c
     assertControlAlive(signal);
     // Full source raster, including transparent margins. The ring is painted
     // after face/text (0x76c8 onward), with its body-fill flag false.
-    out.drawOver(composeControlBorder(buffer, element, out.width, out.height), 0, 0);
+    out.drawOver(await composeControlBorder({ ...ring, buffer }, out.width, out.height, { trace, signal },
+      (x, y) => controlPointVisible(composition, x - outset, y - outset), 'default-ring'), 0, 0);
   }
   if (composition.clip.kind === 'rect') for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++) {
     if (!controlPointVisible(composition, x - outset, y - outset)) out.setPixel(x, y, 0, 0, 0, 0);

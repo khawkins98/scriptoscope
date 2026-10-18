@@ -4290,3 +4290,15 @@ ownership and consumer correctness remain separate. Missing metadata is unknown,
 and ambiguous output paths cannot certify a source/image join. See
 [indexed sampling equivalence](docs/spec/indexed-sampling-equivalence.md), #295
 and the separate existing-consumer collision in #296.
+
+## 2026-10-18 — a detected mismatch is not complete sampling safety
+
+Whole-raster equivalence can return at its first color mismatch. That does not
+prove later opaque indices are safe to sample into a derived image. Companion
+creation therefore requires a separate complete pass, preserving the mask and
+applying the display transform only in the normal converter. Keep the ordinary
+asset and actual occurrence identity; sampling branches and CopyMask branches
+can legitimately paint different colors from the same resource. Also exclude
+stable derivation paths from recursive asset URL rewriting, and record a
+painted dependency only after visible opaque pixels contribute. See
+[sampled control bands](docs/spec/sampled-control-bands.md), #296.

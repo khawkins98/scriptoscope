@@ -42,6 +42,17 @@ export type TabBodyTrace = {
     | 'invalid-body-request' | 'pattern-center' | 'missing-or-invalid-background-anchor' | 'masked-background';
 });
 
+/** Actual visible opaque border paint; not original device color evidence. */
+export interface ControlBandPaint {
+  readonly role: 'face' | 'default-ring';
+  readonly region: number;
+  readonly branch: 'copy' | 'horizontal-lines' | 'vertical-lines';
+  readonly policy: 'ordinary-raster' | 'equivalent-raster' | 'sampled-companion' | 'compatibility-raster';
+  readonly owner: { readonly baseUrl: string; readonly chainDepth: number };
+  readonly resource: NonNullable<ControlResolutionStep['resource']>;
+  readonly derived?: { readonly path: string; readonly assetUrl: string; readonly model: string; readonly displayPolicy: string };
+}
+
 export interface ControlRenderTrace {
   readonly version: 1;
   readonly correlationId?: string;
@@ -57,6 +68,7 @@ export interface ControlRenderTrace {
   };
   readonly steps: readonly ControlResolutionStep[];
   readonly tabBody?: TabBodyTrace;
+  readonly bandPaints?: readonly ControlBandPaint[];
   /** Actual label policy for the selected face; no original font/device claim. */
   readonly textColors?: {
     readonly foreground: string; readonly emboss: string | null;
@@ -86,6 +98,7 @@ export interface ControlDiagnostics {
 /** Private per-invocation collector. Never stores themes or decoded buffers. */
 export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
+  bandPaint(value: ControlBandPaint): void;
   tabBody(value: TabBodyTrace): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
   composition(value: NonNullable<ControlRenderTrace['composition']>): void;
@@ -109,9 +122,10 @@ export async function withControlDiagnostics(
   const { onComplete, correlationId } = diagnostics;
   const steps: ControlResolutionStep[] = [];
   let tabBody: TabBodyTrace | undefined;
+  const bandPaints: ControlBandPaint[] = [];
   let textColors: ControlRenderTrace['textColors'];
   let composition: ControlRenderTrace['composition'];
-  const collector: ControlTraceCollector = { tabBody: value => { tabBody = value; }, record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
+  const collector: ControlTraceCollector = { bandPaint: value => { bandPaints.push(value); }, tabBody: value => { tabBody = value; }, record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
   let result: PixelBuffer | null = null;
   let failed = false;
   let error: unknown;
@@ -120,7 +134,7 @@ export async function withControlDiagnostics(
   const trace: ControlRenderTrace = freezeRecord({
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
-    family, requested, steps, ...(tabBody ? { tabBody } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
+    family, requested, steps, ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }
       : { status: 'unavailable' },

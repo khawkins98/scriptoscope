@@ -12,6 +12,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Clarify the fixed display LUT as a compatibility policy in source comments and
   historical notes; distinguish extraction/browser preparation from raw decoding
   and independently measured original display conditions (#190).
+- Correct expanded push, bevel and default-ring band colors when the original
+  palette sampler differs from indexed raster decoding (#296). Keep corners,
+  ordinary raster assets and the display LUT unchanged; create occurrence-bound
+  sampled companions only after a complete safe pass and decode only painted
+  dependencies, with normal cancellation/disposal ownership.
 
 - Register two exact solid-background requirement cases with selected-owner byte
   joins and independent literal fill assertions. Preserve all sixteen prior cases

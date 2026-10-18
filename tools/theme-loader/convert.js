@@ -135,9 +135,19 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       resourceObserver?.bindAsset(byteReference, `${sub}/${fname}`);
       gammaCorrectRgba(payload.rgba); // Mac→sRGB display transform (mac-gamma.js)
       assets.push({ path: `${sub}/${fname}`, rgba: payload.rgba, width: payload.width, height: payload.height });
+      let sampledBandAsset;
+      if (payload.sampledBandRgba) {
+        const derivedPath = `cicn-sampled/${fname}`;
+        gammaCorrectRgba(payload.sampledBandRgba);
+        assets.push({ path: derivedPath, rgba: payload.sampledBandRgba, width: payload.width, height: payload.height });
+        sampledBandAsset = { model: 'kaleidoscope-2.3.1-opaque-sampling-v1',
+          comparison: 'opaque-current-display-rgb', displayPolicy: 'mac-1.8-to-2.2-high-byte',
+          width: payload.width, height: payload.height, asset: derivedPath, derivedPath };
+      }
       counts.ok++; counts.raster++;
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
       subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
+        ...(sampledBandAsset ? { sampledBandAsset } : {}),
         ...(payload.samplingEquivalence ? { samplingEquivalence: payload.samplingEquivalence } : {}),
         ...(payload.sampleKdefRgb16 ? { sampleKdefRgb16: payload.sampleKdefRgb16 } : {}) });
     } else {
@@ -148,6 +158,12 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
   }
 
   const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta });
+  // Only actual surviving, unambiguous element links may allocate derived URLs.
+  const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
+  for (let i = assets.length - 1; i >= 0; i--)
+    if (assets[i].path.startsWith('cicn-sampled/') && !usedCompanions.has(assets[i].path)) assets.splice(i, 1);
+  for (const a of subAssets) if (a.sampledBandAsset && usedCompanions.has(a.sampledBandAsset.derivedPath))
+    resourceObserver?.bindAsset(a.byteReference, a.sampledBandAsset.derivedPath);
 
   // Header colours from the window cluts (-14336 active / -14335 inactive), gamma'd
   // so procedural frames + contrast-sampled title text match the gamma'd rasters.

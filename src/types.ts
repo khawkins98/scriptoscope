@@ -135,7 +135,20 @@ export interface CicnSamplingEquivalence {
     | 'unsupported-layout' | 'missing-sampler' | 'unsafe-palette-access' | 'ambiguous-asset-path';
 }
 
+/** Derived image from the same cicn occurrence, not another original resource.
+ * Caller-declared unless joined to actual per-load byte provenance. */
+export interface CicnSampledBandAsset {
+  readonly model: 'kaleidoscope-2.3.1-opaque-sampling-v1';
+  readonly comparison: 'opaque-current-display-rgb';
+  readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly width: number; readonly height: number;
+  readonly asset: string;
+  /** Stable generated path; unlike asset, never rewritten to a blob URL. */
+  readonly derivedPath: string;
+}
+
 export interface ChromeElement {
+  readonly sampledBandAsset?: CicnSampledBandAsset;
   /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
   readonly samplingEquivalence?: CicnSamplingEquivalence | null;
   /** Actual decoded input references, only from an opted-in load. */

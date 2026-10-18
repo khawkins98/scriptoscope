@@ -70,9 +70,10 @@ Extraction and raw/encoded loaders carry the same additive record.
 This does not prove original selected ownership, destination palette/gamma,
 cache conversion, mono drawing, picture recording, text transfer or original
 pixels. Whole-raster differences can reject a resource whose particular bands
-would agree; no second geometry resolver is introduced here. Current push/ring
-consumers ignore the record, so their independently identified synthetic palette
-collision remains a separate consumer limitation (#296). No ledger status is promoted.
+would agree; no second geometry resolver is introduced here. The metadata-only introduction left existing consumers unchanged. The separate
+[sampled-band correction](sampled-control-bands.md) uses the record and an
+optional complete-safe companion in push/bevel/ring line branches (#296).
+No ledger status is promoted.
 
 ## Validation and observed corpus
 

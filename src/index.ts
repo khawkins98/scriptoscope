@@ -25,7 +25,7 @@ export type {
   WindowType,
   WindowCinf,
   ChromeElement,
-  CicnSamplingEquivalence,
+  CicnSamplingEquivalence, CicnSampledBandAsset,
   Palette,
   ThemeManifest,
   LoadedTheme,

@@ -166,6 +166,18 @@ function validateChromeElements(value, path) {
         throw new ThemeValidationError('invalid sampling equivalence model, dimensions or decision', samplePath);
       }
     }
+    if ('sampledBandAsset' in c) {
+      const samplePath = `${path}.${key}.sampledBandAsset`;
+      const a = assertObject(c.sampledBandAsset, samplePath);
+      if (a.model !== 'kaleidoscope-2.3.1-opaque-sampling-v1'
+          || a.comparison !== 'opaque-current-display-rgb' || a.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+          || !Number.isSafeInteger(a.width) || a.width <= 0 || a.width !== c.width
+          || !Number.isSafeInteger(a.height) || a.height <= 0 || a.height !== c.height
+          || typeof a.asset !== 'string' || !a.asset || typeof a.derivedPath !== 'string'
+          || !/^cicn-sampled\/[^/]+\.png$/.test(a.derivedPath)) {
+        throw new ThemeValidationError('invalid sampled band asset model, dimensions or path', samplePath);
+      }
+    }
     if ('colorSamples' in c && c.colorSamples !== null) {
       const samplePath = `${path}.${key}.colorSamples`;
       const colors = assertObject(c.colorSamples, samplePath);

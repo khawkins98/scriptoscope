@@ -196,6 +196,12 @@ function rewriteAssetRefs(node, urlByPath) {
   if (node && typeof node === 'object') {
     for (const k of Object.keys(node)) {
       const v = node[k];
+      // Stable derivation identity is not an asset URL. Replace this immutable
+      // scalar link as a unit; never recursively rewrite its derivedPath.
+      if (k === 'sampledBandAsset' && v && typeof v === 'object') {
+        node[k] = Object.freeze({ ...v, asset: urlByPath.get(v.asset) ?? v.asset });
+        continue;
+      }
       if (typeof v === 'string') { if (urlByPath.has(v)) node[k] = urlByPath.get(v); }
       else if (v && typeof v === 'object') rewriteAssetRefs(v, urlByPath);
     }
