@@ -88,3 +88,60 @@ for (const mode of ['source', 'built']) {
     } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'slice-sentinels', results }, error); throw error; }
   });
 }
+
+for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric corner/edge rules follow source coordinates`, async ({ page, servers }, testInfo) => {
+  await openHarness(page, servers, mode);
+  let rows;
+  try {
+    rows = await page.evaluate(async mode => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const art = (size, offset = 0) => {
+        const buffer = api.PixelBuffer.alloc(size, size);
+        for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) buffer.setPixel(x, y, offset + x * 5, y * 7, 91, 255);
+        const canvas = api.bufferToCanvas(buffer); document.body.append(canvas);
+        return { buffer, asset: canvas.toDataURL() };
+      };
+      const face = art(6), rows = [];
+      const element = (id, source, corner, side, tile = false) => ({ sourceCicnId: id,
+        asset: source.asset, width: source.buffer.width, height: source.buffer.height,
+        slice: { corner, side, tile }, bgAnchor: [3, 3] });
+      for (const [size, corner, side, tile] of [[10, 3, 1, false], [21, 7, 14, true], [21, 7, 14, false]]) {
+        const ring = art(size);
+        const theme = { baseUrl: location.origin, manifest: { chromeElements: {
+          face: element(-10239, face, 1, 1), ring: element(-10231, ring, corner, side, tile),
+        } } };
+        const output = await api.composeButton(theme, { label: '', height: 40, default: true });
+        document.body.append(api.bufferToCanvas(output));
+        // kDEF square corner keeps source(2,2), independent of side thickness.
+        const probes = [{ target: [2, 2], source: [2, 2] }];
+        if (size === 21) {
+          // The authored middle strip is7px (21−2×7). At y17 the
+          // repeat variant samples10; the nonrepeat variant samples7.
+          const sourceY = tile ? 10 : 7;
+          probes.push({ target: [0, 17], source: [0, sourceY] }, { target: [output.width - 1, 17], source: [20, sourceY] });
+        }
+        rows.push({ kind: 'geometry', size, corner, side, tile, probes: probes.map(probe => ({ ...probe,
+          expected: ring.buffer.getPixel(...probe.source), actual: output.getPixel(...probe.target) })) });
+      }
+      const active = art(10, 10), pressed = art(10, 50), disabled = art(10, 90);
+      const theme = { baseUrl: location.origin, manifest: { chromeElements: {
+        face: element(-10239, face, 1, 1), active: element(-10231, active, 3, 1),
+        pressed: element(-10230, pressed, 3, 1), disabled: element(-10232, disabled, 3, 1),
+      } } };
+      for (const [state, opts, expectedArt] of [['normal', {}, active], ['pressed', { pressed: true }, pressed], ['disabled', { disabled: true }, disabled]]) {
+        const output = await api.composeButton(theme, { label: '', height: 40, default: true, ...opts });
+        document.body.append(api.bufferToCanvas(output));
+        rows.push({ kind: 'state', state, expected: expectedArt.buffer.getPixel(2, 2), actual: output.getPixel(2, 2) });
+      }
+      delete theme.manifest.chromeElements.pressed;
+      const fallback = await api.composeButton(theme, { label: '', height: 40, default: true, pressed: true });
+      document.body.append(api.bufferToCanvas(fallback));
+      rows.push({ kind: 'state', state: 'pressed-missing', expected: active.buffer.getPixel(2, 2), actual: fallback.getPixel(2, 2) });
+      return rows;
+    }, mode);
+    for (const row of rows) {
+      if (row.kind === 'geometry') for (const probe of row.probes) expect(probe.actual, JSON.stringify({ ...row, probes: probe })).toEqual(probe.expected);
+      else expect(row.actual, `default ring state ${row.state}`).toEqual(row.expected);
+    }
+  } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'ring-state-asymmetric-slices', rows }, error); throw error; }
+});
