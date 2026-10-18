@@ -38,3 +38,35 @@ for the missing manifest, missing PNG and exactly one changed opaque pixel.
 Verification did not create/update expected files; their original SHA256 values
 were restored and the restored sheet passed. Expected/actual/diff evidence and
 failure logs are retained in that run's negative-verification artifact.
+
+## Reviewed solid-face delta — PR233
+
+[Capture run 39110776093](https://github.com/khawkins98/scriptoscope/actions/runs/39110776093)
+records runtime commit `777262945ed0f57733bc98136f3708ba7ba5fe1b`. All 36 pages
+were recorded and then passed a fresh exact comparison. The current manifest
+records this capture; its environment, case inventory, source archives, stylesheet
+and lockfile identities are unchanged from the seed. The bundle SHA256 is now
+`6e68ee4e7e52662b7a859d0c6fe68d21184d198260fe85e97383a34cd12c4fec`.
+
+Only six PNGs change; the other 30 remain byte-identical:
+
+| Sheet | Changed pixels | Reviewed change |
+|---|---:|---|
+| 1984 page 1 | 2,216 | First-strip edge sampling on push/default faces |
+| 1984 page 2 | 632 | The same face correction on closed selects/custom foreground |
+| Apple Lisa page 1 | 436 | Authored square corner blocks retained on push/default faces |
+| Apple Lisa page 2 | 130 | The same corner correction on closed selects/custom foreground |
+| Evolution page 1 | 90 | Independent bevel bands remove incorrect edge patches |
+| Floppies page 1 | 2 | Tiny-height masked corner overlap |
+
+Every changed region was reviewed in before/after/diff crops at integer zoom.
+No unrelated text, layout, resource selection or reference-art changes were seen.
+The same four theme deltas were independently inspected in a 1,296-render corpus
+probe; all list-header and Crayon pattern cases in that probe were unchanged.
+
+This update follows the independent source-coordinate and masked-overlap
+requirements in [control-face geometry](../../../docs/spec/control-face-geometry.md)
+and `face-bands.spec.mjs` (120 source/built cases). The screenshots are regression
+expectations, not the correctness oracle for the new painter. #218 remains open
+for pattern-backed/list-header/legacy faces and text policies, and #223 and the
+other explicitly recorded unknowns remain unresolved.
