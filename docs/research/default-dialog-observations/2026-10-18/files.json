@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "scope": "included-file-integrity-only",
+  "files": [
+    {
+      "path": "CONTEXT.md",
+      "bytes": 3441,
+      "sha256": "a010c178e27b5c07063953c5936a74b2289fb9693dcc8d2052dd1a9f469d359b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5839,
+      "sha256": "54cdce427c78f49cb613a30ed9d00296ceedebfeeb4eab1bcd8b8e3afa8e7f88"
+    },
+    {
+      "path": "comparison.json",
+      "bytes": 22984,
+      "sha256": "39e120ce17ce731bca38231b57652249384d8517f315989ebcf534d0cd8aa2f5"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 3959,
+      "sha256": "37723baae54858a641c781485f33692e864bc8001a86006a13e0793e3cb03324"
+    },
+    {
+      "path": "fixtures/v6.c",
+      "bytes": 4949,
+      "sha256": "74060145293c431ccff8dfaca988597c03a2af3ac2d9ea721ee4845c58b214a8"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-after-return-controlWithMargin.png",
+      "bytes": 652,
+      "sha256": "ec61c50093144c35a155874d665a42aa3f82afcbf5211ce4a11e3cbcafae098f"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-after-return-frame.png",
+      "bytes": 33229,
+      "sha256": "85701cd8658b89401219fc4300c72ad4d11f44b047c3e5f392fd10b47e4bb53c"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-after-return-port.png",
+      "bytes": 1050,
+      "sha256": "a28080d752e02d0bdaa1b7eb9e1e131442c407f95238bacb8a8085be9fb7273b"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-default-attempt-controlWithMargin.png",
+      "bytes": 652,
+      "sha256": "ec61c50093144c35a155874d665a42aa3f82afcbf5211ce4a11e3cbcafae098f"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-default-attempt-frame.png",
+      "bytes": 33307,
+      "sha256": "d1a2dfc665e54e89ab0788fc97df027857348d83e49d4b4a1e83a9ffecd5fef8"
+    },
+    {
+      "path": "images/system7-nostalgia-silver-normal-default-attempt-port.png",
+      "bytes": 1050,
+      "sha256": "a28080d752e02d0bdaa1b7eb9e1e131442c407f95238bacb8a8085be9fb7273b"
+    },
+    {
+      "path": "images/windows-95-after-return-controlWithMargin.png",
+      "bytes": 322,
+      "sha256": "67ac7496061e903ab33531375f0517331e0a1c9f6b4d216f716a8ce371fad924"
+    },
+    {
+      "path": "images/windows-95-after-return-frame.png",
+      "bytes": 32815,
+      "sha256": "7bf032a62a0dd724b6ba4a357dc9d90635b0db9b9c3cc0ae6d45b0e67eb20c1b"
+    },
+    {
+      "path": "images/windows-95-after-return-port.png",
+      "bytes": 719,
+      "sha256": "fb7f78470c477bcefeed7e98e35d6c190587a0fe6f5467cbf790b2170276d517"
+    },
+    {
+      "path": "images/windows-95-normal-default-attempt-controlWithMargin.png",
+      "bytes": 322,
+      "sha256": "67ac7496061e903ab33531375f0517331e0a1c9f6b4d216f716a8ce371fad924"
+    },
+    {
+      "path": "images/windows-95-normal-default-attempt-frame.png",
+      "bytes": 32846,
+      "sha256": "3640eefc1f355901d6cf83c03f3301b3e46e918986db23672e18f8c602034ee9"
+    },
+    {
+      "path": "images/windows-95-normal-default-attempt-port.png",
+      "bytes": 719,
+      "sha256": "fb7f78470c477bcefeed7e98e35d6c190587a0fe6f5467cbf790b2170276d517"
+    },
+    {
+      "path": "observations.json",
+      "bytes": 16992,
+      "sha256": "18eabc956e3c31db0bce0f2cb0b0169f984f787fe0a5abb1e19ebfebf96db154"
+    }
+  ]
+}

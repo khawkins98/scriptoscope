@@ -14,6 +14,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   incomplete-copy reporting. Slider lifetime probes measure the current canvas
   atomically across its initial repaint.
 
+- Preserve four public Dialog Manager default-button observations as quarantined
+  partial research. API/Return behavior is recorded separately from unknown
+  border attribution; native images and fixture pins do not admit references
+  or change rendering expectations (#190, #221).
+
 - Preserve six original-environment control observations as quarantined partial
   research, with native frames, fixture sources, external input/tool pins and
   integrity checks. Palette/provider/font gaps remain open; reference intake

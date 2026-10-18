@@ -4058,3 +4058,21 @@ A dedicated reporter now copies those bytes into unique sibling archive folders
 with hashes and primary failure metadata before the next invocation clears its
 output. Missing files stay explicitly unavailable, and archive errors cannot
 replace the test failure. Preservation does not convert a failed run into a pass.
+
+## 2026-10-18 — A control flag does not identify every default-border painter
+
+A native System7 Dialog Manager fixture accepted SetDialogDefaultItem(1), ran the
+standard filter and returned item1 on Return, while the control's Acid auxiliary
+default flag remained0. The initial dialog default item was already1, so this did
+not test a transition. Comparing unchanged80×20 controls showed204 surrounding
+Windows95 pixels and628 System7 pixels changed; only four System7 face-corner
+pixels changed, with the Windows95 face interior identical.
+
+The pinned PACH130 separately intercepts FrameRoundRect and can select ring art
+-10231/-10232 after pen/port/color guards, without the kDEF control's Acid gate.
+This static route is not a dynamic attribution of the observed pixels, but it
+prevents treating flag0 as proof that every authored ring path is off. Preserve
+public API behavior/output, source attribution and intake eligibility as separate
+claims. The four v6 observations remain quarantined partial research alongside
+the unchanged earlier six; no default-ring tolerance, ledger or golden follows.
+See docs/research/default-dialog-observations/2026-10-18/CONTEXT.md (#190, #221).

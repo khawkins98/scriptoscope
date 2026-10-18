@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "status": "QUARANTINED_PARTIAL",
+  "historicalReferences": [
+    {
+      "path": "docs/research/original-observations/2026-10-18/environment.json",
+      "commit": "2295dba63e831259b482b0c51af72121f3a18d06",
+      "sha256": "2cd36b6710809b945d3de3deb65988972ef046a05bb02eb39f8be75e82f86347",
+      "purpose": "Historical v4/v5 environment/source/transport context, not v6 telemetry or eligibility"
+    },
+    {
+      "path": "docs/research/original-observations/2026-10-18/observations.json",
+      "commit": "2295dba63e831259b482b0c51af72121f3a18d06",
+      "sha256": "9f04bf0f19b520e309567a3855775550465397d8a5931a0050df269646fa57df",
+      "purpose": "Historical v4/v5 environment/source/transport context, not v6 telemetry or eligibility"
+    },
+    {
+      "path": "docs/research/original-observations/2026-10-18/color-probes.json",
+      "commit": "2295dba63e831259b482b0c51af72121f3a18d06",
+      "sha256": "ba1362e13d74c7e90f5eb627a217d8212c8bc1ba424c241017c6473c245fc89d",
+      "purpose": "Historical v4/v5 environment/source/transport context, not v6 telemetry or eligibility"
+    },
+    {
+      "path": "docs/research/original-observations/2026-10-18/fixtures/v4.c",
+      "commit": "2295dba63e831259b482b0c51af72121f3a18d06",
+      "sha256": "cac6d5afc21fe2ce991969b08cf2c3598dde4359244ba0c206501b055730f654",
+      "purpose": "Historical v4/v5 environment/source/transport context, not v6 telemetry or eligibility"
+    }
+  ],
+  "externalAssets": [
+    {
+      "id": "fixture-v6-appl",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 59776,
+      "sha256": "f47d4eca434e1fcb034f3c4bf2f5055334ce27d789421d1236ef29d047de4666",
+      "source": "fixtures/v6.c"
+    },
+    {
+      "id": "fixture-v6-unpackaged",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 59648,
+      "sha256": "49663959970cd7d08faf9296286e7483cdc1f1366f918076ceabb9ef0d8acecb",
+      "source": "fixtures/v6.c"
+    },
+    {
+      "id": "fixture-compile-log",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 559,
+      "sha256": "c10b3b286db6f96619357c25385a18eab872dff1d907485f350193faae827b66"
+    },
+    {
+      "id": "capture-tool-v6",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 2824,
+      "sha256": "5ca3c020b90dbf397ba555875a07603bdd12522bd8429d95e7e33e10acf13b14"
+    },
+    {
+      "id": "reference-glue",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 1947,
+      "sha256": "41cffc1c7a3c1c55b211b1d859b1b1fe76462fa41d7bf35be7c933682df95875"
+    },
+    {
+      "id": "worker-glue",
+      "availability": "EXTERNAL_NOT_INCLUDED",
+      "bytes": 37925,
+      "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+    }
+  ],
+  "guest": {
+    "systemVersionHex": "755",
+    "pixelDepth": 8,
+    "framebufferTransport": "direct RGBA bytes; historical v4 primary sentinel channel verification, not a new v6 full palette verification"
+  },
+  "originalComponents": [
+    {
+      "type": "PACH",
+      "id": 130,
+      "bytes": 87914,
+      "sha256": "bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44"
+    },
+    {
+      "type": "PACH",
+      "id": 131,
+      "bytes": 145320,
+      "sha256": "465b312d14eca52ed9e3164caceb7759272613a862b0d4fb8dcee8c0da82fd7c"
+    },
+    {
+      "type": "kDEF",
+      "id": 0,
+      "bytes": 107726,
+      "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+    },
+    {
+      "type": "kDEF",
+      "id": 1,
+      "bytes": 175572,
+      "sha256": "32ed7af07c92e343f4e5ba52a54da601be80d4956e3a5b49b980035ce1b94db5"
+    }
+  ],
+  "preservation": {
+    "originalInputsRehashedUnchanged": 5,
+    "priorBindingsRehashedUnchanged": 82,
+    "uniquePriorPaths": 74,
+    "privateMediaOnly": true
+  },
+  "shutdown": "Fixture exited; Finder Shut Down requested and writes settled; explicit guest shutdown acknowledgement absent. Clean shutdown UNKNOWN. Owned worker/browser/server stopped."
+}
