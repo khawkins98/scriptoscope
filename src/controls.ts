@@ -191,18 +191,13 @@ const PUSH_BUTTON_FACE_KEYS = {
  *  shape for unlabelled bundles. The authorLabel path is strictly tighter. */
 const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialog|scroll/i;
 
-/** Resolve a push-button face for a given state via the manifest's STRUCTURED
- *  role names first, then falling back to id-based lookup that REJECTS the
- *  anti-role keys (so a misrouted -10239 doesn't sneak in). Walks the base
- *  chain self-first, trying both strategies before inheriting from a base.
- *
- *  Period-faithful in spirit: the kDEF dispatched on `kButtonFaceActive` as a
- *  logical role; the id was an encoding of that role. Reading the role from
- *  the manifest's named slot honors the AUTHOR's tagged intent, which is more
- *  faithful than blindly trusting an id slot the author repurposed. The
- *  fallback to pressed (handled by composeButton) substitutes the author's
- *  shipped art when they ship no active face — same fallback AppearanceManager
- *  used when a state slot was empty. */
+/** Resolve a push-button face via named keys, then numeric ID with an
+ * anti-role label/key rejection heuristic. Walk the base chain self-first,
+ * trying both strategies before inheriting. This is a runtime compatibility
+ * policy for corpus aliases, not a verified historical role resolver: kDEF
+ * 0x7572–0x7594 requests numeric IDs. A source label is evidence to review,
+ * not proof of author intent. composeButton handles state fallback separately.
+ */
 export async function loadPushButtonFace(
   theme: LoadedTheme,
   state: keyof typeof PUSH_BUTTON_FACE_KEYS,
@@ -226,8 +221,8 @@ async function resolvePushButtonFace(
     const ces = t.manifest.chromeElements ?? {};
     for (const [k, v] of Object.entries(ces)) {
       if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
-      // Primary check: the bundle author's verbatim role label. Always wins
-      // when present (it's the AUTHOR's own tag, not a heuristic).
+      // Prefer the verbatim source label for this rejection heuristic.
+      // The label itself is provenance; interpreting its words is policy.
       if (v.authorLabel && PUSH_BUTTON_FACE_ANTI_KEY_RE.test(v.authorLabel)) return null;
       // Fallback check: the friendly key. Only consulted when the bundle
       // ships no authorLabel (9 of 18 corpus bundles — kept for back-compat).
@@ -999,27 +994,22 @@ export interface BevelButtonOptions {
 interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
 
 /**
- * Render a 9-sliced control FACE into a label-sized buffer: slice the face into the
- * button rect, flatten the interior to its fill colour (erasing the centre cinf
- * text-colour MARKER so the stretch doesn't smear it across the label), and draw the
- * centred label in a contrasting b/w. The kDEF's face drawer (0x7424) reads NO text
- * colour — the Control Manager draws titles in the system colour — and the cinf
- * marker (1990 mid-gray, evolution black) is illegible, so we pick by face luminance
- * (matches the scheme previews); disabled grays but stays contrasting. The 9-slice
- * corner = the cinf `cornerSize` (0x107fe), else a derived inset. Shared by
- * composeButton (which wraps a default ring around it) and composeBevelButton.
+ * Compose a button face and its label. For explicit cinf metadata with a valid
+ * solid background sample, use kDEF 0x10fc0 → 0x107fe: fill the inset cross,
+ * then paint square corners and independent masked edge bands. Pattern-backed
+ * faces and list headers retain the legacy approximation until their separate
+ * body/call-site behavior is verified. Text sizing and contrast remain runtime
+ * policies; the original samples text/emboss colors at 0x10922–0x10990.
  */
-async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOptions): Promise<PixelBuffer> {
+async function composeFaceButton(
+  resolved: ResolvedControlFace,
+  opts: FaceOptions,
+  geometry: 'button' | 'legacy-list-header' = 'button',
+): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const { buffer: face, element: faceEl } = resolved;
-  // Legacy face composition maps corner to horizontal and side to vertical
-  // rectangular nine-slice insets. The original cinf engine actually uses
-  // square corners plus independently thick bands (see composeDefaultRing).
-  // Migrating face fills/labels to that overlapping model is separate work;
-  // keep this existing approximation while resolving the correct owner's data.
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const fSide = faceEl?.slice?.side ?? fIns;
-  const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
   // TMPL 129 bgPixel is a source RGB sample, not a tiling origin. kDEF
   // 0x10904–0x1091a samples cinf+6/+8; 0x109b2 applies RGBBackColor.
   // Keep the metadata attached to the actual resolved face (including state
@@ -1054,19 +1044,24 @@ async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOption
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
-  // Honour the face cinf's slice.tile (crayon-os, beos-r503, several others) for
-  // the same reason as the ring — the side bands carry artist-baked detail.
-  const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
-  out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
-  if (ca > 0) {
-    // Flatten the centre INSIDE the 9-slice corner blocks — x bounds use the
-    // horizontal corner width (fIns), y bounds use the vertical side
-    // thickness (fSide). Mismatching the y bound with fIns left bands at the
-    // top/bottom of the button still showing the tiled/stretched cicn art
-    // (when fSide < fIns) or painted over the artist's authored bevel
-    // (when fSide > fIns). Same Pass C contract as the frame's faceIns.
-    const cw = innerW - fIns * 2, ch = innerH - fSide * 2;
-    if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fSide, w: cw, h: ch }, cr, cg, cb, 255);
+  if (geometry === 'button' && faceEl.slice && validBg) {
+    // 0x10b72–0x10bb8 erases two rectangles using the sampled background:
+    // inset(horizontal=corner, vertical=side), then the transposed insets.
+    // Their union is a cross when corner != side. Fill precedes the border,
+    // so transparent edge samples reveal the body without erasing earlier art.
+    out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, cr, cg, cb, 255);
+    if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, cr, cg, cb, 255);
+    out.drawOver(composeControlBorder(face, faceEl, innerW, innerH), 0, 0);
+  } else {
+    // Deliberately retained approximation: pattern-backed/legacy faces and
+    // list headers have not yet earned the source-backed solid-button path.
+    const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
+    const faceMode = faceEl?.slice?.tile ? 'tile' : 'stretch';
+    out.nineSlice(face, { x: 0, y: 0, w: face.width, h: face.height }, faceIns, { x: 0, y: 0, w: innerW, h: innerH }, faceMode);
+    if (ca > 0) {
+      const cw = innerW - fIns * 2, ch = innerH - fSide * 2;
+      if (cw > 0 && ch > 0) out.fillRect({ x: fIns, y: fSide, w: cw, h: ch }, cr, cg, cb, 255);
+    }
   }
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
@@ -1075,12 +1070,12 @@ async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOption
   return out;
 }
 
-/** The ring path of kDEF 0x107fe: square corners plus independently thick
+/** The border path shared by kDEF 0x107fe faces and rings: square corners plus independently thick
  * bands, in painter order TL/TR/top/BL/BR/bottom/left/right. Cinf side thickness
  * may exceed corner size (e.g. 7/14 in a 21px ring); these are overlapping
  * masked bands, not a rectangular nine-slice partition. Body fill is disabled
- * by the ring wrapper at 0x107de. */
-function composeDefaultRing(source: PixelBuffer, element: ChromeElement, width: number, height: number): PixelBuffer {
+ * by the ring wrapper at 0x107de; solid faces fill it separately first. */
+function composeControlBorder(source: PixelBuffer, element: ChromeElement, width: number, height: number): PixelBuffer {
   const out = PixelBuffer.alloc(width, height);
   const c = Math.max(0, element.slice?.corner ?? sliceInset(source.width, source.height));
   const side = Math.max(0, element.slice?.side ?? c);
@@ -1129,22 +1124,13 @@ function composeDefaultRing(source: PixelBuffer, element: ChromeElement, width: 
 export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
   const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  // Resolve the face via the manifest's STRUCTURED role first (handles
-  // animals + monkey-paradise, which repurpose id -10239 to
-  // `solo-menu-background-2` and ship NO active push-button cicn — only
-  // inactive + pressed). When no active cicn exists, fall back to the
-  // pressed face: the AppearanceManager's documented behaviour when an
-  // active-state slot was empty, and what the bundle author was clearly
-  // aiming at (they shipped pressed + inactive + ring; the missing active
-  // slot is a bundle-side gap, not a kDEF requirement to render menu wallpaper).
+  // Compatibility policy: try named roles/ID slots with anti-role rejection,
+  // then active→pressed or inactive→active when the requested role is missing.
+  // Animals/Monkey repurpose -10239 with a menu label and supply other face
+  // states. These choices handle that corpus convention; they are not proven
+  // original Appearance Manager/kDEF state fallbacks. Keep the final raw-ID
+  // fallback visible to diagnostics rather than inferring historical intent.
   let face = await resolvePushButtonFace(theme, state);
-  // AppearanceManager-style state-fallback chain (documented behaviour when a
-  // state's slot is empty): active misses → try pressed; inactive misses → try
-  // active (the convention; classic Mac drew the active art with a desaturated
-  // overlay when no inactive cicn shipped). The previous code only handled the
-  // active→pressed direction; the inactive→active case fell through to a raw
-  // `loadById(theme, 10240)` which could return a misrouted cicn the anti-role
-  // filter would have caught one layer up.
   if (!face && state === 'active') face = await resolvePushButtonFace(theme, 'pressed');
   if (!face && state === 'inactive') face = await resolvePushButtonFace(theme, 'active');
   if (!face) face = (await loadFaceById(theme, faceId)) ?? (await loadFaceById(theme, 10239)); // last-resort id path
@@ -1175,7 +1161,7 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
     const buffer = await loadCicnBuffer(assetUrl(ring.theme, element.asset));
     // Full source raster, including transparent margins. The ring is painted
     // after face/text (0x76c8 onward), with its body-fill flag false.
-    out.drawOver(composeDefaultRing(buffer, element, out.width, out.height), 0, 0);
+    out.drawOver(composeControlBorder(buffer, element, out.width, out.height), 0, 0);
   }
   return out;
 }
@@ -1184,7 +1170,7 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
  * Compose a THEMED bevel button (toolbar / palette toggle). The scheme ships a
  * 12-cicn set — NORMAL size -10162..-10167 and SMALL size -10171..-10176, each laid
  * out [set/on: pressed, unpressed, inactive] then [clear/off: pressed, unpressed,
- * inactive]. 9-slice the state's face like the push button. Falls back within the
+ * inactive]. Compose the state's face like the push button. Falls back within the
  * bundle (exact → same-value unpressed → -10163) and returns null (→
  * platinumBevelButton) when the scheme ships no bevel-button cicn for this state.
  */
@@ -1229,7 +1215,7 @@ export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOpti
   const out = PixelBuffer.alloc(W, H);
   let x = 0;
   for (const c of cols) {
-    const cellBuf = await composeFaceButton(cell, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 });
+    const cellBuf = await composeFaceButton(cell, { label: c.label, width: c.width, height: H, align: 'left', padX: 6 }, 'legacy-list-header');
     out.drawOver(cellBuf, x, 0);
     x += c.width;
   }

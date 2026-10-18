@@ -14,8 +14,12 @@ independently justified expectation. Failed/partial runs carry `complete: false`
 Known boundaries requiring explicit consideration during image review:
 
 - [Face compositing follow-up #218](https://github.com/khawkins98/scriptoscope/issues/218)
-  tracks remaining rectangular/pattern face approximations. The source-backed
-  default-ring correction does not establish the separate face painter's fidelity.
+  tracks remaining pattern-backed, list-header and legacy face approximations.
+  Solid push/default and bevel faces with explicit slice metadata and an opaque
+  background sample now share the source-backed square-corner/independent-band
+  painter; hand-derived geometry assertions supply separate evidence. That narrow
+  correction does not establish text policies or complete face fidelity. See
+  [control-face geometry](../../docs/spec/control-face-geometry.md).
 - [Tab geometry/font investigation #223](https://github.com/khawkins98/scriptoscope/issues/223)
   includes a demonstrated crop-band mismatch: horizontal slicing combines an
   opaque-bounds-cropped width with `cinf.corner` from the full source raster. For
