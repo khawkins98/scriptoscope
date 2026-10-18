@@ -52,7 +52,9 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
       expect(row.trace.textColors.embossDecision).toBe(row.override ? 'caller-override' : 'present');
       expect(row.size).toEqual([80, 20]);
       for (const pixel of row.foreground) expect(pixel).toEqual(row.override ? [0, 0, 255, 255] : [255, 0, 0, 255]);
-      for (const pixel of row.emboss) expect(pixel).toEqual(row.override ? [0, 0, 0, 0] : [0, 255, 0, 255]);
+      // Suppressing emboss reveals the independently encoded white body,
+      // including when its background RGB sample is masked in the source cicn.
+      for (const pixel of row.emboss) expect(pixel).toEqual(row.override ? [255, 255, 255, 255] : [0, 255, 0, 255]);
       expect(row.trace.textColors).toMatchObject({ policy: row.override ? 'caller-override' : 'source-samples', sourceOwnerDepth: 1, labelPainted: true, deviceMode: 'full-color-policy' });
       const selected = row.trace.steps.find(s => s.role === 'face' && s.action === 'selected');
       expect(row.trace.textColors.sourceManifestKey).toBe(selected.resource.manifestKey);
