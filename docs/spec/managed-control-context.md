@@ -65,7 +65,12 @@ separately; the direct API still works with its prior local context.
 proof that those pixels have committed. `committedContext` describes the actual
 paired buffers; `pending` and `error` distinguish preparation from completion.
 A ready measurement can coexist with the previous committed context during an
-await. State snapshots and nested context values are frozen.
+await. State snapshots and nested context values are frozen. Terminal control disposal
+unregisters its painter and releases the preparation/theme closure even when a
+consumer retains an old face or diagnostic binding; later bind/context calls reject.
+A throwing public subscription is reported and isolated during shared tracking or
+terminal removal so peers still update. Initial subscription and explicit refresh
+continue to propagate that caller exception.
 
 Normal and pressed buffers prepare from one context snapshot, then commit as a
 pair under one epoch. The existing visible canvas, focus, event forwarding and
@@ -89,7 +94,8 @@ and releases owned theme resources.
 ## Finite tracking and evidence
 
 One shared RAF tracker per browsing context iterates only bound canvases and
-caches each managed viewport measurement once per pass. Signatures contain
+caches each managed viewport measurement and shared ancestor style/alignment
+checks once per pass. Every frame and explicit refresh gets a fresh cache. Signatures contain
 logical D, clip, scale and validity, not raw screen position. Hidden, detached
 or outside-port bindings invalidate once and become dormant; a single shared
 mutation observer/resize listener can wake them. Disposal removes subscriptions
@@ -110,7 +116,11 @@ window frames also produce zero compositions; one logical move produces exactly
 two state compositions, and disposal leaves zero reads/compositions. Earlier
 local unthrottled Chromium geometry probes measured4.3–6.4ms total for12 controls
 and27.2ms for100 controls over20 frames (1.36ms/frame for100); those are bounded
-local measurement observations, not field-performance guarantees. Tests also
+local measurement observations, not field-performance guarantees. A later
+matched100-control/depth8 probe counted36,120 computed-style reads over20 frames
+before frame-local memoization and20,140 afterward (about44% fewer). Measured
+geometry time was44.2ms versus42.0ms total, too close to claim a CPU speedup;
+roughly2ms/frame of idle measurement work remains in that local observation. Tests also
 cover held real decode, terminal removal, reconnect, unsupported geometry,
 caller opt-out, consumer styles, retheme and native/focus preservation.
 

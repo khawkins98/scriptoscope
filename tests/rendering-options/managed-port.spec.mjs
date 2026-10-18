@@ -53,12 +53,12 @@ const result=await page.evaluate(async({count,depth})=>{
   const controls=[];for(let i=0;i<count;i++){const c=await runtime.interactiveButton(theme,opts);Object.assign(c.style,{position:'absolute',left:`${20+(i%4)*100}px`,top:`${20+Math.floor(i/4)*40}px`});let wrap=c;for(let d=0;d<depth;d++){const outer=document.createElement('div');outer.append(wrap);wrap=outer;}content.append(wrap);controls.push(c);}
   const host=await manager.add(theme,{title:'Tracker probe',width:480,height:180},{},{contentEl:content});document.body.append(host);manager.setPosition(host,30,30);
   const viewport=host.shadowRoot.querySelector('.scriptoscope-content'),port=new ManagedContentPort();port.commit(host,viewport,1);
-  let viewportReads=0,measurements=0,changes=0;const samples=[];const originalRect=viewport.getBoundingClientRect.bind(viewport);viewport.getBoundingClientRect=()=>{viewportReads++;return originalRect();};
+  let viewportReads=0,measurements=0,changes=0,hostStyleReads=0;const originalStyle=window.getComputedStyle;window.getComputedStyle=(el,...args)=>{if(el===host)hostStyleReads++;return originalStyle(el,...args);};const samples=[];const originalRect=viewport.getBoundingClientRect.bind(viewport);viewport.getBoundingClientRect=()=>{viewportReads++;return originalRect();};
   const originalMeasure=port.measureInFrame.bind(port);port.measureInFrame=(...args)=>{measurements++;const t=performance.now();try{return originalMeasure(...args);}finally{samples.push(performance.now()-t);}};
   const states=[];const bindings=controls.map((c,i)=>trackManagedContent(port,c.querySelector('canvas'),()=>layout.faceRect,m=>{changes++;states[i]=m;}));
   const frames=async(n,each)=>{for(let i=0;i<n;i++){each?.(i);await new Promise(r=>requestAnimationFrame(r));}};
-  const reset=()=>{viewportReads=0;measurements=0;changes=0;samples.length=0;};
-  const snapshot=()=>({viewportReads,measurements,changes,measurementMs:samples.reduce((a,b)=>a+b,0),maxMeasurementMs:Math.max(0,...samples),states:states.map(x=>x.status==='ready'?x.context.controlOrigin:x.reason)});
+  const reset=()=>{viewportReads=0;measurements=0;changes=0;hostStyleReads=0;samples.length=0;};
+  const snapshot=()=>({viewportReads,measurements,changes,hostStyleReads,measurementMs:samples.reduce((a,b)=>a+b,0),maxMeasurementMs:Math.max(0,...samples),states:states.map(x=>x.status==='ready'?x.context.controlOrigin:x.reason)});
   await frames(3);reset();await frames(20);const idle=snapshot();
   reset();await frames(10,i=>manager.setPosition(host,30+i*3.25,30+i*2.5));const translated=snapshot();
   reset();controls[0].style.left='23px';await frames(3);const reflow=snapshot();
@@ -67,9 +67,10 @@ const result=await page.evaluate(async({count,depth})=>{
   reset();host.style.display='none';await frames(3);const hidden=snapshot();reset();await frames(5);const hiddenIdle=snapshot();host.style.display='';await frames(3);
   bindings.forEach(x=>x.dispose());reset();await frames(3);const disposed=snapshot();
   let initialThrow=false;try{trackManagedContent(port,controls[0].querySelector('canvas'),()=>layout.faceRect,()=>{throw new Error('expected callback failure');});}catch{initialThrow=true;}reset();await frames(3);const failedSubscribe=snapshot();const invalidFace=port.measure(controls[0].querySelector('canvas'),{...layout.faceRect,w:NaN});
-  manager.remove(host);theme.dispose?.();return{depth,initialThrow,failedSubscribe,invalidFace,hidden,hiddenIdle,controls:count,framePolicy:'one shared pass; internal measurement notifications',idle,translated,reflow,detached,reconnected,disposed};
+  manager.remove(host);theme.dispose?.();window.getComputedStyle=originalStyle;return{depth,initialThrow,failedSubscribe,invalidFace,hidden,hiddenIdle,controls:count,framePolicy:'one shared pass; internal measurement notifications',idle,translated,reflow,detached,reconnected,disposed};
  },{count:12,depth:0});
 expect(result.idle.changes).toBe(0);
+expect(result.idle.hostStyleReads).toBe(result.idle.viewportReads);
 expect(result.translated.changes).toBe(0);
 expect(result.reflow.changes).toBe(1);
 expect(result.idle.measurements).toBe(result.idle.viewportReads * result.controls);
@@ -104,4 +105,29 @@ test('managed port uses its owner realm and rejects invalid declared layout', as
   expect(result.invalid).toMatchObject({status:'unsupported',reason:'face-layout'});
   expect(result.foreign).toMatchObject({status:'unsupported',reason:'document-mismatch'});
   expect(result.readonly).toBe(true);
+});
+
+test('managed port frame memo is fresh and throwing subscribers cannot starve peers',async({page,servers})=>{
+  await openHarness(page,servers,'source');
+  const result=await page.evaluate(async()=>{
+    const {ManagedContentPort}=await import('/src/managedContentPort.ts');
+    const host=document.createElement('div');host.dataset.scriptoscopeWindowHost='';host.style.cssText='position:relative;width:200px;height:120px';
+    const shadow=host.attachShadow({mode:'open'}),viewport=document.createElement('div');viewport.style.cssText='position:relative;width:200px;height:120px';viewport.append(document.createElement('slot'));shadow.append(viewport);
+    const canvas=document.createElement('canvas');canvas.width=40;canvas.height=20;canvas.style.cssText='position:absolute;left:20px;top:20px;width:40px;height:20px';host.append(canvas);document.body.append(host);
+    const port=new ManagedContentPort();port.commit(host,viewport,1);const rect={x:4,y:4,w:32,h:12};
+    const samples=[];
+    for(const [property,value] of [['transform','none'],['transform','rotate(2deg)'],['transform','translate(0.5px,0.25px)'],['scale','2'],['scale','2 1'],['scale','none'],['zoom','2'],['zoom','1']]){
+      host.style.setProperty(property,value);await new Promise(r=>requestAnimationFrame(r));samples.push({property,value,measurement:port.port.measure(canvas,rect)});
+    }
+    let calls=0,errors=0;const states=[],error=console.error;console.error=()=>errors++;
+    const first=port.port.observe(canvas,()=>rect,()=>{if(++calls>1)throw new Error('Expected subscriber failure');});
+    const second=port.port.observe(canvas,()=>rect,m=>states.push(m));
+    canvas.style.left='23px';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    port.dispose();port.dispose();first.dispose();second.dispose();console.error=error;host.remove();
+    return{samples,calls,errors,states};
+  });
+  expect(result.samples.map(s=>s.measurement.status==='ready'?'ready':s.measurement.reason)).toEqual(['ready','transform','ready','ready','transform','ready','transform','ready']);
+  for(const sample of result.samples.filter(s=>s.measurement.status==='ready'))expect(sample.measurement.context.controlOrigin).toEqual([24,24]);
+  expect(result.calls).toBe(3);expect(result.errors).toBe(2);
+  expect(result.states).toHaveLength(3);expect(result.states[1].context.controlOrigin).toEqual([27,24]);expect(result.states[2].reason).toBe('port-removed');
 });

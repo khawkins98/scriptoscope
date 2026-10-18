@@ -1,4 +1,4 @@
-import { prepareButtonPainter, registerButtonPainter } from './buttonComposition.js';
+import { prepareButtonPainter, registerButtonPainter, unregisterButtonPainter } from './buttonComposition.js';
 import { ManagedContentPort, type ManagedControlPort } from './managedContentPort.js';
 // Interactivity layer — wires real interaction onto the rendered chrome/controls.
 //
@@ -158,7 +158,7 @@ export async function interactiveButton(
   el.appendChild(painter.canvas);
   registerButtonPainter(el, painter);
   const events = new AbortController();
-  controlDisposers.set(el, () => { painter.dispose(); events.abort(); });
+  controlDisposers.set(el, () => { painter.dispose(); unregisterButtonPainter(el); events.abort(); });
   if (bo.disabled) return el;
   let down = false;
   const press = (): void => { down = true; painter.press(true); };

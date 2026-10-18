@@ -228,10 +228,13 @@ for(const mode of ['source','built']) test(`${mode}: declared buttons follow own
   await expect.poll(()=>page.evaluate(()=>window.declared.state()[0].pixel)).toEqual([130,0,0,255]);
   const teardown=await page.evaluate(async()=>{
     const f=window.declared;f.moved.native.style.color='blue';f.handle.disconnect();
-    const result={faces:f.root.querySelectorAll('.scriptoscope-button').length,visible:getComputedStyle(f.moved.native).display!=='none',identity:f.moved.native.isConnected,color:f.moved.native.style.color,focused:document.activeElement===f.moved.native};
+    let contextRejected=false,bindRejected=false;
+    try{await f.api.setButtonCompositionContext(f.face);}catch{contextRejected=true;}
+    try{f.api.bindButtonToContentPort(f.face,f.port);}catch{bindRejected=true;}
+    const result={faces:f.root.querySelectorAll('.scriptoscope-button').length,visible:getComputedStyle(f.moved.native).display!=='none',identity:f.moved.native.isConnected,color:f.moved.native.style.color,focused:document.activeElement===f.moved.native,contextRejected,bindRejected};
     f.root.remove();return result;
   });
-  expect(teardown).toEqual({faces:0,visible:true,identity:true,color:'blue',focused:true});
+  expect(teardown).toEqual({faces:0,visible:true,identity:true,color:'blue',focused:true,contextRejected:true,bindRejected:true});
   await attachObservations(info,'managed-context',`${mode}-declarative`,{mode,initial,teardown});
 });
 

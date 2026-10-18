@@ -31,27 +31,47 @@ function visualParent(el: Element): Element | null {
   return root.nodeType === 11 && 'host' in root ? (root as ShadowRoot).host : null;
 }
 
-function axisAligned(el: Element): boolean {
+// A pass is a fresh token, never a cross-frame style cache. Shared viewport and
+// ancestor work is reused without retaining a document-wide node registry.
+const frameStyles = new WeakMap<object, { styles: WeakMap<Element, CSSStyleDeclaration>; aligned: WeakMap<Element, boolean> }>();
+function stylesFor(frame: object) {
+  let cached = frameStyles.get(frame);
+  if (!cached) { cached = { styles: new WeakMap(), aligned: new WeakMap() }; frameStyles.set(frame, cached); }
+  return cached;
+}
+function computedStyle(el: Element, frame: object): CSSStyleDeclaration {
+  const styles = stylesFor(frame).styles;
+  let css = styles.get(el);
+  if (!css) { css = el.ownerDocument.defaultView!.getComputedStyle(el); styles.set(el, css); }
+  return css;
+}
+
+function axisAligned(el: Element, frame: object): boolean {
+  const aligned = stylesFor(frame).aligned, visited: Element[] = [];
+  const finish = (result: boolean): boolean => { for (const node of visited) aligned.set(node, result); return result; };
   for (let node: Element | null = el; node; node = visualParent(node)) {
+    const prior = aligned.get(node);
+    if (prior !== undefined) return finish(prior);
+    visited.push(node);
     const view = node.ownerDocument.defaultView;
-    if (!view) return false;
-    const css = view.getComputedStyle(node);
-    if (css.perspective !== 'none') return false;
+    if (!view) return finish(false);
+    const css = computedStyle(node, frame);
+    if (css.perspective !== 'none') return finish(false);
     if (css.transform !== 'none') {
       const matrix = new (view as Window & typeof globalThis).DOMMatrixReadOnly(css.transform);
-      if (!matrix.is2D || !near(matrix.b, 0) || !near(matrix.c, 0) || matrix.a <= 0 || !near(matrix.a, matrix.d)) return false;
+      if (!matrix.is2D || !near(matrix.b, 0) || !near(matrix.c, 0) || matrix.a <= 0 || !near(matrix.a, matrix.d)) return finish(false);
     }
     // Individual transform properties do not appear in the transform matrix.
     const rotate = css.getPropertyValue('rotate');
-    if (rotate && rotate !== 'none' && rotate !== '0deg') return false;
+    if (rotate && rotate !== 'none' && rotate !== '0deg') return finish(false);
     const scale = css.getPropertyValue('scale');
     if (scale && scale !== 'none') {
       const parts = scale.split(/\s+/).map(Number);
-      if (parts.length > 2 || !Number.isFinite(parts[0]) || parts[0]! <= 0 || !near(parts[0]!, parts[1] ?? parts[0]!)) return false;
+      if (parts.length > 2 || !Number.isFinite(parts[0]) || parts[0]! <= 0 || !near(parts[0]!, parts[1] ?? parts[0]!)) return finish(false);
     }
-    if (css.getPropertyValue('zoom') && !['normal', '1'].includes(css.getPropertyValue('zoom'))) return false;
+    if (css.getPropertyValue('zoom') && !['normal', '1'].includes(css.getPropertyValue('zoom'))) return finish(false);
   }
-  return true;
+  return finish(true);
 }
 
 /** Browser-layout adapter. The manager must call commit only after mounting its new
@@ -106,10 +126,10 @@ export class ManagedContentPort {
       if (!current) return { reason: 'uncommitted' };
       const { host, viewport, scale } = current;
       if (!host.isConnected || !viewport.isConnected) return { reason: 'detached' };
-      const box = viewport.getBoundingClientRect(), css = viewport.ownerDocument.defaultView!.getComputedStyle(viewport);
+      const box = viewport.getBoundingClientRect(), css = computedStyle(viewport, frame);
       const width = parseFloat(css.width), height = parseFloat(css.height);
       if (!(box.width > 0 && box.height > 0 && width > 0 && height > 0)) return { reason: 'hidden' };
-      if (!axisAligned(viewport)) return { reason: 'transform' };
+      if (!axisAligned(viewport, frame)) return { reason: 'transform' };
       const unit = box.width / width * scale;
       if (!(unit > 0) || !near(unit, box.height / height * scale)) return { reason: 'transform' };
       return { host, left: box.left, top: box.top, width: box.width, height: box.height, unit };
@@ -132,8 +152,8 @@ export class ManagedContentPort {
     const { host, left, top, width, height, unit } = geometry;
     if (!canvas.isConnected) return unsupported('detached');
     if (!host.contains(canvas) || canvas.closest('[data-scriptoscope-window-host]') !== host) return unsupported('outside-port');
-    if (!axisAligned(canvas)) return unsupported('transform');
-    const css = canvas.ownerDocument.defaultView!.getComputedStyle(canvas);
+    if (!axisAligned(canvas, frame)) return unsupported('transform');
+    const css = computedStyle(canvas, frame);
     for (const name of ['border-left-width', 'border-top-width', 'border-right-width', 'border-bottom-width', 'padding-left', 'padding-top', 'padding-right', 'padding-bottom']) {
       if (parseFloat(css.getPropertyValue(name)) !== 0) return unsupported('canvas-box');
     }
@@ -190,7 +210,10 @@ function scheduleTracker(view: Window, tracker: PortTracker): void {
     try {
       // Include a just-detached binding once, so it clears stale managed context.
       const frame = {};
-      for (const binding of tracker.bindings) binding.refresh(frame);
+      for (const binding of tracker.bindings) {
+        try { binding.refresh(frame); }
+        catch (error) { console.error('[scriptoscope] content-port subscriber threw during tracking:', error); }
+      }
     } finally { scheduleTracker(view, tracker); }
   });
 }

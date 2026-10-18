@@ -47,6 +47,7 @@ export function bindOwnedButtonToContentPort(el: HTMLElement, port: ManagedContr
 }
 
 export function registerButtonPainter(el: HTMLElement, painter: ButtonPainter): void { painters.set(el, painter); }
+export function unregisterButtonPainter(el: HTMLElement): void { painters.delete(el); }
 
 /** Bind an interactive themed button to an explicitly managed browser port.
  * Default adoption changes its CSS size to the window's committed integer scale. */
@@ -86,7 +87,7 @@ export class ButtonPainter {
   private binding: { release(restore: boolean): Promise<void>; adopt(): void } | null = null;
 
   constructor(pair: Pair, context: ControlCompositionSnapshot, private readonly scale: number,
-    private readonly prepare: (context: ControlCompositionSnapshot, signal: AbortSignal) => Promise<Pair | null>) {
+    private prepare: ((context: ControlCompositionSnapshot, signal: AbortSignal) => Promise<Pair | null>) | null) {
     this.pair = pair; this.context = context; this.unboundContext = context;
     this.canvas = bufferToCanvas(pair.normal.buffer, scale);
   }
@@ -116,9 +117,10 @@ export class ButtonPainter {
     }
     const abort = new AbortController();
     this.abort = abort; this.pending = true;
+    const prepare = this.prepare!;
     const task = (async () => {
       try {
-        const pair = await this.prepare(context, abort.signal);
+        const pair = await prepare(context, abort.signal);
         if (this.disposed || abort.signal.aborted || epoch !== this.epoch) return;
         if (!pair) throw new Error('Themed button composition became unavailable');
         this.pair = pair; this.context = context; this.paint();
@@ -135,6 +137,7 @@ export class ButtonPainter {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true; ++this.epoch; this.abort?.abort(); this.abort = null; this.pending = false;
+    this.prepare = null; // Retained old faces/bindings must not retain their theme.
     void this.releaseBinding(false);
   }
   bind(port: ManagedControlPort, scalePolicy: 'managed' | 'preserve'): ButtonCompositionBinding {
