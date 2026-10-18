@@ -126,9 +126,13 @@ export interface InteractiveButtonOptions extends ButtonOptions {
 export async function interactiveButton(
   theme: LoadedTheme,
   opts: InteractiveButtonOptions = {},
+  signal?: AbortSignal,
 ): Promise<HTMLElement> {
+  const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
+  current();
   const { onClick, scale = 1, ...bo } = opts;
-  const normalBuf = await composeButton(theme, { ...bo, pressed: false });
+  const normalBuf = await composeButton(theme, { ...bo, pressed: false }, signal);
+  current();
   if (!normalBuf) {
     // No themed button cicns → the native CSS baseline button is already a real,
     // accessible, interactive <button>.
@@ -138,7 +142,8 @@ export async function interactiveButton(
     if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
     return b;
   }
-  const pressedBuf = bo.disabled ? null : await composeButton(theme, { ...bo, pressed: true });
+  const pressedBuf = bo.disabled ? null : await composeButton(theme, { ...bo, pressed: true }, signal);
+  current();
   const normal = bufferToCanvas(normalBuf, scale);
   const pressed = pressedBuf ? bufferToCanvas(pressedBuf, scale) : normal;
 

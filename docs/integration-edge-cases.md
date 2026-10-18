@@ -252,7 +252,7 @@ If your framework expects to manage the lifecycle of the wrapper (React owns the
 
 ### Theme ownership on teardown
 
-`handle.disconnect()` restores mounted windows and promoted checkbox/radio/range/select controls, then releases themes loaded by that mount. It removes the form faces and select wrappers while retaining the same native elements and their current value/checked/selection state. It restores only properties the runtime changed (visibility styles, tabindex, aria-hidden, autocomplete and hidden label styles); consumer naming, form association and unrelated style/attribute edits stay intact. If a consumer has since changed an owned property, that newer value is retained.
+`handle.disconnect()` restores mounted windows and promoted buttons and checkbox/radio/range/select controls, then releases themes loaded by that mount. It removes the form faces and select wrappers while retaining the same native elements and their current value/checked/selection state. It restores only properties the runtime changed (visibility styles, tabindex, aria-hidden, autocomplete and hidden label styles); consumer naming, form association and unrelated style/attribute edits stay intact. If a consumer has since changed an owned property, that newer value is retained.
 
 A promoted range retains its original native keyboard/AT target; the canvas is
 `aria-hidden` and has no tab stop. Native min/max/step, accessible naming and
@@ -287,7 +287,9 @@ This establishes rendering/interaction consistency, not original kDEF geometry.
 
 Each form face owns its listeners, slider drag handlers and pending paint work. Retheme disposes the old face after preparing its replacement; disconnect cancels pending form preparation before it can commit. Removed or reparented sources are never pulled back to a captured parent. Mount-owned theme-switcher callbacks and stamps are also removed. You can mount again on the same root immediately.
 
-This restoration contract does not yet cover button, tab or text-field decorations. Form replacement cancellation does not establish global latest-request ordering for window/theme changes; that separate work is tracked in [#237](https://github.com/khawkins98/scriptoscope/issues/237).
+Buttons retain the same hidden native source and forward native click/form actions. Disconnect removes every owned replacement face and its listeners, restores only the owned display value/priority and promotion stamp, and restores focus after enclosing windows return their content. Ownership is registered before insertion observers can disconnect the mount. Moving a pending source cancels that attempt. A connected source still inside the mount retries under its current parent/theme, at most once per animation frame, until stable or disconnected. Cancellation also stops sequential face/ring/pressed preparation before released mount-owned asset URLs can be requested again. Disabled/default state is sampled on promotion and retheme, without a live button-attribute observer.
+
+This restoration contract does not yet cover tab or text-field decorations. The [runtime ownership spec](spec/compositor-spec.md#runtime-theme-request-ownership) defines latest-request theme ordering and the window-only atomic commit boundary.
 
 `handle.registerTheme(ref, theme)` borrows the supplied theme and its base chain. Keep those assets alive while any consumer uses them, then call their own `dispose?.()` methods when finished. Disconnect never disposes caller-registered graphs. Standalone resolver users call `resolver.dispose()` when finished; subsequent loads and registrations fail.
 

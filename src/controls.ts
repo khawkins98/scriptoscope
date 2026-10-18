@@ -1207,15 +1207,19 @@ function composeControlBorder(source: PixelBuffer, element: ChromeElement, width
  * button rect; for the default button wrap the shipped ring (-10231/-10232) around
  * it. Returns null if the scheme ships no push-button cicn (→ baselineButton).
  */
-export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}): Promise<PixelBuffer | null> {
+export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}, signal?: AbortSignal): Promise<PixelBuffer | null> {
   const state = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
   return withControlDiagnostics(opts.diagnostics, 'push-button', {
     state, pressed: !!opts.pressed, disabled: !!opts.disabled, default: !!opts.default,
-  }, trace => composeButtonWithTrace(theme, opts, trace));
+  }, trace => composeButtonWithTrace(theme, opts, trace, signal));
 }
 
 async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
-  trace?: ControlTraceCollector): Promise<PixelBuffer | null> {
+  trace?: ControlTraceCollector, signal?: AbortSignal): Promise<PixelBuffer | null> {
+  // A mount may release its owned asset URLs while a preceding decode is held.
+  // Stop before starting another face fallback, font, or default-ring dependency.
+  const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
+  current();
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
   const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
   // Compatibility policy: try named roles/ID slots with anti-role rejection,
@@ -1225,25 +1229,31 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
   // original Appearance Manager/kDEF state fallbacks. Keep the final raw-ID
   // fallback visible to diagnostics rather than inferring historical intent.
   let face = await resolvePushButtonFace(theme, state, trace);
+  current();
   if (!face && state === 'active') {
     traceFallback(trace, 10238, 'active-to-pressed');
     face = await resolvePushButtonFace(theme, 'pressed', trace);
+    current();
   }
   if (!face && state === 'inactive') {
     traceFallback(trace, 10239, 'inactive-to-active');
     face = await resolvePushButtonFace(theme, 'active', trace);
+    current();
   }
   if (!face) {
     const lookup: TraceLookup = { ...FACE_LOOKUP, basis: 'compatibility-policy' };
     traceFallback(trace, faceId, 'raw-id-escape');
     face = await loadFaceById(theme, faceId, trace, lookup);
+    current();
     if (!face) {
       traceFallback(trace, 10239, 'active-id-fallback');
       face = await loadFaceById(theme, 10239, trace, lookup);
+      current();
     }
   }
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(face, opts);
+  current();
   // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
   // through 0x7572/0x7594, then expands that SAME rectangle by four pixels
   // (InsetRect(-4,-4), 0x7698–0x76a2) before drawing the default ring.
@@ -1275,6 +1285,7 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
   if (ring) {
     const { element } = ring;
     const buffer = await loadCicnBuffer(assetUrl(ring.theme, element.asset));
+    current();
     // Full source raster, including transparent margins. The ring is painted
     // after face/text (0x76c8 onward), with its body-fill flag false.
     out.drawOver(composeControlBorder(buffer, element, out.width, out.height), 0, 0);

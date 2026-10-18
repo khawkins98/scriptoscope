@@ -119,6 +119,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   preserving authored collapsed utility chrome in sliced and corner-sprite
   themes. Keep exact custom names, emitted manifest keys and child/base policy.
 
+- Declarative button teardown restores original native elements, display and focus;
+  removes owned faces/listeners across retheme and insertion-observer races; and
+  cancels pending theme/face work without adopting moved sources. The showcase
+  No Theme/Restore flow preserves native form values and mounts one face per button.
+
 - Native slider composition stops at disposal boundaries between image decodes;
   a held track cannot resume and request a thumb after owned theme URLs revoke.
   Native restoration stays synchronous; public/imperative rendering is unchanged.

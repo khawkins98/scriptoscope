@@ -265,8 +265,8 @@ their lifetime and calls `theme.dispose?.()` after their last consumer unmounts.
 Standalone `createThemeResolver()` users should call `resolver.dispose()` at the
 same point; disposed resolvers reject loads and registrations.
 
-Teardown restores mounted windows and promoted checkbox, radio, range and select
-controls. Their live values, checked state, selection and form association survive;
+Teardown restores mounted windows and promoted buttons, checkbox, radio, range
+and select controls. Their live values, checked state, selection and form association survive;
 only runtime-owned visibility, focus/ARIA attributes, label styles and select
 wrappers are restored. Replacement-face listeners, active slider drags, pending
 paints and mount-owned theme-switcher listeners are released. Unrelated consumer
@@ -288,9 +288,14 @@ canvas: stationary grabs preserve exact values, dragging retains the grab offset
 and track clicks center the thumb under the pointer before native sanitization.
 The imperative slider and scrollbar pointer contracts remain unchanged.
 
-Button, tab and text-field decoration restoration remains outside this contract.
-Global overlapping theme-switch ordering, including window renders, remains tracked
-in [#237](https://github.com/khawkins98/scriptoscope/issues/237).
+Button teardown removes every mount-owned face and its click/keyboard listeners,
+restores the original element's display (including priority) and promotion stamp,
+and returns owned focus after enclosing window content is restored. Native form
+actions and consumer listeners remain attached to the same source element. Button
+disabled/default state is sampled on promotion and retheme; this does not add live
+button-attribute observation. Tab and text-field decoration restoration remains
+outside this contract. Latest-request theme ordering and its window-batch scope
+are described in the [runtime ownership spec](docs/spec/compositor-spec.md#runtime-theme-request-ownership).
 
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
