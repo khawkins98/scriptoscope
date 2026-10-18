@@ -632,7 +632,7 @@ export async function composeSlider(
 
   const thickness = horiz ? track.height : track.width;
   const longSrc = horiz ? track.width : track.height;
-  const out = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
+  const groove = horiz ? PixelBuffer.alloc(length, thickness) : PixelBuffer.alloc(thickness, length);
 
   // groove: 3-slice along the axis — keep the rounded end caps 1:1, stretch
   // OR TILE the uniform middle per the cinf's slice.tile. (Full-stretch would
@@ -646,43 +646,46 @@ export async function composeSlider(
   const dmid = length - end * 2;
   const drawMid = (sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void => {
     if (sw <= 0 || sh <= 0 || dw <= 0 || dh <= 0) return;
-    if (!tileMid) { out.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
+    if (!tileMid) { groove.copyBits(track, { x: sx, y: sy, w: sw, h: sh }, { x: dx, y: dy, w: dw, h: dh }); return; }
     const axisLen = horiz ? dw : dh;
     const slab = horiz ? sw : sh;
     for (let t = 0; t < axisLen; t += slab) {
       const r = Math.min(slab, axisLen - t);
-      if (horiz) out.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
-      else        out.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
+      if (horiz) groove.copyBits(track, { x: sx, y: sy, w: r, h: sh }, { x: dx + t, y: dy, w: r, h: sh });
+      else        groove.copyBits(track, { x: sx, y: sy, w: sw, h: r }, { x: dx, y: dy + t, w: sw, h: r });
     }
   };
   if (horiz) {
-    out.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
-    out.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
+    groove.copyBits(track, { x: 0, y: 0, w: end, h: thickness }, { x: 0, y: 0, w: end, h: thickness });
+    groove.copyBits(track, { x: longSrc - end, y: 0, w: end, h: thickness }, { x: length - end, y: 0, w: end, h: thickness });
     drawMid(end, 0, mid, thickness, end, 0, dmid, thickness);
   } else {
-    out.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
-    out.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
+    groove.copyBits(track, { x: 0, y: 0, w: thickness, h: end }, { x: 0, y: 0, w: thickness, h: end });
+    groove.copyBits(track, { x: 0, y: longSrc - end, w: thickness, h: end }, { x: 0, y: length - end, w: thickness, h: end });
     drawMid(0, end, thickness, mid, 0, end, thickness, dmid);
   }
 
-  // thumb: pick the state row from the sprite sheet, stamp at value
-  if (thumbs) {
+  // The groove is often much thinner than the authored thumb cell (Windows95:
+  // 4px groove, 16px cell). Keep both at native cross-axis size instead of
+  // clipping the thumb to the groove's buffer. Floor-centering is our explicit
+  // integer placement policy; exact 2.3.1 slider geometry remains untraced.
+  const cellW = thumbs ? (horiz ? thumbs.width : Math.floor(thumbs.width / 4)) : 0;
+  const cellH = thumbs ? (horiz ? Math.floor(thumbs.height / 4) : thumbs.height) : 0;
+  const cross = Math.max(thickness, horiz ? cellH : cellW);
+  const out = horiz ? PixelBuffer.alloc(length, cross) : PixelBuffer.alloc(cross, length);
+  const grooveOffset = Math.floor((cross - thickness) / 2);
+  out.copyBits(groove, { x: 0, y: 0, w: groove.width, h: groove.height },
+    { x: horiz ? 0 : grooveOffset, y: horiz ? grooveOffset : 0, w: groove.width, h: groove.height });
+
+  // Retain the complete selected state cell. Preserve the existing srcCopy
+  // transfer behavior; the original slider's mask/painter path is untraced.
+  if (thumbs && cellW > 0 && cellH > 0) {
     const stateRow = state === 'pressed' ? 2 : state === 'disabled' || state === 'inactive' ? 3 : 1;
-    const tw = horiz ? thumbs.width : thumbs.width; // thumb cell is the short dimension wide
-    // sheet stacks 4 states along the LONG axis
-    const cells = 4;
-    if (horiz) {
-      const cellH = Math.floor(thumbs.height / cells);
-      const thumbW = thumbs.width;
-      const pos = Math.round(value * Math.max(0, length - thumbW));
-      out.copyBits(thumbs, { x: 0, y: stateRow * cellH, w: thumbW, h: cellH }, { x: pos, y: 0, w: thumbW, h: cellH });
-    } else {
-      const cellW = Math.floor(thumbs.width / cells);
-      const thumbH = thumbs.height;
-      const pos = Math.round(value * Math.max(0, length - thumbH));
-      out.copyBits(thumbs, { x: stateRow * cellW, y: 0, w: cellW, h: thumbH }, { x: 0, y: pos, w: cellW, h: thumbH });
-    }
-    void tw;
+    const pos = Math.round(value * Math.max(0, length - (horiz ? cellW : cellH)));
+    const thumbOffset = Math.floor((cross - (horiz ? cellH : cellW)) / 2);
+    out.copyBits(thumbs,
+      { x: horiz ? 0 : stateRow * cellW, y: horiz ? stateRow * cellH : 0, w: cellW, h: cellH },
+      { x: horiz ? pos : thumbOffset, y: horiz ? thumbOffset : pos, w: cellW, h: cellH });
   }
   return out;
 }

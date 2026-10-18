@@ -10,6 +10,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Corrected the rendering matrix tab fixture to place the tab strip before its
   panels, matching consumer markup and avoiding a misleading contact-sheet layout.
 
+- Slider canvases retain the complete authored thumb cell and center the groove
+  and thumb across their combined thickness, fixing clipped Windows 95 handles
+  in horizontal and vertical orientations (refs #222).
+
 ### Added (2026-10-18)
 
 - Reusable public-runtime control matrix with bounded and extended option cases,
