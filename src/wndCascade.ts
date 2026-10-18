@@ -85,6 +85,12 @@ const CANONICAL_ID_TO_SLUG: Record<number, string> = {
   [-12320]: 'popup-window',
 };
 
+/** Canonical identity for a legacy raw wnd# key; never inspect asset URLs. */
+export function canonicalWindowTypeSlug(key: string): string {
+  const match = /^wnd-(-?\d+)$/.exec(key);
+  return match ? CANONICAL_ID_TO_SLUG[Number(match[1])] ?? key : key;
+}
+
 /** Slug → canonical wnd# id (inverse of the table above; prefers the
  *  inactive-state id for `document-window`, matching the kDEF's load order). */
 const CANONICAL_SLUG_TO_ID: Record<string, number> = (() => {

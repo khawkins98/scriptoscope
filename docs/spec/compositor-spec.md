@@ -182,3 +182,12 @@ Open:
   so verify against the asm when they disagree with a reference render.)
 - `diagnostic-tooling.md` — the in-browser slice inspector + the
   `diag:render` / `diag:audit` CLIs for validating against the reference images.
+
+## Window type selection before composition
+
+The renderer resolves an exact window-type key first, followed by the kDEF
+wnd# fallback cascade. Generic utility/mini/floating/palette aliases prefer
+complete titled-utility, other utility, then floating/palette recipes using the
+manifest's canonical window-type keys. Resource URLs never identify a window
+role: browser loading rewrites them to opaque blob URLs. A grow-box mispair is
+rejected using the matching chrome element's structured author label.
