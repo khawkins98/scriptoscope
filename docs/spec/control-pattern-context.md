@@ -1,7 +1,8 @@
 # Direct control pattern context
 
 This is the intermediate direct-composition stage of #218/#221. It implements
-full-color PixPat bodies for push/bevel faces with raw cinf modes0–4. It does not
+full-color PixPat bodies for push/bevel faces with every raw cinf byte except
+mode5, which requests a separate color-icon body. It does not
 complete mounted-window phase propagation: the next stage must connect logical
 content-port coordinates and layout invalidation to imperative and declarative
 controls. List headers, tabs and mode5 color-icon bodies remain separate.
@@ -22,9 +23,12 @@ The body phase anchors at10ac8..10af6 use the ORIGINAL control Rect:
 |4|right|bottom|
 
 Right/bottom are the exclusive Rect edges, not the final included pixel.
-Mode5 selects the separate cicn path. Modes≥6 reach a zero anchor in the observed
-assembly, but this first renderer deliberately retains their prior compatibility
-paint and reports unsupported mode; they are not silently declared equivalent.
+Mode5 selects the separate cicn path. The equality test at109be and branch
+at109c4 send every other byte to the same cache/GetPixPat path at10a6c..10a92.
+The zero-extended byte at10ab0..10ab2 encounters four SUBQ/BEQ pairs selecting
+only1–4; all other values fall through10ac6 to the zero anchor at10af4/10af6.
+Thus modes0 and6–255 share P=(0,0); their original raw mode remains in the trace.
+This does not declare the separate Resource Manager lookup policy historical.
 
 At f94e/f952, f930 saves port origin O. It sets O−P at f956..f962, translates
 both destination D and the finite clip by−P at f980..f9a8, paints, then restores
@@ -90,10 +94,19 @@ state paints atomically. DOM position is not silently interpreted as a GrafPort.
 
 ## Actual dependency, scope and lifetime
 
-The actual selected face owner supplies the pattern catalog. An exact linked
-signed-ID match is preferred; otherwise the last exact signed-ID catalog entry
-matches the loader's link policy, including raw ID0. No absolute-ID alias or base
-search is invented. This is explicit same-owner compatibility policy, not proven
+The actual selected face owner supplies the pattern catalog. The loader carries
+`ChromeElement.bodyPattern` directly from its last successfully decoded ppat
+occurrence for that signed ID, including raw ID0 and excluding mode5. It preserves
+all catalog keys and the existing nonzero-only `bgPattern` link. Numeric names
+such as`2` then`1` demonstrate why object-key enumeration cannot reconstruct source
+order. This binding is emitted with or without opt-in byte observation.
+
+At paint time an exact signed-ID match on the carried binding wins, followed by
+a valid legacy `bgPattern` link. A legacy manifest without either valid link can
+use one uniquely matching raw-ID candidate. Multiple unbound candidates report
+`ambiguous-legacy-pattern-order` and retain the previous face fallback; they do
+not silently pick an enumeration order. Wrong-ID links are rejected visibly.
+No absolute-ID alias or base search is invented. This is explicit same-owner compatibility policy, not proven
 original Resource Manager search order. Missing patterns and unsupported modes
 are recorded and retain the prior face fallback. Decode failures still reject.
 Legacy manifests without raw body requests retain prior behavior.
@@ -121,9 +134,12 @@ Browser decoded RGB plus the existing1.8/2.2 display transform is not an origina
 port depth or palette state.
 
 Independent tests use literal asymmetric tile rows, unequal inset unions,
-non-power-of-two dimensions, negative coordinates, exclusive corners, co-translated
+non-power-of-two diagnostic tile dimensions, negative coordinates, exclusive corners, co-translated
 D/O/port clips, ring reservation and actual owner/state selection. Deliberately
 reversing offset sign or subtracting1 from the right anchor fails those fixtures.
+An exhaustive byte test covers all255 non-cicn modes; source/built pixel checks
+include6,127,128,255. Non-power-of-two synthetic tiles distinguish phase arithmetic;
+they do not certify original QuickDraw resource-size eligibility.
 The prior renderer fails the source/built literal-body fixture. Removing lifetime
 forwarding fails held decoded-face and held decoded-pattern source/built checks.
 
@@ -132,7 +148,9 @@ Real Crayon archive/fork/payload identities reuse
 read raw ppat17 samples are (231,222,198) at8,8; (247,247,214) at63,9;
 (247,239,214) at0,9. Pressed ppat−10238 at8,8 is(33,33,198). Tests use literal
 post-display-policy values and join the ACTUAL paint trace to those pinned
-payloads. This verifies the stated source/context model, not original lookup,
+payloads. An actual hand-built fork with numeric pattern names tests last-decoded
+paint with and without observation, legacy ambiguity, and exact legacy links.
+This verifies the stated source/context model, not original lookup,
 complete device color fidelity, arbitrary clipping regions or whole-control truth.
 
 Remaining delivery obligations: managed imperative/declarative propagation and

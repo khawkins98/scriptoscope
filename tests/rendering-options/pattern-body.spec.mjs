@@ -73,7 +73,7 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
         ring: { sourceCicnId: -10231, asset: url(ring), width: 9, height: 9, slice: { corner: 1, side: 1, tile: false } } },
         patterns: { tile: { sourcePpatId: 0, asset: url(tile) } } } };
       const rows = [];
-      for (const bodyMode of [0, 1, 2, 3, 4]) for (const clipped of [false, true]) {
+      for (const bodyMode of [0, 1, 2, 3, 4, 6, 127, 128, 255]) for (const clipped of [false, true]) {
         faceEntry.bodyRequest.mode = bodyMode; let trace;
         const output = await api.composeButton(theme, { label: '', minWidth: 29, height: 8, default: true,
           compositionContext: { controlOrigin: [23, 25], portOrigin: [3, 5], patternOrigin: { status: 'known', offset: [-3, 5] },
@@ -91,8 +91,8 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
     const first = [14, 6, 7, 11, 12], second = [13, 5, 6, 10, 11];
     for (const row of rows) {
       expect(row.size).toEqual([37, 16]);
-      expect(row.inside).toEqual([(first[row.bodyMode] + 1) * 10, 0, 0, 255]);
-      expect(row.farInside).toEqual([(second[row.bodyMode] + 1) * 10, 0, 0, 255]);
+      expect(row.inside).toEqual([(first[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
+      expect(row.farInside).toEqual([(second[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
       expect(row.composition).toMatchObject({ faceRect: { x: 23, y: 25, w: 29, h: 8 }, appliedUnknownPatternOffset: false });
       if (row.clipped) for (const key of ['leftOutside', 'rightOutside', 'faceCorner', 'ringCorner']) expect(row[key], key).toEqual([0, 0, 0, 0]);
       else { expect(row.faceCorner).toEqual([199, 33, 77, 255]); expect(row.ringCorner).toEqual([123, 45, 67, 255]); }
@@ -158,7 +158,7 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
       const entry = id => ({ sourceCicnId: id, asset, width: 7, height: 7, slice: { corner: 3, side: 1, tile: false }, bgAnchor: [3, 3] });
       const normal = entry(-10239), theme = { baseUrl: location.origin, manifest: { chromeElements: { normal, pressed: entry(-10238) },
         patterns: { mustNotLoad: { sourcePpatId: 17, asset: '/missing-unsupported-body-must-not-load.png' } } } };
-      const requests = [null, { mode: 5, resourceId: 17 }, { mode: 6, resourceId: 17 }, { mode: 0, resourceId: -99 }], rows = [];
+      const requests = [null, { mode: 5, resourceId: 17 }, { mode: 0, resourceId: -99 }], rows = [];
       for (const request of requests) {
         normal.bodyRequest = request; let trace;
         const out = await api.composeButton(theme, { label: '', diagnostics: { onComplete: value => { trace = value; } } });
@@ -192,5 +192,68 @@ for (const mode of ['source', 'built']) test(`${mode}: missing or unsupported bo
     for (const trace of result.traces) expect(trace.composition.context.controlOrigin).toEqual([3, 5]);
     expect(result.callerOrigin).toEqual([99, 5]);
     expect(result).toMatchObject({ callbacks: 1, errorName: 'RangeError', invalidTrace: { outcome: { status: 'error' } } });
+  } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }
+});
+
+
+for (const mode of ['source', 'built']) test(`${mode}: numeric pattern names retain actual decoder order with and without byte observation`, async ({ page, servers }, info) => {
+  await openHarness(page, servers, mode);
+  let result;
+  try {
+    result = await page.evaluate(async mode => {
+      const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
+      const loader = mode === 'built' ? api : await import('/tools/theme-loader/loadKaleidoscopeScheme.js');
+      const { forkOf, cinf, onePixelCicn } = await import('/tests/resource-provenance/fixtures.mjs');
+      const { twoPixelPpat } = await import('/tests/resource-provenance/patterns.mjs');
+      const request = cinf(); request[0] = 0; request[1] = 0;
+      const bytes = forkOf([{ type: 'cicn', id: -10239, data: onePixelCicn() },
+        { type: 'cinf', id: -10239, data: request },
+        { type: 'ppat', id: 0, name: '2', data: twoPixelPpat() },
+        { type: 'ppat', id: 0, name: '1', data: twoPixelPpat({ red: 0 }) }]);
+      const rows = [];
+      for (const provenance of [false, true]) {
+        const theme = await loader.loadKaleidoscopeScheme(bytes, { provenance });
+        try {
+          const face = Object.values(theme.manifest.chromeElements)[0];
+          let trace;
+          const output = await api.composeButton(theme, { label: '', minWidth: 29, height: 9,
+            diagnostics: { onComplete: value => { trace = value; } } });
+          const row = { provenance, keys: Object.keys(theme.manifest.patterns), bodyPattern: face.bodyPattern,
+            bgPattern: face.bgPattern, pixel: [...output.getPixel(0, 0)], trace, legacy: [] };
+          delete face.bodyPattern;
+          for (const linked of [false, true]) {
+            if (linked) face.bgPattern = '1';
+            let legacyTrace;
+            const legacy = await api.composeButton(theme, { label: '', minWidth: 29, height: 9,
+              diagnostics: { onComplete: value => { legacyTrace = value; } } });
+            row.legacy.push({ linked, pixel: [...legacy.getPixel(0, 0)], trace: legacyTrace });
+          }
+          rows.push(row);
+        } finally { theme.dispose(); }
+      }
+      return rows;
+    }, mode);
+    for (const row of result) {
+      // Hand-encoded first occurrence is red; last occurrence is black. The
+      // numeric names sort in the opposite order; observation cannot change paint.
+      expect(row.pixel).toEqual([0, 0, 0, 255]);
+      expect(row).toMatchObject({ keys: ['1', '2'], bodyPattern: '1', bgPattern: null });
+      const selected = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
+      expect(selected).toHaveLength(1);
+      expect(selected[0].resource).toMatchObject({ type: 'ppat', signedId: 0, manifestKey: '1' });
+      if (row.provenance) expect(selected[0].resource.byteProvenance.ppatResourceIndex).toBe(3);
+      else expect(selected[0].resource.byteProvenance).toBeUndefined();
+      expect(selected[0].reason).toBe('carried-body-pattern-paint');
+      const [ambiguous, linked] = row.legacy;
+      expect(ambiguous.pixel).toEqual([255, 0, 0, 255]); // retained solid fallback, no invented order
+      expect(ambiguous.trace.steps.filter(step => step.role === 'body-fill')).toMatchObject([
+        { action: 'missing', reason: 'ambiguous-legacy-pattern-order', requestedId: 0 },
+      ]);
+      expect(linked.pixel).toEqual([0, 0, 0, 255]);
+      expect(linked.trace.steps.filter(step => step.role === 'body-fill')).toMatchObject([
+        { action: 'selected', reason: 'legacy-linked-pattern-paint', resource: { manifestKey: '1' } },
+      ]);
+    }
+    await attachObservations(info, 'pattern-paint', `${mode}-numeric-order`, { mode, result });
   } catch (error) { await attachCase(page, info, { mode, result }, error); throw error; }
 });

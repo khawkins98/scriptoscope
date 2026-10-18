@@ -74,3 +74,14 @@ test('co-translated D/O/port clip preserves physical coverage and mode-corner ph
   assert.deepEqual(bodyPatternSample(first, 0, 13, 8, 4, 2, 5, 3), [4, 1]);
   assert.deepEqual(bodyPatternSample(moved, 0, 13, 8, 4, 2, 5, 3), [2, 0]);
 });
+
+// 109be tests only equality with5. 10ab0 zero-extends the byte; the four
+// SUBQ/BEQ pairs select1..4 and every other byte falls through to P=(0,0).
+test('every non-cicn raw byte uses the established corner or zero anchor', () => {
+  const rect = { x: -3, y: 7, w: 13, h: 9 };
+  const corners = { 1: [-3, 7], 2: [10, 7], 3: [-3, 16], 4: [10, 16] };
+  for (let mode = 0; mode <= 255; mode++) {
+    if (mode === 5) continue;
+    assert.deepEqual(bodyPatternAnchor(mode, rect), corners[mode] ?? [0, 0], `raw byte ${mode}`);
+  }
+});

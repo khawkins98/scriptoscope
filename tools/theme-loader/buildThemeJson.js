@@ -111,6 +111,10 @@ export function buildThemeJson(manifest, options = {}) {
       // Raw request, distinct from the compatibility catalog link below. Zero
       // is a signed resource ID too; mode5 requests cicn, not ppat.
       bodyRequest: cd ? { mode: cd.patternAnchor, resourceId: cd.bgPatternId } : null,
+      // Carry the last successfully decoded occurrence now: integer-like catalog
+      // keys are reordered by JS enumeration, so paint must not reconstruct order.
+      // This is the loader's same-owner policy, not original Resource Manager proof.
+      bodyPattern: cd && cd.patternAnchor !== 5 ? (ppatSlugById[cd.bgPatternId] ?? null) : null,
       bgPattern: cd && cd.bgPatternId !== 0
         ? (ppatSlugById[cd.bgPatternId] ?? null)
         : null,

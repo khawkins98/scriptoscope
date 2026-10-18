@@ -1090,23 +1090,40 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
     requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
     basis: 'compatibility-policy' as const, usage: 'paint' as const,
     owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
-  if (request.mode < 0 || request.mode > 4 || !face.element.slice) {
+  if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
     opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
     return null;
   }
   const patterns = face.theme.manifest.patterns ?? {};
-  let key = face.element.bgPattern;
-  // The legacy link is valid only if its actual signed ID matches the raw request.
-  // ID zero had no link. Last matching catalog occurrence preserves the loader's
-  // same-ID link policy; no base search or original Resource Manager claim.
-  if (!key || patterns[key]?.sourcePpatId !== request.resourceId) {
-    const linked = key ? patterns[key] : undefined;
-    if (key && linked) opts.trace?.record({ ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', resource: {
-      type: 'ppat', signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key,
+  let key: string | null = null;
+  let selectionReason = 'unique-id-pattern-paint';
+  // The loader carries its last decoded occurrence before numeric catalog keys
+  // can reorder. Legacy links remain supported, but enumeration cannot recover
+  // occurrence order for multiple otherwise-unbound candidates.
+  const links = [
+    [face.element.bodyPattern, 'carried-body-pattern-paint'],
+    [face.element.bgPattern, 'legacy-linked-pattern-paint'],
+  ] as const;
+  const visited = new Set<string>();
+  for (const [candidate, reason] of links) {
+    if (!candidate || visited.has(candidate)) continue;
+    visited.add(candidate);
+    const linked = patterns[candidate];
+    if (linked?.sourcePpatId === request.resourceId) { key = candidate; selectionReason = reason; break; }
+    opts.trace?.record({ ...common, action: 'rejected', reason: 'linked-pattern-id-mismatch', ...(linked ? { resource: {
+      type: 'ppat' as const, signedId: linked.sourcePpatId ?? null, sourceCinfId: null, manifestKey: candidate,
       assetUrl: assetUrl(face.theme, linked.asset), ...(linked.byteProvenance ? { byteProvenance: linked.byteProvenance } : {}),
-    } });
-    key = null;
-    for (const candidate of Object.keys(patterns)) if (patterns[candidate]!.sourcePpatId === request.resourceId) key = candidate;
+    } } : {}) });
+  }
+  if (!key) {
+    for (const candidate of Object.keys(patterns)) {
+      if (patterns[candidate]!.sourcePpatId !== request.resourceId) continue;
+      if (key !== null) {
+        opts.trace?.record({ ...common, action: 'missing', reason: 'ambiguous-legacy-pattern-order' });
+        return null;
+      }
+      key = candidate;
+    }
   }
   const pattern = key ? patterns[key] : undefined;
   if (!pattern) {
@@ -1117,7 +1134,7 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
   const url = assetUrl(face.theme, pattern.asset);
   const buffer = await loadCicnBuffer(url);
   assertControlAlive(opts.signal);
-  opts.trace?.record({ ...common, action: 'selected', reason: 'same-face-owner-pattern-paint', resource: {
+  opts.trace?.record({ ...common, action: 'selected', reason: selectionReason, resource: {
     type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
     ...(pattern.byteProvenance ? { byteProvenance: pattern.byteProvenance } : {}),
   } });

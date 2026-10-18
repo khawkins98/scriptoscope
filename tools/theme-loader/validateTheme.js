@@ -138,6 +138,9 @@ function validateChromeElements(value, path) {
         }
       }
     }
+    if ('bodyPattern' in c && c.bodyPattern !== null) {
+      assertString(c.bodyPattern, `${path}.${key}.bodyPattern`);
+    }
     if ('bgPattern' in c && c.bgPattern !== null) {
       assertString(c.bgPattern, `${path}.${key}.bgPattern`);
     }

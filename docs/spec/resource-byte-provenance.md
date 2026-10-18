@@ -114,7 +114,7 @@ bytes4..5 `resourceId` (-32768..32767), including zero. Null/absent is unknown.
 Mode5's original branch requests cicn; other modes request ppat. The retained
 legacy `bgPattern` link still uses its previous nonzero-ID/same-catalog policy;
 it must not be mistaken for this raw request or historical Resource Manager
-ownership. This change adds metadata without changing that policy or rendering.
+ownership. The initial #266 change added metadata without changing that policy or rendering.
 
 `pattern-provenance.spec.mjs` observes source and built catalog bindings for two
 independently pinned Crayon payloads, plus hand-encoded own/base catalogs and an
@@ -124,7 +124,11 @@ not original lookup approval. Occurrence/key/load/payload negative fixtures,
 concurrent loads and unsupported bit14 outcomes are checked separately. Independent
 indexed ppat pixel fixtures are documented in [ppat-decoding.md](ppat-decoding.md).
 
-No pattern paint dependency is added to control traces: the current face body
-compositor does not consume these catalog bindings. A later compositor change
-must observe its actual requested/selected owner and paint usage at the real
-resolution boundary. Catalog presence alone cannot satisfy that obligation.
+The direct push/bevel compositor now consumes supported ppat bodies and observes
+its actual requested/selected owner and paint usage at the real resolution boundary;
+see [control-pattern-context.md](control-pattern-context.md). The loader's optional
+`bodyPattern` key carries its last decoded same-owner choice, including ID0, before
+numeric catalog keys can reorder. It is distinct from both raw `bodyRequest` and
+occurrence-level `PatternByteProvenance`; it does not certify original Resource
+Manager lookup. Legacy `bgPattern` and catalog keys remain unchanged. Catalog
+presence alone still cannot establish a paint dependency.

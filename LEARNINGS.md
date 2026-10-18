@@ -3946,6 +3946,8 @@ it. This checks distribution closure; it supplies no original-engine pixel truth
 
 ## 2026-10-18 — A pattern catalog binding is not a painted dependency
 
+**Paint-observability limit superseded by [the direct composition stage](docs/spec/control-pattern-context.md); catalog identity alone still proves no paint.**
+
 The ppat converter already visits exact parser occurrences, so the load-local
 observer can carry a reference into each generated catalog key without a second
 ID/filename lookup. Same-ID distinct assets remain separate; same-path aliases
@@ -4108,3 +4110,10 @@ Raw-source RGB must be separated from our display transform and the original
 device palette. Direct context support is intermediate: managed layout refresh
 must propagate the same logical state before pattern-backed public surfaces are
 complete. See [the bounded contract](docs/spec/control-pattern-context.md).
+
+The same-owner last-decoded choice must be carried at conversion time. Integer-like
+catalog keys enumerate numerically, so names`2` then`1` reverse source order even
+when byte provenance faithfully records both occurrences. `bodyPattern` carries
+that compatibility binding independently of observation; ambiguous unbound legacy
+catalogs retain fallback instead of inventing order. The complete mode dispatch
+also matters: only raw5 selects cicn, while0 and6–255 use the zero ppat anchor.

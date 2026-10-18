@@ -179,6 +179,11 @@ export interface ChromeElement {
   /** Raw cinf byte3 mode and signed bytes4..5 request, including zero.
    * Absent/null means unknown; this does not identify a selected or painted resource. */
   bodyRequest?: { mode: number; resourceId: number } | null;
+  /** Same-owner ppat key carried from the loader's last decoded occurrence,
+   * including raw ID0 and excluding mode5. Absent means legacy/unknown binding;
+   * null means no catalog binding was selected. This is compatibility policy,
+   * separate from the actual paint trace and original Resource Manager lookup. */
+  bodyPattern?: string | null;
   /** Legacy same-manifest pattern-catalog link derived from nonzero cinf ID.
    * It does not encode the original mode-dependent resource type or lookup scope.
    * See bodyRequest for the raw request, including zero. */

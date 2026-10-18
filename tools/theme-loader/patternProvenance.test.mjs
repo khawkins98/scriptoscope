@@ -139,3 +139,36 @@ test('ppat digest failure rejects before any URL allocation', async t => {
   await assert.rejects(load(fixture(), { encodeAssets: true, assetUrlFactory() { allocations++; return 'blob:unexpected'; } }), e => e === failure);
   assert.equal(allocations, 0);
 });
+
+
+test('numeric catalog keys carry actual last decoded body binding without provenance or legacy-link changes', async () => {
+  for (const provenance of [false, true]) for (const mode of [0, 5, 255]) {
+    const bytes = forkOf([{ type: 'cicn', id: -10239, data: onePixelCicn() },
+      { type: 'cinf', id: -10239, data: request(mode, 0) },
+      { type: 'ppat', id: 0, name: '2', data: twoPixelPpat() },
+      { type: 'ppat', id: 0, name: '1', data: twoPixelPpat({ red: 0 }) }]);
+    const theme = await load(bytes, { provenance });
+    assert.deepEqual(Object.keys(theme.manifest.patterns), ['1', '2']);
+    const face = Object.values(theme.manifest.chromeElements)[0];
+    assert.equal(face.bgPattern, null);
+    assert.equal(face.bodyPattern, mode === 5 ? null : '1');
+    if (provenance) assert.equal(theme.manifest.patterns['1'].byteProvenance.ppatResourceIndex, 3);
+    else assert.equal(theme.manifest.patterns['1'].byteProvenance, undefined);
+  }
+});
+
+test('body binding ingress accepts absent/null legacy metadata and rejects nonstring persisted keys', async () => {
+  const theme = await load(fixture());
+  for (const value of [0, false, [], {}, ['first']]) {
+    const manifest = structuredClone(theme.manifest);
+    Object.values(manifest.chromeElements)[0].bodyPattern = value;
+    assert.throws(() => validateTheme(manifest), /bodyPattern/);
+  }
+  for (const value of [null, 'second']) {
+    const manifest = structuredClone(theme.manifest);
+    Object.values(manifest.chromeElements)[0].bodyPattern = value;
+    assert.doesNotThrow(() => validateTheme(manifest));
+  }
+  const legacy = structuredClone(theme.manifest); delete Object.values(legacy.chromeElements)[0].bodyPattern;
+  assert.doesNotThrow(() => validateTheme(legacy));
+});
