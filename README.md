@@ -382,7 +382,7 @@ Picker `name`, `author`, and `year` are display labels. The loader fetches the c
 If your catalog already includes that complete sidecar, pass it as `ThemeEntry.meta`
 (or `loadTheme`’s `meta` option) to avoid the metadata request.
 
-The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs (~500 per scheme); call it when permanently unmounting to avoid pinning the decoded ImageBitmap memory.
+The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs and evict its raster-cache entries; call it after its last consumer permanently unmounts.
 
 See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 

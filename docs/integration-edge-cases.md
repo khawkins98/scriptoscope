@@ -250,6 +250,12 @@ Practical rules:
 
 If your framework expects to manage the lifecycle of the wrapper (React owns the DOM, Vue mounts here), promote AFTER the framework has rendered + use the `scriptoscope:promoted` event on `document` to react to the swap.
 
+### Theme ownership on teardown
+
+`handle.disconnect()` restores mounted windows and releases themes loaded by that mount. Pending loads finish cleanup without committing new windows. You can mount again on the same root immediately.
+
+`handle.registerTheme(ref, theme)` borrows the supplied theme and its base chain. Keep those assets alive while any consumer uses them, then call their own `dispose?.()` methods when finished. Disconnect never disposes caller-registered graphs. Standalone resolver users call `resolver.dispose()` when finished; subsequent loads and registrations fail.
+
 ## Known incompatibilities
 
 Things that work in the lab but bite once integrated:
