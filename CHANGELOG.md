@@ -125,6 +125,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Push and bevel labels use their selected cicn/cinf RGB16 text samples and
+  optional emboss pass, preserving masked colors and exact sentinel decisions
+  before PNG transport; explicit foreground overrides remain supported.
+
 - Resolve canonical, legacy and raw window identities before resource fallback,
   preserving authored collapsed utility chrome in sliced and corner-sprite
   themes. Keep exact custom names, emitted manifest keys and child/base policy.

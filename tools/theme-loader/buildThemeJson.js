@@ -8,6 +8,7 @@
 // imports are shared pure recipe and identity data.)
 
 import { WINDOW_RECIPES, isDefaultWidgets } from './window-recipes.mjs';
+import { controlColorSamples } from './kdef-color-samples.js';
 import { WINDOW_TYPE_IDENTITIES } from './window-type-identities.js';
 
 /**
@@ -84,6 +85,8 @@ export function buildThemeJson(manifest, options = {}) {
   // tuples (textAnchor, embossAnchor) flatten from {x,y} dicts to [x,y].
   // bgPattern resolves to a patterns-catalog slug, not the raw ppat ID.
   const chromeElements = {};
+  const cicnPathCounts = new Map();
+  for (const cicn of cicns) cicnPathCounts.set(cicn.file, (cicnPathCounts.get(cicn.file) ?? 0) + 1);
   for (const cicn of cicns) {
     const cinf = byTypeAndId[`cinf:${cicn.id}`];
     const cd = cinf?.data;
@@ -114,6 +117,10 @@ export function buildThemeJson(manifest, options = {}) {
       bgAnchor:     cd ? coordTuple(cd.bgPixel)     : null,
       textAnchor:   cd ? coordTuple(cd.textPixel)   : null,
       embossAnchor: cd ? coordTuple(cd.embossPixel) : null,
+      // Bounded immutable scalar samples survive PNG alpha premultiplication.
+      // The transient sampler/indices/palette never escape this conversion.
+      colorSamples: cicnPathCounts.get(cicn.file) > 1 ? null : controlColorSamples(cicn.sampleKdefRgb16, cd),
+      ...(cicnPathCounts.get(cicn.file) > 1 ? { colorSamplesUnavailableReason: 'ambiguous-asset-path' } : {}),
       sourceCicnId: cicn.id,
       sourceCinfId: cinf?.id ?? null,
       // The bundle author's original NAMED-resource label (verbatim, NOT

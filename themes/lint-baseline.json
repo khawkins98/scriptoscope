@@ -1,12 +1,12 @@
 {
   "_generator": "scripts/lint-themes.mjs --update",
   "_note": "Fingerprint baseline for `npm run lint:themes`: sha256 of each bundle's source archive + the lint outcome from the maintainer's last full run. Default `npm run lint:themes` is a fast verify pass (hash + report stored result); the slow decode-and-rule-walk only runs on `--update` or when the hash drifts. Keep this file in git; let CI run `--strict` to fail on drift.",
-  "ranAt": "2026-10-18T13:13:27.154Z",
+  "ranAt": "2026-10-18T14:44:23.532Z",
   "themes": {
     "1138": {
       "source": "scheme.rsrc",
       "sha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
-      "decodedSha256": "5df24c8266222ce192ba84a4d59a70ddebe5052c92b4a134c36501cbda553184",
+      "decodedSha256": "b3ac48b272e8396ed5c879db6de8cf06f0a8d6323d5aaf205fc0d7f1b0c06557",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -15,7 +15,7 @@
     "1984": {
       "source": "scheme.sit",
       "sha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
-      "decodedSha256": "adbd6a19492810d830c1a327f0c13e38040c7cdf25aee5b47ddb67ab21c2139d",
+      "decodedSha256": "5cb9fc34ca1af874ca0f6e35edd35468b4b5525fa0c9280c1486420f9f430021",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -24,7 +24,7 @@
     "1990": {
       "source": "scheme.rsrc",
       "sha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
-      "decodedSha256": "1dff4443263cdb9de9e1d5c711b64657a2a9a594265507c7cc9bef68ca2c757d",
+      "decodedSha256": "2cf8d9e18670f4ec7d1c0d181e6f1c86bd2e4aee86a365a8e10ef385118e0745",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -33,7 +33,7 @@
     "animals": {
       "source": "scheme.sit",
       "sha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
-      "decodedSha256": "baad15c44df3ce048b700c8431e509fbca9779cfab3c17af7fbba9e5ef328fad",
+      "decodedSha256": "144f4b2af974539f0ec165c02190f5e0e8af7bb5abe63c81a749a8f0614a8030",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -42,7 +42,7 @@
     "apple-lisa": {
       "source": "scheme.sit",
       "sha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
-      "decodedSha256": "5c16471e77c87d086910fd5828d99fb8af1d9e7147f741a1db2ecf34437c9ee7",
+      "decodedSha256": "d57878285cc57a88ec82347b6480a3c98bb0edcad0432004a8a41182202a16c8",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -51,7 +51,7 @@
     "apple-platinum-2": {
       "source": "scheme.sit",
       "sha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
-      "decodedSha256": "804724e7f11cd46ce30780b1147a988b8d9ca44083ece0ca5fdf5c39efce0de1",
+      "decodedSha256": "ee70d01c098fe3a7e63b80ea7668d9b8e2769b898abccc73c980653b4cbf545e",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -60,7 +60,7 @@
     "beos-r503": {
       "source": "scheme.sit",
       "sha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
-      "decodedSha256": "7df601decc20a1ab7688e73a5a0dfad27fe093ead089622da0157dfbcb73f3fa",
+      "decodedSha256": "688afbffe72f73c697dee353ccf01b5b57f4dfdca2c30b6f8db6c77bef24c795",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -69,7 +69,7 @@
     "black-platinum": {
       "source": "scheme.rsrc",
       "sha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
-      "decodedSha256": "baa9dda053160477b4beb5b9525ee69726d3b77cd5c90efd84d4aa4f5da3a069",
+      "decodedSha256": "205dcb54cab2add8491bc69aa6bea15272706bb21399549c5c0289ede308663c",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -78,7 +78,7 @@
     "crayon-os": {
       "source": "scheme.sit",
       "sha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
-      "decodedSha256": "f90496d58b7abbfdc0acb87e3dc7a06912865003d03b8d0cbdd2d6a1a1b9835b",
+      "decodedSha256": "05e3d05a3f67d4d4b77edf20ff83204f5d01a8038d740b9bead421a35ba9e300",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -87,7 +87,7 @@
     "dolphin-som": {
       "source": "scheme.sit",
       "sha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
-      "decodedSha256": "4fdfa73bc1bef048f74ceadce0d7474b9a38666326b065d95e5e9d6ba2f58a0b",
+      "decodedSha256": "402b1cbf4a9382c5e91feb25011c59863b6335776de51f41c247b74662b32c64",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -96,7 +96,7 @@
     "evolution": {
       "source": "scheme.rsrc",
       "sha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
-      "decodedSha256": "3cefc7ea12eaf12d1ac2aa974fdff3c89d7866f571c6e48c89cdcf29b21d97ee",
+      "decodedSha256": "be5023e0722eba119b76203b7dcd0f689a889028cd89d2c3e13698ec57cc4ffe",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -105,7 +105,7 @@
     "floppies": {
       "source": "scheme.sit",
       "sha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
-      "decodedSha256": "4990fb59de0a3e3d39edf31186293b6c86b7f61db3b16ecf2a239626928aca33",
+      "decodedSha256": "f32954be7d3eeef2a395ae2a91365a44be0538471a621b8fe85c42ff68054bb5",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -114,7 +114,7 @@
     "monkey-paradise": {
       "source": "scheme.sit",
       "sha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
-      "decodedSha256": "66b06d9233a63ac463fd74327d4ec187ecaff55ffc42c8132b298ca8d8129a76",
+      "decodedSha256": "6ddc5b689b41cbf3f3249c431ae4632803b1c4c56bc9c037d868124554d6b355",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -123,7 +123,7 @@
     "platinum-8": {
       "source": "scheme.sit",
       "sha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
-      "decodedSha256": "15842209b26c3c7b456fecd7295fbfc257d8dd778d3b247557a0d909d5452403",
+      "decodedSha256": "f74f1d880d2cb4f6817b40f31ca85cb3adcabf6d2b15fe666aa27baba47ddf21",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -132,7 +132,7 @@
     "slimes": {
       "source": "scheme.sit",
       "sha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
-      "decodedSha256": "840dc5bca9577fd4f8708802049eea87f9518c55a23e9eaeef5b097e380f87a6",
+      "decodedSha256": "fd78a5150b35b47d02bc56f52fc4c21b8084bb10081e56c882920434abe0aeba",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -141,7 +141,7 @@
     "system7-nostalgia-silver": {
       "source": "scheme.rsrc",
       "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
-      "decodedSha256": "f366bb932358ddb63af8e2ca84fdb23fc4f81bd8c67f362cc42d93c79f530263",
+      "decodedSha256": "f3408255a79cf51a1e939640d4bbc162b1b80c48789e644ec0500c558af885f0",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -150,7 +150,7 @@
     "windows-31": {
       "source": "scheme.sit",
       "sha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
-      "decodedSha256": "ec5f1f7a601a212ffb0d985c88f0555096f7f6278dc1e46eb1293b86bcb531ab",
+      "decodedSha256": "b1140e9bd0ecf68d1f9931db396efce847509574784ddd28ce504d69844fe705",
       "status": "ok",
       "errors": 0,
       "warnings": 0,
@@ -159,7 +159,7 @@
     "windows-95": {
       "source": "scheme.sit",
       "sha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
-      "decodedSha256": "c998bccde9ca1641c6a175596c93ed8756985b848effee23cbb3223ddb61a50c",
+      "decodedSha256": "2a58ce4f67195305c436aa4ed66feddb7d6c274f64768c2f2f3b067b8bfe362b",
       "status": "ok",
       "errors": 0,
       "warnings": 0,

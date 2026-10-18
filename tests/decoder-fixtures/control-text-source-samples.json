@@ -1,0 +1,90 @@
+{
+  "basis": "Independent raw-byte cinf coordinates and kDEF10702 palette-search transcription; shared archive/fork enumeration. No original pixels or device/transfer certification.",
+  "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+  "samples": [
+    {
+      "id": -10239,
+      "cicnSha256": "bdc714e995a9c97f3dae29a4299fc0fd156534609fd1abdd2effde10d274ac3b",
+      "cinfSha256": "ea18f707f13b5fe0f28cc5274ebc716db3befc174550b79da701fe0fc245401f",
+      "textRgb16": [
+        8481,
+        8481,
+        8481
+      ],
+      "textCoordinate": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": -10240,
+      "cicnSha256": "d589b4d03879d97547f0874cae779657f2f17bbaed00077ba2979f3666095618",
+      "cinfSha256": "ea18f707f13b5fe0f28cc5274ebc716db3befc174550b79da701fe0fc245401f",
+      "textRgb16": [
+        34952,
+        34952,
+        34952
+      ],
+      "textCoordinate": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": -10238,
+      "cicnSha256": "89d26790e39cbe875fd245a16f37b950436cfb986b3ad69dc1045e834cae078e",
+      "cinfSha256": "88694e7a62994d7eef26b6ab43b85c4ac0741e554bb0a045f280793b9b50f13b",
+      "textRgb16": [
+        8481,
+        8481,
+        8481
+      ],
+      "textCoordinate": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": -10175,
+      "cicnSha256": "4de3339d70c4a58b3930fe8da2b3de2f897d81d61b7f0416c7e848db37a15791",
+      "cinfSha256": "fcb64ee6bcf834d68b2d85e7059194be9ef463d3f57b8285ff966a8915b77548",
+      "textRgb16": [
+        8481,
+        8481,
+        8481
+      ],
+      "textCoordinate": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": -10176,
+      "cicnSha256": "2d551cbdb03624d8c7a47484e030207decbbfd2d6da5dddca7be97d1665fc99d",
+      "cinfSha256": "fcb64ee6bcf834d68b2d85e7059194be9ef463d3f57b8285ff966a8915b77548",
+      "textRgb16": [
+        34952,
+        34952,
+        34952
+      ],
+      "textCoordinate": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": -10174,
+      "cicnSha256": "0dbafd390e1e039f75ccc00e9e5a5f1a2344428e143e011012b1f567aca95d23",
+      "cinfSha256": "a29827aaa0835e481a6842e45956cc36ef8c282fd48dcf9331f37a8d118d6f0e",
+      "textRgb16": [
+        8481,
+        8481,
+        8481
+      ],
+      "textCoordinate": [
+        3,
+        3
+      ]
+    }
+  ]
+}

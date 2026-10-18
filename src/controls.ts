@@ -5,6 +5,7 @@ import { assetUrl } from './loadTheme.js';
 import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
+import { controlTextColors } from './controlTextColors.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -1077,15 +1078,15 @@ export interface BevelButtonOptions {
   fg?: string;
 }
 
-interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; }
+interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; fg?: string; padX?: number; width?: number; height?: number; align?: 'center' | 'left'; trace?: ControlTraceCollector | undefined; }
 
 /**
  * Compose a button face and its label. For explicit cinf metadata with a valid
  * solid background sample, use kDEF 0x10fc0 → 0x107fe: fill the inset cross,
  * then paint square corners and independent masked edge bands. Pattern-backed
  * faces and list headers retain the legacy approximation until their separate
- * body/call-site behavior is verified. Text sizing and contrast remain runtime
- * policies; the original samples text/emboss colors at 0x10922–0x10990.
+ * body/call-site behavior is verified. Text RGB/emboss use preserved samples
+ * from 0x10922–0x10990; font metrics and browser alpha-over remain policies.
  */
 async function composeFaceButton(
   resolved: ResolvedControlFace,
@@ -1113,9 +1114,18 @@ async function composeFaceButton(
   const sy = validBg ? bg[1] : ta ? Math.max(0, Math.min(face.height - 1, ta[1])) : fIns;
   const [cr, cg, cb, ca] = face.getPixel(sx, sy);
   const lum = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-  const fg = opts.fg ?? (opts.disabled
+  const fallbackFg = opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
-    : lum < 128 ? '#ffffff' : '#000000');
+    : lum < 128 ? '#ffffff' : '#000000';
+  // 0x10922–0x10990 samples exact cicn/cinf colors. Preserve hidden RGB and
+  // 16-bit sentinel/equality decisions through metadata, not canvas readback.
+  // The traced push/bevel call sites draw emboss first at (+1,+1), then text.
+  // List-header dispatch and legacy manifests retain their prior policy.
+  const colors = geometry === 'button' ? controlTextColors(faceEl, opts.fg, fallbackFg)
+    : { foreground: opts.fg ?? fallbackFg, emboss: null, policy: 'contrast-fallback' as const, embossDecision: 'unavailable' as const, sampleFallbackReason: null };
+  const fg = colors.foreground;
+  if (geometry === 'button') opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
+    deviceMode: 'full-color-policy', sourceManifestKey: resolved.key, sourceOwnerDepth: resolved.chainDepth });
   let lineH = resolveControlHeight(face, opts.height);
   let glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
   // A cicn is a resizable template, not a minimum control rectangle. Tiny
@@ -1151,7 +1161,9 @@ async function composeFaceButton(
   }
   if (glyphs) {
     const gx = opts.align === 'left' ? padX : Math.round((innerW - glyphs.width) / 2);
-    out.drawOver(glyphs, gx, Math.round((innerH - glyphs.height) / 2));
+    const gy = Math.round((innerH - glyphs.height) / 2);
+    if (colors.emboss) out.drawOver(rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), colors.emboss), gx + 1, gy + 1);
+    out.drawOver(glyphs, gx, gy);
   }
   return out;
 }
@@ -1252,7 +1264,7 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions,
     }
   }
   if (!face) return null; // baseline path
-  const faceBuf = await composeFaceButton(face, opts);
+  const faceBuf = await composeFaceButton(face, { ...opts, trace });
   current();
   // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
   // through 0x7572/0x7594, then expands that SAME rectangle by four pixels
@@ -1323,7 +1335,7 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
     if (face) break;
   }
   if (!face) return null; // → platinumBevelButton
-  const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22) };
+  const faceOpts: FaceOptions = { padX: 8, minWidth: opts.minWidth ?? (opts.small ? 18 : 22), trace };
   if (opts.label != null) faceOpts.label = opts.label;
   if (opts.disabled != null) faceOpts.disabled = opts.disabled;
   if (opts.fg != null) faceOpts.fg = opts.fg;
