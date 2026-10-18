@@ -1929,7 +1929,7 @@
   "review": {
     "date": "2026-10-18",
     "reviewers": [
-      "Pending independent root review: combined source-summary and raw-solid-background correction"
+      "root: independent automated hash-only availability transition review; exact cases and prior review preserved, not original-fidelity approval"
     ],
     "inventoryVersion": "1.0.3",
     "inventorySha256": "37412eb6c820f06585f7aed82562a0b6679977fac6463ff546e1cf7a76b88d1b",
