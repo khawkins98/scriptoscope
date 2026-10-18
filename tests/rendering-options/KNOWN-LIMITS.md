@@ -50,8 +50,11 @@ Known boundaries requiring explicit consideration during image review:
   observation alone establishes neither a defect nor the correct fix.
 - [Slider accessible naming #229](https://github.com/khawkins98/scriptoscope/issues/229)
   and [promoted-control teardown #232](https://github.com/khawkins98/scriptoscope/issues/232)
-  are interaction/lifecycle gaps outside screenshot certification. Static image
-  approval does not establish accessible semantics or correct disconnect/remount.
+  were delivered by #235/#238 with separate behavioral checks; range native
+  semantics and composed pointer geometry followed in #243/#246. Static image
+  approval still does not establish those contracts. Button/tab/text-field
+  decoration restoration and global overlapping theme ordering (#237) remain
+  outside that bounded lifecycle delivery.
 - Explicit tiny face heights can clip labels by caller request. Automatic sizing
   and independently established 20px-face label ink are checked separately.
 - The corpus cases use standalone schemes. Base-chain resource resolution,

@@ -3,6 +3,11 @@
 Tracked by [epic #221](https://github.com/khawkins98/scriptoscope/issues/221);
 independent reference acquisition is [#190](https://github.com/khawkins98/scriptoscope/issues/190).
 
+The [compatibility-contract draft](./fidelity-compatibility-contract.md) names
+the proposed inputs, surfaces, substitutions, evidence obligations and closure
+work. Its inventory remains OPEN; existing partial ledgers are not a completion
+denominator for the entire 18-scheme target.
+
 The target is the **themed surfaces of Kaleidoscope 2.3.1 for the current 18 archived schemes**, as interpreted by Scriptoscope's supported window/control API. Completion means every declared acceptance cell has independent evidence and passes its contract. It does not mean proof for arbitrary dimensions, all browser inputs, every historical extension, or every possible scheme.
 
 Browser-native select popups and ordinary text fields remain native integration surfaces. Verify their keyboard, labeling, form and focus behavior; do not describe their appearance as original Kaleidoscope rendering. The themed closed-select face remains in scope. Document procedural fallback and deliberately unsupported source variants separately from themed support.
