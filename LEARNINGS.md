@@ -3733,3 +3733,27 @@ unmounting the existing face. The showcased install snippet must explicitly
 import and call `mountDeclarative`; loading the library module alone does not
 auto-scan a consumer page. Browser tests run the displayed snippet as copied
 against the real built entry and original theme archive.
+
+### 2026-10-18 — slider pointer travel is not the whole canvas
+
+A 120px Windows95 slider has an 11px thumb: its rounded left edge travels 109px,
+while its center runs from 5.5px to 114.5px. Full-canvas pointer normalization changed
+stationary endpoint grabs from 0→5 and 100→95. Inverting even the correct rounded
+thumb position is insufficient for step=any: a quarter value can round to a
+position whose inverse differs from the exact native value.
+
+The native adapter now gets actual thumb rectangles/travel from the composition
+that produced the committed canvas. A thumb grab stores the exact native value
+and pointer position; movement applies delta/travel without re-anchoring during
+pressed repaints. Track clicks deliberately use a centered-thumb policy. Keeping
+this distinction native-only avoids silently changing the normalized imperative
+API or scrollbar mapping. Tests use independently known authored/engineered
+thumb extents, actual browser event coordinates for fractional CSS scaling, and
+a held pressed decode to challenge the atomic canvas/layout commit. This proves
+our interaction geometry agrees with our rendering, not historical kDEF layout.
+
+Firefox may retain a lexical range value such as `025` while `valueAsNumber`
+canonicalizes it to `25` even when step sanitization leaves the same number.
+Native pointer input/commit comparisons therefore use numeric values and retain
+the current spelling for unchanged values, including the original spelling when
+a drag returns to its starting step bucket.

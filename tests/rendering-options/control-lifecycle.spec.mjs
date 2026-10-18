@@ -337,15 +337,18 @@ for (const mode of ['source', 'built']) {
       const decode = HTMLImageElement.prototype.decode; let lateDecodes = 0;
       HTMLImageElement.prototype.decode = function () { lateDecodes++; return decode.call(this); };
       native.addEventListener('input', () => f.handle.disconnect(), { once: true });
-      const rect = face.getBoundingClientRect();
-      face.dispatchEvent(new PointerEvent('pointerdown', { clientX: rect.left + rect.width * 0.55, clientY: rect.top + 2, bubbles: true }));
+      const rect = face.querySelector('canvas').getBoundingClientRect();
+      // An unambiguous track click: Windows95 has an 11px thumb in the
+      // 120px native face, so the centered-track policy sanitizes this to78.
+      face.dispatchEvent(new PointerEvent('pointerdown', { clientX: rect.left + rect.width * 0.75, clientY: rect.top + 2, bubbles: true }));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       HTMLImageElement.prototype.decode = decode;
       const result = { lateDecodes, value: native.value, faceCount: f.holder.querySelectorAll('.scriptoscope-slider').length,
         nativeVisible: !native.hasAttribute('aria-hidden') && !native.hasAttribute('style') };
       f.root.remove(); return result;
     });
-    expect(result).toEqual({ lateDecodes: 0, value: '55', faceCount: 0, nativeVisible: true });
+    const expectedValue = String(Math.round((120 * 0.75 - 11 / 2) / (120 - 11) * 100));
+    expect(result).toEqual({ lateDecodes: 0, value: expectedValue, faceCount: 0, nativeVisible: true });
   });
 
 }

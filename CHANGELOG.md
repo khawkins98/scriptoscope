@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Interactive period-ad landing with five live themed portrait windows, scheme
+  switching and composition resets; the previous demonstration remains available
+  at `showcase.html`, including legacy theme links. ([#245](https://github.com/khawkins98/scriptoscope/pull/245))
+
 - Finite independently reviewed control availability expectations: 26 API-policy
   outcomes plus an explicit unknown, checked against actual source/built resource
   traces, pinned archive evidence and native fallback keyboard behavior.
@@ -61,6 +65,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   ([#204](https://github.com/khawkins98/scriptoscope/pull/204))
 
 ### Fixed (2026-10-18)
+
+- Promoted range pointer hit testing now uses the geometry that drew its canvas.
+  Stationary thumb grabs preserve exact native values, dragging retains grab
+  offsets, and track clicks center the thumb without changing imperative slider
+  or scrollbar mapping. Late paints cannot replace newer hit geometry.
 
 - Promoted ranges retain native keyboard and accessibility semantics: fractional
   steps, numeric bounds, `step="any"`, effective disabled fieldsets and live labels.

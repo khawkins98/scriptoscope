@@ -16,6 +16,7 @@
 //
 // All values are documented so the renderers stay faithful + portable.
 
+import type { SliderComposition } from './sliderLayout.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 
@@ -119,6 +120,11 @@ export interface PlatinumSliderOptions {
  * control, with a raised 11×16 thumb positioned by value.
  */
 export function platinumSlider(opts: PlatinumSliderOptions = {}): PixelBuffer {
+  return platinumSliderWithLayout(opts).buffer;
+}
+
+/** @internal The same procedural draw coordinates, paired with their buffer. */
+export function platinumSliderWithLayout(opts: PlatinumSliderOptions = {}): SliderComposition {
   const horiz = (opts.orientation ?? 'horizontal') === 'horizontal';
   const length = Math.max(32, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
@@ -150,14 +156,13 @@ export function platinumSlider(opts: PlatinumSliderOptions = {}): PixelBuffer {
     for (let i = 1; i < w - 1; i++) px(out, tx + i, ty + 1, HILITE);
     for (let i = 1; i < h - 1; i++) px(out, tx + 1, ty + i, HILITE);
   };
-  if (horiz) {
-    const travel = length - thumbCross;
-    drawThumb(Math.round(value * travel), Math.round((thickness - thumbAlong) / 2), thumbCross, thumbAlong);
-  } else {
-    const travel = length - thumbCross;
-    drawThumb(Math.round((thickness - thumbAlong) / 2), Math.round(value * travel), thumbAlong, thumbCross);
-  }
-  return out;
+  const travel = length - thumbCross;
+  const thumb = horiz
+    ? { x: Math.round(value * travel), y: Math.round((thickness - thumbAlong) / 2), w: thumbCross, h: thumbAlong }
+    : { x: Math.round((thickness - thumbAlong) / 2), y: Math.round(value * travel), w: thumbAlong, h: thumbCross };
+  drawThumb(thumb.x, thumb.y, thumb.w, thumb.h);
+  return { buffer: out, layout: { orientation: horiz ? 'horizontal' : 'vertical', axisLength: length,
+    thumb, travelStart: 0, travelEnd: travel, value } };
 }
 
 /** Raised gray face (white→#cdcdcd vertical gradient) in [x,y,w,h]. */

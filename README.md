@@ -274,8 +274,10 @@ refresh the art; after assigning `.value` in script, dispatch `input` or `change
 to refresh it immediately. A bare property assignment is sampled on the next
 interaction, persisted pageshow or retheme. The imperative `interactiveSlider`
 API still uses normalized values and its existing keyboard/callback behavior.
-Pointer hit testing still uses full canvas bounds; thumb-center travel and grab
-offset correction remain tracked in [#244](https://github.com/khawkins98/scriptoscope/issues/244).
+Promoted native ranges use the thumb geometry from the composition that drew the
+canvas: stationary grabs preserve exact values, dragging retains the grab offset,
+and track clicks center the thumb under the pointer before native sanitization.
+The imperative slider and scrollbar pointer contracts remain unchanged.
 
 Button, tab and text-field decoration restoration remains outside this contract.
 Global overlapping theme-switch ordering, including window renders, remains tracked
