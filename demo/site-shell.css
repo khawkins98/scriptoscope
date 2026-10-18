@@ -166,7 +166,11 @@ body.site-support {
 .site-install-section p { max-width: 74ch; color: #514a40; font: 16px/1.65 Georgia, serif; margin: 0 0 18px; }
 .site-install-section a { color: var(--site-accent); text-underline-offset: 4px; }
 .site-install-section p code { font-size: .85em; overflow-wrap: anywhere; }
-.site-code-example { margin: 22px 0; border: 1px solid var(--site-rule); background: #fffbef; min-width: 0; }
+.site-code-frame { margin: 22px 0 30px; }
+.site-code-example { margin: 0; min-width: 0; --scriptoscope-content-padding: 0; }
+.site-code-example .scriptoscope-fit { background: #fffbef; color: #28251f; }
+.site-code-example[data-scriptoscope-window-host] .site-code-bar { justify-content: flex-end; }
+.site-code-example[data-scriptoscope-window-host] .site-code-bar span { display: none; }
 .site-code-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 15px; background: #ebe5d8; }
 .site-code-bar span { color: #625747; font: 10px/1.5 Monaco, 'Courier New', monospace; text-transform: uppercase; letter-spacing: .08em; }
 .site-code-bar button { min-height: 36px; padding: 6px 14px; border: 1px solid #a99b84; border-radius: 0; background: #fcfaf5; color: #51402c; cursor: pointer; font: 13px Georgia, serif; }

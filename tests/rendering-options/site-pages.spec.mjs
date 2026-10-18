@@ -124,6 +124,7 @@ test('installation is separate, preserves old links, and carries the chosen sche
   await page.goto(`${demo}/showcase.html?theme=monkey-paradise#install`);
   await expect(page).toHaveURL(/install.html\?theme=monkey-paradise#install/);
   await expect(page.locator('.site-primary-nav a[aria-current]')).toHaveText('Install');
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
   await expect(page.locator('#powers-install-snippet')).toContainText("pageThemeDefault: 'monkey-paradise'");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   await page.getByRole('link', { name: 'Your own theme', exact: true }).click();
@@ -132,3 +133,24 @@ test('installation is separate, preserves old links, and carries the chosen sche
   await expect(page).toHaveURL(/showcase.html\?theme=monkey-paradise#bring-your-own/);
   await expect(page.locator('#powers-byo-modal-wrap')).toHaveAttribute('data-scriptoscope-modal-open', '');
 });
+
+
+for (const theme of ['1138', 'evolution']) {
+  test(`install code snippets use real ${theme} windows and reflow on phones`, async ({ page, demo }) => {
+    await page.goto(`${demo}/install.html?theme=${theme}`);
+    await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
+    const windows = page.locator('#install .site-code-example[data-scriptoscope-window-host]');
+    await expect(windows).toHaveCount(6);
+    await expect(windows.first().getByRole('button', { name: 'Move window', exact: true })).toBeAttached();
+    const snippet = await page.locator('#powers-install-snippet').textContent();
+    await page.setViewportSize({ width: 320, height: 800 });
+    await expect.poll(() => windows.evaluateAll(hosts => hosts.length === 6 && hosts.every(host => {
+      const frame = host.shadowRoot?.querySelector('.scriptoscope-window');
+      return frame && frame.getBoundingClientRect().right <= innerWidth;
+    }))).toBe(true);
+    await expect(page.locator('#powers-install-snippet')).toHaveText(snippet);
+    await expect(page.getByRole('button', { name: 'Copy complete starter', exact: true })).toBeVisible();
+    await expect(page.locator('#powers-install-snippet')).toHaveCSS('overflow-x', 'auto');
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+  });
+}

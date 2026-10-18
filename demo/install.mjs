@@ -1,4 +1,5 @@
 import themes from './themes-manifest.json';
+import { mountResponsiveExample } from './example-responsive.mjs';
 
 // The guide follows the scheme carried over from the showcase.
 const requestedTheme = new URL(location.href).searchParams.get('theme');
@@ -28,3 +29,21 @@ document.addEventListener('click', async event => {
     selection?.addRange(range);
   }
 });
+
+
+// Draw actual theme frames around the examples while keeping their HTML live.
+const guide = document.getElementById('install');
+try {
+  await mountResponsiveExample({
+    root: guide,
+    themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
+    pageThemeDefault: slug,
+    themes,
+    syncToUrlParam: 'theme',
+    rejectOnEmptyMount: true,
+  });
+  guide.dataset.codeWindowsReady = '';
+} catch (error) {
+  // The examples and copy controls remain ordinary HTML if chrome cannot load.
+  console.warn('[scriptoscope] Installation example frames unavailable:', error);
+}

@@ -72,6 +72,7 @@ test('failed initial theme requests leave the portrait recoverable', async ({ pa
 
 test('the displayed installation snippet mounts a real window as copied', async ({ page, demo }) => {
   await page.goto(`${demo}/install.html?theme=1138`);
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
   const snippet = await page.locator('#powers-install-snippet').textContent();
   // Serve the real built entry and real archive at the public URLs in the
   // snippet, so this verifies its bootstrap rather than a rewritten example.
@@ -139,6 +140,7 @@ test('reassembly appears after movement and hides when the face is restored', as
 
 test('the printed custom-theme recipe decodes a real StuffIt file', async ({ page, demo }) => {
   await page.goto(`${demo}/install.html`);
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
   const snippet = await page.locator('#install-byo-snippet').textContent();
   await routePublicAssets(page);
   await page.setContent(snippet);
@@ -151,6 +153,7 @@ test('the printed custom-theme recipe decodes a real StuffIt file', async ({ pag
 
 test('the printed desktop options populate and switch the catalog', async ({ page, demo }) => {
   await page.goto(`${demo}/install.html?theme=monkey-paradise`);
+  await expect(page.locator('#install[data-code-windows-ready]')).toBeVisible();
   await expect(page.locator('#install-scheme-name')).toHaveText('monkey-paradise');
   const starter = await page.locator('#powers-install-snippet').textContent();
   const markup = await page.locator('#install-switcher').textContent();

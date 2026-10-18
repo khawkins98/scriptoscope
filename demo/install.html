@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Install Scriptoscope — your HTML, with character</title>
   <meta name="description" content="Copy a working Scriptoscope starter, learn its data attributes and runtime options, and load your own Kaleidoscope scheme.">
+  <link rel="stylesheet" href="scriptoscope.css">
   <link rel="stylesheet" href="./site-shell.css">
+  <style>
+    @font-face { font-family: 'Charcoal 12'; src: url('./assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'Charcoal'; src: local('Charcoal'), url('./assets/fonts/virtue.woff') format('woff'); font-display: swap; }
+  </style>
   <script type="module" src="./install.mjs"></script>
   <script type="module" src="./site-shell.mjs"></script>
 </head>
@@ -32,13 +37,13 @@
     <p class="site-deck">Start with a working page, choose the attributes you need, then bring your own scheme. Your content and event handlers stay yours.</p>
     <nav class="site-intro-links" aria-label="Installation sections"><a href="#install">Starter</a><a href="#attributes">Data attributes</a><a href="#options">Runtime options</a><a href="#own-theme">Your own theme</a></nav>
   </section>
-  <main class="site-install-content" id="install">
+  <main class="site-install-content page" id="install">
     <section class="site-install-section" aria-labelledby="starter-title">
       <p class="site-section-label">01 / START WITH A PAGE</p>
       <h2 id="starter-title">Copy. Save. Try it.</h2>
       <p>Copy this into an HTML page and serve it through your usual web server or local dev server. The stylesheet, runtime, and bundled themes come from this project’s GitHub Pages; there’s no build step or npm install required.</p>
       <p>The starter uses <code id="install-scheme-name">1138</code>. Choose a scheme in the <a href="./showcase.html">showcase</a> and follow its Install link to carry that choice here.</p>
-<div class="site-code-example"><div class="site-code-bar"><span>complete starter</span><button type="button" data-copy-snippet="powers-install-snippet" aria-label="Copy complete starter">Copy</button></div><pre id="powers-install-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Complete starter" data-example-compact-title="Starter" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>complete starter</span><button type="button" data-copy-snippet="powers-install-snippet" aria-label="Copy complete starter">Copy</button></div><pre id="powers-install-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
 &lt;article data-scriptoscope-window data-scriptoscope-title=&quot;Hello&quot;&gt;
   &lt;h2&gt;Your content, wearing a scheme.&lt;/h2&gt;
   &lt;label for=&quot;name&quot;&gt;Your name&lt;/label&gt;
@@ -52,14 +57,14 @@
     themeBaseUrl: &#x27;https://khawkins98.github.io/scriptoscope/themes&#x27;,
     pageThemeDefault: &#x27;1138&#x27;,
   });
-&lt;/script&gt;</pre></div>
+&lt;/script&gt;</pre></div></div>
       <p class="site-install-aside">Use an HTTP URL for local development: a <code>file://</code> tab cannot reliably load modules or WebAssembly. Keep your layout CSS; native borders extend beyond the content dimensions.</p>
     </section>
     <section class="site-install-section" id="attributes" aria-labelledby="attributes-title">
       <p class="site-section-label">02 / MARK UP YOUR HTML</p>
       <h2 id="attributes-title">Tell each element what it is.</h2>
       <p>Add <code>data-scriptoscope-*</code> attributes to ordinary HTML. In a component framework, pass them through to the rendered elements. You don’t need to replace your content with a separate component system.</p>
-<div class="site-code-example"><div class="site-code-bar"><span>window and controls</span><button type="button" data-copy-snippet="install-markup" aria-label="Copy window and controls">Copy</button></div><pre id="install-markup" tabindex="0">&lt;article data-scriptoscope-window
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Window and controls" data-example-compact-title="Controls" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>window and controls</span><button type="button" data-copy-snippet="install-markup" aria-label="Copy window and controls">Copy</button></div><pre id="install-markup" tabindex="0">&lt;article data-scriptoscope-window
          data-scriptoscope-title=&quot;Notes&quot;
          data-scriptoscope-window-type=&quot;titled-utility-window&quot;
          data-scriptoscope-widgets=&quot;zoom,collapse&quot;&gt;
@@ -68,7 +73,7 @@
   &lt;input type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; value=&quot;50&quot;
          aria-label=&quot;Volume&quot;&gt;
   &lt;button type=&quot;button&quot; data-scriptoscope-button&gt;Save&lt;/button&gt;
-&lt;/article&gt;</pre></div>
+&lt;/article&gt;</pre></div></div>
       <div class="site-reference-wrap"><table class="site-reference"><caption>The attributes you’ll reach for first</caption><thead><tr><th scope="col">Attribute</th><th scope="col">How to use it</th></tr></thead><tbody><tr><th scope="row"><code>data-scriptoscope-window</code></th><td>Put this on an element to turn its children into a window body.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-title=&quot;Notes&quot;</code></th><td>Set the title-bar label.</td></tr>
 <tr><th scope="row"><code>data-scriptoscope-window-type=&quot;titled-utility-window&quot;</code></th><td>Choose a frame. The default is document-window; try titled-utility-window for a palette or dialog for a dialog.</td></tr>
@@ -87,7 +92,7 @@
       <p class="site-section-label">03 / CONFIGURE THE RUNTIME</p>
       <h2 id="options-title">A small set of options.</h2>
       <p>Pass these JavaScript options to <code>mountDeclarative()</code>. Replace the starter’s article with the desktop markup below, then replace its mount call with these options. This adds a theme selector, shares its selection in the URL, and remembers window layout.</p>
-<div class="site-code-example"><div class="site-code-bar"><span>desktop markup</span><button type="button" data-copy-snippet="install-switcher" aria-label="Copy desktop markup">Copy</button></div><pre id="install-switcher" tabindex="0">&lt;main id=&quot;desktop&quot;&gt;
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Desktop markup" data-example-compact-title="Desktop" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>desktop markup</span><button type="button" data-copy-snippet="install-switcher" aria-label="Copy desktop markup">Copy</button></div><pre id="install-switcher" tabindex="0">&lt;main id=&quot;desktop&quot;&gt;
   &lt;select id=&quot;scheme&quot; data-scriptoscope-theme-switcher
           data-scriptoscope-control=&quot;off&quot; aria-label=&quot;Choose a scheme&quot;&gt;
   &lt;/select&gt;
@@ -95,7 +100,7 @@
            data-scriptoscope-title=&quot;Notes&quot;&gt;
     My notes stay real HTML.
   &lt;/article&gt;
-&lt;/main&gt;</pre></div><div class="site-code-example"><div class="site-code-bar"><span>mount options</span><button type="button" data-copy-snippet="install-options" aria-label="Copy mount options">Copy</button></div><pre id="install-options" tabindex="0" data-install-default>// Replace the mount call in the starter with this setup.
+&lt;/main&gt;</pre></div></div><div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Mount options" data-example-compact-title="Options" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>mount options</span><button type="button" data-copy-snippet="install-options" aria-label="Copy mount options">Copy</button></div><pre id="install-options" tabindex="0" data-install-default>// Replace the mount call in the starter with this setup.
 const themes = await fetch(&#x27;https://khawkins98.github.io/scriptoscope/themes-manifest.json&#x27;)
   .then(response =&gt; {
     if (!response.ok) throw new Error(&#x27;Could not load the theme catalog&#x27;);
@@ -116,7 +121,7 @@ const handle = await mountDeclarative({
   themes,
   syncToUrlParam: &#x27;theme&#x27;,
   persistKey: &#x27;my-desktop&#x27;,
-});</pre></div>
+});</pre></div></div>
       <div class="site-reference-wrap"><table class="site-reference"><caption>Common mount options</caption><thead><tr><th scope="col">Option</th><th scope="col">Purpose</th></tr></thead><tbody><tr><th scope="row"><code>root</code></th><td>The element to scan; defaults to document. Scope it to your app or desktop to leave surrounding navigation untouched.</td></tr>
 <tr><th scope="row"><code>themeBaseUrl</code></th><td>Where the bundled theme directories live. Each slug resolves underneath this URL.</td></tr>
 <tr><th scope="row"><code>pageThemeDefault</code></th><td>The starting scheme slug or theme bundle URL, used where no element overrides it.</td></tr>
@@ -132,7 +137,7 @@ const handle = await mountDeclarative({
       <p><a href="./showcase.html#bring-your-own">Try a file in the showcase →</a></p>
       <h3>Let visitors pick or drop a file.</h3>
       <p>This is another complete page. It mounts a window, decodes a selected file, registers it with the runtime, and applies it to the page.</p>
-<div class="site-code-example"><div class="site-code-bar"><span>complete custom-theme starter</span><button type="button" data-copy-snippet="install-byo-snippet" aria-label="Copy complete custom-theme starter">Copy</button></div><pre id="install-byo-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Complete custom-theme starter" data-example-compact-title="Your scheme" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>complete custom-theme starter</span><button type="button" data-copy-snippet="install-byo-snippet" aria-label="Copy complete custom-theme starter">Copy</button></div><pre id="install-byo-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
 &lt;article data-scriptoscope-window data-scriptoscope-title=&quot;Your page&quot;&gt;
   &lt;p&gt;Pick a scheme to change this window.&lt;/p&gt;
 &lt;/article&gt;
@@ -160,10 +165,10 @@ const handle = await mountDeclarative({
       }
     },
   });
-&lt;/script&gt;</pre></div>
+&lt;/script&gt;</pre></div></div>
       <h3>Or serve a scheme from your own site.</h3>
       <p>Keep the starter’s <code>handle</code> and add this in the same module. Host the archive at the example path, or change the URL to match your files. Cross-origin hosts must allow your page to fetch the file.</p>
-<div class="site-code-example"><div class="site-code-bar"><span>hosted scheme</span><button type="button" data-copy-snippet="install-self-hosted" aria-label="Copy hosted scheme">Copy</button></div><pre id="install-self-hosted" tabindex="0">// In the starter&#x27;s module, import this alongside mountDeclarative:
+<div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Hosted scheme" data-example-compact-title="Hosted scheme" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>hosted scheme</span><button type="button" data-copy-snippet="install-self-hosted" aria-label="Copy hosted scheme">Copy</button></div><pre id="install-self-hosted" tabindex="0">// In the starter&#x27;s module, import this alongside mountDeclarative:
 import { loadKaleidoscopeScheme } from &#x27;https://khawkins98.github.io/scriptoscope/scriptoscope.js&#x27;;
 
 // After creating handle, load an archive from your own site:
@@ -171,7 +176,7 @@ const theme = await loadKaleidoscopeScheme(
   new URL(&#x27;./themes/My Scheme.sit&#x27;, location.href).href,
 );
 handle.registerTheme(&#x27;my-scheme&#x27;, theme);
-await handle.retheme(&#x27;my-scheme&#x27;);</pre></div>
+await handle.retheme(&#x27;my-scheme&#x27;);</pre></div></div>
       <p class="site-install-aside">A local picked file is a temporary preview. To use it after reload, serve it from your site and load it again. Retain the scheme author’s credits and original terms when sharing a theme.</p>
       <p>Find preserved schemes at <a href="https://macthemes.garden/">Mac Themes Garden</a> and the <a href="https://kaleidoscope.hryjksn.com/">Kaleidoscope Scheme Archive</a>. For a deployed site, you can also <a href="https://github.com/khawkins98/scriptoscope#vendoring-if-you-dont-want-a-third-party-cdn-dependency">self-host the runtime and its decoder assets</a>.</p>
     </section>
