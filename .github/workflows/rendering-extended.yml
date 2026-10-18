@@ -32,6 +32,13 @@ jobs:
       - run: npm run build:themes
       - run: npm run test:rendering:extended
       - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extended-rendering-observations-${{ github.run_attempt }}
+          path: test-results/rendering-evidence/
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: extended-rendering-${{ github.run_attempt }}

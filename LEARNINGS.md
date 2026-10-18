@@ -3519,3 +3519,23 @@ Launch every requested engine in global setup before the matrix. A focused
 Firefox workflow rerun can establish previously missing coverage without rerunning
 the successful Chromium extended cases first. No assertion or tolerance changes
 are justified by a browser launch failure.
+
+### 2026-10-18 — Preserve observations without promoting them into expectations
+
+Successful browser coverage attachments disappeared from CI because only failed
+runs uploaded their reports. Persist compact execution records separately from
+Playwright's cleaned per-run output directory, then upload them unconditionally.
+This also preserves contract evidence when a subsequent golden run replaces the
+test-results directory. Observed null output and dimensions are diagnostic facts,
+not independent proof of source availability or correct geometry. Keep their
+interpretation explicit alongside reviewed image limits.
+
+GitHub container checkouts can reject `git rev-parse` under Git's ownership guard.
+Use the workflow's trusted commit SHA for capture provenance; local runs can keep
+using Git. No repository-wide safety exception is necessary.
+
+An exact repeat proves deterministic capture, not that verification rejects bad
+expectations. The reviewed golden workflow separately removes the manifest/image
+and mutates one opaque pixel, checks the actual failure reason, proves verification
+did not rewrite expectations, restores their exact hashes, then verifies again.
+Keep the capture commit distinct from the later seed and CI-activation commits.

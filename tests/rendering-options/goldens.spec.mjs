@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
-// Explicit opt-in until Linux captures have been visually reviewed and committed.
+// Linux golden verification is a separate CI command beside browser contracts.
 // Verification never creates a missing baseline. Update produces candidates only.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { test, expect, openHarness, attachCase } from './fixtures.mjs';
+import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { goldenCasePages } from './golden-cases.mjs';
 const directory = new URL('./goldens/', import.meta.url);
 const manifestPath = new URL('manifest.json', directory);
@@ -14,6 +14,12 @@ const update = process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1';
 // and consumer DOM together. This is reviewed sampling, not exhaustive fidelity.
 const pages = goldenCasePages();
 const caseDigest = createHash('sha256').update(JSON.stringify(pages)).digest('hex');
+const executionProvenance = {
+  gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? process.env.GITHUB_SHA ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+  bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex'),
+  stylesheetSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.css', import.meta.url))).digest('hex'),
+  packageLockSha256: createHash('sha256').update(readFileSync(new URL('../../package-lock.json', import.meta.url))).digest('hex'),
+};
 
 for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()) test(`${slug}: reviewed Linux Chromium contact sheet page${pageIndex + 1}`, async ({ page, browser, browserName, servers }, testInfo) => {
   expect(process.platform, 'goldens are pinned to Linux; use workflow-dispatch to record candidates').toBe('linux');
@@ -29,14 +35,19 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     sourceZoom: 4, labelZoom: 1, runtime: 'built-public-entry' };
   if (update) {
     mkdirSync(directory, { recursive: true });
-    const provenance = { gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-      bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex') };
-    writeFileSync(manifestPath, JSON.stringify({ environment, provenance }, null, 2)+'\n');
+    writeFileSync(manifestPath, JSON.stringify({ environment, provenance: executionProvenance }, null, 2)+'\n');
   } else {
     expect(existsSync(manifestPath), 'Missing reviewed golden manifest. Recording requires explicit update + visual review.').toBe(true);
     expect(JSON.parse(readFileSync(manifestPath)).environment, 'baseline environment/case inventory must match').toEqual(environment);
   }
   let current, result;
+  const observed = [];
+  const attachObserved = complete => attachObservations(testInfo, 'golden-pages', `${slug}-page-${pageIndex + 1}`, {
+    slug, page: pageIndex + 1, complete, operation: update ? 'record-candidates' : 'verify',
+    environment, executionProvenance,
+    interpretation: 'Statuses and dimensions describe this execution, not independent expected availability or fidelity.',
+    cases: observed,
+  });
   await openHarness(page, servers, 'built');
   const actualInputs = await page.evaluate(() => window.controlMatrix.ready);
   expect(actualInputs.sourceZoom).toBe(environment.sourceZoom);
@@ -45,6 +56,9 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     for (const c of cases) {
       current = c;
       result = await page.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug, retain: true, includeReferences: false }), { c, slug });
+      observed.push({ id: c.id, family: c.family, mode: c.mode, options: c.options, status: result.status,
+        renderPath: result.renderPath, canvases: result.canvases.map(({ width, height, opaqueBounds }) => ({ width, height, opaqueBounds })),
+        controlRects: result.controls.map(({ rect }) => rect), error: result.error });
       expect(result.status, result.error ?? c.id).not.toBe('error');
     }
     // Hide transient server URLs; the cases, labels, dimensions and native DOM
@@ -53,5 +67,9 @@ for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()
     await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
       animations: 'disabled', caret: 'hide', threshold: 0, maxDiffPixels: 0,
     });
-  } catch (error) { await attachCase(page, testInfo, { slug, current, result, environment }, error); throw error; }
+    await attachObserved(true);
+  } catch (error) {
+    await attachObserved(false).catch(() => {});
+    await attachCase(page, testInfo, { slug, current, result, environment }, error); throw error;
+  }
 });

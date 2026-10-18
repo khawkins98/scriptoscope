@@ -78,6 +78,20 @@ jobs:
       - name: Rendering option contracts (bounded corpus matrix)
         run: npm run test:rendering
 
+      - name: Reviewed rendering goldens (exact Linux comparison)
+        run: npm run test:rendering:goldens
+
+      - name: Upload compact rendering observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-observations-${{ github.run_attempt }}
+          path: |
+            test-results/rendering-evidence/
+            tests/rendering-options/goldens/manifest.json
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Upload rendering failure evidence
         if: failure()
         uses: actions/upload-artifact@v4

@@ -1,6 +1,16 @@
 name: Record rendering golden candidates
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Record unreviewed candidates or verify committed images only
+        type: choice
+        options: [record, verify]
+        default: record
+      negative_probes:
+        description: Prove missing files and one changed pixel fail ordinary verification
+        type: boolean
+        default: false
 # This uploads candidates for visual review. It never commits or approves them.
 concurrency:
   group: rendering-golden-candidates-${{ github.ref }}
@@ -8,6 +18,10 @@ concurrency:
 jobs:
   record:
     runs-on: ubuntu-24.04
+    env:
+      # Container Git ownership can differ from checkout's user. The triggering
+      # commit is authoritative provenance and needs no Git safety exception.
+      SCRIPTOSCOPE_GIT_COMMIT: ${{ github.sha }}
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       options: --ipc=host
@@ -21,15 +35,100 @@ jobs:
       - run: npm ci
       - run: npm run build:themes
       - run: npm run test:rendering:goldens:update
+        if: inputs.mode != 'verify'
       # A fresh ordinary verification proves repeatability; candidates still
       # need visual/source review before anyone commits or enables them.
       - run: npm run test:rendering:goldens
+      - name: Prove verification rejects missing files and one changed pixel
+        if: inputs.negative_probes
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest=tests/rendering-options/goldens/manifest.json
+          expected=tests/rendering-options/goldens/windows-95-page-1.png
+          probe_backup=$(mktemp -d)
+          cp "$manifest" "$probe_backup/manifest.json"
+          cp "$expected" "$probe_backup/expected.png"
+          trap 'cp "$probe_backup/manifest.json" "$manifest"; cp "$probe_backup/expected.png" "$expected"; rm -rf "$probe_backup"' EXIT
+          mkdir -p test-results/rendering-negative
+          sha256sum "$manifest" "$expected" > test-results/rendering-negative/original.sha256
+          verify_sheet() {
+            SCRIPTOSCOPE_RENDERING_GOLDENS=1 npx playwright test -c tests/rendering-options/playwright.config.mjs \
+              --grep 'windows-95: reviewed Linux Chromium contact sheet page1' --reporter=line --output="test-results/rendering-negative/$1"
+          }
+          require_failure() {
+            if verify_sheet "$1" > "test-results/rendering-negative/$1.log" 2>&1; then
+              echo "Expected $1 to fail ordinary verification"; exit 1
+            fi
+            grep -F "$2" "test-results/rendering-negative/$1.log"
+          }
+          rm "$manifest"
+          require_failure missing-manifest 'Missing reviewed golden manifest'
+          test ! -e "$manifest"
+          cp "$probe_backup/manifest.json" "$manifest"
+          rm "$expected"
+          require_failure missing-png "A snapshot doesn't exist"
+          test ! -e "$expected"
+          cp "$probe_backup/expected.png" "$expected"
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { chromium } from '@playwright/test';
+          const file = 'tests/rendering-options/goldens/windows-95-page-1.png';
+          const browser = await chromium.launch();
+          try {
+            const page = await browser.newPage();
+            const result = await page.evaluate(async data => {
+              const img = new Image(); img.src = data; await img.decode();
+              const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height;
+              const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+              const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height), original = pixels.data.slice();
+              let changed = -1;
+              for (let y = 1; y < canvas.height - 1 && changed < 0; y++) for (let x = 1; x < canvas.width - 1; x++) {
+                const i = (y * canvas.width + x) * 4;
+                if (original[i + 3] !== 255) continue;
+                const flat = [-4, 4, -canvas.width * 4, canvas.width * 4].every(offset =>
+                  [0, 1, 2, 3].every(channel => original[i + offset + channel] === original[i + channel]));
+                if (!flat) continue;
+                for (let channel = 0; channel < 3; channel++) pixels.data[i + channel] = 255 - original[i + channel];
+                changed = i; break;
+              }
+              if (changed < 0) throw new Error('No opaque flat pixel available for mutation');
+              let differences = 0;
+              for (let i = 0; i < original.length; i += 4) if ([0, 1, 2, 3].some(c => original[i + c] !== pixels.data[i + c])) differences++;
+              if (differences !== 1) throw new Error(`Expected exactly one changed pixel, got ${differences}`);
+              ctx.putImageData(pixels, 0, 0);
+              return { png: canvas.toDataURL(), pixelIndex: changed / 4, differences };
+            }, `data:image/png;base64,${readFileSync(file).toString('base64')}`);
+            writeFileSync(file, Buffer.from(result.png.split(',')[1], 'base64'));
+            writeFileSync('test-results/rendering-negative/mutation.json', JSON.stringify({ pixelIndex: result.pixelIndex, differences: result.differences }));
+          } finally { await browser.close(); }
+          NODE
+          sha256sum "$expected" > test-results/rendering-negative/mutated.sha256
+          require_failure one-pixel 'pixels (ratio'
+          sha256sum -c test-results/rendering-negative/mutated.sha256
+          cp "$probe_backup/expected.png" "$expected"
+          sha256sum -c test-results/rendering-negative/original.sha256
+          verify_sheet restored > test-results/rendering-negative/restored.log 2>&1
+          sha256sum -c test-results/rendering-negative/original.sha256
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.negative_probes
+        with:
+          name: rendering-negative-verification-proof
+          path: test-results/rendering-negative/
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unreviewed-rendering-golden-candidates
           path: |
             tests/rendering-options/goldens/
+            test-results/rendering-evidence/
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: rendering-golden-candidate-failure-evidence
+          path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
           retention-days: 14
