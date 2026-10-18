@@ -13,7 +13,7 @@ import type { WindowType, WindowCinf, Rect, EdgeStep } from './types.js';
 //      segment loop starts at index 1 (kdef §0x4a64), so the leading
 //      `[0, border[0])` region is the fixed CORNER, drawn 1:1.
 //   2. CLASSIFY each cell by part code (jump table kdef §0x49d6 + §0x5178).
-//   3. DISTRIBUTE slack EVENLY across the stretch cells, split symmetrically
+//   3. DISTRIBUTE the primary shares and tile-rounding remainder, split symmetrically
 //      about the title so the centred title stays centred (kdef §0x5178 ×2).
 //   4. BLIT: code 18 = ONE scaled CopyBits (kdef §0x10320); everything else
 //      TILES the src cell across the dst (kdef §0xfeae — always tiles; there is
@@ -98,21 +98,23 @@ function partCode(slug: string): number {
 /**
  * How a cell's part code is classified, mirroring the kDEF's `0x5178` width
  * pass (see kdef231-reference.md §4.2 — verified against `kdef231_decomp.c`):
- *   - 'grow'     budget participant; gets an even share of the slack (8/11/13/14)
+ *   - 'grow'     primary budget participant (8/11)
  *   - 'tile'     budget participant rounded to a whole src multiple (12)
- *   - 'scale'    budget participant drawn as ONE scaled CopyBits (18)
+ *   - 'scale'    primary participant drawn as ONE scaled CopyBits (18)
+ *   - 'remainder' receives only the leftover pixels after tile rounding (13/14)
  *   - 'fixed'    holds its src width, drawn 1:1
  *   - 'collapse' title bezel (5/6): src width when the title fits, else 0
  *   - 'zero'     COLLAPSES to width 0, draws nothing
  */
-type CellClass = 'fixed' | 'grow' | 'tile' | 'scale' | 'collapse' | 'zero';
+type CellClass = 'fixed' | 'grow' | 'tile' | 'scale' | 'remainder' | 'collapse' | 'zero';
 
 /**
  * Part-code classification — the decoded 2.3.1 width pass (`0x5178`), which
  * splits into THREE groups (NOT a simple fixed/stretch binary):
  *
  *   GROWERS — get a share of the slack budget:
- *     8, 11, 13, 14 → 'grow'  (even share; 13/14 a smaller remainder-only share)
+ *     8, 11        → 'grow'  (primary share plus rounding remainder)
+ *     13, 14        → 'remainder' (rounding remainder ONLY)
  *     12            → 'tile'  (share rounded down to a whole src multiple)
  *     18            → 'scale' (share, drawn as one scaled CopyBits)
  *
@@ -148,9 +150,10 @@ function classifyPart(code: number, widgetPresent: boolean): CellClass {
   switch (code) {
     case 8:
     case 11:
+      return 'grow';
     case 13:
     case 14:
-      return 'grow';
+      return 'remainder';
     case 12:
       return 'tile';
     case 18:
@@ -349,48 +352,55 @@ function recipeCells(recipe: EdgeStep[], _axisMax: number, widgetPresent: boolea
 }
 
 /**
- * Distribute the growth slack EVENLY across the stretch cells of one half,
- * remainder spread left-to-right — the kDEF `0x5178` budget pass. Returns the
- * per-cell DST width for the given index range `[lo, hi)`.
+ * Allocate one half's nonnegative width budget using the two-pass kDEF 0x5178
+ * model. The caller at 0x4b3e counts ONLY 8/11/12/18 in the primary divisor;
+ * 13/14 receive rounding remainder, not a full share.
  *
- * budget = (dst extent of the half) − Σ(fixed/collapse/scale src widths)
- * each stretch cell gets floor(budget/numStretch), first `budget%numStretch`
- * cells get +1. Tile cells round their share down to a whole src multiple.
+ * First pass (0x51b4..0x523e): compute the primary share, collect the unused
+ * whole-tile fractions, and count remainder recipients (8/11/13/14/18).
+ * Second pass (0x5260..0x532e): tiles truncate to whole source multiples;
+ * other recipients take trunc(remainder / remainingRecipients), with a full
+ * primary share added only for 8/11/18. Updating both values after each cell
+ * puts indivisible extra pixels toward the END of the walk, not the start.
+ *
+ * Below the fixed-art minimum we retain the existing clipping policy: fixed
+ * cells keep their widths and flexible cells get zero. This does not emulate
+ * the kDEF's separate small-window/widget/title-fit negotiation.
  */
 function distributeHalf(cells: RawCell[], lo: number, hi: number, dstExtent: number): number[] {
-  const out: number[] = [];
   let fixedSum = 0;
-  let numStretch = 0;
+  let primaryCount = 0;
+  let recipients = 0;
   for (let i = lo; i < hi; i++) {
-    const c = cells[i]!;
-    const w = c.x1 - c.x0;
-    if (c.cls === 'grow' || c.cls === 'tile' || c.cls === 'scale') numStretch++;
-    else if (c.cls === 'zero') { /* collapses to 0 — neither fixed nor a grower */ }
-    else fixedSum += w; // fixed + collapse hold their src width
+    const cls = cells[i]!.cls;
+    if (cls === 'grow' || cls === 'tile' || cls === 'scale') primaryCount++;
+    if (cls === 'grow' || cls === 'scale' || cls === 'remainder') recipients++;
+    if (cls === 'fixed' || cls === 'collapse') fixedSum += cells[i]!.x1 - cells[i]!.x0;
   }
-  // collapse cells (title bezel) hold src width here; the title-fits gate is
-  // assumed (the renderer only ever sizes wider than the cicn template).
-  let budget = dstExtent - fixedSum;
-  if (budget < 0) budget = 0;
-  const share = numStretch > 0 ? Math.floor(budget / numStretch) : 0;
-  let rem = numStretch > 0 ? budget % numStretch : 0;
+  const budget = Math.max(0, dstExtent - fixedSum);
+  const share = primaryCount > 0 ? Math.trunc(budget / primaryCount) : 0;
+  // With no primary growers the binary skips its first pass (0x51a4); a
+  // remainder-only cell cannot turn an otherwise fixed edge into a grower.
+  let remainder = primaryCount > 0 ? budget - share * primaryCount : 0;
   for (let i = lo; i < hi; i++) {
     const c = cells[i]!;
     const w = c.x1 - c.x0;
-    if (c.cls === 'grow' || c.cls === 'scale') {
-      let cw = share + (rem > 0 ? 1 : 0);
-      if (rem > 0) rem--;
-      out.push(cw);
-    } else if (c.cls === 'tile') {
-      // round to a whole multiple of the src cell width so the tile lands clean
-      let cw = share + (rem > 0 ? 1 : 0);
-      if (rem > 0) rem--;
-      if (w > 0) cw = Math.max(w, Math.round(cw / w) * w);
-      out.push(cw);
-    } else if (c.cls === 'zero') {
-      out.push(0); // collapses — yields its span to the growers / the widget
+    if (c.cls === 'tile' && w > 0) remainder += share - Math.trunc(share / w) * w;
+  }
+
+  const out: number[] = [];
+  for (let i = lo; i < hi; i++) {
+    const c = cells[i]!;
+    const w = c.x1 - c.x0;
+    if (c.cls === 'tile') {
+      out.push(w > 0 ? Math.trunc(share / w) * w : 0);
+    } else if (c.cls === 'grow' || c.cls === 'scale' || c.cls === 'remainder') {
+      const extra = recipients > 0 ? Math.trunc(remainder / recipients) : 0;
+      remainder -= extra;
+      recipients--;
+      out.push((c.cls === 'remainder' ? 0 : share) + extra);
     } else {
-      out.push(w); // fixed / collapse keep their src width
+      out.push(c.cls === 'zero' ? 0 : w);
     }
   }
   return out;
@@ -450,9 +460,9 @@ function distributeSide(cells: RawCell[], outExtent: number, srcStart: number, t
     for (let i = lo; i < hi; i++) {
       const c = cells[i]!;
       // `src` is the half's natural (un-grown) width — what it occupies when it
-      // has no grower. A 'zero' (collapsed) cell yields its span, so it adds 0;
-      // otherwise the cell holds its src width.
-      if (c.cls !== 'zero') src += c.x1 - c.x0;
+      // has no primary grower. Collapsed and remainder-only cells then take
+      // zero width; the latter receive pixels only from primary rounding.
+      if (c.cls !== 'zero' && c.cls !== 'remainder') src += c.x1 - c.x0;
       if (c.cls === 'grow' || c.cls === 'tile' || c.cls === 'scale') nStretch++;
     }
     return { src, nStretch };
@@ -766,7 +776,7 @@ export function composeWindowChrome(
   // code 18 scales; bezels and collapsed (zero-width) cells report 'collapse';
   // the rest are fixed.
   const modeOf = (cls: CellClass): SliceMode =>
-    cls === 'tile' || cls === 'grow' ? 'tile'
+    cls === 'tile' || cls === 'grow' || cls === 'remainder' ? 'tile'
       : cls === 'scale' ? 'scale'
       : cls === 'collapse' || cls === 'zero' ? 'collapse'
       : 'fixed';

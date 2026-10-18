@@ -598,7 +598,10 @@ The width-assignment loop (`0x5260`-`0x534a`):
 So **codes 5/6** (title bezel) are FIXED when the title fits (`flag`=`fp@(-290)`
 title-fits, pushed at `0x5100`/`0x5120`) and **collapse to 0** when it doesn't —
 they never grow. Budget = `slack = (srcBorder[end]−srcBorder[start-1]) − reqWidth`
-(`0x518a`); distribution is EVEN across stretch cells, remainder L→R; symmetric
+(`0x518a`); the primary divisor counts only 8/11/12/18 (`0x4b3e`), while 8/11/13/14/18
+share the division and whole-tile remainder. Each remainder share is truncated
+against the number of recipients still to visit, so extra pixels accumulate at
+the END of the walk (3/3/4 for a budget of 10 and three ordinary growers); symmetric
 about the title because `0x4a64` calls `0x5178` twice (per half, split at the
 title anchor).
 
