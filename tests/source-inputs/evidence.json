@@ -1,0 +1,3324 @@
+{
+  "schemaVersion": 1,
+  "status": "unreviewed-independent-tool-observations",
+  "tools": {
+    "lsar": {
+      "version": "v1.10.7",
+      "binarySha256": "25e40929fe75088db52bc20b8376d2e7d1d88fb808539fe9ae61e3466f7be252"
+    },
+    "unar": {
+      "version": "v1.10.7",
+      "binarySha256": "088e447a9fa8ab818768e7e9f48d6a7666f6a2f32c2ecc508f9904b4654adcd0"
+    }
+  },
+  "rows": [
+    {
+      "slug": "1138",
+      "sourceSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "sourceByteLength": 724796,
+      "kind": "standalone-input",
+      "content": {
+        "resourceTypes": {
+          "vers": 2,
+          "ics8": 82,
+          "ics#": 82,
+          "cicn": 223,
+          "icl8": 72,
+          "icl4": 72,
+          "ICN#": 73,
+          "PICT": 2,
+          "Colr": 1,
+          "TMPL": 3,
+          "DLOG": 1,
+          "DITL": 1,
+          "ppat": 11,
+          "wnd#": 13,
+          "crsr": 4,
+          "cinf": 69,
+          "snd ": 2,
+          "STR#": 1,
+          "clut": 3,
+          "ics4": 82,
+          "hfdr": 1,
+          "STR ": 2,
+          "icns": 74
+        },
+        "identityStrings": [
+          {
+            "type": "vers",
+            "signedId": 1,
+            "payloadSha256": "55aa8d4d999369b4e1fc4db745d1082147b50331c66511f83117d276cee627de",
+            "strings": [
+              "2.0.1",
+              "1138 v2.0.1 ©1998 Erik Ekengren"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 2,
+            "payloadSha256": "9323fdd05c631c1a4deba7c5b4ee3f1c8c7e39ef59567e7b161a2c34b9a767d4",
+            "strings": [
+              "2.0.0",
+              "Kaleidoscope 2.0.0"
+            ]
+          },
+          {
+            "type": "STR#",
+            "signedId": -14320,
+            "payloadSha256": "93c513d509df0bde3c1db89caa649029dcc3f670e5d2ca949f8eb73461680198",
+            "strings": [
+              "1138",
+              "..."
+            ]
+          },
+          {
+            "type": "STR ",
+            "signedId": -16397,
+            "payloadSha256": "2b47a184dd01a68c95dcd7dd69d38a77feb81cfced3b9f0b014e73cb812190b6",
+            "strings": [
+              "This is a colour scheme for Kaleidoscope.\r\rTrying to use it without Kaleidoscope won't work very well."
+            ]
+          },
+          {
+            "type": "STR ",
+            "signedId": -4060,
+            "payloadSha256": "2787dd3a0a186123ba6afa36705e01b4a58a3e73af84237b3213e55cd985c798",
+            "strings": [
+              "This is a colour scheme for Kaleidoscope.\r\rWhite, gray and black all put together into a scheme for your enjoyment.\rNo robots were injured during the creation of this scheme."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "slug": "1984",
+      "sourceSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "sourceByteLength": 476921,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0.4082969
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "1984 ƒ",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "1984 ƒ/1984",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 1165494,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+          "extractedByteLength": 1165494,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "cicn": 196,
+              "actb": 1,
+              "PICT": 2,
+              "clut": 3,
+              "DLOG": 1,
+              "ppat": 20,
+              "snd ": 2,
+              "DITL": 1,
+              "cinf": 66,
+              "STR#": 1,
+              "wnd#": 10,
+              "crsr": 4,
+              "TMPL": 3,
+              "dctb": 1,
+              "icl8": 87,
+              "ICN#": 87,
+              "icns": 88,
+              "ics#": 85,
+              "ics8": 85,
+              "Colr": 1,
+              "icl4": 46,
+              "ics4": 46
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "caa26691934b2d035df83aa9d6e2fa94e2c1657e0138e25e3023a1dbe180037f",
+                "strings": [
+                  "2.0",
+                  "Big Blue is Watching..."
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "9100c9f99dda1743c9395dd1159b6036c3ba62d4abd8d60f702a3138bd059047",
+                "strings": [
+                  "2.0",
+                  "2.0  ©1996-99 Geoffrey Hamilton"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "aae2f7be339505cf27ade08aaecfd0f67f212479d8270a5c8e54614cf8880a36",
+                "strings": [
+                  "By Geoffrey Hamilton",
+                  "\rhttp://www.netcom.com/~vagrant\remail: vagrant@ix.netcom.com",
+                  "http://pw2.netcom.com/~vagrant"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "1984 ƒ/Extras: Contact",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 3,
+          "name": "1984 ƒ/Extras: Contact/1984 Desktop Picture.jpg",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "JPEG",
+          "creator": "8BIM",
+          "byteLength": 7178,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fda06b467cab93e7628be22f5882c5258ea972e58945776bb8cd6035daa998d3",
+          "extractedByteLength": 7178
+        },
+        {
+          "lsarIndex": 4,
+          "name": "1984 ƒ/Extras: Contact/1984 Desktop Picture.jpg",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "JPEG",
+          "creator": "8BIM",
+          "byteLength": 100781,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 5,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 6,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Bondi Blue iMac",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 10081,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b6e5d5266e05f421cb4ee83042044f4e24e1faab40302b79a5906b7d4226177b",
+          "extractedByteLength": 10081
+        },
+        {
+          "lsarIndex": 7,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Cecil's File Cabinet",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 8163,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "5959fbea2b347ee7d285264e1922deec1c8c167e20c869f1853a999c8bffa471",
+          "extractedByteLength": 8163
+        },
+        {
+          "lsarIndex": 8,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Classic CPU",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 9329,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "541bd2bbcccadc2092f73276a0ee005e26701471df61b308f11bb1e68efd10d8",
+          "extractedByteLength": 9329
+        },
+        {
+          "lsarIndex": 9,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Desktop CPU",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 9414,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ec74045a0545de01982f27f29c3cc4ac651f3fd9b392f7bbe76f341b0aca4c44",
+          "extractedByteLength": 9414
+        },
+        {
+          "lsarIndex": 10,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/File Drawer",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 8092,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "0cc3abfc25e47852c4dcdae52c82a3c876f3c22d107437c2df7ea1891b454972",
+          "extractedByteLength": 8092
+        },
+        {
+          "lsarIndex": 11,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Generic HD (Scheme default.)",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 6633,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "a2fb13c95891383217f10907419fa1335bb90b10ceaa7f02e8fdaf2484c7f08b",
+          "extractedByteLength": 6633
+        },
+        {
+          "lsarIndex": 12,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 9260,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ad4ba32018290da453f67bcf6094d20968187fb4cef05c1f11c695dd3569125a",
+          "extractedByteLength": 9260
+        },
+        {
+          "lsarIndex": 13,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Power",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 9117,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "61086fccfc42de95782525cded9c79660fdc8fb33fad505b498b1f4023a197e8",
+          "extractedByteLength": 9117
+        },
+        {
+          "lsarIndex": 14,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/PowerBook",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 8967,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b3712f5afd240c15cd6b7f6952b66fd2bba92ccdb2bdc3f921c1500979777943",
+          "extractedByteLength": 8967
+        },
+        {
+          "lsarIndex": 15,
+          "name": "1984 ƒ/Extras: Contact/32 bit Icon Extras/Tower",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "rsrc",
+          "creator": "RSED",
+          "byteLength": 9429,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "a266be4c478e2ba216276c9f13c539cab55bfb8fd6edf483488e1e4e64ab4965",
+          "extractedByteLength": 9429
+        },
+        {
+          "lsarIndex": 16,
+          "name": "1984 ƒ/Extras: Contact/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 9260,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b8750db85a3b68da0e3d424221df0b194c20b835bb6c7416b9804254c6beb92d",
+          "extractedByteLength": 9260
+        },
+        {
+          "lsarIndex": 17,
+          "name": "1984 ƒ/Extras: Contact/pw2.netcom.com:~vagrant",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ilht",
+          "creator": "drag",
+          "byteLength": 548,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "1d87d62ae00e73ee93efeeb0c6585f30f7f52ec77389177b6e1887af8900f791",
+          "extractedByteLength": 548
+        },
+        {
+          "lsarIndex": 18,
+          "name": "1984 ƒ/Extras: Contact/vagrant@ix.netcom.com",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ilma",
+          "creator": "drag",
+          "byteLength": 544,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "993b7c1d7dad673a2fe0e34c2a5bb7efc74418f71d76f2e0d22d2f8e5bc48f14",
+          "extractedByteLength": 544
+        },
+        {
+          "lsarIndex": 19,
+          "name": "1984 ƒ/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 9260,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "2faa3146c81cdd5af2b327d98b1a39bc4bf2db1340a0b0862be0d9c48858ba81",
+          "extractedByteLength": 9260
+        },
+        {
+          "lsarIndex": 20,
+          "name": "1984 ƒ/Readme.",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ttro",
+          "creator": "ttxt",
+          "byteLength": 10821,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "edbbfd844be69b8f74c8da772962f9d203c54369edbdac47260002c69b9d3dda",
+          "extractedByteLength": 10821
+        },
+        {
+          "lsarIndex": 21,
+          "name": "1984 ƒ/Readme.",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "ttro",
+          "creator": "ttxt",
+          "byteLength": 2413,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "eabcb07a60bc1d67955ee92a2bda5fd754319db5d99ceeb7839f392c576dbd7a",
+          "extractedByteLength": 2413
+        }
+      ],
+      "listingSha256": "f684d5979612797e9aabcac193099485d013954192d38c6d09d8aafbf2522f6e",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "1990",
+      "sourceSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "sourceByteLength": 584178,
+      "kind": "standalone-input",
+      "content": {
+        "resourceTypes": {
+          "cicn": 190,
+          "clut": 2,
+          "wnd#": 10,
+          "cinf": 91,
+          "TMPL": 3,
+          "DITL": 1,
+          "DLOG": 1,
+          "STR#": 1,
+          "snd ": 2,
+          "ppat": 7,
+          "crsr": 4,
+          "icl8": 84,
+          "ICN#": 85,
+          "ics#": 88,
+          "ics8": 87,
+          "vers": 2,
+          "PICT": 2,
+          "Colr": 1
+        },
+        "identityStrings": [
+          {
+            "type": "STR#",
+            "signedId": -14320,
+            "payloadSha256": "f36a53f079e0363f9ded9761f8f1dc91995ccd151bad63490991a483d748262e",
+            "strings": [
+              "shiocop",
+              "http://www.os.xaxon.ne.jp/~shiocop/hp/index.html"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 2,
+            "payloadSha256": "1b8bd10aca9ba3a1ad16ed9c6a5da8d803569fc296c26196e46dc7bffc5870c6",
+            "strings": [
+              "1.0",
+              "1-9-9-0"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 1,
+            "payloadSha256": "cc3e1ee286e5d3e80209ddd6fbeaa686ac25a0b733bb6c1d77c65203f81fa9f4",
+            "strings": [
+              "1.0",
+              "1-9-9-0\rby SHIOCOP\rhttp://www.os.xaaxon.ne.jp/~shiocop/hp/index.html"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "slug": "animals",
+      "sourceSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "sourceByteLength": 202349,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Animals",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Animals/animals",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 667199,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+          "extractedByteLength": 667199,
+          "content": {
+            "resourceTypes": {
+              "cicn": 188,
+              "cinf": 80,
+              "clut": 3,
+              "Colr": 1,
+              "crsr": 6,
+              "DITL": 1,
+              "DLOG": 1,
+              "icl4": 80,
+              "icl8": 81,
+              "icm#": 7,
+              "icm4": 7,
+              "icm8": 7,
+              "ICN#": 80,
+              "ics#": 79,
+              "ics4": 79,
+              "ics8": 80,
+              "PICT": 2,
+              "ppat": 6,
+              "snd ": 2,
+              "STR#": 1,
+              "TMPL": 3,
+              "vers": 2,
+              "wnd#": 12
+            },
+            "identityStrings": [
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "4ac91c152c4ce8587d83681d05e0c26947bd75f02d4672194a64f8c69a2f51cc",
+                "strings": [
+                  "Animals v1.0",
+                  "I hope you enjoy this color scheam.\rhttp://www05.u-page.so-net.ne.jp/kc4/itikawa/\rE-mail:itikawa@kc4.so-net.ne.jp"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "946a03dae4e9123d22a8da6982caf83831da8f3db20c2f34398a75848dad19fc",
+                "strings": [
+                  "1.0",
+                  "Animals1.0 ©1999 Masashi Ichikawa"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "9c030f3ecf30b799634e648fe7936d24d735a1edcf7cd9827d32bfb51220e1dd",
+                "strings": [
+                  "2.2",
+                  "Kaleidoscope 2.2"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Animals/readme",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Animals/readme/img",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Animals/readme/img/all01.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 3117,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Animals/readme/img/back.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 1512,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 6,
+          "name": "Animals/readme/img/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 486,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "81833e0221ebeb7d4983c843c61690ce84885a95cda0ba6b604f59bd8d936dcf",
+          "extractedByteLength": 486
+        },
+        {
+          "lsarIndex": 7,
+          "name": "Animals/readme/img/mouse.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 132,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 8,
+          "name": "Animals/readme/img/p01.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 570,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 9,
+          "name": "Animals/readme/img/title.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 6125,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 10,
+          "name": "Animals/readme/img/win01.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 5858,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 11,
+          "name": "Animals/readme/img/win02.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 1324,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 12,
+          "name": "Animals/readme/img/win03.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 1039,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 13,
+          "name": "Animals/readme/img/win04.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 1612,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 14,
+          "name": "Animals/readme/img/win05.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 3975,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 15,
+          "name": "Animals/readme/img/win06.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 251,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 16,
+          "name": "Animals/readme/img/win07.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 530,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 17,
+          "name": "Animals/readme/img/win08.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 1961,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 18,
+          "name": "Animals/readme/readme_e.html",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSIE",
+          "byteLength": 583,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "48514cb0697c77645cd845d7d947e80d27b850dd1aa4b961c631f62eecbf20a2",
+          "extractedByteLength": 583
+        },
+        {
+          "lsarIndex": 19,
+          "name": "Animals/readme/readme_e.html",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSIE",
+          "byteLength": 1392,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "a4d25fbe5fe47fd33cc8ad1932a60595461a68f46ada4acbbea8199564238e69",
+          "extractedByteLength": 1392
+        },
+        {
+          "lsarIndex": 20,
+          "name": "Animals/readme/readme_j.html",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSIE",
+          "byteLength": 423,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f0185bcb3264800e28cf9f8da0d2f1ab5fa491ec77337385b39b49c61e3c9c33",
+          "extractedByteLength": 423
+        },
+        {
+          "lsarIndex": 21,
+          "name": "Animals/readme/readme_j.html",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSIE",
+          "byteLength": 1417,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "7ef62c8f906b94e90ea0b8c0a2a28dbbbd336b6f6edf87dc1da039a97aecfcc8",
+          "extractedByteLength": 1417
+        }
+      ],
+      "listingSha256": "a3a007e8f6af5baa3ce7431c7be7a5c5f5686853e977591d719cb1f9d56c1878",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "apple-lisa",
+      "sourceSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "sourceByteLength": 75263,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Apple Lisa for K2.1",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Apple Lisa for K2.1/Apple Lisa for K2.1",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 390320,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+          "extractedByteLength": 390320,
+          "content": {
+            "resourceTypes": {
+              "Colr": 1,
+              "cicn": 181,
+              "vers": 2,
+              "ics8": 129,
+              "clut": 3,
+              "ppat": 16,
+              "PICT": 2,
+              "icl8": 108,
+              "crsr": 4,
+              "TMPL": 3,
+              "STR ": 1,
+              "DLOG": 1,
+              "DITL": 1,
+              "cinf": 46,
+              "icm#": 33,
+              "wnd#": 10,
+              "ICN#": 108,
+              "icl4": 108,
+              "ics4": 129,
+              "ics#": 130,
+              "icm4": 33,
+              "icm8": 33,
+              "STR#": 1
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "9f62accc7357960b7755281d6df2df02e0140a4abf4f76a7a0399785fa4d66dd",
+                "strings": [
+                  "2.1",
+                  "Apple Lisa™ - A Scheme for Kaleidoscope."
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "abf148d2012d4114a615269a2e0b0280a6b1099295702e6ba3a52a6bd6b8b456",
+                "strings": [
+                  "2.1",
+                  "Kaleidoscope 2.1"
+                ]
+              },
+              {
+                "type": "STR ",
+                "signedId": -16397,
+                "payloadSha256": "c43f6dad389910f61341accb3c7c893ff6cde88e632992c61900650b0b6358dc",
+                "strings": [
+                  "Apple Lisa requires the control panel Kaleidoscope version 2.1 or higher.\r"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "7b0fbcb3ea78a3f8904af58e5df105eb520b7ce76f62b3c0e3f98f0948a2178e",
+                "strings": [
+                  "Apple Lisa",
+                  "This scheme evokes the user interface of the Apple Lisa Office System, harbinger of Macintosh."
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Apple Lisa for K2.1/Apple Lisa for K2.1/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "\u0000\u0000\u0000\u0000",
+          "creator": "\u0000\u0000\u0000\u0000",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "885d7b85afc88e3cdd6e793ef2b72ee44bea598778e6b1352ed83bbb2896cc15",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Apple Lisa for K2.1/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "\u0000\u0000\u0000\u0000",
+          "creator": "\u0000\u0000\u0000\u0000",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "86fb35b58f180a0f3af2b5ce6d79462d548eb7c1d58f7629cf6a781ff0b83480",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Apple Lisa for K2.1/Icon View font",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 6,
+          "name": "Apple Lisa for K2.1/Icon View font/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "\u0000\u0000\u0000\u0000",
+          "creator": "\u0000\u0000\u0000\u0000",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "66f19b769e9c135f18f025c2fdb6265aee8fc748f33c3f50ef4e15754950101a",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 7,
+          "name": "Apple Lisa for K2.1/Icon View font/Icon Names 10",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ffil",
+          "creator": "movr",
+          "byteLength": 3001,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "548ad3ff4715214e3d3590096ad1a28aab56ec7daf3c620ae175f3af69257142",
+          "extractedByteLength": 3001
+        },
+        {
+          "lsarIndex": 8,
+          "name": "Apple Lisa for K2.1/Readme",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 2716,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "aa51a0cfc2f2fbb8d27c9674d9a863b893d663183f29943eb3e5c73cdff2bb27",
+          "extractedByteLength": 2716
+        },
+        {
+          "lsarIndex": 9,
+          "name": "Apple Lisa for K2.1/Readme",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 3997,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "46d13b9335b0f68298efd7960ea32e8ca8b9b0b00e495247fd3b0f4c9b6f135f",
+          "extractedByteLength": 3997
+        },
+        {
+          "lsarIndex": 10,
+          "name": "Apple Lisa for K2.1/System font",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 11,
+          "name": "Apple Lisa for K2.1/System font/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "\u0000\u0000\u0000\u0000",
+          "creator": "\u0000\u0000\u0000\u0000",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ddb01656a394fb00f4995ba392411347bb6a13c5a297a60c65d488a36368b0ed",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 12,
+          "name": "Apple Lisa for K2.1/System font/Lisa Classic 12",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ffil",
+          "creator": "movr",
+          "byteLength": 5874,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "22c6bb64d0f243e36bad4247b909c37e16c19657c2fe1cd225ed39e2c45992e1",
+          "extractedByteLength": 5874
+        }
+      ],
+      "listingSha256": "72352d17f57349c4dab03343a048c32ccaaa661f21d4eb235438a3f3385d577c",
+      "declaredForkMatches": [
+        2
+      ]
+    },
+    {
+      "slug": "apple-platinum-2",
+      "sourceSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "sourceByteLength": 81472,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Apple platinum 2",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Apple platinum 2/Apple platinum 2",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 196983,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+          "extractedByteLength": 196983,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "ics8": 54,
+              "ics#": 54,
+              "cicn": 205,
+              "dctb": 2,
+              "ics4": 54,
+              "actb": 1,
+              "icl8": 6,
+              "icl4": 6,
+              "ICN#": 6,
+              "PICT": 2,
+              "Colr": 2,
+              "clut": 2,
+              "TMPL": 1,
+              "DLOG": 1,
+              "DITL": 1,
+              "ppat": 18,
+              "cinf": 15,
+              "crsr": 4,
+              "STR#": 1
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "a054c4749f703758fb8a818a7a2aed7f7f889a84680f027dbe3e3eac457a87cd",
+                "strings": [
+                  "7.2.1",
+                  "7.2.1\r©1999 Orion Dimitrakopoulos"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "8fe5367956215b8627c79a554bddabf7afa940ac21211b312579e4e58656d07a",
+                "strings": [
+                  "2.1.1",
+                  "Kaleidoscope 2.1.1  &  MacOs 8.5"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "0e9a1847d9584fa18eaeadf641125530e26f46aa5d64e9fcb790d343f505c7ec",
+                "strings": [
+                  "",
+                  "Don't draw unnecessary borders.\rYou may be standing on the wrong side."
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Apple platinum 2/Beyond the Astral Skies...",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpt",
+          "creator": "drag",
+          "byteLength": 5098,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "c6a2bcde5d43a8a92992a8d5f40644ba52b6e9493a668af49df6b6a4ec2c75b8",
+          "extractedByteLength": 5098
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Apple platinum 2/Orion Dimitrakopoulos (e-card)",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "APPL",
+          "creator": "ECA4",
+          "byteLength": 20947,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "444f62d2b0fb6aee44aa5e5e7c47c3c3181bc55f22d93e75d2d60dfd125baa7c",
+          "extractedByteLength": 20947
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Apple platinum 2/Paste on your IN:OUT folders ",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Apple platinum 2/Paste on your IN:OUT folders /Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "7b908d92523d9358f71ec90afc7c2581ec08e254beac3b6aafca4fa31ec82767",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 6,
+          "name": "Apple platinum 2/Version Info",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpt",
+          "creator": "drag",
+          "byteLength": 2582,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "8ac487739378b91e79d2b749f6f4c9995a790f623e4c1b985d8cc6c39d35da94",
+          "extractedByteLength": 2582
+        },
+        {
+          "lsarIndex": 7,
+          "name": "Apple platinum 2/Wonderful beep !!!",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "sfil",
+          "creator": "movr",
+          "byteLength": 1536,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "55d6ba6553bbfd9b6b0fbcad420ce73cba2609a787f11573485e443e51c79d93",
+          "extractedByteLength": 1536
+        }
+      ],
+      "listingSha256": "89dccbbd6d6b1ebcd5a5acd8d24444c9be02e1676d866e76c2f194176f6ce965",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "beos-r503",
+      "sourceSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "sourceByteLength": 121497,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "BeOSr503",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "BeOSr503/BeOS R5.0.3",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 518211,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+          "extractedByteLength": 518211,
+          "content": {
+            "resourceTypes": {
+              "Colr": 1,
+              "DITL": 1,
+              "DLOG": 1,
+              "ICN#": 126,
+              "PICT": 2,
+              "STR#": 1,
+              "TMPL": 3,
+              "cicn": 247,
+              "cinf": 86,
+              "clut": 3,
+              "crsr": 4,
+              "icl4": 126,
+              "icl8": 132,
+              "icm#": 3,
+              "icm4": 3,
+              "icm8": 3,
+              "ics#": 140,
+              "ics4": 138,
+              "ics8": 160,
+              "ppat": 4,
+              "vers": 2,
+              "wnd#": 13
+            },
+            "identityStrings": [
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "479dffa990a78e832e9e26c10d0c1fddb40878c80678c5b24ea59d9d582c9967",
+                "strings": [
+                  "BeOS R5.0.3",
+                  "The most accurate BeOS scheme ever made!  As close as you can get without actually having it.",
+                  "http://www.bebits.com/"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "0a7fd9110dc8daa624e45aac9df70a589739a0ef3e61ea5d5a682e7ec9469a20",
+                "strings": [
+                  "1.1",
+                  "BeOS R5.0.3 ©2002 Jon Alexander"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "35cf58438a128bf9a05ce98ed15d576b12c4d57143ef3649f0586dde67b298f3",
+                "strings": [
+                  "2.3.1",
+                  "Kaleidoscope 2.3.1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "BeOSr503/ReadMe",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "R*ch",
+          "byteLength": 382,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "eeca9ab9d072e2faf4faa2f1f5a69f5f723e1493b742edd48f7ca398a01429fd",
+          "extractedByteLength": 382
+        },
+        {
+          "lsarIndex": 3,
+          "name": "BeOSr503/ReadMe",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "R*ch",
+          "byteLength": 816,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "48a75885b7f7be8b1713fe21b8bc3a2e148bb39e184b3476503afd2340166d75",
+          "extractedByteLength": 816
+        }
+      ],
+      "listingSha256": "65e7fefdc4a6607144f839416e6e2529a7a99a04fd60195ef15bbcdf9e7c0a5e",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "black-platinum",
+      "sourceSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "sourceByteLength": 435125,
+      "kind": "standalone-input",
+      "content": {
+        "resourceTypes": {
+          "cicn": 179,
+          "clut": 2,
+          "Colr": 2,
+          "crsr": 4,
+          "dctb": 2,
+          "DLOG": 1,
+          "icl8": 46,
+          "ICN#": 46,
+          "ics#": 93,
+          "ics8": 94,
+          "PICT": 2,
+          "ppat": 18,
+          "snd ": 2,
+          "vers": 2,
+          "icns": 44,
+          "STR#": 1,
+          "DITL": 1,
+          "actb": 1,
+          "TMPL": 3
+        },
+        "identityStrings": [
+          {
+            "type": "vers",
+            "signedId": 2,
+            "payloadSha256": "97f32274897e383da8c75873edeaf08f868de22f956bea6b7567b7344db58906",
+            "strings": [
+              "v2.x",
+              "for Kaleidoscope "
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 1,
+            "payloadSha256": "5825bd67345d71fc22a885b7ec4d51e4f3f8c2f80a1bb8beb5cc48e5cc18feff",
+            "strings": [
+              "v1.01",
+              "v1.01©1999  Daisuke Yamashita"
+            ]
+          },
+          {
+            "type": "STR#",
+            "signedId": -14320,
+            "payloadSha256": "4f366ba799dd4f0dc635903df17bb15640fb2a761833f4c811e7418c66651c5c",
+            "strings": [
+              "Black Platinum v1.01",
+              "©1999 Daisuke Yamashita\rdsk@pop07.odn.ne.jp"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "slug": "crayon-os",
+      "sourceSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "sourceByteLength": 515058,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Crayon OS Folder",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Crayon OS Folder/Crayon OS",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 1575180,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+          "extractedByteLength": 1575180,
+          "content": {
+            "resourceTypes": {
+              "cicn": 173,
+              "Colr": 1,
+              "TMPL": 3,
+              "ppat": 19,
+              "wnd#": 11,
+              "cinf": 67,
+              "crsr": 4,
+              "STR#": 1,
+              "actb": 1,
+              "dctb": 1,
+              "ics4": 4,
+              "ics#": 76,
+              "ics8": 76,
+              "clut": 2,
+              "icns": 77,
+              "vers": 2,
+              "PICT": 2,
+              "DLOG": 1,
+              "DITL": 1,
+              "icl8": 74,
+              "ICN#": 74,
+              "icl4": 1
+            },
+            "identityStrings": [
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "fb316eda9e992c6a54dd21a92230c94a0109eec5ae565a86018ff19f0f4becd6",
+                "strings": [
+                  "Crayon OS",
+                  "1.1 © 2000 by Karl von Laudermann",
+                  "http://www.geocities.com/~karlvonl/Software.html#KaleidoscopeSchemes"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "c351aed14893788f4d57cdcfede89c83aabcc5a93c37b1ddf7b2a77c3419d5be",
+                "strings": [
+                  "1.1",
+                  "1.1 ©2000 by Karl von Laudermann"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "82432285dcf71543ef1e945fa56ecb80539bf330ba59b9946ee3472ccfa53309",
+                "strings": [
+                  "1.1",
+                  "1.1 for Kaleidoscope 2.2"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Crayon OS Folder/Crayon OS - Read Me",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "ttro",
+          "creator": "ttxt",
+          "byteLength": 672,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "cd148d81eead11975a10b3ec99cb2b3b26d774984e0c7c9edf2ba93448cacb14",
+          "extractedByteLength": 672
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Crayon OS Folder/Crayon OS - Read Me",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "ttro",
+          "creator": "ttxt",
+          "byteLength": 3334,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "91d13ca4fac50b4603b2b254a4ac15bc6d7782b555da5667daf3d66ff7361c1d",
+          "extractedByteLength": 3334
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Crayon OS Folder/Crayon OS Desktop",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpp",
+          "creator": "drag",
+          "byteLength": 50336,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "9b257a8874f1e29ee725a295cfedd6fe378956d7eec91a18b8c4ae6c70920679",
+          "extractedByteLength": 50336
+        }
+      ],
+      "listingSha256": "c3c9ea1f54587ee9703f21523a2b4274b6a2d7d94832d096f87a9063b7f72ba8",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "dolphin-som",
+      "sourceSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "sourceByteLength": 437325,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "dsom",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t\t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "32e6d3135cb0cbc3cd2446b57e23c61810ae05ccd9af92df22d50dff0b0d94eb",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 2,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t\t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fdf9e6fdf2c908cbbd9d1705f12e972dbf43c96bb6f75bcb22d9d7ef0123b63e",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 3,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t\t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "41b550c9b50ff3c22e21b9f31f2e5ec32a3dc96934fc4d4aebee27487c5a283d",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 4,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "03104a6399e949a60cf55171eb2d2870c934b35057121ae24346a38c21e69aaf",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 5,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ea619a11f002c0c68cf80fbe625ea3279830bbc60d15b2f0c7d0dac7d300f71d",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 6,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t  \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f638404f8dc824afa6798f1e43541c89a0bc116cea3cdb5723771366f51c4beb",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 7,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t\t   ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "709b0a2aa2c7735528f959b4242451a12cbd7fd08bcf2c966e11042c53977839",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 8,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t \t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "25e66a498778a3362753275b13121b14927487576c66130fac0749ca24a5581a",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 9,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t \t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "61735008b9a0f767444d343c636e2ee855325ea22c0d4b175d07581c77023b1d",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 10,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t \t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "9261ee70ae4fc6e70852f248e6745165aae783f9a6f1c7d80f9abf1b77a4629e",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 11,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t \t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "cf7bef8e091cf204320ec50193ea5cde5d772c8a679ae5439f40ca3ca1f68690",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 12,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t  \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b12e8ca126eff6a8ccf48f10b83ef80daef181bde4d4985642657336ec8a8b11",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 13,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t  \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b2d3826994b127e65a79e41da55ed0f2910aa1f07f1a700d559f2c91bd5363fb",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 14,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t   \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f1c0296e4c5cd78b94f2a5d37f28ef5247f0592d36a629e4321f12e4ae1459ed",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 15,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t\t    ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b304f68deb84e2e334d9b11e70a2a7ad33ec4ce9a15f6e776c4cb4418b6e00b1",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 16,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t\t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "661b265f6953db25243c75f4558b35b899b9b8f84dfd46a899979e669ae80ad6",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 17,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t\t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "add48caedbd4e0e459c2c26289314edbccc8b8a8b79020dc3fbabf21f7b84839",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 18,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t\t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "6dc91715fa8f1bb85a39a0429d64e8b5880b91631cdeb141265c0b18adc46ea0",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 19,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t\t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ace5dd8b3a780c0eadecf9ac2aec5102bf18a38ffcbe51727a18954469d0aebd",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 20,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "08a2ae9193bd76d9c90f80ebfe86b11cf400ba7d2c32d55ed25c063002d75d75",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 21,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "46cd1768e7c0642b30a3f5b1e0bcf29f52fc9ba9ce94a5e46d99999db13edb59",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 22,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t  \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "bf22eb754b0e536821b01949e301790dd26775b9a9e3d7184ff125c30ca1ec02",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 23,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t \t   ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "e57e1a8f9d7f9c16df23772c69942d5db196444a515c20e70a49878f14b70ce9",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 24,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t  \t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "51435a12d8bb511379d8f4499c6204c4e872f3b384d4a4728468a2d5676987d8",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 25,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t  \t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "553e3237e9fc49026245b847c8d4caf2c28548fced8762a9b350f407c8b6de6e",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 26,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t  \t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "9d8e8aada25e75ea8ab6c04048b63a2757cae97fc6dd31e9ab353f82d2f46678",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 27,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t  \t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "94d881907eb968e635eaf026222eb774be607c989cf756a1d07413ca631b48b5",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 28,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t   \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "63bbefcb08e9054d8ebc888fca8325acd3da26b0f76df2b485b2cf4be0818710",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 29,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t   \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fd7f61f7a945076a9a30ed55f577857c1f4f9721085a811288cb63d1142040c1",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 30,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t    \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "223760eab77f5ae95bf2678d48bdb64de372e052f737b4cca949529942648188",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 31,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t\t     ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f82c08656ce0f594ec3ee6a92234462bcb6ed2edfefc13d912dc01805fbaa885",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 32,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t\t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fc3703dde68bde331078f1d04f236c1492f45a0b435d76db1598971caf0b7ca6",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 33,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t\t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "e0322116838e5e8a0943da111545b3826c04aad6a6abc871bf8bd819e766cce3",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 34,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t\t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "80680774c91a2d968eacc9ddc5c436c7f12ca9761d9c96b640b4a576572d9f0b",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 35,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t\t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "23c2b8e77d0da3aa2e414d7f76ed22d2b8cbd49533bff2a8bd2aca18f17d9fac",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 36,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ed2022a9d7f30662e4b8e3d4e69354834039ccb898997f7a802c945cf8abd80c",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 37,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "460a8592dbd6177349c2310b7bbc6eb6a04c3a1d1efb4b2e7dcb32cf936ebc8b",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 38,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t  \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "a16a9fcd51adb8937ee40e3d5996ac1aef7a88a3a20c4d19509ce6469df4aef8",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 39,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t\t   ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f5bab676d86aa95f307413fa1c4d4f7b7f04500f162c79fe9c6330b30e10d43a",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 40,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t \t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "c8fc0e62d11ed49d4081b82fc41fc540f175b5a4ffac90cba064710f3ccd75f2",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 41,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t \t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b22fdebf9d6b7aaab4903d80a9895aedc86d286c2f94aaa7bf65ed8fc14bd300",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 42,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t \t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "1229e6278b89986cf1e2417fbfb00a9f2c39c6e05d4e2dbaab076f08dec0e10b",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 43,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t \t  ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "07a0fe31bf45cb06dd3c499ff92f4dd04cbf25e308bbb53621cefdc864ffd464",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 44,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t  \t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "e0b1a2dc3295f5afa23b6a2b033dda8854bebd8a689fe5ca6766e961808779cc",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 45,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t  \t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "77641a141401a725858903417774e9fbccbc80d65c506e8d5694cb7b6c9985bd",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 46,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t   \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "d6056cf6c94e239ae00e74759b75c55efc0ec166b6e947b81717fb41523e3fe1",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 47,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t \t    ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ae9c2accaf869219e41de475b4b38e883e53fb98e2a2bf122e54316169f1468a",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 48,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t  \t\t\t\t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "a5e86d9b89e2f3a0d2c9c7ad8b2a84e67f0268624f3748869d1a67a42aeb9082",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 49,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t  \t\t\t ",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "7b52159a061d24effbe684153bc1453834122ed70f370e221b060a9f00110f8d",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 50,
+          "name": "dsom/\t\t\t\t\t\t\t\t\t  \t\t \t",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ToyS",
+          "byteLength": 10126,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "15645225046a9d78b5c50fd84cd112891c661d80f2646da8fd0574480a9f3557",
+          "extractedByteLength": 10126
+        },
+        {
+          "lsarIndex": 51,
+          "name": "dsom/dsom",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 787998,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+          "extractedByteLength": 787998,
+          "content": {
+            "resourceTypes": {
+              "cicn": 190,
+              "clut": 2,
+              "wnd#": 10,
+              "cinf": 91,
+              "TMPL": 3,
+              "DITL": 1,
+              "DLOG": 1,
+              "STR#": 1,
+              "ppat": 2,
+              "crsr": 4,
+              "icl8": 84,
+              "ICN#": 85,
+              "ics#": 88,
+              "ics8": 87,
+              "vers": 2,
+              "PICT": 2,
+              "Colr": 1,
+              "snd ": 2
+            },
+            "identityStrings": [
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "a56fcdaf6f2c04bb8e15952851647d3da5bc6144c3820b6d24c44de701db94d7",
+                "strings": [
+                  "MACSOM/ACCEPTYOURSELF",
+                  "http://www.os.xaxon.ne.jp/~shiocop/hp/index.html"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "e3700c9fdaf2ab68f784884507f663a7235b137f115091959f2b32d10028a1ea",
+                "strings": [
+                  "1.0",
+                  "DOLPHIN S.O.M"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "4bc492ec1c1c723eec88cc664d27397c306f6d6c43f1acb6960a37ad3b7b5afb",
+                "strings": [
+                  "1.0",
+                  "DOLPHIN S.O.M\rby SHIOCOP\rhttp://www.os.xaaxon.ne.jp/~shiocop/hp/index.html"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "listingSha256": "73620d4e28df8d66ae01b01f32403038c5216a6d9d4a4deb0c223c77cfbed92e",
+      "declaredForkMatches": [
+        51
+      ]
+    },
+    {
+      "slug": "evolution",
+      "sourceSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "sourceByteLength": 1650192,
+      "kind": "standalone-input",
+      "content": {
+        "resourceTypes": {
+          "cicn": 190,
+          "clut": 2,
+          "wnd#": 10,
+          "cinf": 91,
+          "TMPL": 3,
+          "DITL": 1,
+          "DLOG": 1,
+          "STR#": 1,
+          "snd ": 2,
+          "ppat": 4,
+          "crsr": 4,
+          "icl8": 84,
+          "ICN#": 84,
+          "ics#": 88,
+          "ics8": 87,
+          "vers": 2,
+          "PICT": 2,
+          "icns": 85,
+          "icl4": 84,
+          "ics4": 85,
+          "Colr": 1
+        },
+        "identityStrings": [
+          {
+            "type": "STR#",
+            "signedId": -14320,
+            "payloadSha256": "a56fcdaf6f2c04bb8e15952851647d3da5bc6144c3820b6d24c44de701db94d7",
+            "strings": [
+              "MACSOM/ACCEPTYOURSELF",
+              "http://www.os.xaxon.ne.jp/~shiocop/hp/index.html"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 2,
+            "payloadSha256": "2973b27574d0a836e6e8118e499e907391470ae9ded8b8d0e5838b59063bd806",
+            "strings": [
+              "1.0",
+              "1-9-9-1"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 1,
+            "payloadSha256": "29187a1901afeeef24d5f6b24706eb38266ff6052eceff3de077478ecca1ef06",
+            "strings": [
+              "1.0",
+              "1-9-9-1 evolution\rby SHIOCOP\rhttp://www.os.xaaxon.ne.jp/~shiocop/hp/index.html"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "slug": "floppies",
+      "sourceSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "sourceByteLength": 461286,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0.5
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Floppies! ƒ",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Floppies! ƒ/Floppies!",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 1393335,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+          "extractedByteLength": 1393335,
+          "content": {
+            "resourceTypes": {
+              "cicn": 225,
+              "vers": 2,
+              "clut": 2,
+              "Colr": 2,
+              "dctb": 2,
+              "DITL": 1,
+              "DLOG": 1,
+              "ics#": 145,
+              "ics4": 145,
+              "ics8": 145,
+              "PICT": 3,
+              "cinf": 73,
+              "wnd#": 12,
+              "TMPL": 3,
+              "icl4": 93,
+              "icl8": 93,
+              "ICN#": 93,
+              "ppat": 12,
+              "icns": 100,
+              "STR#": 1,
+              "crsr": 4,
+              "snd ": 2
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "b17414dca6ef08b3f7d4f53ab49d43aa1d7d566a94d1951adb534ebb5f92a938",
+                "strings": [
+                  "1.0",
+                  "Floppies! v1.0\rby Robert Davis - 9.28.99"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "8af85843501644c56af872c87ed3b627b4b9753a5d9b785f1922c94e13a59a15",
+                "strings": [
+                  "1.0",
+                  "Kaleidoscope 2.2"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "262c21893a82ad196a5ab24a5456b6e7527748fafd2c012a93979c1a46a78bb8",
+                "strings": [
+                  "Floppies!",
+                  "...also known as roof shingles, floor tiles, coasters, party favors, ninja death stars..."
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Floppies! ƒ/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 5121,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "3805ec96b1ed06ad772ce52ba38c70cb7575fad89e4f807fcdd56df54e51acdc",
+          "extractedByteLength": 5121
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Floppies! ƒ/in MY day...",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "PICT",
+          "creator": "ttxt",
+          "byteLength": 5260,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "369ab6ef58ad3ac560e58ad0b161fd61bde89c7d04f033266c26bda443f63f57",
+          "extractedByteLength": 5260
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Floppies! ƒ/in MY day...",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "PICT",
+          "creator": "ttxt",
+          "byteLength": 103618,
+          "compression": "LZ+Huffman"
+        }
+      ],
+      "listingSha256": "f2b76f91732692efb5fe7248b2017e641823a5a51edd63eb7dcf4f8c32560bae",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "monkey-paradise",
+      "sourceSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "sourceByteLength": 241823,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "MonkeyParadise",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "MonkeyParadise/MonkeyParadise",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 493616,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+          "extractedByteLength": 493616,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "ics8": 49,
+              "ics#": 49,
+              "cicn": 142,
+              "ics4": 49,
+              "PICT": 2,
+              "Colr": 1,
+              "clut": 3,
+              "ICN#": 56,
+              "icl8": 57,
+              "icl4": 48,
+              "ppat": 6,
+              "wnd#": 9,
+              "cinf": 63,
+              "TMPL": 3,
+              "crsr": 5,
+              "STR#": 1,
+              "DLOG": 1,
+              "DITL": 1,
+              "icm#": 7,
+              "icm4": 7,
+              "icm8": 7,
+              "snd ": 2
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "7f3968f5d86bf394db81be916790f348a96fe242d8d1cc9fb459c30a83863765",
+                "strings": [
+                  "1.0",
+                  "MonkeyParadise 1.0 ©1998 Masashi Ichikawa"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "6adac6d5d1420c9c05c1d6d311b4e203ea881db3c3385c07c754138c7399d9e3",
+                "strings": [
+                  "2.1.1",
+                  "Kaleidoscope 2.1.1"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "899bd26e71de0fc66fb9ac19c5753b360646061bbb236ac2f574d58a69b71866",
+                "strings": [
+                  "Monkey Paradise v1.0",
+                  "I hope you enjoy this color scheam.\ritikawa@rcp.co.jp"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 2,
+          "name": "MonkeyParadise/MonkeyParadise",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 717,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 3,
+          "name": "MonkeyParadise/README",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 4,
+          "name": "MonkeyParadise/README/back.gif",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 4037,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fdcefcda1e73d3d7c7cd22b3d622eb7e861307368328d43e70440345836000c6",
+          "extractedByteLength": 4037
+        },
+        {
+          "lsarIndex": 5,
+          "name": "MonkeyParadise/README/back.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 339,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 6,
+          "name": "MonkeyParadise/README/ReadMe.html",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "YoED",
+          "byteLength": 4078,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f4b7e1804088497cf8966e463625f3ddab0b333f509fef33642b007747e3cb7c",
+          "extractedByteLength": 4078
+        },
+        {
+          "lsarIndex": 7,
+          "name": "MonkeyParadise/README/ReadMe.html",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "YoED",
+          "byteLength": 906,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "fbb4e801f21fc28151d7f5eac4de5a89e89249630c5ecd2c5f468963ada5e7b4",
+          "extractedByteLength": 906
+        },
+        {
+          "lsarIndex": 8,
+          "name": "MonkeyParadise/README/ReadMe1.gif",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 4037,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "775f885708f189b5cad6316e8d8dc8f5b6b5b33b6c9043ec4c8584f1427d63c7",
+          "extractedByteLength": 4037
+        },
+        {
+          "lsarIndex": 9,
+          "name": "MonkeyParadise/README/ReadMe1.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 29255,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 10,
+          "name": "MonkeyParadise/README/santa.gif",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 4037,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "5683893e76efb4a8a018cbadd58836122a214fa7b6b46245292bae9dee5889b5",
+          "extractedByteLength": 4037
+        },
+        {
+          "lsarIndex": 11,
+          "name": "MonkeyParadise/README/santa.gif",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "GIFf",
+          "creator": "8BIM",
+          "byteLength": 378,
+          "compression": "None"
+        },
+        {
+          "lsarIndex": 12,
+          "name": "MonkeyParadise/README/Xmas.jpg",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "JPEG",
+          "creator": "8BIM",
+          "byteLength": 9554,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "b912d4f34070bcd45c191d1780bb144080fc5a384d29db2f2164cbe93a5606ef",
+          "extractedByteLength": 9554
+        },
+        {
+          "lsarIndex": 13,
+          "name": "MonkeyParadise/README/Xmas.jpg",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "JPEG",
+          "creator": "8BIM",
+          "byteLength": 9251,
+          "compression": "LZ+Huffman"
+        }
+      ],
+      "listingSha256": "3e9b361acfefebd362bf7b60d3b8e3e25dd648115318af603fd06c0a38187d3f",
+      "declaredForkMatches": [
+        1
+      ]
+    },
+    {
+      "slug": "platinum-8",
+      "sourceSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "sourceByteLength": 31363,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Platinum 8 Folder",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Platinum 8 Folder/pattern 1 clipping",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpp",
+          "creator": "drag",
+          "byteLength": 610,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "395a9d282a375d8d1690cf647d34ffa68de3d1b8670be0869c3658986e240af9",
+          "extractedByteLength": 610
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Platinum 8 Folder/pattern 2 clipping",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpp",
+          "creator": "drag",
+          "byteLength": 10242,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "63f102654d9fb4efba7f4bec027702b13637bab411cac3f32415692cbca6bc58",
+          "extractedByteLength": 10242
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Platinum 8 Folder/Platinum 8",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 137280,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+          "extractedByteLength": 137280,
+          "content": {
+            "resourceTypes": {
+              "cicn": 98,
+              "clut": 2,
+              "Colr": 2,
+              "dctb": 2,
+              "ics#": 48,
+              "ics4": 48,
+              "ics8": 49,
+              "ppat": 4,
+              "vers": 2,
+              "PICT": 3,
+              "icl4": 3,
+              "ICN#": 3,
+              "icl8": 37,
+              "actb": 1,
+              "DITL": 1,
+              "DLOG": 1,
+              "TMPL": 1
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "fcb85a0ea6767a44041f75fd166af6aa6f8d0f6e6b294c735ee19cb35d026ba9",
+                "strings": [
+                  "1.0",
+                  "©1998 Russell Silver Jr."
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "092a91165ff217cbe0791c2a1b9c943f27849e9c024bea4f8efdfe3432792242",
+                "strings": [
+                  "1.0",
+                  "newgallus@aol.com"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Platinum 8 Folder/scheme.txt",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSWK",
+          "byteLength": 326,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "d5e8f3d333bc87d7e6679a0e3a5858508c541f0737b1c6d7684f81e27e3a3348",
+          "extractedByteLength": 326
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Platinum 8 Folder/scheme.txt",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "MSWK",
+          "byteLength": 526,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "15ad708a504c9257c813a1f2caa75578c7e029b72f59c1a3ce6968c1cbd3bd86",
+          "extractedByteLength": 526
+        }
+      ],
+      "listingSha256": "22239523519ecac7bf7f517c6d6b2aada9a2f03792b26de9c086bec398efb1eb",
+      "declaredForkMatches": [
+        3
+      ]
+    },
+    {
+      "slug": "slimes",
+      "sourceSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "sourceByteLength": 59206,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "slimes.1.5",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "slimes.1.5/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "980c1ab8ac3db3b48a77f0e01a26a5792c7aa3be872e734384fd094f7343eb70",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 2,
+          "name": "slimes.1.5/Pattern-gr",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpp",
+          "creator": "drag",
+          "byteLength": 13545,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "75617d04ac567af047188e4800168efd2175dffb2dedf8231faf3e21f00060fa",
+          "extractedByteLength": 13545
+        },
+        {
+          "lsarIndex": 3,
+          "name": "slimes.1.5/Pattern-lg",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "clpp",
+          "creator": "drag",
+          "byteLength": 19997,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "0ced177a07268fce6e1ea34886daa7e4182c600a0dd8ea2ba8dd69aa8dd16b48",
+          "extractedByteLength": 19997
+        },
+        {
+          "lsarIndex": 4,
+          "name": "slimes.1.5/Read me(E)",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 3116,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "00d7bb5e1067fa2cfdf791265b2f50f13c4e2160239106897ccdd4ca0eab02c9",
+          "extractedByteLength": 3116
+        },
+        {
+          "lsarIndex": 5,
+          "name": "slimes.1.5/Read me(E)",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 413,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "eeeff1abfbc7476a55f0dfa2526c5185d2241c05bd4cbe987ce1b074362c28f4",
+          "extractedByteLength": 413
+        },
+        {
+          "lsarIndex": 6,
+          "name": "slimes.1.5/Slime cursor",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "INIT",
+          "creator": "AnCu",
+          "byteLength": 25260,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "31318e924a2bd15050540786f11ac8b8b39727b53ff812df4798ed903b503db9",
+          "extractedByteLength": 25260
+        },
+        {
+          "lsarIndex": 7,
+          "name": "slimes.1.5/slimes1.5",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 103002,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+          "extractedByteLength": 103002,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "clut": 2,
+              "Colr": 2,
+              "dctb": 2,
+              "DITL": 1,
+              "DLOG": 1,
+              "ics#": 46,
+              "ics4": 46,
+              "ics8": 46,
+              "cicn": 53,
+              "icl8": 15,
+              "icl4": 17,
+              "ICN#": 17,
+              "actb": 1,
+              "ppat": 12,
+              "PICT": 1
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "c6720f03e910c1add03b09fbf282be99571453d4bdd60a3761cfde43909341bf",
+                "strings": [
+                  "1.0",
+                  "1.0 For Design's Studio 1.0"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "395139b8b4a4cc25530bd78ceac0cbb26ce71f7369db85d7022e1b56f1b1da4d",
+                "strings": [
+                  "1.5",
+                  "ver.1.5 1998 Jun created"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 8,
+          "name": "slimes.1.5/zip icons",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 9,
+          "name": "slimes.1.5/zip icons/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f9f163d7e43fd31dce557b2ceaa15eb057679883d55d4aa3442382df2d0ef9bd",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 10,
+          "name": "slimes.1.5/zip icons/zip icon.1",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 11,
+          "name": "slimes.1.5/zip icons/zip icon.1/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "2b3d19fd7fc3fe146035c6f49a5819fc191df723e4454a0a6f0ca9209379c703",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 12,
+          "name": "slimes.1.5/zip icons/zip icon.2",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 13,
+          "name": "slimes.1.5/zip icons/zip icon.2/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "86cf4564ddb960f0dc7e5e8e7a4e88b70b542a09c95c6e57bd840ff9d4550cea",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 14,
+          "name": "slimes.1.5/zip icons/zip icon.3",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 15,
+          "name": "slimes.1.5/zip icons/zip icon.3/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "886146047f1f0b7d2664b21932017caca8ce55c30abf8bebaa2f81952e281332",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 16,
+          "name": "slimes.1.5/zip icons/zip icon.4",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 17,
+          "name": "slimes.1.5/zip icons/zip icon.4/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "ae725576cfa49465312e4f1d85cba64b2a3fe768b6d3389206cdd275276d5cd8",
+          "extractedByteLength": 2670
+        }
+      ],
+      "listingSha256": "eeebb502d3df8da050d340008f7a77a2c2d391697cbb1ae6d109279467466948",
+      "declaredForkMatches": [
+        7
+      ]
+    },
+    {
+      "slug": "system7-nostalgia-silver",
+      "sourceSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "sourceByteLength": 130067,
+      "kind": "standalone-input",
+      "content": {
+        "resourceTypes": {
+          "cicn": 171,
+          "clut": 20,
+          "Colr": 2,
+          "dctb": 2,
+          "icl4": 1,
+          "icl8": 1,
+          "ICN#": 1,
+          "ics#": 46,
+          "ics4": 46,
+          "ics8": 46,
+          "PICT": 2,
+          "ppat": 22,
+          "TMPL": 1,
+          "vers": 2,
+          "styl": 1,
+          "TEXT": 1,
+          "ictb": 1,
+          "actb": 1,
+          "DITL": 1,
+          "DLGX": 1,
+          "DLOG": 1
+        },
+        "identityStrings": [
+          {
+            "type": "vers",
+            "signedId": 2,
+            "payloadSha256": "40e825af211a77dd8067525cd0234043e3cda885c83cac8fdaf52d4dba0639b6",
+            "strings": [
+              "1.8",
+              "Kaleidoscope 1.8"
+            ]
+          },
+          {
+            "type": "vers",
+            "signedId": 1,
+            "payloadSha256": "b4b3530f0601d22d1049d9ed4955e7d70f1b48a0447af700b0c7fda1367b392b",
+            "strings": [
+              "1.0",
+              "System 7 Nostalgia Silver 1.0 © 1997 Sunny Honey Bunny’s Kaleidoscope Shack"
+            ]
+          },
+          {
+            "type": "TEXT",
+            "signedId": 1,
+            "payloadSha256": "6d7ca3d3c198da03acb0657ce9f5230ff8988da961b8adbb7f5fbe60c0baa491",
+            "strings": [
+              "\t\tPart Code 0:  Frame color, used for outlining objects\r\t\tPart Code 1:  Fill color, used as the background\r\t\tPart Code 2:\t Text color\r\t\tPart Code 3:\t Light tinge, used inside frames on the top and left\r\t\tPart Code 4:\t Dark tinge, used inside frames on the bottom and right\r\t\tPart Code 5:\t Light bevel color, used for dividers and group boxes\r\t\tPart Code 6:\t Dark bevel color, used for dividers and group boxes\r"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "slug": "windows-31",
+      "sourceSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "sourceByteLength": 73915,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Windows 3.1",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Windows 3.1/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "14deaaea73985614f64983e1ef948b64903b203fe962e99640890f8ae398fecb",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Windows 3.1/Windows 3.1",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 390327,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+          "extractedByteLength": 390327,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "ics8": 113,
+              "ics#": 113,
+              "cicn": 229,
+              "ics4": 113,
+              "PICT": 1,
+              "Colr": 1,
+              "clut": 2,
+              "ICN#": 106,
+              "icl8": 106,
+              "icl4": 106,
+              "ppat": 11,
+              "TMPL": 3,
+              "wnd#": 9,
+              "cinf": 96,
+              "DITL": 1,
+              "DLOG": 1,
+              "crsr": 4,
+              "STR#": 1,
+              "icm#": 23,
+              "icm4": 23,
+              "icm8": 23
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "f3a236ed94b7ae290fb6fdef8ef5edcd9be9aea30b450336b0e0d0af6627f29e",
+                "strings": [
+                  "1.0",
+                  "1.0 © 1998 Scott Naness"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "ec78d131930714b4677d071c382a70567fb5ec176f5bde3c8c018df8cd16c011",
+                "strings": [
+                  "1.0",
+                  "Scheme for Kaleidoscope 2.x"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "2178a96e0e1a14a3db3eb53715ce881dbb83fcbeebffaff6784bcfaf9a0339d8",
+                "strings": [
+                  "Windows 3.1",
+                  "This scheme makes your Mac resemble the Windows 3.1 Operating System from Microsoft.  "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Windows 3.1/Windows 3.1",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 66,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Windows 3.1/Windows 3.1 Read Me",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 5036,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "db7ffa6723aa4fbe3e7d17973a90b6d799a9325ef5d6ac9aa3e45e8d99d274d9",
+          "extractedByteLength": 5036
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Windows 3.1/Windows 3.1 Read Me",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 2516,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "9cadec368d885e9b88ed7ba7ca3129dff7fb17cf2dcf4f9009d4152494a7f5ff",
+          "extractedByteLength": 2516
+        }
+      ],
+      "listingSha256": "a5b5441632ae71843e5be2d8f757166b1f6e95cbb37e8782b2918ea0bc5ee985",
+      "declaredForkMatches": [
+        2
+      ]
+    },
+    {
+      "slug": "windows-95",
+      "sourceSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+      "sourceByteLength": 78087,
+      "kind": "archive-input",
+      "format": "StuffIt",
+      "filenameEncoding": {
+        "name": "macintosh",
+        "confidence": 0
+      },
+      "entries": [
+        {
+          "lsarIndex": 0,
+          "name": "Windows 95",
+          "resourceFork": false,
+          "directory": true,
+          "fileType": null,
+          "creator": null,
+          "byteLength": null,
+          "compression": null
+        },
+        {
+          "lsarIndex": 1,
+          "name": "Windows 95/Icon\r",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "icon",
+          "creator": "MACS",
+          "byteLength": 2670,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "f98ba3de557bb80cff5aa520aa54c789807c4ca9a87d7d2107c90a8231adb092",
+          "extractedByteLength": 2670
+        },
+        {
+          "lsarIndex": 2,
+          "name": "Windows 95/Windows 95",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 424716,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+          "extractedByteLength": 424716,
+          "content": {
+            "resourceTypes": {
+              "vers": 2,
+              "ics8": 116,
+              "ics#": 116,
+              "cicn": 245,
+              "PICT": 1,
+              "Colr": 1,
+              "clut": 2,
+              "ICN#": 107,
+              "icl8": 107,
+              "ppat": 26,
+              "TMPL": 3,
+              "wnd#": 9,
+              "cinf": 99,
+              "DITL": 1,
+              "DLOG": 1,
+              "crsr": 4,
+              "STR#": 1,
+              "icl4": 107,
+              "ics4": 116,
+              "icm8": 23,
+              "icm#": 23,
+              "icm4": 21,
+              "icns": 8
+            },
+            "identityStrings": [
+              {
+                "type": "vers",
+                "signedId": 1,
+                "payloadSha256": "243bf8753ee70bbf4883b53101e06fb3ec925a985f4c3bf6915eb6277e5484ec",
+                "strings": [
+                  "2.0",
+                  "2.0 © 1998 Scott Naness"
+                ]
+              },
+              {
+                "type": "vers",
+                "signedId": 2,
+                "payloadSha256": "a81a05d2efe62892c3bc96bc0c73aa0e084e2995f2a4cb9e1e88b03e2bf3fb29",
+                "strings": [
+                  "2.0",
+                  "Scheme for Kaleidoscope 2.x"
+                ]
+              },
+              {
+                "type": "STR#",
+                "signedId": -14320,
+                "payloadSha256": "6cea7f23881d52da2c0da9bae86c1abb4ac86c130d5a352c6a0f4cf621b1e9fc",
+                "strings": [
+                  "Windows 95",
+                  "This color scheme makes your Mac visually resemble the Windows 95 Operating System from Microsoft.  "
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "lsarIndex": 3,
+          "name": "Windows 95/Windows 95",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "Colr",
+          "creator": "Acid",
+          "byteLength": 65,
+          "compression": "LZ+Huffman"
+        },
+        {
+          "lsarIndex": 4,
+          "name": "Windows 95/Windows 95 Read Me",
+          "resourceFork": true,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 5036,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "db7ffa6723aa4fbe3e7d17973a90b6d799a9325ef5d6ac9aa3e45e8d99d274d9",
+          "extractedByteLength": 5036
+        },
+        {
+          "lsarIndex": 5,
+          "name": "Windows 95/Windows 95 Read Me",
+          "resourceFork": false,
+          "directory": false,
+          "fileType": "TEXT",
+          "creator": "ttxt",
+          "byteLength": 2105,
+          "compression": "LZ+Huffman",
+          "extractedSha256": "647c9a92668d34ddd3bd937fc182488f155bb9cf34d5a231c2976c570c7ec1e3",
+          "extractedByteLength": 2105
+        }
+      ],
+      "listingSha256": "5a76449fe119a4adb69e82ef5008c7cf3aac62c8f7f1235997d0d197415e06f4",
+      "declaredForkMatches": [
+        2
+      ]
+    }
+  ],
+  "limits": [
+    "Independent output agreement is not general decoder certification.",
+    "No original engine or Resource Manager policy executes or is inferred.",
+    "Raw wrapping history and filename-codec uncertainty remain unverified."
+  ]
+}
