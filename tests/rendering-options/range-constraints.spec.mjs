@@ -151,7 +151,7 @@ for (const mode of ['source', 'built']) {
       // CSS scaling makes the 75%-travel center an integer client coordinate,
       // including Firefox, without deriving expectations from runtime layout.
       await page.addStyleTag({ content: '#themed + .scriptoscope-slider canvas { width:480px!important; }' });
-      const rect = await page.locator('.scriptoscope-slider canvas').boundingBox();
+      const rect = await page.evaluate(() => { const r = document.querySelector('.scriptoscope-slider canvas').getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2);
       await expect(page.locator('#themed')).toHaveValue('0');
       await page.mouse.click(rect.x + (11 / 2 + 0.75 * (120 - 11)) * 4, rect.y + rect.height / 2);

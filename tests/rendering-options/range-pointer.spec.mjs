@@ -136,9 +136,34 @@ for (const mode of ['source', 'built']) {
           for (const [startValue, direction, endValue] of [[0, 1, '100'], [100, -1, '0']]) {
             await setValue(page, { value: String(startValue) }); const box = await rect(page), travel = 120 - extent;
             const x = box.x + (Math.round(startValue / 100 * travel) + extent / 2) * box.width / 120, y = box.y + box.height / 2;
-            await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + direction * travel * box.width / 120, y); await page.mouse.up();
+            // Exact full travel at 1x/2x; the short CSS surface deliberately
+            // overshoots for clamping because integer browser coordinates can
+            // otherwise shorten a fractional requested endpoint displacement.
+            const distance = cssWidth === 32 ? 120 : travel;
+            await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + direction * distance * box.width / 120, y); await page.mouse.up();
+            const movedPixels = await page.evaluate(({ width }) => { const s = window.pointerFixture.pointerSamples; return Math.abs(s.at(-1).x - s.find(e => e.type === 'pointerdown').x) * 120 / width; }, { width: box.width });
+            if (cssWidth === 32) expect(movedPixels).toBeGreaterThanOrEqual(travel);
+            else expect(movedPixels).toBe(travel);
             const result = await read(page); expect(result.value).toBe(endValue); expect(result.events.map(e => e.type)).toEqual(['input', 'change']);
           }
+        }
+        // Firefox retains lexical values such as "025". A real tiny drag
+        // inside the same step must preserve that spelling and emit no events.
+        await page.addStyleTag({ content: '#pointer-root canvas { width:2400px!important; }' });
+        for (const attrs of [{ value: '025' }, { min: '0', max: '1', step: '.01', value: '0.250' }]) {
+          const current = await setValue(page, attrs), box = await rect(page);
+          const x = box.x + (Math.round(current.normalized * (120 - extent)) + 1) * 20;
+          const y = box.y + box.height / 2;
+          await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + 1, y); await page.mouse.up();
+          expect(await read(page), `${kind}/lexical ${current.exact}`).toEqual({ value: current.exact, events: [] });
+          // Return into the same step bucket at a DIFFERENT coordinate after
+          // a genuine numeric excursion: retain the original string, no commit.
+          await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + 100, y);
+          expect(Number((await read(page)).value)).toBeGreaterThan(Number(current.exact));
+          await page.mouse.move(x + 1, y); await page.mouse.up();
+          expect(await read(page)).toEqual({ value: current.exact, events: [
+            expect.objectContaining({ type: 'input' }), { type: 'input', value: current.exact },
+          ] });
         }
         // Native browser step/base rules own quantization after geometric travel.
         await page.addStyleTag({ content: '#pointer-root canvas { width:120px!important; }' });

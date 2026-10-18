@@ -3751,3 +3751,9 @@ API or scrollbar mapping. Tests use independently known authored/engineered
 thumb extents, actual browser event coordinates for fractional CSS scaling, and
 a held pressed decode to challenge the atomic canvas/layout commit. This proves
 our interaction geometry agrees with our rendering, not historical kDEF layout.
+
+Firefox may retain a lexical range value such as `025` while `valueAsNumber`
+canonicalizes it to `25` even when step sanitization leaves the same number.
+Native pointer input/commit comparisons therefore use numeric values and retain
+the current spelling for unchanged values, including the original spelling when
+a drag returns to its starting step bucket.

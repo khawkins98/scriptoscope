@@ -469,7 +469,7 @@ async function buildDraggable(
   const update = (position: number, exact?: string): void => {
     if (!live() || disabled()) return;
     if (native) {
-      const input = native.input, before = input.value;
+      const input = native.input, before = input.value, beforeNumber = input.valueAsNumber;
       const { min, max } = nativeRangeBounds(input);
       // The native setter applies min/max, fractional step and step-base rules.
       const span = max - min;
@@ -477,8 +477,13 @@ async function buildDraggable(
         if (input.value !== exact) input.value = exact;
       } else input.valueAsNumber = Number.isFinite(span) ? min + position * span
         : (1 - position) * min + position * max;
+      // Firefox can retain lexical values such as "025". A setter that
+      // sanitizes back to the same number must not manufacture an input event
+      // (or a later commit) solely by canonicalizing that string.
+      if (input.valueAsNumber === beforeNumber && input.value !== before) input.value = before;
+      else if (nativeDrag && input.valueAsNumber === Number(nativeDrag.exact)) input.value = nativeDrag.exact;
       value = nativeRangeValue(input);
-      if (input.value !== before) input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      if (input.valueAsNumber !== beforeNumber) input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
     } else { value = position; onChange?.(value); }
   };
   const onMove = (e: PointerEvent): void => {
@@ -499,7 +504,7 @@ async function buildDraggable(
     dragging = false;
     nativeDrag = null;
     stopDrag();
-    if (native && live() && !disabled() && native.input.value !== dragStart) {
+    if (native && live() && !disabled() && native.input.valueAsNumber !== Number(dragStart)) {
       native.input.dispatchEvent(new Event('change', { bubbles: true }));
     }
     void repaint();
