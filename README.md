@@ -61,7 +61,7 @@ Scriptoscope is a hobby project — there's no npm package. The runtime + the 18
 </script>
 ```
 
-If you'd prefer to vendor it (no third-party CDN dependency), grab `dist/scriptoscope.js` (~220 KB raw / 66 KB gzip), `dist/scriptoscope.css` (~13 KB / 5 KB gzip), and the `themes/` directory from this repo, and host them yourself.
+If you'd prefer to vendor it (no third-party CDN dependency), copy every top-level `dist/*.js` file (including lazy decoder chunks), `dist/scriptoscope.css`, the `sit-wasm/` assets, and the `themes/` directory from a matching build, and host them yourself.
 
 ## Five-minute setup
 
@@ -318,11 +318,11 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 
 | URL | What |
 |---|---|
-| `https://khawkins98.github.io/scriptoscope/scriptoscope.js` | Runtime (ESM, ~220 KB raw / 66 KB gzip — includes the in-browser `.sit`/`.rsrc` decoder) |
-| `https://khawkins98.github.io/scriptoscope/scriptoscope.css` | Optional outer-shell stylesheet (~13 KB raw / 5 KB gzip) |
+| `https://khawkins98.github.io/scriptoscope/scriptoscope.js` | Runtime ESM entry; imports a sibling lazy decoder chunk for `.sit` sources |
+| `https://khawkins98.github.io/scriptoscope/scriptoscope.css` | Optional outer-shell stylesheet |
 | `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
 | `https://khawkins98.github.io/scriptoscope/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
-| `https://khawkins98.github.io/scriptoscope/sit-wasm/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
+| `https://khawkins98.github.io/scriptoscope/sit-wasm/dist/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
 
 > **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
 
@@ -330,7 +330,7 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 
 There's no npm package. If you'd rather not pin your site to this repo's GitHub Pages, vendor the files into your own build:
 
-1. Grab `dist/scriptoscope.js` (~220 KB raw / 66 KB gzip), `dist/scriptoscope.css` (~13 KB / 5 KB gzip), and the `themes/` directory from this repo.
+1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and the deployed `sit-wasm/` and `themes/` directories from `dist/demo/`. Keep the JavaScript files beside each other so relative lazy imports resolve.
 2. Host them alongside your site.
 3. Point `themeBaseUrl` at wherever you put `themes/`.
 
@@ -371,7 +371,7 @@ const win = await renderWindow(theme, {
 document.body.appendChild(win);
 ```
 
-`loadTheme` races `scheme.sit` → `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
+`loadTheme` tries `scheme.sit` first, then falls back to `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
 
 ```ts
 const theme = await loadTheme('/themes/1990', { source: 'scheme.rsrc' });

@@ -1559,7 +1559,7 @@ answer needs the recipe AND the pixels AND the content size.
 
 ## 2026-05-21 — Detect, don't override: the fill-code set + mini-window resolution
 
-> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The `code ≥ 5` fill set, the widget-carving (clean-background-over-rect) + second stamping pass, and the `{5,6,8,18}` set are all retired: v3 classifies each cell by the 2.3.1 jump table, corners are intrinsic, and widgets ride the fixed cells they sit in (no carve/stamp pass). The mini/utility-window "resolve by chrome cicn asset name, not type key" finding still holds.
+> ⚠️ Partly superseded by the v3 part-code compositor (2026-05-22). See docs/history.md → "Dead ends". The `code ≥ 5` fill set, the widget-carving (clean-background-over-rect) + second stamping pass, and the `{5,6,8,18}` set are all retired: v3 classifies each cell by the 2.3.1 jump table, corners are intrinsic, and widgets ride the fixed cells they sit in (no carve/stamp pass). The mini/utility-window asset-name advice is also superseded by **2026-10-18 — Window aliases must survive opaque asset URLs**: use decoded canonical wnd# keys and structured author labels.
 
 Two more "general detection, not per-theme overrides" wins, both from reading
 the K2 vocabulary instead of hand-patching.
@@ -2663,6 +2663,8 @@ The 3-layer defense matters: each individual mechanism has browser/version gaps;
 **Generalisable lesson.** When skin/render state is derived from a form control's `.checked`, never trust it on boot. Always read the state from a source of truth you OWN (URL, dataset attribute, application state object), and force the form control to match. Visible labels must follow the same rule — derive from the source-of-truth at update time, never set-once-then-forgotten.
 
 ## 2026-05-30 — Mobile perf audit: 6.7MB of theme archives loading on first paint for icons users hadn't looked at
+
+> **Partly superseded 2026-10-18** by “Picker attribution is not a complete provenance sidecar” and “Picker previews should decode icons, not whole themes” below. Display labels omit license/origin and cannot replace meta.json; folder previews now use selective decoding. The measurements below describe the historical implementation.
 
 **The symptom.** Owner reported the landing page had performance issues loading on mobile and asked for runtime-slotting focus (the .sit decompression cost being a known constraint they'd already accepted). Dispatched a network/runtime perf reviewer with a Playwright harness emulating Pixel 5 + Fast 3G (1.6 Mbps / 562ms RTT) + CPU 4× throttle. First-window-painted measured at ~8300ms; time-to-interactive at ~38 seconds.
 

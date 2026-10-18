@@ -104,7 +104,7 @@ img-src    'self' https://khawkins98.github.io blob: data:;
 connect-src 'self' https://khawkins98.github.io blob:;
 ```
 
-**Strict-CSP escape hatch**: if you can't allow `wasm-unsafe-eval`, ship your themes as `scheme.rsrc` (the raw resource fork) instead of `scheme.sit`. The `.rsrc` path skips the WASM decoder entirely. The bundled themes folder ships both; the runtime races `.sit` → `.rsrc` and uses whichever resolves.
+**Strict-CSP escape hatch**: if you can't allow `wasm-unsafe-eval`, ship your themes as `scheme.rsrc` (the raw resource fork) instead of `scheme.sit`. The `.rsrc` path skips the WASM decoder entirely. Pass `{ source: 'scheme.rsrc' }` to `loadTheme` (or set the catalog entry's `source`) to select it directly. Bundled themes generally ship one source format; a raw-fork alternative is not guaranteed. Without a source hint, the runtime tries `.sit` first and then `.rsrc`.
 
 ## Controlling which widgets do something: `data-scriptoscope-widgets`
 
