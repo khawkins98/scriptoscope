@@ -7,6 +7,67 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added (2026-10-18)
+
+- Explicit `ThemeEntry.meta` support for catalogs carrying a complete provenance
+  sidecar; picker display labels no longer substitute for origin/license metadata.
+  ([#198](https://github.com/khawkins98/scriptoscope/pull/198))
+- Idempotent `ThemeResolver.dispose()` and mount-owned resource cleanup. Registered
+  themes and their base chains remain caller-owned.
+  ([#202](https://github.com/khawkins98/scriptoscope/pull/202))
+
+### Changed (2026-10-18)
+
+- Background theme-picker previews decode only folder icons instead of complete
+  schemes, reducing conversion work and asset allocation while retaining the
+  source archives and icon fallback semantics.
+  ([#201](https://github.com/khawkins98/scriptoscope/pull/201))
+- Development tooling uses Vite 7 and Node.js 24. The library build explicitly
+  preserves the previous browser target.
+  ([#194](https://github.com/khawkins98/scriptoscope/pull/194))
+- Updated architecture, integration, and vendoring guidance, including sibling
+  lazy chunks and resource ownership; preserved superseded historical notes.
+  ([#204](https://github.com/khawkins98/scriptoscope/pull/204))
+
+### Fixed (2026-10-18)
+
+- Include lazy library chunks in the public deployment, extract archive-only
+  themes locally, and release picker listeners/timers on teardown. Repair the
+  boot smoke harness's server and browser cleanup.
+  ([#192](https://github.com/khawkins98/scriptoscope/pull/192))
+- Resolve utility-window aliases from canonical resource identity, including
+  opaque asset URLs and legacy raw keys.
+  ([#195](https://github.com/khawkins98/scriptoscope/pull/195))
+- Evict rejected theme/raster promises to permit retry, and release assets from
+  partially failed concurrent encodes.
+  ([#196](https://github.com/khawkins98/scriptoscope/pull/196))
+- Allocate whole tiles with the kDEF's two-pass division/remainder rules,
+  preserving frame corners and avoiding rounding-induced gaps or clipping.
+  ([#197](https://github.com/khawkins98/scriptoscope/pull/197))
+- Prefer each theme's own button face before inheriting a base theme's named face.
+  ([#200](https://github.com/khawkins98/scriptoscope/pull/200))
+- Prepare window chrome before moving live content. Preserve layout/focus during
+  setup and respect cancellation, removal, reparenting, failure, and immediate
+  remount without stale commits.
+  ([#199](https://github.com/khawkins98/scriptoscope/pull/199))
+- Evict released raster URLs across raw and bundled loader copies; late loads
+  clean up after disconnect without disposing caller-registered theme graphs.
+  ([#202](https://github.com/khawkins98/scriptoscope/pull/202))
+- Capture the diagnostic Scene using an isolated server and compare fresh scratch
+  captures against committed fixtures. Refresh all 18 browser scene baselines;
+  failed verification never overwrites them.
+  ([#203](https://github.com/khawkins98/scriptoscope/pull/203))
+- Constrain mobile showcase/blog grids and upload-modal measurements, reserve
+  room for native chrome and card cascades, and keep Restore chrome mounted.
+  ([#205](https://github.com/khawkins98/scriptoscope/pull/205))
+
+### Security (2026-10-18)
+
+- Refresh locked development dependency security patches and upgrade the vulnerable
+  Vite/esbuild toolchain through the Vite 7 migration.
+  ([#193](https://github.com/khawkins98/scriptoscope/pull/193),
+  [#194](https://github.com/khawkins98/scriptoscope/pull/194))
+
 ### Fixed (rendering — 18 themes refreshed via the codex pattern, 2026-05-29)
 
 The decoded `ThemeManifest` carries structured answers for every visual slot;
