@@ -88,6 +88,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   provenance; keep remaining decoder, pattern and reference requirements explicit.
   Correct the charter's landing/showcase paths and active reference tracking.
 
+- Pin the PACH tab-investigation resources to a reconstructed installer/fork
+  chain; preserve the unresolved body-painter and color-sample requirements.
+
 ### Fixed (2026-10-18)
 
 - Native slider composition stops at disposal boundaries between image decodes;

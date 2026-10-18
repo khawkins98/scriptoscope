@@ -35,6 +35,52 @@ node .scratch/dump-kaleido-cdev.mjs  # parses AppleDouble + dumps every code res
 
 Plus per-installer dumps of every WDEF / CDEF / MDEF / LDEF / cdev / PACH / Zoom / INIT resource. Full index at `.scratch/k{182,231}-kdef/_index.json` (547 resources in 2.3.1, 404 in 1.8.2).
 
+## PACH identity and reconstructed source chain (2026-10-18)
+
+The tab investigation in #223 cites PACH 130, not kDEF 0. A fresh static
+extraction with unar 1.10.7 reconstructed these exact bytes from the locally
+held `Kaleidoscope231US.bin`; no installer or original engine code was executed.
+The extracted kDEF 0 also matches the already fingerprinted 2.3.1 reference.
+These are observed artifact identities, not a complete installation/patch-stack
+or historical rendering certification.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| MacBinary installer | 1908736 | `4173477d60f3081e03e4b18bd1cf17da16ad5381315ff04d8f51e8bb4cb7012a` |
+| Installer data fork, an ST65 archive | 1687965 | `8aad109da26d11791d9ada2e8cf92327af1d617f396659cc63bd7ce70a0b01ce` |
+| Control-panel AppleDouble wrapper | 1005617 | `b5fd81a12072da1e3a1af9fedd9f6846d88e2e5187a8dd152266a00aa0cfba6c` |
+| Control-panel raw resource fork, AppleDouble entry 2 | 1005535 | `0d4af8bab15e467f00b9dfaac99bb9adec6ee884e12e04f3de03d74b3fdc9c0b` |
+| PACH 130, “68k Patches” | 87914 | `bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44` |
+| PACH 131, “PowerPC Patches” | 145320 | `465b312d14eca52ed9e3164caceb7759272613a862b0d4fb8dcee8c0da82fd7c` |
+| kDEF 0, “680x0 DefProcs” | 107726 | `2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342` |
+
+Within the **unwrapped raw resource fork**, PACH 130's map reference starts at
+998394 and its payload at 135431; PACH 131's are 998406 and 223349; kDEF 0's are
+1003302 and 612937. Payload offsets exclude the preceding four-byte length word.
+These offsets are not installer offsets. Source routine addresses are relative
+to the start of the named resource payload, with resource offset zero as base.
+
+The installed unar binary SHA-256 was
+`088e447a9fa8ab818768e7e9f48d6a7666f6a2f32c2ecc508f9904b4654adcd0`.
+The extraction can be reproduced in a fresh directory:
+
+```sh
+unar -q -forks visible -o /tmp/pach-review ~/Downloads/Kaleidoscope231US.bin
+unar -q -forks visible -o /tmp/pach-review/payload "/tmp/pach-review/Kaleidoscope 2.3.1 Installer"
+```
+
+Read `payload/Kaleidoscope 2.3.1 Installer/Kaleidoscope.rsrc` as AppleDouble,
+select entry 2, and then read its resource map. Independently reading those
+big-endian fields reproduced all three payloads byte-for-byte against the local
+scratch files and hashes above; the repository parser was not used for that
+verification. Alternate installer/wrapper bytes require their own identity
+record rather than being assumed to match this chain. Original binaries remain
+local and are not repository fixtures or CI inputs.
+
+The [bounded tab-source notes](tab-body-investigation.md) retain what the pinned
+PACH supports and what remains unknown. Fingerprinting it does not establish a
+tab body painter, justify erasing semantic source pixels or close #223.
+
 ## New architectural findings (2.3.1, not in `kdef182-disassembly-findings.md`)
 
 ### 1. WDEF message dispatch table
