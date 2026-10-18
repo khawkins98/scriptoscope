@@ -3213,3 +3213,7 @@ claiming to implement the kDEF's separate small-window negotiation.
 ### 2026-10-18 — Picker attribution is not a complete provenance sidecar
 
 ThemeEntry name/author/year describe picker labels; they omit meta.json's origin, source URLs, and originalLicense. Passing those labels as loadTheme(opts.meta) silently suppressed the sidecar and lost provenance. Only explicit ThemeEntry.meta (the complete cached sidecar) now short-circuits the metadata fetch. Otherwise loadTheme fetches meta.json concurrently with the archive, preserving provenance without adding a serial round-trip. Display labels never overwrite author-supplied sidecar fields.
+
+### 2026-10-18 — Resolve each owner's button face before inheriting
+
+Role-name lookup across the entire base chain followed by id lookup across the chain let a base's named push-button override a child's canonical, unlabelled -10239 face. The base chain must be the outer traversal: within each theme prefer the named role, then accept the canonical id only if its authorLabel/key does not identify an unrelated role. Only then consult the base. This preserves per-theme author intent and existing anti-role rejection while keeping cycle protection and owner-relative asset URLs.

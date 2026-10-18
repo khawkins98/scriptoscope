@@ -184,7 +184,7 @@ const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialo
 /** Resolve a push-button face for a given state via the manifest's STRUCTURED
  *  role names first, then falling back to id-based lookup that REJECTS the
  *  anti-role keys (so a misrouted -10239 doesn't sneak in). Walks the base
- *  chain on both passes — same semantics as {@link loadById}.
+ *  chain self-first, trying both strategies before inheriting from a base.
  *
  *  Period-faithful in spirit: the kDEF dispatched on `kButtonFaceActive` as a
  *  logical role; the id was an encoding of that role. Reading the role from
@@ -193,26 +193,19 @@ const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialo
  *  fallback to pressed (handled by composeButton) substitutes the author's
  *  shipped art when they ship no active face — same fallback AppearanceManager
  *  used when a state slot was empty. */
-async function loadPushButtonFace(
+export async function loadPushButtonFace(
   theme: LoadedTheme,
   state: keyof typeof PUSH_BUTTON_FACE_KEYS,
 ): Promise<PixelBuffer | null> {
-  // Pass 1: by manifest role name (the structured answer).
-  const byRole = resolveInChain(theme, (t) => {
+  const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
+  // Resource ownership outranks lookup spelling: a child's canonical slot wins
+  // over a named base resource. Within each owner, authored role names win.
+  const found = resolveInChain(theme, (t) => {
     const ce = t.manifest.chromeElements ?? {};
     for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
       if (ce[k]?.asset) return { theme: t, asset: ce[k]!.asset };
     }
-    return null;
-  });
-  if (byRole) return loadCicnBuffer(assetUrl(byRole.theme, byRole.asset));
-  // Pass 2: by id, but reject anti-role entries. AuthorLabel (the verbatim
-  // bundle-author NAMED-resource label) is more authoritative than the friendly
-  // key — animals + monkey-paradise both ship -10239 with authorLabel "Solo
-  // Menu Background" and the test catches it cleanly without the substring-
-  // match false-positive risk the key-regex carries (parked #185).
-  const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
-  const byId = resolveInChain(theme, (t) => {
+    // Reject repurposed id slots before considering the next base theme.
     const ces = t.manifest.chromeElements ?? {};
     for (const [k, v] of Object.entries(ces)) {
       if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
@@ -226,7 +219,7 @@ async function loadPushButtonFace(
     }
     return null;
   });
-  return byId ? loadCicnBuffer(assetUrl(byId.theme, byId.asset)) : null;
+  return found ? loadCicnBuffer(assetUrl(found.theme, found.asset)) : null;
 }
 
 /** The chromeElement whose asset encodes resource `id` (for textAnchor etc).
