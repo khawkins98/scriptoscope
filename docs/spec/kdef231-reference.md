@@ -636,7 +636,7 @@ counts via `grep '.short 0xaXXX'`). Trap numbers are the standard Mac OS set.
 | `$A817` | **CopyMask** | masked blit (cicn alpha) | `0x10402`, `0x7676` |
 | `$A874` | GetPort | save current port | `0xfeee`, `0x10336`, `0x108cc` |
 | `$A873`/`$A879` | SetPort/SetPortBits (?) | port plumbing | `0x...` |
-| `$A8A9` | **GetPixBaseAddr** (?) | pixmap base for the blit | `0x103d2` |
+| `$A8A9` | **InsetRect** | rect geometry; default ring expands the control rect by 4px | `0x76a2` |
 | `$AA19` | **GetGWorld** | save current GWorld | `0xff32`, `0x1037c`, `0x1e96` |
 | `$AA1A` | **SetGWorld** (the GWorld dispatch form) | switch to the cicn GWorld | `0xff38`, `0x10382`, `0x1e90` |
 | `$AA1E` | **NewGWorld** | offscreen alloc (cicn cache) | `0x10434` |
@@ -756,3 +756,31 @@ authoritative role label for cross-talk with Inside Macintosh / Carbon docs.
   part-code edges).
 - **`kdef-faithfulness-ledger.md`** — every deliberate divergence from the
   decode, with intent.
+
+
+### Default push-button ring geometry (verified 2026-10-18)
+
+`0x7434` copies the control rectangle; `0x7572` passes it to the face drawer.
+After face/text drawing, `0x7698..0x76a2` calls InsetRect with `(-4,-4)`. The
+ring dispatch uses inactive -10232, pressed -10230 (falling back to -10231),
+and active -10231 (`0x76b8..0x770e`). Its wrapper at `0x107de` disables body
+fill when entering `0x107fe`. No source opaque-bounds crop is involved.
+
+The border is not a rectangular nine-slice. Register d3 (cinf corner size)
+sets both dimensions of each square corner; d4 (side thickness) sets band
+thickness. Order: TL `0x10c54`, TR `0x10cb2`, top `0x10d34`, BL `0x10da6`,
+BR `0x10e0e`, bottom `0x10e92`, left `0x10f0a`, right `0x10f82`. Bands exclude
+corner size at their longitudinal ends, and may overlap when side > corner.
+Masked samples preserve already-painted pixels underneath.
+
+For a false repeat flag, top/bottom use the first source column at x=corner
+(`0x10cf6`, `0x10e54`), and left/right the first row at y=corner (`0x10ecc`,
+`0x10f44`). A true flag repeats the complete corner-trimmed band; FEAE clips
+the final tile. Thus a 21px source with corner7/side14 is valid overlapping
+art, not malformed or a pair of 14px vertical corner insets.
+
+The runtime applies this model to default rings. Its common face helper still
+uses a rectangular approximation; face/pattern migration requires separate
+source-driven validation. Reserving the four-pixel margin on plain buttons is
+a runtime layout policy to keep state changes stable, not an additional
+claim about the original Control Manager's layout.

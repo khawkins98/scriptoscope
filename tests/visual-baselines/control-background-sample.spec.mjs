@@ -55,7 +55,7 @@ test('Windows95 faces use authored cinf background samples in every state', asyn
       const face = await controls.loadPushButtonFace(theme, state);
       const out = await controls.composeButton(theme, { label: 'OK', height: 20, ...opts });
       // Source-authored sample, independently read from the face. x=16 sits
-      // beyond the pressed 6px border + 6px ring margin and before label ink.
+      // beyond the pressed 6px border + 4px ring margin and before label ink.
       rows.push({ expected: face.getPixel(...el.bgAnchor), actual: out.getPixel(16, 16), size: [out.width, out.height] });
     }
     return rows;
@@ -63,7 +63,7 @@ test('Windows95 faces use authored cinf background samples in every state', asyn
   for (const row of rows) {
     assert.deepEqual(row.expected, [202, 202, 202, 255], 'original Windows95 source color');
     assert.deepEqual(row.actual, row.expected, 'face interior uses bgPixel, not white bevel');
-    assert.deepEqual(row.size, [68, 32]);
+    assert.deepEqual(row.size, [64, 28]);
   }
 });
 

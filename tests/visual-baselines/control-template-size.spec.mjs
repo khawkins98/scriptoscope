@@ -68,11 +68,11 @@ test('Windows95 button templates contain the complete centered label across stat
     return { dimensions: outputs.map(b => [b.width, b.height]), expectedInk, presentInk,
       top, bottom, explicit: [explicit.width, explicit.height] };
   });
-  assert.deepEqual(result.dimensions, Array(4).fill([68, 32]));
+  assert.deepEqual(result.dimensions, Array(4).fill([64, 28]));
   assert.ok(result.expectedInk > 20, 'reference label contains a meaningful pixel sample');
   assert.equal(result.presentInk, result.expectedInk, 'all glyph ink, including ascenders/descenders, is present');
   assert.ok(result.top >= 8 && result.bottom <= 23, 'label is inside the 20px face with vertical clearance');
-  assert.deepEqual(result.explicit, [68, 18]);
+  assert.deepEqual(result.explicit, [64, 14]);
 });
 
 test('all 18 corpus buttons keep stable state geometry and honor explicit height', async (t) => {
@@ -111,12 +111,12 @@ test('showcase buttons and closed select are readable and pointer interaction do
   await button.dispatchEvent('pointerleave');
   assert.deepEqual(pressed, before);
   for (const label of ['OK', 'Cancel', 'Copy install snippet to clipboard']) {
-    assert.equal(await page.locator(`.scriptoscope-button[aria-label="${label}"] canvas`).evaluate(c => c.height), 32);
+    assert.equal(await page.locator(`.scriptoscope-button[aria-label="${label}"] canvas`).evaluate(c => c.height), 28);
   }
   const select = page.getByRole('combobox', { name: 'Format' });
   await select.selectOption({ label: '.rsrc' });
   await page.waitForFunction(() => document.querySelector('.scriptoscope-select .scriptoscope-button')?.getAttribute('aria-label') === '.rsrc  ▾');
-  assert.equal(await page.locator('.scriptoscope-select canvas').evaluate(c => c.height), 32);
+  assert.equal(await page.locator('.scriptoscope-select canvas').evaluate(c => c.height), 28);
   assert.equal(await select.inputValue(), '.rsrc');
 });
 

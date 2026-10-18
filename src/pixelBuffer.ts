@@ -97,15 +97,11 @@ export class PixelBuffer {
     dr: PixRect,
     mode: 'stretch' | 'tile' = 'stretch',
   ): void {
-    // Clamp insets so the FOUR CORNERS NEVER OVERLAP — when (l+r) > sr.w or
-    // (t+b) > sr.h, an unclamped 9-slice silently corrupts: the corner blits
-    // overdraw each other AND the middle/side spans early-return (their srcLen
-    // goes negative). The first known failure (commit 0bfe533) was 1990 + evolution
-    // shipping rings at 21×21 with slice.side=14 → smy = 21−14−14 = −7. The middle
-    // band never drew, the two horizontal corner halves stacked on top of each
-    // other, and the buggy render got baselined. Clamp to a hard ceiling so the
-    // worst case is a degraded-but-consistent render that the eyeball + visual
-    // baselines can catch on first sight.
+    // A rectangular nine-slice partitions its source into non-overlapping
+    // regions, so clamp each opposing inset pair to the source size. Cinf
+    // corner/side fields describe a different, overlapping-band model; they
+    // must not be mistaken for these rectangular insets. Default-button rings
+    // use their own source-backed band assembler in controls.ts.
     const _l = Math.max(0, Math.min(ins.l, Math.floor(sr.w / 2)));
     const _r = Math.max(0, Math.min(ins.r, sr.w - _l));
     const _t = Math.max(0, Math.min(ins.t, Math.floor(sr.h / 2)));

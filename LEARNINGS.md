@@ -3420,3 +3420,31 @@ axes: native-sized controls have no width/height option, the declarative scanner
 has no scale attribute, and a control matrix is not exhaustive window coverage.
 Pin source-art display zoom and fonts for review sheets; updating self-goldens
 creates review candidates, never evidence that current renderer output is correct.
+
+## 2026-10-18 — Default rings use four pixels and overlapping bands
+
+The old ring compositor inferred its outset from template width differences and
+cropped transparent margins based on opaque bounds. Neither follows kDEF 2.3.1:
+`0x7698..0x76a2` expands the existing control rectangle with InsetRect(-4,-4),
+then draws the complete ring resource after the face/text. Pressed -10230 falls
+back to active -10231; inactive uses -10232. Plain buttons reserve the same
+margin as a runtime layout policy, so default-state changes do not shift content.
+Only selected ring art is decoded; footprint detection needs metadata alone.
+
+The first correction exposed open sides in 1990, Evolution, and Dolphin SOM.
+Their 21px ring with corner7/side14 is NOT malformed: the original has square
+7×7 corners plus 14px-thick overlapping bands. A rectangular nine-slice clamps
+away the middle span and loses valid art. The ring-specific assembler now follows
+TL/TR/top/BL/BR/bottom/left/right order, with masked compositing. False repeat
+uses the first source column/row; true repeat tiles the whole trimmed band.
+See `docs/spec/kdef231-reference.md` for exact addresses. This supersedes prior
+comments treating these cinf side values as overdeclared rectangular insets.
+
+An independent source-art probe found ring/face RGB overlap in eight schemes,
+so drawing the face last was observably different. Tests use handpicked source
+coordinates for square corners, thick bands, painter order, transparent overlaps,
+full source margins, state selection, and background suppression. Across all 18
+schemes, 108 default-label cases retain complete ink at automatic and 22px heights.
+Scene changes include downstream control positions because the reserved footprint
+changes; they are not solely recolored ring bands. The face helper's separate
+rectangular/pattern approximation remains explicit follow-up work in #218.
