@@ -141,3 +141,16 @@ fails even if source and built would agree with each other. Concurrent same-ID
 loads carry distinct invocation references; ambiguous generated asset identity
 is rejected by the opted-in loader. These finite assertions add diagnostic
 coverage only; no requirement-ledger assessment or historical scope is promoted.
+
+
+## Painted sampled-band dependencies
+
+Push/bevel/default-ring `bandPaints` are emitted only for visible opaque output
+regions. They distinguish ordinary raster copies, equivalent-raster expansion,
+actual sampled companions and compatibility-raster fallback. Their owner/key
+and existing element provenance identify the selected cicn occurrence; only
+actual companion paint adds its stable derivation path and volatile URL.
+Layout reservation and decoded-but-aborted work do not become painted
+companions. See [the sampled-band contract](sampled-control-bands.md) for source
+branches, ownership and current-display limits. These are observed decisions,
+not original-device or independent decoder certification.

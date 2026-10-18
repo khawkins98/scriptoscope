@@ -1,4 +1,4 @@
-import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence } from 'scriptoscope';
+import { VERSION, loadKaleidoscopeScheme, composeTab, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -20,6 +20,12 @@ const samplingDeclaration: CicnSamplingEquivalence = {
   status: 'unknown', reason: 'missing-sampler',
 };
 void samplingDeclaration;
+const companionDeclaration: CicnSampledBandAsset = {
+  model: 'kaleidoscope-2.3.1-opaque-sampling-v1', comparison: 'opaque-current-display-rgb',
+  displayPolicy: 'mac-1.8-to-2.2-high-byte', width: 7, height: 7,
+  asset: 'cicn-sampled/fixture.png', derivedPath: 'cicn-sampled/fixture.png',
+};
+void companionDeclaration;
 
 const consumer = {
   version: VERSION,

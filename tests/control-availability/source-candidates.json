@@ -27,9 +27,9 @@
     "tools/sit-wasm/index.mjs": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19",
     "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
     "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
-    "tools/theme-loader/decoders/cicn.js": "152b5f14ea6169ca9d444162daa5cac05a8bb254545a17fbe9e7289c7b384d5e",
+    "tools/theme-loader/decoders/cicn.js": "67eed552bc93facc3c1abfbac88bb7c44809321991e629d28bffd9896fe6bf7e",
     "tools/theme-loader/kdef-color-samples.js": "0fdb18842ab4382aad90a8f94148eee6952ace89da0eed808ecb9a79aa8af0fd",
-    "tools/theme-loader/sampling-equivalence.js": "93c9e9c455d98125cc672aa268feeeaee72761f71f40441206dad007f5d2a60f",
+    "tools/theme-loader/sampling-equivalence.js": "46c3a9cae6f143e54de6e7b63fab5d74dc0a20ca692c03375091c803d5ada50c",
     "tools/theme-loader/mac-gamma.js": "cd496a62fc96ce81a5609a1111987c2d1f99ba34ca5a84bdd69f954dfb33ce21"
   },
   "themes": [
