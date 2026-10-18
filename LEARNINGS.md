@@ -3270,3 +3270,24 @@ committed files, rather than comparing the baseline directory to itself. Screens
 bytes flag drift in a particular browser/platform; they do not establish original
 Kaleidoscope fidelity. Independent repeat captures check harness determinism,
 while the compositor's raw-pixel tests guard its allocation model.
+
+### 2026-10-18 — Responsive consumer grids must constrain the pre-promotion body
+
+A `1fr` track has an automatic minimum: a long code line can make a window's
+source element wider than a phone before the runtime measures it. In the
+showcase and personal examples, narrow-screen `minmax(0, 1fr)` tracks and
+`min-width: 0` children preserve local code scrolling and prevent that initial
+width from becoming the promoted window size. Keep those overrides at the
+responsive breakpoint to preserve existing desktop geometry.
+
+Native chrome adds space outside the measured body. Ornate title widgets can
+extend beyond even the canvas rectangle, so checking only canvas bounds misses
+page overflow. The showcase now reserves a frame gutter and a shallower mobile
+cascade offset before mounting; the upload modal also measures a viewport-bound
+body. Chromium tests at 320px/390px cover four schemes and assert both document
+width and unscaled canvas dimensions. This is consumer layout, not pixel-art
+scaling or a renderer exception for individual schemes.
+
+The Restore chrome button also has to set its desired `aria-pressed` state
+before starting an asynchronous mount: the completion guard consults that state
+and otherwise immediately disconnects the newly mounted handle.

@@ -89,3 +89,14 @@ Uses the same optional Playwright installation above and an isolated Vite server
 The test delays chrome preparation across painted frames and checks that the
 original content, inherited styles, focus, and following sibling stay intact.
 It also exercises first-render and content-fit failures, retry, and unmount.
+
+## Mobile demo layout
+
+```sh
+node --test --experimental-strip-types tests/visual-baselines/mobile-layout.spec.mjs
+```
+
+Uses the same optional Playwright setup and an isolated server. At 320px and
+390px mobile viewports it checks four showcase schemes, the upload modal,
+OFF → Restore chrome, and the personal blog's locally scrolling code. Page
+width and visible window bounds must fit without scaling the chrome canvases.
