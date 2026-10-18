@@ -4332,3 +4332,20 @@ Diagnostics record preparation as admission and only actual pixel writes as
 paint; a rendered empty clip carries no paint dependency claim. See the
 [bounded source model](docs/spec/header-surface.md) for the pinned helper ranges
 and explicit unsupported conditions.
+
+### 2026-10-18 — Mode-5 color bodies cannot reuse masked PNGs or sampled bands
+
+kDEF's full-color body wrapper uses the monochrome bitmap **bounds** but the
+color PixMap **pixels**. Above depth one it ignores the icon mask, so PNG transport
+of the ordinary masked asset loses colors the body must copy. The source line
+sampler is also a different palette operation and cannot stand in for ordinary
+color copying. Preserve the already display-prepared ordinary RGB before PNG
+encoding, promote alpha only on the referenced safe occurrence, and never apply
+the LUT again. The separate one-bit path uses CopyMask under conventional
+white/black admission; its unused monochrome bitplane need not match.
+
+A same-owner catalog miss is only a genuine missing body when no matching raw
+resource exists. Skipped/error records and duplicate IDs must remain unsupported
+or ambiguous; otherwise they falsely enable source-backed background erasure.
+The [bounded contract](docs/spec/cicn-body-mode5.md) retains those distinctions
+and limits scaling, original provider/device behavior and header reuse (#300).

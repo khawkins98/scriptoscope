@@ -1,3 +1,4 @@
+import { bindCicnBodies } from './cicn-body.js';
 // Build a schema-conformant theme.json from an extraction-manifest.json.
 //
 // The manifest is the extractor's raw output: per-resource decoded data plus
@@ -86,6 +87,7 @@ export function buildThemeJson(manifest, options = {}) {
   // tuples (textAnchor, embossAnchor) flatten from {x,y} dicts to [x,y].
   // bgPattern resolves to a patterns-catalog slug, not the raw ppat ID.
   const chromeElements = {};
+  const keyByCicn = new Map();
   const cicnPathCounts = new Map();
   for (const cicn of cicns) cicnPathCounts.set(cicn.file, (cicnPathCounts.get(cicn.file) ?? 0) + 1);
   for (const cicn of cicns) {
@@ -149,7 +151,10 @@ export function buildThemeJson(manifest, options = {}) {
       cinfResourceIndex: cinf?.byteReference?.resourceIndex ?? null,
     });
     chromeElements[slug] = entry;
+    keyByCicn.set(cicn, slug);
   }
+
+  bindCicnBodies(chromeElements, manifest.assets, keyByCicn, cicnPathCounts);
 
   // ─── Window types ─────────────────────────────────────────────────────
   // Each wnd# becomes a windowType entry. Parts re-key from array to

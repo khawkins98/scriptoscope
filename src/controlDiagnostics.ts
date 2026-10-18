@@ -22,6 +22,10 @@ export interface ControlResolutionStep {
     readonly assetUrl: string;
   } & ({ readonly type: 'cicn'; readonly byteProvenance?: ElementByteProvenance }
     | { readonly type: 'ppat'; readonly byteProvenance?: PatternByteProvenance });
+  /** Actual bounded mode5 paint; absent for unsupported/selection-only decisions. */
+  readonly bodyPaint?: { readonly branch: 'masked-copy' | 'unmasked-copy' | 'missing-erase';
+    readonly sourceRect?: ControlRect; readonly destinationRect: ControlRect;
+    readonly paintedPixels: number; readonly sourceAssetUrl?: string; readonly derivedPath?: string };
   readonly reason: string;
   readonly basis: 'source-dispatch' | 'compatibility-policy';
   readonly usage: 'paint' | 'layout-reservation' | 'admission';
@@ -142,7 +146,10 @@ export async function withControlDiagnostics(
   const trace: ControlRenderTrace = freezeRecord({
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
-    family, requested, steps, ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
+    // A later default-ring failure can invalidate an already composed face.
+    // Keep lookup observations, but never label its mode-5 writes as published.
+    family, requested, steps: failed ? steps.filter(step => !step.bodyPaint) : steps,
+    ...(bandPaints.length ? { bandPaints } : {}), ...(tabBody ? { tabBody } : {}), ...(headerSurface ? { headerSurface } : {}), ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }
       : { status: 'unavailable' },

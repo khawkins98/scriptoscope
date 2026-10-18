@@ -154,3 +154,16 @@ Layout reservation and decoded-but-aborted work do not become painted
 companions. See [the sampled-band contract](sampled-control-bands.md) for source
 branches, ownership and current-display limits. These are observed decisions,
 not original-device or independent decoder certification.
+
+### Mode-5 body paint
+
+`body-fill` steps can carry `bodyPaint` for actual aligned mode-5 writes:
+`masked-copy`, `unmasked-copy`, or `missing-erase`, with source/destination
+rectangles and visible painted-pixel count. A selected target's ordinary resource
+identity remains separate from `bodyPaint.sourceAssetUrl` (the actual derived
+transport for unmasked copies) and stable `derivedPath`. Unsupported, clipped,
+aborted or failed dependencies do not become successful body paint. The
+step is staged until face completion and omitted if a later default-ring failure
+prevents publication; other diagnostic channels retain their existing meanings. The
+[same-owner binding policy and limits](cicn-body-mode5.md) remain explicit; this
+additive step data does not replace band, text, composition, tab or header channels.

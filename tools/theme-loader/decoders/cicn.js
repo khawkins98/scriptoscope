@@ -20,6 +20,7 @@ import {
   expandIndexedPixels, expandMask,
 } from './shared.js';
 import { compareOpaqueSampling, sampledBandPixels } from '../sampling-equivalence.js';
+import { inspectCicnBody } from '../cicn-body.js';
 import { makeKdefColorSampler } from '../kdef-color-samples.js';
 
 /**
@@ -81,6 +82,7 @@ export function decodeCicn(bytes, { retainKdefColorSampler = false } = {}) {
     height: pmap.height,
     rgba,
     samplingEquivalence,
+    bodyCicnSource: inspectCicnBody(pmap, mask, bmap, colorTable, indices),
     sampledBandRgba: sampledBandPixels(indices, rgba, pmap, sampler, samplingEquivalence),
     ...(retainKdefColorSampler ? { sampleKdefRgb16: sampler } : {}),
     debug: {

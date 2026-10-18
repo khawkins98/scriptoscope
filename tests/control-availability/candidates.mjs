@@ -33,6 +33,6 @@ const data = { schemaVersion: 1, reviewStatus: 'unreviewed', kind: inspect ? 'ar
   scope: { queriedResourceTypes: inspect ? [] : ['cicn', 'cinf'], queriedSignedIds: inspect ? [] : QUERY_IDS,
     expectedAvailabilityForEveryUnreviewedOrUnlistedCase: 'unknown' },
   toolchainScope: 'Listed extraction files only; not a complete transitive dependency fingerprint.',
-  toolchain: Object.fromEntries(['tests/control-availability/candidates.mjs', 'tests/control-availability/source.mjs', 'tools/sit-wasm/index.mjs', 'tools/sit-wasm/dist/munbox.wasm', 'tools/theme-loader/resource-fork.js', 'tools/theme-loader/decoders/cicn.js', 'tools/theme-loader/kdef-color-samples.js', 'tools/theme-loader/sampling-equivalence.js', 'tools/theme-loader/mac-gamma.js'].map(path => [path, sha256(readFileSync(resolve(root, path)))])), themes };
+  toolchain: Object.fromEntries(['tests/control-availability/candidates.mjs', 'tests/control-availability/source.mjs', 'tools/sit-wasm/index.mjs', 'tools/sit-wasm/dist/munbox.wasm', 'tools/theme-loader/resource-fork.js', 'tools/theme-loader/decoders/cicn.js', 'tools/theme-loader/kdef-color-samples.js', 'tools/theme-loader/sampling-equivalence.js', 'tools/theme-loader/cicn-body.js', 'tools/theme-loader/mac-gamma.js'].map(path => [path, sha256(readFileSync(resolve(root, path)))])), themes };
 const body = JSON.stringify(data, null, 2) + '\n';
 if (output) writeFileSync(resolve(output), body); else process.stdout.write(body);

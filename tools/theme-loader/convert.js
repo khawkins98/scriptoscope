@@ -148,6 +148,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       flatAssets.push({ ...base, status: 'ok', file: fname, width: payload.width, height: payload.height, debug: payload.debug });
       subAssets.push({ ...base, status: 'ok', file: `${sub}/${fname}`, width: payload.width, height: payload.height, debug: payload.debug,
         ...(sampledBandAsset ? { sampledBandAsset } : {}),
+        ...(payload.bodyCicnSource ? { bodyCicnSource: payload.bodyCicnSource } : {}),
         ...(payload.samplingEquivalence ? { samplingEquivalence: payload.samplingEquivalence } : {}),
         ...(payload.sampleKdefRgb16 ? { sampleKdefRgb16: payload.sampleKdefRgb16 } : {}) });
     } else {
@@ -164,6 +165,23 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     if (assets[i].path.startsWith('cicn-sampled/') && !usedCompanions.has(assets[i].path)) assets.splice(i, 1);
   for (const a of subAssets) if (a.sampledBandAsset && usedCompanions.has(a.sampledBandAsset.derivedPath))
     resourceObserver?.bindAsset(a.byteReference, a.sampledBandAsset.derivedPath);
+
+  // Materialize only builder-selected occurrences. Ordinary RGBA still retains
+  // hidden RGB and is already display-transformed: alpha promotion needs NO LUT.
+  const originalByPath = new Map(assets.map(asset => [asset.path, asset]));
+  const recordByPath = new Map(subAssets.filter(a => a.type === 'cicn' && a.status === 'ok').map(a => [a.file, a]));
+  const bodyPaths = new Set();
+  for (const face of Object.values(theme.chromeElements ?? {})) {
+    const binding = face.cicnBody;
+    if (binding?.status !== 'ready' || binding.copy !== 'unmasked' || bodyPaths.has(binding.derivedPath)) continue;
+    const selected = theme.chromeElements[binding.manifestKey];
+    const original = originalByPath.get(selected.asset), record = recordByPath.get(selected.asset);
+    const rgba = original.rgba.slice();
+    for (let i = 3; i < rgba.length; i += 4) rgba[i] = 255;
+    assets.push({ path: binding.derivedPath, rgba, width: original.width, height: original.height });
+    resourceObserver?.bindAsset(record.byteReference, binding.derivedPath);
+    bodyPaths.add(binding.derivedPath);
+  }
 
   // Header colours from the window cluts (-14336 active / -14335 inactive), gamma'd
   // so procedural frames + contrast-sampled title text match the gamma'd rasters.
