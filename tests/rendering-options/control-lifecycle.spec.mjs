@@ -164,7 +164,7 @@ for (const mode of ['source', 'built']) {
   });
   test(`${mode}: disconnect cancels an in-flight retheme and select repaint`, async ({ page, servers }) => {
     await openHarness(page, servers, mode);
-    const result = await page.evaluate(async mode => {
+    await page.evaluate(async mode => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(s => runtime.loadTheme(`/themes/${s}`)));
       const root = document.createElement('section'); document.body.append(root);
@@ -173,10 +173,13 @@ for (const mode of ['source', 'built']) {
       const content = document.createElement('div');
       content.innerHTML = '<input type="checkbox"><input type="radio"><input type="range"><select><option>A</option><option>B</option></select>';
       const originals = [...content.children].map(el => ({ el, html: el.outerHTML })); root.append(content);
-      await new Promise(resolve => {
-        const observer = new MutationObserver(() => { if (handle.stats.controls === 4) { observer.disconnect(); resolve(); } });
-        observer.observe(root, { childList: true, subtree: true });
-      });
+      window.rethemeLifecycle = { themes, root, handle, content, originals };
+    }, mode);
+    // Promotion counts advance after the DOM commit's mutation microtask.
+    // Poll completed public state; a mutation observer can miss the final count.
+    await expect.poll(() => page.evaluate(() => window.rethemeLifecycle.handle.stats.controls)).toBe(4);
+    const result = await page.evaluate(async () => {
+      const { themes, root, handle, content, originals } = window.rethemeLifecycle;
       const decode = HTMLImageElement.prototype.decode;
       let release, held;
       const barrier = new Promise(resolve => release = resolve), started = new Promise(resolve => held = resolve);
@@ -193,7 +196,7 @@ for (const mode of ['source', 'built']) {
         children: content.children.length, selected: content.querySelector('select').value,
         staleSelectUnchanged: oldSelect.innerHTML === selectHtml };
       root.remove(); themes.forEach(t => t.dispose?.()); return result;
-    }, mode);
+    });
     expect(result).toEqual({ restored: true, children: 4, selected: 'B', staleSelectUnchanged: true });
   });
 
@@ -270,17 +273,18 @@ for (const mode of ['source', 'built']) {
 
   test(`${mode}: an older pending retheme cannot replace later form controls after a newer switch`, async ({ page, servers }) => {
     await openHarness(page, servers, mode);
-    const result = await page.evaluate(async mode => {
+    await page.evaluate(async mode => {
       const runtime = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
       const themes = await Promise.all(['windows-95', 'system7-nostalgia-silver'].map(s => runtime.loadTheme(`/themes/${s}`)));
       const root = document.createElement('section'); document.body.append(root);
       const handle = await runtime.mountDeclarative({ root, pageThemeDefault: 'first', bootAffordance: 'none' });
       handle.registerTheme('first', themes[0]); handle.registerTheme('next', themes[1]);
       const holder = document.createElement('div'); holder.innerHTML = '<input type="checkbox"><input type="radio"><input type="range"><select><option>A</option></select>'; root.append(holder);
-      await new Promise(resolve => {
-        const observer = new MutationObserver(() => { if (handle.stats.controls === 4) { observer.disconnect(); resolve(); } });
-        observer.observe(holder, { childList: true, subtree: true });
-      });
+      window.overlapLifecycle = { themes, root, handle, holder };
+    }, mode);
+    await expect.poll(() => page.evaluate(() => window.overlapLifecycle.handle.stats.controls)).toBe(4);
+    const result = await page.evaluate(async () => {
+      const { themes, root, handle, holder } = window.overlapLifecycle;
       const pixels = () => [...holder.querySelectorAll('canvas')].map(c => c.toDataURL());
       const original = pixels();
       const decode = HTMLImageElement.prototype.decode; let release, held;
