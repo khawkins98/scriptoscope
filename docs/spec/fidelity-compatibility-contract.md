@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.2**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.3**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -29,12 +29,17 @@ Platinum, Crayon OS, Dolphin SOM, Evolution, Floppies, Monkey Paradise, Platinum
 Slimes, System 7 Nostalgia Silver, Windows 3.1 and Windows 95.
 
 That versioned registry records archive path/hash and explicit entry/fork
-identities. Its review status is still `draft-requires-review`; listing all 18 is
-not review of every extraction choice. The finite availability inventory reviews
-its own four-archive subset separately. Runtime selection of the recorded bytes
-is a distinct obligation in [#241](https://github.com/khawkins98/scriptoscope/issues/241).
-Do not create a second independently mutable source catalog or infer identity
-from generated filenames. An archive or entry change requires renewed review.
+identities. [Input-choice review 1.0.0](../../tests/source-inputs/README.md)
+approves these 18 exact contract inputs: independent lsar/unar inventories and
+extraction hashes corroborate 13 archive choices; five supplied raw forks carry
+no archive-selection claim. Resource-role facts, complete decoding and original
+Resource Manager lookup policy remain unverified. The finite availability
+inventory reviews its own four-archive subset separately. Opt-in actual load
+provenance from [#251](https://github.com/khawkins98/scriptoscope/pull/251) joins
+loaded/consumed bytes to actual selections; that is distinct from choosing the
+contract inputs or certifying all decoding. Do not create a second independently
+mutable source catalog or infer identity from generated filenames. An archive
+or entry change requires renewed review.
 
 ## Surfaces and option classes
 
