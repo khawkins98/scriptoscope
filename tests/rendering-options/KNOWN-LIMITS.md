@@ -16,15 +16,17 @@ Known boundaries requiring explicit consideration during image review:
 - [Face compositing follow-up #218](https://github.com/khawkins98/scriptoscope/issues/218)
   tracks remaining rectangular/pattern face approximations. The source-backed
   default-ring correction does not establish the separate face painter's fidelity.
-- [Automatic tab-label clipping #223](https://github.com/khawkins98/scriptoscope/issues/223)
-  is a demonstrated mismatch: Windows95/Windows3.1 short tab templates clip labels,
-  and 1990 unselected tabs show fragments. This affects automatic direct tabs and
-  themed declarative tab faces, including short/long/ascender-descender labels.
-  `TabOptions` has no height option, so this is not caller-requested tiny clipping.
-  Any reviewed regression image containing these cases records an acknowledged
-  defect while original tab assembly is researched; it does not approve the
-  clipped label as faithful output. The separate interleaved-panel fixture error
-  must be corrected before accepting a seed.
+- [Tab geometry/font investigation #223](https://github.com/khawkins98/scriptoscope/issues/223)
+  includes a demonstrated crop-band mismatch: horizontal slicing combines an
+  opaque-bounds-cropped width with `cinf.corner` from the full source raster. For
+  unselected 1138 art, width19/corner10 gives a negative middle band; for 1990,
+  width28/corner14 gives zero. Skipping that band leaves detached ends and text
+  over a transparent center in direct and themed declarative tabs. These images
+  record a known defect while original tab assembly is researched.
+  Separately, font sizing from opaque height is an unverified runtime policy.
+  Windows95/Windows3.1's small 8px tab font is visible in the snapshots, but source
+  analysis has not established actual glyph clipping there. The separate
+  interleaved-panel fixture error must be corrected before accepting a seed.
 - [Rendering fidelity epic #221](https://github.com/khawkins98/scriptoscope/issues/221)
   tracks broader independent evidence and coverage. The 70-case bounded profile is
   a deliberate sample; even the 660-case extended profile is not every possible
@@ -36,10 +38,15 @@ Known boundaries requiring explicit consideration during image review:
   distinguishes the demonstrated source-cell loss from those remaining questions.
 - Closed selects show the themed closed face; the browser owns the open native
   popup. Keyboard focus and selection have separate behavioral assertions.
+- Slimes progress endpoint appearance and Evolution's disabled-button pattern/text
+  treatment remain unverified against original source requirements. Snapshot
+  stability does not resolve whether those visual treatments are faithful.
 - Explicit tiny face heights can clip labels by caller request. Automatic sizing
   and independently established 20px-face label ink are checked separately.
 - The corpus cases use standalone schemes. Base-chain resource resolution,
   interactive retheming and every window/chrome permutation need their own tests.
+  The tiny 180px reference windows in control sheets are layout/shadow sentinels,
+  not validated examples of complete window fidelity at that size.
 - Goldens pin Linux/amd64 Chromium, fonts, DPR1 and the case inventory. Extended
   Firefox/WebKit and DPR2 contracts broaden execution coverage without claiming
   cross-platform screenshot identity.
