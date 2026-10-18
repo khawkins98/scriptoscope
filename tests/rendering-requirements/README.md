@@ -1,8 +1,8 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.0.1 declares eight exact direct cases and seven explicit dimensions per
-case. **Every initial case has OPEN inventory closure.** The declared obligation
+Inventory 1.1.0 declares sixteen exact direct cases and seven explicit dimensions per
+case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
 
@@ -85,3 +85,26 @@ inputs it explicitly names, such as the two tab sources. This guard rejects
 wholly unrelated archive/fixture evidence; it does not authenticate all options,
 resource coordinates, base ordering or the completeness of the source claim.
 Those still require independent review and exact executable coverage (#274).
+
+
+Inventory 1.1.0 adds eight direct text/pattern cases and 83 obligations, preserving
+all original eight cases and 51 assessments. Its 134 declared obligations include
+24 verified requirements, two known tab mismatches and 108 unknown requirements;
+these counts do not measure whole-control fidelity. Five source/built assertion
+registrations bind the new finite claims to actual selected IDs/owners and cases.
+
+Authored text verification covers selected raw RGB16 samples and their consumption
+under the current declared display transform. The masked fixture additionally
+checks emboss-before-foreground and (+1,+1) at fully opaque or empty pixels of an
+independent browser-font mask. That mask is not an original glyph oracle; font,
+metrics, transfer, antialiasing, destination palette and device color stay unknown.
+Push cases do not declare a `small` option; only small-bevel cases do.
+
+The 29×9 synthetic pattern case checks every pixel against literal rows. The
+37×16 default-buffer case checks two interior samples and four clip/ring sentinels,
+with the face origin separate from the four-pixel buffer reservation; remaining
+raster/mask behavior stays unknown. Its diagnostic 5×3 tile is not an eligible
+original resource. The real Crayon case checks three pinned selected-source
+samples. Seven original selection/geometry/fill/device/state/placement/port
+obligations remain unknown in each pattern case. No capture, golden or managed-port
+integration is promoted by these direct source-model checks (#274).

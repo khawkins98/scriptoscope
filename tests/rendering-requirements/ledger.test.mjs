@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { gitIdentity } from './execution.mjs';
 import { collectObservations } from './observations.mjs';
 import { fileURLToPath } from 'node:url';
-import { validateLedger, inventoryDigest, makeReport, loadIssueStates } from './ledger.mjs';
+import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } from './ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const original = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
 const copy = () => structuredClone(original);
@@ -18,7 +18,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 8);
+  assert.equal(report.cases.length, 16);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -134,7 +134,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 51);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 134);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -150,4 +150,34 @@ test('invalid evidence and case references report errors without throwing from t
   reject(l => { l.assessments[0].evidence = ['missing-evidence']; }, /invalid reference missing-evidence/);
   reject(l => { l.assessments[0].caseId = 'missing-case'; }, /undeclared assessment/);
   reject(l => { l.evidence[0].inputs = null; }, /inputs: missing list/);
+});
+
+
+test('1.1.0 preserves the original eight cases and 51 assessments exactly', () => {
+  // Frozen semantic identity from reviewed inventory 1.0.1, not renderer output.
+  assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0, 8), assessments: original.assessments.slice(0, 51) })),
+    'b61753292e854dc21af2dc36ad879dea098cee0f070e32a88f81c96c344a8c1c');
+  assert.equal(original.inventoryVersion, '1.1.0');
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 24, mismatched: 2, unsupported: 0, unknown: 108 });
+  assert(original.cases.every(c => c.inventoryClosure.status === 'open'));
+});
+test('new text and pattern claims fail if executable annotations or exact case scope disappear', () => {
+  const ids = ['text.authored-rgb16', 'text.masked-emboss-order', 'pattern.inset-union-phase', 'pattern.exclusive-anchor-clip', 'pattern.actual-source-samples'];
+  for (const id of ids) {
+    const assertion = original.assertions.find(a => a.id === id);
+    assert(assertion);
+    const errors = validateLedger(original, { root, read: path => {
+      const bytes = readFileSync(path);
+      return path.endsWith(assertion.path) ? Buffer.from(bytes.toString().replaceAll(assertion.marker, 'removed annotation')) : bytes;
+    } }).errors;
+    assert.match(errors.join('\n'), new RegExp(`${id}: executable assertion marker missing`));
+    reject(l => { l.assertions.find(a => a.id === id).caseIds = [l.cases[0].id]; }, /assertion does not cover exact case/);
+  }
+});
+test('new authored-color evidence cannot be reassigned to an unrelated archive', () => {
+  reject(l => {
+    const row = l.assessments.find(a => a.caseId === 'crayon.push.normal.H.w80.h20' && a.requirementId === 'text.authored-rgb16');
+    const evidence = l.evidence.find(e => row.evidence.includes(e.id) && e.inputs.includes('theme.crayon-os'));
+    assert(evidence); evidence.inputs = ['theme.windows-95'];
+  }, /evidence inputs do not intersect exact case inputs\/baseInputs/);
 });

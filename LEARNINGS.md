@@ -4131,3 +4131,15 @@ archive/synthetic evidence, not incomplete parameter authentication: source
 coordinates, ordering, exact options and claim scope still need independent
 review and the registered executable assertion. The original51 obligations and
 all OPEN closures remain unchanged (#274).
+
+
+## 2026-10-18 — requirement claims must match the strength of each pixel oracle
+
+The text/pattern extension (#274) adds finite obligations rather than certifying
+whole controls. The literal 29×9 pattern oracle covers its entire output, while
+the clipped default case covers two interior samples and four sentinels. Treating
+both as full-raster proof would erase unknown mask/clip behavior. Likewise,
+a browser-font alpha mask can isolate color and emboss order without establishing
+original glyph metrics or transfer semantics. Keep selected-source sample facts,
+current display policy and original destination-device behavior separate in the
+ledger, and preserve prior case/assessment semantics when adding new scope.

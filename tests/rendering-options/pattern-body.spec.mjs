@@ -6,6 +6,7 @@ import { test, expect, openHarness, attachCase, attachObservations } from './fix
 const normalRows = ['.............................', '...HEFGHEFGHEFGHEFGHEFGHEF...', '...DABCDABCDABCDABCDABCDAB...', '.FGHEFGHEFGHEFGHEFGHEFGHEFGH.', '.BCDABCDABCDABCDABCDABCDABCD.', '.FGHEFGHEFGHEFGHEFGHEFGHEFGH.', '...DABCDABCDABCDABCDABCDAB...', '...HEFGHEFGHEFGHEFGHEFGHEF...', '.............................'];
 const shiftedRows = ['.............................', '...CDABCDABCDABCDABCDABCDA...', '...GHEFGHEFGHEFGHEFGHEFGHE...', '.ABCDABCDABCDABCDABCDABCDABC.', '.EFGHEFGHEFGHEFGHEFGHEFGHEFG.', '.ABCDABCDABCDABCDABCDABCDABC.', '...GHEFGHEFGHEFGHEFGHEFGHE...', '...CDABCDABCDABCDABCDABCDA...', '.............................'];
 for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve port phase, inset union and actual owner across face states`, async ({ page, servers }, testInfo) => {
+  testInfo.annotations.push({ type: 'fidelity-assertion', description: 'pattern.inset-union-phase' });
   await openHarness(page, servers, mode);
   let rows;
   try {
@@ -41,8 +42,12 @@ for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve p
       return rows;
     }, mode);
     expect(rows).toHaveLength(12);
+    expect(rows.filter(r => r.family === 'push' && r.state === 'normal' && !r.shifted)).toHaveLength(1);
     for (const row of rows) {
       expect(row.size).toEqual([29, 9]);
+      expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled' });
+      const faceId = { push: { normal: -10239, pressed: -10238, disabled: -10240 }, bevel: { normal: -10166, pressed: -10165, disabled: -10167 } }[row.family][row.state];
+      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected')).toMatchObject({ owner: { chainDepth: 1 }, resource: { signedId: faceId, manifestKey: String(faceId) } });
       expect(row.pixels, `${row.family}/${row.state}/${row.shifted}`).toEqual(row.shifted ? shiftedRows : normalRows);
       expect(row.trace.composition.faceRect).toMatchObject({ w: 29, h: 9 });
       const paints = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
@@ -58,6 +63,7 @@ for (const mode of ['source', 'built']) test(`${mode}: pattern bodies preserve p
 });
 
 for (const mode of ['source', 'built']) test(`${mode}: corner phase and port clipping ignore reserved ring offsets`, async ({ page, servers }, testInfo) => {
+  testInfo.annotations.push({ type: 'fidelity-assertion', description: 'pattern.exclusive-anchor-clip' });
   await openHarness(page, servers, mode);
   let rows;
   try {
@@ -80,7 +86,7 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
             clip: clipped ? { kind: 'rect', rect: { x: 27, y: 27, w: 5, h: 4 } } : { kind: 'unbounded' } },
           diagnostics: { onComplete: value => { trace = value; } },
         });
-        rows.push({ bodyMode, clipped, size: [output.width, output.height],
+        rows.push({ bodyMode, clipped, trace, size: [output.width, output.height],
           inside: [...output.getPixel(8, 6)], farInside: [...output.getPixel(12, 9)],
           leftOutside: [...output.getPixel(7, 6)], rightOutside: [...output.getPixel(13, 6)],
           faceCorner: [...output.getPixel(4, 4)], ringCorner: [...output.getPixel(0, 0)], composition: trace.composition });
@@ -89,8 +95,12 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
     }, mode);
     // Literal independent source coordinates at face q(4,2), then q(8,5).
     const first = [14, 6, 7, 11, 12], second = [13, 5, 6, 10, 11];
+    expect(rows.filter(r => r.bodyMode === 2 && r.clipped)).toHaveLength(1);
     for (const row of rows) {
       expect(row.size).toEqual([37, 16]);
+      expect(row.trace.requested).toMatchObject({ state: 'active', pressed: false, disabled: false, default: true });
+      expect(row.trace.steps.find(step => step.role === 'face' && step.action === 'selected')).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: -10239, manifestKey: 'face' } });
+      expect(row.trace.steps.find(step => step.role === 'default-ring' && step.action === 'selected' && step.usage === 'paint')).toMatchObject({ owner: { chainDepth: 0 }, resource: { signedId: -10231, manifestKey: 'ring' } });
       expect(row.inside).toEqual([(first[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
       expect(row.farInside).toEqual([(second[row.bodyMode > 4 ? 0 : row.bodyMode] + 1) * 10, 0, 0, 255]);
       expect(row.composition).toMatchObject({ faceRect: { x: 23, y: 25, w: 29, h: 8 }, appliedUnknownPatternOffset: false });
@@ -101,6 +111,7 @@ for (const mode of ['source', 'built']) test(`${mode}: corner phase and port cli
 });
 
 for (const mode of ['source', 'built']) test(`${mode}: Crayon painted dependencies join pinned bytes and independent source color samples`, async ({ page, servers }, info) => {
+  info.annotations.push({ type: 'fidelity-assertion', description: 'pattern.actual-source-samples' });
   await openHarness(page, servers, mode);
   let result;
   try {
@@ -123,7 +134,11 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon painted dependenci
         return { rows, owner: { manifest: { patterns: owner.manifest.patterns }, byteProvenance: owner.byteProvenance } };
       } finally { owner.dispose(); }
     }, mode);
+    expect(result.rows.filter(r => !r.inherited && r.state === 'normal')).toHaveLength(1);
     for (const row of result.rows) {
+      expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled', default: false });
+      const face = row.trace.steps.find(s => s.role === 'face' && s.action === 'selected');
+      expect(face.resource).toMatchObject({ signedId: { normal: -10239, pressed: -10238, disabled: -10240 }[row.state], manifestKey: `push-button-${row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed'}` });
       expect(row.size).toEqual([88, 28]);
       expect(row.trace.composition.faceRect).toMatchObject({ w: 80, h: 20 });
       const painted = row.trace.steps.filter(step => step.role === 'body-fill' && step.action === 'selected');
