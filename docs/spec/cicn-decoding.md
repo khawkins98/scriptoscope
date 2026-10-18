@@ -36,15 +36,18 @@ The decoder validates required sections, nonempty pixel-map/mask dimensions,
 nonnegative monochrome dimensions and minimum populated-row strides before
 allocating expanded pixels. Invalid/truncated payloads fail explicitly. The
 shared reader and other resource decoders retain their own existing policies.
-Destination-window palette mode fails explicitly because the standalone
-resource decoder has no destination palette.
+After validating required byte ranges, destination-window palette mode returns
+null because the standalone decoder has no destination palette. Conversion and
+load provenance classify it as unsupported/skipped, with no asset or manifest
+binding; malformed payloads remain errors.
 
 The remaining policies are deliberately narrower than historical truth:
 
 - Undefined palette indices keep the existing black compatibility fallback.
 - RGB16 components retain their existing high-byte conversion to RGBA8; no
   display/gamma/device-matching fidelity is established here.
-- Duplicate `ColorSpec.value` records retain first-match compatibility. Their
+- Duplicate `ColorSpec.value` records use an explicit first-entry compatibility
+  policy. Their
   original interpretation is unverified.
 - Mismatched mask dimensions retain top-left overlap and opaque pixels outside
   the mask. No original alignment/resampling rule is claimed.
@@ -58,7 +61,7 @@ masks, binary mask polarity, nonzero bounds origins, NIL/ignored monochrome
 fallbacks, sparse/permuted tables and bit15 positional tables. Negative fixtures
 cover each truncated section, invalid dimensions/strides/table length and bit14.
 Against pre-fix main `8df3b4d9`, permuted mapping, undefined-index lookup,
-bit14 rejection and structural negatives fail; corrected decoder passes.
+bit14 unsupported classification and structural negatives fail; corrected decoder passes.
 
 `cicn-corpus.test.mjs` separately preserves observed decoded output for all 3,325
 cicns in the 18 explicitly pinned forks. `tests/decoder-fixtures/cicn-corpus.json`

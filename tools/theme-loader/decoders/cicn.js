@@ -22,7 +22,7 @@ import {
 
 /**
  * @param {Uint8Array} bytes  Raw cicn resource bytes
- * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}}
+ * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}|null} null for a structurally valid unsupported destination-palette variant
  */
 export function decodeCicn(bytes) {
   requireBytes(bytes, 0, 82, 'headers');
@@ -49,10 +49,11 @@ export function decodeCicn(bytes) {
   const tableFlags = tableHeader.readUInt16();
   const tableCount = tableHeader.readInt16() + 1;
   if (tableCount < 0) throw new Error('Invalid cicn color table size');
-  if (tableFlags & 0x4000) throw new Error('Unsupported cicn destination-window palette (ctFlags bit14)');
   const tableLength = 8 + tableCount * 8;
   requireBytes(bytes, tableOffset, tableLength, 'color table records');
   requireBytes(bytes, tableOffset + tableLength, pmap.rowBytes * pmap.height, 'pixel data');
+  // Known unsupported variant, not malformed input; conversion records skipped.
+  if (tableFlags & 0x4000) return null;
 
   // Pixel data sections in order.
   const maskBytes = r.readBytes(mask.rowBytes * mask.height);
@@ -87,7 +88,7 @@ export function decodeCicn(bytes) {
 
 function composeRgba(indices, maskAlpha, pmap, mask, colorTable) {
   // Apple TN QD13: bit15 clear uses ColorSpec.value; set uses position.
-  // Resolve once per decode. Duplicate values retain first-match compatibility;
+  // Resolve once per decode. Duplicate values use an explicit first-entry compatibility policy;
   // missing values retain black. Neither policy claims historical semantics.
   const palette = new Map();
   colorTable.entries.forEach((entry, position) => {

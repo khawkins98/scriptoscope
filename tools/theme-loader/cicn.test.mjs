@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { decodeCicn } from './decoders/cicn.js';
+import { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+import { forkOf } from '../../tests/resource-provenance/fixtures.mjs';
 
 // Independent literal-byte fixtures following Apple IM QuickDraw 4-105/106.
 // No decoder/shared helper or production encoder constructs expected bytes/RGBA.
@@ -74,7 +76,11 @@ test('cicn undefined-index black is retained compatibility, not original color t
 });
 
 test('cicn destination-window palette requires unavailable destination context', () => {
-  for (const flags of [0x4000, 0xc000]) assert.throws(() => decodeCicn(icon({ flags })), /destination-window palette/);
+  for (const flags of [0x4000, 0xc000]) {
+    const bytes = icon({ flags });
+    assert.equal(decodeCicn(bytes), null);
+    assert.throws(() => decodeCicn(bytes.subarray(0, bytes.length - 1)), /Truncated cicn pixel data/);
+  }
 });
 
 test('cicn rejects truncated required sections rather than synthesizing pixels', () => {
@@ -92,4 +98,19 @@ test('cicn rejects invalid dimensions, undersized strides and invalid table size
   }
   assert.throws(() => decodeCicn(icon({ depth: 8, stride: 2 })), /pixel map rowBytes/);
   assert.throws(() => decodeCicn(icon({ depth: 16 })), /Unsupported pixelSize/);
+});
+
+
+test('cicn unsupported palette is skipped with no converted asset or provenance binding', async () => {
+  const bytes = forkOf([{ type: 'cicn', id: -10239, data: icon({ flags: 0x4000 }) }]);
+  const raw = await loadKaleidoscopeScheme(bytes, { provenance: true, encodeAssets: false });
+  assert.deepEqual(raw.assets, []);
+  assert.deepEqual(raw.manifest.chromeElements ?? {}, {});
+  assert.deepEqual(raw.byteProvenance.resources.map(r => [r.type, r.signedId, r.status]), [['cicn', -10239, 'skipped']]);
+  let allocations = 0;
+  const encoded = await loadKaleidoscopeScheme(bytes, { provenance: true, encodeAssets: true, assetUrlFactory() { allocations++; return 'blob:unexpected'; } });
+  assert.equal(allocations, 0);
+  assert.deepEqual(encoded.manifest.chromeElements ?? {}, {});
+  assert.equal(encoded.byteProvenance.resources[0].status, 'skipped');
+  encoded.dispose();
 });
