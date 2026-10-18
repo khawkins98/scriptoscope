@@ -11,10 +11,10 @@ identified as AI in [captures.json](./captures.json).
 |---|---|---|---|
 | `windows-95.normal` | `V9-20261018-01` | [Full frame](./windows-95/full-frame.png), [port](./windows-95/port.png), [context](./windows-95/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
 | `system7-nostalgia-silver.normal` | `V7D-20261018-01` | [Full frame](./system7-nostalgia-silver/full-frame.png), [port](./system7-nostalgia-silver/port.png), [context](./system7-nostalgia-silver/context.png) | Conditions bracket `Draw1Control` |
-| `windows-95.pressed` | `V10W-20261019-01` | [Full frame](./windows-95-highlighted/full-frame.png), [port](./windows-95-highlighted/port.png), [context](./windows-95-highlighted/context.png) | Conditions bracket drawing after `HiliteControl` |
-| `windows-95.inactive` | `V10W-20261019-01` | [Full frame](./windows-95-disabled/full-frame.png), [port](./windows-95-disabled/port.png), [context](./windows-95-disabled/context.png) | Conditions bracket drawing after `HiliteControl` |
-| `system7-nostalgia-silver.pressed` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-highlighted/full-frame.png), [port](./system7-nostalgia-silver-highlighted/port.png), [context](./system7-nostalgia-silver-highlighted/context.png) | Conditions bracket drawing after `HiliteControl` |
-| `system7-nostalgia-silver.inactive` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-disabled/full-frame.png), [port](./system7-nostalgia-silver-disabled/port.png), [context](./system7-nostalgia-silver-disabled/context.png) | Conditions bracket drawing after `HiliteControl` |
+| `windows-95.pressed` | `V10W-20261019-01` | [Full frame](./windows-95-highlighted/full-frame.png), [port](./windows-95-highlighted/port.png), [context](./windows-95-highlighted/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `windows-95.inactive` | `V10W-20261019-01` | [Full frame](./windows-95-disabled/full-frame.png), [port](./windows-95-disabled/port.png), [context](./windows-95-disabled/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `system7-nostalgia-silver.pressed` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-highlighted/full-frame.png), [port](./system7-nostalgia-silver-highlighted/port.png), [context](./system7-nostalgia-silver-highlighted/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `system7-nostalgia-silver.inactive` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-disabled/full-frame.png), [port](./system7-nostalgia-silver-disabled/port.png), [context](./system7-nostalgia-silver-disabled/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 
 Each record retains the complete unaltered 640×480 native frame, exact 160×80
 port and 96×36 context. The entire 80×20 face is at port/image (20,20), with

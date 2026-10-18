@@ -647,8 +647,8 @@ The [reference intake](./tests/reference-captures/README.md) also defines a narr
 review scope for complete fixed-size empty Windows 95/System 7 face observations.
 Such composited-pixel evidence leaves the broader requirements unresolved; it
 cannot certify masks, typography, other states or private painter selection.
-The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains two
-independently AI-reviewed scoped observations. Both whole requests remain
+The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains six
+independently AI-reviewed scoped observations. All six whole requests remain
 evidence-incomplete, with all broader requirements unresolved.
 
 [Actual resource-byte provenance](./docs/spec/resource-byte-provenance.md) can opt in
