@@ -131,4 +131,5 @@ jobs:
           path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
           retention-days: 14

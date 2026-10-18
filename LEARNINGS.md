@@ -4042,3 +4042,19 @@ consumer mutation and continuous movement cannot cause a hot microtask loop. Can
 also belong between sequential face/ring/pressed decodes, before mount-owned URLs
 are requested after disposal. These are web ownership guarantees, not historical
 Kaleidoscope behavior or a change to borrowed theme ownership.
+
+## 2026-10-18 — Preserve failure evidence before a focused rerun
+
+A text-color validation run failed with null slider geometry before a gesture.
+A focused rerun passed,
+but cleared the original output directory before its trace was copied. The
+original full log survived; precise historical causality could no longer be
+reconstructed. A separate deterministic probe reproduced this failure mode at
+the real initial repaint: the old canvas handle detached while the replacement
+remained visible with identical pixels.
+
+Playwright's completed `onTestEnd` result exposes file and in-memory attachments.
+A dedicated reporter now copies those bytes into unique sibling archive folders
+with hashes and primary failure metadata before the next invocation clears its
+output. Missing files stay explicitly unavailable, and archive errors cannot
+replace the test failure. Preservation does not convert a failed run into a pass.

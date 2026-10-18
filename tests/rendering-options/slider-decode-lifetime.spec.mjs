@@ -41,7 +41,15 @@ for (const mode of ['source', 'built']) {
       }, mode);
       await expect(page.locator('.scriptoscope-slider canvas')).toHaveCount(1);
       await expect(page.locator('.scriptoscope-slider canvas')).toBeVisible();
-      const box = await page.locator('.scriptoscope-slider canvas').boundingBox();
+      // Promotion sync can replace an identical canvas between protocol calls.
+      // Query its current geometry in one browser task through the stable wrapper.
+      const box = await page.locator('.scriptoscope-slider').evaluate(face => {
+        const canvas = face.querySelector('canvas');
+        if (!canvas?.isConnected) throw new Error('Expected a connected slider canvas');
+        const { x, y, width, height } = canvas.getBoundingClientRect();
+        return { x, y, width, height, canvases: face.querySelectorAll('canvas').length };
+      });
+      expect(box).toMatchObject({ width: 120, height: 16, canvases: 1 });
       // Windows95's independently known 11px thumb / 109px travel at value50.
       await page.mouse.move(box.x + 60, box.y + box.height / 2);
       await page.mouse.down();

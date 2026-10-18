@@ -69,7 +69,7 @@
     "baseline:scenes": "node scripts/capture-visual-baselines.mjs",
     "verify:scenes": "node scripts/verify-visual-baselines.mjs",
     "audit:scenes": "node scripts/scene-coverage-audit.mjs",
-    "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs",
+    "test": "node --experimental-strip-types --test tools/theme-loader/*.test.mjs tools/sit-wasm/*.test.mjs src/declarative/*.test.mjs src/*.test.mjs tests/rendering-requirements/*.test.mjs tests/control-availability/*.test.mjs tests/reference-captures/*.test.mjs tests/source-inputs/*.test.mjs tests/research-observations/*.test.mjs tests/rendering-options/*.test.mjs",
     "import": "node scripts/import-scheme.mjs",
     "gates": "npm run typecheck && npm test && npm run lint:themes -- --strict && npm run audit:scenes -- --check && npm run test:requirements && npm run test:availability:sources && npm run test:references && npm run test:source-inputs",
     "test:rendering": "npm run build && playwright test --config tests/rendering-options/playwright.config.mjs",

@@ -114,5 +114,6 @@ jobs:
           path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
+            test-results/rendering-failure-archive/
           if-no-files-found: ignore
           retention-days: 14

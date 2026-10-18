@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Preserve failed browser-test attachments and their hashes outside the next
+  run's replaceable output, including original failure metadata and explicit
+  incomplete-copy reporting. Slider lifetime probes measure the current canvas
+  atomically across its initial repaint.
+
 - Preserve six original-environment control observations as quarantined partial
   research, with native frames, fixture sources, external input/tool pins and
   integrity checks. Palette/provider/font gaps remain open; reference intake

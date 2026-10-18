@@ -162,3 +162,21 @@ disagreement with the checkout; missing Git identity stays unknown. This is
 portable writer metadata, not authentication of assertions or historical fidelity.
 The requirement summary reads the canonical envelope and retains legacy golden
 provenance as such; old artifacts without cleanliness remain unknown.
+
+## Preserved failed runs
+
+The failure reporter copies failed, timed-out and interrupted test attachments to
+`test-results/rendering-failure-archive/failure-*/` before another Playwright run
+can clear its normal output. This applies to contracts and golden comparisons.
+Each unique directory contains `record.json`, the original errors, measured Git
+identity, attachment SHA-256/size, and available trace/screenshot/case bytes,
+including in-memory attachments. Repeated attempts preserve separate records.
+
+Missing or unreadable attachments make `archiveComplete` false; preservation
+errors never replace the primary test failure. No attachments also means
+incomplete preservation. Completeness covers the attachments Playwright reported;
+it does not establish that every desired diagnostic was produced.
+This is diagnostic retention, not a passing result or
+fidelity approval. Run logs remain separate. Archives persist until explicitly
+removed after review; they are ignored by Git and included in CI failure uploads.
+Keep custom `--output` directories separate from this archive and its ancestors.
