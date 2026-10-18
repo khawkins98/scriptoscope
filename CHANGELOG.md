@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Reject requirement assessments backed only by unrelated archive or synthetic
+  inputs, while retaining general engine rules and explicitly shared source
+  evidence. This adds an association guard without promoting any fidelity claim
+  or changing the reviewed inventory (#274).
+
 - Preserve failed browser-test attachments and their hashes outside the next
   run's replaceable output, including original failure metadata and explicit
   incomplete-copy reporting. Slider lifetime probes measure the current canvas

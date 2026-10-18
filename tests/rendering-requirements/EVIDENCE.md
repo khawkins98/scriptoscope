@@ -68,3 +68,11 @@ in all four Lisa source corner blocks with an empty label, normal state,
 The other face requirements remain unknown; #218 stays open for patterns, list
 headers and legacy-path limits. No whole-face, text, decoder or state fidelity
 is inferred. Inventory 1.0.1 explicitly aligns the Lisa input with this 80px oracle.
+
+## Input association boundary
+
+The validator rejects assessment evidence whose named non-engine inputs are all
+unrelated to the case's declared primary/base inputs. General engine-only rules
+remain allowed; the combined tab note names both applicable archives. This is a
+necessary association check, not full parameter or source-claim authentication.
+The reviewed inventory, statuses and open closures are unchanged by this guard.
