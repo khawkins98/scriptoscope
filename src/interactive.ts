@@ -670,6 +670,9 @@ export class WindowManager {
     } = {},
   ): Promise<HTMLElement> {
     const host = document.createElement('div');
+    // Stable shell hook for both imperative and declarative windows. Controls
+    // also carry data-scriptoscope-promoted, so it cannot identify a window.
+    host.setAttribute('data-scriptoscope-window-host', '');
     host.style.position = 'absolute';
     // SHADOW DOM (ADR-0001 Decision 2): attach a shadow root to the host. The window's chrome
     // canvas + DOM-twin widgets + grow box + themed scrollbars all live inside the shadow root —

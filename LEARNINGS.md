@@ -3348,3 +3348,17 @@ also stayed identical because those controls request `height: 22`: they did not
 exercise this bug. The new browser test checks automatic showcase sizing,
 complete centered glyph ink, stable state geometry, and native select changes.
 The select still uses the existing native popup over a themed closed face.
+
+
+## 2026-10-18 — The promotion marker is not a window-host marker
+
+The optional stylesheet used `[data-scriptoscope-promoted]` for window shadows,
+but buttons, select wrappers, and checkables carry that marker too. Real window
+hosts did not. Windows 95 and System 7 therefore gained an extra rectangular
+2px shadow around controls while the intended window shell rule missed its target.
+Raw canvas pixel comparisons could not catch it: computed host styles are part
+of the final render. WindowManager now stamps `data-scriptoscope-window-host`
+on both imperative and declarative hosts; only the window-shadow and print
+shadow-removal rules use it. General control focus/cursor rules remain general.
+The boot wipe also uses the promotion marker, but is additionally gated by
+`[inert]`; this change does not alter its animation policy.
