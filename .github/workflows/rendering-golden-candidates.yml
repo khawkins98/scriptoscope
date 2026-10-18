@@ -8,6 +8,10 @@ concurrency:
 jobs:
   record:
     runs-on: ubuntu-24.04
+    env:
+      # Container Git ownership can differ from checkout's user. The triggering
+      # commit is authoritative provenance and needs no Git safety exception.
+      SCRIPTOSCOPE_GIT_COMMIT: ${{ github.sha }}
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       options: --ipc=host
