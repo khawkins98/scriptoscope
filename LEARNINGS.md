@@ -3568,7 +3568,7 @@ The browser regression first checks each native accessible name, then checks the
 promoted name, real Tab/Arrow interaction, and retheming in source/built entries
 under Windows95 and System7. It failed on the old unnamed slider before the fix.
 This does not change min/max/step/disabled handling or claim native restoration:
-`disconnect()` currently leaves promoted form controls, tracked separately in #232.
+`disconnect()` at that revision left promoted form controls; the lifecycle entry below supersedes that limitation (#232).
 
 ### 2026-10-18 — Solid faces share the ring's border engine, not rectangular nine-slicing
 
@@ -3612,3 +3612,35 @@ The Lisa follow-up also exposed an input-scope distinction: the existing corner
 oracle uses `minWidth: 80`, while the initial ledger omitted that option. Inventory
 1.0.1 declares the exact 80px/20px empty normal input before attaching the
 verified corner-retention assertion; a nearby input is not silently equivalent.
+
+### 2026-10-18 — Form-control skins need mount ownership, not just DOM removal
+
+Native checkbox/radio/range/select carriers stay alive across skins. Capture only
+runtime-mutated attributes/styles once, and preserve their live value, checked
+state, selection and form association. Retheme must dispose old face listeners
+without replacing that original restoration record. Clearing a select's cssText
+on each rewrap loses consumer styles; removing a slider span does not release its
+window pointer handlers, scheduled frame or an already-awaiting raster paint.
+
+Prepare faces off-DOM, then check the mount cancellation signal and source/label
+location immediately before committing. Do not use a captured parent to resurrect
+or steal a consumer-removed source. Select preparation also needs to recheck the
+current selected text after awaiting its button; otherwise a change during the
+first decode commits a stale face. Keep a direct reference to that decorative
+button: the procedural fallback does not have the themed button's class.
+
+The browser floor predates addEventListener's signal option (Chrome90, Firefox86,
+Safari15 per MDN browser-compat-data). The lifecycle helper explicitly removes
+owned listeners when its AbortSignal fires. Browser regressions deliberately strip
+listener signal options, retain old faces, begin drags, interrupt async promotion,
+change selection during decode, and mount/retheme/disconnect/remount the same
+native nodes both standalone and inside windows. Form-only cancellation of stale
+replacement work is covered; global/window retheme ordering is separate (#237).
+Button/tab/text-field decoration restoration remains outside this contract.
+
+The first Linux lifecycle CI run passed 66 contracts but timed out in two test
+fixtures that waited for promotion counts only inside a MutationObserver. A
+held-select reproduction reached four completed controls while the observer saw
+counts `[0,1,2,3,3]`: scanner updates stats after the DOM-commit microtask, and no
+later mutation is guaranteed. Poll the public completed state with Playwright;
+do not widen timeouts or treat platform-dependent task ordering as runtime failure.

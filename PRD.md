@@ -13,6 +13,11 @@ regressions. Its representative and extended profiles do not prove every
 permutation or full original-engine fidelity; omitted window axes and unsupported
 control options remain explicit in the coverage inventory.
 
+The current declarative lifecycle restores promoted checkbox/radio/range/select
+carriers and releases their replacement listeners on disconnect while preserving
+live form state. Button/tab/text-field decoration teardown is not covered by that
+contract; see [integration lifecycle details](./docs/integration-edge-cases.md#theme-ownership-on-teardown).
+
 This document is the project charter, ported from the upstream extraction ticket [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246). When this document and the upstream ticket disagree, **this document wins** — the ticket records the decision moment, but it lives in another repo and won't be updated as Scriptoscope evolves.
 
 ---

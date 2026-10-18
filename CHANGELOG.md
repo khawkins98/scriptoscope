@@ -54,6 +54,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Restore promoted checkbox/radio/range/select carriers on disconnect while
+  preserving live form state and consumer attributes. Retheme and teardown release
+  old face/global drag listeners and pending paints, cancel unfinished promotion,
+  and remove mount-owned theme-switcher wiring (#232).
+
 - Promoted range sliders retain associated labels and explicit ARIA naming,
   including naming precedence and live label references after retheming (#229).
 

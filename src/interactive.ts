@@ -83,6 +83,7 @@
 // repaints.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { listenUntilAborted } from './listenUntilAborted.js';
 import {
   composeButton, composeCheckable, composeDisclosure, composeSlider, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
@@ -101,6 +102,13 @@ type Orientation = 'horizontal' | 'vertical';
 const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 const KEY_ACTIVATE = (e: KeyboardEvent): boolean => e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar';
+
+// Internal ownership hook used by declarative promotion. Not part of the package exports.
+const controlDisposers = new WeakMap<HTMLElement, () => void>();
+export function disposeInteractiveControl(el: HTMLElement): void {
+  controlDisposers.get(el)?.();
+  controlDisposers.delete(el);
+}
 
 // ── Button ──────────────────────────────────────────────────────────────────
 export interface InteractiveButtonOptions extends ButtonOptions {
@@ -124,7 +132,9 @@ export async function interactiveButton(
     // No themed button cicns → the native CSS baseline button is already a real,
     // accessible, interactive <button>.
     const b = baselineButton(bo.label ?? '', bo);
-    if (onClick && !bo.disabled) b.addEventListener('click', onClick);
+    const events = new AbortController();
+    controlDisposers.set(b, () => events.abort());
+    if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
     return b;
   }
   const pressedBuf = bo.disabled ? null : await composeButton(theme, { ...bo, pressed: true });
@@ -144,6 +154,8 @@ export async function interactiveButton(
   el.appendChild(normal);
   if (bo.disabled) return el;
 
+  const events = new AbortController();
+  controlDisposers.set(el, () => events.abort());
   let down = false;
   const press = (): void => { down = true; el.replaceChildren(pressed); };
   const release = (fire: boolean): void => {
@@ -154,11 +166,11 @@ export async function interactiveButton(
   };
   // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
   // click (canceled drag-away); pointerup fires it.
-  el.addEventListener('pointerdown', (e) => { e.preventDefault(); press(); });
-  el.addEventListener('pointerup', () => release(true));
-  el.addEventListener('pointerleave', () => release(false));
-  el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
-  el.addEventListener('keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
+  listenUntilAborted(events.signal, el, 'pointerdown', (e) => { e.preventDefault(); press(); });
+  listenUntilAborted(events.signal, el, 'pointerup', () => release(true));
+  listenUntilAborted(events.signal, el, 'pointerleave', () => release(false));
+  listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); press(); } });
+  listenUntilAborted(events.signal, el, 'keyup', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); release(true); } });
   return el;
 }
 
@@ -216,7 +228,9 @@ async function buildToggle(
   };
   paint();
 
-  const set = (next: boolean): void => { if (next === checked) return; checked = next; paint(); };
+  const events = new AbortController();
+  controlDisposers.set(el, () => events.abort());
+  const set = (next: boolean): void => { if (events.signal.aborted || next === checked) return; checked = next; paint(); };
   if (!disabled) {
     const toggle = (): void => {
       // Radios don't un-check on self-click; checkboxes flip.
@@ -226,8 +240,8 @@ async function buildToggle(
       paint();
       if (onChange) onChange(checked);
     };
-    el.addEventListener('click', toggle);
-    el.addEventListener('keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
+    listenUntilAborted(events.signal, el, 'click', toggle);
+    listenUntilAborted(events.signal, el, 'keydown', (e) => { if (KEY_ACTIVATE(e)) { e.preventDefault(); toggle(); } });
   }
   // Attach the setter on the element so callers (e.g. the declarative layer's radio-group sync) can
   // drive the visual state from the outside without an internal-API leak.
@@ -362,7 +376,16 @@ async function buildDraggable(
 ): Promise<void> {
   let value = clamp01(initial);
   let dragging = false;
+  let stopDrag = (): void => {};
   let raf = 0;
+  let paintVersion = 0;
+  const events = new AbortController();
+  controlDisposers.set(el, () => {
+    events.abort();
+    paintVersion++;
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  });
   el.setAttribute('role', 'slider');
   el.setAttribute('aria-orientation', orientation);
   el.setAttribute('aria-valuemin', '0');
@@ -379,7 +402,15 @@ async function buildDraggable(
   } satisfies Partial<CSSStyleDeclaration>);
 
   const repaint = async (): Promise<void> => {
-    const buf = await compose(value, dragging ? 'pressed' : 'normal');
+    if (events.signal.aborted) return;
+    const version = ++paintVersion;
+    let buf: PixelBuffer | null;
+    try { buf = await compose(value, dragging ? 'pressed' : 'normal'); }
+    catch (error) {
+      if (events.signal.aborted || version !== paintVersion) return;
+      throw error;
+    }
+    if (events.signal.aborted || version !== paintVersion) return;
     if (buf) el.replaceChildren(bufferToCanvas(buf, scale));
     el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
   };
@@ -390,6 +421,7 @@ async function buildDraggable(
   // browser silently rehydrated form state. Sync (returns immediately;
   // repaint is rAF-scheduled).
   (el as unknown as { _scriptoscopeSetValue: (v: number) => void })._scriptoscopeSetValue = (v: number) => {
+    if (events.signal.aborted) return;
     value = clamp01(v);
     schedule();
   };
@@ -402,24 +434,25 @@ async function buildDraggable(
     const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
     return clamp01(t);
   };
-  const schedule = (): void => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
+  const schedule = (): void => { if (!events.signal.aborted && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
   const onMove = (e: PointerEvent): void => { value = valueAt(e); onChange?.(value); schedule(); };
   const onUp = (): void => {
     dragging = false;
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
+    stopDrag();
     void repaint();
   };
-  el.addEventListener('pointerdown', (e) => {
+  listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
     e.preventDefault();
     dragging = true;
     value = valueAt(e);
     onChange?.(value);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    stopDrag();
+    const removeMove = listenUntilAborted(events.signal, window, 'pointermove', onMove);
+    const removeUp = listenUntilAborted(events.signal, window, 'pointerup', onUp);
+    stopDrag = () => { removeMove(); removeUp(); };
     void repaint();
   });
-  el.addEventListener('keydown', (e) => {
+  listenUntilAborted(events.signal, el, 'keydown', (e) => {
     const step = e.shiftKey ? 0.1 : 0.05;
     let next = value;
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') next = clamp01(value + step);

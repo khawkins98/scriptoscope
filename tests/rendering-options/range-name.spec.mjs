@@ -54,8 +54,7 @@ for (const mode of ['source', 'built']) for (const slug of ['windows-95', 'syste
       await page.locator('#range-ref-a').evaluate(el => { el.textContent = 'Updated'; });
       await expect(sliders.nth(4)).toHaveAccessibleName('Updated volume');
       await page.evaluate(() => window.rangeNames.handle.disconnect());
-      // Naming attributes remain consumer-owned. Native restoration is tracked
-      // separately in #232; disconnect currently leaves promoted controls.
+      // Naming attributes remain consumer-owned through native restoration.
       await expect(page.locator('#range-4')).toHaveAttribute('aria-labelledby', 'range-ref-a range-ref-b');
       await expect(page.locator('#range-4')).toHaveAttribute('aria-label', 'Ignored explicit');
     } catch (error) { await attachCase(page, testInfo, { mode, slug, oracle: 'native-range-accessible-name' }, error); throw error; }
