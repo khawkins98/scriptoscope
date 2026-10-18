@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.2.0",
+  "inventoryVersion": "1.3.0",
   "scope": {
-    "description": "Eighteen exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Twenty-two exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -12,7 +12,7 @@
       "placement",
       "interaction"
     ],
-    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
   },
   "inputs": [
     {
@@ -751,6 +751,334 @@
         "baseUrlIdentity": "same-origin/wrong-child/"
       },
       "sha256": "db8a3ea09d1eb89ec06bcb46e6b8eba744dd09500726053774bdc4ac8d516619"
+    },
+    {
+      "id": "engine.kaleidoscope-2.3.1-pach130",
+      "kind": "engine",
+      "version": "Kaleidoscope2.3.1 PACH130 68k",
+      "bytes": 87914,
+      "sha256": "bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44",
+      "redistributed": false,
+      "extractionReference": "docs/spec/header-surface.md"
+    },
+    {
+      "id": "synthetic.header.overlap-owner",
+      "kind": "synthetic",
+      "definition": {
+        "fixture": "tests/decoder-fixtures/header-surface.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "signedId": -9567,
+            "bytes": 568,
+            "sha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc"
+          },
+          {
+            "type": "cinf",
+            "signedId": -9567,
+            "bytes": 18,
+            "sha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99"
+          },
+          {
+            "type": "cicn",
+            "signedId": -9568,
+            "bytes": 568,
+            "sha256": "db975457d35ccc7824c702592ece0a029251a06e1696cfcdc8cabcdf11fe43dc"
+          },
+          {
+            "type": "cinf",
+            "signedId": -9568,
+            "bytes": 18,
+            "sha256": "c5ba8e6ae8a793908fa10af14d6a622ac2d7480c93dbc17ed490785bf8814e99"
+          }
+        ],
+        "literalCurrentDisplayPalette": {
+          "1": [
+            161,
+            0,
+            255
+          ],
+          "2": [
+            166,
+            0,
+            255
+          ],
+          "3": [
+            171,
+            0,
+            255
+          ],
+          "4": [
+            177,
+            0,
+            255
+          ],
+          "5": [
+            182,
+            0,
+            255
+          ],
+          "6": [
+            187,
+            0,
+            255
+          ],
+          "7": [
+            193,
+            0,
+            255
+          ],
+          "8": [
+            198,
+            0,
+            255
+          ],
+          "9": [
+            203,
+            0,
+            255
+          ],
+          "a": [
+            3,
+            0,
+            255
+          ],
+          "T": [
+            13,
+            0,
+            255
+          ],
+          "b": [
+            22,
+            0,
+            255
+          ],
+          "c": [
+            30,
+            0,
+            255
+          ],
+          "U": [
+            38,
+            0,
+            255
+          ],
+          "d": [
+            45,
+            0,
+            255
+          ],
+          "X": [
+            53,
+            0,
+            255
+          ],
+          "Y": [
+            59,
+            0,
+            255
+          ],
+          "B": [
+            66,
+            0,
+            255
+          ],
+          "D": [
+            73,
+            0,
+            255
+          ],
+          "Z": [
+            79,
+            0,
+            255
+          ],
+          "Q": [
+            85,
+            0,
+            255
+          ],
+          "R": [
+            92,
+            0,
+            255
+          ],
+          "L": [
+            98,
+            0,
+            255
+          ],
+          "M": [
+            104,
+            0,
+            255
+          ],
+          "N": [
+            110,
+            0,
+            255
+          ],
+          "O": [
+            116,
+            0,
+            255
+          ],
+          "P": [
+            121,
+            0,
+            255
+          ],
+          "S": [
+            127,
+            0,
+            255
+          ],
+          "V": [
+            133,
+            0,
+            255
+          ],
+          "W": [
+            139,
+            0,
+            255
+          ],
+          "x": [
+            144,
+            0,
+            255
+          ],
+          "y": [
+            150,
+            0,
+            255
+          ],
+          "z": [
+            155,
+            0,
+            255
+          ],
+          "e": [
+            208,
+            0,
+            255
+          ],
+          "f": [
+            213,
+            0,
+            255
+          ],
+          "J": [
+            218,
+            0,
+            255
+          ],
+          "g": [
+            223,
+            0,
+            255
+          ],
+          "h": [
+            229,
+            0,
+            255
+          ],
+          "i": [
+            234,
+            0,
+            255
+          ],
+          "j": [
+            239,
+            0,
+            255
+          ],
+          "K": [
+            243,
+            0,
+            255
+          ],
+          "k": [
+            248,
+            0,
+            255
+          ],
+          "l": [
+            253,
+            0,
+            255
+          ],
+          "@": [
+            48,
+            48,
+            48
+          ]
+        },
+        "model": "11x9 indexed8, corner2/side3, repeat=true, independent literal current-display palette and binary mask"
+      },
+      "sha256": "da53d9994956817069e3d32dc5bb91debebc6d09a61148adb7deb13e30fb0beb"
+    },
+    {
+      "id": "synthetic.header.empty-child",
+      "kind": "synthetic",
+      "definition": {
+        "definition": {
+          "chromeElements": {},
+          "patterns": {
+            "wrong": {
+              "sourcePpatId": 0,
+              "asset": "never-decode-child.png"
+            }
+          },
+          "base": "synthetic.header.overlap-owner"
+        }
+      },
+      "sha256": "096848627c47eb08a204ad7c734ca5f603d1a68b64a4bd478aa338c54819e8d9"
+    },
+    {
+      "id": "synthetic.header.collision-owner",
+      "kind": "synthetic",
+      "definition": {
+        "fixture": "tests/decoder-fixtures/header-surface.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "signedId": -9567,
+            "bytes": 177,
+            "sha256": "ae6a14ab40e4f69489f9444084133376abe2ff5872c3f82c4fa0e56290831231"
+          },
+          {
+            "type": "cinf",
+            "signedId": -9567,
+            "bytes": 18,
+            "sha256": "ae5b3b23aa3f53a382fa3fbded6b77901350bc9dcd3d50f7fa59b182eba35e11"
+          }
+        ]
+      },
+      "sha256": "051b49f9cdc821654ba3747072b7dc72d5579f9fda7ca8f49c6897785b34807f"
+    },
+    {
+      "id": "synthetic.band.collision-owner",
+      "kind": "synthetic",
+      "definition": {
+        "fixture": "tests/decoder-fixtures/sampled-bands.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "signedId": -10239,
+            "bytes": 177,
+            "sha256": "5ee1db1a5073e86f05343eefd065909968563aa2c5b5ad0aeb709606a90e248f",
+            "name": "band fixture"
+          },
+          {
+            "type": "cinf",
+            "signedId": -10239,
+            "bytes": 18,
+            "sha256": "867de162f9727cec7e35ab564a70822cee7451bb965ebb862e5f3ec6401e8793"
+          }
+        ]
+      },
+      "sha256": "b59e1d4715b401c30e42481c72af60a1be149ef49a40c4c5dbfa33e41632f585"
     }
   ],
   "evidence": [
@@ -1094,6 +1422,85 @@
       ],
       "claim": "Selected source background consumption and the exact literal solid union under declared display policy.",
       "limits": "Not original resource ownership, complete border/mask geometry, device/palette/producer color, original port, typography or whole-control verification."
+    },
+    {
+      "id": "source.pach130-header-rect-mask",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-pach130"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "For the finite whole-header cases, PACH130 c1e8..c1f8 tests the complete UInt32 state for zero and selects -9568 or -9567. The list-view wrapper c524..c546 intersects the original Rect clip and increments drawing bottom before composition. Solid inset union721a..7260 precedes square corners and independent masked bands72a8..7620; ordinary forward repetition5e86..5f84 clips final tiles without resetting phase. This establishes only the declared full-color nonrecording geometry/mask subset, not Resource Manager ownership or device output. Header sampled lines are established independently in PACH130: helper5cb8 enters width1 expansion5d48..5dc4 or height1 expansion5dc4..5e26, invokes5810 with mask checking through5874, and the full-color path calls palette687e via5a32. This is the header sampler source, not an inference from the kDEF push helper.",
+      "excerptSha256": "cceabb51630249bcd91b866b63f6b8693cfde634686357d80822c9a946f75dc5",
+      "requirementIds": [
+        "geometry.header-whole-surface",
+        "fill.header-solid-mask",
+        "state.header-raw-dispatch",
+        "placement.header-explicit-clip",
+        "fill.sampled-line-color"
+      ],
+      "claim": "The exact declared whole-header rectangle follows source square corners, independent bands and painter order; extension claims are limited to retained observable pixels. The exact literal source body/mask pixels agree under the declared current-display policy; each assessment limits overlap/tail scope to visible pixels. The exact UInt32 zero/nonzero header request selects the corresponding source callback ID. The exact declared caller clip retains tile phase and requested output coordinates. Source-required header sampled-line color follows its own PACH mask/palette path; the bounded API can report it unsupported.",
+      "limits": "Ordinary full-color nonrecording source subset only; selection/device/global/cache behavior not established.",
+      "addresses": [
+        "c1e8..c1f8 raw state test",
+        "c524..c546 original clip and bottom extension",
+        "721a..7260 solid union",
+        "72a8..7620 corners/bands and order",
+        "5e86..5f84 forward repeat/partial CopyMask",
+        "0x5cb8;0x5d48..0x5e26;0x5810→0x5874;0x5a32→0x687e"
+      ]
+    },
+    {
+      "id": "fixture.header-overlap-literal",
+      "kind": "source-art",
+      "inputs": [
+        "synthetic.header.overlap-owner"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The independently serialized11x9 c2/s3 repeat source and literal19x13 rows are pinned by header-band-source-pins.json. The ordinary full-plane case observes overlapping sides, mask holes and partial tails. The clipped list-view case observes local x5..12,y2..10 only: body survives top-band mask holes, and row10 x8/x9 remains body48 where ordinary-height output contains band tokens7/6. Cropped lower corners, side overlap and the x16 partial tail are not observed by that clipped case.",
+      "excerptSha256": "a0c077a129ac80bd5efd4fb8c753d499f1c619741db80bba684e3869b409f76c",
+      "requirementIds": [
+        "geometry.header-whole-surface",
+        "fill.header-solid-mask",
+        "placement.header-explicit-clip"
+      ],
+      "claim": "The exact declared whole-header rectangle follows source square corners, independent bands and painter order; extension claims are limited to retained observable pixels. The exact literal source body/mask pixels agree under the declared current-display policy; each assessment limits overlap/tail scope to visible pixels. The exact declared caller clip retains tile phase and requested output coordinates.",
+      "limits": "Synthetic source/literal agreement, not original capture or typography."
+    },
+    {
+      "id": "source.kdef-sampled-lines",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The kDEF0 FEAE helper takes source width1-to-wider before height1-to-taller paths at ff3e..10018. The mask-gated sampler and10702 ColorSpec lookup use positional matching value, last-entry-zero shortcut, reverse matching value, then entry0. A bit15 raster index0 can therefore remain red in ordinary CopyMask while its sampled line color comes from the gray value0 entry. The current high-byte/LUT conversion is a declared display policy, not original-device equivalence.",
+      "excerptSha256": "d86055d1f8a8fe633479ad8c09dcb08539e48fa8914c9b29568f67d1b04ad8e8",
+      "requirementIds": [
+        "fill.sampled-line-color"
+      ],
+      "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API.",
+      "limits": "Full-color indexed sampler under declared current-display conversion, not raw RGB16/device equivalence.",
+      "addresses": [
+        "FEAE width1/height1 fast paths and mask-gated sampler",
+        "10702 positional/last-zero/reverse/fallback ColorSpec lookup"
+      ]
+    },
+    {
+      "id": "fixture.band-collision-literal",
+      "kind": "source-art",
+      "inputs": [
+        "synthetic.band.collision-owner",
+        "synthetic.header.collision-owner"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.",
+      "excerptSha256": "5762de0c35e3bf41201605567382aa198a9a046a234968a13f10518c24be3262",
+      "requirementIds": [
+        "fill.sampled-line-color"
+      ],
+      "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API.",
+      "limits": "Exact band/corner observations only; no complete body/border/mask proof for push case."
     }
   ],
   "requirements": [
@@ -1211,6 +1618,41 @@
       "id": "fill.authored-solid-rgb16",
       "dimension": "fillMask",
       "claim": "For the exact empty-label input, consume the selected owner RGB16 background under declared display policy independent of mask/raster palette, and paint the literal two-inset solid union after a known current same-owner ppat miss; no original resource-owner/device claim."
+    },
+    {
+      "id": "geometry.header-whole-surface",
+      "dimension": "geometry",
+      "claim": "The exact declared whole-header rectangle follows source square corners, independent bands and painter order; extension claims are limited to retained observable pixels."
+    },
+    {
+      "id": "fill.header-solid-mask",
+      "dimension": "fillMask",
+      "claim": "The exact literal source body/mask pixels agree under the declared current-display policy; each assessment limits overlap/tail scope to visible pixels."
+    },
+    {
+      "id": "state.header-raw-dispatch",
+      "dimension": "state",
+      "claim": "The exact UInt32 zero/nonzero header request selects the corresponding source callback ID."
+    },
+    {
+      "id": "state.remaining",
+      "dimension": "state",
+      "claim": "Remaining state behavior is not established for this finite case."
+    },
+    {
+      "id": "placement.header-explicit-clip",
+      "dimension": "placement",
+      "claim": "The exact declared caller clip retains tile phase and requested output coordinates."
+    },
+    {
+      "id": "interaction.native-original",
+      "dimension": "interaction",
+      "claim": "Native/original interaction is not established by direct synthetic pixel composition."
+    },
+    {
+      "id": "fill.sampled-line-color",
+      "dimension": "fillMask",
+      "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API."
     }
   ],
   "assertions": [
@@ -1359,6 +1801,46 @@
         "synthetic.solid.palette-collision.bevel.normal.empty.w29.h9"
       ],
       "claim": "Exactly two registered rows: owning load/occurrence/payload, request and missing-body decision plus complete literal output. Other46 rows do not extend inventory.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "header.whole-surface-literal",
+      "path": "tests/rendering-options/header-band-requirements.spec.mjs",
+      "marker": "id:'header.whole-surface-literal'",
+      "caseIds": [
+        "synthetic.header.c2-s3.window.state1.w19.h13",
+        "synthetic.header.c2-s3.list.state0.w19.h13.clip"
+      ],
+      "claim": "Register only the two selected rows; exact options/context, returned size/all literal pixels, actual selected owner/load/resourceIndex/cicn+cinf hash joins, actual paint/admission, missing owner pattern, clip and paintRect.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "header.sampling-admission-policy",
+      "path": "tests/rendering-options/header-band-requirements.spec.mjs",
+      "marker": "id:'header.sampling-admission-policy'",
+      "caseIds": [
+        "synthetic.header.collision.repeat.state1.w11.h16"
+      ],
+      "claim": "Unsupported result, actual collision payload and sampler status, no paint dependencies. Compatibility admission assertion only, not a verified historical behavior.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "band.sampled-line-color-literal",
+      "path": "tests/rendering-options/header-band-requirements.spec.mjs",
+      "marker": "id:'band.sampled-line-color-literal'",
+      "caseIds": [
+        "synthetic.band.collision.push.repeat.empty.w29.h17"
+      ],
+      "claim": "Pin exact request and tile=true; compare independent literal band/corner RGBA; join selected band dependency to actual owning load resource occurrence and independent cicn+cinf hashes; require exact sampled model/derived path. The standalone registered assertion checks those exact request, byte and derived-dependency boundaries.",
       "modes": [
         "source",
         "built"
@@ -2348,6 +2830,269 @@
         "Current same-owner lookup miss is a declared runtime policy, not original Resource Manager ownership.",
         "Omitted composition context applies local compatibility defaults; actual original port state is unknown.",
         "RGB16 high byte followed by the existing 1.8/2.2 LUT is current display policy, not original device color."
+      ]
+    },
+    {
+      "id": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "family": "header-surface",
+      "mode": "direct",
+      "inputs": [
+        "synthetic.header.empty-child"
+      ],
+      "baseInputs": [
+        "synthetic.header.overlap-owner"
+      ],
+      "options": {
+        "kind": "window-header",
+        "width": 19,
+        "height": 13,
+        "drawState": 1,
+        "compositionContext": {
+          "controlOrigin": [
+            10,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ],
+        "geometry": [
+          "geometry.header-whole-surface",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.header-solid-mask",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "state": [
+          "state.header-raw-dispatch",
+          "state.remaining"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite exact synthetic source-model slice only; original environment and broader surface behavior remain unknown."
+      },
+      "substitutions": [
+        "Current manifest/base selection is compatibility policy, not historical Resource Manager ownership.",
+        "RGB16 high-byte plus current display LUT is a declared display policy, not original-device equivalence.",
+        "Context/options are synthetic declared inputs, not reconstructed original invocation conditions."
+      ]
+    },
+    {
+      "id": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "family": "header-surface",
+      "mode": "direct",
+      "inputs": [
+        "synthetic.header.empty-child"
+      ],
+      "baseInputs": [
+        "synthetic.header.overlap-owner"
+      ],
+      "options": {
+        "kind": "list-view-header",
+        "width": 19,
+        "height": 13,
+        "drawState": 0,
+        "compositionContext": {
+          "controlOrigin": [
+            10,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 15,
+              "y": 22,
+              "w": 8,
+              "h": 9
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ],
+        "geometry": [
+          "geometry.header-whole-surface",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.header-solid-mask",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "state": [
+          "state.header-raw-dispatch",
+          "state.remaining"
+        ],
+        "placement": [
+          "placement.header-explicit-clip",
+          "placement.original",
+          "port.original-state"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite exact synthetic source-model slice only; original environment and broader surface behavior remain unknown."
+      },
+      "substitutions": [
+        "Current manifest/base selection is compatibility policy, not historical Resource Manager ownership.",
+        "RGB16 high-byte plus current display LUT is a declared display policy, not original-device equivalence.",
+        "Context/options are synthetic declared inputs, not reconstructed original invocation conditions."
+      ]
+    },
+    {
+      "id": "synthetic.header.collision.repeat.state1.w11.h16",
+      "family": "header-surface",
+      "mode": "direct",
+      "inputs": [
+        "synthetic.header.collision-owner"
+      ],
+      "baseInputs": [],
+      "options": {
+        "kind": "window-header",
+        "width": 11,
+        "height": 16,
+        "drawState": 1,
+        "compositionContext": {
+          "controlOrigin": [
+            0,
+            0
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.sampled-line-color",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite exact synthetic source-model slice only; original environment and broader surface behavior remain unknown."
+      },
+      "substitutions": [
+        "Current manifest/base selection is compatibility policy, not historical Resource Manager ownership.",
+        "RGB16 high-byte plus current display LUT is a declared display policy, not original-device equivalence.",
+        "Context/options are synthetic declared inputs, not reconstructed original invocation conditions."
+      ]
+    },
+    {
+      "id": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "family": "push",
+      "mode": "direct",
+      "inputs": [
+        "synthetic.band.collision-owner"
+      ],
+      "baseInputs": [],
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 17,
+        "default": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.sampled-line-color",
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite exact synthetic source-model slice only; original environment and broader surface behavior remain unknown."
+      },
+      "substitutions": [
+        "Current manifest/base selection is compatibility policy, not historical Resource Manager ownership.",
+        "RGB16 high-byte plus current display LUT is a declared display policy, not original-device equivalence.",
+        "Context/options are synthetic declared inputs, not reconstructed original invocation conditions."
       ]
     }
   ],
@@ -4194,7 +4939,572 @@
       ],
       "rationale": "This obligation remains unknown; the finite source-model test does not establish original whole-control/environment behavior.",
       "review": "Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation."
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "geometry.header-whole-surface",
+      "status": "verified",
+      "rationale": "For this ordinary19x13 rectangle: square corners, independent side thickness, painter order and requested bounds match every literal pixel. No list-view claim is made for this case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.header-overlap-literal"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "fill.header-solid-mask",
+      "status": "verified",
+      "rationale": "Solid inset union before binary masked bands; unequal overlaps and partial tails for the two literal rows, under current display RGB.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.header-overlap-literal"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "state.header-raw-dispatch",
+      "status": "verified",
+      "rationale": "The exact state0/state1 requests select -9568/-9567 according to the original long zero/nonzero test; no broader availability claim.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "state.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.window.state1.w19.h13",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "geometry.header-whole-surface",
+      "status": "verified",
+      "rationale": "For this clipped list-view19x13 rectangle: paintHeight14 changes the retained row10 pixels at x8/x9 compared with ordinary paintHeight13; literal clipped pixels and requested bounds agree. Lower corner pixels outside the clip are not claimed observed.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.header-overlap-literal"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "fill.header-solid-mask",
+      "status": "verified",
+      "rationale": "Visible solid body through top-band mask holes and retained masked top-band pixels under this declared clip and current-display RGB. Cropped partial tails and lower/side overlap are not observed in this case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.header-overlap-literal"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "state.header-raw-dispatch",
+      "status": "verified",
+      "rationale": "The exact state0/state1 requests select -9568/-9567 according to the original long zero/nonzero test; no broader availability claim.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "state.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "placement.header-explicit-clip",
+      "status": "verified",
+      "rationale": "Declared clip intersection preserves original tile phase and requested output coordinates for the registered list-view rectangle only.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.header-overlap-literal"
+      ],
+      "assertions": [
+        "header.whole-surface-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.c2-s3.list.state0.w19.h13.clip",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "fill.sampled-line-color",
+      "status": "unsupported",
+      "rationale": "Source requires sampled line colors for this collision, but the bounded header API does not provide that path: this exact input is rejected with no output or paint dependency. New header API conservatively rejects divergent line-sampling metadata; this is not a claim the original engine could not render it.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.pach130-header-rect-mask",
+        "fixture.band-collision-literal"
+      ],
+      "assertions": [
+        "header.sampling-admission-policy"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "fill.sampled-line-color",
+      "status": "verified",
+      "rationale": "For this exact one-pixel expansion, raw indexed sampler gray48 replaces decoded red255 in the two band observations while ordinary corner remains red; actual companion selected from owning occurrence.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [
+        "source.kdef-sampled-lines",
+        "fixture.band-collision-literal"
+      ],
+      "assertions": [
+        "band.sampled-line-color-literal"
+      ],
+      "issues": []
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
+    },
+    {
+      "caseId": "synthetic.band.collision.push.repeat.empty.w29.h17",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "rationale": "Not independently established for this exact case.",
+      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        221
+      ]
     }
   ],
-  "inventorySha256": "40689fd24430be97be5bafa034cffcc6eb999cd2ced3a1958671a43cb96271e1"
+  "inventorySha256": "2ff11886825ff9ff046862c614c22eb1eb924fbabf77273487ef724d2755ed76"
 }

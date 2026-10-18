@@ -18,7 +18,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 18);
+  assert.equal(report.cases.length, 22);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -74,7 +74,7 @@ test('unknown and unsupported remain in denominator; open closure blocks verifie
   const ledger = copy(); ledger.assessments[0].status = 'unsupported';
   const report = makeReport(ledger);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
-  assert.equal(report.requirementStatus.counts.unsupported, 1);
+  assert.equal(report.requirementStatus.counts.unsupported, makeReport(original).requirementStatus.counts.unsupported + 1);
   for (const row of ledger.assessments) row.status = 'verified';
   assert(makeReport(ledger).cases.every(c => c.status === 'unknown'));
 });
@@ -140,7 +140,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 150);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 195);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -162,11 +162,11 @@ test('invalid evidence and case references report errors without throwing from t
 test('1.2.0 preserves all sixteen reviewed cases and134 assessments exactly', () => {
   assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0, 16), assessments: original.assessments.slice(0, 134) })),
     'd821c4ce220e1450ad09e71224610963c0e98696807df5e5aaea9acb6fc0870e');
-  assert.equal(original.inventoryVersion, '1.2.0');
-  assert.equal(original.cases.length, 18); assert.equal(original.assessments.length, 150);
-  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 28, mismatched: 0, unsupported: 0, unknown: 122 });
+  const historical = { ...original, cases: original.cases.slice(0, 18), assessments: original.assessments.slice(0, 150) };
+  assert.equal(historical.cases.length, 18); assert.equal(historical.assessments.length, 150);
+  assert.deepEqual(makeReport(historical).requirementStatus.counts, { verified: 28, mismatched: 0, unsupported: 0, unknown: 122 });
   assert(original.cases.every(c => c.inventoryClosure.status === 'open'));
-  for (const row of original.assessments.slice(134).filter(a => a.status === 'verified')) {
+  for (const row of original.assessments.slice(134,150).filter(a => a.status === 'verified')) {
     assert.equal(row.requirementId, 'fill.authored-solid-rgb16');
     assert.deepEqual(row.assertions, ['solid.selected-rgb16-literal']);
   }
@@ -194,4 +194,29 @@ test('new authored-color evidence cannot be reassigned to an unrelated archive',
 
 test('solid evidence cannot be reassigned to an unrelated fixture', () => {
   reject(l => { l.evidence.find(e => e.id === 'fixture.solid-rgb16').inputs = ['synthetic.text.masked-owner']; }, /evidence inputs do not intersect exact case inputs\/baseInputs/);
+});
+
+
+test('1.3.0 preserves all eighteen cases and150 assessments and keeps new scope finite', () => {
+  const priorCounts = { inputs:17, evidence:17, requirements:23, assertions:11, cases:18, assessments:150 };
+  assert.equal(digest(JSON.stringify(Object.fromEntries(Object.entries(priorCounts).map(([key,n])=>[key,original[key].slice(0,n)])))),
+    'e81d1e92719eae4cce474f5a0aa052c3481de3746a625ffa1eba02462831f660');
+  assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0,18), assessments: original.assessments.slice(0,150) })),
+    'f6de24ff0f27d9c098846cae3d9a2a1052fdc1ed9d189f78689f3d95c0b7b1e8');
+  assert.equal(original.inventoryVersion,'1.3.0');
+  assert.equal(original.cases.length,22); assert.equal(original.assessments.length,195);
+  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:36,mismatched:0,unsupported:1,unknown:158});
+  assert(original.cases.every(c=>c.inventoryClosure.status==='open'));
+  const unsupported=original.assessments.slice(150).filter(a=>a.status==='unsupported');
+  assert.equal(unsupported.length,1);assert.equal(unsupported[0].caseId,'synthetic.header.collision.repeat.state1.w11.h16');
+  assert.match(unsupported[0].rationale,/no output or paint dependency/);
+});
+test('registered header/band declarations cannot lose exact executable scope or borrow unrelated art', () => {
+  for(const id of ['header.whole-surface-literal','header.sampling-admission-policy','band.sampled-line-color-literal']){
+    const a=original.assertions.find(a=>a.id===id);assert(a);
+    const errors=validateLedger(original,{root,read:path=>{const b=readFileSync(path);return path.endsWith(a.path)?Buffer.from(b.toString().replaceAll(a.marker,'removed')):b;}}).errors;
+    assert.match(errors.join('\n'),/executable assertion marker missing/);
+    if(id!=='header.sampling-admission-policy')reject(l=>{l.assertions.find(a=>a.id===id).caseIds=[l.cases[0].id];},/assertion does not cover exact case/);
+  }
+  reject(l=>{l.evidence.find(e=>e.id==='fixture.header-overlap-literal').inputs=['synthetic.band.collision-owner'];},/evidence inputs do not intersect exact case/);
 });
