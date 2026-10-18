@@ -10,6 +10,7 @@ if (params.has('theme')) {
   const space = collage.parentElement;
   const reset = document.getElementById('reset-collage');
   const status = document.getElementById('collage-status');
+  const errorMessage = document.getElementById('collage-error');
   const caption = document.querySelector('figcaption > .art-caption');
   const schemeButtons = [...document.querySelectorAll('[data-portrait-theme]')];
   const manager = new WindowManager();
@@ -35,16 +36,28 @@ if (params.has('theme')) {
   // never repaints a host while reassembly is replacing it.
   function run(update) {
     pending = pending.then(async () => {
+      const focusedControl = [reset, ...schemeButtons].includes(document.activeElement)
+        ? document.activeElement : null;
       reset.disabled = true;
+      reset.hidden = false;
+      collage.inert = true;
+      collage.setAttribute('aria-busy', 'true');
+      errorMessage.hidden = true;
       for (const button of schemeButtons) button.disabled = true;
       try {
         await update();
       } catch (error) {
         status.textContent = 'Could not update the windows. Please try again.';
+        errorMessage.hidden = false;
         console.warn('[scriptoscope] Advertisement chrome unavailable:', error);
       } finally {
         reset.disabled = false;
+        collage.inert = false;
+        collage.removeAttribute('aria-busy');
         for (const button of schemeButtons) button.disabled = false;
+        if (focusedControl && document.activeElement === document.body) {
+          focusedControl.focus({ preventScroll: true });
+        }
       }
     });
     return pending;
@@ -62,36 +75,49 @@ if (params.has('theme')) {
 
   // Reuse decoded themes on reset. Unmount restores even closed/shaded panels'
   // source elements; promotion restores geometry while keeping the chosen scheme.
-  async function reassemble() {
+  async function reassemble(nextTheme = selectedTheme) {
+    lastWidth = space.clientWidth;
+    const scale = lastWidth / 500;
+    collage.style.setProperty('--portrait-scale', String(scale));
+    // Prepare the source HTML too, so a failed initial request still leaves a
+    // complete, responsive photographic composition behind the retry control.
+    for (const panel of panels) {
+      const { el } = panel;
+      const x = Math.round(panel.x * scale), y = Math.round(panel.y * scale);
+      const width = Math.max(80, Math.round(panel.width * scale));
+      const height = Math.max(40, Math.round(panel.height * scale));
+      Object.assign(el.dataset, {
+        scriptoscopeX: String(x), scriptoscopeY: String(y),
+        scriptoscopeWidth: String(width), scriptoscopeHeight: String(height),
+      });
+      Object.assign(el.style, {
+        left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
+      });
+    }
+    // Resolve before teardown: a failed fetch must leave the current face intact.
+    const resolved = await Promise.all(panels.map(panel => resolver.load(nextTheme ?? panel.theme)));
     rebuilding = true;
     try {
-      lastWidth = space.clientWidth;
-      const scale = lastWidth / 500;
-      collage.style.setProperty('--portrait-scale', String(scale));
       for (const window of windows) window.unmount();
       windows = [];
-      for (const panel of panels) {
-        const { el } = panel;
-        const x = Math.round(panel.x * scale), y = Math.round(panel.y * scale);
-        const width = Math.max(80, Math.round(panel.width * scale));
-        const height = Math.max(40, Math.round(panel.height * scale));
-        Object.assign(el.dataset, {
-          scriptoscopeX: String(x), scriptoscopeY: String(y),
-          scriptoscopeWidth: String(width), scriptoscopeHeight: String(height),
-        });
-        Object.assign(el.style, {
-          left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
-        });
-        const theme = selectedTheme ?? panel.theme;
-        const window = await ScriptoscopeWindow.promote(el, {
-          manager, theme: await resolver.load(theme),
+      for (const [index, panel] of panels.entries()) {
+        const theme = nextTheme ?? panel.theme;
+        const window = await ScriptoscopeWindow.promote(panel.el, {
+          manager, theme: resolved[index],
         });
         window.host.dataset.scriptoscopeTheme = theme;
         windows.push(window);
       }
       collage.dataset.interactive = '';
-      reset.hidden = false;
+      selectedTheme = nextTheme;
       syncSelection();
+    } catch (error) {
+      // If painting fails after teardown, restore the complete HTML collage
+      // rather than leave hidden source panels behind a partial composition.
+      for (const window of windows) window.unmount();
+      windows = [];
+      delete collage.dataset.interactive;
+      throw error;
     } finally {
       rebuilding = false;
     }
@@ -115,12 +141,11 @@ if (params.has('theme')) {
   });
 
   for (const button of schemeButtons) {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', async (event) => {
       await run(async () => {
         const slug = button.dataset.portraitTheme;
         if (slug === 'mix') {
-          selectedTheme = null;
-          await reassemble();
+          await reassemble(null);
           status.textContent = 'Original mix restored.';
         } else {
           // The window manager preserves positions, user sizes, shading and
@@ -131,7 +156,7 @@ if (params.has('theme')) {
           syncSelection();
           status.textContent = `Portrait windows now wear ${button.textContent}.`;
         }
-        document.querySelector('.portrait').scrollIntoView({
+        if (event.detail !== 0) document.querySelector('.portrait').scrollIntoView({
           behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
           block: 'start',
         });

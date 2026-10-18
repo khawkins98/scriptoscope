@@ -3707,7 +3707,7 @@ This range constraint fix preserves the existing full-canvas pointer mapping.
 Independent no-movement thumb clicks still shift values near the ends; shared
 thumb-center travel and grab-offset correction are tracked separately in #244.
 Native constraint/event correctness is not proof of pointer geometry fidelity.
-## 2026-10-18 — A fixed multi-theme portrait collage on the landing page
+## 2026-10-18 — An interactive multi-theme portrait collage on the landing page
 
 The ad-style landing uses `ScriptoscopeWindow.promote` with a shared
 `WindowManager` and theme resolver to render five schemes at once. Its original
@@ -3725,3 +3725,11 @@ serialized to avoid replacing hosts during an async repaint. Geometry reset
 keeps the chosen scheme; Original mix restores the initial five-theme composition.
 The interactive demo is preserved at `showcase.html`; old root `?theme=` links
 redirect there with their query and hash intact.
+
+The landing review added two consumer checks: keyboard scheme selection keeps
+focus on its control, and failed initial bundle fetches retain a responsive
+photographic fallback with a working retry. Resolve replacement themes before
+unmounting the existing face. The showcased install snippet must explicitly
+import and call `mountDeclarative`; loading the library module alone does not
+auto-scan a consumer page. Browser tests run the displayed snippet as copied
+against the real built entry and original theme archive.

@@ -621,10 +621,17 @@
                  data-scriptoscope-title="Install"
                  data-scriptoscope-window-type="titled-utility-window"
                  data-scriptoscope-widgets="zoom,collapse">
-          <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet"><span class="c">&lt;!-- two URLs, eighteen scheme bundles --&gt;</span>
-<span class="a">&lt;link rel=</span><span class="s">"stylesheet"</span><span class="a"> href=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.css"</span><span class="a">&gt;</span>
-<span class="a">&lt;script type=</span><span class="s">"module"</span><span class="a"> src=</span><span class="s">"https://khawkins98.github.io/scriptoscope/scriptoscope.js"</span><span class="a">&gt;&lt;/script&gt;</span>
-<span class="a">&lt;article </span><span class="s">data-scriptoscope-window data-scriptoscope-title=</span><span class="s">"Hello"</span><span class="a">&gt;</span>Hello world<span class="a">&lt;/article&gt;</span></pre>
+          <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet">&lt;link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css"&gt;
+&lt;article data-scriptoscope-window data-scriptoscope-title="Hello"&gt;
+  Hello world
+&lt;/article&gt;
+&lt;script type="module"&gt;
+  import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
+  await mountDeclarative({
+    themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
+    pageThemeDefault: '1138',
+  });
+&lt;/script&gt;</pre>
           <!-- Install meta line. Styled as a footer continuation of the
                snippet's cream box so it reads cleanly regardless of the
                active theme's content-area chrome. Copy is a themed
