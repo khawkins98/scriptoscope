@@ -15,6 +15,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   isolated production bundling, real archive loading/native interaction and
   teardown, with missing assets and declaration-escape negatives in pinned CI.
 
+- Reviewed exact source inputs for all 18 bundled schemes, with independent
+  archive inventories/extraction hashes, explicit raw-source boundaries and
+  tamper checks. This approves contract inputs, not original lookup or rendering.
+
 - Versioned fidelity compatibility-contract draft defining proposed source inputs,
   family boundaries, evidence obligations and explicit substitutions. Its target
   remains OPEN; partial requirement and availability inventories do not establish

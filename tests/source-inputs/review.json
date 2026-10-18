@@ -1,0 +1,582 @@
+{
+  "schemaVersion": 1,
+  "reviewVersion": "1.0.0",
+  "status": "reviewed-contract-inputs",
+  "date": "2026-10-18",
+  "reviewers": [
+    "root: recomputed all 13 independent fork hashes and unique Colr/Acid choices; fresh Win95 unar extraction",
+    "Astra architecture: reviewed probes and independently recomputed all 13 fork hashes, full listing and index joins"
+  ],
+  "registrySourcesSha256": "0706d206c9c18f44584e5a5f6b9748fe5f9a3ac3483fbb97db0edbd05e5211e8",
+  "evidenceFile": "tests/source-inputs/evidence.json",
+  "evidenceSha256": "367d802aa2f9155e2406071f9deebfae8db4d2d2805fb3e6f87b0a242e5569f5",
+  "captureScriptSha256": "3f0e98e375b5c487ee33fd08d9bcba99c2d2a23163690fb84b45cd26f82d4b76",
+  "decisionsSha256": "d3f686166e3ebbfa0f0e8c1983e2ea96f1fddb22d8fb1e4e2ab8253a664d8c48",
+  "decisions": [
+    {
+      "slug": "1138",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "standalone-input",
+      "lsarIndex": null,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "55aa8d4d999369b4e1fc4db745d1082147b50331c66511f83117d276cee627de"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "9323fdd05c631c1a4deba7c5b4ee3f1c8c7e39ef59567e7b161a2c34b9a767d4"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "93c513d509df0bde3c1db89caa649029dcc3f670e5d2ca949f8eb73461680198"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "Version and title resources identify 1138 v2.0.1 by Erik Ekengren in the supplied standalone fork.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Original archive wrapping and extraction history remain unverified."
+      ]
+    },
+    {
+      "slug": "1984",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "caa26691934b2d035df83aa9d6e2fa94e2c1657e0138e25e3023a1dbe180037f"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "9100c9f99dda1743c9395dd1159b6036c3ba62d4abd8d60f702a3138bd059047"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "aae2f7be339505cf27ade08aaecfd0f67f212479d8270a5c8e54614cf8880a36"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 21,
+          "extractedSha256": "eabcb07a60bc1d67955ee92a2bda5fd754319db5d99ceeb7839f392c576dbd7a"
+        }
+      ],
+      "basis": "The unique Colr/Acid file is named 1984; its bundled author readme identifies the 1984 Kaleidoscope scheme by Geoffrey Hamilton.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Munbox replacement-character versus lsar MacRoman filename decoding remains unverified; exact bytes disambiguate this input choice."
+      ]
+    },
+    {
+      "slug": "1990",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "standalone-input",
+      "lsarIndex": null,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "f36a53f079e0363f9ded9761f8f1dc91995ccd151bad63490991a483d748262e"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "1b8bd10aca9ba3a1ad16ed9c6a5da8d803569fc296c26196e46dc7bffc5870c6"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "cc3e1ee286e5d3e80209ddd6fbeaa686ac25a0b733bb6c1d77c65203f81fa9f4"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "Version resources identify 1-9-9-0 by SHIOCOP in the supplied standalone fork.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Original archive wrapping and extraction history remain unverified."
+      ]
+    },
+    {
+      "slug": "animals",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "4ac91c152c4ce8587d83681d05e0c26947bd75f02d4672194a64f8c69a2f51cc"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "946a03dae4e9123d22a8da6982caf83831da8f3db20c2f34398a75848dad19fc"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "9c030f3ecf30b799634e648fe7936d24d735a1edcf7cd9827d32bfb51220e1dd"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 19,
+          "extractedSha256": "a4d25fbe5fe47fd33cc8ad1932a60595461a68f46ada4acbbea8199564238e69"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, version/title resources and English author HTML identify Animals by Masashi Ichikawa.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "apple-lisa",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 2,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "9f62accc7357960b7755281d6df2df02e0140a4abf4f76a7a0399785fa4d66dd"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "abf148d2012d4114a615269a2e0b0280a6b1099295702e6ba3a52a6bd6b8b456"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "7b0fbcb3ea78a3f8904af58e5df105eb520b7ce76f62b3c0e3f98f0948a2178e"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 9,
+          "extractedSha256": "46d13b9335b0f68298efd7960ea32e8ca8b9b0b00e495247fd3b0f4c9b6f135f"
+        }
+      ],
+      "basis": "The unique Colr/Acid Apple Lisa Office System file, version/title resources and author readme identify the Apple Lisa scheme for Kaleidoscope 2.1.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "apple-platinum-2",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "a054c4749f703758fb8a818a7a2aed7f7f889a84680f027dbe3e3eac457a87cd"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "8fe5367956215b8627c79a554bddabf7afa940ac21211b312579e4e58656d07a"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "0e9a1847d9584fa18eaeadf641125530e26f46aa5d64e9fcb790d343f505c7ec"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "The supplied Apple platinum 2 file is the unique Colr/Acid fork. Version resources identify Orion Dimitrakopoulos and version 7.2.1; no separate display title or bundled readme is asserted.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "beos-r503",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "479dffa990a78e832e9e26c10d0c1fddb40878c80678c5b24ea59d9d582c9967"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "0a7fd9110dc8daa624e45aac9df70a589739a0ef3e61ea5d5a682e7ec9469a20"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "35cf58438a128bf9a05ce98ed15d576b12c4d57143ef3649f0586dde67b298f3"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 3,
+          "extractedSha256": "48a75885b7f7be8b1713fe21b8bc3a2e148bb39e184b3476503afd2340166d75"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, version/title resources and readme identify BeOS R5.0.3 by Jon Alexander.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "black-platinum",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "standalone-input",
+      "lsarIndex": null,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "97f32274897e383da8c75873edeaf08f868de22f956bea6b7567b7344db58906"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "5825bd67345d71fc22a885b7ec4d51e4f3f8c2f80a1bb8beb5cc48e5cc18feff"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "4f366ba799dd4f0dc635903df17bb15640fb2a761833f4c811e7418c66651c5c"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "Version/title resources identify Black Platinum v1.01 by Daisuke Yamashita in the supplied standalone fork.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Original archive wrapping and extraction history remain unverified."
+      ]
+    },
+    {
+      "slug": "crayon-os",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "fb316eda9e992c6a54dd21a92230c94a0109eec5ae565a86018ff19f0f4becd6"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "c351aed14893788f4d57cdcfede89c83aabcc5a93c37b1ddf7b2a77c3419d5be"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "82432285dcf71543ef1e945fa56ecb80539bf330ba59b9946ee3472ccfa53309"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 3,
+          "extractedSha256": "91d13ca4fac50b4603b2b254a4ac15bc6d7782b555da5667daf3d66ff7361c1d"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, title/version resources and author readme identify Crayon OS 1.1 by Karl von Laudermann.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "dolphin-som",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 51,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "a56fcdaf6f2c04bb8e15952851647d3da5bc6144c3820b6d24c44de701db94d7"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "e3700c9fdaf2ab68f784884507f663a7235b137f115091959f2b32d10028a1ea"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "4bc492ec1c1c723eec88cc664d27397c306f6d6c43f1acb6960a37ad3b7b5afb"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "The unique Colr/Acid dsom file contains version resources explicitly identifying DOLPHIN S.O.M by SHIOCOP; other forks are companion material.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "evolution",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "standalone-input",
+      "lsarIndex": null,
+      "identityRefs": [
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "a56fcdaf6f2c04bb8e15952851647d3da5bc6144c3820b6d24c44de701db94d7"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "2973b27574d0a836e6e8118e499e907391470ae9ded8b8d0e5838b59063bd806"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "29187a1901afeeef24d5f6b24706eb38266ff6052eceff3de077478ecca1ef06"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "Version resources identify 1-9-9-1 evolution by SHIOCOP in the supplied standalone fork.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Original archive wrapping and extraction history remain unverified."
+      ]
+    },
+    {
+      "slug": "floppies",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "b17414dca6ef08b3f7d4f53ab49d43aa1d7d566a94d1951adb534ebb5f92a938"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "8af85843501644c56af872c87ed3b627b4b9753a5d9b785f1922c94e13a59a15"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "262c21893a82ad196a5ab24a5456b6e7527748fafd2c012a93979c1a46a78bb8"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "The unique Colr/Acid Floppies! file contains version/title resources identifying Floppies! v1.0 by Robert Davis.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Munbox replacement-character versus lsar MacRoman filename decoding remains unverified; exact bytes disambiguate this input choice."
+      ]
+    },
+    {
+      "slug": "monkey-paradise",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 1,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "7f3968f5d86bf394db81be916790f348a96fe242d8d1cc9fb459c30a83863765"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "6adac6d5d1420c9c05c1d6d311b4e203ea881db3c3385c07c754138c7399d9e3"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "899bd26e71de0fc66fb9ac19c5753b360646061bbb236ac2f574d58a69b71866"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 7,
+          "extractedSha256": "fbb4e801f21fc28151d7f5eac4de5a89e89249630c5ecd2c5f468963ada5e7b4"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, version/title resources and author HTML identify Monkey Paradise by Masashi Ichikawa.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "platinum-8",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 3,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "fcb85a0ea6767a44041f75fd166af6aa6f8d0f6e6b294c735ee19cb35d026ba9"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "092a91165ff217cbe0791c2a1b9c943f27849e9c024bea4f8efdfe3432792242"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 5,
+          "extractedSha256": "15ad708a504c9257c813a1f2caa75578c7e029b72f59c1a3ce6968c1cbd3bd86"
+        }
+      ],
+      "basis": "The unique Colr/Acid Platinum 8 file and author scheme.txt identify Platinum 8 1.0 by Russell Silver Jr., matching its version author.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "slimes",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 7,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "c6720f03e910c1add03b09fbf282be99571453d4bdd60a3761cfde43909341bf"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "395139b8b4a4cc25530bd78ceac0cbb26ce71f7369db85d7022e1b56f1b1da4d"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 5,
+          "extractedSha256": "eeeff1abfbc7476a55f0dfa2526c5185d2241c05bd4cbe987ce1b074362c28f4"
+        }
+      ],
+      "basis": "The unique Colr/Acid slimes1.5 file, version1 author record and English readme identify Slimes 1.5 by Jun; no meaning is inferred from inherited version2 marketing text.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "system7-nostalgia-silver",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "standalone-input",
+      "lsarIndex": null,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "40e825af211a77dd8067525cd0234043e3cda885c83cac8fdaf52d4dba0639b6"
+        },
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "b4b3530f0601d22d1049d9ed4955e7d70f1b48a0447af700b0c7fda1367b392b"
+        }
+      ],
+      "readmeRefs": [],
+      "basis": "Version1 identifies System 7 Nostalgia Silver 1.0 and its publisher in the supplied standalone fork.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved.",
+        "Original archive wrapping and extraction history remain unverified."
+      ]
+    },
+    {
+      "slug": "windows-31",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 2,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "f3a236ed94b7ae290fb6fdef8ef5edcd9be9aea30b450336b0e0d0af6627f29e"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "ec78d131930714b4677d071c382a70567fb5ec176f5bde3c8c018df8cd16c011"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "2178a96e0e1a14a3db3eb53715ce881dbb83fcbeebffaff6784bcfaf9a0339d8"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 5,
+          "extractedSha256": "9cadec368d885e9b88ed7ba7ca3129dff7fb17cf2dcf4f9009d4152494a7f5ff"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, title and author readme identify Windows 3.1 Scheme for Kaleidoscope 2.x by Scott Naness.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    },
+    {
+      "slug": "windows-95",
+      "status": "reviewed-contract-input",
+      "scope": "explicit-contract-input-only",
+      "kind": "archive-input",
+      "lsarIndex": 2,
+      "identityRefs": [
+        {
+          "type": "vers",
+          "signedId": 1,
+          "payloadSha256": "243bf8753ee70bbf4883b53101e06fb3ec925a985f4c3bf6915eb6277e5484ec"
+        },
+        {
+          "type": "vers",
+          "signedId": 2,
+          "payloadSha256": "a81a05d2efe62892c3bc96bc0c73aa0e084e2995f2a4cb9e1e88b03e2bf3fb29"
+        },
+        {
+          "type": "STR#",
+          "signedId": -14320,
+          "payloadSha256": "6cea7f23881d52da2c0da9bae86c1abb4ac86c130d5a352c6a0f4cf621b1e9fc"
+        }
+      ],
+      "readmeRefs": [
+        {
+          "lsarIndex": 5,
+          "extractedSha256": "647c9a92668d34ddd3bd937fc182488f155bb9cf34d5a231c2976c570c7ec1e3"
+        }
+      ],
+      "basis": "The unique Colr/Acid file, title and author readme identify Windows 95 Scheme for Kaleidoscope 2.x by Scott Naness.",
+      "unknowns": [
+        "No individual resource-role, availability, decoder or original lookup policy is approved."
+      ]
+    }
+  ],
+  "reviewBoundary": "Only these exact explicit contract inputs are reviewed. Candidate resource facts remain unreviewed observations; original Resource Manager selection, complete decoding and rendering remain unverified."
+}
