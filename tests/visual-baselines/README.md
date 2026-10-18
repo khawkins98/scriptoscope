@@ -122,3 +122,18 @@ Uses optional Playwright and isolated Vite servers. The fill test compares rende
 interiors with original cinf background samples and checks state/base fallback
 metadata. The shell test checks computed styles and actual frame/canvas bounds
 for Windows 95 and System 7, including stretched grid/flex hosts and print.
+
+## Source-backed default rings
+
+```sh
+node --test --experimental-strip-types tests/visual-baselines/control-ring.spec.mjs
+```
+
+Checks all 18 corpus state footprints/source corners and full default-label ink,
+plus independent coordinate sentinels for square corners, overlapping masked
+bands, repeat modes, pressed-state selection, and transparent margins. Explicit
+face heights remain caller-controlled; the ring adds four pixels per side.
+
+These ring snapshots are reviewed regression evidence, not a complete control
+fidelity claim. General face geometry and pattern composition remain tracked in
+[#218](https://github.com/khawkins98/scriptoscope/issues/218).

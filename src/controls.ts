@@ -68,11 +68,15 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  */
 interface ResolvedControlFace { buffer: PixelBuffer; element: ChromeElement; }
 
-async function loadFaceById(theme: LoadedTheme, id: number): Promise<ResolvedControlFace | null> {
-  const hit = resolveInChain(theme, (t) => {
+function resolveFaceById(theme: LoadedTheme, id: number) {
+  return resolveInChain(theme, (t) => {
     const element = elementById(t, id);
     return element ? { theme: t, element } : null;
   });
+}
+
+async function loadFaceById(theme: LoadedTheme, id: number): Promise<ResolvedControlFace | null> {
+  const hit = resolveFaceById(theme, id);
   return hit ? { buffer: await loadCicnBuffer(assetUrl(hit.theme, hit.element.asset)), element: hit.element } : null;
 }
 
@@ -1005,13 +1009,11 @@ interface FaceOptions { label?: string; disabled?: boolean; minWidth?: number; f
 async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOptions): Promise<PixelBuffer> {
   const label = opts.label ?? '';
   const { buffer: face, element: faceEl } = resolved;
-  // The cinf carries TWO independent 9-slice insets:
-  //   cornerSize / `slice.corner`  — horizontal corner block width (l/r)
-  //   sideThickness / `slice.side` — vertical corner block height (t/b)
-  // Apple-lisa's -10240 ships corner=4 side=1: a 4px-wide rounded side with a
-  // 1px top/bottom rim. Animals' -10240 ships corner=6 side=4. Treating the
-  // band as a square (l=t=r=b=corner) loses the artist's authored proportions;
-  // honouring both gives the real rectangular 9-slice the cinf TMPL declares.
+  // Legacy face composition maps corner to horizontal and side to vertical
+  // rectangular nine-slice insets. The original cinf engine actually uses
+  // square corners plus independently thick bands (see composeDefaultRing).
+  // Migrating face fills/labels to that overlapping model is separate work;
+  // keep this existing approximation while resolving the correct owner's data.
   const fIns = faceEl?.slice?.corner ?? sliceInset(face.width, face.height);
   const fSide = faceEl?.slice?.side ?? fIns;
   const faceIns = { l: fIns, t: fSide, r: fIns, b: fSide };
@@ -1070,6 +1072,50 @@ async function composeFaceButton(resolved: ResolvedControlFace, opts: FaceOption
   return out;
 }
 
+/** The ring path of kDEF 0x107fe: square corners plus independently thick
+ * bands, in painter order TL/TR/top/BL/BR/bottom/left/right. Cinf side thickness
+ * may exceed corner size (e.g. 7/14 in a 21px ring); these are overlapping
+ * masked bands, not a rectangular nine-slice partition. Body fill is disabled
+ * by the ring wrapper at 0x107de. */
+function composeDefaultRing(source: PixelBuffer, element: ChromeElement, width: number, height: number): PixelBuffer {
+  const out = PixelBuffer.alloc(width, height);
+  const c = Math.max(0, element.slice?.corner ?? sliceInset(source.width, source.height));
+  const side = Math.max(0, element.slice?.side ?? c);
+  const cw = Math.min(c, source.width), ch = Math.min(c, source.height);
+  const sw = Math.min(side, source.width), sh = Math.min(side, source.height);
+  const repeat = element.slice?.tile ?? false;
+  // 0x10cf6/0x10e54 restrict non-repeated horizontal bands to the first
+  // source column; 0x10ecc/0x10f44 do the same with the first vertical row.
+  const middleW = source.width - c * 2, middleH = source.height - c * 2;
+  const bandW = repeat ? Math.max(0, middleW) : c < source.width ? 1 : 0;
+  const bandH = repeat ? Math.max(0, middleH) : c < source.height ? 1 : 0;
+  const regions: [number, number, number, number, number, number, number, number][] = [
+    [0, 0, cw, ch, 0, 0, cw, ch],
+    [source.width - cw, 0, cw, ch, width - cw, 0, cw, ch],
+    [c, 0, bandW, sh, c, 0, width - c * 2, sh],
+    [0, source.height - ch, cw, ch, 0, height - ch, cw, ch],
+    [source.width - cw, source.height - ch, cw, ch, width - cw, height - ch, cw, ch],
+    [c, source.height - sh, bandW, sh, c, height - sh, width - c * 2, sh],
+    [0, c, sw, bandH, 0, c, sw, height - c * 2],
+    [source.width - sw, c, sw, bandH, width - sw, c, sw, height - c * 2],
+  ];
+  for (const region of regions) {
+    const [sx, sy, rw, rh, dx, dy, dw, dh] = region;
+    if (rw <= 0 || rh <= 0 || dw <= 0 || dh <= 0) continue;
+    // Clip allocation to the output, while retaining the original tile phase.
+    const x0 = Math.max(0, dx), y0 = Math.max(0, dy);
+    const x1 = Math.min(width, dx + dw), y1 = Math.min(height, dy + dh);
+    if (x1 <= x0 || y1 <= y0) continue;
+    const band = PixelBuffer.alloc(x1 - x0, y1 - y0);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+      band.setPixel(x - x0, y - y0, ...source.getPixel(sx + (x - dx) % rw, sy + (y - dy) % rh));
+    }
+    // FEAE's masked blits preserve earlier bands below transparent samples.
+    out.drawOver(band, x0, y0);
+  }
+  return out;
+}
+
 /**
  * Compose a THEMED push button (docs/spec/kdef231-reference.md §1.2 / §2.2,
  * FUN_30a8 — Platinum fallback: docs/kaleidoscope-asset-catalog.md §6.1): 9-slice the
@@ -1101,69 +1147,33 @@ export async function composeButton(theme: LoadedTheme, opts: ButtonOptions = {}
   if (!face) face = (await loadFaceById(theme, faceId)) ?? (await loadFaceById(theme, 10239)); // last-resort id path
   if (!face) return null; // baseline path
   const faceBuf = await composeFaceButton(face, opts);
-  // Probe the active ring REGARDLESS of `opts.default` so plain buttons reserve the same outer
-  // footprint as defaults would. Classic Mac convention: all buttons in a dialog row share an outer
-  // rect — the default's ring is drawn at those outer bounds; a plain button leaves the same area as
-  // transparent margin around its face. Without this, default + plain buttons in the same row
-  // misalign vertically (the default's canvas grows by 2*outset, the plain's doesn't).
-  const ringActive = await loadById(theme, 10231);
-  if (!ringActive) return faceBuf; // theme ships no ring at all — preserve face-only output
-  const ring = opts.default ? await loadById(theme, opts.disabled ? 10232 : 10231) : null;
-  // The ring cicn is a 9-slice default-button OUTLINE template. Two authoring models
-  // exist across the corpus — pick the right outset for each:
-  //
-  //   1. OUTSET model (ring authored LARGER than face): the artist drew the ring
-  //      cicn at face-size + halo, so the canonical outset is the half-difference
-  //      between the two. Crayon-os ships ring 80×80 / face 74×74 → outset 3.
-  //      Most themed schemes use this (1984 / 1990 / animals / dolphin-som / evolution
-  //      / monkey-paradise / windows-* etc.).
-  //   2. OVERLAY model (ring authored SAME-OR-SMALLER than face): the ring is meant
-  //      to draw AS an outline on top of the face. Apple-platinum-2 / 1138 / beos-r503
-  //      / platinum-8 / slimes / system7-nostalgia-silver / black-platinum ship
-  //      ring 16×16 = face 16×16. Falls back to the historical ring.width/4 heuristic
-  //      so existing working renders don't regress.
-  //
-  // Probe BOTH ids (ring-active for the plain-button reservation, ring-or-fallback
-  // for the actual draw) so a disabled-default isn't mis-outset if -10231/-10232
-  // ship at different sizes.
-  const faceCe = elementById(theme, 10239);
-  const ringDrawn = ring ?? ringActive;
-  const authoredDelta = (faceCe && ringDrawn.width > faceCe.width)
-    ? Math.max(0, Math.round((ringDrawn.width - faceCe.width) / 2))
-    : 0;
-  const outset = authoredDelta >= 1
-    ? authoredDelta
-    : Math.max(3, Math.round(ringDrawn.width / 4));
+  // kDEF 2.3.1 copies the control rectangle at 0x7434, draws its face
+  // through 0x7572/0x7594, then expands that SAME rectangle by four pixels
+  // (InsetRect(-4,-4), 0x7698–0x76a2) before drawing the default ring.
+  // Template dimensions do not determine this outset. Separately, our layout
+  // policy reserves that footprint for plain buttons too, so changing default
+  // or pressed state never shifts neighboring controls.
+  // Footprint reservation needs metadata only. Unused state rasters must not
+  // add decode work or make a plain button fail because another state is bad.
+  const activeRing = resolveFaceById(theme, 10231);
+  const pressedRing = resolveFaceById(theme, 10230);
+  const inactiveRing = resolveFaceById(theme, 10232);
+  if (!activeRing && !pressedRing && !inactiveRing) return faceBuf;
+  // The original dispatch uses inactive -10232; pressed -10230 falls back
+  // to active -10231 when absent (0x76b8–0x770e).
+  const ring = opts.default
+    ? opts.disabled ? inactiveRing : opts.pressed ? pressedRing ?? activeRing : activeRing
+    : null;
+  const outset = 4;
   const out = PixelBuffer.alloc(faceBuf.width + outset * 2, faceBuf.height + outset * 2);
-  if (ring) {
-    const ringEl = elementById(theme, opts.disabled ? 10232 : 10231);
-    // Use the cicn's VISIBLE-ART bounds as the 9-slice source, not the raw raster.
-    // Floppies + windows-95 + windows-31 author their 16×16 ring with a 3px
-    // TRANSPARENT outer rim around the visible black border (rows 0–2 + 13–15 are
-    // alpha=0); 9-slicing the raw raster preserved the rim, so the visible ring
-    // sat INSIDE the canvas with empty borders. Period-faithful behaviour: the
-    // kDEF 0x???? routines blit the visible art around the button, not the raster
-    // bounds — same trick composeTab already uses (controls.ts:651). For rings
-    // authored with no transparent rim (apple-platinum-2, 1138, 1990, etc) the
-    // opaque bounds equal the raster bounds; no change.
-    const rb = opaqueBounds(ring);
-    const srcX = Math.max(0, rb.x0);
-    const srcY = Math.max(0, rb.y0);
-    const srcW = Math.max(1, rb.x1 - rb.x0 + 1);
-    const srcH = Math.max(1, rb.y1 - rb.y0 + 1);
-    // The slice corner / side were authored against the raster, so cap them at
-    // half the visible bounds to keep the 9-slice math healthy (the pixelBuffer
-    // clamp would catch a runaway value, but better to ask for the right answer).
-    const rIns = Math.min(Math.floor(srcW / 2), ringEl?.slice?.corner ?? sliceInset(ring.width, ring.height));
-    const rSide = Math.min(Math.floor(srcH / 2), ringEl?.slice?.side ?? rIns);
-    // Honour the artist-declared resize behaviour: `slice.tile: true` (apple-lisa,
-    // windows-31, crayon-os, …) means the side bands carry a pixel-rate border
-    // pattern that must be repeated, not stretched. Stretching it smears the
-    // thickness signal and the ring looks faint at button-display size.
-    const ringMode = ringEl?.slice?.tile ? 'tile' : 'stretch';
-    out.nineSlice(ring, { x: srcX, y: srcY, w: srcW, h: srcH }, { l: rIns, t: rSide, r: rIns, b: rSide }, { x: 0, y: 0, w: out.width, h: out.height }, ringMode);
-  }
   out.drawOver(faceBuf, outset, outset);
+  if (ring) {
+    const { element } = ring;
+    const buffer = await loadCicnBuffer(assetUrl(ring.theme, element.asset));
+    // Full source raster, including transparent margins. The ring is painted
+    // after face/text (0x76c8 onward), with its body-fill flag false.
+    out.drawOver(composeDefaultRing(buffer, element, out.width, out.height), 0, 0);
+  }
   return out;
 }
 

@@ -35,6 +35,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Default-button rings use the original four-pixel outset, complete source raster,
+  square corners, and independently thick masked edge bands. Pressed defaults
+  select their authored ring when available. This removes Windows 95's detached
+  bracket and preserves overlapping ring art in schemes such as 1990.
+
 - Solid button, bevel, and list-header faces sample their authored cinf background
   pixel instead of a guessed offset from the text marker. Windows 95 normal and
   disabled faces now use the source gray rather than white border pixels. Face
