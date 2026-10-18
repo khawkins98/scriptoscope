@@ -18,7 +18,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 22);
+  assert.equal(report.cases.length, 28);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -140,7 +140,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 195);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 231);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
@@ -203,9 +203,8 @@ test('1.3.0 preserves all eighteen cases and150 assessments and keeps new scope 
     'e81d1e92719eae4cce474f5a0aa052c3481de3746a625ffa1eba02462831f660');
   assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0,18), assessments: original.assessments.slice(0,150) })),
     'f6de24ff0f27d9c098846cae3d9a2a1052fdc1ed9d189f78689f3d95c0b7b1e8');
-  assert.equal(original.inventoryVersion,'1.3.0');
-  assert.equal(original.cases.length,22); assert.equal(original.assessments.length,195);
-  assert.deepEqual(makeReport(original).requirementStatus.counts,{verified:36,mismatched:0,unsupported:1,unknown:158});
+  const historical={...original,cases:original.cases.slice(0,22),assessments:original.assessments.slice(0,195)};
+  assert.deepEqual(makeReport(historical).requirementStatus.counts,{verified:36,mismatched:0,unsupported:1,unknown:158});
   assert(original.cases.every(c=>c.inventoryClosure.status==='open'));
   const unsupported=original.assessments.slice(150).filter(a=>a.status==='unsupported');
   assert.equal(unsupported.length,1);assert.equal(unsupported[0].caseId,'synthetic.header.collision.repeat.state1.w11.h16');

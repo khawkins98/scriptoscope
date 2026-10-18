@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.9**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.10**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -94,9 +94,13 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.3.0](../../tests/rendering-requirements/ledger.json) contains
-twenty-two OPEN cases and 195 declared obligations: 36 narrowly verified,
-0 mismatched, 1 explicitly unsupported and 158 unknown. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
+The current [ledger 1.4.0](../../tests/rendering-requirements/ledger.json) contains
+twenty-eight OPEN cases and 231 declared obligations: 42 narrowly verified,
+0 mismatched, 1 explicitly unsupported and 188 unknown. Six of those verified
+obligations concern only complete recorded-condition empty80×20 faces under an
+explicit measured profile. They are reported separately and do not establish
+original alpha/mask, typography, hidden selection, general state/placement or
+default-display fidelity. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
 contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains
 **unclosed; no overall fidelity percentage is established**.

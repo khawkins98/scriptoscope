@@ -15,6 +15,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-19)
 
+- Track six exact recorded-condition empty button comparisons in the requirement
+  ledger, with explicit measured-profile/original-intake/paint/execution bindings.
+  Original masks, typography, private selection and broad control fidelity remain
+  unknown; existing cases and assessments are unchanged.
+
 - Admit two independently AI-reviewed original empty normal button observations
   for Windows 95 and System 7 under the bounded public-API face scope. Retain
   full frames, exact port/context crops, sanitized logs and recorded conditions;

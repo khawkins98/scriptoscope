@@ -1,3 +1,4 @@
+import {readRecordedContext,validateRecordedBinding,REQUIREMENT} from './recorded-face.mjs';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
@@ -5,7 +6,7 @@ export const DIMENSIONS = ['resourceSelection', 'geometry', 'fillMask', 'typogra
 export const STATUSES = ['verified', 'mismatched', 'unsupported', 'unknown'];
 export const digest = value => createHash('sha256').update(value).digest('hex');
 export const inventoryDigest = ledger => digest(JSON.stringify({ scope: ledger.scope, requirements: ledger.requirements, cases: ledger.cases }));
-const independent = new Set(['primary-decode', 'source-art', 'period-document']);
+const independent = new Set(['primary-decode', 'source-art', 'period-document', 'scoped-original']);
 const populated = value => typeof value === 'string' && value.trim().length > 0;
 const hash = value => /^[a-f0-9]{64}$/.test(value ?? '');
 
@@ -68,6 +69,10 @@ export function validateLedger(ledger, { root, read = path => readFileSync(path)
     check(JSON.stringify(assertion.modes) === JSON.stringify(['source', 'built']), `${assertion.id}: declare both execution modes`);
   }
   for (const requirement of requirements.values()) { text(requirement.claim, `${requirement.id}.claim`); check(DIMENSIONS.includes(requirement.dimension), `${requirement.id}: invalid dimension`); }
+  let recordedContext;
+  if (ledger.evidence?.some(e=>e.kind==='scoped-original')) {
+    try { recordedContext=readRecordedContext(root); } catch(error) { check(false,error.message); }
+  }
   const declared = new Map();
   for (const c of cases.values()) {
     refs(c.inputs, inputs, `${c.id}.inputs`); refs(c.baseInputs, inputs, `${c.id}.baseInputs`, false);
@@ -99,6 +104,10 @@ export function validateLedger(ledger, { root, read = path => readFileSync(path)
     const caseInputs = new Set([...(Array.isArray(c?.inputs) ? c.inputs : []), ...(Array.isArray(c?.baseInputs) ? c.baseInputs : [])]);
     for (const id of evIds) {
       const ev = evidence.get(id);
+      if(ev?.kind==='scoped-original') {
+        check(row.requirementId===REQUIREMENT && JSON.stringify(ev.requirementIds)===JSON.stringify([REQUIREMENT]), `${key}: scoped observation cannot verify broad requirements`);
+        if(recordedContext) try { validateRecordedBinding(c,ev.reference,recordedContext); } catch(error) { check(false,`${key}: ${error.message}`); }
+      }
       check(ev?.requirementIds?.includes(row.requirementId), `${key}: evidence does not establish this requirement`);
       // Engine-only source rules can apply generally. Named art/fixture inputs
       // must overlap this case, but overlap does not authenticate every option.
@@ -154,6 +163,7 @@ export function makeReport(ledger, { execution, executionCommit, workingTreeDirt
     wholeControlCertification: 'Not claimed. This is a partial inventory; open cases cannot be verified.',
     issueLiveness: issuesChecked ? 'checked against live GitHub issue state' : 'unchecked (offline)',
     execution: { executionCommit, evidenceCommit: execution?.executionCommit ?? null, freshness, workingTreeDirty, evidenceWorkingTreeDirty: execution?.workingTreeDirty ?? null, assertions },
+    recordedConditionComparisons: { claim: 'Only exact composited pixels under the explicit measured profile; no whole-control percentage.', cases: cases.filter(c=>ledger.cases.find(x=>x.id===c.id)?.recordedComparison).map(c=>({...c, execution: assertions.find(a=>a.id==='recorded.empty-face-six')?.modes ?? []})) },
     regressionObservations: { evidence: 'observed-execution; not independent fidelity or expected availability', files: observations } };
 }
 export function markdownReport(report) {
@@ -167,6 +177,7 @@ export function markdownReport(report) {
     '## Requirement-level assessments', '', '| Case / requirement | Status | Evidence | Tracking |', '| --- | --- | --- | --- |', ...report.assessments.map(a => `| ${a.caseId} / ${a.requirementId} | ${a.status} | ${a.evidence.join(', ') || 'missing / unknown'} | ${a.issues.map(id=>'#'+id).join(', ')} |`), '', '## Explicit exclusions and substitutions', ''];
   for (const c of report.cases) for (const ex of c.exclusions) lines.push(`- ${c.id}, ${ex.dimension}: ${ex.excluded}`);
   for (const c of report.cases) for (const substitution of c.substitutions) lines.push(`- ${c.id}: substitution ${substitution}`);
+  if(report.recordedConditionComparisons.cases.length) lines.push('', '## Recorded-condition comparisons', '', report.recordedConditionComparisons.claim, '', ...report.recordedConditionComparisons.cases.map(c=>`- ${c.id}: ${c.verifiedRequirements} narrow verified obligation; closure ${c.inventoryClosure.status}; execution ${c.execution.map(m=>m.mode+': '+m.status).join(', ')}.`));
   lines.push('', `Regression observation files: ${report.regressionObservations.files.length}. These record executions/availability, not independent truth.`, '', 'The JSON companion retains exact observation paths, input provenance and assertion runs.');
   return lines.join('\n') + '\n';
 }

@@ -4439,3 +4439,13 @@ push/bevel API now captures an explicit size once (12px compatibility default),
 including when automatic face sizing grows a tiny template. This establishes
 size/geometry independence, not original browser glyph or baseline fidelity.
 See [the font-size policy](docs/spec/control-font-size.md).
+
+## 2026-10-19 — reference admission and pixel verification are separate
+
+A scoped original observation is an independent pixel source, not automatic
+renderer verification. Bind the exact profile, options, crop, completed modern
+paint and clean source/built execution before reporting a narrow match. Reference
+request digests include the ledger version and full authority document: freeze
+those first, then obtain metadata-only re-attestation and bind comparison evidence.
+Embedding the resulting capture hashes back into that authority would create a
+digest cycle. Original pixels/conditions need not change or be re-audited.
