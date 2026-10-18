@@ -1,3 +1,4 @@
+import type { ElementByteProvenance } from './loadProvenance.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 
 /** Observed selection decisions, not proof of original-engine fidelity. */
@@ -8,6 +9,8 @@ export interface ControlResolutionStep {
   readonly action: 'selected' | 'missing' | 'rejected' | 'fallback';
   readonly owner?: { readonly baseUrl: string; readonly chainDepth: number };
   readonly resource?: {
+    /** Absent means byte provenance was not collected for this exact entry. */
+    readonly byteProvenance?: ElementByteProvenance;
     readonly type: 'cicn';
     readonly signedId: number | null;
     readonly sourceCinfId: number | null;

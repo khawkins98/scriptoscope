@@ -76,7 +76,8 @@ const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage
 function resourceIdentity(hit: ResolvedFaceMetadata): NonNullable<ControlResolutionStep['resource']> {
   return { type: 'cicn', signedId: Number.isInteger(hit.element.sourceCicnId) ? hit.element.sourceCicnId! : null,
     sourceCinfId: Number.isInteger(hit.element.sourceCinfId) ? hit.element.sourceCinfId! : null, manifestKey: hit.key,
-    assetUrl: assetUrl(hit.theme, hit.element.asset) };
+    assetUrl: assetUrl(hit.theme, hit.element.asset),
+    ...(hit.element.byteProvenance ? { byteProvenance: hit.element.byteProvenance } : {}) };
 }
 
 function traceHit(trace: ControlTraceCollector | undefined, lookup: TraceLookup, id: number,

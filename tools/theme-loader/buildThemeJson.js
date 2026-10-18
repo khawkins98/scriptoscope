@@ -119,6 +119,11 @@ export function buildThemeJson(manifest, options = {}) {
       // pulls from this field across all bundles.
       authorLabel: cicn.name || null,
     };
+    if (cicn.byteReference) entry.byteProvenance = Object.freeze({
+      loadId: cicn.byteReference.loadId, manifestKey: slug,
+      cicnResourceIndex: cicn.byteReference.resourceIndex,
+      cinfResourceIndex: cinf?.byteReference?.resourceIndex ?? null,
+    });
     chromeElements[slug] = entry;
   }
 

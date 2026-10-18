@@ -7,6 +7,8 @@
 import type { LoadedTheme } from '../../src/types.js';
 
 export interface LoadKaleidoscopeSchemeOptions {
+  /** Opt-in actual input/fork/cicn/cinf byte evidence; requires Web Crypto. */
+  provenance?: boolean;
   /** name/author/origin merged into the manifest (binary scheme doesn't carry these). */
   meta?: Record<string, unknown>;
   /** Source label for the manifest provenance (default 'resource-fork'). */

@@ -41,7 +41,10 @@ State-transition or aggregate missing events may have no resource or owner.
 Use owner/base-hop/type/signed-ID/cinf/key when assessing selection. Asset URLs
 are diagnostic details: blob URLs and server origins vary between executions.
 Join source archive hashes from capture provenance; the trace does not invent
-an archive identity. A `selected` step means that metadata won the existing
+an archive identity. Opted-in loads additionally carry exact per-entry
+`byteProvenance` references; join these to the owning load record as described in
+[actual byte provenance](resource-byte-provenance.md). Absent evidence stays unknown.
+A `selected` step means that metadata won the existing
 resolver. A later decode/render can fail, so it is not itself proof that those
 pixels were painted. `rejected` includes the rejected candidate's identity.
 

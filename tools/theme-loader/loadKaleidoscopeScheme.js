@@ -9,6 +9,7 @@
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
+import { beginLoadProvenance } from './loadProvenance.js';
 import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
@@ -22,6 +23,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @property {boolean} [encodeAssets] encode RGBA → blob-URL assets (default: true in a
  *   browser w/ OffscreenCanvas). When false, returns the raw RGBA assets instead — for
  *   Node tests or a caller doing its own encoding.
+ * @property {boolean} [provenance] Opt-in immutable decoder-input byte evidence.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
  */
@@ -32,13 +34,19 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @param {Uint8Array|ArrayBuffer|Blob|string} input  a raw resource fork OR a Mac
  *   transfer container (MacBinary `.bin`, AppleSingle/Double, BinHex `.hqx`) — as
  *   bytes, an ArrayBuffer, a dropped Blob/File, or a URL to fetch. The container is
- *   unwrapped to its resource fork automatically; `.sit` throws (separate decoder).
+ *   unwrapped to its resource fork automatically; `.sit` lazily uses the WASM decoder.
  * @param {LoadOptions} [options]
  * @returns {Promise<object>} encodeAssets ⇒ a LoadedTheme `{ manifest, baseUrl:'', glyphs? }`
  *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
  *   `{ manifest, assets, iconIndex }`.
  */
 export async function loadKaleidoscopeScheme(input, options = {}) {
+  // Snapshot caller-owned byte inputs synchronously, before any await. Every
+  // digest and decoder receives this same private snapshot when opted in.
+  if (options.provenance && input instanceof Uint8Array) input = new Uint8Array(input);
+  else if (options.provenance && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+    input = new Uint8Array(new Uint8Array(input));
+  }
   const bytes = await toUint8Array(input);
   if (!bytes || bytes.length === 0) {
     throw new Error('loadKaleidoscopeScheme: empty input (0 bytes) — not a theme file.');
@@ -47,17 +55,32 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // munbox WASM decoder, lazily imported here so the conversion core stays WASM-free until a
   // .sit is actually dropped; the toolchain-free formats (MacBinary / AppleSingle·Double /
   // BinHex) and a raw fork go through the pure-JS containers.js. See tools/sit-wasm.
-  let fork;
-  if (detectContainer(bytes) === 'stuffit') {
-    const { stuffItResourceFork } = await import('../sit-wasm/index.mjs');
-    fork = await stuffItResourceFork(bytes);
+  const container = detectContainer(bytes);
+  const evidence = options.provenance ? await beginLoadProvenance(bytes, container) : null;
+  let fork, selection;
+  if (container === 'stuffit') {
+    const { stuffItResourceForkWithSelection } = await import('../sit-wasm/index.mjs');
+    ({ bytes: fork, selection } = await stuffItResourceForkWithSelection(bytes));
   } else {
     fork = unwrapToResourceFork(bytes);
+    selection = { policy: container === 'raw' ? 'raw-resource-fork' : 'unverified-container-unwrapping',
+      entryIndex: null, entryName: null, forkType: container === 'raw' ? 1 : null, fileType: null, creator: null };
   }
-  const { theme, assets, iconIndex } = convertScheme(fork, {
-    meta: options.meta,
-    source: options.source ?? 'resource-fork',
-  });
+  if (evidence) await evidence.selectedFork(fork, selection);
+  let converted;
+  try {
+    converted = convertScheme(fork, {
+      meta: options.meta, source: options.source ?? 'resource-fork',
+      ...(evidence ? { resourceObserver: evidence.observer } : {}),
+    });
+  } catch (error) {
+    // Preserve the primary conversion error and settle every pending digest.
+    if (evidence) await evidence.settle();
+    throw error;
+  }
+  const { theme, assets, iconIndex } = converted;
+  // Complete or reject all hashing before any encoder can allocate asset URLs.
+  const byteProvenance = evidence ? await evidence.finish() : undefined;
   // convertScheme already validated the theme (convertChrome → validateTheme).
 
   // Default: encode if EITHER OffscreenCanvas (fast path) OR document/HTMLCanvasElement
@@ -69,7 +92,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
-    return { manifest: theme, assets, iconIndex };
+    return { manifest: theme, assets, iconIndex, ...(byteProvenance ? { byteProvenance } : {}) };
   }
 
   const urlFor = options.assetUrlFactory ?? defaultAssetUrlFactory;
@@ -118,6 +141,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
 
   return {
     manifest: theme, baseUrl: '', inspector, dispose,
+    ...(byteProvenance ? { byteProvenance } : {}),
     ...(Object.keys(glyphs).length ? { glyphs } : {}),
   };
 }

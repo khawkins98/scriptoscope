@@ -1,3 +1,4 @@
+import type { ElementByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
 // is the schema of record; the full bundle (produced by the extractor) is
 // richer, and fields are surfaced here as the runtime needs them.
@@ -106,6 +107,8 @@ export interface WindowType {
 }
 
 export interface ChromeElement {
+  /** Actual decoded input references, only from an opted-in load. */
+  readonly byteProvenance?: ElementByteProvenance;
   asset: string;
   width: number;
   height: number;
@@ -223,6 +226,8 @@ export interface ThemeManifest {
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */
 export interface LoadedTheme {
+  /** Immutable load-local evidence; absent means unobserved, including borrowed bases. */
+  readonly byteProvenance?: ThemeByteProvenance;
   manifest: ThemeManifest;
   baseUrl: string;
   /**

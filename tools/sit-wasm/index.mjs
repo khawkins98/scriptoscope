@@ -39,21 +39,28 @@ export async function decodeArchive(bytes) {
 }
 
 /**
- * Convenience for Kaleidoscope schemes: the resource fork of the first entry that has one
+ * Convenience for Kaleidoscope schemes: the largest non-icon resource fork
  * (schemes keep all their resources in the resource fork, data fork empty).
  * @param {Uint8Array|ArrayBuffer} bytes
  * @returns {Promise<Uint8Array>}
  */
 export async function stuffItResourceFork(bytes) {
+  return (await stuffItResourceForkWithSelection(bytes)).bytes;
+}
+
+/** Same selection as stuffItResourceFork, with the actual chosen entry's identity.
+ * The policy is observed compatibility behavior, not an independent scheme oracle. */
+export async function stuffItResourceForkWithSelection(bytes) {
   const entries = await decodeArchive(bytes);
-  // A scheme often ships in a folder alongside a custom-folder-icon file ("Icon\r") and a
-  // ReadMe — each with its own little resource fork. The scheme's fork dwarfs them, so pick
-  // the LARGEST resource fork, skipping the special folder-icon file.
-  const rsrc = entries
-    .filter((e) => e.forkType === 1 && e.bytes.length > 0 && !/(^|\/)Icon\r?$/.test(e.name))
-    .sort((a, b) => b.bytes.length - a.bytes.length);
+  const rsrc = entries.map((entry, entryIndex) => ({ entry, entryIndex }))
+    .filter(({ entry }) => entry.forkType === 1 && entry.bytes.length > 0 && !/(^|\/)Icon\r?$/.test(entry.name))
+    .sort((a, b) => b.entry.bytes.length - a.entry.bytes.length);
   if (!rsrc.length) throw new Error('stuffItResourceFork: archive has no resource fork');
-  return rsrc[0].bytes;
+  const { entry, entryIndex } = rsrc[0];
+  return { bytes: entry.bytes, selection: {
+    policy: 'largest-non-icon-resource-fork', entryIndex, entryName: entry.name,
+    forkType: entry.forkType, fileType: entry.type, creator: entry.creator,
+  } };
 }
 
 function parsePacked(b) {

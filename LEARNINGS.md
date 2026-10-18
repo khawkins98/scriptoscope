@@ -3780,3 +3780,23 @@ Correcting A8B2 from PaintRect to EraseRoundRect does not change the already
 sourced solid geometry: its two oval dimensions are zero. Pattern phase under
 nonzero port origins, alternate drawing flags, masks, list-header/tab callers
 and legacy metadata still need independent requirements before implementation.
+
+### 2026-10-18 — resource IDs do not identify the bytes actually converted
+
+A correctly traced owner/key/signed ID can still conceal a different archive fork
+or resource payload. Observe the same private input snapshot, actual archive
+selection and existing decoder calls; do not re-extract expected bytes afterward
+and label them actual input. Parser occurrence indexes also matter: repeated cinf
+IDs use the last successful metadata record, while repeated cicn ID/name outputs
+can alias one asset path. In that latter case the encoder keeps the final URL but
+earlier metadata survives under another key. Opt-in evidence must reject that
+ambiguous output binding, rather than falsely joining the first payload to the
+last image. This rejection leaves default loader policy unchanged.
+
+Hash completion is asynchronous even though conversion is synchronous. Snapshot
+caller Uint8Array/ArrayBuffer inputs before the first await (Buffer.slice is NOT
+a copy), attach every digest rejection immediately, then settle hashes before
+allocating URL assets. Returned scalar evidence can outlive dispose without
+retaining the input buffers or transferring ownership of a borrowed base. A
+byte-identity match verifies the input to shared conversion, not the correctness
+of archive/resource decoding or historically faithful pixels.
