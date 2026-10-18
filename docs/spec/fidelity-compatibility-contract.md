@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.4**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.5**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -93,8 +93,8 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.1.0](../../tests/rendering-requirements/ledger.json) contains
-sixteen OPEN cases and 134 declared obligations: 24 narrowly verified, 2 mismatched,
+The current [ledger 1.1.1](../../tests/rendering-requirements/ledger.json) contains
+sixteen OPEN cases and 134 declared obligations: 26 narrowly verified, 0 mismatched,
 108 unknown. The separate [availability inventory 1.0.2](../../tests/control-availability/expectations.json)
 contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains

@@ -7,6 +7,7 @@ import { loadCicnBuffer } from './cicnImage.js';
 import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { controlTextColors } from './controlTextColors.js';
+import { composeTabBody } from './composeTabBody.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -830,8 +831,9 @@ export interface TabOptions {
  * Compose one segmented TAB (e.g. an On|Off pair) from the scheme's tab cicns.
  * Selected = the "front"/"on" tab (`-9972` SSF small / `-9980` LSF large — the
  * taller, raised trapezoid); unselected = the shorter "rear"/"off" tab
- * (`-9975` / `-9983`). The cicn is 3-sliced across its width — rounded top
- * corners fixed, middle stretched — to fit the label. Returns null when the
+ * (`-9975` / `-9983`). Supported cinf bodies use CDEF 8 full-height end strips
+ * and independent bands/solid center. Unsupported bodies retain the legacy
+ * three-slice compatibility path. Returns null when the
  * scheme ships no tab cicn (caller falls back to a CSS segmented control).
  *
  * NB: this is NOT the popup-menu tab `-12319` (a different control that no
@@ -840,25 +842,21 @@ export interface TabOptions {
  */
 export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Promise<PixelBuffer | null> {
   const ids = opts.selected ? [9972, 9980] : [9975, 9983]; // small then large; front/rear
-  let tab: PixelBuffer | null = null;
-  let pickedId = -1;
+  let face: ResolvedControlFace | null = null;
   for (const id of ids) {
-    tab = await loadById(theme, id);
-    if (tab) { pickedId = id; break; }
+    face = await loadFaceById(theme, id);
+    if (face) break;
   }
-  if (!tab) return null;
+  if (!face) return null;
+  const tab = face.buffer;
   const b = opaqueBounds(tab);
   if (b.x1 < b.x0 || b.y1 < b.y0) return null;
   const bw = b.x1 - b.x0 + 1;
   const bh = b.y1 - b.y0 + 1;
 
-  // Label colour: tabs are SOLID-filled trapezoids (blue 1984 / gray beos / yellow
-  // crayon-os) with no kDEF text-color marker convention — every pixel in the
-  // visible band is the same face fill. Pick a contrasting b/w from the face
-  // luminance. (Earlier code sampled a "marker" at the tab centre with a
-  // contrast threshold; both sampled pixels were face pixels, so the contrast
-  // check effectively always rejected and fell back to this path. Code-quality
-  // reviewer flagged the dead branch; simplified here.)
+  // Retained compatibility typography: CDEF 8 has authored text/emboss
+  // samples and data-driven fonts, but those separate rules are not implemented
+  // by this body correction. Do not infer original text color from contrast.
   const cx = (b.x0 + b.x1) >> 1;
   const cy = (b.y0 + b.y1) >> 1;
   const [fr, fgc, fbc] = tab.getPixel(cx, cy);
@@ -870,9 +868,19 @@ export async function composeTab(theme: LoadedTheme, opts: TabOptions = {}): Pro
   // Prefer cinf-declared slice.corner for the end-cap thickness; fall back to the
   // historical clamp when no cinf was shipped. Same shape as composeFaceButton /
   // composeProgress — read the artist's authored answer rather than the heuristic.
-  const tabEl = elementById(theme, pickedId);
+  const tabEl = face.element;
   const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
-  const outW = Math.max(bw, (glyphs ? glyphs.width : 0) + cap * 2 + 6);
+  const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
+  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth));
+  if (body) {
+    // Preserve the previous glyph size and vertical offset; source body height
+    // is independent of that still-unverified typography policy.
+    if (glyphs) body.drawOver(glyphs, Math.round((body.width - glyphs.width) / 2), Math.round((bh - glyphs.height) / 2) + 1);
+    return body;
+  }
+  // Missing cinf/safe background or a positive pattern-backed center retains
+  // the old compatibility compositor until its separate contract is supported.
+  const outW = Math.max(bw, labelWidth);
   const out = PixelBuffer.alloc(outW, bh);
   const tileMiddle = !!tabEl?.slice?.tile;
 

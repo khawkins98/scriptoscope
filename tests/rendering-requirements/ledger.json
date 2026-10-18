@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.1.0",
+  "inventoryVersion": "1.1.1",
   "scope": {
     "description": "Sixteen exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
@@ -484,6 +484,15 @@
         }
       },
       "sha256": "513be0a1ec1d6a8a2127545da6b7c70cc3dc6d0ee6fd6c22b98bbd755c654f09"
+    },
+    {
+      "id": "engine.kaleidoscope-2.3.1-cdef8",
+      "kind": "engine",
+      "version": "Kaleidoscope 2.3.1 installer CDEF 8 68k",
+      "bytes": 15902,
+      "sha256": "4c9fecff46f6bfe2171961fa71e0831e5e2b85174f55531ad1a2fe895a82c680",
+      "extractionReference": "docs/spec/kdef-binary-inventory.md",
+      "redistributed": false
     }
   ],
   "evidence": [
@@ -756,6 +765,34 @@
       ],
       "claim": "Additive sampling offset convention from the pinned API examples.",
       "limits": "API availability and actual R in any original environment are not established. Synthetic known R is a declared arithmetic input, not historical capture metadata."
+    },
+    {
+      "id": "cdef8.tab-full-raster-bands",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-cdef8",
+        "theme.1138",
+        "theme.1990"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "CDEF 8 reads the full cicn PixMap bounds at 0x420..0x42a, copies full-height end strips at 0x430..0x47e, and paints independent top/bottom bands at 0x484..0x552. When cinf tileSides is zero, 0x4a2..0x4b4 and 0x506..0x518 reduce the band source to its first column. 1138 rear art is 23x16 with corner10/side10; 1990 rear is 32x16 with corner14/side14. Both have empty centers and overlapping bands, so preserving full source coordinates retains their middle strips without repeating the adjacent semantic sample column.",
+      "excerptSha256": "bc34f22d4569c0b717c18c5ea5d638725c630539cb7e615e0b678582525c6880",
+      "claim": "Full source coordinates and first-column bands retain the middle strips in the two exact unselected AgjpQy cases.",
+      "limits": "Tests compare body pixels outside the current browser glyph mask; separate empty-label/literal fixtures cover whole body coordinates. Expected archive catalog bindings are not actual tab paint traces. Original selection, font, layout, device/transfer and pattern-center behavior remain unknown.",
+      "addresses": [
+        "0x420",
+        "0x42a",
+        "0x430",
+        "0x47e",
+        "0x4a2",
+        "0x4b4",
+        "0x506",
+        "0x518",
+        "0x552"
+      ],
+      "requirementIds": [
+        "tab.full-raster-coordinates"
+      ]
     }
   ],
   "requirements": [
@@ -988,6 +1025,20 @@
         "crayon.pattern.normal.empty.w80.h20"
       ],
       "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "tabs.full-raster-agjpqy",
+      "path": "tests/rendering-options/tab-body.spec.mjs",
+      "marker": "description: 'tabs.full-raster-agjpqy'",
+      "caseIds": [
+        "1138.tab.unselected.auto.agjpqy",
+        "1990.tab.unselected.auto.agjpqy"
+      ],
+      "claim": "Exact pinned 1138/1990 unselected AgjpQy source-coordinate body retention outside browser glyph ink; no original typography or selection claim.",
       "modes": [
         "source",
         "built"
@@ -2215,16 +2266,19 @@
     {
       "caseId": "1138.tab.unselected.auto.agjpqy",
       "requirementId": "tab.full-raster-coordinates",
-      "status": "mismatched",
+      "status": "verified",
       "evidence": [
-        "art.tab-crop"
+        "art.tab-crop",
+        "cdef8.tab-full-raster-bands"
       ],
-      "assertions": [],
+      "assertions": [
+        "tabs.full-raster-agjpqy"
+      ],
       "issues": [
         223
       ],
-      "rationale": "Original corner sizes applied after opaque crop collapse the middle source strip; reviewed source dimensions establish the mismatch.",
-      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+      "rationale": "Pinned CDEF 8 full-raster/first-column band contract and exact source/built AgjpQy assertions retain body pixels outside browser glyph ink. Whole-body literal and empty-label oracles separately check the body model; typography, original selection and complete painter remain unverified.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the two exact #223 full-raster tab geometry assessments and preserved the other 132 assessments. Not human reference-capture attestation or whole-tab approval."
     },
     {
       "caseId": "1138.tab.unselected.auto.agjpqy",
@@ -2289,16 +2343,19 @@
     {
       "caseId": "1990.tab.unselected.auto.agjpqy",
       "requirementId": "tab.full-raster-coordinates",
-      "status": "mismatched",
+      "status": "verified",
       "evidence": [
-        "art.tab-crop"
+        "art.tab-crop",
+        "cdef8.tab-full-raster-bands"
       ],
-      "assertions": [],
+      "assertions": [
+        "tabs.full-raster-agjpqy"
+      ],
       "issues": [
         223
       ],
-      "rationale": "Original corner sizes applied after opaque crop collapse the middle source strip; reviewed source dimensions establish the mismatch.",
-      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+      "rationale": "Pinned CDEF 8 full-raster/first-column band contract and exact source/built AgjpQy assertions retain body pixels outside browser glyph ink. Whole-body literal and empty-label oracles separately check the body model; typography, original selection and complete painter remain unverified.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the two exact #223 full-raster tab geometry assessments and preserved the other 132 assessments. Not human reference-capture attestation or whole-tab approval."
     },
     {
       "caseId": "1990.tab.unselected.auto.agjpqy",

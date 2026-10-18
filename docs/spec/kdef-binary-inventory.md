@@ -168,3 +168,14 @@ ControlsLib imports `GetControl32BitMinimum/Value/Maximum`, `SetControl32BitValu
 - `docs/spec/kdef231-reference.md` — the standing reference (extend with the new findings above)
 - `docs/spec/kdef182-disassembly-findings.md` — May 2026 prior-pass findings (1.8.2 only)
 - `docs/spec/apple-drawtheme-decode.md` — Apple-side AppearanceLib decode (companion)
+
+## Tab CDEF 8 identity (2026-10-18)
+
+The same pinned control-panel AppleDouble and raw-fork chain above contains CDEF
+8,15902bytes,SHA256 `4c9fecff46f6bfe2171961fa71e0831e5e2b85174f55531ad1a2fe895a82c680`.
+Independent Python resource-map parsing located its reference at997278 and its
+payload at42778, relative to the unwrapped raw fork. It exactly matches local
+`.scratch/k231-kdef/CDEF/id-8.bin`. This establishes installer-component identity;
+attribution of a running provider is separate. No original code is redistributed
+or executed. The [tab body source contract](tab-cdef8-body.md) uses payload-relative
+addresses and records its narrow painter/coordinate/mask claims.

@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.1.0 declares sixteen exact direct cases and seven explicit dimensions per
+Inventory 1.1.1 declares sixteen exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -108,3 +108,13 @@ original resource. The real Crayon case checks three pinned selected-source
 samples. Seven original selection/geometry/fill/device/state/placement/port
 obligations remain unknown in each pattern case. No capture, golden or managed-port
 integration is promoted by these direct source-model checks (#274).
+
+
+Inventory 1.1.1 changes only the two existing 1138/1990 `AgjpQy` tab
+`tab.full-raster-coordinates` assessments. The independently pinned CDEF 8
+contract and exact source/built body-coordinate assertion support that requirement;
+all 132 other assessments and all case declarations remain unchanged. Counts are
+26 narrowly verified, zero mismatched, and 108 unknown, with all 16 closures OPEN.
+This is not zero defects or whole-tab verification: original selection, fonts,
+transfer/device behavior, complete geometry and pattern-center handling remain
+unknown. Catalog byte bindings identify expected source art, not a tab paint trace.

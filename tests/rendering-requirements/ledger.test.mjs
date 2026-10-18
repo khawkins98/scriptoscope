@@ -53,10 +53,16 @@ test('source archive, excerpt and frozen obligation digests fail closed on drift
   const changed = copy(); changed.cases[0].options.height++;
   assert.match(validateLedger(changed, { root }).errors.join('\n'), /inventory digest changed/);
 });
-test('mismatched requires a live issue and closed issues force assessment maintenance', () => {
-  reject(l => l.assessments.find(a => a.status === 'mismatched').issues = [], /missing list/);
-  reject(() => {}, /not OPEN/, { issueStates: new Map([[218, 'OPEN'], [223, 'CLOSED']]) });
-  assert.deepEqual(validateLedger(original, { root, issueStates: new Map([[218, 'OPEN'], [223, 'OPEN']]) }).errors, []);
+test('mismatched requires a live issue even when the reviewed inventory has no mismatches', () => {
+  const mismatch = ledger => {
+    const row = ledger.assessments.find(a => a.caseId === '1138.tab.unselected.auto.agjpqy' && a.requirementId === 'tab.full-raster-coordinates');
+    row.status = 'mismatched'; row.issues = [223];
+    return row;
+  };
+  reject(l => { mismatch(l).issues = []; }, /missing list/);
+  reject(l => { mismatch(l); }, /not OPEN/, { issueStates: new Map([[223, 'CLOSED']]) });
+  const fixture = copy(); mismatch(fixture);
+  assert.deepEqual(validateLedger(fixture, { root, issueStates: new Map([[223, 'OPEN']]) }).errors, []);
 });
 test('issue API failure, wrong identity and pull requests never count as live issues', async () => {
   await assert.rejects(loadIssueStates([223], { fetcher: async () => ({ ok: false, status: 503 }) }), /HTTP 503/);
@@ -153,16 +159,24 @@ test('invalid evidence and case references report errors without throwing from t
 });
 
 
-test('1.1.0 preserves the original eight cases and 51 assessments exactly', () => {
-  // Frozen semantic identity from reviewed inventory 1.0.1, not renderer output.
-  assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0, 8), assessments: original.assessments.slice(0, 51) })),
-    'b61753292e854dc21af2dc36ad879dea098cee0f070e32a88f81c96c344a8c1c');
-  assert.equal(original.inventoryVersion, '1.1.0');
-  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 24, mismatched: 2, unsupported: 0, unknown: 108 });
+test('1.1.1 changes only two reviewed tab geometry assessments from 1.1.0', () => {
+  const tabCases = ['1138.tab.unselected.auto.agjpqy', '1990.tab.unselected.auto.agjpqy'];
+  const changed = row => tabCases.includes(row.caseId) && row.requirementId === 'tab.full-raster-coordinates';
+  // Frozen reviewed 1.1.0 case inventory and the other 132 assessments.
+  assert.equal(digest(JSON.stringify({ cases: original.cases, assessments: original.assessments.filter(row => !changed(row)) })),
+    '62161d96a38d2ecc012a5862bbb06e74ee02f9599ff3f08befb89286e2a7db77');
+  assert.equal(original.assessments.filter(changed).length, 2);
+  for (const row of original.assessments.filter(changed)) {
+    assert.equal(row.status, 'verified');
+    assert.deepEqual(row.assertions, ['tabs.full-raster-agjpqy']);
+    assert.deepEqual(row.evidence, ['art.tab-crop', 'cdef8.tab-full-raster-bands']);
+  }
+  assert.equal(original.inventoryVersion, '1.1.1');
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified: 26, mismatched: 0, unsupported: 0, unknown: 108 });
   assert(original.cases.every(c => c.inventoryClosure.status === 'open'));
 });
 test('new text and pattern claims fail if executable annotations or exact case scope disappear', () => {
-  const ids = ['text.authored-rgb16', 'text.masked-emboss-order', 'pattern.inset-union-phase', 'pattern.exclusive-anchor-clip', 'pattern.actual-source-samples'];
+  const ids = ['text.authored-rgb16', 'text.masked-emboss-order', 'pattern.inset-union-phase', 'pattern.exclusive-anchor-clip', 'pattern.actual-source-samples', 'tabs.full-raster-agjpqy'];
   for (const id of ids) {
     const assertion = original.assertions.find(a => a.id === id);
     assert(assertion);

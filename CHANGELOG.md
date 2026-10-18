@@ -141,6 +141,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Render supported tab bodies with full-raster end strips, cinf-selected repeated
+  bands and a separate solid center, preserving 1138/1990 middle strips without
+  stretching semantic color markers. Pattern-backed centers and original tab
+  typography remain explicit limitations (#223). The two existing exact tab
+  geometry assessments now have source-backed executable acceptance; all other
+  132 assessments and all OPEN case inventories are preserved.
+
 - Push and bevel labels use their selected cicn/cinf RGB16 text samples and
   optional emboss pass, preserving masked colors and exact sentinel decisions
   before PNG transport; explicit foreground overrides remain supported.

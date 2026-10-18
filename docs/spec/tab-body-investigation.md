@@ -1,9 +1,12 @@
-# Tab body investigation: pinned source, unresolved painter
+# Tab body investigation: initial PACH lead
 
 Tracked by [#223](https://github.com/khawkins98/scriptoscope/issues/223) under
 #221. The full-raster horizontal prototype remains held: it restores missing
 middle strips but also stretches semantic color-sample pixels into visible bars.
-No runtime fix or golden update follows from this source note.
+This earlier PACH lead is superseded for the bounded body painter by the
+[independently pinned CDEF 8 contract](tab-cdef8-body.md). The held horizontal
+prototype remains unsupported; the new implementation follows separate bands
+and center handling. Original typography and full variant behavior remain open.
 
 ## Input and address convention
 
@@ -31,7 +34,7 @@ identify the destination painter, its mask, dimensions, label font or the fate
 of color samples when painting. A signed word found inside a branch opcode is
 not a resource request; retain actual decoded instruction/call context.
 
-## Required next evidence
+## Remaining evidence after the CDEF 8 body contract
 
 Trace the PACH/Appearance drawing caller and actual tab body assembly, including
 small/large variants, selected/unselected state, destination/source coordinates,
@@ -39,6 +42,7 @@ masking and label placement. Relate that caller to the generic cinf engine only
 when a real call path establishes the relation. Pin any additionally cited
 resource before promoting a requirement to verified.
 
-The 1138/1990 middle-strip defect remains a demonstrated mismatch. Complete
-body/sample handling, original tab height and font policy remain unknown.
+The 1138/1990 middle-strip defect has a source-derived correction and executable
+acceptance in the CDEF 8 contract. Complete body/sample handling, original
+whole-control layout and font policy remain unknown.
 Candidate source art and agreement between renderer builds do not resolve them.

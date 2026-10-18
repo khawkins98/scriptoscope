@@ -28,16 +28,14 @@ Known boundaries requiring explicit consideration during image review:
   [direct pattern context](../../docs/spec/control-pattern-context.md) and
   [text-color scope](../../docs/spec/control-text-colors.md).
 - [Tab geometry/font investigation #223](https://github.com/khawkins98/scriptoscope/issues/223)
-  includes a demonstrated crop-band mismatch: horizontal slicing combines an
-  opaque-bounds-cropped width with `cinf.corner` from the full source raster. For
-  unselected 1138 art, width19/corner10 gives a negative middle band; for 1990,
-  width28/corner14 gives zero. Skipping that band leaves detached ends and text
-  over a transparent center in direct and themed declarative tabs. These images
-  record a known defect while original tab assembly is researched.
-  Separately, font sizing from opaque height is an unverified runtime policy.
-  Windows95/Windows3.1's small 8px tab font is visible in the snapshots, but source
-  analysis has not established actual glyph clipping there. The separate
-  interleaved-panel fixture error was corrected by #224 before seed approval.
+  now has a bounded CDEF 8 body correction: full-raster end strips and independent
+  top/bottom bands retain 1138/1990 rear middle strips; separate solid centers
+  avoid repeating semantic samples. See [the source contract](../../docs/spec/tab-cdef8-body.md).
+  Positive pattern-backed centers and unknown raw body requests retain the legacy
+  compositor. Original variant selection, complete layout, text/emboss/font and
+  device/transfer behavior remain unverified. Windows95/Windows3.1's small 8px
+  tab font remains a visible compatibility policy, not an original-font claim.
+  The interleaved-panel fixture error was corrected by #224 before seed approval.
 - [Rendering fidelity epic #221](https://github.com/khawkins98/scriptoscope/issues/221)
   tracks broader independent evidence and coverage. The 70-case bounded profile is
   a deliberate sample; even the 660-case extended profile is not every possible

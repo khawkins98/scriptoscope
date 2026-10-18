@@ -3,7 +3,8 @@
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
 **There are no original captures or capture approvals in this initial corpus.**
-[Six quarantined partial research observations](../../docs/research/original-observations/2026-10-18/README.md)
+[Six quarantined v4/v5 observations](../../docs/research/original-observations/2026-10-18/README.md)
+and [four v6 default-dialog observations](../../docs/research/default-dialog-observations/2026-10-18/README.md)
 are preserved separately. They are not admitted here and do not satisfy any request.
 The thirteen requests are provisional experiments, not historical default sizes,
 complete control coverage, or an acceptance denominator. Intake never runs the
@@ -88,8 +89,7 @@ source entry/archive/fork pins and selection-review status, authoritative compat
 document ID/version/full-file SHA-256, ledger version, exact target requirement
 wording and engine component pin. Source-registry/ledger paths are also checked
 against their existing authorities.
-The compatibility document is the single identity/version authority: request pins must match its explicit header (currently
-draft 0.1.3). Even an unversioned document edit invalidates prior request digests;
+The compatibility document is the single identity/version authority: request pins must match its authoritative header. Even an unversioned document edit invalidates prior request digests;
 reviewed document changes still require a version increment. These draft source
 choices identify
 requested bytes; they do **not** approve historical Resource Manager selection or
