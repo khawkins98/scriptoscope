@@ -3533,3 +3533,9 @@ interpretation explicit alongside reviewed image limits.
 GitHub container checkouts can reject `git rev-parse` under Git's ownership guard.
 Use the workflow's trusted commit SHA for capture provenance; local runs can keep
 using Git. No repository-wide safety exception is necessary.
+
+An exact repeat proves deterministic capture, not that verification rejects bad
+expectations. The reviewed golden workflow separately removes the manifest/image
+and mutates one opaque pixel, checks the actual failure reason, proves verification
+did not rewrite expectations, restores their exact hashes, then verifies again.
+Keep the capture commit distinct from the later seed and CI-activation commits.
