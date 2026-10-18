@@ -3291,3 +3291,7 @@ scaling or a renderer exception for individual schemes.
 The Restore chrome button also has to set its desired `aria-pressed` state
 before starting an asynchronous mount: the completion guard consults that state
 and otherwise immediately disconnects the newly mounted handle.
+
+### 2026-10-18 — Coverage audits must consume the resolved background
+
+The Scene audit contrast-picked text from headerFill even when a higher-priority pattern was actually rendered. Dark fallback colors therefore reported white text while the diagnostic correctly kept black on textured bars. Share the pure background/text resolver between the diagnostic and audit, rather than maintaining two conditional trees. This corrects the evidence without reordering resource tiers based on unversioned preview crops. Corpus browser fixtures should remain byte-identical.
