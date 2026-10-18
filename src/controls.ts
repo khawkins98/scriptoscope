@@ -1,3 +1,4 @@
+import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
 import { snapshotControlComposition, bodyPatternPhase, controlPointVisible, type ControlCompositionContext, type ControlCompositionSnapshot, type ButtonComposition } from './controlComposition.js';
 import type { SliderComposition } from './sliderLayout.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
@@ -883,7 +884,7 @@ async function composeTabWithTrace(theme: LoadedTheme, opts: TabOptions, trace?:
   const tabEl = face.element;
   const cap = tabEl?.slice?.corner ?? Math.max(2, Math.min(12, Math.floor((bw - 1) / 2)));
   const labelWidth = (glyphs ? glyphs.width : 0) + cap * 2 + 6;
-  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth), trace?.tabBody);
+  const body = composeTabBody(tab, tabEl, Math.max(tab.width, labelWidth), trace?.tabBody, face.theme.manifest);
   if (body) {
     // Preserve the previous glyph size and vertical offset; source body height
     // is independent of that still-unverified typography policy.
@@ -1128,7 +1129,7 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   const target = face.theme.manifest.chromeElements?.[binding.manifestKey], rect = binding.sourceRect;
   const side = face.element.slice?.side, corner = face.element.slice?.corner;
   if (!target || target.sourceCicnId !== request.resourceId || binding.reason !== 'unique-source-occurrence'
-      || binding.displayPolicy !== 'mac-1.8-to-2.2-high-byte' || ![1, 2, 4, 8].includes(binding.pixelSize)
+      || !ownerDisplayPolicyMatches(face.theme.manifest, binding.displayPolicy) || ![1, 2, 4, 8].includes(binding.pixelSize)
       || !rect || rect.x !== 0 || rect.y !== 0 || !Number.isInteger(rect.w) || rect.w <= 0 || rect.w !== target.width
       || !Number.isInteger(rect.h) || rect.h <= 0 || rect.h !== target.height
       || typeof binding.asset !== 'string' || !binding.asset
@@ -1258,7 +1259,7 @@ async function composeFaceButton(
   // 16-bit sentinel/equality decisions through metadata, not canvas readback.
   // The traced push/bevel call sites draw emboss first at (+1,+1), then text.
   // List-header dispatch and legacy manifests retain their prior policy.
-  const colors = geometry === 'button' ? controlTextColors(faceEl, opts.fg, fallbackFg)
+  const colors = geometry === 'button' ? controlTextColors(faceEl, opts.fg, fallbackFg, resolved.theme.manifest)
     : { foreground: opts.fg ?? fallbackFg, emboss: null, policy: 'contrast-fallback' as const, embossDecision: 'unavailable' as const, sampleFallbackReason: null };
   const fg = colors.foreground;
   if (geometry === 'button') opts.trace?.textColors({ ...colors, labelPainted: label.length > 0,
@@ -1300,7 +1301,7 @@ async function composeFaceButton(
   // Loader validation binds RGB16/display consistency. Direct hand-built theme
   // metadata remains caller-declared; do not apply or duplicate that LUT here.
   const sourceBg = body.solidFallback && faceEl.slice && !faceEl.colorSamplesUnavailableReason
-    && samples?.model === 'kdef-2.3.1-color' && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte'
+    && samples?.model === 'kdef-2.3.1-color' && ownerDisplayPolicyMatches(resolved.theme.manifest, samples.displayPolicy)
     && rawBg && triple(rawBg.rgb16, 65535) && triple(rawBg.displayRgb, 255)
     && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
     && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
@@ -1422,7 +1423,7 @@ async function composeControlBorder(resolved: ResolvedControlFace, width: number
   const proof = element.samplingEquivalence;
   const identityMatches = (a: { model: string; comparison: string; displayPolicy: string; width: number; height: number } | undefined | null) =>
     a?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1' && a.comparison === 'opaque-current-display-rgb'
-      && a.displayPolicy === 'mac-1.8-to-2.2-high-byte' && a.width === source.width && a.height === source.height;
+      && ownerDisplayPolicyMatches(resolved.theme.manifest, a.displayPolicy) && a.width === source.width && a.height === source.height;
   const equivalent = identityMatches(proof) && proof?.status === 'equivalent' && proof.reason === 'all-opaque-display-rgb-equal';
   const companion = element.sampledBandAsset;
   const eligible = identityMatches(companion) && companion && typeof companion.asset === 'string'
@@ -1670,9 +1671,9 @@ export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfa
       const body = await loadBodyPattern(face, { trace }, 'admission');
       if (body.buffer) return finish({ status: 'unsupported', reason: 'pattern-body' });
       if (!body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
-      const background = headerBackground(face.buffer, face.element);
+      const background = headerBackground(face.buffer, face.element, face.theme.manifest);
       if (!background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
-      const painted = paintHeaderSurface(face.buffer, face.element, plan, background);
+      const painted = paintHeaderSurface(face.buffer, face.element, plan, background, face.theme.manifest);
       if (painted.painted && identity) trace?.record({ ...identity, role: 'face', requestedId: -id,
         action: 'selected', basis: 'compatibility-policy', usage: 'paint', reason: 'admitted-header-surface-paint' });
       return finish(painted.result, { ...(painted.result.status === 'rendered' ? { painted: painted.painted,

@@ -1,3 +1,4 @@
+import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../../tools/theme-loader/display-profile.js';
 // Theme bootstrap for the declarative layer. Loads themes from a base URL, caches them, and
 // optionally wires a universal base bundle so lightly-skinned schemes inherit from it. By default
 // NO base is wired — every theme loads standalone, and any missing chrome/control falls through
@@ -47,6 +48,8 @@ export interface ThemeEntry {
 export type ThemeHint = ThemeEntry;
 
 export interface ThemeBootstrapOpts {
+  /** Fixed display preparation policy for every loaded or registered theme/base. */
+  displayProfile?: DisplayProfile;
   /** Base dir the bundle slugs resolve under (a standalone consumer points this at its themes/). */
   themeBaseUrl?: string; // default '/themes'
   /** Optional universal base bundle every other theme inherits from. Default: none (themes load standalone). */
@@ -76,6 +79,8 @@ export interface ThemeResolver {
 }
 
 export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolver {
+  const displayProfile = opts.displayProfile;
+  displayRealizer(displayProfile);
   const themeBaseUrl = opts.themeBaseUrl ?? '/themes';
   const baseSlug = opts.baseSlug; // undefined = no base
   const baseUrl = baseSlug ? themeRefToUrl(baseSlug, themeBaseUrl) : null;
@@ -114,6 +119,7 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
       const hint = hintBySlug.get(slugOfUrl(url));
       const loadOpts: Parameters<typeof loadTheme>[1] = {};
       if (base) loadOpts.base = base;
+      if (displayProfile) loadOpts.displayProfile = displayProfile;
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.meta) loadOpts.meta = hint.meta;
       const theme = await loadTheme(url, loadOpts);
@@ -136,6 +142,7 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
     load: (ref) => loadByUrl(themeRefToUrl(ref, themeBaseUrl)),
     register: (ref, theme) => {
       if (disposed) throw disposedError();
+      assertDisplayProfileChain(theme, displayProfile);
       borrowChain(theme);
       cache.set(themeRefToUrl(ref, themeBaseUrl), Promise.resolve(theme));
     },

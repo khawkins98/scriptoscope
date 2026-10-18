@@ -9,6 +9,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Add explicit finite display profiles shared by raw theme conversion, browser
+  loading and declarative mounts. Preserve exact RGB16 through one joint device
+  mapping/producer stage, reject missing mappings before asset allocation, and
+  keep the default assets, goldens and source provenance unchanged. The opt-in
+  measured two-theme test input remains quarantined partial evidence (#190).
+
 - Support bounded mode-5 color-icon push/bevel bodies: aligned 1:1 color copies,
   conventional one-bit masks, and genuine missing-body erasure. Preserve hidden
   ordinary RGB once through display preparation, exact resource occurrence and

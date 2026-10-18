@@ -137,3 +137,5 @@ export {
 } from './declarative/index.js';
 
 export type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
+
+export { prepareDisplayProfile, DisplayProfileError, type DisplayProfile, type DisplayProfileData, type DisplayPolicy } from '../tools/theme-loader/display-profile.js';

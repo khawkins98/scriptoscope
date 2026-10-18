@@ -32,7 +32,7 @@ import { Reader } from './shared.js';
  * @param {Uint8Array} bytes  Raw clut resource bytes
  * @returns {{ seed: number, entries: Array<{ value: number, hex: string }> }}
  */
-export function decodeClut(bytes) {
+export function decodeClut(bytes, { realizeRgb16 } = {}) {
   const r = new Reader(bytes);
   const seed = (r.readInt16() << 16) | (r.readInt16() & 0xffff);
   r.readInt16(); // ctFlags (ignored)
@@ -45,7 +45,7 @@ export function decodeClut(bytes) {
     const blue = r.readInt16() & 0xffff;
     const hex =
       '#' +
-      [(red >> 8) & 0xff, (green >> 8) & 0xff, (blue >> 8) & 0xff]
+      (realizeRgb16 && [0,1,3,4,5,6].includes(value) ? realizeRgb16([red,green,blue]) : [(red >> 8) & 0xff, (green >> 8) & 0xff, (blue >> 8) & 0xff])
         .map((c) => c.toString(16).padStart(2, '0'))
         .join('');
     entries.push({ value, hex });

@@ -29,7 +29,7 @@ export function inspectCicnBody(pmap, mask, bitmap, table, indices) {
 
 /** Selection at the actual builder occurrence seam. Errors/skips count as
  * present; duplicate signed IDs are conservatively ambiguous, not last-wins. */
-export function bindCicnBodies(elements, records, keyByRecord, pathCounts) {
+export function bindCicnBodies(elements, records, keyByRecord, pathCounts, displayPolicy = 'mac-1.8-to-2.2-high-byte') {
   for (const face of Object.values(elements)) {
     if (face.bodyRequest?.mode !== 5) continue;
     const requestedId = face.bodyRequest.resourceId;
@@ -46,7 +46,7 @@ export function bindCicnBodies(elements, records, keyByRecord, pathCounts) {
       else {
         const unmasked = source.pixelSize > 1, derivedPath = `cicn-body/${record.file.slice(record.file.lastIndexOf('/') + 1)}`;
         binding = { ...common, status: 'ready', reason: 'unique-source-occurrence', manifestKey: keyByRecord.get(record),
-          displayPolicy: 'mac-1.8-to-2.2-high-byte', pixelSize: source.pixelSize, sourceRect: source.sourceRect,
+          displayPolicy, pixelSize: source.pixelSize, sourceRect: source.sourceRect,
           copy: unmasked ? 'unmasked' : 'masked', asset: unmasked ? derivedPath : record.file,
           ...(unmasked ? { derivedPath } : {}) };
       }

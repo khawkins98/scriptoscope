@@ -1,9 +1,11 @@
+import { displayRealizer } from './display-profile.js';
 // Narrow browser path for picker previews: decode requested icon families only,
 // then encode one chosen icon. Full chrome/inspector conversion waits for selection.
 import { convertIcons } from './convert.js';
 import { detectContainer, unwrapToResourceFork } from './containers.js';
 
-export async function loadKaleidoscopeIcon(bytes, ids, assetUrlFactory = iconDataUrl) {
+export async function loadKaleidoscopeIcon(bytes, ids, assetUrlFactory = iconDataUrl, displayProfile) {
+  displayRealizer(displayProfile);
   let fork;
   if (detectContainer(bytes) === 'stuffit') {
     const { stuffItResourceFork } = await import('../sit-wasm/index.mjs');
@@ -11,7 +13,7 @@ export async function loadKaleidoscopeIcon(bytes, ids, assetUrlFactory = iconDat
   } else {
     fork = unwrapToResourceFork(bytes);
   }
-  const { assets, index } = convertIcons(fork, { ids });
+  const { assets, index } = convertIcons(fork, { ids, displayProfile });
   for (const id of ids) {
     const hit = index.find((entry) => entry.id === id && entry.size === 32)
       ?? index.find((entry) => entry.id === id);

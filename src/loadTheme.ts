@@ -1,3 +1,4 @@
+import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
@@ -47,8 +48,12 @@ export interface ThemeMeta {
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile } = {},
 ): Promise<LoadedTheme> {
+  const displayProfile = opts.displayProfile;
+  const base = opts.base;
+  displayRealizer(displayProfile);
+  assertDisplayProfileChain(base, displayProfile);
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
   // Try the StuffIt archive first (the original `.sit` the author published — the
@@ -77,7 +82,10 @@ export async function loadTheme(
     meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
     ...(opts.provenance ? { provenance: true } : {}),
+    ...(displayProfile ? { displayProfile } : {}),
   });
+
+  try { assertDisplayProfileChain(base, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }
 
   // Preserve the bundle URL as the LoadedTheme's `baseUrl`. The decoder default is
   // `''` (asset refs are already blob: URLs — assetUrl() passes them through
@@ -88,7 +96,7 @@ export async function loadTheme(
   return {
     ...loaded,
     baseUrl,
-    ...(opts.base ? { base: opts.base } : {}),
+    ...(base ? { base } : {}),
   };
 }
 

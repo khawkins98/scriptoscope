@@ -1,3 +1,4 @@
+import { assertDisplayProfileChain } from '../tools/theme-loader/display-profile.js';
 // Base-theme inheritance traversal — the single place "try self, else defer to
 // the base theme" lives.
 //
@@ -24,6 +25,7 @@ export function resolveInChain<T>(
   theme: LoadedTheme,
   pick: (t: LoadedTheme) => T | null | undefined,
 ): T | undefined {
+  assertDisplayProfileChain(theme, theme.manifest.displayProfile);
   const seen = new Set<LoadedTheme>();
   for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
     seen.add(t);

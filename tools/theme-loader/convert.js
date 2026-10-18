@@ -20,15 +20,17 @@ import { decodeColr } from './decoders/colr.js';
 import { buildThemeJson } from './buildThemeJson.js';
 import { validateTheme } from './validateTheme.js';
 import { gammaCorrectRgba, gammaCorrectHex, macRgbToSrgb } from './mac-gamma.js';
+import { displayRealizer, displayPolicy, DisplayProfileError } from './display-profile.js';
 
 // ── Icon palettes (pre-gamma'd to sRGB at module load, same display transform) ──
 // Apple's canonical 16-colour 4-bit palette. Exact, fixed.
-const PALETTE16 = [
+const RAW_PALETTE16 = [
   [0xff, 0xff, 0xff], [0xfc, 0xf3, 0x05], [0xff, 0x64, 0x03], [0xdd, 0x09, 0x07],
   [0xf2, 0x08, 0x84], [0x47, 0x00, 0xa5], [0x00, 0x00, 0xd3], [0x02, 0xab, 0xea],
   [0x1f, 0xb7, 0x14], [0x00, 0x64, 0x12], [0x56, 0x2c, 0x05], [0x90, 0x71, 0x3a],
   [0xc0, 0xc0, 0xc0], [0x80, 0x80, 0x80], [0x40, 0x40, 0x40], [0x00, 0x00, 0x00],
-].map(macRgbToSrgb);
+];
+const PALETTE16 = RAW_PALETTE16.map(macRgbToSrgb);
 
 // Apple's canonical 256-colour SYSTEM palette ('clut' 8), RECONSTRUCTED in-code (so the
 // portable core needs no file read — was scripts/lib/mac-system-palette.json): the 6×6×6
@@ -36,7 +38,7 @@ const PALETTE16 = [
 // {238,221,187,170,136,119,85,68,34,17} in order red/green/blue/GREY (215-254), black at
 // 255. Relocating black to 255 shifts the GREY ramp to 245-254 (idx245 = light grey — the
 // bug a prior hand-built palette got wrong, blue trash can). Byte-identical to the old JSON.
-const PALETTE256 = (() => {
+const RAW_PALETTE256 = (() => {
   const L = [255, 204, 153, 102, 51, 0], pal = [];
   for (let x = 0; x < 215; x++) pal.push([L[(x / 36) | 0], L[((x / 6) | 0) % 6], L[x % 6]]);
   const R = [238, 221, 187, 170, 136, 119, 85, 68, 34, 17];
@@ -45,8 +47,9 @@ const PALETTE256 = (() => {
   for (const v of R) pal.push([0, 0, v]);
   for (const v of R) pal.push([v, v, v]);
   pal.push([0, 0, 0]);
-  return pal.map(macRgbToSrgb);
+  return pal;
 })();
+const PALETTE256 = RAW_PALETTE256.map(macRgbToSrgb);
 
 /** Slugify a resource name for its PNG filename (same rule the old extractor used). */
 export function slugify(name) {
@@ -72,7 +75,9 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile } = {}) {
+  const realizeRgb16 = displayRealizer(displayProfile);
+  const policy = displayPolicy(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
@@ -89,7 +94,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       // These palettes already supply headerColors below. Record that work as
       // successful color extraction rather than silently omitting it (or
       // claiming it was skipped). Preserve header-decoder failure behavior.
-      const decoded = decodeClut(e.data);
+      const decoded = decodeClut(e.data, { realizeRgb16 });
       headerCluts.set(e.id, decoded);
       counts.ok++; counts.color++;
       flatAssets.push({ ...base, status: 'ok', data: decoded });
@@ -104,8 +109,8 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     if (byteReference) base.byteReference = byteReference;
     let payload = null, error = null;
     try {
-      if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true });
-      else if (e.type === 'ppat') payload = decodePpat(e.data);
+      if (e.type === 'cicn') payload = decodeCicn(e.data, { retainKdefColorSampler: true, realizeRgb16, displayPolicy: policy });
+      else if (e.type === 'ppat') payload = decodePpat(e.data, { realizeRgb16 });
       else if (e.type === 'cinf') payload = decodeCinf(e.data);
       else if (e.type === 'wnd#') payload = decodeWnd(e.data);
       // Colr: scheme-global flags (stretchScrollbarThumbFromCenter,
@@ -114,16 +119,18 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       // wires the result into `theme.options` + `theme.origin`, so just decoding
       // here is enough to unlock the schema slots that were already reserved.
       else if (e.type === 'Colr') payload = decodeColr(e.data);
-    } catch (err) { error = err instanceof Error ? err.message : String(err); }
+    } catch (err) { if (err instanceof DisplayProfileError) throw err; error = err instanceof Error ? err.message : String(err); }
 
     resourceObserver?.end(byteReference, error ? 'error' : payload ? 'decoded' : 'skipped');
     if (error) {
+      if (displayProfile && ['cicn', 'ppat'].includes(e.type)) throw new DisplayProfileError(`Cannot prepare ${e.type} ${e.id}: ${error}`, 'UNSUPPORTED_SOURCE_COLOR');
       counts.errored++;
       flatAssets.push({ ...base, status: 'error', error });
       subAssets.push({ ...base, status: 'error', error });
       continue;
     }
     if (!payload) {
+      if (displayProfile && ['cicn', 'ppat'].includes(e.type)) throw new DisplayProfileError(`Unsupported ${e.type} ${e.id} under display profile`, 'UNSUPPORTED_SOURCE_COLOR');
       counts.skipped++;
       flatAssets.push({ ...base, status: 'skipped', reason: 'unsupported variant' });
       subAssets.push({ ...base, status: 'skipped', reason: 'unsupported variant' });
@@ -133,15 +140,15 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
       const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
       const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
       resourceObserver?.bindAsset(byteReference, `${sub}/${fname}`);
-      gammaCorrectRgba(payload.rgba); // Mac→sRGB display transform (mac-gamma.js)
+      if (!realizeRgb16) gammaCorrectRgba(payload.rgba); // Mac→sRGB display transform (mac-gamma.js)
       assets.push({ path: `${sub}/${fname}`, rgba: payload.rgba, width: payload.width, height: payload.height });
       let sampledBandAsset;
       if (payload.sampledBandRgba) {
         const derivedPath = `cicn-sampled/${fname}`;
-        gammaCorrectRgba(payload.sampledBandRgba);
+        if (!realizeRgb16) gammaCorrectRgba(payload.sampledBandRgba);
         assets.push({ path: derivedPath, rgba: payload.sampledBandRgba, width: payload.width, height: payload.height });
         sampledBandAsset = { model: 'kaleidoscope-2.3.1-opaque-sampling-v1',
-          comparison: 'opaque-current-display-rgb', displayPolicy: 'mac-1.8-to-2.2-high-byte',
+          comparison: 'opaque-current-display-rgb', displayPolicy: policy,
           width: payload.width, height: payload.height, asset: derivedPath, derivedPath };
       }
       counts.ok++; counts.raster++;
@@ -158,7 +165,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     }
   }
 
-  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta });
+  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile });
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
   for (let i = assets.length - 1; i >= 0; i--)
@@ -189,7 +196,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     const decoded = headerCluts.get(id);
     if (!decoded) return null;
     const c = headerColorsFromClut(decoded);
-    for (const k of Object.keys(c)) if (c[k] != null) c[k] = gammaCorrectHex(c[k]);
+    for (const k of Object.keys(c)) if (c[k] != null && !realizeRgb16) c[k] = gammaCorrectHex(c[k]);
     return c;
   };
   const active = cl(-14336), inactive = cl(-14335);
@@ -302,7 +309,8 @@ const ICON_TYPES = {
  * @param {{ ids?: number[] }} [options] Restrict decoding to these resource ids.
  * @returns {{ assets: {path,rgba,width,height}[], index: object[], census: object }}
  */
-export function convertIcons(fork, { ids } = {}) {
+export function convertIcons(fork, { ids, displayProfile } = {}) {
+  const realizeRgb16 = displayRealizer(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
   const requested = ids ? new Set(ids) : null;
   const maskOf = (type, id) => { const r = entries.find((x) => x.type === type && x.id === id); return r ? r.data : null; };
@@ -325,6 +333,15 @@ export function convertIcons(fork, { ids } = {}) {
       const mask = maskData && maskData.length >= cfg.maskOff * 2 ? decodeMaskBits(maskData, cfg.maskOff, cfg.size) : null;
       const rgba = cfg.depth === 4 ? decodeIcon4(e.data, cfg.size, mask) : decodeIcon8(e.data, cfg.size, mask);
       if (!mask) cornerFloodTransparency(rgba, cfg.size);
+      // Keep legacy palette/flood decisions unchanged; realize only RGB afterward.
+      if (realizeRgb16) {
+        const memo = new Map(), palette = cfg.depth === 4 ? RAW_PALETTE16 : RAW_PALETTE256;
+        for (let i=0; i<cfg.size*cfg.size; i++) {
+          const index = cfg.depth === 4 ? (i&1 ? e.data[i>>1]&15 : e.data[i>>1]>>4) : e.data[i];
+          if (!memo.has(index)) memo.set(index, realizeRgb16(palette[index].map(v => v*257)));
+          rgba.set(memo.get(index), i*4);
+        }
+      }
       let opaque = 0;
       for (let i = 0; i < cfg.size * cfg.size; i++) if (rgba[i * 4 + 3] > 127) opaque++;
       const coverage = +(opaque / (cfg.size * cfg.size)).toFixed(3);
@@ -351,10 +368,10 @@ export function convertIcons(fork, { ids } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source, resourceObserver });
-  const icons = convertIcons(bytes);
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile });
+  const icons = convertIcons(bytes, { displayProfile });
   return {
     theme: chrome.theme,
     assets: [...chrome.assets, ...icons.assets],
