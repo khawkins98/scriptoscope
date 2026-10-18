@@ -35,8 +35,9 @@ both destination D and the finite clip by−P at f980..f9a8, paints, then restor
 them. Thus physical placement `(D−P)−(O−P) = D−O` is invariant. The two body
 rectangles share P: inset(horizontal=corner,vertical=side), then the transposed
 insets if unequal. Clipping changes coverage, never tile phase. Masked square
-corners/independent bands paint after the body; the label remains the existing
-runtime text policy.
+corners/independent bands paint after the body. Text foreground and optional
+emboss use the separately source-backed [RGB16 sample contract](control-text-colors.md);
+font rasterization and browser text transfer remain explicit compatibility policies.
 
 [Apple Imaging With QuickDraw (1994)](https://vintageapple.org/inside_r/pdf/Imaging_With_QuickDraw_1994.pdf),
 SHA-256 `f8e079d02b57516900f4b45c1f09629ef734313a51c171029278c9d97f6b497a`,
@@ -118,7 +119,7 @@ Catalog presence alone does not create a paint step. This stage's lookup and
 render path actually loads and consumes the selected pattern. Empty or fully
 clipped coverage can still select art; selection does not assert visible pixels.
 
-Promotion/select lifetimes must pass through face→pattern→pressed/ring sequential
+Promoted button/select lifetimes pass through face→pattern→pressed/ring sequential
 loads. An abort prevents subsequent loads and publication; an already-issued
 image decode is a distinct browser lifetime boundary. No delay, retained revoked
 URL cache, borrowed-theme disposal or default-path hashing is added.
@@ -142,6 +143,8 @@ include6,127,128,255. Non-power-of-two synthetic tiles distinguish phase arithme
 they do not certify original QuickDraw resource-size eligibility.
 The prior renderer fails the source/built literal-body fixture. Removing lifetime
 forwarding fails held decoded-face and held decoded-pattern source/built checks.
+The integrated checks cover both promoted buttons and native-select decorations;
+all later source requests and publication must stop after owned release.
 
 Real Crayon archive/fork/payload identities reuse
 [the pattern pins](../../tests/resource-provenance/pattern-pins.json). Independently
@@ -153,7 +156,7 @@ paint with and without observation, legacy ambiguity, and exact legacy links.
 This verifies the stated source/context model, not original lookup,
 complete device color fidelity, arbitrary clipping regions or whole-control truth.
 
-Remaining delivery obligations: managed imperative/declarative propagation and
+Remaining delivery obligations: managed imperative/declarative propagation (#270) and
 layout invalidation; mode5 cicn source/mask/owner behavior; monochrome/4-bit variants;
 original port/scroll/pattern-offset integration; and independently eligible
 reference comparisons. #218 and the epic remain OPEN.
