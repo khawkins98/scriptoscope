@@ -102,3 +102,5 @@ When you find a gap, the order is:
 - `.scratch/iso-recon/` — Apple System file decompile artifacts (gitignored, reproducible).
 - `.scratch/dump-kaleido-cdev.mjs` — Kaleidoscope binary extractor.
 - `.scratch/iso-recon/pef-locate.py`, `pef-decompress.py`, `decode-drawtheme.py`, `decode-dispatch.py` — PEF tooling.
+
+- [Mode-5 color-icon bodies](cicn-body-mode5.md): occurrence-bound aligned color-port copy, conventional one-bit mask and explicit missing/unsupported boundaries.

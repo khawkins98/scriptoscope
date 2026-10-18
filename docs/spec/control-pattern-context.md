@@ -3,7 +3,7 @@
 This is the intermediate direct-composition stage of #218/#221. It implements
 full-color PixPat bodies for push/bevel faces with every raw cinf byte except
 mode5, which requests a separate color-icon body. The [managed button adapter](managed-control-context.md) connects this model
-to current browser window coordinates under an explicit integration policy. List headers, tabs and mode5 color-icon bodies remain separate.
+to current browser window coordinates under an explicit integration policy. List headers and tabs remain separate. The bounded mode5 color-icon body path is documented in [cicn-body-mode5.md](cicn-body-mode5.md).
 
 ## Source and coordinates
 
@@ -156,6 +156,6 @@ This verifies the stated source/context model, not original lookup,
 complete device color fidelity, arbitrary clipping regions or whole-control truth.
 
 Remaining fidelity obligations: original-port validation of the managed browser
-policy (#270); mode5 cicn source/mask/owner behavior; monochrome/4-bit variants;
+policy (#270); mode5 behavior beyond the [aligned color-port subset](cicn-body-mode5.md); monochrome/4-bit variants;
 original port/scroll/pattern-offset integration; and independently eligible
 reference comparisons. #218 and the epic remain OPEN.

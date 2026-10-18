@@ -147,7 +147,24 @@ export interface CicnSampledBandAsset {
   readonly derivedPath: string;
 }
 
+/** Same-owner compatibility binding, not original Resource Manager ordering.
+ * Actual loader occurrences can be joined through the selected manifest key. */
+export type CicnBodyBinding = {
+  readonly model: 'kaleidoscope-2.3.1-cicn-body-v1';
+  readonly selectionPolicy: 'unique-same-face-owner';
+  readonly requestedId: number;
+} & ({ readonly status: 'missing' | 'unsupported' | 'ambiguous'; readonly reason: string } | {
+  readonly status: 'ready'; readonly reason: 'unique-source-occurrence';
+  readonly manifestKey: string; readonly displayPolicy: 'mac-1.8-to-2.2-high-byte';
+  readonly pixelSize: 1 | 2 | 4 | 8;
+  readonly sourceRect: { readonly x: 0; readonly y: 0; readonly w: number; readonly h: number };
+  readonly copy: 'masked' | 'unmasked'; readonly asset: string;
+  /** Stable derived identity; present only for unmasked color assets. */
+  readonly derivedPath?: string;
+});
+
 export interface ChromeElement {
+  readonly cicnBody?: CicnBodyBinding;
   readonly sampledBandAsset?: CicnSampledBandAsset;
   /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
   readonly samplingEquivalence?: CicnSamplingEquivalence | null;

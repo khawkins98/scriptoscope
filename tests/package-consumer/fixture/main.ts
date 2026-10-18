@@ -1,5 +1,5 @@
 import { VERSION, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
-  type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
+  type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -32,6 +32,9 @@ const headerOptions: HeaderSurfaceOptions = { kind: 'window-header', width: 80, 
   diagnostics: { onComplete(trace) { const surface: HeaderSurfaceTrace | undefined = trace.headerSurface; void surface; } } };
 const headerResult: HeaderSurfaceResult = { status: 'unsupported', reason: 'unverified-line-sampling' };
 void headerOptions; void headerResult;
+const bodyDeclaration: CicnBodyBinding = { model: 'kaleidoscope-2.3.1-cicn-body-v1',
+  selectionPolicy: 'unique-same-face-owner', requestedId: 0, status: 'missing', reason: 'same-owner-resource-absent' };
+void bodyDeclaration;
 
 const consumer = {
   version: VERSION,

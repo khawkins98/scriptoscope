@@ -153,6 +153,28 @@ function validateChromeElements(value, path) {
     if ('embossAnchor' in c && c.embossAnchor !== null) {
       assertPair(c.embossAnchor, `${path}.${key}.embossAnchor`);
     }
+    if ('cicnBody' in c) {
+      const bodyPath = `${path}.${key}.cicnBody`, b = assertObject(c.cicnBody, bodyPath);
+      const reasons = { ready: ['unique-source-occurrence'], missing: ['same-owner-resource-absent'],
+        ambiguous: ['duplicate-resource-id', 'ambiguous-asset-path'], unsupported: ['resource-decoding-unavailable',
+          'missing-source-layout', 'unsupported-source-layout', 'ambiguous-palette-index', 'missing-palette-index', 'unsupported-one-bit-palette'] };
+      if (b.model !== 'kaleidoscope-2.3.1-cicn-body-v1' || b.selectionPolicy !== 'unique-same-face-owner'
+          || c.bodyRequest?.mode !== 5 || b.requestedId !== c.bodyRequest.resourceId
+          || !Object.prototype.hasOwnProperty.call(reasons, b.status) || !reasons[b.status].includes(b.reason))
+        throw new ThemeValidationError('invalid cicn body binding/request/decision', bodyPath);
+      if (b.status === 'ready') {
+        const target = obj[b.manifestKey], r = b.sourceRect;
+        if (!target || target.sourceCicnId !== b.requestedId || b.displayPolicy !== 'mac-1.8-to-2.2-high-byte'
+            || ![1, 2, 4, 8].includes(b.pixelSize) || !r || r.x !== 0 || r.y !== 0
+            || !Number.isInteger(r.w) || r.w <= 0 || r.w !== target.width
+            || !Number.isInteger(r.h) || r.h <= 0 || r.h !== target.height
+            || typeof b.asset !== 'string' || !b.asset
+            || (b.pixelSize === 1 ? b.copy !== 'masked' || b.derivedPath !== undefined || b.asset !== target.asset
+              : b.copy !== 'unmasked' || typeof b.derivedPath !== 'string' || !/^cicn-body\/[^/]+\.png$/.test(b.derivedPath)))
+          throw new ThemeValidationError('invalid cicn body source/asset', bodyPath);
+      } else if (['asset', 'derivedPath', 'manifestKey', 'sourceRect', 'pixelSize', 'copy'].some(k => k in b))
+        throw new ThemeValidationError('unavailable cicn body must not carry a selected source', bodyPath);
+    }
     if ('samplingEquivalence' in c && c.samplingEquivalence !== null) {
       const samplePath = `${path}.${key}.samplingEquivalence`;
       const proof = assertObject(c.samplingEquivalence, samplePath);

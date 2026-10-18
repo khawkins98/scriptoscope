@@ -1103,6 +1103,59 @@ function assertControlAlive(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
 }
 
+type PreparedCicnBody = { kind: 'missing' | 'unsupported' } | { kind: 'ready'; buffer: PixelBuffer;
+  sourceRect: { x: number; y: number; w: number; h: number }; side: number;
+  step: ControlResolutionStep; copy: 'masked' | 'unmasked'; sourceAssetUrl: string; derivedPath?: string };
+
+async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width: number, height: number,
+  context: ControlCompositionSnapshot): Promise<PreparedCicnBody> {
+  const request = face.element.bodyRequest!, binding = face.element.cicnBody;
+  const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: 5,
+    requestedResourceType: 'cicn' as const, basis: 'compatibility-policy' as const, usage: 'paint' as const,
+    owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
+  const reject = (reason: string): PreparedCicnBody => {
+    opts.trace?.record({ ...common, action: 'fallback', reason }); return { kind: 'unsupported' };
+  };
+  if (!Number.isInteger(request.resourceId) || request.resourceId < -32768 || request.resourceId > 32767
+      || !face.element.slice || ![face.element.slice.corner, face.element.slice.side].every(v => Number.isInteger(v) && v >= 0 && v <= 255))
+    return reject('cicn-body-invalid-request-or-slice');
+  if (!binding || binding.model !== 'kaleidoscope-2.3.1-cicn-body-v1' || binding.selectionPolicy !== 'unique-same-face-owner'
+      || binding.requestedId !== request.resourceId) return reject('cicn-body-binding-unavailable');
+  if (binding.status === 'missing' && binding.reason === 'same-owner-resource-absent') {
+    opts.trace?.record({ ...common, action: 'missing', reason: binding.reason }); return { kind: 'missing' };
+  }
+  if (binding.status !== 'ready') return reject(`cicn-body-${binding.status}:${binding.reason}`);
+  const target = face.theme.manifest.chromeElements?.[binding.manifestKey], rect = binding.sourceRect;
+  const side = face.element.slice?.side, corner = face.element.slice?.corner;
+  if (!target || target.sourceCicnId !== request.resourceId || binding.reason !== 'unique-source-occurrence'
+      || binding.displayPolicy !== 'mac-1.8-to-2.2-high-byte' || ![1, 2, 4, 8].includes(binding.pixelSize)
+      || !rect || rect.x !== 0 || rect.y !== 0 || !Number.isInteger(rect.w) || rect.w <= 0 || rect.w !== target.width
+      || !Number.isInteger(rect.h) || rect.h <= 0 || rect.h !== target.height
+      || typeof binding.asset !== 'string' || !binding.asset
+      || (binding.pixelSize === 1 ? binding.copy !== 'masked' || binding.asset !== target.asset || binding.derivedPath !== undefined
+        : binding.copy !== 'unmasked' || !/^cicn-body\/[^/]+\.png$/.test(binding.derivedPath ?? ''))
+      || !Number.isInteger(side) || side! < 0 || side! > 255 || !Number.isInteger(corner) || corner! < 0 || corner! > 255)
+    return reject('cicn-body-invalid-source-binding');
+  if (width - 2 * side! !== rect.w || height - 2 * side! !== rect.h) return reject('cicn-body-scaling-unsupported');
+  const sourceRect = { ...rect }, inset = side!;
+  let visible = false;
+  for (let y = inset; y < height - inset && !visible; y++) for (let x = inset; x < width - inset; x++)
+    if (controlPointVisible(context, x, y)) { visible = true; break; }
+  if (!visible) return reject('cicn-body-outside-clip');
+  // Snapshot the actual target, owner and URL before awaiting dependent decoding.
+  const step: ControlResolutionStep = { ...common, action: 'selected', reason: 'same-owner-cicn-body-paint',
+    resource: resourceIdentity({ theme: face.theme, element: target, key: binding.manifestKey, chainDepth: face.chainDepth }) };
+  const url = assetUrl(face.theme, binding.asset), copy = binding.copy, derivedPath = binding.derivedPath;
+  assertControlAlive(opts.signal);
+  const buffer = await loadCicnBuffer(url);
+  assertControlAlive(opts.signal);
+  if (buffer.width !== sourceRect.w || buffer.height !== sourceRect.h) return reject('cicn-body-decoded-size-mismatch');
+  for (let i = 3; i < buffer.data.length; i += 4)
+    if (copy === 'unmasked' ? buffer.data[i] !== 255 : buffer.data[i] !== 0 && buffer.data[i] !== 255)
+      return reject('cicn-body-alpha-mismatch');
+  return { kind: 'ready', buffer, sourceRect, side: inset, step, copy, sourceAssetUrl: url, ...(derivedPath ? { derivedPath } : {}) };
+}
+
 async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usage: 'paint' | 'admission' = 'paint'): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean }> {
   const request = face.element.bodyRequest;
   if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
@@ -1225,10 +1278,16 @@ async function composeFaceButton(
   const innerH = lineH;
   const out = PixelBuffer.alloc(innerW, innerH);
   const context = opts.composition ?? snapshotControlComposition();
+  // A completed body dependency describes a published composition, not an
+  // intermediate offscreen write. Borders can still decode asynchronously.
+  let mode5PaintStep: ControlResolutionStep | undefined;
   if (geometry === 'button') opts.trace?.composition({ context, originalPortState: 'unverified',
     faceRect: { x: context.controlOrigin[0], y: context.controlOrigin[1], w: innerW, h: innerH },
     appliedUnknownPatternOffset: context.patternOrigin.status === 'unknown' });
-  const body = geometry === 'button' ? await loadBodyPattern(resolved, opts) : { buffer: null, solidFallback: false };
+  const mode5 = geometry === 'button' && faceEl.bodyRequest?.mode === 5;
+  const cicnBody = mode5 ? await loadCicnBody(resolved, opts, innerW, innerH, context) : null;
+  const body = mode5 ? { buffer: null, solidFallback: cicnBody?.kind === 'missing' }
+    : geometry === 'button' ? await loadBodyPattern(resolved, opts) : { buffer: null, solidFallback: false };
   const pattern = body.buffer;
   const samples = faceEl.colorSamples;
   const rawBg = samples?.background;
@@ -1246,7 +1305,31 @@ async function composeFaceButton(
     && bg && Number.isInteger(bg[0]) && Number.isInteger(bg[1])
     && bg[0] >= 0 && bg[0] < face.width && bg[1] >= 0 && bg[1] < face.height
     ? rawBg.displayRgb : null;
-  if (pattern && faceEl.slice && faceEl.bodyRequest) {
+  if (cicnBody?.kind === 'missing' && !sourceBg) opts.trace?.record({
+    role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5, requestedResourceType: 'cicn',
+    basis: 'compatibility-policy', usage: 'paint', owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth },
+    action: 'fallback', reason: 'missing-cicn-body-background-unverified',
+  });
+  if (cicnBody?.kind === 'ready') {
+    let paintedPixels = 0;
+    const { buffer, side, sourceRect, copy } = cicnBody;
+    for (let y = 0; y < sourceRect.h; y++) for (let x = 0; x < sourceRect.w; x++) {
+      if (!controlPointVisible(context, x + side, y + side)) continue;
+      const pixel = buffer.getPixel(x, y);
+      if (copy === 'masked' && pixel[3] === 0) continue;
+      out.setPixel(x + side, y + side, ...pixel); paintedPixels++;
+    }
+    if (paintedPixels) mode5PaintStep = { ...cicnBody.step, bodyPaint: {
+      branch: copy === 'masked' ? 'masked-copy' : 'unmasked-copy', sourceRect, sourceAssetUrl: cicnBody.sourceAssetUrl,
+      destinationRect: { x: side, y: side, w: sourceRect.w, h: sourceRect.h }, paintedPixels,
+      ...(cicnBody.derivedPath ? { derivedPath: cicnBody.derivedPath } : {}),
+    } };
+    else {
+      const unpainted = { ...cicnBody.step }; delete unpainted.resource;
+      opts.trace?.record({ ...unpainted, action: 'fallback', reason: 'cicn-body-no-visible-source-pixels' });
+    }
+    out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
+  } else if (pattern && faceEl.slice && faceEl.bodyRequest) {
     const [phaseX, phaseY] = bodyPatternPhase(context, faceEl.bodyRequest.mode, innerW, innerH);
     // Full-color f7cc/FillCRect: both inset rectangles share the original D/P
     // phase. Their union is filled before the masked border; do not tile each
@@ -1268,6 +1351,16 @@ async function composeFaceButton(
     const [br, bgc, bb] = sourceBg ?? [cr, cg, cb];
     out.fillRect({ x: fIns, y: fSide, w: innerW - fIns * 2, h: innerH - fSide * 2 }, br!, bgc!, bb!, 255);
     if (fIns !== fSide) out.fillRect({ x: fSide, y: fIns, w: innerW - fSide * 2, h: innerH - fIns * 2 }, br!, bgc!, bb!, 255);
+    if (cicnBody?.kind === 'missing' && sourceBg) {
+      let paintedPixels = 0;
+      for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
+        if (controlPointVisible(context, x, y) && ((x >= fIns && x < innerW - fIns && y >= fSide && y < innerH - fSide)
+          || (x >= fSide && x < innerW - fSide && y >= fIns && y < innerH - fIns))) paintedPixels++;
+      if (paintedPixels) mode5PaintStep = { role: 'body-fill', requestedId: faceEl.bodyRequest!.resourceId, bodyMode: 5,
+        requestedResourceType: 'cicn', basis: 'source-dispatch', usage: 'paint', action: 'missing',
+        owner: { baseUrl: resolved.theme.baseUrl, chainDepth: resolved.chainDepth }, reason: 'missing-cicn-body-erase-union',
+        bodyPaint: { branch: 'missing-erase', destinationRect: { x: 0, y: 0, w: innerW, h: innerH }, paintedPixels } };
+    }
     out.drawOver(await composeControlBorder(resolved, innerW, innerH, opts, (x, y) => controlPointVisible(context, x, y)), 0, 0);
   } else {
     // Retained approximation for unsupported pattern modes, unresolved legacy
@@ -1290,6 +1383,8 @@ async function composeFaceButton(
     for (let y = 0; y < innerH; y++) for (let x = 0; x < innerW; x++)
       if (!controlPointVisible(context, x, y)) out.setPixel(x, y, 0, 0, 0, 0);
   }
+  assertControlAlive(opts.signal);
+  if (mode5PaintStep) opts.trace?.record(mode5PaintStep);
   return out;
 }
 

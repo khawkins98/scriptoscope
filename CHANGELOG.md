@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Support bounded mode-5 color-icon push/bevel bodies: aligned 1:1 color copies,
+  conventional one-bit masks, and genuine missing-body erasure. Preserve hidden
+  ordinary RGB once through display preparation, exact resource occurrence and
+  dependent asset cleanup; keep unsupported/scaled/provider cases explicit (#300).
+
 - Clarify the fixed display LUT as a compatibility policy in source comments and
   historical notes; distinguish extraction/browser preparation from raw decoding
   and independently measured original display conditions (#190).

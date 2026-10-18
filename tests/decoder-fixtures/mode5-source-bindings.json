@@ -1,0 +1,75 @@
+{
+  "status": "static-source-only-no-original-execution",
+  "component": {
+    "type": "kDEF",
+    "id": 0,
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+  },
+  "opcodeRowsMatched": 208,
+  "bindings": [
+    {
+      "name": "body-enabled-mode5-dispatch",
+      "start": "0x109aa",
+      "endExclusive": "0x109da",
+      "opcodeRowsMatched": 14,
+      "sha256": "a9e1eed4d1ea65ccbdee0c18f310291bfb366971d9e3fe9ef335ce9ec32ae060"
+    },
+    {
+      "name": "bitmap-source-bounds-side-inset",
+      "start": "0x109da",
+      "endExclusive": "0x10a1e",
+      "opcodeRowsMatched": 18,
+      "sha256": "1b3f16e8710b71790bfc7d6c7b080704cce06419ebac7cf0c98c9a98146e1494"
+    },
+    {
+      "name": "mode5-missing-inset-union",
+      "start": "0x10a1e",
+      "endExclusive": "0x10a6c",
+      "opcodeRowsMatched": 21,
+      "sha256": "3b96d357623fda98c22d3ee84ca788c2a5f3b374ed9c49aee51e0992c7ae3c25"
+    },
+    {
+      "name": "body-icon-draw-wrapper",
+      "start": "0xfdf8",
+      "endExclusive": "0xfeae",
+      "opcodeRowsMatched": 67,
+      "sha256": "63c1ddc6be1313c9887f92cec532d97d6c98bd2304ad684b6130299dce6e4077"
+    },
+    {
+      "name": "icon-pointer-preparation",
+      "start": "0xf30a",
+      "endExclusive": "0xf35e",
+      "opcodeRowsMatched": 29,
+      "sha256": "d27f9a761dcc7c31e83cb3677ce887dad2b3f5acdc7c55a6d22bfefcedd29661"
+    },
+    {
+      "name": "icon-pointer-release",
+      "start": "0xf35e",
+      "endExclusive": "0xf378",
+      "opcodeRowsMatched": 9,
+      "sha256": "04b338c70e1dff8ac473f77a1a0698e3c5f50fcc85d69c6627e1ada1884a3ab5"
+    },
+    {
+      "name": "black-white-port-colors",
+      "start": "0xf378",
+      "endExclusive": "0xf3aa",
+      "opcodeRowsMatched": 13,
+      "sha256": "31898b9bf2d000214e3230ad28c4abcc22f9431f473e3f411151df593db51a05"
+    },
+    {
+      "name": "copl-current-resource-save-switch",
+      "start": "0x10472",
+      "endExclusive": "0x104b0",
+      "opcodeRowsMatched": 22,
+      "sha256": "3bfd1b95ea3a0bcad2fe46a3d7951bb9b2d25e8d78f1816b75603d9cad743b0c"
+    },
+    {
+      "name": "cache-result-getcicon-restore",
+      "start": "0x1068c",
+      "endExclusive": "0x106ae",
+      "opcodeRowsMatched": 15,
+      "sha256": "5e42deb9c02622eab2f135f2cc9880686acbf44592caeac5e071d6ea74d08b40"
+    }
+  ]
+}
