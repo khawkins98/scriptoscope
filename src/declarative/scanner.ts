@@ -3,11 +3,12 @@
 // Idempotent: promoted elements are stamped `data-scriptoscope-promoted`, so re-scans (incl. the observer
 // firing on our OWN DOM moves) skip them and settle.
 
+import { listenUntilAborted } from '../listenUntilAborted.js';
 import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
 import { promoteButton } from './button.js';
-import { promoteControl } from './control.js';
+import { promoteControl, restoreControl } from './control.js';
 import { promoteField } from './field.js';
 import { promoteIcon } from './icon.js';
 import { promoteThemePicker, syncThemePickerActive } from './themePicker.js';
@@ -495,8 +496,12 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   const promoteCtl = async (el: HTMLInputElement | HTMLSelectElement): Promise<void> => {
     if (isPromoted(el)) return;
     inFlight.add(el);
+    const parent = el.parentNode, connected = el.isConnected;
     try {
-      const skinned = await promoteControl(el, await resolver.load(refForEl(el)));
+      const theme = await resolver.load(refForEl(el));
+      if (lifetime.signal.aborted || el.parentNode !== parent || el.isConnected !== connected) return;
+      const skinned = await promoteControl(el, theme, lifetime.signal);
+      if (lifetime.signal.aborted) { restoreControl(el); return; }
       if (skinned) {
         skinnedControls.push({ el, skinned });
         markInertIfWiping(skinned);
@@ -513,7 +518,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // Runtime theme switch: re-skin the whole desktop AND every promoted button with one scheme — a
   // system-wide Kaleidoscope theme change overrides per-window themes. The persistent window content
   // survives the chrome re-render; buttons are re-skinned (the new skinned face replaces the old).
+  let controlRetheme: AbortController | undefined;
   const retheme = async (ref: string): Promise<void> => {
+    if (lifetime.signal.aborted) return;
+    controlRetheme?.abort();
+    const replacing = new AbortController();
+    controlRetheme = replacing;
+    const current = (): boolean => !lifetime.signal.aborted && !replacing.signal.aborted;
     lastThemeRef = ref;
     // Fire retheme AT END (after manager.retheme resolves) so subscribers
     // see committed state; see below.
@@ -529,7 +540,9 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       } catch { /* sandboxed contexts (some iframes) can't replaceState */ }
     }
     const theme = await resolver.load(ref);
+    if (!current()) return;
     await manager.retheme(theme);
+    if (!current()) return;
     // Update each promoted host's `data-scriptoscope-theme` so consumers querying
     // `[data-scriptoscope-theme="<slug>"]` see the new value and CSS / AT see consistent state.
     // Manager.retheme rebuilds the inner `.scriptoscope-window` but doesn't touch the outer host
@@ -568,17 +581,21 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         await promoteTabs(tabsEl, theme, { forceRescan: true });
       } catch (err) { console.error('[scriptoscope] tabs re-skin failed:', err); }
     }
-    // Same dance for promoted checkbox/radio/slider controls: drop orphans, then re-skin each in
-    // place. clear the promoted stamp first so promoteControl will re-promote (it self-guards).
-    const liveCtls = skinnedControls.filter((c) => c.skinned.isConnected); // same isConnected fix as buttons
+    if (!current()) return;
+    // Replace form-control faces atomically; release removed sources and their listeners.
+    const liveCtls = skinnedControls.filter((c) => {
+      if (c.el.isConnected && c.skinned.isConnected) return true;
+      restoreControl(c.el); return false;
+    });
     skinnedControls.length = 0; skinnedControls.push(...liveCtls);
     for (const c of skinnedControls) {
+      if (!current()) return;
       try {
-        delete c.el.dataset.scriptoscopePromoted;
-        const fresh = await promoteControl(c.el, theme);
-        if (fresh) { c.skinned.remove(); c.skinned = fresh; }
+        const fresh = await promoteControl(c.el, theme, replacing.signal);
+        if (fresh) c.skinned = fresh;
       } catch (err) { console.error('[scriptoscope] control re-skin failed:', err); }
     }
+    if (!current()) return;
     // Re-resolve every promoted icon's src from the new theme's iconIndex.
     // Filter orphans (icon removed from DOM during retheme) before re-running.
     const liveIcons = skinnedIcons.filter((el) => el.isConnected);
@@ -646,15 +663,17 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // using its own data-scriptoscope-theme. Uses a DEDICATED stamp (`scriptoscopeSwitcherWired`) — the generic
   // `aaronPromoted` stamp is set by control-promotion on every <select>, which would otherwise
   // skip this wiring (the two concerns are orthogonal: themed appearance vs. event binding).
+  const wiredSwitchers = new Set<HTMLElement>();
   const wireThemeSwitchers = (within: Document | Element): void => {
     for (const node of Array.from(within.querySelectorAll('[data-scriptoscope-theme-switcher]'))) {
       const sw = node as HTMLElement;
       if (sw.dataset.scriptoscopeSwitcherWired != null) continue;
       sw.dataset.scriptoscopeSwitcherWired = '';
+      wiredSwitchers.add(sw);
       if (sw instanceof HTMLSelectElement) {
-        sw.addEventListener('change', () => { void retheme(sw.value); });
+        listenUntilAborted(lifetime.signal, sw, 'change', () => { void retheme(sw.value); });
       } else {
-        sw.addEventListener('click', () => { const ref = sw.getAttribute('data-scriptoscope-theme'); if (ref) void retheme(ref); });
+        listenUntilAborted(lifetime.signal, sw, 'click', () => { const ref = sw.getAttribute('data-scriptoscope-theme'); if (ref) void retheme(ref); });
       }
     }
   };
@@ -861,6 +880,11 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     disconnect: () => {
       if (lifetime.signal.aborted) return;
       lifetime.abort();
+      controlRetheme?.abort();
+      for (const sw of wiredSwitchers) {
+        if (sw.dataset.scriptoscopeSwitcherWired === '') delete sw.dataset.scriptoscopeSwitcherWired;
+      }
+      wiredSwitchers.clear();
       teardownPersistence();
       obs.disconnect();
       stopCycle();
@@ -876,6 +900,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // disconnect()s before the ready microtask runs, e.g. aborted boot).
       for (const el of inertDuringWipe) el.removeAttribute('inert');
       inertDuringWipe.clear();
+      for (const c of skinnedControls.splice(0)) restoreControl(c.el);
       for (const w of mounted.splice(0)) w.unmount();
       resolver.dispose();
       dispatch('unmounted');

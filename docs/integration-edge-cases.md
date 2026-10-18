@@ -252,7 +252,11 @@ If your framework expects to manage the lifecycle of the wrapper (React owns the
 
 ### Theme ownership on teardown
 
-`handle.disconnect()` restores mounted windows and releases themes loaded by that mount. Pending loads finish cleanup without committing new windows. You can mount again on the same root immediately.
+`handle.disconnect()` restores mounted windows and promoted checkbox/radio/range/select controls, then releases themes loaded by that mount. It removes the form faces and select wrappers while retaining the same native elements and their current value/checked/selection state. It restores only properties the runtime changed (visibility styles, tabindex, aria-hidden, autocomplete and hidden label styles); consumer naming, form association and unrelated style/attribute edits stay intact. If a consumer has since changed an owned property, that newer value is retained.
+
+Each form face owns its listeners, slider drag handlers and pending paint work. Retheme disposes the old face after preparing its replacement; disconnect cancels pending form preparation before it can commit. Removed or reparented sources are never pulled back to a captured parent. Mount-owned theme-switcher callbacks and stamps are also removed. You can mount again on the same root immediately.
+
+This restoration contract does not yet cover button, tab or text-field decorations. Form replacement cancellation does not establish global latest-request ordering for window/theme changes; that separate work is tracked in [#237](https://github.com/khawkins98/scriptoscope/issues/237).
 
 `handle.registerTheme(ref, theme)` borrows the supplied theme and its base chain. Keep those assets alive while any consumer uses them, then call their own `dispose?.()` methods when finished. Disconnect never disposes caller-registered graphs. Standalone resolver users call `resolver.dispose()` when finished; subsequent loads and registrations fail.
 

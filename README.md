@@ -234,7 +234,7 @@ document.body.addEventListener('scriptoscope:userresize', (e) => { /* user finis
 document.body.addEventListener('scriptoscope:promoteError', (e) => { /* e.detail = { kind, el, cause } */ });
 
 // Methods
-handle.disconnect();                       // tear down mount observers + restore window elements
+handle.disconnect();                       // tear down mount observers + restore windows and native form controls
 handle.retheme(slugOrUrl);                 // programmatic theme switch (fires the 'retheme' event)
 handle.registerTheme(ref, loadedTheme);    // register a runtime-decoded theme (used by drop-zones)
 handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (including shadow-DOM chrome
@@ -254,10 +254,17 @@ their lifetime and calls `theme.dispose?.()` after their last consumer unmounts.
 Standalone `createThemeResolver()` users should call `resolver.dispose()` at the
 same point; disposed resolvers reject loads and registrations.
 
-Current teardown restores window shells but leaves promoted controls in their
-skinned form. Complete control restoration and listener cleanup are tracked in
-[#232](https://github.com/khawkins98/scriptoscope/issues/232); do not assume a
-disconnected mount has restored every native control.
+Teardown restores mounted windows and promoted checkbox, radio, range and select
+controls. Their live values, checked state, selection and form association survive;
+only runtime-owned visibility, focus/ARIA attributes, label styles and select
+wrappers are restored. Replacement-face listeners, active slider drags, pending
+paints and mount-owned theme-switcher listeners are released. Unrelated consumer
+attribute/style changes are preserved. Pending preparation cannot insert a form
+face after disconnect or move a removed/reparented source back.
+
+Button, tab and text-field decoration restoration remains outside this contract.
+Global overlapping theme-switch ordering, including window renders, remains tracked
+in [#237](https://github.com/khawkins98/scriptoscope/issues/237).
 
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
