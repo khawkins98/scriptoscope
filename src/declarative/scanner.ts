@@ -4,10 +4,10 @@
 // firing on our OWN DOM moves) skip them and settle.
 
 import { listenUntilAborted } from '../listenUntilAborted.js';
-import { WindowManager, disposeInteractiveControl } from '../interactive.js';
+import { WindowManager } from '../interactive.js';
 import type { LoadedTheme } from '../types.js';
 import { ScriptoscopeWindow } from './ScriptoscopeWindow.js';
-import { promoteButton } from './button.js';
+import { promoteOwnedButton, disposePromotedButtonFace, restoreButton } from './button.js';
 import { promoteControl, restoreControl } from './control.js';
 import { promoteField } from './field.js';
 import { promoteIcon } from './icon.js';
@@ -267,6 +267,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   };
   const lifetime = new AbortController();
   const mounted: ScriptoscopeWindow[] = []; // tracked so disconnect() can fully tear down (unmount + ROs)
+  const ownedButtonSources = new Set<HTMLElement>(); // includes pending insertion/async-caller gaps
   const skinnedButtons: { el: HTMLElement; skinned: HTMLElement }[] = []; // tracked so retheme() re-skins them
   const skinnedControls: { el: HTMLInputElement | HTMLSelectElement; skinned: HTMLElement }[] = []; // checkbox/radio/slider/select
   const skinnedTabs: HTMLElement[] = []; // tablist wrappers (re-promoted on retheme to swap faces)
@@ -419,18 +420,49 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     }
   };
 
+  const buttonRetryFrame = (): Promise<void> => new Promise(resolve => {
+    if (lifetime.signal.aborted) { resolve(); return; }
+    let frame = 0;
+    const finish = (): void => {
+      if (frame) cancelAnimationFrame(frame);
+      lifetime.signal.removeEventListener('abort', finish);
+      resolve();
+    };
+    lifetime.signal.addEventListener('abort', finish, { once: true });
+    frame = requestAnimationFrame(finish);
+  });
+
   const promoteBtn = async (el: HTMLElement): Promise<void> => {
-    if (isPromoted(el)) return; // buttons inside window content ARE wanted, so don't skip on .scriptoscope-window
+    if (isPromoted(el)) return; // buttons inside window content ARE wanted
+    ownedButtonSources.add(el);
     inFlight.add(el);
+    const eligible = (): boolean => !lifetime.signal.aborted && el.isConnected && root.contains(el);
     try {
-      const skinned = await promoteButton(el, await resolver.load(refForEl(el)), lifetime.signal);
-      if (!skinned) return;
-      skinnedButtons.push({ el, skinned });
-      markInertIfWiping(skinned);
-      stats.buttons += 1;
-      debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
+      // Keep one owned attempt across coalesced consumer moves. A finite series
+      // must eventually settle, while repeated movement gets at most one retry
+      // per animation frame instead of a hot microtask loop.
+      while (eligible()) {
+        const parent = el.parentNode;
+        const ref = refForEl(el);
+        const moved = (): boolean => el.parentNode !== parent || refForEl(el) !== ref;
+        const theme = await resolver.load(ref);
+        if (!eligible()) return;
+        if (moved()) { await buttonRetryFrame(); continue; }
+        const skinned = await promoteOwnedButton(el, theme, lifetime.signal,
+          () => root.contains(el) && refForEl(el) === ref);
+        if (!skinned) {
+          if (eligible() && moved()) { await buttonRetryFrame(); continue; }
+          return;
+        }
+        if (lifetime.signal.aborted) { disposePromotedButtonFace(el, skinned); restoreButton(el); return; }
+        skinnedButtons.push({ el, skinned });
+        markInertIfWiping(skinned);
+        stats.buttons += 1;
+        debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
+        return;
+      }
     } catch (err) {
-      reportPromoteError('button', el, err);
+      if (!lifetime.signal.aborted) reportPromoteError('button', el, err);
     } finally {
       inFlight.delete(el);
     }
@@ -547,20 +579,20 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       for (const b of skinnedButtons) {
         if (!current()) return;
         try {
-          const fresh = await promoteButton(b.el, theme, replacing.signal);
+          const fresh = await promoteOwnedButton(b.el, theme, replacing.signal,
+            () => current() && root.contains(b.el));
           if (!current()) {
             // Insertion can synchronously queue a consumer MutationObserver which
             // requests another theme before this continuation owns the new face.
-            if (fresh) { disposeInteractiveControl(fresh); fresh.remove(); }
+            if (fresh) disposePromotedButtonFace(b.el, fresh);
             return;
           }
           if (!fresh) continue; // source removed during preparation
           const focused = b.skinned.contains(document.activeElement);
-          disposeInteractiveControl(b.skinned);
-          b.skinned.remove(); // the replacement is already inserted after the source
+          disposePromotedButtonFace(b.el, b.skinned); // replacement is already inserted after the source
           b.skinned = fresh;
           if (focused) fresh.focus({ preventScroll: true });
-        } catch (err) { console.error('[scriptoscope] button re-skin failed:', err); }
+        } catch (err) { if (current()) console.error('[scriptoscope] button re-skin failed:', err); }
       }
       // Re-skin tabs: drop orphans (whose wrapper was closed/removed), then re-promote each in
       // place with forceRescan so the canvas faces are rebuilt against the new theme. The native
@@ -889,8 +921,8 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   if (target) obs.observe(target, { childList: true, subtree: true });
 
   // Full teardown: stop watching AND unmount every promoted window (restores its content + the
-  // original element, disconnects its ResizeObserver). NB: skinned buttons aren't restored to their
-  // original elements (the window's content, incl. the skinned button, is moved back as-is).
+  // original element, disconnects its ResizeObserver), restore owned button/form
+  // mutations, and release their replacement listeners. Tabs/fields are separate.
   // Also note: declarative elements added INSIDE an already-promoted window's content are not
   // promoted (the observer ignores `.scriptoscope-window` subtrees) — a documented current-shape limitation.
   const teardownPersistence = (): void => {
@@ -927,8 +959,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       // disconnect()s before the ready microtask runs, e.g. aborted boot).
       for (const el of inertDuringWipe) el.removeAttribute('inert');
       inertDuringWipe.clear();
+      let buttonFocus: HTMLElement | undefined;
+      for (const el of ownedButtonSources) if (restoreButton(el)) buttonFocus = el;
+      ownedButtonSources.clear();
+      skinnedButtons.length = 0;
       for (const c of skinnedControls.splice(0)) restoreControl(c.el);
       for (const w of mounted.splice(0)) w.unmount();
+      if (buttonFocus?.isConnected) buttonFocus.focus({ preventScroll: true });
       resolver.dispose();
       dispatch('unmounted');
       // (Posture B 2026-05-30: no ancestor min-height pins to restore.

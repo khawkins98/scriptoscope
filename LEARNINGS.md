@@ -4014,3 +4014,31 @@ locally; environment values and discrepancies remain separate. Missing Git data
 stays unknown. Built bytes are hashed independently because ignored outputs can
 change without changing source HEAD. None of these fields authenticates caller
 assertions or promotes regression output to independent original-engine truth.
+
+## 2026-10-18 — Button ownership begins before an async caller resumes
+
+The published No Theme flow restored windows and native form controls but left
+three buttons hidden and their themed faces active. Source/built negatives also
+showed retained old faces could still forward clicks and reset edited form values.
+Recording a face only after `await promoteButton()` is too late: its insertion can
+queue a consumer MutationObserver that disconnects before the caller resumes.
+Register ownership synchronously before insertion, enroll sources before loading,
+and make teardown idempotent across committed and pending replacements.
+
+Restoration must preserve exact display priority when unchanged, while retaining
+newer consumer properties and stamps. Focus restoration belongs after containing
+windows return their native content. The real showcase is a necessary integration
+check: its closed select also uses `.scriptoscope-button`, so the three native
+button replacements must be distinguished from that fourth decorative face.
+
+Holding an actual archive load exposed another boundary: capturing the parent
+only inside face preparation lets an older mount adopt a source moved outside
+its root during loading. Capture/check parent and root eligibility before that
+await too, and check root/ref again at the synchronous face commit: moving an
+entire ancestor keeps the immediate parent unchanged. Connected reparenting cancels the attempt without leaving a stamp or
+in-flight lock. One in-flight owner retries at most once per animation frame
+using the current parent's theme, so finite repeated moves settle without another
+consumer mutation and continuous movement cannot cause a hot microtask loop. Cancellation checks
+also belong between sequential face/ring/pressed decodes, before mount-owned URLs
+are requested after disposal. These are web ownership guarantees, not historical
+Kaleidoscope behavior or a change to borrowed theme ownership.

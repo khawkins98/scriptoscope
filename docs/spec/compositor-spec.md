@@ -254,3 +254,26 @@ window preparation. A failed load therefore cannot become the default for later
 windows. Window batch atomicity does not promise whole-desktop rollback: buttons,
 tabs, and native control faces have guarded individual commits after chrome.
 Individual control failures retain the existing logged-error behavior.
+
+
+## Declarative button lifecycle
+
+A mounted button keeps its original element and form association. The mount owns
+its replacement faces, click/keyboard listeners, hidden display property and
+promotion stamp. Ownership is published synchronously before inserting a face,
+so a consumer insertion observer can disconnect without leaving an orphan.
+Disconnect disposes every owned face (including one whose async caller has not
+resumed), restores only unchanged runtime-owned source properties, and returns
+focus after enclosing window restoration. Consumer style/attribute edits and
+live form values survive. Retheme disposes the replaced face after preparation.
+
+The scanner captures parent and mount eligibility before loading a theme and
+checks them before face preparation; preparation also checks its source parent,
+mount boundary, requested reference and lifetime immediately before committing. Removed/reparented sources are not moved back.
+A connected source moved within the mount retries under its
+current parent/theme, at most once per animation frame, until stable or disconnected. The optional preparation signal stops
+sequential face, ring and pressed-state work after cancellation; it does not
+transfer theme ownership or dispose a returned imperative face automatically.
+Two-argument public `promoteButton` still supports disconnected fragments.
+Button disabled/default state is sampled on promotion/retheme. Live attribute
+observation and tab/text-field decoration restoration are outside this change.

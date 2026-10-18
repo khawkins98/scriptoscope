@@ -48,6 +48,17 @@ The separate 12px label probe is an input aid, **not** the renderer's resolved
 font-size/colour/placement oracle. Explicit tiny controls may deliberately clip
 text; treating every small output as a failure would contradict the public API.
 
+## Button lifecycle checks
+
+`button-lifecycle.spec.mjs` exercises native identity/form actions, consumer style
+ownership, focus after enclosing-window teardown, replacement listener disposal,
+insertion-observer cancellation and held real archive/image work in source and
+built public paths. Moved sources remain consumer-owned; a connected source moved
+within the mount retries under its current parent/theme at most once per frame. The actual showcase
+No Theme → System 7 → No Theme flow is covered by `button-showcase.spec.mjs`.
+These are web lifecycle assertions; they do not certify historical button pixels
+or add tab/text-field restoration to the contract.
+
 ## Coverage inventory
 
 The smoke profile contains 70 cases per theme (1,260 renders per transport/browser
