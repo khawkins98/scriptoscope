@@ -4253,3 +4253,14 @@ Conditioned public Dialog Manager captures can establish public API output
 without proving every internal call, while specific painter attribution needs
 separate evidence. Keep those obligations distinct; see the
 [caller boundary note](./docs/spec/default-button-caller-boundaries.md).
+
+## 2026-10-18 — register the painted sample, not merely retained metadata
+
+A raw RGB16 field surviving extraction does not establish its consumption by a
+renderer. The two finite solid-background requirements join the actual selected
+owner and resource occurrence to independently pinned payloads, then check the
+entire literal fill union. A masked sample and an opaque palette-policy collision
+exercise distinct failures; wrong-owner, wrong-payload and wrong-output mutations
+must reject the same observed records. This verifies a bounded current sampler
+and display policy, leaving original lookup, device color and broader geometry
+unknown. The other 46 regression rows do not enlarge the reviewed denominator.

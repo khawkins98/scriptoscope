@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Register two exact solid-background requirement cases with selected-owner byte
+  joins and independent literal fill assertions. Preserve all sixteen prior cases
+  and 134 assessments; the eighteen-case inventory remains OPEN with device,
+  original ownership and broader geometry unknown (#289).
+
 - Promote directly inserted declarative subtree roots and their moved child
   controls, retaining queued additions through theme/preparation barriers. Keep
   initial mount-root semantics and late initial control discovery. Existing

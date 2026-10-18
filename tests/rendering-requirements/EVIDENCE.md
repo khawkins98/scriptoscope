@@ -160,3 +160,15 @@ input and payload hashes. Existing `expectedEntryBinding` records in the body
 assertions remain expected catalog evidence; they are not silently relabeled as
 actual paint. No assessment or denominator changes here. Font, device transfer,
 original variant selection and Resource Manager ownership remain separate.
+
+## Inventory 1.2.0 finite solid-background additions
+
+### kdef.raw-solid-background
+
+At 0x10904..0x1091a, fc5c samples the selected cinf background coordinate; 0x109b2..0x109b6 applies RGBBackColor without testing the returned mask. The full-color sampler reads local indices, and 0x10702 applies its positional-match/final-zero shortcuts followed by reverse ColorSpec.value search. For non-mode5 bodies, 0x10a6c..0x10a9a requests the signed pattern ID including zero; a NULL handle reaches 0x10b72..0x10bb8 and erases the union of inset(corner,side) and inset(side,corner).
+
+### fixture.solid-rgb16
+
+The independently encoded 7x7 source has corner3/side1, background index0 at (3,3), RGB16(8481,8481,8481), and a blue opaque (0,0) corner. The masked variant has mask0 at the sample. The opaque variant has ctFlags32768 with ColorSpec values7,0,3: raster positional index0 is red, while the engine sampler selects the gray value0 entry. Current high-byte/LUT maps33 to48 once. At 29x9 the literal gray union is [3,26)x[1,8) UNION [1,28)x[3,6); only (0,0) is blue and all remaining pixels are transparent.
+
+Exact byte/map pins are in `tests/decoder-fixtures/solid-background-source-pins.json`. They were independently transcribed and checked with a separate big-endian raw resource-map walk before registration. The two complete forks have twelve occurrences; push uses0/1, bevel6/7. The test joins actual selected references to these owning load records, never an expected manifest prelookup. Its complete literal output proves sample consumption; the miss trace proves current same-owner policy only. All prior sixteen cases and134 assessments remain semantically unchanged; both new cases retain OPEN closure. Review of proposed statuses is separate from successful execution.
