@@ -40,9 +40,19 @@ export async function validateSourceEvidence({ inventory, choices, candidates, f
     }
   }
   for (const c of inventory.cases) {
+    if (c.input.startsWith('fixture.')) {
+      const ref = unique(c.sourceEvidence, ref => Boolean(ref.fixture), `${c.id}: declared fixture input`);
+      check(c.input === `fixture.${ref.fixture}`, `${c.id}: input/fixture evidence mismatch`);
+      const fixture = unique(fixtures.fixtures, fixture => fixture.id === ref.fixture, `${c.id}: declared fixture`);
+      const rootTheme = unique(fixture.themes, theme => theme.id === 'child', `${c.id}: fixture root`);
+      check(isDeepStrictEqual(c.baseInputs, rootTheme.base === null ? [] : ['fixture-defined-base']), `${c.id}: baseInputs disagree with fixture root graph`);
+    } else {
+      check(c.input.startsWith('theme.') && c.baseInputs.length === 0, `${c.id}: unsupported real input/base declaration`);
+    }
     for (const ref of c.policyRefs) unique(inventory.policy.rules, rule => rule.id === ref, `${c.id}: policy ${ref}`);
     for (const ref of c.sourceEvidence) {
       if (ref.slug) {
+        check(c.input === `theme.${ref.slug}`, `${c.id}: input/source evidence mismatch`);
         const theme = unique(candidates.themes, theme => theme.slug === ref.slug, `${c.id}: source ${ref.slug}`);
         const resource = unique(theme.candidates, resource => resource.type === ref.type && resource.signedId === ref.signedId, `${c.id}: resource ${ref.type}/${ref.signedId}`);
         check(ref.presence === resource.presence, `${c.id}: resource presence mismatch`);

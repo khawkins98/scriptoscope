@@ -71,3 +71,11 @@ reviewStatus and effectiveAvailability. Active case digest:
 `3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97`.
 The original refined draft digest is retained in `expectations.json` review data.
 The raw-only repurposed case remains UNKNOWN and never counts as passed.
+
+The executable gate was independently reviewed by root and Astra after
+activation. Their refinements validate input/fixture/base consistency and require
+the two native fallback cases to have an unavailable initial compose trace, no
+painted selection and no canvas in addition to real keyboard/name semantics.
+Astra independently ran all 22 source/reference/comparison tests and approved
+the gate pending the full browser/CI checks. These strengthen validation without
+changing any of the 27 reviewed inputs or proposed outcomes.

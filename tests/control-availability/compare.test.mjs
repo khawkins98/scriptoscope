@@ -52,3 +52,13 @@ test('matching harness options cannot conceal wrong actual trace state or flags'
     const o = observation(c); mutate(o); assert.equal(compareAvailability(c, o).status, 'failed');
   }
 });
+test('native BUTTON tag and keyboard semantics cannot conceal themed art or a wrong actual request', () => {
+  const c = expected('synthetic.native-empty.enabled');
+  const native = () => ({ caseId: c.id, options: c.options, result: { kind: 'native-procedural' },
+    traces: [{ version: 1, family: c.family, correlationId: c.id, requested: { state: 'active', pressed: false, disabled: false, default: false }, outcome: { status: 'unavailable' }, steps: [] }],
+    native: { element: 'button', accessibleName: 'Action', disabled: false, canvasCount: 0, keyboard: { 'Tab-focus': true, 'Enter-activation': true, 'Space-activation': true } } });
+  assert.equal(compareAvailability(c, native()).status, 'passed');
+  for (const mutate of [o => o.traces[0].outcome.status = 'themed', o => o.traces[0].steps.push({ action: 'selected', usage: 'paint', role: 'face' }), o => o.native.canvasCount = 1, o => o.traces[0].requested.pressed = true]) {
+    const o = native(); mutate(o); assert.equal(compareAvailability(c, o).status, 'failed');
+  }
+});

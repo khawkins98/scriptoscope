@@ -30,3 +30,7 @@ test('missing exact keys and stale engine reference hashes fail', async () => {
   await assert.rejects(validateSourceEvidence(changed(d => delete d.inventory.cases[0].proposed.paint[0].manifestKey)), /missing exact manifest key/);
   await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'windows-95.default.pressed').sourceEvidence.find(r => r.engine).detailDocumentSha256 = '0'.repeat(64))), /detailed engine document hash/);
 });
+test('case input and base declaration cannot disagree with the selected fixture graph', async () => {
+  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.child-canonical').input = 'fixture.empty-cycle')), /input\/fixture evidence mismatch/);
+  await assert.rejects(validateSourceEvidence(changed(d => d.inventory.cases.find(c => c.id === 'synthetic.child-canonical').baseInputs = [])), /baseInputs disagree/);
+});

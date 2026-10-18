@@ -42,6 +42,7 @@ export async function runAvailabilityCase(api, c, fixture, sourceChoice) {
       host.append(before, element, after); before.focus();
       observed.result = { kind: element.tagName === 'BUTTON' ? 'native-procedural' : 'themed' };
       observed.native = { element: element.tagName.toLowerCase(), disabled: element.disabled === true,
+        canvasCount: element.querySelectorAll('canvas').length,
         // Accessibility-tree name is measured by Playwright in the caller.
         accessibleName: null, keyboard: {}, activationCount: 0 };
       window.availabilityInteraction = { observed, activationCount: () => activationCount };

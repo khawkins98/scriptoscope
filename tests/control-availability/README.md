@@ -24,8 +24,8 @@ application with its own cicns; Dolphin includes many text forks. The decoded
 choices without claiming original filename decoding.
 
 The generator queries nine signed IDs for cicn/cinf and retains author names,
-presence, payload size/hash and explicitly shared-decoder dimensions. It never
-imports runtime resolution, a theme manifest, matrix results or a golden oracle.
+presence, payload size/hash and explicitly shared-decoder dimensions. It reads `demo/themes-manifest.json` only as the source-path catalog. It never
+imports runtime resolution, a runtime theme manifest, matrix results or a golden oracle.
 
 ```sh
 # Enumerate entries without selecting a fork.
@@ -73,6 +73,9 @@ Null signed metadata stays null instead of being replaced by a canonical request
 
 The two native fallback cases use actual interactiveButton DOM, accessible-name
 observations, Tab navigation, Enter/Space activation and disabled behavior.
+For these two empty-art fixtures, the initial compose trace must be unavailable
+with no painted selection, and the native button must contain no canvas. This
+one-trace assertion is specific to these fixtures, not all interactive APIs.
 Direct null means unavailable output with caller-owned fallback; it is never
 silently reclassified as a native control or deliberately unsupported API.
 

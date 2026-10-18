@@ -43,6 +43,18 @@ export function compareAvailability(expected, observed) {
     }
   } else {
     const native = observed.native;
+    // The finite interactive inventory contains exactly the two empty-chain
+    // fixtures. This is not a universal trace-count contract for interactive APIs.
+    require(expected.input === 'fixture.empty-chain', 'Unreviewed native fallback fixture');
+    require(observed.traces?.length === 1, 'Empty-art fallback requires one completed initial compose trace');
+    const trace = observed.traces?.[0];
+    require(trace?.version === 1 && trace.family === expected.family && trace.correlationId === expected.id, 'Wrong native fallback trace identity');
+    require(trace?.outcome?.status === 'unavailable', 'Native fallback trace must have no themed realization');
+    require(!(trace?.steps ?? []).some(step => step.action === 'selected' && step.usage === 'paint'), 'Native fallback cannot paint themed art');
+    require(trace?.requested?.state === (expected.options.disabled ? 'inactive' : 'active')
+      && trace?.requested?.pressed === false && trace?.requested?.disabled === Boolean(expected.options.disabled)
+      && trace?.requested?.default === false, 'Wrong actual native fallback request');
+    require(native?.canvasCount === 0, 'Native fallback cannot conceal a themed canvas');
     require(native?.element === target.element && native?.accessibleName === target.accessibleName, 'Wrong native element or accessible name');
     require(native?.disabled === Boolean(expected.options.disabled), 'Wrong native disabled state');
     for (const action of target.keyboard ?? []) require(native?.keyboard?.[action] === true, `Native keyboard contract failed: ${action}`);
