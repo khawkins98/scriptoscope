@@ -41,6 +41,13 @@ Known boundaries requiring explicit consideration during image review:
 - Slimes progress endpoint appearance and Evolution's disabled-button pattern/text
   treatment remain unverified against original source requirements. Snapshot
   stability does not resolve whether those visual treatments are faithful.
+- Windows95's scrollbar track appears transparent between its arrows and thumb.
+  The original track painter/resource availability is unverified; this screenshot
+  observation alone establishes neither a defect nor the correct fix.
+- [Slider accessible naming #229](https://github.com/khawkins98/scriptoscope/issues/229)
+  and [promoted-control teardown #232](https://github.com/khawkins98/scriptoscope/issues/232)
+  are interaction/lifecycle gaps outside screenshot certification. Static image
+  approval does not establish accessible semantics or correct disconnect/remount.
 - Explicit tiny face heights can clip labels by caller request. Automatic sizing
   and independently established 20px-face label ink are checked separately.
 - The corpus cases use standalone schemes. Base-chain resource resolution,
