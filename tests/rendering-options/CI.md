@@ -77,3 +77,26 @@ and traces under `test-results/rendering-options`, with an HTML report under
 `playwright-report/rendering-options`. Golden mismatches also include Playwright's
 expected/actual/diff images. Artifact failures never replace the original error.
 There are no automatic retries or baseline updates in verification.
+
+## Current coverage boundaries
+
+Source/built parity uses the same semantic decoder, resolver, compositor and text
+rasterizer. It can catch packaging differences while both paths share a fidelity
+error. The explicit 20px push/bevel ink oracle checks clipping and placement against
+an input glyph mask, not original font correctness. Source-art cards are candidates,
+not actual resource-selection traces or a complete glyph oracle.
+
+Unavailable themed output is recorded honestly, but the matrix does not yet have
+an independently reviewed availability inventory. A shared new null result can
+escape parity; the reviewed smoke goldens catch its visual change, while an
+extended-only absence needs a separate availability contract.
+
+Native select keyboard focus, selection, replacement and disabled skipping have
+focused System 7/Windows 95 checks. Generic focus probes and state-render cases do
+not exhaust button activation, check/radio grouping, slider drag/keyboard changes
+or tab navigation. Window fixtures cover representative grid/flex layout, scale
+and shadow behavior, not the complete window-management lifecycle.
+
+See the [fidelity plan](../../docs/spec/fidelity-verification-plan.md) and
+[epic #221](https://github.com/khawkins98/scriptoscope/issues/221) for independent
+truth, actual selection provenance and requirement-level verification work.

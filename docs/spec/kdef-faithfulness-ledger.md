@@ -117,45 +117,34 @@ Each entry below tags its divergence direction explicitly:
 
 ### manifest→decode
 
-- **Push-button face resolves by manifest role name first, then by id.** The 2.3.1
-  kDEF asked for cicn id `-10239` (active) / `-10238` (pressed) / `-10240` (inactive)
-  and blitted whatever sat there. Two corpus bundles — **monkey-paradise** + **animals**
-  — repurpose id `-10239` for `solo-menu-background-2` and ship no active push-button
-  cicn at all (only pressed + inactive). A faithful runtime would render menu wallpaper
-  in the OK button slot for both schemes. Instead, `loadPushButtonFace` (`src/controls.ts`)
-  reads the manifest's STRUCTURED chromeElement key (`push-button-active` /
-  `active-push-button` / `active-button` / `push-button`) first; falls back to id-based
-  lookup that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`);
-  finally, when no active face exists, substitutes the pressed face (the AppearanceManager's
-  documented "empty state slot" fallback). Codex pattern: the manifest carries the
-  structured answer, the runtime was guessing from an id collision. The fix is a
-  CORPUS-WIDE policy — no per-bundle slug branch — preserving the "never hack the
-  compositor for one theme" norm in CLAUDE.md. (Owner decision 2026-05-29; previously
-  deferred in LEARNINGS as "non-canonical authoring".)
+- **Push-button role/anti-role/state fallbacks are compatibility policies.**
+  The original 2.3.1 dispatch at `0x7572..0x7594` selects numeric cicn IDs
+  `-10239` / `-10238` / `-10240`. Scriptoscope prefers structured manifest
+  keys, rejects resources heuristically labeled for unrelated roles, and tries
+  state/base fallbacks before its last-resort numeric lookup. These corpus-wide
+  policies handle Animals/Monkey repurposed active slots; they are not proven
+  original-engine fallback rules or proof of author intent. Actual selection
+  diagnostics are tracked in [#226](https://github.com/khawkins98/scriptoscope/issues/226).
 
-- **Default-button ring outset reads the author-shipped cicn, not Apple's
-  standard `kThemeMetricFocusRectOutset = 4 px`.** Two models:
-    - OUTSET: `outset = (ring.width − face.width) / 2` when the artist drew the
-      ring larger than the face (crayon-os: 80 ring around 74 face → 3 px).
-    - OVERLAY: `outset = max(3, round(ring.width / 4))` heuristic when ring ≤
-      face (apple-platinum-2, beos-r503, etc.).
-  Plain (non-default) buttons reserve the same outer rect so a row of default
-  + plain buttons aligns. Rationale: the ring is shipped art (cicn -10231
-  active / -10232 inactive); the cicn IS the author's declared outset; Apple's
-  4 px metric is the standard-metrics fallback when no ring ships. References:
-  `src/controls.ts:1034-1057` + `docs/spec/apple-cdef-button-vs-our-compose.md`
-  row 2 + Apple `kThemeMetricFocusRectOutset` per `apple-primary-source.md`.
-  (Owner decision 2026-05-29.)
+- **Default-ring destination expansion is four pixels.** Original
+  `InsetRect(-4,-4)` at `0x7698..0x76a2` expands the control rectangle before
+  ring painting. #219 replaced the former ring/face-size heuristic with this
+  independently sourced geometry. The complete raster supplies square corners
+  and independently thick bands; its dimensions do not determine the outset.
+  Reserving the same footprint for plain buttons is a separate runtime alignment
+  policy. Pressed ring `-10230` falls back to active `-10231`; inactive uses
+  `-10232` (`0x76b8..0x770e`). See `composeButton` in `src/controls.ts` and
+  the source-coordinate contracts in `tests/rendering-options/source-oracles.spec.mjs`.
 
-- **Push-button label size is `max(8, round(faceHeight × 0.6))`, not Apple's
-  fixed `kThemeSystemFont = 12 pt`.** Rationale: corpus authors shipped faces
-  ranging 16 → 74 px tall (apple-platinum-2 ring 16 px through crayon-os
-  74 px). A fixed 12-pt size would either overflow short buttons or look
-  comical on tall faces. The 0.6 ratio yields 12 pt for the canonical 20-px
-  button (Platinum match) and scales gracefully elsewhere. References:
-  `src/controls.ts:990` + `docs/spec/apple-cdef-button-vs-our-compose.md`
-  row 5 + Apple `kThemeSystemFont` per `apple-primary-source.md`.
-  (Owner decision 2026-05-29.)
+- **Push-button font sizing remains a runtime policy.** The raster size is
+  `max(8, round(resolvedHeight × 0.6))`, after automatic-height resolution and
+  a standard-height retry when an automatic tiny face cannot contain its label.
+  Explicit heights remain authoritative. This policy is not independent proof
+  of the original Control Manager's font metrics, colors or label placement.
+  Current glyph-ink tests verify their stated retention requirements; they do
+  not certify the complete original typography. See
+  [the fidelity plan](./fidelity-verification-plan.md) and
+  [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
 ## References
 - `compositor-spec.md` — the model these routines implement.

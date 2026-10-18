@@ -6,6 +6,13 @@ A Mac OS Appearance-style window manager + theme engine for the web.
 
 > **Reconciliation note (updated 2026-10-18).** The shipped implementation uses DOM content with canvas chrome, not this charter's original CSS theme model. Bundles ship their original `scheme.sit` or `scheme.rsrc` plus provenance; decoded `theme.json` and PNGs are local diagnostic derivatives. The declarative `data-scriptoscope-*` front door, Shadow DOM chrome encapsulation, window management and persistence have shipped. The CSS `border-image` emitter and representability classifier were retired after fidelity spikes. Read [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md), [`README.md`](./README.md) and the current specs before acting on the historical API examples or phased-delivery sketches below. The consumer showcase lives at `demo/index.html`; developer diagnostics live at `demo/diagnostic.html`.
 
+Rendering acceptance uses the [control matrix](./tests/rendering-options/README.md)
+alongside existing window and Scene diagnostics. It checks source/built parity,
+consumer DOM/CSS behavior, source-backed requirements and reviewed screenshot
+regressions. Its representative and extended profiles do not prove every
+permutation or full original-engine fidelity; omitted window axes and unsupported
+control options remain explicit in the coverage inventory.
+
 This document is the project charter, ported from the upstream extraction ticket [classic-vibe-mac #246](https://github.com/khawkins98/classic-vibe-mac/issues/246). When this document and the upstream ticket disagree, **this document wins** — the ticket records the decision moment, but it lives in another repo and won't be updated as Scriptoscope evolves.
 
 ---

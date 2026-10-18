@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Scriptoscope is a web-native runtime that renders classic Mac **Kaleidoscope** themes 1:1 from their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Scriptoscope does **not** hand-author chrome — it replays the binary's rendering model.
+Scriptoscope is a web-native runtime that renders classic Mac **Kaleidoscope** themes using their original binary resources (`cicn`, `wnd#`, `cinf`, `ppat`, `Colr`). The window-chrome compositor (`src/composeChrome.ts`) is a **clean-room reimplementation of the decompiled Kaleidoscope 2.3.1 kDEF** (a 68k `WDEF`), driven by a part-code jump table. Scriptoscope does **not** hand-author chrome — it replays the binary's rendering model.
 
 Status: prototype mode, pre-1.0. The maintainer commits directly to the working branch; external contributions arrive via PR against `main`. (Consumer attribute surface: `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, `ScriptoscopeWindow` class — these went through a full sweep on 2026-05-29 reversing an earlier "Lodash-kept-`_`" decision; see `LEARNINGS.md` "Full `data-scriptoscope-*` sweep" entry.)
 
@@ -22,6 +22,11 @@ npm run typecheck    # tsc --noEmit (the primary correctness gate in prototype m
 npm test             # node --test on tools/theme-loader/*.test.mjs, tools/sit-wasm/*.test.mjs, src/declarative/*.test.mjs, src/*.test.mjs
 npm run build        # vite build + tsc -p tsconfig.build.json (library output to dist/)
 npm run build:demo   # builds the GitHub Pages demo
+npm run test:rendering # required browser contracts: all 18 themes, source/built and real DOM/CSS
+npm run test:rendering:extended # broader valid combinations, browsers and DPR
+npm run test:rendering:container -- verify # pinned Linux golden comparison (Docker required)
+# Golden updates create candidates for review, never proof of original fidelity.
+# See tests/rendering-options/README.md and tests/rendering-options/CI.md for setup and coverage limits.
 
 # Theme pipeline (Option A — bundles ship source-of-truth only; the bake commands below
 # write into gitignored themes/<slug>/ paths for LOCAL diag, never committed)
@@ -47,7 +52,7 @@ Run a single test file: `node --experimental-strip-types --test path/to/file.tes
 
 ## Architecture
 
-The runtime is a short pipeline: theme bundle → loader → compositor → pixel buffer → `<canvas>`. CSS does **only** positioning + integer upscale (`image-rendering: pixelated`); everything visual is drawn into a pixel buffer.
+The runtime is a short pipeline: theme bundle → loader → compositor → pixel buffer → `<canvas>`. Scheme chrome and control art are drawn into pixel buffers; live content and native inputs remain DOM. CSS controls layout, pixel scaling, focus and optional window shadows, so visual acceptance must inspect actual DOM as well as buffers. Reviewed regression goldens do not certify full original-engine fidelity; known control-face limits are tracked in [#218](https://github.com/khawkins98/scriptoscope/issues/218).
 
 ### The five layers (kept separable for a possible future repo split)
 
@@ -94,7 +99,7 @@ Ten host CSS properties are locked down via inline styles (`display`, `box-sizin
 
 Each bundle is a directory containing the original archive (`scheme.sit` preferred — the upstream StuffIt the author published; `scheme.rsrc` fallback for wayback-recovered schemes whose `.sit` is no longer reachable), `meta.json` (author/origin/license — `origin.originalLicense` is the readme-stated terms verbatim), and `PROVENANCE.md`. The runtime decodes the archive in-browser via `loadKaleidoscopeScheme` (the same path the demo drop-zone uses). Pre-extracted artifacts (`theme.json`, `cicns/`, `ppats/`, `icons/`, `resource-roles.json`, `rasters.json`, `extraction-manifest.json`) are produced on-demand by `npm run build:themes` for local lint / diag / audit work but are gitignored — see `.gitignore`'s "Option A (2026-05-29)" block. **Never infer a resource's role from its filename slug or id** — re-bake locally and read the generated `resource-roles.json` (the same id has different roles per scheme and per cicn/ics4 channel).
 
-The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. `platinum-8` and `system7-nostalgia-silver` are controls-only (no window recipes).
+The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. `platinum-8` and `system7-nostalgia-silver` use corner-sprite window rendering instead of wnd# edge recipes.
 
 ## Working norms (project-specific — these override common reflexes)
 
