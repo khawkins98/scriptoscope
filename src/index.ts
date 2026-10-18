@@ -1,3 +1,4 @@
+export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoint, ControlRect } from './controlComposition.js';
 // Scriptoscope — a web-native runtime for classic-Mac Kaleidoscope schemes.
 //
 // Renders a scheme's window chrome 1:1 from its original binary resources by

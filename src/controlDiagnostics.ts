@@ -1,24 +1,26 @@
-import type { ElementByteProvenance } from './loadProvenance.js';
 import type { ControlColorSamples } from './types.js';
+import type { ControlCompositionSnapshot, ControlRect } from './controlComposition.js';
+import type { ElementByteProvenance, PatternByteProvenance } from './loadProvenance.js';
 import type { PixelBuffer } from './pixelBuffer.js';
 
 /** Observed selection decisions, not proof of original-engine fidelity. */
 export interface ControlResolutionStep {
-  readonly role: 'face' | 'default-ring';
+  readonly role: 'face' | 'default-ring' | 'body-fill';
+  /** Raw cinf mode for body dependency decisions; never inferred from a label. */
+  readonly bodyMode?: number;
+  readonly requestedResourceType?: 'cicn' | 'ppat';
   /** Canonical requested ID; the selected signed ID is recorded separately. */
   readonly requestedId: number;
   readonly action: 'selected' | 'missing' | 'rejected' | 'fallback';
   readonly owner?: { readonly baseUrl: string; readonly chainDepth: number };
   readonly resource?: {
-    /** Absent means byte provenance was not collected for this exact entry. */
-    readonly byteProvenance?: ElementByteProvenance;
-    readonly type: 'cicn';
     readonly signedId: number | null;
     readonly sourceCinfId: number | null;
     readonly manifestKey: string;
     /** Volatile diagnostic detail; blob URLs are not stable identity keys. */
     readonly assetUrl: string;
-  };
+  } & ({ readonly type: 'cicn'; readonly byteProvenance?: ElementByteProvenance }
+    | { readonly type: 'ppat'; readonly byteProvenance?: PatternByteProvenance });
   readonly reason: string;
   readonly basis: 'source-dispatch' | 'compatibility-policy';
   readonly usage: 'paint' | 'layout-reservation';
@@ -46,6 +48,8 @@ export interface ControlRenderTrace {
     readonly labelPainted: boolean; readonly deviceMode: 'full-color-policy';
     readonly sourceManifestKey: string; readonly sourceOwnerDepth: number;
   };
+  /** Actual applied context/policy, not independent historical verification. */
+  readonly composition?: { readonly context: ControlCompositionSnapshot; readonly originalPortState: 'unverified'; readonly faceRect: ControlRect; readonly appliedUnknownPatternOffset: boolean; };
   readonly outcome: {
     readonly status: 'themed' | 'unavailable' | 'error';
     readonly width?: number;
@@ -65,6 +69,7 @@ export interface ControlDiagnostics {
 export interface ControlTraceCollector {
   record(step: ControlResolutionStep): void;
   textColors(value: NonNullable<ControlRenderTrace['textColors']>): void;
+  composition(value: NonNullable<ControlRenderTrace['composition']>): void;
 }
 
 function freezeRecord<T>(value: T): T {
@@ -85,7 +90,8 @@ export async function withControlDiagnostics(
   const { onComplete, correlationId } = diagnostics;
   const steps: ControlResolutionStep[] = [];
   let textColors: ControlRenderTrace['textColors'];
-  const collector: ControlTraceCollector = { record: step => { steps.push(step); }, textColors: value => { textColors = value; } };
+  let composition: ControlRenderTrace['composition'];
+  const collector: ControlTraceCollector = { record: step => { steps.push(step); }, composition: value => { composition = value; }, textColors: value => { textColors = value; } };
   let result: PixelBuffer | null = null;
   let failed = false;
   let error: unknown;
@@ -94,7 +100,7 @@ export async function withControlDiagnostics(
   const trace: ControlRenderTrace = freezeRecord({
     version: 1,
     ...(correlationId === undefined ? {} : { correlationId }),
-    family, requested, steps, ...(textColors ? { textColors } : {}),
+    family, requested, steps, ...(textColors ? { textColors } : {}), ...(composition ? { composition } : {}),
     outcome: failed ? { status: 'error' } : result
       ? { status: 'themed', width: result.width, height: result.height }
       : { status: 'unavailable' },

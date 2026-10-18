@@ -4093,3 +4093,18 @@ display policy yields48/152. This source-backed color correction is separate fro
 font metrics, original device palette and QuickDraw TextMode1/49. Current browser
 alpha-over glyph composition remains a declared approximation. See
 [the bounded text-color contract](docs/spec/control-text-colors.md).
+
+### 2026-10-18 — A control pattern needs its original face Rect and port state
+
+The f930 wrapper translates both destination and finite clip by the selected
+corner phase while changing the port origin oppositely; physical D−O stays put.
+Right/bottom anchors are exclusive Rect edges. Default-ring buffer reservation
+must not be added to D. QDSetPatternOrigin supplies additional per-port state;
+its signed offset is not inferable from a screenshot or a DOM coordinate.
+
+Literal asymmetric/non-power-of-two fixtures expose inset-local tile resets,
+offset sign errors and right-minus-one mistakes that square periodic art hides.
+Raw-source RGB must be separated from our display transform and the original
+device palette. Direct context support is intermediate: managed layout refresh
+must propagate the same logical state before pattern-backed public surfaces are
+complete. See [the bounded contract](docs/spec/control-pattern-context.md).

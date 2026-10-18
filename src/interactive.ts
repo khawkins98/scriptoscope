@@ -1,3 +1,4 @@
+import { snapshotControlComposition } from './controlComposition.js';
 // Interactivity layer — wires real interaction onto the rendered chrome/controls.
 //
 // The compositor already renders per-STATE cicns (ControlState normal/pressed/
@@ -86,7 +87,7 @@
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeButton, composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
+  composeButtonWithLayout, composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
   type ButtonOptions, type ControlState,
 } from './controls.js';
@@ -126,12 +127,14 @@ export interface InteractiveButtonOptions extends ButtonOptions {
 export async function interactiveButton(
   theme: LoadedTheme,
   opts: InteractiveButtonOptions = {},
+  /** Internal promotion lifetime; omitted for detached imperative preparation. */
   signal?: AbortSignal,
 ): Promise<HTMLElement> {
   const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
   current();
   const { onClick, scale = 1, ...bo } = opts;
-  const normalBuf = await composeButton(theme, { ...bo, pressed: false }, signal);
+  const composition = snapshotControlComposition(bo.compositionContext);
+  const normalBuf = (await composeButtonWithLayout(theme, { ...bo, pressed: false }, signal, composition))?.buffer ?? null;
   current();
   if (!normalBuf) {
     // No themed button cicns → the native CSS baseline button is already a real,
@@ -142,7 +145,7 @@ export async function interactiveButton(
     if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
     return b;
   }
-  const pressedBuf = bo.disabled ? null : await composeButton(theme, { ...bo, pressed: true }, signal);
+  const pressedBuf = bo.disabled ? null : (await composeButtonWithLayout(theme, { ...bo, pressed: true }, signal, composition))?.buffer ?? null;
   current();
   const normal = bufferToCanvas(normalBuf, scale);
   const pressed = pressedBuf ? bufferToCanvas(pressedBuf, scale) : normal;

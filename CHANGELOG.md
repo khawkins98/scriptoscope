@@ -138,6 +138,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   cancels pending theme/face work without adopting moved sources. The showcase
   No Theme/Restore flow preserves native form values and mounts one face per button.
 
+- Paint full-color push/bevel pattern bodies from the actual face owner with explicit logical-port context, continuous corner-anchored phase, byte-linked diagnostics and cancellable preparation. Mounted layout propagation remains a separate active stage (#218).
+
 - Native slider composition stops at disposal boundaries between image decodes;
   a held track cannot resume and request a thumb after owned theme URLs revoke.
   Native restoration stays synchronous; public/imperative rendering is unchanged.
