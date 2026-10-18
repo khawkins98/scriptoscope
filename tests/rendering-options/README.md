@@ -133,3 +133,10 @@ raw decoded pixels. They are evidence for a specific source-backed invariant, no
 a promise that the renderer selected every candidate or that canonical ids alone
 resolve noncanonical author roles. Source-vs-built parity and reviewed self-goldens
 catch regressions; source-backed invariants and external evidence assess fidelity.
+
+
+Direct push/default/bevel cases include an actual per-render `resolutionTrace` in
+case evidence. Other paths report null. These observations expose selected owner,
+resource IDs and compatibility decisions; they are not independent availability
+or fidelity expectations. Candidate-art cards remain candidates. See the
+[diagnostic contract](../../docs/spec/control-resolution-diagnostics.md).

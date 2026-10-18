@@ -128,13 +128,16 @@ async function references(theme, c, section) {
   return { evidence: 'Decoded source candidates and label input; not expected composed output', resources, label: labelReference };
 }
 
-async function compose(theme, c) {
+async function compose(theme, c, record) {
   const functions = { push: 'composeButton', default: 'composeButton', bevel: 'composeBevelButton',
     'list-header': 'composeListHeader', slider: 'composeSlider', progress: 'composeProgress',
     tab: 'composeTab', scrollbar: 'composeScrollbar', disclosure: 'composeDisclosure', growbox: 'composeGrowBox' };
+  const options = ['push', 'default', 'bevel'].includes(c.family)
+    ? { ...c.options, diagnostics: { correlationId: c.id, onComplete: trace => { record.resolutionTrace = trace; } } }
+    : c.options;
   return c.family === 'checkbox' || c.family === 'radio'
     ? runtime.composeCheckable(theme, c.family, c.options)
-    : runtime[functions[c.family]](theme, c.options);
+    : runtime[functions[c.family]](theme, options);
 }
 
 function nativeMarkup(c) {
@@ -226,7 +229,7 @@ function readCase(id) {
     selector: selector(article), outputSelector: selector(output),
     canvases: [...(controlRoot ?? output).querySelectorAll('canvas')].map(canvasMetadata),
     native: nativeState, controls, windows: [...output.querySelectorAll('.matrix-window')].filter(e => e.shadowRoot).map(windowMetadata),
-    reference: record.reference };
+    reference: record.reference, resolutionTrace: record.resolutionTrace ?? null };
 }
 async function clear() {
   for (const record of records.values()) { record.handle?.disconnect(); if (record.imperativeHost) record.manager.remove(record.imperativeHost); }
@@ -252,7 +255,7 @@ async function runCase(c, { slug, baseSlug, retain = false, includeReferences = 
   try {
     if (c.mode === 'declarative') await promote(theme, c, output, record);
     else {
-      const buffer = await compose(theme, c);
+      const buffer = await compose(theme, c, record);
       if (buffer) output.append(runtime.bufferToCanvas(buffer));
       else { record.status = 'unavailable'; output.textContent = 'No themed output; caller chooses fallback.'; }
     }

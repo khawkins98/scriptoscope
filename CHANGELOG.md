@@ -13,6 +13,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   with independent evidence, explicit unknown obligations, live mismatch tracking
   and CI reports separating reviewed requirements from actual test executions.
 
+- Opt-in per-render resource-selection traces for push/default and bevel buttons,
+  including actual owner/IDs, compatibility fallbacks and ring reservation versus
+  paint. Direct matrix evidence records these observations separately from fidelity.
+
 - Reviewed Linux control-rendering regression seed: 36 bounded contact sheets,
   pinned input provenance and explicit known fidelity/interaction limits, with
   exact comparisons in CI and optional missing-file/one-pixel failure probes.

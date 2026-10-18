@@ -38,6 +38,8 @@ export { loadTheme, assetUrl, findChromeElement, type ThemeMeta } from './loadTh
 // `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim.
 export { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 export { renderWindow, type RenderWindowOptions } from './renderWindow.js';
+export type { ControlDiagnostics, ControlRenderTrace, ControlResolutionStep } from './controlDiagnostics.js';
+
 export {
   interactiveButton, interactiveCheckbox, radioGroup, interactiveDisclosure,
   interactiveSlider, interactiveScrollbar, WindowManager, titleWidgetHits,
