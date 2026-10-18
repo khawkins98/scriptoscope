@@ -44,11 +44,12 @@ test('failed initial theme requests leave the portrait recoverable', async ({ pa
   await page.route('**/themes/**', route => route.abort());
   await page.goto(demo);
   await expect(page.locator('#collage-error')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Reassemble the face' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Try again', exact: true })).toBeEnabled();
+  await expect(page.locator('#reset-collage')).toBeHidden();
   await expect(page.locator('#collage [data-scriptoscope-window]')).toHaveCount(5);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   await page.unroute('**/themes/**');
-  await page.getByRole('button', { name: 'Reassemble the face' }).click();
+  await page.getByRole('button', { name: 'Try again', exact: true }).click();
   await ready(page);
   await expect(page.locator('#collage-error')).toBeHidden();
 });
@@ -88,6 +89,7 @@ test('windows remain visible beyond the original collage and the initial phone l
   await page.mouse.move(x + 360, y + 300);
   await page.mouse.up();
   await expect.poll(() => smile.evaluate(el => parseFloat(el.style.left))).toBe(before + 360);
+  await expect(page.getByRole('button', { name: 'Reassemble the face', exact: true })).toBeVisible();
   expect(await page.evaluate(({ x, y }) =>
     document.elementFromPoint(x, y)?.closest('[data-scriptoscope-window-host]')?.dataset.scriptoscopeTheme,
   { x: x + 360, y: y + 300 })).toBe('windows-95');
@@ -97,4 +99,27 @@ test('windows remain visible beyond the original collage and the initial phone l
   await page.evaluate(() => document.fonts.ready);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   await expect(page.getByRole('link', { name: 'Explore the possibilities' })).toHaveAttribute('href', './showcase.html');
+});
+
+
+test('reassembly appears after movement and hides when the face is restored', async ({ page, demo }) => {
+  await page.goto(demo);
+  await ready(page);
+  const reset = page.getByRole('button', { name: 'Reassemble the face', exact: true });
+  await expect(reset).toBeHidden();
+  await page.getByRole('button', { name: 'BeOS R5.0.3', exact: true }).click();
+  await expect(page.locator('#collage [data-scriptoscope-theme="beos-r503"]')).toHaveCount(5);
+  await expect(reset).toBeHidden();
+  const move = hosts(page).first().getByRole('button', { name: 'Move window', exact: true });
+  await move.focus();
+  await expect(reset).toBeHidden();
+  await page.keyboard.press('ArrowRight');
+  await expect(reset).toBeVisible();
+  await reset.click();
+  await expect(reset).toBeHidden();
+  await expect(move).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(reset).toBeVisible();
+  await page.getByRole('button', { name: 'Original mix', exact: true }).click();
+  await expect(reset).toBeHidden();
 });
