@@ -163,3 +163,11 @@ test('repeated cicn IDs with distinct output bindings retain separate occurrence
   assert.equal(theme.byteProvenance.resources[0].sha256, sha(onePixelCicn()));
   assert.equal(theme.byteProvenance.resources[1].sha256, sha(onePixelCicn(0)));
 });
+
+test('conversion failure keeps precedence over a concurrent resource digest failure', async t => {
+  const digest = crypto.subtle.digest.bind(crypto.subtle); let calls = 0, encoders = 0;
+  t.mock.method(crypto.subtle, 'digest', (...args) => ++calls === 3 ? Promise.reject(new Error('secondary digest failure')) : digest(...args));
+  await assert.rejects(load(forkOf([{ type: 'cicn', id: -10239, data: onePixelCicn() }, { type: 'cinf', id: -10239, data: new Uint8Array(1) }]),
+    { encodeAssets: true, assetUrlFactory() { encoders++; } }), /slice.side/);
+  assert.equal(encoders, 0); assert.equal(calls, 4);
+});

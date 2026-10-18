@@ -51,7 +51,8 @@ for (const mode of ['source', 'built']) {
       complete = true;
     } catch (error) { await attachCase(page, info, { mode, rows }, error); throw error; }
     finally {
-      await attachObservations(info, 'byte-provenance-expectations', 'four-archive-pins', { evidence: 'independently-pinned-input-identities', pins, caseIds: cases.map(c => c.id) });
+      await attachObservations(info, 'byte-provenance-expectations', 'four-archive-pins', { evidence: 'independently-pinned-input-identities', pins, caseIds: cases.map(c => c.id),
+        cases: cases.map(c => ({ id: c.id, family: c.family, options: c.options, paint: c.proposed.paint })) });
       await attachObservations(info, 'byte-provenance', mode, { execution: { ...gitIdentity(root), mode,
         browserVersion: page.context().browser().version(), builtBundleSha256: sha256(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))) },
         complete, loads, rows, limitations: ['Actual input identity only; shared archive/resource decoding and historical pixel correctness remain unverified.',
