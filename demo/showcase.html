@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>
+    if (location.hash === '#install') location.replace('./install.html' + location.search + location.hash);
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scriptoscope — interactive demo</title>
@@ -90,12 +93,7 @@
     #powers a { color: #0000EE; text-decoration: underline; }
     #powers a:visited { color: #551A8B; } /* the default period :visited mauve */
     #powers a:hover { color: #cc0000; }   /* the default period :hover red */
-    /* Install snippet — softened from VSCode-dark to a Stickies-yellow
-       Monaco-bg that reads as "shareware Read Me snippet" not "modern
-       terminal output". Period Mac shareware Read Mes were SimpleText
-       windows; this is the homage. */
-    #powers .powers-install { margin: 0 0 6px; padding: 10px 14px; background: #fff9d6; color: #1c1c1c; border: 1px solid #d4c97a; border-radius: 0; font: 12px/1.55 Monaco, "Courier New", monospace; max-width: 64ch; overflow-x: auto; }
-    /* Tools row: Controls palette + Install snippet palette tiled
+    /* Tools row: Controls palette + installation guide palette tiled
        side-by-side on wider viewports. Both are titled-utility-window
        chromes. On narrow viewports (<700px) they stack. The grid
        columns are 1fr 1fr (equal split) which is fine since each
@@ -108,32 +106,6 @@
     @media (max-width: 700px) {
       #powers .powers-tools-row { grid-template-columns: minmax(0, 1fr); }
     }
-    /* Install meta footer. Extends the snippet's cream box (same
-       background + same border, minus the top edge so they read as
-       ONE block). Keeps the meta legible regardless of the active
-       theme's content-area chrome (a green/blue/dark theme would
-       otherwise wash out gray Monaco text on the slot background).
-       Flex layout with gap replaces the prior &nbsp;·&nbsp; HTML
-       separators. */
-    #powers .powers-install-meta {
-      margin: 0 0 6px; padding: 6px 12px 7px;
-      background: #fff9d6; border: 1px solid #d4c97a; border-top: 0;
-      color: #1c1c1c;
-      display: flex; align-items: center; flex-wrap: wrap;
-      gap: 4px 12px;
-      font: 11.5px/1.5 Monaco, "Courier New", monospace;
-      max-width: 64ch;
-    }
-    #powers .powers-install-meta a { color: #0000EE; text-decoration: underline; }
-    #powers .powers-install-meta .powers-install-version { color: #5a5a5a; }
-    /* Copy button is promoted to themed chrome via data-scriptoscope-
-       button. The auto-promotion wraps the native button; the native
-       sizing stays compact for inline use. .copied is the post-click
-       confirmation tint. */
-    #powers .powers-install-copy.copied { background: #d9f0d9 !important; }
-    #powers .powers-install .c { color: #8b6914; }
-    #powers .powers-install .a { color: #1c1c1c; }
-    #powers .powers-install .s { color: #af1010; }
     /* Version/license caption — period Read Me convention: tiny Geneva-like
        line right under the install block stating what you're getting. */
     #powers .powers-meta { margin: 0 0 22px; font: 11px/1.4 Monaco, "Courier New", monospace; color: #5a5a5a; max-width: 64ch; }
@@ -485,7 +457,8 @@
       <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
       <nav class="site-primary-nav" aria-label="Main navigation">
         <a href="./">Home</a>
-        <a href="./showcase.html" aria-current="page">Try & install</a>
+        <a href="./showcase.html" aria-current="page">Showcase</a>
+        <a href="./install.html">Install</a>
         <a href="./showcase.html#examples">Examples</a>
         <a href="./story.html">Story</a>
         <a href="./diagnostic.html">Diagnostics</a>
@@ -495,10 +468,10 @@
     </div>
   </header>
   <section class="site-intro" aria-labelledby="site-page-title">
-    <p class="site-eyebrow">01 / TRY & INSTALL</p>
+    <p class="site-eyebrow">01 / SHOWCASE</p>
     <h1 id="site-page-title">A little HTML. A lot of character.</h1>
-    <p class="site-deck">Choose a scheme. Try the real controls. Then copy a small snippet onto your own page. The windows change; your content stays live.</p>
-    <div class="site-intro-links"><a href="#install">Put it on your page →</a><a href="#examples">See it in context →</a></div>
+    <p class="site-deck">Choose a scheme. Try the real controls. Explore the example layouts, then take a scheme to your own page. The windows change; your content stays live.</p>
+    <div class="site-intro-links"><a href="./install.html">Put it on your page →</a><a href="#examples">See it in context →</a></div>
   </section>
   <div class="site-steps" aria-label="How to try Scriptoscope">
     <p><span>01</span>Pick a look from the Schemes Folder.</p>
@@ -621,7 +594,7 @@
            in the Apple menu (P1 candidate), this is the right shape:
            visually period-correct, functionally non-dismissible. -->
 
-      <!-- TOOLS ROW: Controls + Install tiled side-by-side. Both are
+      <!-- TOOLS ROW: Controls + installation guide tiled side-by-side. Both are
            titled-utility-window palettes (slim title bar, period
            floating-tool feel). The 2-column flex layout reads as two
            Mac OS palette windows opened next to each other, matching
@@ -639,36 +612,14 @@
             <span class="hs-group"><select aria-label="Format"><option>.sit</option><option>.rsrc</option><option>.hqx</option></select></span>
           </div>
         </article>
-        <article class="powers-install-host powers-paper" id="install" data-scriptoscope-window
-                 data-scriptoscope-title="Install"
+        <article class="powers-install-host powers-paper" id="install-teaser" data-scriptoscope-window
+                 data-scriptoscope-title="Use it on your page"
                  data-scriptoscope-window-type="titled-utility-window"
                  data-scriptoscope-widgets="zoom,collapse">
-          <h2 class="site-install-heading">Put it on your page.</h2>
-          <p class="site-install-note">Tag an ordinary element, then mount Scriptoscope. Copy this complete example to get started.</p>
-          <pre class="powers-install" id="powers-install-snippet" aria-label="Install snippet">&lt;link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css"&gt;
-&lt;article data-scriptoscope-window data-scriptoscope-title="Hello"&gt;
-  Hello world
-&lt;/article&gt;
-&lt;script type="module"&gt;
-  import { mountDeclarative } from 'https://khawkins98.github.io/scriptoscope/scriptoscope.js';
-  await mountDeclarative({
-    themeBaseUrl: 'https://khawkins98.github.io/scriptoscope/themes',
-    pageThemeDefault: '1138',
-  });
-&lt;/script&gt;</pre>
-          <!-- Install meta line. Styled as a footer continuation of the
-               snippet's cream box so it reads cleanly regardless of the
-               active theme's content-area chrome. Copy is a themed
-               `data-scriptoscope-button` so it picks up the scheme's
-               button art (consistent with the Controls strip's OK /
-               Cancel). User direction 2026-05-31. -->
-          <div class="powers-install-meta">
-            <button type="button" data-scriptoscope-button class="powers-install-copy" id="powers-install-copy" aria-label="Copy install snippet to clipboard">Copy</button>
-            <span class="powers-install-version">v<span id="powers-ver">0.x</span> · MIT · <span title="Specifically: anything supporting ES2022 + Shadow DOM + CSS :has() + OffscreenCanvas + the inert attribute. Chrome/Edge 109+, Firefox 121+, Safari 16.4+ (roughly mid-2023 onwards). Classic-Mac OS 8/9 / Mac IE 5, alas, no.">mid-2023+</span></span>
-            <a href="https://github.com/khawkins98/scriptoscope">view source</a>
-            <a href="./personal.html" title="Real-world example pages: personal blog, shareware Read Me, product landing, docs site">examples →</a>
-            <a href="./diagnostic.html" title="Per-scheme scene + reference comparison, control playgrounds, geometry/slices/icons/rasters/roles inspectors, BYO drop zone">diagnostics →</a>
-          </div>
+          <h2 class="site-install-heading">Make it yours.</h2>
+          <p class="site-install-note">Add a few attributes to your HTML, choose a scheme, and mount the runtime.</p>
+          <p><a href="./install.html">Open the installation guide →</a></p>
+          <p class="site-install-note">Working starters, data attributes, runtime options, and your own Kaleidoscope themes.</p>
         </article>
       </div>
       <section class="site-examples" id="examples" aria-labelledby="examples-title">
@@ -771,7 +722,7 @@
     // Imports use the bare `scriptoscope` specifier — same string a third-
     // party consumer would write. Vite (dev + prod) aliases it to
     // src/index.ts so the landing is a faithful consumer example.
-    import { mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme, VERSION } from 'scriptoscope';
+    import { mountDeclarative, attachThemeDropZone, loadKaleidoscopeScheme } from 'scriptoscope';
     import THEMES from './themes-manifest.json';
 
     // (Removed: the inline `await Promise.all(document.fonts.load(...))`
@@ -793,39 +744,6 @@
     const powersSection = document.getElementById('powers');
     const toggleBtn = document.getElementById('powers-skin-toggle');
     const foldersEl = document.querySelector('[data-scriptoscope-theme-picker]');
-    const verEl = document.getElementById('powers-ver');
-
-    // Version sync — the meta line under the install snippet shows the live
-    // package version (period Mac shareware convention: "Version x.y.z" was
-    // the FIRST line of every Read Me).
-    if (verEl) verEl.textContent = VERSION;
-
-    // Copy-snippet button: grabs the install snippet's text content
-    // (stripping the syntax-highlight spans) + writes it to the
-    // clipboard. Visual confirmation via a .copied class + label flip
-    // that reverts after 1.6s. Falls back gracefully if the Clipboard
-    // API is unavailable (older browsers / non-HTTPS pages).
-    const copyBtn = document.getElementById('powers-install-copy');
-    const snippetEl = document.getElementById('powers-install-snippet');
-    if (copyBtn && snippetEl) {
-      copyBtn.addEventListener('click', async () => {
-        const text = snippetEl.textContent.trim();
-        try {
-          await navigator.clipboard.writeText(text);
-          const original = copyBtn.textContent;
-          copyBtn.textContent = 'Copied';
-          copyBtn.classList.add('copied');
-          setTimeout(() => {
-            copyBtn.textContent = original;
-            copyBtn.classList.remove('copied');
-          }, 1600);
-        } catch {
-          copyBtn.textContent = 'Copy failed';
-          setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600);
-        }
-      });
-    }
-
     // ── Skinning state ──────────────────────────────────────────────────────
     // The toggle is a real button with aria-pressed (was a checkbox before
     // the 2026-05-30 90s-designer pass — disbelief beat needs an INVITATION
@@ -1198,6 +1116,7 @@
       // <div data-scriptoscope-icon="..."> automatically — no boot-time
       // refreshCardGlyphs call needed.)
       await mountPowers();
+      if (location.hash === '#bring-your-own') openModal();
     });
   </script>
 </body>

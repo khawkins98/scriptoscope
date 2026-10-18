@@ -38,6 +38,7 @@ export default defineConfig({
         index: resolve(import.meta.dirname, 'demo/index.html'),
         // The original interactive landing, preserved as the hands-on demo.
         showcase: resolve(import.meta.dirname, 'demo/showcase.html'),
+        install: resolve(import.meta.dirname, 'demo/install.html'),
         story: resolve(import.meta.dirname, 'demo/story.html'),
         acknowledgements: resolve(import.meta.dirname, 'demo/acknowledgements.html'),
         // The developer / contributor diagnostic — was demo/index.html until the

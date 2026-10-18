@@ -14,7 +14,7 @@ test('wayfinding carries the scheme from installation through examples and back'
   await page.locator('.site-example-nav').getByRole('link', { name: 'Docs layout' }).click();
   await expect(page).toHaveURL(/docs.html\?theme=1138/);
   await page.locator('.site-next').getByRole('link', { name: /Put it on your page/ }).click();
-  await expect(page).toHaveURL(/showcase.html\?theme=1138#install/);
+  await expect(page).toHaveURL(/install.html\?theme=1138/);
   await expect(page.locator('#install')).toBeVisible();
 });
 
@@ -60,7 +60,7 @@ test('landing navigation exposes the story as its own page', async ({ page, demo
   await expect(page).toHaveURL(/story.html$/);
   await expect(page.getByRole('heading', { name: 'The story behind the schemes.' })).toBeVisible();
   await expect(page.locator('.site-primary-nav a[aria-current]')).toHaveText('Story');
-  await page.locator('.site-next').getByRole('link', { name: /Try & install/ }).click();
+  await page.locator('.site-next').getByRole('link', { name: /Try the showcase/ }).click();
   await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
   await expect(page.locator('details.site-story')).toHaveCount(0);
 });
@@ -71,7 +71,7 @@ for (const theme of ['evolution', 'black-platinum']) {
     await page.goto(`${demo}/showcase.html?theme=1138`);
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
     await page.locator(`[data-slug="${theme}"]`).click();
-    await expect(page.locator('#install')).toHaveAttribute('data-scriptoscope-theme', theme);
+    await expect(page.locator('#install-teaser')).toHaveAttribute('data-scriptoscope-theme', theme);
     const framesFit = () => page.locator('#powers [data-scriptoscope-window-host]').evaluateAll(hosts => hosts.every(host => {
       const frame = host.shadowRoot?.querySelector('.scriptoscope-window');
       const rect = frame?.getBoundingClientRect();
@@ -106,9 +106,9 @@ test('showcase reflow retains an uploaded scheme and its modal behavior', async 
   await page.locator('#powers-byo-modal-drop input[type=file]').setInputFiles(resolve(root, 'themes/1138/scheme.rsrc'));
   await expect(page.locator('#powers-byo-modal-out')).toContainText('Now wearing');
   await page.setViewportSize({ width: 320, height: 800 });
-  await expect.poll(() => page.locator('#install').getAttribute('data-scriptoscope-theme')).toBe('dropped:scheme.rsrc');
+  await expect.poll(() => page.locator('#install-teaser').getAttribute('data-scriptoscope-theme')).toBe('dropped:scheme.rsrc');
   await expect.poll(() => page.evaluate(() => {
-    const frame = document.querySelector('#install')?.shadowRoot?.querySelector('.scriptoscope-window');
+    const frame = document.querySelector('#install-teaser')?.shadowRoot?.querySelector('.scriptoscope-window');
     return frame ? frame.getBoundingClientRect().right <= innerWidth : false;
   })).toBe(true);
   await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
@@ -116,4 +116,19 @@ test('showcase reflow retains an uploaded scheme and its modal behavior', async 
   await expect(page.locator('#powers-byo-modal-wrap')).toHaveAttribute('data-scriptoscope-modal-open', '');
   await page.keyboard.press('Escape');
   await expect(page.locator('#powers-byo-modal-wrap')).not.toHaveAttribute('data-scriptoscope-modal-open', '');
+});
+
+
+test('installation is separate, preserves old links, and carries the chosen scheme into examples', async ({ page, demo }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto(`${demo}/showcase.html?theme=monkey-paradise#install`);
+  await expect(page).toHaveURL(/install.html\?theme=monkey-paradise#install/);
+  await expect(page.locator('.site-primary-nav a[aria-current]')).toHaveText('Install');
+  await expect(page.locator('#powers-install-snippet')).toContainText("pageThemeDefault: 'monkey-paradise'");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+  await page.getByRole('link', { name: 'Your own theme', exact: true }).click();
+  await expect(page.locator('#own-theme-title')).toBeVisible();
+  await page.getByRole('link', { name: 'Try a file in the showcase →', exact: true }).click();
+  await expect(page).toHaveURL(/showcase.html\?theme=monkey-paradise#bring-your-own/);
+  await expect(page.locator('#powers-byo-modal-wrap')).toHaveAttribute('data-scriptoscope-modal-open', '');
 });

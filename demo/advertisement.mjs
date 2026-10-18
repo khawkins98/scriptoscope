@@ -149,7 +149,7 @@ if (params.has('theme')) {
     status.textContent = hasMoved
       ? `${event.target.dataset.scriptoscopeTheme} closed. Reassemble the face to restore it.`
       : `${event.target.dataset.scriptoscopeTheme} closed. Choose Original mix below to restore all five windows.`;
-    const nextMove = windows.find(window => window.host.isConnected)?.host.shadowRoot
+    const nextMove = windows.find(window => window.host !== event.target && window.host.isConnected)?.host.shadowRoot
       ?.querySelector('[aria-label="Move window"]');
     if (hasMoved) reset.focus({ preventScroll: true });
     else if (nextMove) nextMove.focus({ preventScroll: true });

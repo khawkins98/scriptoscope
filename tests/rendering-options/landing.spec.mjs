@@ -5,6 +5,22 @@ import { readFile } from 'node:fs/promises';
 import { root } from './servers.mjs';
 
 
+async function routePublicAssets(page) {
+  await page.route('https://khawkins98.github.io/scriptoscope/**', async route => {
+    const suffix = new URL(route.request().url()).pathname.replace('/scriptoscope/', '');
+    const path = resolve(root, suffix === 'themes-manifest.json' ? 'demo/themes-manifest.json' : suffix.startsWith('themes/') ? suffix : `dist/${suffix}`);
+    const contentType = suffix.endsWith('.js') ? 'text/javascript'
+      : suffix.endsWith('.css') ? 'text/css' : 'application/octet-stream';
+    const headers = { 'Access-Control-Allow-Origin': '*' };
+    try { await route.fulfill({ body: await readFile(path), contentType, headers }); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      // Preserve the real server's .sit -> .rsrc fallback behavior.
+      await route.fulfill({ status: 404, body: 'Not found', headers });
+    }
+  });
+}
+
 const hosts = page => page.locator('#collage [data-scriptoscope-window-host]');
 async function ready(page) {
   await expect(hosts(page)).toHaveCount(5);
@@ -55,26 +71,14 @@ test('failed initial theme requests leave the portrait recoverable', async ({ pa
 });
 
 test('the displayed installation snippet mounts a real window as copied', async ({ page, demo }) => {
-  await page.goto(`${demo}/showcase.html?theme=1138`);
+  await page.goto(`${demo}/install.html?theme=1138`);
   const snippet = await page.locator('#powers-install-snippet').textContent();
   // Serve the real built entry and real archive at the public URLs in the
   // snippet, so this verifies its bootstrap rather than a rewritten example.
-  await page.route('https://khawkins98.github.io/scriptoscope/**', async route => {
-    const suffix = new URL(route.request().url()).pathname.replace('/scriptoscope/', '');
-    const path = resolve(root, suffix.startsWith('themes/') ? suffix : `dist/${suffix}`);
-    const contentType = suffix.endsWith('.js') ? 'text/javascript'
-      : suffix.endsWith('.css') ? 'text/css' : 'application/octet-stream';
-    const headers = { 'Access-Control-Allow-Origin': '*' };
-    try { await route.fulfill({ body: await readFile(path), contentType, headers }); }
-    catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-      // Preserve the real server's .sit -> .rsrc fallback behavior.
-      await route.fulfill({ status: 404, body: 'Not found', headers });
-    }
-  });
+  await routePublicAssets(page);
   await page.setContent(snippet);
   await expect(page.locator('[data-scriptoscope-window-host]')).toHaveCount(1);
-  await expect(page.getByText('Hello world', { exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Your name' })).toHaveValue('Hello world');
 });
 
 test('windows remain visible beyond the original collage and the initial phone layout fits', async ({ page, demo }) => {
@@ -122,4 +126,41 @@ test('reassembly appears after movement and hides when the face is restored', as
   await expect(reset).toBeVisible();
   await page.getByRole('button', { name: 'Original mix', exact: true }).click();
   await expect(reset).toBeHidden();
+  await hosts(page).first().getByRole('button', { name: 'Close window', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(hosts(page)).toHaveCount(4);
+  await expect(reset).toBeHidden();
+  await expect(hosts(page).first().getByRole('button', { name: 'Move window', exact: true })).toBeFocused();
+  await page.getByRole('button', { name: 'Original mix', exact: true }).click();
+  await ready(page);
+  await expect(reset).toBeHidden();
+});
+
+
+test('the printed custom-theme recipe decodes a real StuffIt file', async ({ page, demo }) => {
+  await page.goto(`${demo}/install.html`);
+  const snippet = await page.locator('#install-byo-snippet').textContent();
+  await routePublicAssets(page);
+  await page.setContent(snippet);
+  await expect(page.locator('[data-scriptoscope-window-host]')).toHaveCount(1);
+  await page.locator('#pick-theme input[type=file]').setInputFiles(resolve(root, 'themes/windows-95/scheme.sit'));
+  await expect(page.locator('#theme-status')).toHaveText('Loaded scheme.sit');
+  await expect(page.locator('[data-scriptoscope-window-host]')).toHaveAttribute('data-scriptoscope-theme', 'my-scheme');
+});
+
+
+test('the printed desktop options populate and switch the catalog', async ({ page, demo }) => {
+  await page.goto(`${demo}/install.html?theme=monkey-paradise`);
+  await expect(page.locator('#install-scheme-name')).toHaveText('monkey-paradise');
+  const starter = await page.locator('#powers-install-snippet').textContent();
+  const markup = await page.locator('#install-switcher').textContent();
+  const options = await page.locator('#install-options').textContent();
+  const snippet = starter.replace(/<article[\s\S]*?<\/article>/, markup)
+    .replace(/const handle = await mountDeclarative\(\{[\s\S]*?\}\);/, options);
+  await routePublicAssets(page);
+  await page.setContent(snippet);
+  await expect(page.locator('#desktop [data-scriptoscope-window-host]')).toHaveCount(1);
+  await expect(page.getByRole('combobox', { name: 'Choose a scheme' })).toHaveValue('monkey-paradise');
+  await page.getByRole('combobox', { name: 'Choose a scheme' }).selectOption('1984');
+  await expect(page.locator('#desktop [data-scriptoscope-window-host]')).toHaveAttribute('data-scriptoscope-theme', '1984');
 });
