@@ -3165,3 +3165,12 @@ CLAUDE.md's working-norms section now points at the recipe so future sessions di
 In prototype mode with fast iteration, the docs are NEVER current — they're behind by some number of commits at any moment. The question isn't "keep them current" (impossible at this cadence) but "make catching up cheap + bounded." A 20-minute sweep after a heavy day prevents 5-10 minutes per future session of "doc says X, code says Y" reconciliation. Pays off after 2-3 sessions.
 
 The deeper move (called out in the recipe's meta-principle section): when a consumer footgun keeps recurring — no close hook → MutationObserver hack; type-as-hint → ambiguous; hand-rolled focus trap → a11y bug — the right answer is *promoting the consumer's workaround into a library primitive*. The widgets-opt-in + `openModal` helper + `scriptoscope:close` event triplet (commits `af2a106`-onward) all came from exactly this pattern. The doc-sweep's step 3 ("does this new API addition warrant a LEARNINGS entry on what consumer-side workaround it deletes") is the trigger.
+
+
+### 2026-10-18 — Keep the published module graph and mount teardown complete
+
+The CDN install path copies the built library into the demo deploy. Vite emits a hashed sibling chunk for the lazy StuffIt decoder; copying only `scriptoscope.js` leaves a successful build whose public library fails when a consumer loads a `.sit` theme. Copy all emitted top-level JavaScript chunks and verify the public entry by decoding a `.sit` through the production preview. The demo app has its own bundled module graph, so a working showcase alone does not validate the CDN install path.
+
+The local extractors had a related source-format gap: `--all` filtered only for `scheme.rsrc`, silently skipping the 13 archive-only bundles. Chrome and icon extraction now share `.sit`-preferred source selection with raw-fork fallback. Verify all 18 bundles rather than trusting a successful exit from a filtered subset.
+
+Picker teardown must release listeners and timers as well as IntersectionObserver. Tiles intentionally remain for the consumer's OFF-mode delegation; old click/keyboard handlers and asynchronous decode completions can therefore act on retained DOM or a later mount. Remove this mount's listeners, clear its busy timer, ignore completions after disposal, and settle `aria-busy` on decode failures too. Regression tests cover remount switching once and old completions leaving the new mount untouched.

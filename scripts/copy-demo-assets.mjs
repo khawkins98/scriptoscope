@@ -106,17 +106,16 @@ for (const slug of await readdir(themesDir)) {
 //
 // Pre-req: `npm run build` must have produced dist/scriptoscope.{js,css}
 // before this script runs. The build:demo npm script handles that ordering.
-const libFiles = [
-  ['dist/scriptoscope.js', 'dist/demo/scriptoscope.js'],
-  ['dist/scriptoscope.js.map', 'dist/demo/scriptoscope.js.map'],
-  ['dist/scriptoscope.css', 'dist/demo/scriptoscope.css'],
-];
-for (const [src, dst] of libFiles) {
-  if (await exists(resolve(root, src))) {
-    await copy(resolve(root, src), resolve(root, dst));
-  } else {
-    console.warn(`  ⚠  ${src} not found — run \`npm run build\` first to populate dist/`);
-  }
+// Include every emitted JS chunk next to the public entry. The StuffIt decoder
+// is dynamically imported from a hashed sibling chunk; copying only the entry
+// makes CDN consumers fail as soon as they load a .sit theme.
+const libFiles = (await readdir(resolve(root, 'dist'), { withFileTypes: true }))
+  .filter((entry) => entry.isFile() && /\.(?:js|js\.map|css)$/.test(entry.name));
+if (!libFiles.some((entry) => entry.name === 'scriptoscope.js')) {
+  throw new Error('dist/scriptoscope.js not found — run `npm run build` first');
+}
+for (const { name } of libFiles) {
+  await copy(resolve(root, 'dist', name), resolve(root, 'dist/demo', name));
 }
 
 // The in-browser theme decoder (StuffIt WASM + the pure-JS theme-loader).

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Extract a Kaleidoscope scheme bundle straight from its binary resource fork.
 // Thin Node shell over the portable conversion core (tools/theme-loader/convert.js):
-// reads themes/<slug>/scheme.rsrc, runs convertChrome (decode → gamma → theme.json →
+// reads themes/<slug>/scheme.sit (preferred) or scheme.rsrc, runs convertChrome (decode → gamma → theme.json →
 // headerColors → bodyBackground), then does the Node-only I/O — PNG-encodes each RGBA
 // asset (zlib) and writes the themes/<slug>/ bundle. The browser loader runs the SAME
 // convertChrome over a dropped Blob; this CLI just adds fs + zlib.
 //
 // Usage: node scripts/extract-scheme.mjs <slug> [<slug>...] | --all
-//   reads  themes/<slug>/scheme.rsrc  (+ optional meta.json)
+//   reads  themes/<slug>/scheme.sit or scheme.rsrc  (+ optional meta.json)
 //   writes themes/<slug>/{cicns,ppats}/*.png, extraction-manifest.json, theme.json
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
@@ -15,6 +15,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodePng } from './lib/png-encode.mjs';
 import { convertChrome } from '../tools/theme-loader/convert.js';
+import { schemeSource, readSchemeFork } from './lib/scheme-source.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -26,24 +27,19 @@ if (argv.length === 0) {
 }
 const themesRoot = resolve(repoRoot, 'themes');
 const slugs = argv.includes('--all')
-  ? readdirSync(themesRoot).filter((s) => existsSync(resolve(themesRoot, s, 'scheme.rsrc')))
+  ? readdirSync(themesRoot).filter((s) => schemeSource(resolve(themesRoot, s)))
   : argv;
-for (const s of slugs) extract(s);
+for (const s of slugs) await extract(s);
 
-function extract(slug) {
+async function extract(slug) {
   const destDir = resolve(repoRoot, 'themes', slug);
-  const rsrcPath = resolve(destDir, 'scheme.rsrc');
-  if (!existsSync(rsrcPath)) {
-    console.error(`Not found: ${rsrcPath}`);
-    process.exit(1);
-  }
   const metaPath = resolve(destDir, 'meta.json');
   const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, 'utf8')) : {};
-  const fork = new Uint8Array(readFileSync(rsrcPath));
 
   let result;
   try {
-    result = convertChrome(fork, { meta, source: `${slug}/scheme.rsrc` });
+    const { fork, source } = await readSchemeFork(destDir);
+    result = convertChrome(fork, { meta, source: `${slug}/${source}` });
   } catch (err) {
     console.error(`[${slug}] conversion FAILED:`, err instanceof Error ? err.message : String(err));
     process.exit(1);
