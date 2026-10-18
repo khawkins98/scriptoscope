@@ -62,15 +62,21 @@ resource id, never by bundle slug** (slugs are author decoration; the id is what
 the kDEF switches on).
 
 **Theme / resource loader** — `src/loadTheme.ts` (runtime) plus the
-extraction toolchain (`tools/theme-loader/` via `scripts/extract-scheme.mjs`,
-offline). A bundle is a directory of decoded PNGs + a `theme.json`; the loader
-fetches it and indexes every element by resource id. See
+portable conversion layer (`tools/theme-loader/`), also used by the offline
+extraction scripts. A shipped bundle contains its original `scheme.sit` or
+`scheme.rsrc`, provenance `meta.json`, and `PROVENANCE.md`. The runtime decodes
+the archive into an in-memory manifest and PNG blob URLs, indexed by structured
+resource ids. Pre-extracted PNGs and `theme.json` are gitignored local diagnostic
+derivatives, not deployment inputs. Background picker previews decode only the
+folder-icon family and encode one small data URL; selecting a theme loads its
+complete resources. See
 [`theme-bundle-layout.md`](../theme-bundle-layout.md) for the on-disk schema and
 [`kaleidoscope-asset-catalog.md`](../kaleidoscope-asset-catalog.md) for the
 control vocabulary.
 
 **Detection layer** — how we stay faithful without eyeballing renders:
-`npm run lint:themes` (static data-shape checks, pre-render) +
+`npm run gates` (typecheck, regression tests including exact compositor RGBA
+cases, strict theme lint, scene coverage audit) +
 `npm run diag:audit` (render-time model invariants) + the
 [faithfulness ledger](./kdef-faithfulness-ledger.md) (routine→impl intent and
 every deliberate divergence) + the diagnostic CLIs / Playground
@@ -94,9 +100,10 @@ in the [reference §1.4](./kdef231-reference.md):
 4. **Walk** — partition each side into cells, **end-based**: the part code
    travels with the border that *closes* its cell, so `[0, border[0])` is the
    intrinsic fixed leading corner (`recipeCells`, `0x5356`/`0x4a64`).
-5. **Distribute** — hand the slack out evenly across the stretch cells,
-   **symmetric about the title** (each side splits into halves at the title
-   cell) (`distributeSide`, `0x5178`).
+5. **Distribute** — split each side about the title. Divide the primary slack
+   among parts 8/11/12/18, rounding code-12 whole tiles down. A second pass
+   redistributes division and tile-rounding remainder across parts 8/11/13/14/18; parts 13/14 receive
+   only remainder (`distributeSide`, `0x5178`).
 6. **Blit** — tile by default (`0xfeae`); a single scaled `CopyBits` only for
    part code 18 (`0x10320`); the title plate (code 5) grows to the *measured*
    title width (`0x4a64`).

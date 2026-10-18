@@ -27,7 +27,7 @@ Scriptoscope is **desktop windowing**. Classic Mac chrome assumes pointer + keyb
 - The chrome canvas is `image-rendering: pixelated`; on high-DPR displays the integer-upscale looks clean.
 - Window-types sized larger than the viewport overflow horizontally. There's no auto-shrink mode.
 
-**Recommended pattern: skip mounting entirely below your breakpoint.** This is the only clean answer — the chrome canvas + the runtime's interactive overlays (move handle, grow box, title widget hit-buttons, themed scrollbars) all live inside a shadow root that page CSS can't reach. Hiding only the chrome canvas via CSS leaves the overlays as invisible-but-clickable regions, an accessibility trap.
+**Choose a responsive layout or skip mounting below your breakpoint.** Consumer grids should allow tracks to shrink (`minmax(0, 1fr)` and `min-width: 0`) and reserve space for cascade offsets before promotion measures their content. Fixed-art chrome still has a minimum useful width, so test your selected themes at the narrowest supported viewport. If your layout cannot fit, conditional mounting keeps the bare HTML available. The chrome canvas and interactive overlays share a shadow root; hiding only the canvas leaves invisible click targets.
 
 ```js
 // Conditional mount — the cleanest pattern.
@@ -104,7 +104,7 @@ img-src    'self' https://khawkins98.github.io blob: data:;
 connect-src 'self' https://khawkins98.github.io blob:;
 ```
 
-**Strict-CSP escape hatch**: if you can't allow `wasm-unsafe-eval`, ship your themes as `scheme.rsrc` (the raw resource fork) instead of `scheme.sit`. The `.rsrc` path skips the WASM decoder entirely. The bundled themes folder ships both; the runtime races `.sit` → `.rsrc` and uses whichever resolves.
+**Strict-CSP escape hatch**: if you can't allow `wasm-unsafe-eval`, ship your themes as `scheme.rsrc` (the raw resource fork) instead of `scheme.sit`. The `.rsrc` path skips the WASM decoder entirely. Pass `{ source: 'scheme.rsrc' }` to `loadTheme` (or set the catalog entry's `source`) to select it directly. Bundled themes generally ship one source format; a raw-fork alternative is not guaranteed. Without a source hint, the runtime tries `.sit` first and then `.rsrc`.
 
 ## Controlling which widgets do something: `data-scriptoscope-widgets`
 
@@ -249,6 +249,12 @@ Practical rules:
 - Event listeners on **children** survive (the nodes themselves moved); listeners on the **wrapper element** are lost (that element is gone).
 
 If your framework expects to manage the lifecycle of the wrapper (React owns the DOM, Vue mounts here), promote AFTER the framework has rendered + use the `scriptoscope:promoted` event on `document` to react to the swap.
+
+### Theme ownership on teardown
+
+`handle.disconnect()` restores mounted windows and releases themes loaded by that mount. Pending loads finish cleanup without committing new windows. You can mount again on the same root immediately.
+
+`handle.registerTheme(ref, theme)` borrows the supplied theme and its base chain. Keep those assets alive while any consumer uses them, then call their own `dispose?.()` methods when finished. Disconnect never disposes caller-registered graphs. Standalone resolver users call `resolver.dispose()` when finished; subsequent loads and registrations fail.
 
 ## Known incompatibilities
 
