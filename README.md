@@ -614,11 +614,13 @@ If a consumer wants period sounds or a desktop picture alongside a loaded scheme
 The [control matrix](./tests/rendering-options/README.md) exercises all 18 schemes
 through source and built APIs, actual promoted DOM and consumer CSS. Its bounded
 profile covers 70 cases per scheme; the extended profile covers 660 valid
-combinations. Reviewed Linux Chromium goldens catch visual drift, while
-source-backed invariants assess known fidelity requirements. Known face/tab limits
-are tracked in [#218](https://github.com/khawkins98/scriptoscope/issues/218) and
-[#223](https://github.com/khawkins98/scriptoscope/issues/223).
-Original-engine comparison and broader window permutations remain active work in
+combinations. Development is driven by this harness: reproduce a concrete issue,
+add a focused acceptance case, and retain reviewed exact Linux Chromium goldens
+as regression evidence. Independent source-backed expected values and reviewed
+original references with matching inputs determine fidelity; screenshots of
+current output alone cannot establish it. Remaining control limits are tracked in
+[#218](https://github.com/khawkins98/scriptoscope/issues/218). Broader original
+tab, font, device and window fidelity remain active work in
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221); the independent
 reference corpus is tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190).
 

@@ -184,6 +184,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Documentation (2026-10-18)
 
+- Clarify harness-driven development, regression versus fidelity evidence, and
+  focused validation without redundant full-suite runs; retain required checks.
+
 - Provisional independent reference-capture requests and evidence intake checks:
   exact source/condition/provenance bindings, separate independent review, known
   self-image contamination checks, and an honest report of thirteen missing
