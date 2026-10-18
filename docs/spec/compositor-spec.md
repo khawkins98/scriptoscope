@@ -44,11 +44,13 @@ Per cell, keyed PURELY on the part code (not pixel content, not width):
 | code(s) | behaviour |
 |---|---|
 | 1, 5, 6, 7, 9, default | **FIXED** — drawn 1:1 at src width. (5/6 are the title bezel: fixed when the title fits; collapse to 0 when it doesn't; never grow.) |
-| 0, 8, 11, 13, 14 | **STRETCH** — even share of the slack. |
+| 8, 11 | **GROW** — a primary share plus rounding remainder. |
+| 13, 14 | **REMAINDER ONLY** — share the leftover pixels after whole-tile truncation; excluded from the primary divisor. |
+| 0 | **COLLAPSE** — zero width. |
 | 10 | **FLAG-GATED** (jump table `0x4a0c` returns the caller's flag): stretches when title-fits is set (`#1` on non-title sides). We classify it FIXED — render-correct for the corpus (see note). |
-| 15, 16, 17 | stretch iff the corresponding widget is PRESENT (cinf flag); else fixed. |
-| 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; stretch (gap fills) when absent. |
-| 12 | **TILE** — like stretch but the dst width is rounded to a whole multiple of src width. |
+| 15, 16, 17 | collapse to zero iff the corresponding widget is PRESENT; else fixed. |
+| 2, 3, 4 | the close/zoom/shade GAP cells — fixed when widget present; collapse to zero when absent. |
+| 12 | **TILE** — primary share truncated down to a whole multiple of source width (possibly zero); the unused fraction joins the remainder pool. |
 | 18 | **SCALE** — a single scaled CopyBits (drawn once, mapped src→dst). |
 
 **code 10 note:** the corpus's code-10 cells resolve to fixed: the 1138 utility
@@ -83,13 +85,23 @@ retired — it holds as long as no widget lands in a growing cell.
   **fixed leading CORNER, drawn 1:1**. The trailing `[border[N-1], srcExtent)` is
   likewise a 1:1 corner. (Corner preservation is intrinsic to the walk — there is
   no separate cornerSize heuristic.)
-- **Distribution** (`0x5178`): budget = (output edge extent − Σ fixed-cell src
-  widths); each stretch cell gets `budget / numStretch` (EVEN, not proportional),
-  remainder spread L→R. **Symmetric about the title:** find the title-region
-  cell, split the side into left/right halves, distribute each half independently
-  so the (centred) title stays centred. A half with NO stretch cell keeps its
-  source width and cedes the slack to the other half (asymmetric schemes like
-  1990's left-third title).
+- **Distribution** (`0x5178`): subtract fixed widths from the output span.
+  Only codes **8/11/12/18** count toward the primary divisor (caller `0x4b3e`).
+  Divide that nonnegative budget evenly, then truncate each code-12 share to
+  whole source-width tiles. A first pass collects both the initial division
+  remainder and every tile's unused fraction (`0x51b4..0x523e`). A second pass
+  divides the accumulated remainder among **8/11/13/14/18**, updating the remaining
+  budget and recipient count after each cell (`0x5260..0x532e`). Codes 13/14 get
+  only this remainder; 8/11/18 also get the primary share. Indivisible extras go
+  to **later** recipients (e.g. 10 pixels across three ordinary growers → 3/3/4).
+  A tile-only edge can leave an unallocated remainder; do not invent partial
+  tiles or a minimum one-tile allocation. With no primary grower, remainder-only
+  cells receive zero.
+  **Symmetric about the title:** each half allocates independently. A half with
+  no primary grower keeps its fixed width and cedes the rest to the other half.
+  Below the fixed-art minimum, the runtime retains fixed widths and clamps the
+  flexible budget to zero, so art can clip. This is an explicit existing runtime
+  limit, not a claim to emulate the kDEF's small-window negotiation.
 - **Per-cell blit:** the kDEF default blit (`0xfeae`) **always TILES** the src
   cell across the dst (`kdef231-recipe-walk.md` Q5) — there is no scaled CopyBits
   for ordinary fills, and `cinf.tileSides` does NOT gate it. Only code 18
@@ -154,8 +166,7 @@ and the **`0x5178` width-pass semantics** — the part-code classifier was readi
 the `0x49d6` table as a fixed/tile binary, so the "stretch" verdict for code 0,
 the gap codes 2/3/4 (widget absent) and the widget-cell codes 15/16/17 (widget
 present) TILED those cells. In the kDEF that verdict means **collapse to width
-0**: the cell yields its span to the genuine growers (8/11/13/14, tile 12,
-scale 18) / to the separately-drawn widget. Fixing this removed 1984's row of
+0**: the cell yields its span to the primary growers (8/11, tile 12, scale 18) and remainder cells (13/14) / to the separately-drawn widget. Fixing this removed 1984's row of
 title-tab arches (code 15 tiled) without a content heuristic — it now collapses,
 and the flat fill grows, matching the period reference's structure.
 
@@ -166,6 +177,14 @@ its own 1:1 cicn-corner block. The bottom edge already drew last; the TOP edge
 did not, so a side re-introduced the very art the top edge had collapsed (1984's
 close-tab/bar junction left a ~2px wedge). Drawing top last (the title bar owns
 its corners) made the collapse hold — 1984 now matches the reference pixel-wise.
+The 2026-10-18 allocation correction follows the two-pass routine above. The old
+single-pass allocator counted 13/14 as full growers and rounded tiles to nearest,
+losing or overrunning the output budget. At content width 240, monkey-paradise's
+bottom edge ended 14 pixels early; at 320 it clipped 67 opaque corner pixels.
+`src/composeChrome.test.mjs` now verifies actual bottom-corner pixels for both
+states of monkey-paradise and animals at native/240/320 widths, plus small pure
+allocation cases. These tests run in `npm test` and therefore `npm run gates`.
+
 Open:
 1. **`cinf` is not surfaced/used** (cornerSize / sideThickness / tileSides /
    textPixel). The corpus ships no window `cinf`, so the compositor derives the

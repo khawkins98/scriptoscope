@@ -3189,3 +3189,23 @@ The utility/mini/floating/palette resolver ranked PNG filename words, even thoug
 A promise cache must evict rejected entries to permit recovery after transient fetch or decode failures. Compare the cached promise before evicting: an in-flight theme load can fail after register() replaces it, and the older failure must not delete the replacement. Successful and pending results remain shared.
 
 Asset encoders run concurrently. Promise.all's first rejection does not stop sibling workers, so cleanup at that point misses URLs minted later. Wait for every encoder to settle, revoke the completed decode's URLs on failure, and propagate the error. Deferred factory invocation captures synchronous throws too. Cleanup owns only this decode's URLs; neither failure cleanup nor dispose traverses shared/base themes.
+
+## 2026-10-18 — Whole-tile allocation needs two passes
+
+The `0x5178` allocator has two distinct recipient sets. Its caller at `0x4b3e`
+counts only parts 8/11/12/18 for the primary division; parts 13/14 receive only
+rounding remainder. A first pass collects each code-12 tile's unused fraction,
+then the second pass redistributes that remainder across 8/11/13/14/18. Signed
+integer division truncates; for our supported nonnegative budgets this means
+whole tiles round DOWN, and sequential remainder division puts extra pixels
+toward the end of the walk. The old nearest-tile rounding plus ordinary growth
+for 13/14 could change the total width: monkey-paradise at content width240 left
+a 14×15 transparent bottom-right gap, and width320 clipped 67 opaque corner pixels.
+
+Tests now exercise small hand-derived cases and original corpus RGBA corner
+pixels at native/240/320 widths. A placement map alone is not a pixel oracle.
+The existing `diag:audit` caught coverage gaps but is separate from the scene
+coverage audit in `gates`; the focused compositor tests now run in that gate.
+The full diagnostic still includes unrelated widget-pass warnings. Below the
+fixed-art minimum we preserve the existing clamp-and-clip policy rather than
+claiming to implement the kDEF's separate small-window negotiation.
