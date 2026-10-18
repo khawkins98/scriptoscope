@@ -11,7 +11,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Clean installed-tarball consumer check: strict public declaration resolution,
   isolated production bundling, real archive loading/native interaction and
-  teardown, with missing CSS/lazy-dependency negatives in pinned browser CI.
+  teardown, with missing assets and declaration-escape negatives in pinned CI.
 
 - Versioned fidelity compatibility-contract draft defining proposed source inputs,
   family boundaries, evidence obligations and explicit substitutions. Its target

@@ -96,12 +96,14 @@ async function bundleConsumer(prepared, outDir) {
   } catch (error) { error.phase = 'bundle'; throw error; }
 }
 
-async function negativeTarball(original, omitted, expectedPhase, name) {
+async function negativeTarball(original, file, expectedPhase, name, mutate, failureNeedle = file.split('/').at(-1)) {
   const unpack = join(workspace, `unpack-${name}`);
   await mkdir(unpack);
   command('tar', ['-xzf', original, '-C', unpack], workspace);
-  assert((await stat(join(unpack, 'package', omitted))).isFile(), `Negative fixture did not exist: ${omitted}`);
-  await rm(join(unpack, 'package', omitted));
+  const changed = join(unpack, 'package', file);
+  assert((await stat(changed)).isFile(), `Negative fixture did not exist: ${file}`);
+  if (mutate) await writeFile(changed, mutate(await readFile(changed, 'utf8')));
+  else await rm(changed);
   const tarball = join(workspace, `${name}.tgz`);
   command('tar', ['-czf', tarball, '-C', unpack, 'package'], workspace);
   let failure;
@@ -109,12 +111,12 @@ async function negativeTarball(original, omitted, expectedPhase, name) {
     const prepared = await prepareConsumer(tarball, name);
     await bundleConsumer(prepared, join(workspace, `out-${name}`));
   } catch (error) { failure = error; }
-  assert(failure, `An omitted packed ${omitted} unexpectedly passed`);
+  assert(failure, `The defective packed ${file} unexpectedly passed`);
   assert.equal(failure.phase, expectedPhase, `The negative must fail at ${expectedPhase}, not an unrelated phase`);
   const message = `${failure.message}\n${failure.stdout ?? ''}\n${failure.stderr ?? ''}`;
-  assert(message.includes(omitted.split('/').at(-1)), 'The failure must identify the omitted file');
-  record.negativeCases.push({ omitted, expectedPhase, rejected: true, message });
-  console.log(`Rejected missing packed ${omitted} at ${expectedPhase}.`);
+  assert(message.includes(failureNeedle), 'The failure must identify the specific package defect');
+  record.negativeCases.push({ file, defect: mutate ? 'external-declaration-import' : 'missing-file', expectedPhase, rejected: true, message });
+  console.log(`Rejected defective packed ${file} at ${expectedPhase}.`);
 }
 
 try {
@@ -221,8 +223,15 @@ try {
   const lazy = [...main.matchAll(/import\(["'](\.\/[^"']+\.js)["']\)/g)].map(match => match[1])[0];
   assert(lazy, 'No actual lazy loader dependency found for the negative fixture');
   await negativeTarball(tarball, join('dist', lazy), 'bundle', 'missing-decoder');
+  await negativeTarball(tarball, 'dist/tools/theme-loader/loadKaleidoscopeScheme.d.ts', 'types', 'escaped-types', declaration => {
+    const target = "from '../../types/types.js'";
+    assert.equal(declaration.split(target).length, 2);
+    // The repository file exists and typechecks. Without the declaration-graph
+    // boundary this defective tarball would silently pass using checkout types.
+    return declaration.replace(target, `from ${JSON.stringify(join(root, 'src/types.js'))}`);
+  }, 'Declaration import escaped the installed consumer');
   record.complete = true;
-  console.log('Packed consumer passed: exports, strict declarations, isolated production build, archive decoding, native interaction/teardown and two omitted-file negatives.');
+  console.log('Packed consumer passed: exports, strict declarations, isolated production build, archive decoding, native interaction/teardown and three package-boundary negatives.');
 } catch (error) {
   record.error = `${error.stack}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`;
   throw error;

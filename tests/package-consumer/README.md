@@ -10,9 +10,10 @@ unique temporary consumer, resolves root/declarative/CSS/package.json exports,
 and compiles both public declaration entrypoints with strict Bundler resolution
 and `skipLibCheck: false`. A missing relative declaration must fail here even
 when repository typechecking passes. Every compiled type file must belong to the
-installed consumer or TypeScript's own standard libraries. The build copies the authoritative browser
-loader declaration into `dist/tools/`, rebasing its source-type reference to the
-emitted declarations rather than maintaining a second public interface.
+installed consumer or TypeScript's own standard libraries. The build copies the
+authoritative browser loader declaration into `dist/tools/`, rebasing its
+source-type reference to the emitted declarations rather than maintaining a
+second public interface.
 
 Vite builds the fixture with an explicit isolated configuration and no aliases.
 Every filesystem module must belong to that consumer; tool-generated virtual
@@ -28,6 +29,9 @@ cross-origin requests and browser errors fail the smoke. It also repacks candida
 omitting CSS and the actual lazy decoder chunk: these must fail at export-file
 resolution and bundling respectively, naming the omitted file. The normal
 consumer keeps the decoder live by loading a StuffIt archive.
+A third candidate points the packed declaration at an existing repository type
+file. It must fail the type-file boundary even though those types compile,
+proving that checkout files cannot silently satisfy a broken tarball.
 
 Compact `result.json` evidence and failure screenshots live under
 `test-results/rendering-evidence/package-consumer/`. Set
