@@ -98,6 +98,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   the root entrypoint, with its LoadedTheme import pointing at emitted types.
   Clean TypeScript consumers no longer need repository files or skipLibCheck.
 
+
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab
   offsets, and track clicks center the thumb without changing imperative slider
@@ -120,6 +121,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Solid push and bevel faces with explicit cinf metadata now use square corners,
   independent masked edge bands and the source-defined inset-union body fill.
   Pattern-backed faces and list headers remain tracked separately under #218.
+
+- Decode indexed pixel patterns using their explicit color-table offset and
+  flag-dependent pixel-value mapping; unsupported destination-palette tables
+  are skipped instead of using unrelated stored RGB colors.
 
 - Fixed Firefox startup in the extended rendering workflow by matching the
   container user to its mounted home. Browser launch preflight now fails before

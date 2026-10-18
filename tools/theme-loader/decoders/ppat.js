@@ -2,7 +2,7 @@
 //
 // Serialized layout (per Inside Macintosh: Imaging With QuickDraw, ch. 4):
 //
-//   0    UInt16 patType                — 0=basic, 1=RGB-based, 2=full
+//   0    UInt16 patType                — 0=basic, 1=full-color, 2=RGB pattern
 //   2    UInt32 patMap offset          — offset to PixMap from start
 //   6    UInt32 patData offset         — offset to pixel data from start
 //   10   UInt32 patXData offset        — offset to expanded data (we ignore)
@@ -13,19 +13,21 @@
 //
 // At patMap offset: a PixMap (50 bytes), no embedded mask/bmap.
 // At patData offset: indexed pixel data (rowBytes * height bytes).
-// After pixel data: ColorTable.
+// PixMap.pmTable is the resource-relative offset to the ColorTable; it need
+// not immediately follow the image rows. See docs/spec/ppat-decoding.md.
 //
 // Patterns are typically 8x8 but the bounds field is authoritative.
 
 import {
   Reader, readPixMap, readColorTable,
-  expandIndexedPixels, indexToRgb,
+  expandIndexedPixels,
 } from './shared.js';
 
 /**
  * @param {Uint8Array} bytes  Raw ppat resource bytes
  * @returns {{width: number, height: number, rgba: Uint8Array, debug: object}|null}
- *   Returns null for unsupported pattern types (only patType 1 is decoded today).
+ *   Returns null for unsupported pattern types or palette-relative color tables.
+ *   Existing direct-color/type2 handling is outside the indexed-table contract.
  */
 export function decodePpat(bytes) {
   const r = new Reader(bytes);
@@ -104,15 +106,32 @@ export function decodePpat(bytes) {
     };
   }
 
-  // Indexed-color path (1/2/4/8 bpp): color table follows the pixel data.
+  // Indexed-color path (1/2/4/8 bpp). In a serialized ppat, pmTable is an
+  // offset from the resource start, not an in-memory handle or row-end hint.
+  if (pmap.pmTable + 8 > bytes.length) throw new RangeError('ppat color table header is outside the resource');
+  r.seek(pmap.pmTable);
   const colorTable = readColorTable(r);
+  if (colorTable.count < 0 || r.offset > bytes.length) throw new RangeError('ppat color table entries are truncated or invalid');
+  // Apple TN QD13: bit14 redirects ColorSpec.value into a destination-window
+  // palette and ignores RGB. A standalone decoder has no such palette.
+  if (colorTable.flags & 0x4000) return null;
+  // Bit15 set means positional device entries; otherwise ColorSpec.value is
+  // the actual pixel value, including sparse/permuted tables. Keep this local
+  // to ppat: the shared cicn lookup has not earned the same source contract.
+  const colors = new Map();
+  colorTable.entries.forEach((entry, position) => {
+    const index = colorTable.flags & 0x8000 ? position : entry.value;
+    if (!colors.has(index)) colors.set(index, [entry.r >> 8, entry.g >> 8, entry.b >> 8]);
+  });
 
   const indices = expandIndexedPixels(
     pixelBytes, pmap.width, pmap.height, pmap.pixelSize, pmap.rowBytes,
   );
 
   for (let i = 0; i < indices.length; i++) {
-    const [rR, gR, bR] = indexToRgb(indices[i], colorTable);
+    // Preserve the existing visible black fallback for missing values. The
+    // original foreground/background interpolation is not implemented here.
+    const [rR, gR, bR] = colors.get(indices[i]) ?? [0, 0, 0];
     const o = i * 4;
     rgba[o] = rR;
     rgba[o + 1] = gR;

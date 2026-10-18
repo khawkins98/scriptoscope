@@ -3758,6 +3758,24 @@ Native pointer input/commit comparisons therefore use numeric values and retain
 the current spelling for unchanged values, including the original spelling when
 a drag returns to its starting step bucket.
 
+### 2026-10-18 — Pixel-pattern tables are addressed data, not adjacent palettes (#255)
+
+Independent hand-encoded ppat fixtures exposed two assumptions that sequential
+corpus palettes had hidden: the serialized PixMap.pmTable offset may leave a gap
+after image rows, and ColorSpec.value is the pixel index when ctFlags bit15 is
+clear. Apple's QD13 makes the flags distinction explicit: bit15 set instead uses
+entry position; bit14 requires an external destination palette and ignores RGB.
+The standalone decoder now declines that palette-dependent case.
+
+Keep this change ppat-specific. The shared cicn lookup still prefers positional
+entries and needs its own independent fixture/source contract. The corrected
+ppat decoder does not establish original pattern origin, body composition,
+resource search ownership, device color quantization or missing-color blending.
+All 218 ppat resource observations across the 18 pinned forks, including decoded
+RGBA hashes, were identical before/after; six of eight new fixture tests failed
+on prior code. Existing corpus agreement alone would have missed these defects.
+See [the decoder contract](docs/spec/ppat-decoding.md).
+
 ## 2026-10-18 — Verify branch polarity and trap identity before pattern work (#218)
 
 The older cinf resize-behavior note inverted the `cmp mode,5` / `bne` paths and
