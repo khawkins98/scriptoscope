@@ -8,7 +8,8 @@ import ts from 'typescript';
 const moduleUrl = async (path) => 'data:text/javascript;base64,' + Buffer.from(
   ts.transpileModule(await readFile(new URL(path, import.meta.url), 'utf8'), {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-  }).outputText,
+  }).outputText.replace('../tools/theme-loader/display-profile.js',
+    new URL('../../tools/theme-loader/display-profile.js', import.meta.url).href),
 ).toString('base64');
 let source = ts.transpileModule(await readFile(new URL('./themePicker.ts', import.meta.url), 'utf8'), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
@@ -38,7 +39,7 @@ class Element extends EventTarget {
   focus() { document.activeElement = this; this.dispatchEvent(new Event('focus')); }
 }
 const themes = [{ slug: 'one' }, { slug: 'two' }];
-const iconTheme = { inspector: { iconIndex: [{ id: -3983, size: 32, url: 'blob:folder' }] } };
+const iconTheme = { manifest: {}, inspector: { iconIndex: [{ id: -3983, size: 32, url: 'blob:folder' }] } };
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 const setup = (t) => {
   const prior = globalThis.document;
