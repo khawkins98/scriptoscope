@@ -8,6 +8,11 @@ Thanks for your interest in contributing to Scriptoscope.
 
 Scriptoscope is plain TypeScript with no framework dependency.
 
+Use **Node.js 24** for development, matching CI. Vite 7 requires Node
+`^20.19.0 || >=22.12.0`, and the test runner also uses Node's TypeScript
+stripping flag. The published package's `engines` field is not the contributor
+toolchain requirement.
+
 1. **Fork and clone.**
    ```sh
    # Fork on GitHub first, then:

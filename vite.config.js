@@ -97,6 +97,9 @@ export default defineConfig(({ command }) => {
   // Library build mode — single ESM entry from src/index.ts.
   return {
     build: {
+      // Preserve the Vite 5 library target when upgrading the build tooling.
+      // Consumers should not inherit Vite 7's newer default browser floor.
+      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
       outDir: 'dist',
       emptyOutDir: true,
       sourcemap: true,

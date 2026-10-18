@@ -3174,3 +3174,8 @@ The CDN install path copies the built library into the demo deploy. Vite emits a
 The local extractors had a related source-format gap: `--all` filtered only for `scheme.rsrc`, silently skipping the 13 archive-only bundles. Chrome and icon extraction now share `.sit`-preferred source selection with raw-fork fallback. Verify all 18 bundles rather than trusting a successful exit from a filtered subset.
 
 Picker teardown must release listeners and timers as well as IntersectionObserver. Tiles intentionally remain for the consumer's OFF-mode delegation; old click/keyboard handlers and asynchronous decode completions can therefore act on retained DOM or a later mount. Remove this mount's listeners, clear its busy timer, ignore completions after disposal, and settle `aria-busy` on decode failures too. Regression tests cover remount switching once and old completions leaving the new mount untouched.
+
+
+### 2026-10-18 — Upgrade build tooling without silently raising browser requirements
+
+Vite 7's default build target is newer than Vite 5's. The library config previously relied on that default, so upgrading Vite alone would silently raise the browser requirements of the public runtime. Pin the previous resolved target (`es2020`, Edge 88, Firefox 78, Chrome 87, Safari 14) in the library build; the demo keeps its existing explicit `es2022` target. Contributor tooling uses Node 24, matching CI, independently of the published package's engine metadata. Validate both the standalone CDN entry's lazy archive decoder and the separately bundled demo after build-tool upgrades.
