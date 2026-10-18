@@ -1,0 +1,71 @@
+{
+  "method": "Independent Python big-endian resource map and payload header reads; no runtime decoder or resolver",
+  "cases": [
+    {
+      "slug": "1138",
+      "archiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "resources": [
+        {
+          "type": "cicn",
+          "id": -9975,
+          "bytes": 450,
+          "sha256": "4437c21a888c6699a1f9b6ed0082e8eee3b60044731ec2c1f971519f65696ded",
+          "bounds": [
+            0,
+            0,
+            16,
+            23
+          ]
+        },
+        {
+          "type": "cinf",
+          "id": -9975,
+          "bytes": 18,
+          "sha256": "ae2174fe3e882ca94ec90bea2c26e9e2795ac161e8d4a03b83e14a720e94f259",
+          "corner": 10,
+          "side": 10,
+          "tile": 0,
+          "bodyMode": 0,
+          "bodyResourceId": 0,
+          "bgYX": [
+            5,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "1990",
+      "archiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "resources": [
+        {
+          "type": "cicn",
+          "id": -9975,
+          "bytes": 522,
+          "sha256": "64d22d93341bba232875aba69d88b9e12c4ebccf1dd55718d6c2e3c93a2ffabf",
+          "bounds": [
+            0,
+            0,
+            16,
+            32
+          ]
+        },
+        {
+          "type": "cinf",
+          "id": -9975,
+          "bytes": 18,
+          "sha256": "8d55389076dfea56f80c5a77c877d9ec6798a30289b1c327cb48079468ce1609",
+          "corner": 14,
+          "side": 14,
+          "tile": 0,
+          "bodyMode": 0,
+          "bodyResourceId": 0,
+          "bgYX": [
+            8,
+            14
+          ]
+        }
+      ]
+    }
+  ]
+}
