@@ -98,14 +98,6 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   the root entrypoint, with its LoadedTheme import pointing at emitted types.
   Clean TypeScript consumers no longer need repository files or skipLibCheck.
 
-- Overlapping theme requests no longer let delayed chrome replace a newer window
-  batch. Window preparation is isolated from live canvases, failed newer requests
-  cannot revive superseded work, and declarative completion/default/URL updates
-  follow successful work. Dynamic scans join the current request boundary; native
-  focus and state survive face replacement. Direct public button/tab preparation
-  remains usable in disconnected fragments; reentrant button insertion disposes
-  discarded faces without leaving duplicate controls. (Refs #237.)
-
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab
   offsets, and track clicks center the thumb without changing imperative slider
@@ -121,6 +113,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   preserving live form state and consumer attributes. Retheme and teardown release
   old face/global drag listeners and pending paints, cancel unfinished promotion,
   and remove mount-owned theme-switcher wiring (#232).
+
+- Overlapping theme requests no longer let delayed chrome replace a newer window
+  batch. Window preparation is isolated from live canvases, failed newer requests
+  cannot revive superseded work, and declarative completion/default/URL updates
+  follow successful work. Dynamic scans join the current request boundary; native
+  focus and state survive face replacement. Direct public button/tab preparation
+  remains usable in disconnected fragments; reentrant button insertion disposes
+  discarded faces without leaving duplicate controls. (Refs #237.)
 
 - Promoted range sliders retain associated labels and explicit ARIA naming,
   including naming precedence and live label references after retheming (#229).
