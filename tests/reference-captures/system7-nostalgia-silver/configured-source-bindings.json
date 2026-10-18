@@ -1,0 +1,63 @@
+{
+  "configuredScheme": {
+    "archiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+    "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+    "evidence": "capture-log.json native public Copl status0/ref1318, successful FCB fileID441/parent2; configured-source-bindings.json stopped resource fork equality to canonical input. Not selected-paint provider attribution."
+  },
+  "nativeEvidence": "capture-log.json",
+  "stoppedForkJoins": [
+    {
+      "stoppedFileName": "v7d-stopped-System7.bin",
+      "stoppedFileSha256": "fe4d5ec2c28f38dc46c9912ffab4310b980ea53a4e2feee2f042f29628e5afb4",
+      "resourceForkBytes": 130067,
+      "resourceForkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "scope": "Stopped file identity, not selected paint ownership"
+    },
+    {
+      "stoppedFileName": "v7d-stopped-Kaleidoscope.bin",
+      "stoppedFileSha256": "0ce88e07fcd32462fcb594eabc46163aa2262d2d357fd2b0f77e7af5b4734091",
+      "resourceForkBytes": 1005535,
+      "resourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+      "scope": "Stopped file identity, not selected paint ownership"
+    }
+  ],
+  "engineComponents": [
+    {
+      "type": "CDEF",
+      "id": 0,
+      "bytes": 174,
+      "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+    },
+    {
+      "type": "PACH",
+      "id": 130,
+      "bytes": 87914,
+      "sha256": "bf113e709425a811e0805e97dea7c028e46c50909fadb781226295e0b52d5b44"
+    },
+    {
+      "type": "PACH",
+      "id": 131,
+      "bytes": 145320,
+      "sha256": "465b312d14eca52ed9e3164caceb7759272613a862b0d4fb8dcee8c0da82fd7c"
+    },
+    {
+      "type": "WDEF",
+      "id": 0,
+      "bytes": 176,
+      "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+    },
+    {
+      "type": "kDEF",
+      "id": 0,
+      "bytes": 107726,
+      "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342"
+    },
+    {
+      "type": "kDEF",
+      "id": 1,
+      "bytes": 175572,
+      "sha256": "32ed7af07c92e343f4e5ba52a54da601be80d4956e3a5b49b980035ce1b94db5"
+    }
+  ],
+  "sharedEngineJoin": "Both observations have byte-identical stopped installed Kaleidoscope file/fork; actual CDEF/WDEF wrappers match. No full patch ordering claim."
+}

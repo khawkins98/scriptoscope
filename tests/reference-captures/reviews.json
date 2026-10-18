@@ -1,4 +1,137 @@
 {
   "schemaVersion": 1,
-  "reviews": []
+  "reviews": [
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 1,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty normal face under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request"
+        ]
+      },
+      "captureId": "windows-95.normal.v9.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T22:12:45.683Z",
+      "captureDigest": "a7867d6fab504c3c036cec95ae26b00e7247a14d0195b26c6c5e0008d9fa9d33",
+      "requestDigest": "ec320dd515dd54815d1760eee612692679c01eda902355cad18ac44d9dc358c3",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI evidence review against landed scope public-api-empty-face v1 only. Directly checked sealed original artifacts, not merely submitted metadata: source/installed MacBinary resource-fork and component joins; configured Copl/FCB file identities; native invocation/procedure/variant/hilite/value0, empty title, fixed Rect, active/enabled state, full effective clip and white background; compiled source invocation and capture glue; producer build and boot-volume hashes.\n\nOriginal full-frame PNG equals retained 1228800-byte producer RGBA. Submitted160x80 port and96x36 context are exact integer crops at recorded frame coordinates; entire80x20 face retained. Both original frames viewed. Native excerpt/redaction lines and palette/gamma table bytes checked directly. Sanitized package excludes original engine/OS/ROM/emulator/font/app payloads; included binary artifacts are only observed palette and gamma tables. No Scriptoscope rendering or substituted assets generate these original images.\n\nWindows95v9 palette/producer conditions bracket the mapping batch AFTER Draw1Control. This is accepted as recorded post-draw observational context, not a pre-draw/bracketing claim or general color-transform proof.\n\nConfigured scheme is not selected-resource/cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. No public default API was invoked; this does not prove private default flags false. Producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as composited-face observation on the recorded opaque background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, private painter or whole-device fidelity claim. ZERO requirements verified; ALL FIVE request requirements remain unresolved and whole request evidence-incomplete. No renderer comparison or ledger promotion is part of this attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 1,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty normal face under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request"
+        ]
+      },
+      "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T22:12:45.683Z",
+      "captureDigest": "d4b659cb023abf44ca7506e4e11a6a2a7f10a516237b5604a793b2e163785816",
+      "requestDigest": "3d8e4d9a9b778e9c4bce6784cf0533400343e2977d3656061751267d6ddcd4cc",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI evidence review against landed scope public-api-empty-face v1 only. Directly checked sealed original artifacts, not merely submitted metadata: source/installed MacBinary resource-fork and component joins; configured Copl/FCB file identities; native invocation/procedure/variant/hilite/value0, empty title, fixed Rect, active/enabled state, full effective clip and white background; compiled source invocation and capture glue; producer build and boot-volume hashes.\n\nOriginal full-frame PNG equals retained 1228800-byte producer RGBA. Submitted160x80 port and96x36 context are exact integer crops at recorded frame coordinates; entire80x20 face retained. Both original frames viewed. Native excerpt/redaction lines and palette/gamma table bytes checked directly. Sanitized package excludes original engine/OS/ROM/emulator/font/app payloads; included binary artifacts are only observed palette and gamma tables. No Scriptoscope rendering or substituted assets generate these original images.\n\nSystem7v7d conditions bracket Draw1Control. Any System7 association with the later v9 profile is CROSS-RUN matching recorded palette/gamma only, not same-run or identical hidden environment.\n\nConfigured scheme is not selected-resource/cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. No public default API was invoked; this does not prove private default flags false. Producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as composited-face observation on the recorded opaque background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, private painter or whole-device fidelity claim. ZERO requirements verified; ALL FIVE request requirements remain unresolved and whole request evidence-incomplete. No renderer comparison or ledger promotion is part of this attestation."
+    }
+  ]
 }

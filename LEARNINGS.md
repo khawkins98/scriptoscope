@@ -4402,3 +4402,18 @@ Timing matters: conditions measured after a draw cannot be called pre-draw or
 bracketing evidence. Exact producer build hashes need not imply a known semantic
 release. The [scoped intake](docs/spec/scoped-reference-observations.md) records
 these limits without new captures, a renderer verdict or automatic ledger edits.
+
+### 2026-10-19 — Exercise the real nonempty intake boundary
+
+An empty corpus concealed a wrong intake root in its unit test: no artifact path
+was ever resolved. The first two reviewed original observations now exercise
+the actual intake directory, every bound artifact and separate review digest.
+Keep the result checks equally concrete: two scoped observations, eleven missing
+requests, zero verified requirements and all broader targets unresolved. Passing
+metadata eligibility is not a renderer comparison.
+
+Preserve what an identity hash actually identifies. The original OS receipt pins
+a copied preboot volume, not an isolated System file; producer build hashes do
+not establish a semantic release. Sanitized native excerpts retain original log
+hashes and exact line/redaction bindings without redistributing font/cache bytes.
+See [the admitted observations and limits](tests/reference-captures/ORIGINALS.md).

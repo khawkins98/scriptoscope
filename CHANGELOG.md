@@ -7,6 +7,15 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added (2026-10-19)
+
+- Admit two independently AI-reviewed original empty normal button observations
+  for Windows 95 and System 7 under the bounded public-API face scope. Retain
+  full frames, exact port/context crops, sanitized logs and recorded conditions;
+  all broader requirements remain unresolved and neither whole request is
+  satisfied. No original executable/font payloads, runtime change or ledger
+  promotion is included (#190).
+
 ### Added (2026-10-18)
 
 - Add a narrow versioned reference-review scope for the two fixed empty normal
