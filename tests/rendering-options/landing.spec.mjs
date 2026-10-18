@@ -1,20 +1,9 @@
-import { test as base, expect } from '@playwright/test';
-import { createServer } from 'vite';
+import { expect } from '@playwright/test';
+import { test } from './demo-fixtures.mjs';
 import { resolve } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { root } from './servers.mjs';
 
-const test = base.extend({
-  demo: [async ({}, use) => {
-    const server = await createServer({
-      configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'),
-      server: { host: '127.0.0.1', port: 0, open: false },
-    });
-    await server.listen();
-    try { await use(`http://127.0.0.1:${server.httpServer.address().port}`); }
-    finally { await server.close(); }
-  }, { scope: 'worker' }],
-});
 
 const hosts = page => page.locator('#collage [data-scriptoscope-window-host]');
 async function ready(page) {

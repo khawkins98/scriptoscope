@@ -73,24 +73,46 @@
     }
     .footer-credit a { color: #0000EE; }
   </style>
+  <link rel="stylesheet" href="./site-shell.css">
+  <script type="module" src="./site-shell.mjs"></script>
 </head>
-<body>
+<body class="site-support site-example site-example-docs">
 
-  <nav class="topnav">
-    <span class="examples-nav">
-      <a href="./">← Showcase</a><span>·</span>
-      <a href="./personal.html">Personal blog</a><span>·</span>
-      <a href="./shareware.html">Shareware Read Me</a><span>·</span>
-      <a href="./landing.html">Product landing</a><span>·</span>
-      <strong>Documentation</strong>
-    </span>
-    <span>Theme: <select data-scriptoscope-theme-switcher aria-label="Switch theme"></select></span>
-  </nav>
+  <a class="site-skip" href="#page-content">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
+      <nav class="site-primary-nav" aria-label="Main navigation">
+        <a href="./">Home</a>
+        <a href="./showcase.html">Try & install</a>
+        <a href="./showcase.html#examples" aria-current="location">Examples</a>
+        <a href="./diagnostic.html">Diagnostics</a>
+        <a href="https://github.com/khawkins98/scriptoscope">Source</a>
+      </nav>
+    </div>
+  </header>
+  <section class="site-intro" aria-labelledby="site-page-title">
+    <p class="site-eyebrow">02 / EXAMPLES — DOCUMENTATION LAYOUT</p>
+    <h1 id="site-page-title">Documentation, with a little personality.</h1>
+    <p class="site-deck">A table of contents, a readable guide, and links that take you where you need to go. The layout is the example; your own documentation goes inside.</p>
+    <div class="site-intro-links"><a href="./showcase.html#install">Use this on your site →</a><a href="https://github.com/khawkins98/scriptoscope/blob/main/demo/docs.html">View this page’s HTML →</a></div>
+  </section>
+  <p class="site-example-note">Drift is a fictional product. For real Scriptoscope setup, use “Try & install” above.</p>
+  <div class="site-example-bar">
+    <nav class="site-example-nav" aria-label="Example layouts">
+        <a href="./personal.html">Personal page</a>
+        <a href="./shareware.html">Shareware Read Me</a>
+        <a href="./landing.html">Product page</a>
+        <a href="./docs.html" aria-current="page">Docs layout</a>
+    </nav>
+    <label class="site-theme-control">Try a scheme <select data-scriptoscope-theme-switcher data-scriptoscope-control="off" aria-label="Switch theme"></select></label>
+  </div>
 
-  <main class="page">
+
+  <main class="page" id="page-content" aria-label="Docs layout example">
 
     <!-- LEFT — Table of Contents nav. -->
-    <article class="toc" data-scriptoscope-window
+    <article class="toc site-paper-window" data-scriptoscope-window
              data-scriptoscope-title="Drift v1.0"
              data-scriptoscope-window-type="titled-utility-window"
              data-scriptoscope-widgets="zoom,collapse">
@@ -99,26 +121,26 @@
         <li class="section">Getting started</li>
         <li><ul>
           <li class="here">Quickstart</li>
-          <li><a href="#">Installing</a></li>
-          <li><a href="#">First sync</a></li>
+          <li><a href="#install">Installing</a></li>
+          <li><a href="#sync">First sync</a></li>
         </ul></li>
-        <li class="section"><a href="#">Concepts</a></li>
+        <li class="section"><a href="#init">Concepts</a></li>
         <li><ul>
-          <li><a href="#">Repositories</a></li>
-          <li><a href="#">Branches</a></li>
-          <li><a href="#">Commits</a></li>
-          <li><a href="#">Conflicts</a></li>
+          <li><a href="#init">Repositories</a></li>
+          <li><a href="#branch">Branches</a></li>
+          <li><a href="#commit">Commits</a></li>
+          <li><a href="#branch">Conflicts</a></li>
         </ul></li>
-        <li class="section"><a href="#">Commands</a></li>
+        <li class="section"><a href="#commands">Commands</a></li>
         <li><ul>
-          <li><a href="#">drift init</a></li>
-          <li><a href="#">drift sync</a></li>
-          <li><a href="#">drift status</a></li>
-          <li><a href="#">drift log</a></li>
+          <li><a href="#init">drift init</a></li>
+          <li><a href="#sync">drift sync</a></li>
+          <li><a href="#commands">drift status</a></li>
+          <li><a href="#commands">drift log</a></li>
         </ul></li>
-        <li class="section"><a href="#">Recipes</a></li>
-        <li class="section"><a href="#">API reference</a></li>
-        <li class="section"><a href="#">Changelog</a></li>
+        <li class="section"><a href="#next">Recipes</a></li>
+        <li class="section"><span>API reference</span></li>
+        <li class="section"><span>Changelog</span></li>
       </ul>
     </article>
 
@@ -185,13 +207,13 @@ Merged 1 commit. No conflicts.</pre>
       <h3 id="next">Next steps</h3>
       <p>You've initialized a repo, committed, synced, branched, and merged. From here:</p>
       <ul>
-        <li>Learn the <a href="#">concept model</a> (repositories, branches, commits).</li>
-        <li>Browse the <a href="#">command reference</a>.</li>
-        <li>Read <a href="#">recipes</a> for common workflows.</li>
-        <li>Join the <a href="#">community Discord</a> if you hit something.</li>
+        <li>Learn the <a href="#init">concept model</a> (repositories, branches, commits).</li>
+        <li>Browse the <a href="#commands">command reference</a>.</li>
+        <li>Read <a href="#next">recipes</a> for common workflows.</li>
+        <li>Join the <span>community Discord</span> if you hit something.</li>
       </ul>
 
-      <table>
+      <table id="commands">
         <thead><tr><th>Task</th><th>Command</th></tr></thead>
         <tbody>
           <tr><td>Check status</td><td><code>drift status</code></td></tr>
@@ -204,7 +226,7 @@ Merged 1 commit. No conflicts.</pre>
     </article>
 
     <!-- RIGHT — on-this-page anchors + version info. -->
-    <article class="anchor" data-scriptoscope-window
+    <article class="anchor site-paper-window" data-scriptoscope-window
              data-scriptoscope-title="On this page"
              data-scriptoscope-window-type="titled-utility-window"
              data-scriptoscope-widgets="zoom,collapse">
@@ -220,15 +242,15 @@ Merged 1 commit. No conflicts.</pre>
       <h2>Version</h2>
       <ul>
         <li><strong>v1.0</strong> (current)</li>
-        <li><a href="#">v0.9</a></li>
-        <li><a href="#">v0.8</a></li>
-        <li><a href="#">All versions →</a></li>
+        <li><span>v0.9</span></li>
+        <li><span>v0.8</span></li>
+        <li><span>All versions →</span></li>
       </ul>
       <h2>Help</h2>
       <ul>
-        <li><a href="#">Edit this page</a></li>
-        <li><a href="#">Report an issue</a></li>
-        <li><a href="#">Community Discord</a></li>
+        <li><span>Edit this page</span></li>
+        <li><span>Report an issue</span></li>
+        <li><span>Community Discord</span></li>
       </ul>
     </article>
 
@@ -238,8 +260,15 @@ Merged 1 commit. No conflicts.</pre>
     A <a href="./">Scriptoscope</a> example: docs site with TOC sidebar, prose content, on-page anchors. Now wearing <span id="page-theme-credit">…</span>.
   </p>
 
+  <p class="site-example-feedback" id="example-feedback" role="status" aria-live="polite"></p>
+  <section class="site-next" aria-label="Continue exploring">
+    <div><h2>Your HTML could wear this, too.</h2><p>A few attributes. Your content stays yours.</p></div>
+    <a href="./showcase.html#install">Put it on your page →</a>
+    <a href="./showcase.html#examples">Explore another example →</a>
+  </section>
+
   <script type="module">
-    import { mountDeclarative } from 'scriptoscope';
+    import { mountResponsiveExample } from './example-responsive.mjs';
     import THEMES from './themes-manifest.json';
 
     // Documentation: slimes (JUN, 1998). Soft pastel scheme that pairs
@@ -252,13 +281,13 @@ Merged 1 commit. No conflicts.</pre>
         const opt = document.createElement('option');
         opt.value = t.slug;
         opt.textContent = t.name ?? t.slug;
-        if (t.slug === PAGE_DEFAULT_THEME) opt.selected = true;
+        if (t.slug === (new URL(location.href).searchParams.get('theme') ?? PAGE_DEFAULT_THEME)) opt.selected = true;
         switcher.appendChild(opt);
       }
     }
 
     const BASE = import.meta.env.BASE_URL;
-    const handle = await mountDeclarative({
+    const handle = await mountResponsiveExample({
       themeBaseUrl: `${BASE}themes`.replace(/\/+$/, ''),
       pageThemeDefault: PAGE_DEFAULT_THEME,
       themes: THEMES,
