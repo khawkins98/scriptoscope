@@ -51,13 +51,10 @@
 //   -14284  collapsed-no-title-utility-window → -14288 → -14300 → -14304
 //   -12320  popup-window                      (terminal — no fallback in mask grid)
 //
-// CORPUS IMPACT (audited 2026-05-29 across all 18 bundles): every bundle except
-// `1138` and `beos-r503` is missing at least one of the canonical collapsed-*
-// or no-title-utility slugs, and the cascade resolves every one of them to a
-// structurally compatible window type the bundle DOES ship. This is the
-// period-faithful answer to the "windowshade requested but bundle ships no
-// collapsed-* variant" question (vs. the prior `collapsedSlugFor` heuristic
-// in `interactive.ts`, which only walked `collapsed-${slug}` and a noun match).
+// Compatibility aliases must resolve BEFORE this mask ladder. The loader's
+// emitted keys and runtime canonical names share one portable identity table;
+// missing names alone are not evidence that authored resources are absent.
+// This replay does not establish original Resource Manager base-chain ownership.
 //
 // CITATIONS:
 //   docs/spec/kdef-binary-inventory.md §4              (the finding)
@@ -65,41 +62,31 @@
 //   .scratch/k231-kdef/kDEF/k231-kdef0.asm 0x356c..0x367e  (the ground truth)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Canonical wnd# resource id → standard slug (mirrors
- *  `CANONICAL_WNDTYPE_SLUGS` in `tools/theme-loader/buildThemeJson.js`).
- *  Kept here as the runtime mirror because the cascade walks in id-space. */
-const CANONICAL_ID_TO_SLUG: Record<number, string> = {
-  [-14336]: 'document-window',
-  [-14335]: 'document-window', // active-state variant some schemes key on
-  [-14332]: 'collapsed-document-window',
-  [-14328]: 'dialog',
-  [-14326]: 'alert',
-  [-14324]: 'movable-modal',
-  [-14322]: 'movable-alert',
-  [-14304]: 'titled-utility-window',
-  [-14300]: 'collapsed-titled-utility-window',
-  [-14296]: 'side-floating-utility-window',
-  [-14292]: 'collapsed-side-floating-utility-window',
-  [-14288]: 'no-title-utility-window',
-  [-14284]: 'collapsed-no-title-utility-window',
-  [-12320]: 'popup-window',
-};
+import { WINDOW_TYPE_IDENTITIES } from '../tools/theme-loader/window-type-identities.js';
 
-/** Canonical identity for a legacy raw wnd# key; never inspect asset URLs. */
-export function canonicalWindowTypeSlug(key: string): string {
-  const match = /^wnd-(-?\d+)$/.exec(key);
-  return match ? CANONICAL_ID_TO_SLUG[Number(match[1])] ?? key : key;
+function identityFor(key: string) {
+  return WINDOW_TYPE_IDENTITIES.find(identity => identity.canonicalSlug === key
+    || identity.legacySlugs.includes(key)
+    || [identity.id, ...(identity.alternateIds ?? [])].some(id => key === `wnd-${id}`));
 }
 
-/** Slug → canonical wnd# id (inverse of the table above; prefers the
- *  inactive-state id for `document-window`, matching the kDEF's load order). */
-const CANONICAL_SLUG_TO_ID: Record<string, number> = (() => {
-  const out: Record<string, number> = {};
-  for (const [idStr, slug] of Object.entries(CANONICAL_ID_TO_SLUG)) {
-    if (!(slug in out)) out[slug] = Number(idStr);
-  }
-  return out;
-})();
+/** Normalize known canonical, legacy and raw keys; custom names stay exact. */
+export function canonicalWindowTypeSlug(key: string): string {
+  return identityFor(key)?.canonicalSlug ?? key;
+}
+
+/** Exact requested key first, then equivalent canonical/legacy/raw identities. */
+export function equivalentWindowTypeKeys(key: string): string[] {
+  const identity = identityFor(key);
+  return identity ? [...new Set([key, identity.canonicalSlug, ...identity.legacySlugs,
+    ...[identity.id, ...(identity.alternateIds ?? [])].map(id => `wnd-${id}`)])] : [key];
+}
+
+/** Known collapsed identity, separate from missing-resource degradation. */
+export function collapsedWindowTypeSlug(key: string): string | undefined {
+  const id = identityFor(key)?.collapsedId;
+  return WINDOW_TYPE_IDENTITIES.find(identity => identity.id === id)?.canonicalSlug;
+}
 
 /** The 12 AND masks the kDEF tries in order. First entry (`-1` ≡ 0xFFFF) is the
  *  raw id (no bit stripped). Subsequent entries are the `andiw` immediates from
@@ -150,13 +137,13 @@ export function cascadeFallbackIds(rawId: number): number[] {
  *     → ['side-floating-utility-window', 'titled-utility-window']
  */
 export function cascadeFallbackSlugs(slug: string): string[] {
-  const id = CANONICAL_SLUG_TO_ID[slug];
+  const id = identityFor(slug)?.id;
   if (id == null) return [];
   const fallbackIds = cascadeFallbackIds(id);
   const out: string[] = [];
-  const seen = new Set<string>([slug]);
+  const seen = new Set<string>([canonicalWindowTypeSlug(slug)]);
   for (const fid of fallbackIds) {
-    const fslug = CANONICAL_ID_TO_SLUG[fid];
+    const fslug = WINDOW_TYPE_IDENTITIES.find(identity => identity.id === fid || identity.alternateIds?.includes(fid))?.canonicalSlug;
     if (!fslug || seen.has(fslug)) continue;
     seen.add(fslug);
     out.push(fslug);

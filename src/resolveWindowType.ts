@@ -1,35 +1,18 @@
-import type { LoadedTheme, WindowType } from './types.js';
-import { canonicalWindowTypeSlug, cascadeFallbackSlugs } from './wndCascade.js';
+import type { LoadedTheme, WindowType, WindowState } from './types.js';
+import { canonicalWindowTypeSlug, cascadeFallbackSlugs, equivalentWindowTypeKeys, collapsedWindowTypeSlug } from './wndCascade.js';
+import { resolveInChain } from './baseChain.js';
 
-/**
- * Resolve a window type robustly across bundles. Some schemes use the
- * friendly slug (`document-window`); others (acid, evolution, big-blue)
- * key by raw resource id (`wnd--14336`). Try, in order: exact slug,
- * the period-faithful kDEF 2.3.1 fallback ladder (`src/wndCascade.ts` —
- * clean-room replay of the 12-step AND-mask cascade at `0x356c..0x367e`),
- * any key containing the slug's noun, the doc-window resource ids, then
- * the first window type that publishes a `part-0` body.
- *
- * The cascade sits BEFORE the heuristic noun/utility scans because it's the
- * binary's documented behaviour for "scheme doesn't ship this wnd# id";
- * the heuristics remain as catch-alls for off-canonical (author-custom or
- * raw-id-keyed) bundles the cascade doesn't cover.
- */
+/** Exact/equivalent identities precede the source-derived mask cascade, then
+ * existing heuristic fallbacks. Alias names are not missing resources. */
 export function resolveWindowType(theme: LoadedTheme, slug: string): WindowType | undefined {
   const wts = theme.manifest.windowTypes ?? {};
   const ok = (k: string): WindowType | undefined => (wts[k] && looksLikeWindow(theme, wts[k]) ? wts[k] : undefined);
-  if (wts[slug] && looksLikeWindow(theme, wts[slug])) return wts[slug];
-
-  // kDEF 2.3.1 fallback ladder (the binary's wnd# id-degradation cascade).
-  // For canonical slugs (`collapsed-side-floating-utility-window` etc.), this
-  // walks the structurally compatible ids the kDEF would try next. Example impact:
-  //   collapsed-side-floating-utility-window → side-floating-utility-window → titled-utility-window
-  // This catches 16 of 18 corpus bundles' missing collapsed-* variants
-  // (see docs/spec/kdef231-reference.md §3.4 cascade table).
+  for (const key of equivalentWindowTypeKeys(slug)) { const hit = ok(key); if (hit) return hit; }
+  // Each historical fallback ID may itself be stored under a compatible key.
   for (const fallback of cascadeFallbackSlugs(slug)) {
-    const hit = ok(fallback);
-    if (hit) return hit;
+    for (const key of equivalentWindowTypeKeys(fallback)) { const hit = ok(key); if (hit) return hit; }
   }
+  slug = canonicalWindowTypeSlug(slug);
 
   // Generic utility aliases use the canonical wnd# type identity established by
   // the decoder. Asset URLs are opaque transport handles (usually blob: URLs).
@@ -80,3 +63,31 @@ function looksLikeWindow(theme: LoadedTheme, wt: WindowType): boolean {
   return !!wt.parts?.['part-0']?.rect;
 }
 
+
+/** The existing child-first render policy, shared by rendering and collapse.
+ * A child heuristic selection still wins over an exact type in its base. */
+export function resolveWindowSelection(theme: LoadedTheme, slug: string, state: WindowState = 'active'):
+  { owner: LoadedTheme; wt: WindowType; cicnPath: string } | undefined {
+  return resolveInChain(theme, owner => {
+    const wt = resolveWindowType(owner, slug);
+    const cicnPath = wt ? (wt.chrome[state] ?? wt.chrome.active) : undefined;
+    return wt && cicnPath ? { owner, wt, cicnPath } : null;
+  });
+}
+
+/** Discover authored collapsed art only in the owner selected for the expanded
+ * request. Corner-sprite windows need no sliced top-edge recipe. */
+export function resolveCollapsedWindowTypeSlug(theme: LoadedTheme, baseSlug: string, state: WindowState = 'active'): string | undefined {
+  const selected = resolveWindowSelection(theme, baseSlug, state);
+  if (!selected) return undefined;
+  const { owner } = selected, wts = owner.manifest.windowTypes ?? {};
+  const ok = (key: string): boolean => !!wts[key] && looksLikeWindow(owner, wts[key])
+    && !!(wts[key].chrome[state] ?? wts[key].chrome.active);
+  const noun = baseSlug.replace(/-window$/, '');
+  const known = collapsedWindowTypeSlug(baseSlug);
+  // Preserve exact custom naming before compatibility normalization.
+  const candidates = [`collapsed-${baseSlug}`, `collapsed-${noun}`, ...(known ? equivalentWindowTypeKeys(known) : [])];
+  for (const key of candidates) if (ok(key)) return key;
+  for (const key of Object.keys(wts)) if (key.startsWith('collapsed') && key.includes(noun) && ok(key)) return key;
+  return undefined;
+}
