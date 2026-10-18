@@ -102,7 +102,7 @@ in the [reference §1.4](./kdef231-reference.md):
    intrinsic fixed leading corner (`recipeCells`, `0x5356`/`0x4a64`).
 5. **Distribute** — split each side about the title. Divide the primary slack
    among parts 8/11/12/18, rounding code-12 whole tiles down. A second pass
-   redistributes tile remainder across parts 8/11/13/14/18; parts 13/14 receive
+   redistributes division and tile-rounding remainder across parts 8/11/13/14/18; parts 13/14 receive
    only remainder (`distributeSide`, `0x5178`).
 6. **Blit** — tile by default (`0xfeae`); a single scaled `CopyBits` only for
    part code 18 (`0x10320`); the title plate (code 5) grows to the *measured*

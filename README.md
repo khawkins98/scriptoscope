@@ -61,7 +61,7 @@ Scriptoscope is a hobby project — there's no npm package. The runtime + the 18
 </script>
 ```
 
-If you'd prefer to vendor it (no third-party CDN dependency), copy every top-level `dist/*.js` file (including lazy decoder chunks), `dist/scriptoscope.css`, the `sit-wasm/` assets, and the `themes/` directory from a matching build, and host them yourself.
+If you'd prefer to vendor it (no third-party CDN dependency), copy every top-level `dist/*.js` file (including lazy decoder chunks), `dist/scriptoscope.css`, and the deployed themes from a matching build (see [Vendoring](#vendoring-if-you-dont-want-a-third-party-cdn-dependency)), and host them yourself.
 
 ## Five-minute setup
 
@@ -322,7 +322,7 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 | `https://khawkins98.github.io/scriptoscope/scriptoscope.css` | Optional outer-shell stylesheet |
 | `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `scheme.rsrc`) | The bundle's source archive — fetched + decoded client-side by `loadTheme()` |
 | `https://khawkins98.github.io/scriptoscope/themes-manifest.json` | Catalog of every bundled slug (label, author, source filename, ref screenshot) |
-| `https://khawkins98.github.io/scriptoscope/sit-wasm/dist/munbox.wasm` | StuffIt unpack WASM (~70 KB, loaded lazily by the decoder only when a `.sit` is decoded) |
+| `https://khawkins98.github.io/scriptoscope/sit-wasm/dist/munbox.wasm` | Standalone decoder WASM; the bundled runtime embeds its WASM in the lazy JavaScript chunk |
 
 > **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
 
@@ -330,7 +330,7 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 
 There's no npm package. If you'd rather not pin your site to this repo's GitHub Pages, vendor the files into your own build:
 
-1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and the deployed `sit-wasm/` and `themes/` directories from `dist/demo/`. Keep the JavaScript files beside each other so relative lazy imports resolve.
+1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and `dist/demo/themes/`. Keep the JavaScript files beside each other so relative lazy imports resolve. If importing the standalone decoder modules for a drop zone, also copy `dist/demo/theme-loader/` and `dist/demo/sit-wasm/` beside them.
 2. Host them alongside your site.
 3. Point `themeBaseUrl` at wherever you put `themes/`.
 
