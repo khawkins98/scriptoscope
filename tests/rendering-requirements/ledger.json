@@ -1,0 +1,1217 @@
+{
+  "schemaVersion": 1,
+  "inventoryVersion": "1.0.1",
+  "scope": {
+    "description": "Eight exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "dimensions": [
+      "resourceSelection",
+      "geometry",
+      "fillMask",
+      "typography",
+      "state",
+      "placement",
+      "interaction"
+    ],
+    "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+  },
+  "inputs": [
+    {
+      "id": "engine.kaleidoscope-2.3.1-kdef0",
+      "kind": "engine",
+      "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+      "bytes": 107726,
+      "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+      "extractionReference": "docs/spec/kdef-binary-inventory.md",
+      "redistributed": false
+    },
+    {
+      "id": "theme.windows-95",
+      "kind": "theme-archive",
+      "path": "themes/windows-95/scheme.sit",
+      "sha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622"
+    },
+    {
+      "id": "theme.1138",
+      "kind": "theme-archive",
+      "path": "themes/1138/scheme.rsrc",
+      "sha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb"
+    },
+    {
+      "id": "theme.1990",
+      "kind": "theme-archive",
+      "path": "themes/1990/scheme.rsrc",
+      "sha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a"
+    },
+    {
+      "id": "theme.apple-lisa",
+      "kind": "theme-archive",
+      "path": "themes/apple-lisa/scheme.sit",
+      "sha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d"
+    },
+    {
+      "id": "synthetic.ring-c3-s1",
+      "kind": "synthetic",
+      "definition": {
+        "face": {
+          "size": 6,
+          "resourceId": -10239,
+          "corner": 1,
+          "side": 1
+        },
+        "ring": {
+          "size": 10,
+          "resourceId": -10231,
+          "corner": 3,
+          "side": 1,
+          "tile": false
+        },
+        "pixelFormula": "RGBA(x*5,y*7,91,255)",
+        "bgAnchor": [
+          3,
+          3
+        ]
+      },
+      "sha256": "fc66f368d6c836574d99b701ace17b4eab7c905e3416bf5dd7b03f44d6b40e9f"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "kdef.background-sample",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0",
+        "theme.windows-95"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The 2.3.1 slice path at 0x10904..0x1091a passes cinf +6/+8 coordinates to the pixel sampler, then 0x109b2 supplies sampled RGB to RGBBackColor.",
+      "excerptSha256": "163af86685c66e5dd0e2b815537dcdb347132f6292505d0aaa82422667bd417a",
+      "claim": "Background RGB is sampled at authored cinf coordinates.",
+      "limits": "Narrow source sample contract; does not prove full painter.",
+      "addresses": [
+        "0x10904",
+        "0x1091a",
+        "0x109b2"
+      ],
+      "requirementIds": [
+        "face.authored-background"
+      ]
+    },
+    {
+      "id": "kdef.ring-outset",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The 2.3.1 default-ring path at 0x7698..0x76a2 expands the face rectangle by four pixels on each side before ring dispatch at 0x76c4.",
+      "excerptSha256": "22f44c6ad61a38c3005aad14e12715b874495be1402b317e58975d0a41263fde",
+      "claim": "Ring destination expands face rect by four on each side.",
+      "limits": "Synthetic case allocation only; not a whole ring certificate.",
+      "addresses": [
+        "0x7698",
+        "0x76a2",
+        "0x76c4"
+      ],
+      "requirementIds": [
+        "ring.four-pixel-outset"
+      ]
+    },
+    {
+      "id": "kdef.square-corners",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The slice path at 0x10c18..0x10c28 retains square corner-size blocks; side thickness independently governs edge bands.",
+      "excerptSha256": "918e59d45c1f71032fbda0d99b357a052c7739a4fbb26580cfd7fc188450e25b",
+      "claim": "Corner size and edge thickness are independent.",
+      "limits": "Only exact source-coordinate sentinels independently asserted here.",
+      "addresses": [
+        "0x10c18",
+        "0x10c28"
+      ],
+      "requirementIds": [
+        "ring.square-sentinel",
+        "face.square-corner-retention"
+      ]
+    },
+    {
+      "id": "art.win95-slider",
+      "kind": "source-art",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The Windows95 horizontal groove is 5x4 and thumb sheet is 11x64; the vertical groove is 4x5 and thumb sheet is 64x11. Four decoded cells yield native thumb cross sizes 16 and 16.",
+      "excerptSha256": "e2c278e4beeb7b11c8f260babb6539851dd2cbbbefd463b05d91f3e5cf267226",
+      "claim": "Retain decoded opaque cell art.",
+      "limits": "Shared decoder; original decoding/state mapping/mask/placement not verified.",
+      "requirementIds": [
+        "slider.decoded-opaque-retention"
+      ]
+    },
+    {
+      "id": "art.tab-crop",
+      "kind": "source-art",
+      "inputs": [
+        "theme.1138",
+        "theme.1990"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "1138 rear cicn -9975 is 23x16 with opaque x2..20 and cinf corner10; 1990 rear cicn -9975 is 32x16 with opaque x1..28 and cinf corner14. Applying those original corner sizes after opaque cropping yields middle widths -1 and 0.",
+      "excerptSha256": "65d2da004b740128e0783d2e519a29cc0cd6e44171747c078b73bcf7919f95f0",
+      "claim": "Original source corner coordinates must not be applied to a smaller cropped source extent.",
+      "limits": "Does not establish complete historical tab drawer or font.",
+      "requirementIds": [
+        "tab.full-raster-coordinates"
+      ]
+    },
+    {
+      "id": "art.lisa-corner",
+      "kind": "source-art",
+      "inputs": [
+        "theme.apple-lisa"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Apple Lisa active cicn -10239 is 9x9 with cinf corner4/side1. The original square4x4 corner rule retains source(2,2); the rectangular4x1 face slicer can substitute source(2,1).",
+      "excerptSha256": "b85e0b3df91e059e26d82bb1a26d9257ca976171c16cee389ffab9d89a378794",
+      "claim": "Retain square authored corner blocks.",
+      "limits": "Exact normal empty minWidth80/height20 scope. Verifies decoded square-corner retention only, not full face/text/pattern, decoder or state selection.",
+      "requirementIds": [
+        "face.square-corner-retention"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "selection.original",
+      "dimension": "resourceSelection",
+      "claim": "Resolve original resource/base selection for this exact case."
+    },
+    {
+      "id": "geometry.remaining",
+      "dimension": "geometry",
+      "claim": "Other source border/slicing geometry matches original behavior."
+    },
+    {
+      "id": "fill.remaining",
+      "dimension": "fillMask",
+      "claim": "Remaining interior fill and transparent-mask behavior matches original."
+    },
+    {
+      "id": "state.original",
+      "dimension": "state",
+      "claim": "Selected original state/cell mapping is independently established."
+    },
+    {
+      "id": "placement.original",
+      "dimension": "placement",
+      "claim": "Original control/art placement and caller sizing policy is independently established."
+    },
+    {
+      "id": "typography.original",
+      "dimension": "typography",
+      "claim": "Original font, size, ink and label placement are independently established."
+    },
+    {
+      "id": "face.authored-background",
+      "dimension": "fillMask",
+      "claim": "For this empty20px face, output center equals authored source background sample."
+    },
+    {
+      "id": "ring.four-pixel-outset",
+      "dimension": "geometry",
+      "claim": "Default-ring allocation expands the face rectangle by four pixels per side."
+    },
+    {
+      "id": "ring.square-sentinel",
+      "dimension": "geometry",
+      "claim": "Corner3/side1 retains source(2,2) at destination(2,2)."
+    },
+    {
+      "id": "slider.decoded-opaque-retention",
+      "dimension": "geometry",
+      "claim": "Retains every opaque pixel of the decoded selected thumb cell; no decoder/state/placement certification."
+    },
+    {
+      "id": "tab.full-raster-coordinates",
+      "dimension": "geometry",
+      "claim": "Do not lose the middle strip by mixing original corner sizes with opaque-cropped source extents."
+    },
+    {
+      "id": "face.square-corner-retention",
+      "dimension": "geometry",
+      "claim": "Retain square authored corner blocks independently of side thickness."
+    }
+  ],
+  "assertions": [
+    {
+      "id": "face.background-sample",
+      "path": "tests/rendering-options/source-oracles.spec.mjs",
+      "marker": "description: 'face.background-sample'",
+      "caseIds": [
+        "win95.push.normal.empty.h20",
+        "win95.push.disabled.empty.h20"
+      ],
+      "claim": "Exact authored sample equality for empty20px normal and disabled Win95 faces.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "ring.outset-and-square-sentinel",
+      "path": "tests/rendering-options/source-oracles.spec.mjs",
+      "marker": "description: 'ring.outset-and-square-sentinel'",
+      "caseIds": [
+        "synthetic.ring.c3-s1.normal.h40"
+      ],
+      "claim": "Explicit40px face allocation plus exact corner3/side1 source coordinate.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "slider.decoded-opaque-retention",
+      "path": "tests/rendering-options/slider-art.spec.mjs",
+      "marker": "description: 'slider.decoded-opaque-retention'",
+      "caseIds": [
+        "win95.slider.horizontal.normal.v0.l64",
+        "win95.slider.vertical.normal.v0.l64"
+      ],
+      "claim": "Every decoded opaque cell pixel retained; test also checks project placement policy without claiming historical proof.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "face.corpus-square-corners",
+      "path": "tests/rendering-options/face-bands.spec.mjs",
+      "marker": "description: 'face.corpus-square-corners'",
+      "caseIds": [
+        "lisa.push.normal.empty.h20"
+      ],
+      "claim": "Retain all four Lisa source corner blocks (alpha and opaque colors) for normal empty label, minWidth80 and height20. No other face requirement inferred.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "win95.push.normal.empty.h20",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "height": 20,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "face.authored-background",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "win95.push.disabled.empty.h20",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "height": 20,
+        "disabled": true
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "face.authored-background",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "synthetic.ring.c3-s1.normal.h40",
+      "inputs": [
+        "synthetic.ring-c3-s1"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "default",
+      "options": {
+        "label": "",
+        "height": 40,
+        "default": true
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "ring.four-pixel-outset",
+          "ring.square-sentinel",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "win95.slider.horizontal.normal.v0.l64",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "slider",
+      "options": {
+        "orientation": "horizontal",
+        "length": 64,
+        "value": 0,
+        "state": "normal"
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "slider.decoded-opaque-retention",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "win95.slider.vertical.normal.v0.l64",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "slider",
+      "options": {
+        "orientation": "vertical",
+        "length": 64,
+        "value": 0,
+        "state": "normal"
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "slider.decoded-opaque-retention",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "1138.tab.unselected.auto.agjpqy",
+      "inputs": [
+        "theme.1138"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "tab",
+      "options": {
+        "label": "AgjpQy",
+        "selected": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "tab.full-raster-coordinates",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "1990.tab.unselected.auto.agjpqy",
+      "inputs": [
+        "theme.1990"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "tab",
+      "options": {
+        "label": "AgjpQy",
+        "selected": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "tab.full-raster-coordinates",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": [
+          "typography.original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    },
+    {
+      "id": "lisa.push.normal.empty.h20",
+      "inputs": [
+        "theme.apple-lisa"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "face.square-corner-retention",
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
+      },
+      "substitutions": []
+    }
+  ],
+  "assessments": [
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "face.authored-background",
+      "status": "verified",
+      "evidence": [
+        "kdef.background-sample"
+      ],
+      "assertions": [
+        "face.background-sample"
+      ],
+      "issues": [],
+      "rationale": "Reviewed cinf sample contract and exact source/built sample assertion; no other face requirement inferred.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.normal.empty.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "face.authored-background",
+      "status": "verified",
+      "evidence": [
+        "kdef.background-sample"
+      ],
+      "assertions": [
+        "face.background-sample"
+      ],
+      "issues": [],
+      "rationale": "Reviewed cinf sample contract and exact source/built sample assertion; no other face requirement inferred.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.push.disabled.empty.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "ring.four-pixel-outset",
+      "status": "verified",
+      "evidence": [
+        "kdef.ring-outset"
+      ],
+      "assertions": [
+        "ring.outset-and-square-sentinel"
+      ],
+      "issues": [],
+      "rationale": "Reviewed source instruction contract and exact synthetic sentinel; not a theme-wide certificate.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "ring.square-sentinel",
+      "status": "verified",
+      "evidence": [
+        "kdef.square-corners"
+      ],
+      "assertions": [
+        "ring.outset-and-square-sentinel"
+      ],
+      "issues": [],
+      "rationale": "Reviewed source instruction contract and exact synthetic sentinel; not a theme-wide certificate.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "synthetic.ring.c3-s1.normal.h40",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "slider.decoded-opaque-retention",
+      "status": "verified",
+      "evidence": [
+        "art.win95-slider"
+      ],
+      "assertions": [
+        "slider.decoded-opaque-retention"
+      ],
+      "issues": [],
+      "rationale": "Retains decoded opaque selected-cell art. Decoder, state mapping, transparent mask and historical placement remain separate unknown obligations.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.horizontal.normal.v0.l64",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "slider.decoded-opaque-retention",
+      "status": "verified",
+      "evidence": [
+        "art.win95-slider"
+      ],
+      "assertions": [
+        "slider.decoded-opaque-retention"
+      ],
+      "issues": [],
+      "rationale": "Retains decoded opaque selected-cell art. Decoder, state mapping, transparent mask and historical placement remain separate unknown obligations.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "win95.slider.vertical.normal.v0.l64",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "tab.full-raster-coordinates",
+      "status": "mismatched",
+      "evidence": [
+        "art.tab-crop"
+      ],
+      "assertions": [],
+      "issues": [
+        223
+      ],
+      "rationale": "Original corner sizes applied after opaque crop collapse the middle source strip; reviewed source dimensions establish the mismatch.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1138.tab.unselected.auto.agjpqy",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "tab.full-raster-coordinates",
+      "status": "mismatched",
+      "evidence": [
+        "art.tab-crop"
+      ],
+      "assertions": [],
+      "issues": [
+        223
+      ],
+      "rationale": "Original corner sizes applied after opaque crop collapse the middle source strip; reviewed source dimensions establish the mismatch.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "1990.tab.unselected.auto.agjpqy",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "face.square-corner-retention",
+      "status": "verified",
+      "evidence": [
+        "kdef.square-corners",
+        "art.lisa-corner"
+      ],
+      "assertions": [
+        "face.corpus-square-corners"
+      ],
+      "issues": [],
+      "rationale": "Merged PR233 retains every sampled opaque corner pixel and alpha in all four authored square blocks for Lisa normal empty minWidth80/height20. Only corner retention is independently verified; other face obligations remain unknown.",
+      "review": "Narrow geometry update after reviewed PR233 at b879bb1393974ed68f43622b7817e6c8fbb6f9fb; original source coordinates plus executable exact-input oracle."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "lisa.push.normal.empty.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
+      "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    }
+  ],
+  "inventorySha256": "1cefbc190b52b72cbe893d14c924081eaf9179ae62fd8f2cb42471bcab984a75"
+}

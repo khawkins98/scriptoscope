@@ -2,6 +2,7 @@ import { test, expect, openHarness, attachCase } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) {
   test(`${mode}: Windows95 empty faces use the authored background sample`, async ({ page, servers }, testInfo) => {
+    testInfo.annotations.push({ type: 'fidelity-assertion', description: 'face.background-sample' });
     await openHarness(page, servers, mode);
     let results;
     try {
@@ -90,6 +91,7 @@ for (const mode of ['source', 'built']) {
 }
 
 for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric corner/edge rules follow source coordinates`, async ({ page, servers }, testInfo) => {
+  testInfo.annotations.push({ type: 'fidelity-assertion', description: 'ring.outset-and-square-sentinel' });
   await openHarness(page, servers, mode);
   let rows;
   try {
@@ -121,7 +123,7 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
           const sourceY = tile ? 10 : corner;
           probes.push({ target: [17, 0], source: [sourceY, 0] }, { target: [0, 17], source: [0, sourceY] }, { target: [output.width - 1, 17], source: [20, sourceY] });
         }
-        rows.push({ kind: 'geometry', size, corner, side, tile, probes: probes.map(probe => ({ ...probe,
+        rows.push({ kind: 'geometry', size, corner, side, tile, width: output.width, height: output.height, probes: probes.map(probe => ({ ...probe,
           expected: ring.buffer.getPixel(...probe.source), actual: output.getPixel(...probe.target) })) });
       }
       const active = art(10, 10), pressed = art(10, 50), disabled = art(10, 90);
@@ -141,7 +143,11 @@ for (const mode of ['source', 'built']) test(`${mode}: ring state and asymmetric
       return rows;
     }, mode);
     for (const row of rows) {
-      if (row.kind === 'geometry') for (const probe of row.probes) expect(probe.actual, JSON.stringify({ ...row, probes: probe })).toEqual(probe.expected);
+      if (row.kind === 'geometry') {
+        // Independent kDEF0x7698..76a2 rectangle expansion, including c3/s1.
+        expect(row.width).toBe(56 + 8); expect(row.height).toBe(40 + 8);
+        for (const probe of row.probes) expect(probe.actual, JSON.stringify({ ...row, probes: probe })).toEqual(probe.expected);
+      }
       else expect(row.actual, `default ring state ${row.state}`).toEqual(row.expected);
     }
   } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'ring-state-asymmetric-slices', rows }, error); throw error; }
