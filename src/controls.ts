@@ -1,3 +1,4 @@
+import type { SliderComposition } from './sliderLayout.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { resolveInChain } from './baseChain.js';
 import { assetUrl } from './loadTheme.js';
@@ -660,6 +661,14 @@ export async function composeSlider(
   theme: LoadedTheme,
   opts: SliderOptions = {},
 ): Promise<PixelBuffer | null> {
+  return (await composeSliderWithLayout(theme, opts))?.buffer ?? null;
+}
+
+/** @internal Shared draw path for native-backed slider hit testing. */
+export async function composeSliderWithLayout(
+  theme: LoadedTheme,
+  opts: SliderOptions = {},
+): Promise<SliderComposition | null> {
   const orientation = opts.orientation ?? 'horizontal';
   const length = Math.max(32, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
@@ -734,15 +743,17 @@ export async function composeSlider(
 
   // Retain the complete selected state cell. Preserve the existing srcCopy
   // transfer behavior; the original slider's mask/painter path is untraced.
+  let thumb: SliderComposition['layout']['thumb'] = null;
+  const travel = Math.max(0, length - (horiz ? cellW : cellH));
   if (thumbs && cellW > 0 && cellH > 0) {
     const stateRow = state === 'pressed' ? 2 : state === 'disabled' || state === 'inactive' ? 3 : 1;
-    const pos = Math.round(value * Math.max(0, length - (horiz ? cellW : cellH)));
+    const pos = Math.round(value * travel);
     const thumbOffset = Math.floor((cross - (horiz ? cellH : cellW)) / 2);
+    thumb = { x: horiz ? pos : thumbOffset, y: horiz ? thumbOffset : pos, w: cellW, h: cellH };
     out.copyBits(thumbs,
-      { x: horiz ? 0 : stateRow * cellW, y: horiz ? stateRow * cellH : 0, w: cellW, h: cellH },
-      { x: horiz ? pos : thumbOffset, y: horiz ? thumbOffset : pos, w: cellW, h: cellH });
+      { x: horiz ? 0 : stateRow * cellW, y: horiz ? stateRow * cellH : 0, w: cellW, h: cellH }, thumb);
   }
-  return out;
+  return { buffer: out, layout: { orientation, axisLength: length, thumb, travelStart: 0, travelEnd: travel, value } };
 }
 
 export interface DisclosureOptions {

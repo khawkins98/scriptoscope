@@ -85,15 +85,16 @@
 
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeButton, composeCheckable, composeDisclosure, composeSlider, composeScrollbar,
+  composeButton, composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
   type ButtonOptions, type ControlState,
 } from './controls.js';
-import { platinumSlider, platinumScrollbar } from './platinum.js';
+import { platinumSlider, platinumSliderWithLayout, platinumScrollbar } from './platinum.js';
 import { findPositionedAncestor } from './positioning.js';
 import { debug } from './debug.js';
 import { renderWindow, resolveTitleWidgetRects, type RenderWindowOptions } from './renderWindow.js';
 import type { PixelBuffer } from './pixelBuffer.js';
+import type { SliderComposition, SliderLayout } from './sliderLayout.js';
 import type { ComposedChrome } from './composeChrome.js';
 import type { LoadedTheme } from './types.js';
 import { resolveInChain } from './baseChain.js';
@@ -360,8 +361,8 @@ export interface InteractiveScrollbarOptions extends InteractiveSliderOptions {
 }
 
 /**
- * Shared 1-D drag wiring: pointer position along the axis → value 0..1 (the
- * compositor maps value linearly along the track), re-rendering the control in
+ * Shared 1-D drag wiring. Imperative controls retain their full-canvas pointer
+ * mapping; native ranges use the committed slider composition layout. Render in
  * the pressed state while dragging. The re-compose is async (cicn loading) so
  * it's coalesced to one per animation frame; `onChange` fires immediately. The
  * element is a `role=slider` with arrow-key support.
@@ -371,7 +372,7 @@ async function buildDraggable(
   orientation: Orientation,
   initial: number,
   scale: number,
-  compose: (value: number, state: ControlState) => Promise<PixelBuffer | null> | PixelBuffer,
+  compose: (value: number, state: ControlState) => Promise<PixelBuffer | SliderComposition | null> | PixelBuffer,
   onChange?: (value: number) => void,
   native?: { input: HTMLInputElement; active(): boolean },
 ): Promise<void> {
@@ -380,6 +381,8 @@ async function buildDraggable(
   let stopDrag = (): void => {};
   let raf = 0;
   let paintVersion = 0;
+  let paintedLayout: SliderLayout | null = null;
+  let nativeDrag: { axisLength: number; travel: number; pointer: number; value: number; exact: string } | null = null;
   const events = new AbortController();
   controlDisposers.set(el, () => {
     events.abort();
@@ -412,14 +415,22 @@ async function buildDraggable(
   const repaint = async (): Promise<void> => {
     if (events.signal.aborted) return;
     const version = ++paintVersion;
-    let buf: PixelBuffer | null;
-    try { buf = await compose(value, disabled() ? 'disabled' : dragging ? 'pressed' : 'normal'); }
+    let composed: PixelBuffer | SliderComposition | null;
+    try { composed = await compose(value, disabled() ? 'disabled' : dragging ? 'pressed' : 'normal'); }
     catch (error) {
       if (events.signal.aborted || version !== paintVersion) return;
       throw error;
     }
     if (events.signal.aborted || version !== paintVersion) return;
-    if (buf) el.replaceChildren(bufferToCanvas(buf, scale));
+    const frame = composed && 'buffer' in composed ? composed : null;
+    const buf = frame ? frame.buffer : composed as PixelBuffer | null;
+    if (buf) {
+      // Canvas and the geometry that actually drew it commit together. A stale
+      // async pressed/normal paint may replace neither half of this pair.
+      const canvas = bufferToCanvas(buf, scale);
+      el.replaceChildren(canvas);
+      paintedLayout = frame?.layout ?? null;
+    }
     if (!native) el.setAttribute('aria-valuenow', String(Math.round(value * 100)));
   };
   await repaint();
@@ -442,15 +453,29 @@ async function buildDraggable(
     const t = orientation === 'horizontal' ? (e.clientX - r.left) / r.width : (e.clientY - r.top) / r.height;
     return clamp01(t);
   };
+  const nativePoint = (e: PointerEvent, axisLength: number): { axis: number; x: number; y: number; inside: boolean } | null => {
+    const canvas = el.querySelector('canvas');
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    if (!(rect.width > 0 && rect.height > 0)) return null;
+    const x = (e.clientX - rect.left) * canvas.width / rect.width;
+    const y = (e.clientY - rect.top) * canvas.height / rect.height;
+    return { x, y, axis: orientation === 'horizontal'
+      ? (e.clientX - rect.left) * axisLength / rect.width
+      : (e.clientY - rect.top) * axisLength / rect.height,
+      inside: e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom };
+  };
   const schedule = (): void => { if (!events.signal.aborted && !raf) raf = requestAnimationFrame(() => { raf = 0; void repaint(); }); };
-  const update = (position: number): void => {
+  const update = (position: number, exact?: string): void => {
     if (!live() || disabled()) return;
     if (native) {
       const input = native.input, before = input.value;
       const { min, max } = nativeRangeBounds(input);
       // The native setter applies min/max, fractional step and step-base rules.
       const span = max - min;
-      input.valueAsNumber = Number.isFinite(span) ? min + position * span
+      if (exact !== undefined) {
+        if (input.value !== exact) input.value = exact;
+      } else input.valueAsNumber = Number.isFinite(span) ? min + position * span
         : (1 - position) * min + position * max;
       value = nativeRangeValue(input);
       if (input.value !== before) input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
@@ -458,11 +483,21 @@ async function buildDraggable(
   };
   const onMove = (e: PointerEvent): void => {
     if (native && e.pointerId !== pointerId) return;
-    update(valueAt(e)); schedule();
+    if (native) {
+      if (!nativeDrag || nativeDrag.travel <= 0) return;
+      const point = nativePoint(e, nativeDrag.axisLength);
+      if (!point) return;
+      const delta = point.axis - nativeDrag.pointer;
+      // Use the exact native starting value, not inversion of rounded raster
+      // coordinates. Returning to the same pointer coordinate restores it too.
+      update(clamp01(nativeDrag.value + delta / nativeDrag.travel), delta === 0 ? nativeDrag.exact : undefined);
+    } else update(valueAt(e));
+    schedule();
   };
   const onUp = (e: PointerEvent): void => {
     if (native && e.pointerId !== pointerId) return;
     dragging = false;
+    nativeDrag = null;
     stopDrag();
     if (native && live() && !disabled() && native.input.value !== dragStart) {
       native.input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -471,17 +506,38 @@ async function buildDraggable(
   };
   listenUntilAborted(events.signal, el, 'pointerdown', (e) => {
     if (!live() || disabled() || (native && (e.button !== 0 || dragging))) return;
+    // A stretched wrapper can have blank space outside its real canvas. Only
+    // the canvas begins native interaction; an active drag may leave its bounds.
+    const layout = native ? paintedLayout : null;
+    const point = layout ? nativePoint(e, layout.axisLength) : null;
+    if (native && (!layout || !point?.inside)) return;
     e.preventDefault();
-    if (native) { native.input.focus({ preventScroll: true }); dragStart = native.input.value; }
+    if (native) {
+      native.input.focus({ preventScroll: true }); dragStart = native.input.value;
+      value = nativeRangeValue(native.input);
+    }
     dragging = true; pointerId = e.pointerId;
-    update(valueAt(e));
+    if (native && layout && point) {
+      const thumb = layout.thumb;
+      const grabbed = thumb && point.x >= thumb.x && point.x < thumb.x + thumb.w
+        && point.y >= thumb.y && point.y < thumb.y + thumb.h;
+      const travel = thumb ? layout.travelEnd - layout.travelStart : layout.axisLength;
+      if (!grabbed && travel > 0) {
+        // Explicit track policy: center an existing thumb under the pointer.
+        // A track without thumb art uses its full axis. Zero travel is inert.
+        const half = thumb ? (orientation === 'horizontal' ? thumb.w : thumb.h) / 2 : 0;
+        update(clamp01((point.axis - layout.travelStart - half) / travel));
+      }
+      nativeDrag = { axisLength: layout.axisLength, travel, pointer: point.axis,
+        value: nativeRangeValue(native.input), exact: native.input.value };
+    } else update(valueAt(e));
     if (!live()) return;
     stopDrag();
     const removeMove = listenUntilAborted(events.signal, window, 'pointermove', onMove);
     const removeUp = listenUntilAborted(events.signal, window, 'pointerup', onUp);
     const removeCancel = native ? listenUntilAborted(events.signal, window, 'pointercancel', event => {
       if (event.pointerId !== pointerId) return;
-      dragging = false; stopDrag(); void repaint();
+      dragging = false; nativeDrag = null; stopDrag(); void repaint();
     }) : () => {};
     stopDrag = () => { removeMove(); removeUp(); removeCancel(); };
     void repaint();
@@ -506,7 +562,7 @@ async function buildDraggable(
       value = next; lastDisabled = off;
       el.setAttribute('aria-disabled', String(off));
       el.style.cursor = off ? 'default' : 'pointer';
-      if (off && dragging) { dragging = false; stopDrag(); }
+      if (off && dragging) { dragging = false; nativeDrag = null; stopDrag(); }
       if (changed) schedule();
     };
     // Attribute changes include disabled fieldsets and changes to their first
@@ -565,8 +621,8 @@ export async function interactiveNativeSlider(theme: LoadedTheme, input: HTMLInp
   active: () => boolean): Promise<HTMLElement> {
   const el = document.createElement('span'); el.className = 'scriptoscope-slider';
   await buildDraggable(el, 'horizontal', nativeRangeValue(input), 1,
-    async (value, state) => (await composeSlider(theme, { orientation: 'horizontal', length: 120, value, state }))
-      ?? platinumSlider({ orientation: 'horizontal', length: 120, value }),
+    async (value, state) => (await composeSliderWithLayout(theme, { orientation: 'horizontal', length: 120, value, state }))
+      ?? platinumSliderWithLayout({ orientation: 'horizontal', length: 120, value }),
     undefined, { input, active });
   return el;
 }

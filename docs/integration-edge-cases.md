@@ -269,9 +269,21 @@ Script assignments to `.value` should dispatch `input` or `change` to request an
 immediate repaint; silent assignments are sampled on later interaction, persisted
 pageshow or retheme. No input property descriptors are replaced. These native form
 semantics do not change the standalone normalized `interactiveSlider` API.
-Pointer hit testing still maps the full canvas extent, so clicking an existing
-thumb away from the midpoint can change its value. Shared thumb-center travel and
-grab-offset correction remain separate work in [#244](https://github.com/khawkins98/scriptoscope/issues/244).
+Promoted range hit testing consumes backing-pixel layout from the same themed or
+procedural composition that produced the displayed canvas. A press/release inside
+the rendered thumb preserves the exact native value without input/change events,
+even when its pixel position was rounded. Dragging retains the grab offset and
+uses the available thumb travel; returning to the starting coordinate restores
+the exact starting value. The native setter still owns step/bounds sanitization.
+
+Track clicks are a separate policy: center the thumb under the pointer, clamp,
+and then anchor any drag to the sanitized value. A visible track with no thumb
+art uses its full axis; a thumb with zero travel is inert. Blank stretched wrapper
+space outside the actual canvas cannot start interaction. Active drags can leave
+the canvas and clamp at endpoints. Geometry and pixels commit together, so stale
+asynchronous paints cannot change hit testing. These rules apply only to native
+promoted ranges; imperative slider and scrollbar pointer mapping is unchanged.
+This establishes rendering/interaction consistency, not original kDEF geometry.
 
 Each form face owns its listeners, slider drag handlers and pending paint work. Retheme disposes the old face after preparing its replacement; disconnect cancels pending form preparation before it can commit. Removed or reparented sources are never pulled back to a captured parent. Mount-owned theme-switcher callbacks and stamps are also removed. You can mount again on the same root immediately.
 

@@ -96,6 +96,10 @@ for (const mode of ['source', 'built']) {
       expect(await page.evaluate(() => window.ranges.events.map(({ type }) => type))).toEqual(['input', 'input']);
       // Malformed HTML numeric attributes use browser defaults, not parseFloat prefixes.
       await page.locator('#themed').evaluate(el => { el.min = '10px'; el.max = '20foo'; el.step = 'any'; });
+      // Wait for the newly normalized .5/100 thumb to paint before clicking
+      // the track. An already visible old thumb must preserve its exact value.
+      await page.evaluate(async () => { const f = window.ranges; f.invalidBoundsPixels = f.runtime.bufferToCanvas(await f.runtime.composeSlider(f.themes[0], { length: 120, value: 0.005 })).toDataURL(); });
+      await expect.poll(() => page.locator('.scriptoscope-slider canvas').evaluate(el => el.toDataURL() === window.ranges.invalidBoundsPixels)).toBe(true);
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2);
       await expect(page.locator('#themed')).toHaveValue('50');
       // Pointer cancellation must release drag listeners without a late commit.
@@ -143,10 +147,14 @@ for (const mode of ['source', 'built']) {
     try {
       const failures = []; page.on('pageerror', error => failures.push(String(error)));
       await page.locator('#themed').evaluate(el => { el.min = '-1e308'; el.max = '1e308'; el.step = 'any'; el.value = '0'; el.dispatchEvent(new Event('input')); });
-      const rect = await page.locator('.scriptoscope-slider').boundingBox();
+      // Known Windows95 source: 11px thumb on a 120px backing axis. Fourfold
+      // CSS scaling makes the 75%-travel center an integer client coordinate,
+      // including Firefox, without deriving expectations from runtime layout.
+      await page.addStyleTag({ content: '#themed + .scriptoscope-slider canvas { width:480px!important; }' });
+      const rect = await page.locator('.scriptoscope-slider canvas').boundingBox();
       await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2);
       await expect(page.locator('#themed')).toHaveValue('0');
-      await page.mouse.click(rect.x + rect.width * 0.75, rect.y + rect.height / 2);
+      await page.mouse.click(rect.x + (11 / 2 + 0.75 * (120 - 11)) * 4, rect.y + rect.height / 2);
       expect(await page.locator('#themed').evaluate(el => el.valueAsNumber / 1e308)).toBeCloseTo(0.5, 8);
       expect(failures).toEqual([]);
       // Reset follows the current native form, including a changed form= link.
