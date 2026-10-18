@@ -28,6 +28,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   band diagnostics, including System 7’s no-cinf face. Bind the actual loaded
   resource and clipped pre-label alpha occupancy; suppress aborted/failed paint
   without changing pixels or attributing the compatibility path to kDEF.
+  Reuse existing profile renders for exact full-face comparisons against the two
+  separately reviewed original observations under their recorded finite profile.
 
 - Add explicit finite display profiles shared by raw theme conversion, browser
   loading and declarative mounts. Preserve exact RGB16 through one joint device

@@ -208,3 +208,11 @@ Literal clipped RGBA and hidden-stage tests preserve the distinction between
 raster occupancy and later text, while held loads test identity, abort and error
 precedence. These checks do not admit original reference evidence or promote
 requirement-ledger assessments.
+
+The existing source/built profile checks also compare all 1,600 face pixels with
+the [reviewed original observations](../../tests/reference-captures/ORIGINALS.md),
+using their hash-checked port PNGs and recorded opaque white background. The same
+render must supply its actual modern face-paint identity. This comparison reuses
+the existing renders and remains limited to empty normal faces under the explicit
+measured profile. System 7's palette/gamma link is cross-run; masks, font,
+original private providers and broader requirements remain unresolved.

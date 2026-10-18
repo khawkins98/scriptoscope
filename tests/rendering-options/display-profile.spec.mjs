@@ -6,22 +6,41 @@ for(const mode of ['source','built']) {
   const result=await page.evaluate(async mode=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
    const data=await(await fetch('/tests/decoder-fixtures/measured-display-profile.json')).json(),profile=await api.prepareDisplayProfile(data),rows=[];
+   // Eligibility/digests are checked by the reference gate; these independent
+   // original PNG bytes supply the pixel oracle for the existing render.
+   const {captures}=await(await fetch('/tests/reference-captures/captures.json')).json();
    for(const slug of ['windows-95','system7-nostalgia-silver']){
     const a=await api.loadTheme('/themes/'+slug,{provenance:true}),b=await api.loadTheme('/themes/'+slug,{provenance:true,displayProfile:profile});
     let trace;const options={label:'',minWidth:80,height:20,default:false};
     const normal=await api.composeButton(b,{...options,diagnostics:{onComplete:t=>trace=t}}),legacy=await api.composeButton(a,options);
     const selected=trace.steps.find(s=>s.role==='face'&&s.action==='selected'),el=b.manifest.chromeElements[selected.resource.manifestKey];
     const faceRgba=Uint8Array.from(Array.from({length:20},(_,y)=>Array.from({length:80},(_,x)=>normal.getPixel(x+4,y+4))).flat(2));
+    const reference=captures.find(c=>c.requestId===slug+'.normal');
+    if(reference?.kind!=='independent-original'||reference.reviewScope?.id!=='public-api-empty-face')throw Error('Missing scoped original '+slug);
+    const bytes=await(await fetch('/tests/reference-captures/'+reference.image.path)).arrayBuffer();
+    const imageSha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+    if(imageSha256!==reference.image.sha256)throw Error('Original image hash mismatch '+slug);
+    const image=await createImageBitmap(new Blob([bytes],{type:'image/png'})),canvas=new OffscreenCanvas(image.width,image.height),ctx=canvas.getContext('2d');
+    ctx.drawImage(image,0,0);image.close();const original=ctx.getImageData(20,20,80,20).data;
+    let differentPixels=0;for(let i=0;i<faceRgba.length;i+=4){const alpha=faceRgba[i+3];
+     if(original[i+3]!==255||[0,1,2].some(c=>Math.round((faceRgba[i+c]*alpha+255*(255-alpha))/255)!==original[i+c]))differentPixels++;
+    }
     rows.push({slug,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
-     source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
+     originalComparison:{captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
+      layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
+     source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
      different:normal.data.some((v,i)=>v!==legacy.data[i]),size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
      urlsDistinct:Object.keys(a.manifest.chromeElements).every(k=>a.manifest.chromeElements[k].asset!==b.manifest.chromeElements[k].asset)});
     a.dispose();b.dispose();
    }return rows;
   },mode);
-  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();}
+  for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
+   expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);
+   if(row.slug==='system7-nostalgia-silver')expect(row.legacyFacePaint.resource.byteProvenance).toEqual(row.selected.resource.byteProvenance);
+   else expect(row.bandPaints.some(p=>p.role==='face')).toBe(true);
+  }
   expect(result[0].body).toEqual([218,218,218,255]);
-  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Actual shared loader observations; original reference comparison is separate evidence.'});
+  await attachObservations(info,'display-profile',mode,{mode,rows:result,claim:'Exact recorded empty-face composited pixels under the explicit measured profile only; no mask, font, private-painter or whole-requirement verification.'});
  });
  test(`${mode}: joint profile reaches sampled bands and rejects missing maps before URL allocation`,async({page,servers})=>{
   await openHarness(page,servers,mode);const result=await page.evaluate(async mode=>{
