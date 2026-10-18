@@ -3,7 +3,7 @@ import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeSc
 
 /**
  * The shape of `themes/<slug>/meta.json` — author + provenance metadata
- * for a bundle. Surfaces on `LoadedTheme.manifest.meta`. Fields are
+ * for a bundle. Merged into `LoadedTheme.manifest`. Fields are
  * loose (consumers may extend with their own keys via the catch-all);
  * the named ones are what the loader and the inspector actually read.
  *
@@ -61,23 +61,15 @@ export async function loadTheme(
   // themes-manifest.json) — when present, we skip the cascade and fetch that file
   // directly. Avoids the dev-console 404 noise on bundles whose first-try is missing.
   const candidates = opts.source ? [opts.source] : ['scheme.sit', 'scheme.rsrc'];
-  const fileBytes = await fetchFirst(baseUrl, candidates);
+  // Fetch the small provenance sidecar alongside the archive, not after it.
+  // Only an explicit complete `meta` substitutes for the sidecar; picker display
+  // labels omit origin/license and must never suppress this request.
+  const [fileBytes, meta] = await Promise.all([
+    fetchFirst(baseUrl, candidates),
+    opts.meta ? Promise.resolve(opts.meta) : fetchMeta(baseUrl),
+  ]);
   if (!fileBytes) {
     throw new Error(`loadTheme: ${baseUrl} — no ${candidates.join(' or ')} found`);
-  }
-
-  // meta.json: consumer can pass `opts.meta` (the resolver does this when a
-  // ThemeEntry has the data already on disk via themes-manifest.json,
-  // avoiding a ~660ms wasted round-trip per theme — perf finding 2026-05-30 P1).
-  // Falls back to fetching `meta.json` directly when no hint is provided.
-  // Missing is OK for a freshly-imported scheme that hasn't had its
-  // provenance scaffolded yet.
-  let meta: ThemeMeta = opts.meta ?? {};
-  if (!opts.meta) {
-    try {
-      const metaRes = await fetch(`${baseUrl}/meta.json`);
-      if (metaRes.ok) meta = await metaRes.json() as ThemeMeta;
-    } catch { /* network error / not present — silently degrade */ }
   }
 
   const slug = baseUrl.split('/').filter(Boolean).pop() ?? 'theme';
@@ -97,6 +89,15 @@ export async function loadTheme(
     baseUrl,
     ...(opts.base ? { base: opts.base } : {}),
   };
+}
+
+/** Optional provenance sidecar; freshly imported bundles may not have one yet. */
+async function fetchMeta(baseUrl: string): Promise<ThemeMeta> {
+  try {
+    const response = await fetch(`${baseUrl}/meta.json`);
+    if (response.ok) return await response.json() as ThemeMeta;
+  } catch { /* network error / not present — silently degrade */ }
+  return {};
 }
 
 /** Race the candidate filenames; return the first one that responds 200 with bytes that

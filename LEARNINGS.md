@@ -3209,3 +3209,7 @@ coverage audit in `gates`; the focused compositor tests now run in that gate.
 The full diagnostic still includes unrelated widget-pass warnings. Below the
 fixed-art minimum we preserve the existing clamp-and-clip policy rather than
 claiming to implement the kDEF's separate small-window negotiation.
+
+### 2026-10-18 — Picker attribution is not a complete provenance sidecar
+
+ThemeEntry name/author/year describe picker labels; they omit meta.json's origin, source URLs, and originalLicense. Passing those labels as loadTheme(opts.meta) silently suppressed the sidecar and lost provenance. Only explicit ThemeEntry.meta (the complete cached sidecar) now short-circuits the metadata fetch. Otherwise loadTheme fetches meta.json concurrently with the archive, preserving provenance without adding a serial round-trip. Display labels never overwrite author-supplied sidecar fields.

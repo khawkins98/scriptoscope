@@ -180,7 +180,7 @@ await mountDeclarative({
   baseSlug: 'apple-platinum-2',     // optional: base scheme to inherit from (any slug in your themeBaseUrl)
   root: document,                   // optional: scan a subtree instead of the whole page
   themes: THEMES,                   // optional: catalog for <div data-scriptoscope-theme-picker> tiles + autoCycle.
-                                    //   ThemeEntry[] — { slug, name?, author?, year?, source? }. Imported from
+                                    //   ThemeEntry[] — { slug, name?, author?, year?, source?, meta? }. Imported from
                                     //   your themes-manifest.json or hand-built. (Pre-2026-05 manifests used a
                                     //   combined `label` field; still accepted as a fallback if `name` is absent.)
   autoCycle: 4000,                  // optional: ms between picker auto-cycle steps (suppressed when
@@ -369,6 +369,11 @@ document.body.appendChild(win);
 ```ts
 const theme = await loadTheme('/themes/1990', { source: 'scheme.rsrc' });
 ```
+
+Picker `name`, `author`, and `year` are display labels. The loader fetches the complete
+`meta.json` sidecar alongside the archive to retain source and license provenance.
+If your catalog already includes that complete sidecar, pass it as `ThemeEntry.meta`
+(or `loadTheme`’s `meta` option) to avoid the metadata request.
 
 The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs (~500 per scheme); call it when permanently unmounting to avoid pinning the decoded ImageBitmap memory.
 

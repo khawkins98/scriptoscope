@@ -5,7 +5,7 @@
 // passing `baseSlug` (e.g. `'apple-platinum-2'`) if they want a specific scheme as the backstop.
 
 import type { LoadedTheme } from '../types.js';
-import { loadTheme } from '../loadTheme.js';
+import { loadTheme, type ThemeMeta } from '../loadTheme.js';
 import { themeRefToUrl } from './parse.js';
 
 /** One theme as both the picker and the loader need it. Single source of
@@ -36,6 +36,9 @@ export interface ThemeEntry {
    *  single combined `label`. The picker parses it if `name` is absent.
    *  New consumers should use `name` + `author` + `year` directly. */
   label?: string;
+  /** Complete cached meta.json, including origin/license. Display name/author/year
+   * alone are picker labels and do not replace the provenance sidecar. */
+  meta?: ThemeMeta;
 }
 
 /** @deprecated 2026-05-30 — use {@link ThemeEntry}. Kept as a type alias
@@ -48,7 +51,7 @@ export interface ThemeBootstrapOpts {
   themeBaseUrl?: string; // default '/themes'
   /** Optional universal base bundle every other theme inherits from. Default: none (themes load standalone). */
   baseSlug?: string;
-  /** Optional per-theme hints (source file + cached metadata). The resolver
+  /** Optional per-theme hints (source file + optional complete metadata). The resolver
    *  indexes by slug; loadByUrl looks up the slug from the URL's last
    *  path segment. Without this, loadTheme falls back to its default
    *  cascade behavior. Typically passed as the same `themes` array as
@@ -73,9 +76,8 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
   const baseSlug = opts.baseSlug; // undefined = no base
   const baseUrl = baseSlug ? themeRefToUrl(baseSlug, themeBaseUrl) : null;
   const cache = new Map<string, Promise<LoadedTheme>>(); // keyed by resolved bundle URL
-  // Per-slug hint index from the consumer's manifest. Reads zero on the
-  // happy path (loadTheme defaults work); reads on the slow path (.rsrc-
-  // only themes, themes whose metadata is already on disk via manifest).
+  // Display labels do not contain provenance. Only explicit complete `meta`
+  // substitutes for meta.json; source hints still avoid archive fallback RTT.
   const hintBySlug = new Map<string, ThemeEntry>(
     (opts.themes ?? []).map((t) => [t.slug, t]),
   );
@@ -88,14 +90,12 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
     if (cached) return cached;
     const p = (async (): Promise<LoadedTheme> => {
       const base = (baseUrl && url !== baseUrl) ? await loadByUrl(baseUrl) : undefined;
-      // Look up per-slug hints (source file, cached meta) — these let
-      // loadTheme skip wasted RTT for .rsrc-only bundles + skip the
-      // redundant meta.json fetch when the manifest already has the data.
+      // Source hints and complete sidecars are independent of picker labels.
       const hint = hintBySlug.get(slugOfUrl(url));
       const loadOpts: Parameters<typeof loadTheme>[1] = {};
       if (base) loadOpts.base = base;
       if (hint?.source) loadOpts.source = hint.source;
-      if (hint?.name) loadOpts.meta = { name: hint.name, ...(hint.author ? { author: { name: hint.author, ...(hint.year ? { year: hint.year } : {}) } } : {}) };
+      if (hint?.meta) loadOpts.meta = hint.meta;
       return loadTheme(url, loadOpts);
     })().catch((error: unknown) => {
       // A later register() may already have replaced this failed attempt.
