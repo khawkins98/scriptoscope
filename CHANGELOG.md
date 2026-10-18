@@ -9,6 +9,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Versioned fidelity compatibility-contract draft defining proposed source inputs,
+  family boundaries, evidence obligations and explicit substitutions. Its target
+  remains OPEN; partial requirement and availability inventories do not establish
+  an overall fidelity percentage.
+
 - Interactive period-ad landing with five live themed portrait windows, scheme
   switching and composition resets; the previous demonstration remains available
   at `showcase.html`, including legacy theme links. ([#245](https://github.com/khawkins98/scriptoscope/pull/245))
