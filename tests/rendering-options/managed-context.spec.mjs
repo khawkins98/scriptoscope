@@ -354,3 +354,30 @@ for(const mode of ['source','built']) test(`${mode}: detached managed windows re
   expect(result.hidden.every(s=>s.measurement.reason==='hidden')).toBe(true);expect(result.after).toBe(0);
   await attachObservations(info,'managed-context',`${mode}-reconnect`,{mode,detached,result});
 });
+
+for(const mode of ['source','built']) test(`${mode}: public bevel primitive uses actual buffer geometry for explicit port refresh`,async({page,servers},info)=>{
+  await setup(page,servers,mode);
+  const result=await page.evaluate(async()=>{
+    const f=window.managed,entry={...f.theme.manifest.chromeElements.normal,sourceCicnId:-10166};
+    const theme={...f.theme,manifest:{...f.theme.manifest,chromeElements:{bevel:entry}}};
+    const options={label:'',minWidth:29,height:9};
+    const initial=await f.api.composeBevelButton(theme,options),canvas=f.api.bufferToCanvas(initial);
+    canvas.style.cssText+=';position:absolute;left:23px;top:31px';f.content.append(canvas);
+    const refresh=async()=>{
+      // The bevel primitive has no reserved default ring: its actual returned
+      // buffer is the face rectangle. The caller owns this one-shot refresh.
+      const measurement=f.port.measure(canvas,{x:0,y:0,w:initial.width,h:initial.height});
+      if(measurement.status!=='ready')throw new Error(measurement.reason);
+      const buffer=await f.api.composeBevelButton(theme,{...options,compositionContext:measurement.context});
+      canvas.getContext('2d').putImageData(buffer.toImageData(),0,0);
+      return{measurement,pixel:[...canvas.getContext('2d').getImageData(4,2,1,1).data],size:[buffer.width,buffer.height]};
+    };
+    const first=await refresh();canvas.style.left='24px';const moved=await refresh();
+    f.content.scrollTop=11;const scrolled=await refresh();
+    await Promise.all(f.bindings.map(b=>b.dispose()));f.manager.remove(f.host);f.host.remove();return{first,moved,scrolled};
+  });
+  expect(result.first.size).toEqual([29,9]);expect(result.first.measurement.context.controlOrigin).toEqual([23,31]);expect(result.first.pixel).toEqual([30,0,0,255]);
+  expect(result.moved.measurement.context.controlOrigin).toEqual([24,31]);expect(result.moved.pixel).toEqual([40,0,0,255]);
+  expect(result.scrolled.measurement.context.controlOrigin).toEqual([24,20]);expect(result.scrolled.pixel).toEqual([90,0,0,255]);
+  await attachObservations(info,'managed-context',`${mode}-direct-bevel`,{mode,result,limits:'Caller-controlled one-shot primitive refresh, not automatic bevel interaction or historical port evidence.'});
+});

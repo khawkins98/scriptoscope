@@ -443,6 +443,8 @@ that content viewport's logical position and scroll. Standalone controls keep
 local context. Imperative consumers opt in explicitly:
 
 ```ts
+import { interactiveButton, WindowManager, bindButtonToContentPort } from 'scriptoscope';
+
 const content = document.createElement('div');
 const button = await interactiveButton(theme, { label: 'OK', default: true });
 content.append(button);
@@ -459,7 +461,7 @@ host.remove();
 ```
 
 Import these functions from `scriptoscope`. Binding adopts the committed window
-scale by default, so a1x button deliberately grows to2x in this example; ordinary
+scale by default, so a 1x button deliberately grows to 2x in this example; ordinary
 HTML siblings do not. `{ scale: 'preserve' }` keeps the caller's size and reports
 incompatible units explicitly. A direct `setButtonCompositionContext(button,
 context)` replaces provider ownership. Unbind preserves newer consumer style

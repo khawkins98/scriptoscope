@@ -21,8 +21,8 @@ if its units differ from the port, the result is explicitly unsupported.
 
 The default managed policy adopts only the canvas CSS width/height at the
 window's committed integer scale. It leaves slotted HTML and native siblings
-alone. Thus an independently prepared1x button deliberately becomes2x when
-bound to a2x window. Unbind restores only values and priorities still matching
+alone. Thus an independently prepared 1x button deliberately becomes 2x when
+bound to a 2x window. Unbind restores only values and priorities still matching
 its own writes; later consumer edits survive. Explicit caller context updates
 through `setButtonCompositionContext(button, context)` detach the provider before
 preparation. Invalid declarations reject without detaching. An old binding's
@@ -35,9 +35,41 @@ follow moves between those windows and enroll existing faces after window
 promotion. It does not infer authority from a foreign manager's DOM marker.
 Standalone declarations and controls in a foreign imperative window require
 explicit binding; ordinary HTML is untouched. The current declarative window
-API has no scale attribute, so this automatic path is1x. Explicit imperative
-binding covers1x/2x windows. A caller context override or explicit binding opts
+API has no scale attribute, so this automatic path is 1x. Explicit imperative
+binding covers 1x/2x windows. A caller context override or explicit binding opts
 that face out of later automatic enrollment. Retheme creates a new owned face.
+
+## Direct primitive refresh, including bevel faces
+
+A returned PixelBuffer has no DOM placement. Direct consumers can use the same
+port measurement without creating an interactive binding. A bevel has no reserved
+ring: its actual buffer bounds are its face rectangle. For example, after
+appending its canvas inside the managed host:
+
+```ts
+const options = { label: 'Tool', minWidth: 40, height: 20 };
+const first = await composeBevelButton(theme, options);
+if (first) {
+  const canvas = bufferToCanvas(first);
+  content.append(canvas);
+  const port = manager.contentPort(host)!;
+  const mapping = port.measure(canvas, { x: 0, y: 0, w: first.width, h: first.height });
+  if (mapping.status === 'ready') {
+    const updated = await composeBevelButton(theme, {
+      ...options, compositionContext: mapping.context,
+    });
+    if (updated) canvas.getContext('2d')!.putImageData(updated.toImageData(), 0, 0);
+  }
+}
+```
+
+This is a one-shot example with a stable caller-owned canvas/port. The caller
+owns subsequent remeasurement after layout changes, unsupported handling and
+lifetime. `port.observe` can provide shared tracking, but a direct async consumer
+must guard its own stale completions and unsubscribe on teardown. It does not
+acquire the button binder's paired-state transaction automatically. For raw push
+buttons, do not guess the reserved ring offset from buffer dimensions; use the
+interactive binding's actual layout seam or an explicitly known caller layout.
 
 ## Coordinate policy and unsupported mappings
 
@@ -102,7 +134,7 @@ mutation observer/resize listener can wake them. Disposal removes subscriptions
 and cancels RAF/observer work when the set becomes empty. No per-control document
 observer or per-frame descendant scan is used.
 
-The source/built browser tests use an asymmetric5x3 synthetic tile with literal
+The source/built browser tests use an asymmetric 5x3 synthetic tile with literal
 RGBA expectations, actual source Crayon ppat samples, and real window/control
 paths. At D=(55,65), Crayon's q=(8,8) must sample ppat17 at(63,9), yielding
 RGB(248,248,221) under the declared display transform. The pre-adapter source and
@@ -110,17 +142,17 @@ bundle instead yielded local-D0 RGB(235,228,207); both fixed paths use the expec
 source sample. This establishes source/context arithmetic, not original-device
 palette, Resource Manager ownership or historical port state.
 
-With12/100 bound controls under eight wrapper ancestors,20 idle frames produce
-20 viewport reads and240/2000 canvas reads, with zero compositions. Ten translated
+With 12/100 bound controls under eight wrapper ancestors, 20 idle frames produce
+20 viewport reads and 240/2000 canvas reads, with zero compositions. Ten translated
 window frames also produce zero compositions; one logical move produces exactly
 two state compositions, and disposal leaves zero reads/compositions. Earlier
-local unthrottled Chromium geometry probes measured4.3–6.4ms total for12 controls
-and27.2ms for100 controls over20 frames (1.36ms/frame for100); those are bounded
+local unthrottled Chromium geometry probes measured 4.3–6.4ms total for 12 controls
+and 27.2ms for 100 controls over 20 frames (1.36 ms/frame for 100); those are bounded
 local measurement observations, not field-performance guarantees. A later
-matched100-control/depth8 probe counted36,120 computed-style reads over20 frames
-before frame-local memoization and20,140 afterward (about44% fewer). Measured
-geometry time was44.2ms versus42.0ms total, too close to claim a CPU speedup;
-roughly2ms/frame of idle measurement work remains in that local observation. Tests also
+matched 100-control/depth8 probe counted 36,120 computed-style reads over 20 frames
+before frame-local memoization and 20,140 afterward (about 44% fewer). Measured
+geometry time was 44.2ms versus 42.0ms total, too close to claim a CPU speedup;
+roughly 2 ms/frame of idle measurement work remains in that local observation. Tests also
 cover held real decode, terminal removal, reconnect, unsupported geometry,
 caller opt-out, consumer styles, retheme and native/focus preservation.
 
