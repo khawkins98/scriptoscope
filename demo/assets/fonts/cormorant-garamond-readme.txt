@@ -9,6 +9,6 @@ and italic 400 faces supplied by Google Fonts (Cormorant Garamond v21), fetched
 Source stylesheet:
 https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap
 
-Used for the headline, italic invitation and Scriptoscope wordmark as a free
+Used for the italic invitation and Scriptoscope wordmark as a free
 Garamond-inspired display alternative closer to the period advertisement.
 Body copy and the runtime's bitmap window titles retain their existing fonts.

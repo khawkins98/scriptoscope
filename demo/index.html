@@ -9,8 +9,13 @@
   <link rel="stylesheet" href="scriptoscope.css">
   <link rel="preload" as="image" href="assets/landing/portrait.jpg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/cormorant-garamond-normal-latin.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/instrument-serif-normal-latin.woff2">
   <style>
+    @font-face {
+      font-family: 'Instrument Serif';
+      src: url('assets/fonts/instrument-serif-normal-latin.woff2') format('woff2');
+      font-style: normal; font-weight: 400; font-display: swap;
+    }
     @font-face {
       font-family: 'Cormorant Garamond';
       src: url('assets/fonts/cormorant-garamond-normal-latin.woff2') format('woff2');
@@ -74,7 +79,7 @@
     .reset-collage:disabled { opacity: .5; cursor: wait; }
     .reset-collage[hidden] { display: none; }
     .art-caption { margin: 8px 0 0; color: #b8b4ab; font: italic 13px/1.4 'Times New Roman', Times, serif; }
-    h1 { margin: 33px -12px 0; font-family: 'Cormorant Garamond', 'Times New Roman', serif; font-size: clamp(48px, 7vw, 82px); font-weight: 400; line-height: .98; letter-spacing: -.045em; text-wrap: balance; }
+    h1 { margin: 33px -12px 0; font-family: 'Instrument Serif', 'Cormorant Garamond', serif; font-size: clamp(48px, 7.5vw, 88px); font-weight: 400; font-kerning: normal; line-height: .98; letter-spacing: -.04em; word-spacing: -.025em; text-wrap: balance; }
     h1 span { display: block; }
     .invitation { margin: 12px 0 0; font-family: 'Cormorant Garamond', 'Times New Roman', serif; font-size: clamp(22px, 2.7vw, 28px); line-height: 1.2; font-style: italic; letter-spacing: -.025em; }
     .signature { margin: 35px 0 0; }
