@@ -1,4 +1,4 @@
-import type { ElementByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
+import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
 // is the schema of record; the full bundle (produced by the extractor) is
 // richer, and fields are surfaced here as the runtime needs them.
@@ -154,12 +154,12 @@ export interface ChromeElement {
    * (windows-31 + windows-95 are the only corpus bundles with zero labels).
    */
   authorLabel?: string | null;
-  /**
-   * The scheme-author-declared background pattern for this chromeElement, as a key
-   * into `manifest.patterns`. Example: cinf -9567 (finder-header) carries
-   * `bgPattern: 'ppat--9567'` or `'ppat-129'` depending on the scheme (monkey-paradise
-   * points at its custom positive-id ppat). The runtime resolves to `patterns[key].asset`.
-   */
+  /** Raw cinf byte3 mode and signed bytes4..5 request, including zero.
+   * Absent/null means unknown; this does not identify a selected or painted resource. */
+  bodyRequest?: { mode: number; resourceId: number } | null;
+  /** Legacy same-manifest pattern-catalog link derived from nonzero cinf ID.
+   * It does not encode the original mode-dependent resource type or lookup scope.
+   * See bodyRequest for the raw request, including zero. */
   bgPattern?: string | null;
   /**
    * The cinf-declared `(x, y)` source pixel used to sample the background RGB
@@ -221,7 +221,7 @@ export interface ThemeManifest {
    * `bgPattern` field references these keys; the demo + future per-slot lookups
    * resolve through this map. Always present (may be empty for slim schemes).
    */
-  patterns?: Record<string, { asset: string; sourcePpatId?: number; authorLabel?: string | null }>;
+  patterns?: Record<string, { asset: string; sourcePpatId?: number; authorLabel?: string | null; readonly byteProvenance?: PatternByteProvenance }>;
 }
 
 /** A fetched bundle plus the base URL its asset paths resolve against. */

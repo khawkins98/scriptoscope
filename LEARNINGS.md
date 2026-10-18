@@ -3897,3 +3897,17 @@ packed path and rebase its source-type import to emitted public declarations.
 The new installed-consumer check compiles both public entrypoints without source
 aliases, builds a production site and removes its installed inputs before serving
 it. This checks distribution closure; it supplies no original-engine pixel truth.
+
+## 2026-10-18 — A pattern catalog binding is not a painted dependency
+
+The ppat converter already visits exact parser occurrences, so the load-local
+observer can carry a reference into each generated catalog key without a second
+ID/filename lookup. Same-ID distinct assets remain separate; same-path aliases
+must reject observed loads before URL allocation because the encoder's last URL
+could otherwise certify a different occurrence. Unobserved behavior is unchanged.
+
+Raw cinf mode and signed requested ID must survive separately from the legacy
+resolved bgPattern slug. Zero is a real request; mode5 requests a cicn in the
+primary dispatch even though the old label says bg-pattern. Catalog byte identity
+is now observable, but the current face compositor does not paint that dependency.
+Do not fabricate a control-trace paint step from catalog presence (#260/#218).

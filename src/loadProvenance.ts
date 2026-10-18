@@ -6,11 +6,18 @@ export interface ElementByteProvenance {
   /** Null means no successfully decoded cinf supplied this entry's metadata. */
   readonly cinfResourceIndex: number | null;
 }
+/** Generated catalog binding only; this does not establish paint usage. */
+export interface PatternByteProvenance {
+  readonly loadId: string;
+  readonly manifestKey: string;
+  readonly ppatResourceIndex: number;
+}
 export interface ThemeByteProvenance {
   readonly version: 1;
   /** Per-load correlation only. Content hashes establish stable byte identity. */
   readonly loadId: string;
-  readonly scope: { readonly resourceTypes: readonly ['cicn', 'cinf']; readonly evidence: 'decoder-input-bytes' };
+  /** Authoritative observation scope; older version1 records omit ppat. */
+  readonly scope: { readonly resourceTypes: readonly ('cicn' | 'cinf' | 'ppat')[]; readonly evidence: 'decoder-input-bytes' };
   readonly input: { readonly container: string; readonly byteLength: number; readonly sha256: string };
   readonly fork: {
     readonly byteLength: number; readonly sha256: string;
@@ -23,7 +30,7 @@ export interface ThemeByteProvenance {
   readonly resources: readonly {
     /** Occurrence in the parser's resource array, distinct even for duplicate IDs. */
     readonly resourceIndex: number;
-    readonly type: 'cicn' | 'cinf'; readonly signedId: number;
+    readonly type: 'cicn' | 'cinf' | 'ppat'; readonly signedId: number;
     readonly byteLength: number; readonly sha256: string;
     readonly status: 'decoded' | 'skipped' | 'error';
   }[];

@@ -129,6 +129,14 @@ function validateChromeElements(value, path) {
       assertNumber(s.side, `${path}.${key}.slice.side`);
       assertBoolean(s.tile, `${path}.${key}.slice.tile`);
     }
+    if ('bodyRequest' in c && c.bodyRequest !== null) {
+      const request = assertObject(c.bodyRequest, `${path}.${key}.bodyRequest`);
+      for (const [field, min, max] of [['mode', 0, 255], ['resourceId', -32768, 32767]]) {
+        if (!Number.isInteger(request[field]) || request[field] < min || request[field] > max) {
+          throw new ThemeValidationError(`must be an integer in [${min}, ${max}]`, `${path}.${key}.bodyRequest.${field}`);
+        }
+      }
+    }
     if ('bgPattern' in c && c.bgPattern !== null) {
       assertString(c.bgPattern, `${path}.${key}.bgPattern`);
     }

@@ -72,6 +72,10 @@ export function buildThemeJson(manifest, options = {}) {
     // pattern slot, regardless of the bundle author's friendly name) breaks
     // because `asset` becomes a `blob:...` URL that no longer contains the id.
     patterns[slug] = { asset: ppat.file, sourcePpatId: ppat.id, authorLabel: ppat.name || null };
+    if (ppat.byteReference) patterns[slug].byteProvenance = Object.freeze({
+      loadId: ppat.byteReference.loadId, manifestKey: slug,
+      ppatResourceIndex: ppat.byteReference.resourceIndex,
+    });
     ppatSlugById[ppat.id] = slug;
   }
 
@@ -101,6 +105,9 @@ export function buildThemeJson(manifest, options = {}) {
             resizeBehavior: cd.resizeBehavior,
           }
         : null,
+      // Raw request, distinct from the compatibility catalog link below. Zero
+      // is a signed resource ID too; mode5 requests cicn, not ppat.
+      bodyRequest: cd ? { mode: cd.patternAnchor, resourceId: cd.bgPatternId } : null,
       bgPattern: cd && cd.bgPatternId !== 0
         ? (ppatSlugById[cd.bgPatternId] ?? null)
         : null,
