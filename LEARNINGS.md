@@ -4385,3 +4385,20 @@ content identity. The default 18-theme conversion is unchanged. Independent
 original full-face comparisons and current-output regression goldens answer
 different questions; neither admits an unreviewed whole-theme fidelity claim.
 See [the display-profile contract](docs/spec/display-profile.md).
+
+### 2026-10-18 — A usable scoped observation is not a satisfied requirement
+
+One complete 80×20 composited face can be useful original evidence without proving
+all of geometry.remaining or fill.remaining. Keep the exact scope, surrounding
+image, background and producer conditions in its attestation, and keep every
+broader requirement unresolved. White output under one opaque background does
+not establish source alpha or mask behavior; an empty title does not establish
+font independence. A public normal invocation also does not reveal the selected
+private provider, painter or default flag.
+
+Unknown font/patch/base/cache identities can remain explicit reasoned unknowns
+for this narrow observation while the default full-admission path stays strict.
+Timing matters: conditions measured after a draw cannot be called pre-draw or
+bracketing evidence. Exact producer build hashes need not imply a known semantic
+release. The [scoped intake](docs/spec/scoped-reference-observations.md) records
+these limits without new captures, a renderer verdict or automatic ledger edits.

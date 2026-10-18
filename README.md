@@ -643,6 +643,11 @@ current output alone cannot establish it. Remaining control limits are tracked i
 tab, font, device and window fidelity remain active work in
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221); the independent
 reference corpus is tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190).
+The [reference intake](./tests/reference-captures/README.md) also defines a narrow
+review scope for complete fixed-size empty Windows 95/System 7 face observations.
+Such composited-pixel evidence leaves the broader requirements unresolved; it
+cannot certify masks, typography, other states or private painter selection.
+No actual captures are admitted by that contract refinement.
 
 [Actual resource-byte provenance](./docs/spec/resource-byte-provenance.md) can opt in
 to joining loaded archive, fork and resource bytes to selected manifest entries

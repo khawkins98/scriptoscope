@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, symlinkSyn
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, repositoryRoot } from './contract.mjs';
+import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, repositoryRoot, publicFaceScope } from './contract.mjs';
 
 import { inspectPNG } from './png.mjs';
 
@@ -255,4 +255,137 @@ test('nonzero origins cannot pass as ordinary manager calls or without independe
 test('swapped direct invocation or pattern-origin record rejects a fresh review', t => {
   const f = originFixture(t); f.capture.observed.patternOriginState.offset = [0, 0];
   assert.ok(f.assess().rejected.some(s => s.startsWith('direct-origin-invocation')));
+});
+
+// TEST ONLY: no original session, captured pixels, approval or ledger change.
+function scopedFixture(t, req = request) {
+  const f = fixture(t, req), c = f.capture;
+  const template = captureTemplate(req, { scope: 'public-api-empty-face' });
+  c.reviewScope = template.reviewScope;
+  for (const key of ['font', 'patchStack', 'baseChain', 'resourceSearchOrder', 'selectedProvider', 'resourceCache', 'privateDefaultState']) c.observed[key] = null;
+  c.observed.unknownConditions = Object.fromEntries(Object.keys(template.observed.unknownConditions).map(k => [k, `TEST ONLY: ${k} was not observed; no dependent claim.`]));
+  const artifacts = { 'indexed-palette': Buffer.from('TEST PALETTE'),
+    'producer-table': Buffer.from('TEST PRODUCER TABLE'), 'full-frame': png(640, 480) };
+  for (const [role, bytes] of Object.entries(artifacts)) {
+    const path = `${role}.${role === 'full-frame' ? 'png' : 'bin'}`;
+    writeFileSync(join(f.root, path), bytes); c.provenance.artifacts.push({role, path, sha256: sha256(bytes)});
+  }
+  c.observed.palette.sha256 = sha256(artifacts['indexed-palette']);
+  c.observed.publicApiFace = {
+    configuredScheme: { archiveSha256: req.source.archiveSha256, forkSha256: req.source.forkSha256, evidence: 'TEST configured file only; private selection unknown' },
+    invocation: { api: 'NewControl', drawApi: 'Draw1Control', controlRect: [20,20,80,20], title: '', state: 'normal', defaultRing: false, defaultApiInvoked: false },
+    port: { origin: [0,0], bounds: [0,0,160,80], effectiveClipRect: [0,0,160,80], backgroundRGB: [255,255,255], backgroundOpaque: true },
+    producer: { name: 'TEST producer', buildArtifacts: [{name:'TEST external emulator build',sha256:'1'.repeat(64)}], tableSha256: sha256(artifacts['producer-table']),
+      pixelEncoding: 'rgba8', colorRealization: 'TEST ONLY recorded display/producer conditions, not general transfer proof',
+      timing: 'TEST AFTER drawing, before/after mapping; not pre-draw evidence', version: {status:'unknown',reason:'TEST semantic release not established; build bytes pinned'} },
+    fullFrame: { sha256: sha256(artifacts['full-frame']), width:640, height:480, requestImageRect:[80,90,160,80],
+      transform:'requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion' },
+  };
+  const approve = capture => {
+    const o = capture.observed, p = o.publicApiFace;
+    for (const [role, value] of Object.entries({ 'configured-scheme': p?.configuredScheme,
+      'public-invocation': {controlDefinition:o.controlDefinition,invocation:p?.invocation,port:p?.port,fullFrame:p?.fullFrame},
+      'pixel-conditions': {palette:o.palette,producer:p?.producer},'producer-identities':p?.producer?.buildArtifacts })) {
+      const bytes = Buffer.from(JSON.stringify(value ?? null)), path = `${role}.json`;
+      writeFileSync(join(f.root,path),bytes);
+      let a = capture.provenance.artifacts.find(a=>a.role===role);
+      if (!a) capture.provenance.artifacts.push(a={role});
+      Object.assign(a,{path,sha256:sha256(bytes)});
+    }
+    return f.approve(capture);
+  };
+  approve(c);
+  return {...f, request:req, approve, assess:(capture=c, reviews=[approve(capture)], known=[])=>assessCapture(capture,req,reviews,{intakeRoot:f.root,known})};
+}
+
+test('scoped observations associate geometry/fill without verifying either or satisfying a request', t => {
+  for (const id of ['windows-95.normal','system7-nostalgia-silver.normal']) {
+    const f=scopedFixture(t,contract.requests.find(r=>r.id===id)),review=f.approve(f.capture),result=f.assess(f.capture,[review]);
+    assert.equal(result.status,'reviewed-scoped-observation');
+    assert.deepEqual(result.verifiedRequirementIds,[]);assert.deepEqual(result.unresolvedRequirementIds,f.request.targetRequirementIds);
+    assert.deepEqual(review.targetRequirementIds,['geometry.remaining','fill.remaining']);
+    assert.equal(result.unresolvedConditions.length,8);assert.ok(result.excludedClaims.includes('alpha-or-mask'));
+    const report=assessCorpus(contract,{schemaVersion:1,captures:[f.capture]},{schemaVersion:1,reviews:[review]},{intakeRoot:f.root,known:[]});
+    const row=report.requests.find(r=>r.id===id);assert.equal(row.status,'evidence-incomplete');
+    assert.deepEqual(row.scopedEligibleObservations,[f.capture.id]);assert.deepEqual(row.unresolvedRequirementIds,f.request.targetRequirementIds);
+  }
+});
+
+test('scope wording, version, face region and excluded-claim expansion reject fresh attestations', t => {
+  for (const mutate of [c=>c.reviewScope.version++,c=>c.reviewScope.facePortRect[2]=40,c=>c.reviewScope.faceImageRect[0]++,
+    c=>c.reviewScope.excludedClaims=[],c=>c.reviewScope.claim='Whole button certified',c=>c.reviewScope.comparisonLayer='raw-alpha',
+    c=>c.reviewScope.associatedRequirementIds.push('selection.original'),c=>c.reviewScope.id='invented']) {
+    const f=scopedFixture(t);mutate(f.capture);assert.equal(f.assess().status,'rejected');
+  }
+});
+
+test('normal scoped inputs cannot expand to labels, defaults, pressed states or Crayon',t=>{
+  for(const id of ['windows-95.default','windows-95.pressed','system7-nostalgia-silver.inactive','crayon-os.normal']) {
+    const req=contract.requests.find(r=>r.id===id);assert.throws(()=>captureTemplate(req,{scope:'public-api-empty-face'}),/unsupported review scope/);
+    const f=scopedFixture(t);f.capture.requestId=req.id;f.capture.requestDigest=req.requestDigest;f.capture.source=req.source;f.capture.conditions=structuredClone(req.conditions);
+    const result=assessCapture(f.capture,req,[f.approve(f.capture)],{intakeRoot:f.root});assert.equal(result.status,'rejected');
+  }
+  for(const mutate of [c=>c.conditions.text='OK',c=>c.observed.publicApiFace.invocation.title='OK',c=>c.observed.publicApiFace.invocation.defaultRing=true,
+    c=>c.observed.publicApiFace.invocation.api='DrawControls',c=>c.observed.publicApiFace.invocation.drawApi='Other',
+    c=>c.observed.publicApiFace.invocation.defaultApiInvoked=true,c=>c.observed.privateDefaultState=false,
+    ...['procedureId','variant','hilite','value'].map(k=>c=>c.observed.controlDefinition[k]=1),
+    c=>c.observed.publicApiFace.invocation.controlRect[2]=79,c=>c.observed.publicApiFace.port.backgroundRGB=[0,0,0]]) {
+    const f=scopedFixture(t);mutate(f.capture);assert.equal(f.assess().status,'rejected');
+  }
+});
+
+test('missing relevant scoped conditions and omitted unknown reasons remain ineligible',t=>{
+  for(const mutate of [c=>delete c.observed.palette,c=>delete c.observed.engineInstallation.sha256,c=>delete c.observed.publicApiFace.configuredScheme,
+    c=>delete c.observed.publicApiFace.invocation.api,c=>delete c.observed.publicApiFace.port.effectiveClipRect,
+    c=>delete c.observed.publicApiFace.producer.tableSha256,c=>delete c.observed.publicApiFace.producer.buildArtifacts,
+    c=>delete c.observed.publicApiFace.producer.timing,c=>delete c.observed.publicApiFace.producer.version.reason,
+    c=>delete c.observed.unknownConditions.font,c=>delete c.observed.selectedProvider]) {
+    const f=scopedFixture(t);mutate(f.capture);assert.ok(['partial','rejected'].includes(f.assess().status));
+  }
+});
+
+test('known scoped fields must validate and cannot hide behind an unknown reason',t=>{
+  for(const mutate of [c=>c.observed.font={name:'incomplete'},c=>c.observed.patchStack=[{name:'incomplete'}],
+    c=>c.observed.selectedProvider={name:'incomplete'},c=>c.observed.resourceCache={name:'incomplete'}]) {
+    const f=scopedFixture(t);mutate(f.capture);assert.equal(f.assess().status,'partial');
+  }
+});
+
+test('scoped review must bind exact scope, subset, capture digest and independent reviewer',t=>{
+  const f=scopedFixture(t);assert.equal(f.assess(f.capture,[]).status,'awaiting-independent-review');
+  for(const mutate of [r=>delete r.reviewScope,r=>r.reviewScope.version++,r=>r.targetRequirementIds=f.request.targetRequirementIds,
+    r=>r.captureDigest='0'.repeat(64),r=>r.requestDigest='0'.repeat(64),r=>r.reviewer=f.capture.provenance.producer,
+    r=>r.checks.scopeAndLimits=false,r=>r.checks.recordedPixelConditions=false]) {
+    const r=f.approve(f.capture);mutate(r);assert.ok(['partial','rejected'].includes(f.assess(f.capture,[r]).status));
+  }
+  const r=f.approve(f.capture);f.capture.observed.unknownConditions.font='Different unknown reason';
+  f.approve(f.capture);assert.equal(f.assess(f.capture,[r]).status,'rejected');
+});
+
+test('scope cannot turn incomplete full captures into complete evidence or weaken old strict requests',t=>{
+  for(const explicit of [false,true]) {
+    const f=scopedFixture(t);if(explicit)f.capture.reviewScope={id:'full',version:1};else delete f.capture.reviewScope;
+    const result=f.assess();assert.equal(result.status,'partial');assert.ok(result.missing.some(x=>x.includes('font')));
+    assert.ok(result.missing.some(x=>x.includes('resourceSearchOrder')));
+  }
+  const full=fixture(t);full.capture.reviewScope={id:'full',version:1};assert.equal(full.assess().status,'reviewed-independent-capture');
+});
+
+test('scoped original frame and palette/producer artifacts remain bound and contamination screened',t=>{
+  const f=scopedFixture(t),r=f.approve(f.capture);
+  const original=f.capture.provenance.artifacts.find(a=>a.role==='full-frame');
+  assert.equal(f.assess(f.capture,[r],[{path:'synthetic-fullframe.png',sha256:original.sha256}]).status,'rejected');
+  assert.equal(f.assess(f.capture,[r],[{path:'renamed-golden.png',sha256:f.capture.image.sha256}]).status,'rejected');
+  for(const role of ['indexed-palette','producer-identities','producer-table','public-invocation','configured-scheme','full-frame']) {
+    const other=scopedFixture(t),review=other.approve(other.capture),a=other.capture.provenance.artifacts.find(a=>a.role===role);
+    writeFileSync(join(other.root,a.path),'CHANGED');assert.equal(other.assess(other.capture,[review]).status,'rejected');
+  }
+  f.capture.observed.publicApiFace.fullFrame.requestImageRect=[600,400,160,80];assert.equal(f.assess().status,'rejected');
+});
+
+test('scope policy is bound in request identity while exact13 request objects remain unchanged',t=>{
+  const root=contractRoot(t),path=join(root,'tests/reference-captures/requests.json'),c=JSON.parse(readFileSync(path));
+  c.requestVersion='0.1.1';writeFileSync(path,JSON.stringify(c));assert.notEqual(readContract(root).requests[0].requestDigest,contract.requests[0].requestDigest);
+  const scoped=publicFaceScope(request);assert.equal(scoped.version,1);assert.deepEqual(scoped.faceImageRect,[20,20,80,20]);
+  assert.equal(publicFaceScope({...request,conditions:{...request.conditions,controlRect:[20,20,40,20]}}),null);
 });
