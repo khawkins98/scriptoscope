@@ -8,6 +8,8 @@ import { PixelBuffer } from './pixelBuffer.js';
 import { rasterizeText } from './textRaster.js';
 import { controlTextColors } from './controlTextColors.js';
 import { composeTabBody } from './composeTabBody.js';
+import { planHeaderSurface, headerMetadataRejection, headerBackground, paintHeaderSurface,
+  type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from './headerSurface.js';
 import { withControlDiagnostics, type ControlDiagnostics, type ControlTraceCollector, type ControlResolutionStep } from './controlDiagnostics.js';
 
 /** 9-slice corner inset for a control cicn — matches the kDEF's ~6px for
@@ -1101,12 +1103,12 @@ function assertControlAlive(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException('Control preparation aborted', 'AbortError');
 }
 
-async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean }> {
+async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usage: 'paint' | 'admission' = 'paint'): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean }> {
   const request = face.element.bodyRequest;
   if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
     requestedResourceType: request.mode === 5 ? 'cicn' as const : 'ppat' as const,
-    basis: 'compatibility-policy' as const, usage: 'paint' as const,
+    basis: 'compatibility-policy' as const, usage,
     owner: { baseUrl: face.theme.baseUrl, chainDepth: face.chainDepth } };
   if (!Number.isInteger(request.mode) || request.mode < 0 || request.mode > 255 || request.mode === 5 || !face.element.slice) {
     opts.trace?.record({ ...common, action: 'fallback', reason: request.mode === 5 ? 'cicn-body-not-implemented' : 'body-mode-or-geometry-not-implemented' });
@@ -1156,7 +1158,7 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
   const url = assetUrl(face.theme, pattern.asset);
   const buffer = await loadCicnBuffer(url);
   assertControlAlive(opts.signal);
-  opts.trace?.record({ ...common, action: 'selected', reason: selectionReason, resource: {
+  opts.trace?.record({ ...common, action: 'selected', reason: usage === 'admission' ? selectionReason.replace(/-paint$/, '-admission') : selectionReason, resource: {
     type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
     ...(pattern.byteProvenance ? { byteProvenance: pattern.byteProvenance } : {}),
   } });
@@ -1536,14 +1538,66 @@ async function composeBevelButtonWithTrace(theme: LoadedTheme, opts: BevelButton
   return composeFaceButton(face, faceOpts);
 }
 
+/** Whole Appearance header surface with explicit Rect/state/clip and finite
+ * source admission. Existing composeListHeader remains a column compatibility API. */
+export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfaceOptions): Promise<HeaderSurfaceResult> {
+  let result: HeaderSurfaceResult = { status: 'unavailable', reason: 'missing-face' };
+  await withControlDiagnostics(opts?.diagnostics, 'header-surface', {
+    state: opts?.drawState === 0 ? 'inactive' : 'active', pressed: false, disabled: false,
+  }, async trace => {
+    const plan = planHeaderSurface(opts);
+    const finish = (value: HeaderSurfaceResult, extra: Partial<Pick<HeaderSurfaceTrace, 'backgroundPolicy' | 'lineSampling' | 'painted'>> = {}): PixelBuffer | null => {
+      result = value;
+      trace?.headerSurface({ ...plan, admission: value.status, ...(value.status === 'rendered' ? {} : { reason: value.reason }),
+        geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility', ...extra });
+      return value.status === 'rendered' ? value.buffer : null;
+    };
+    if (!plan.effectiveClip) return finish({ status: 'unsupported', reason: 'unknown-clip' });
+    // PACH130 c430..c4d4 treats this ordinary-header sentinel specially using
+    // window visibility/port bounds that this explicit Rect API does not carry.
+    if (plan.kind === 'window-header' && plan.requestedRect.x === -1 && plan.requestedRect.y === -1)
+      return finish({ status: 'unsupported', reason: 'special-window-origin' });
+    try {
+      // Callback state dispatch is source-backed; manifest ownership, aliases and
+      // base search remain the current compatibility resolver's policy.
+      const id = plan.drawState === 0 ? 9568 : 9567;
+      const selected = resolveFaceById(theme, id, trace,
+        { ...FACE_LOOKUP, basis: 'compatibility-policy', usage: 'admission' });
+      if (!selected) return finish({ status: 'unavailable', reason: 'missing-face' });
+      // Capture the actual selected identity before decoding. The successful
+      // paint record reuses it; it never repeats lookup or guesses an owner.
+      const identity = trace ? { owner: { baseUrl: selected.theme.baseUrl, chainDepth: selected.chainDepth }, resource: resourceIdentity(selected) } : null;
+      const face: ResolvedControlFace = { ...selected, buffer: await loadCicnBuffer(assetUrl(selected.theme, selected.element.asset)) };
+      const rejection = headerMetadataRejection(face.element);
+      if (rejection) return finish({ status: 'unsupported', reason: rejection });
+      // A selected ppat (including ID0) takes priority. Keep real decode errors
+      // as errors, not a manufactured NULL lookup/solid fallback.
+      const body = await loadBodyPattern(face, { trace }, 'admission');
+      if (body.buffer) return finish({ status: 'unsupported', reason: 'pattern-body' });
+      if (!body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
+      const background = headerBackground(face.buffer, face.element);
+      if (!background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
+      const painted = paintHeaderSurface(face.buffer, face.element, plan, background);
+      if (painted.painted && identity) trace?.record({ ...identity, role: 'face', requestedId: -id,
+        action: 'selected', basis: 'compatibility-policy', usage: 'paint', reason: 'admitted-header-surface-paint' });
+      return finish(painted.result, { ...(painted.result.status === 'rendered' ? { painted: painted.painted,
+        ...(painted.painted ? { backgroundPolicy: 'raw-sample-current-display' as const } : {}) } : {}), lineSampling: painted.lineSampling });
+    } catch (error) {
+      trace?.headerSurface({ ...plan, admission: 'error', geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility' });
+      throw error;
+    }
+  });
+  return result;
+}
+
 export interface ListHeaderColumn { label: string; width: number; }
 export interface ListHeaderOptions { columns?: ListHeaderColumn[]; height?: number; inactive?: boolean; }
 
 /**
- * Compose a THEMED list / Finder column header: 9-slice the scheme's finder-header
- * cell cicn (-9567 active / -9568 inactive) into each column with a left-aligned
- * label (the cell is the same 9-slice shape as a button face, so it reuses
- * composeFaceButton). Returns null (→ platinumListHeader) when the scheme ships none.
+ * Compatibility multi-column/text helper, using -9567 active / -9568 inactive
+ * art with the existing per-cell sizing, slicing and left-aligned label policy.
+ * This is not the original whole-header call. See composeHeaderSurface for the
+ * separately admitted Rect/state model. Returns null when the scheme ships none.
  */
 export async function composeListHeader(theme: LoadedTheme, opts: ListHeaderOptions = {}): Promise<PixelBuffer | null> {
   const cellId = opts.inactive ? 9568 : 9567;

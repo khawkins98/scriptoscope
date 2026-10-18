@@ -18,6 +18,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   sampled companions only after a complete safe pass and decode only painted
   dependencies, with normal cancellation/disposal ownership.
 
+- Add a separate whole-header surface compositor with explicit Rect/state/clip,
+  raw background and mask/band composition, and list-view bottom extension before
+  clipping (#292). Report unsupported sampling, pattern, special-origin and
+  recording/device boundaries explicitly; preserve the existing multi-column
+  text helper and distinguish admission work from actual paint diagnostics.
+
 - Register two exact solid-background requirement cases with selected-owner byte
   joins and independent literal fill assertions. Preserve all sixteen prior cases
   and 134 assessments; the eighteen-case inventory remains OPEN with device,

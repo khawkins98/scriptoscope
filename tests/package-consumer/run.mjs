@@ -177,6 +177,7 @@ try {
     await expect(page.locator('.scriptoscope-checkbox,.scriptoscope-slider,.scriptoscope-select')).toHaveCount(3);
     assert.equal(await page.evaluate(() => window.packedConsumer.version), packed.version);
     assert.equal(await page.evaluate(() => window.packedConsumer.decoderExport), 'function');
+    assert.equal(await page.evaluate(() => window.packedConsumer.headerSurfaceExport), 'function');
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--scriptoscope-focus-width').trim()), '2px');
     await page.getByRole('checkbox', { name: 'Themed', exact: true }).click();
     const slider = page.getByRole('slider', { name: 'Volume', exact: true });
