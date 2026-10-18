@@ -3825,3 +3825,19 @@ packed path and rebase its source-type import to emitted public declarations.
 The new installed-consumer check compiles both public entrypoints without source
 aliases, builds a production site and removes its installed inputs before serving
 it. This checks distribution closure; it supplies no original-engine pixel truth.
+
+
+### 2026-10-18 — Capture requests are not reference evidence
+
+A pinned scheme plus a familiar-looking author thumbnail does not establish an
+original rendering oracle. Separate provisional requested Rect/state/port/crop
+inputs from observed original environment and separately reviewed captures. A
+known kDEF0 hash identifies one component, not the installed engine/patch stack;
+draft archive selection pins are not original Resource Manager ownership proof.
+Empty-label requests can isolate body work without claiming original typography.
+
+Bind review to exact request, image and metadata digests, record explicit unknowns,
+and reject selfgolden/preview bytes submitted under an original-evidence label.
+Byte matching detects known contamination, not authenticity or truthful human
+identity. Missing captures must remain actionable missing evidence; a successful
+metadata gate cannot become a historical-fidelity result or overall percentage.

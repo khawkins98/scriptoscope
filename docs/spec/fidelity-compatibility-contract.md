@@ -155,3 +155,17 @@ Completion may then be described as **complete for the named versioned acceptanc
 target**, with its exclusions and deliberate substitutions. The separate product
 release threshold remains [#168](https://github.com/khawkins98/scriptoscope/issues/168).
 This draft does not choose that threshold or certify the current implementation.
+
+## Reference capture intake implementation (#190)
+
+[Capture requests and validation](../../tests/reference-captures/README.md) now
+provide a finite provisional twelve-request first batch and an initially empty
+capture/review corpus. Requests reuse the draft source-choice pins, name target
+requirements, and specify body-only geometry/state/port/crop conditions. Unknown
+original environment, base/search-chain, font and palette information stays
+unknown until external evidence and independent review supply it. The validator
+separates eligibility from rendering verdicts, rejects known self-image
+contamination and stale/mismatched provenance, and reports missing evidence
+without a fidelity percentage. It neither executes original code nor promotes
+request inputs, author previews or selfgoldens to historical defaults. Target
+closure, source-selection approval and typography remain unchanged.
