@@ -61,6 +61,12 @@ Scriptoscope is a hobby project — there's no npm package. The runtime + the 18
 </script>
 ```
 
+The optional stylesheet applies `--scriptoscope-window-shadow` to the rendered
+window's `::part(window)`. WindowManager marks its outer hosts with
+`data-scriptoscope-window-host`, including imperative windows. This keeps shell
+shadows aligned with the frame when a consumer grid or flex row stretches the
+outer host. Set the custom property to `none` to disable them.
+
 If you'd prefer to vendor it (no third-party CDN dependency), copy every top-level `dist/*.js` file (including lazy decoder chunks), `dist/scriptoscope.css`, and the deployed themes from a matching build (see [Vendoring](#vendoring-if-you-dont-want-a-third-party-cdn-dependency)), and host them yourself.
 
 ## Five-minute setup

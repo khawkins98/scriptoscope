@@ -53,14 +53,12 @@
 }
 
 /* ─── Drop shadow on window hosts ──────────────────────────────────────── */
-/* Every promoted window's outermost element is the host div (the one with a
-   shadow root attached). The runtime stamps it `data-scriptoscope-promoted="";` after
-   promotion. We match on that to scope the shadow purely to Aaron windows
-   without touching the consumer's other absolute-positioned divs. */
-[data-scriptoscope-promoted] {
-  /* box-shadow on the host is safe: it's outside the shadow boundary, applies
-     to the host element itself, matches the position/size of whatever the
-     shadow renders inside. */
+/* WindowManager stamps this on every window host, including imperative ones.
+   The generic promoted marker also belongs to buttons, selects and checkables;
+   putting a window shadow there adds an extra rectangular bevel to their art. */
+[data-scriptoscope-window-host]::part(window) {
+  /* Grid/flex can stretch the host beyond the frame. The exported window
+     part always bounds the actual chrome, so its shadow follows the art. */
   box-shadow: var(--scriptoscope-window-shadow);
 }
 
@@ -106,7 +104,7 @@
    probably want the consumer's content — not the Mac frame. Hide the
    chrome but leave the body content (slotted, in light DOM) visible. */
 @media print {
-  [data-scriptoscope-promoted] {
+  [data-scriptoscope-window-host]::part(window) {
     box-shadow: none;
   }
   [data-scriptoscope-promoted] canvas.scriptoscope-chrome {

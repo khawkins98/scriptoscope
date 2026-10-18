@@ -272,7 +272,8 @@ If you hit one of these and the fix isn't obvious, the diagnostic page at `/diag
 
 The runtime uses these DOM attributes as re-entrancy guards. Consumers should not set them; SSR / static-render consumers should specifically AVOID emitting them:
 
-- `data-scriptoscope-promoted` (on windows, buttons, controls — "I've processed this")
+- `data-scriptoscope-promoted` (on source windows, buttons, controls — "I've processed this")
+- `data-scriptoscope-window-host` (on actual WindowManager hosts, imperative and declarative; optional shell CSS targets the inner frame through `::part(window)` so grid/flex stretching does not stretch its shadow)
 - `data-scriptoscope-tabs-promoted`, `data-scriptoscope-field-promoted`, `data-scriptoscope-icon-promoted`, `data-scriptoscope-theme-picker-promoted` (per-kind stamps)
 - `data-scriptoscope-switcher-wired` (on `<select data-scriptoscope-theme-switcher>`)
 - `data-scriptoscope-current-state="active|inactive"` (on the inner `.scriptoscope-window`, indicates focus state)

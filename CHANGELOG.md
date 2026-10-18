@@ -31,6 +31,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Scope the optional window shadow to the actual rendered window part, including
+  imperative windows and hosts stretched by consumer grid/flex layouts. Promoted buttons, selects, and checkables no longer receive an extra
+  rectangular shadow over their scheme-authored art (related to #207).
+
 - Share Scene info-bar background/text resolution between the diagnostic and its
   audit so textured bars report their actual black label instead of unused dark
   header-fill contrast. Rendering precedence stays unchanged (related to #183).

@@ -444,6 +444,8 @@ export async function renderWindow(
   // 0,0 and the content is INSET by the frame thickness. ──
   const win = document.createElement('div');
   win.className = 'scriptoscope-window';
+  // Optional shell CSS targets the actual frame, not a grid-stretched host.
+  win.setAttribute('part', 'window');
   win.dataset.scriptoscopeCurrentState = state;
   // The title is always exposed to assistive tech, even when it isn't drawn
   // (utility/mini windows show no visible label in a modern context).
@@ -603,6 +605,8 @@ function buildBaselineWindow(
 
   const win = document.createElement('div');
   win.className = 'scriptoscope-window';
+  // Optional shell CSS targets the actual frame, not a grid-stretched host.
+  win.setAttribute('part', 'window');
   win.dataset.scriptoscopeCurrentState = state;
   if (title) {
     win.setAttribute('role', utility ? 'dialog' : 'group');
