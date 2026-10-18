@@ -1138,7 +1138,9 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions): Pr
     opts.trace?.record({ ...common, action: 'missing', reason: 'same-face-owner-pattern-unavailable' });
     // Current same-owner lookup miss corresponds to the full-color solid path.
     // This is not proof of historical Resource Manager search ownership.
-    return { buffer: null, solidFallback: true };
+    const solidFallback = Number.isInteger(request.resourceId) && request.resourceId >= -32768 && request.resourceId <= 32767
+      && [face.element.slice.corner, face.element.slice.side].every(value => Number.isInteger(value) && value >= 0 && value <= 255);
+    return { buffer: null, solidFallback };
   }
   assertControlAlive(opts.signal);
   const url = assetUrl(face.theme, pattern.asset);
@@ -1219,11 +1221,13 @@ async function composeFaceButton(
   const samples = faceEl.colorSamples;
   const rawBg = samples?.background;
   const triple = (values: readonly number[] | undefined, max: number): boolean =>
-    !!values && values.length === 3 && values.every(value => Number.isInteger(value) && value >= 0 && value <= max);
+    Array.isArray(values) && values.length === 3 && values.every(value => Number.isInteger(value) && value >= 0 && value <= max);
   // 10904..1091a samples source RGB independently of the mask; 109b2..109b6
   // applies it before a NULL pattern result reaches solid fill at10b72.
   // Prefer its already-transformed display triple even for opaque raster pixels:
   // source palette lookup can differ from the ordinary raster decoder's policy.
+  // Loader validation binds RGB16/display consistency. Direct hand-built theme
+  // metadata remains caller-declared; do not apply or duplicate that LUT here.
   const sourceBg = body.solidFallback && faceEl.slice && !faceEl.colorSamplesUnavailableReason
     && samples?.model === 'kdef-2.3.1-color' && samples.displayPolicy === 'mac-1.8-to-2.2-high-byte'
     && rawBg && triple(rawBg.rgb16, 65535) && triple(rawBg.displayRgb, 255)

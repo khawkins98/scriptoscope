@@ -53,10 +53,11 @@ List headers share implementation in Scriptoscope, but their original call-site
 equivalence has not been established; they retain legacy geometry and text policy.
 
 A transparent decoded canvas pixel does not preserve hidden source RGB. The
-loader retains raw background/text/emboss samples before that transport, but the
-solid-body branch still requires an opaque decoded background anchor and uses
-its decoded RGB. A masked background anchor therefore still retains the legacy
-body path; retained raw background metadata alone does not fix that limitation.
+loader retains raw background/text/emboss samples before that transport. The
+[supported solid-body fallback](control-solid-background.md) now consumes the
+selected face owner's raw background display sample regardless of mask state.
+Resolved patterns retain priority; missing/invalid/ambiguous raw metadata and
+unsupported body requests preserve their existing compatibility behavior.
 Push/bevel foreground and emboss decisions do consume the source samples
 at `0x10922..0x10990`; browser glyphs/metrics, alpha-over transfer and the declared
 high-byte/display LUT remain compatibility policies. These narrower corrections

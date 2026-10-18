@@ -69,7 +69,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
       const green = api.PixelBuffer.alloc(1, 1); green.setPixel(0, 0, 0, 255, 0, 255);
       const url = api.bufferToCanvas(green).toDataURL(); const rows = [];
       try {
-        for (const variant of ['missing', 'wrong-model', 'wrong-policy', 'invalid-display', 'invalid-rgb16', 'ambiguous-sample', 'invalid-anchor', 'legacy-no-request', 'mode5', 'invalid-mode', 'ambiguous-pattern', 'ppat0', 'ppat17', 'label', 'label-override']) {
+        for (const variant of ['missing', 'wrong-model', 'wrong-policy', 'invalid-display', 'invalid-rgb16', 'ambiguous-sample', 'invalid-anchor', 'legacy-no-request', 'mode5', 'invalid-mode', 'invalid-resource', 'invalid-slice', 'declared-display', 'ambiguous-pattern', 'ppat0', 'ppat17', 'label', 'label-override']) {
           const el = structuredClone(initial); owner.manifest.chromeElements[key] = el; owner.manifest.patterns = {};
           if (variant === 'missing') delete el.colorSamples;
           if (variant === 'wrong-model') el.colorSamples.model = 'unknown';
@@ -81,6 +81,9 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
           if (variant === 'legacy-no-request') delete el.bodyRequest;
           if (variant === 'mode5') el.bodyRequest.mode = 5;
           if (variant === 'invalid-mode') el.bodyRequest.mode = 256;
+          if (variant === 'invalid-resource') el.bodyRequest.resourceId = 32768;
+          if (variant === 'invalid-slice') el.slice.corner = 3.5;
+          if (variant === 'declared-display') el.colorSamples.background.displayRgb = [96, 96, 96];
           if (variant === 'ambiguous-pattern') owner.manifest.patterns = { 2: { sourcePpatId: 0, asset: url }, 1: { sourcePpatId: 0, asset: url } };
           if (variant.startsWith('ppat')) { el.bodyRequest.resourceId = Number(variant.slice(4)); owner.manifest.patterns = { exact: { sourcePpatId: el.bodyRequest.resourceId, asset: url } }; }
           let trace; const labelled = variant.startsWith('label');
@@ -91,7 +94,14 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
             const p = [...out.getPixel(x, y)]; if (p.every((v, i) => v === [0, 0, 255, 255][i])) blue++;
             if (p.every((v, i) => v === [255, 0, 0, 255][i])) red++;
           }
-          rows.push({ variant, center: [...out.getPixel(4, 4)], arm: [...out.getPixel(1, 4)], trace, blue, red });
+          let legacyPixels;
+          if (variant === 'invalid-slice') {
+            delete el.colorSamples;
+            const legacy = await api.composeButton(owner, { label: '', minWidth: 29, height: 9 });
+            legacyPixels = Array.from(legacy.data);
+          }
+          rows.push({ variant, center: [...out.getPixel(4, 4)], arm: [...out.getPixel(1, 4)], trace, blue, red,
+            ...(legacyPixels ? { pixels: Array.from(out.data), legacyPixels } : {}) });
         }
         owner.manifest.chromeElements[key] = structuredClone(initial);
         owner.manifest.patterns = { broken: { sourcePpatId: 0, asset: 'data:image/png;base64,AAAA' } };
@@ -106,6 +116,15 @@ for (const mode of ['source', 'built']) test(`${mode}: raw solid admission prese
         expect(row.trace.textColors.policy).toBe(row.variant === 'label' ? 'source-samples' : 'caller-override');
         expect(row.variant === 'label' ? row.blue : row.red).toBeGreaterThan(0);
         expect(row.variant === 'label' ? row.red : row.blue).toBe(0);
+      } else if (row.variant === 'invalid-slice') {
+        // Fractional geometry is not admitted to the raw-source body. Preserve
+        // the existing legacy result exactly without claiming it is meaningful art.
+        expect(row.pixels).toEqual(row.legacyPixels);
+        expect(row.center).not.toEqual([48, 48, 48, 255]);
+      } else if (row.variant === 'declared-display') {
+        // Direct hand-built metadata is a caller declaration. Public loading
+        // validates RGB16/display consistency; rendering does not reapply a LUT.
+        expect(row.center).toEqual([96, 96, 96, 255]); expect(row.arm).toEqual([96, 96, 96, 255]);
       } else if (row.variant.startsWith('ppat')) {
         expect(row.center).toEqual([0, 255, 0, 255]); expect(row.arm).toEqual([0, 255, 0, 255]);
         expect(row.trace.steps.filter(s => s.role === 'body-fill' && s.action === 'selected')).toHaveLength(1);

@@ -792,8 +792,9 @@ art, not malformed or a pair of 14px vertical corner insets.
 The runtime applies this border model to default rings and supported push/bevel
 faces with explicit cinf metadata. Solid and full-color ppat bodies fill the
 inset union before masked border art. Raw RGB16 text/emboss samples survive
-canvas mask holes; raw background metadata is also retained, but solid-body fill
-still requires an opaque decoded background anchor. See [solid geometry](control-face-geometry.md)
+canvas mask holes; the [supported solid fallback](control-solid-background.md)
+consumes the selected face owner's raw background display sample as well,
+including masked anchors. Selected pattern bodies retain priority. See [solid geometry](control-face-geometry.md)
 and [the pattern/context model](control-pattern-context.md) for exact source
 fixtures and remaining device, transfer, lookup and font limits. Mode5 cicn bodies remain unsupported; missing/unusable background metadata and
 list headers retain their existing compatibility behavior. Reserving the four-pixel margin on plain buttons is a runtime layout

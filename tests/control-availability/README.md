@@ -111,7 +111,8 @@ The exact case inputs, source payload pins and expected outcomes are unchanged;
 the prior 1.0.0 review is retained in `expectations.json`.
 
 Inventory 1.0.3 refreshes only the same three full-document hashes after reconciling
-stale solid-face notes with the delivered pattern/raw-color model. The ring
+stale solid-face notes with the delivered pattern/raw-color model and the
+bounded raw-background solid-fill correction. The ring
 source addresses, all27 exact cases/outcomes and source inputs are unchanged;
 the prior review is retained. This documentation update adds no availability or
 historical-fidelity claim.

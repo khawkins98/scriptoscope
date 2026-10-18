@@ -669,7 +669,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
+          "documentSha256": "245f39b1b3884372006b7a10ef2f0bfc68f18819f557ef72a65d250b95d3beb1",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
@@ -778,7 +778,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
+          "documentSha256": "245f39b1b3884372006b7a10ef2f0bfc68f18819f557ef72a65d250b95d3beb1",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b",
@@ -878,7 +878,7 @@
             "0x76c4"
           ],
           "document": "docs/spec/kdef231-reference.md",
-          "documentSha256": "ae287d5e09d180c1463484ed053d5a62acc93a60c6e60db8babff88227c81394",
+          "documentSha256": "245f39b1b3884372006b7a10ef2f0bfc68f18819f557ef72a65d250b95d3beb1",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
           "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
@@ -1905,7 +1905,7 @@
       ]
     }
   ],
-  "inventorySha256": "a12314b29bc7109be9d82e49cf76e49f950774a4c015da96ebde578c2f8ee4a1",
+  "inventorySha256": "37412eb6c820f06585f7aed82562a0b6679977fac6463ff546e1cf7a76b88d1b",
   "engineEvidence": {
     "id": "Kaleidoscope2.3.1-kDEF0",
     "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
@@ -1929,12 +1929,11 @@
   "review": {
     "date": "2026-10-18",
     "reviewers": [
-      "root: automated source-note and unchanged-case review",
-      "frontend_performance_review: independent automated runtime/document and hash-only transition review"
+      "Pending independent root review: combined source-summary and raw-solid-background correction"
     ],
     "inventoryVersion": "1.0.3",
-    "inventorySha256": "a12314b29bc7109be9d82e49cf76e49f950774a4c015da96ebde578c2f8ee4a1",
-    "transition": "Only three full-document source hashes changed after reconciling stale solid-face summaries with delivered pattern/raw-color behavior. Exact API inputs, source payload identities, ring source addresses and all expected policy outcomes are unchanged.",
+    "inventorySha256": "37412eb6c820f06585f7aed82562a0b6679977fac6463ff546e1cf7a76b88d1b",
+    "transition": "Only three full-document source hashes changed after reconciling pattern/text summaries and implementing supported raw solid-background consumption. Exact API inputs, source payload identities, ring source addresses and all expected policy outcomes are unchanged.",
     "previousReview": {
       "date": "2026-10-18",
       "reviewers": [

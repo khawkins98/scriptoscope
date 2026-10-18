@@ -15,6 +15,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   window hosts now exclude both direct and wrapped late controls; this removes
   the accidental wrapped path that bypassed the documented boundary (#281).
 
+- Correct supported solid push/bevel bodies to use the selected face owner's
+  raw background sample beneath mask holes and opaque palette collisions. Keep
+  pattern priority, explicit unsupported/legacy fallbacks and the existing LUT.
+
 - Reconcile the control-face and kDEF reference notes with delivered full-color
   pattern and raw RGB16 text/background behavior. Preserve remaining device,
   font, transfer and list-header limits; refresh only the three affected
