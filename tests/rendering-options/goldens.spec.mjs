@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase } from './fixtures.mjs';
-import { listCases } from './cases.mjs';
+import { goldenCasePages } from './golden-cases.mjs';
 const directory = new URL('./goldens/', import.meta.url);
 const manifestPath = new URL('manifest.json', directory);
 const catalog = JSON.parse(readFileSync(new URL('../../demo/themes-manifest.json', import.meta.url)));
@@ -12,17 +12,17 @@ const playwrightVersion = JSON.parse(readFileSync(new URL('../../node_modules/@p
 const update = process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1';
 // Keep comparable representative state groups, auto/explicit sizes, raw pixels,
 // and consumer DOM together. This is reviewed sampling, not exhaustive fidelity.
-const cases = listCases({ profile: 'smoke' });
-const caseDigest = createHash('sha256').update(JSON.stringify(cases)).digest('hex');
+const pages = goldenCasePages();
+const caseDigest = createHash('sha256').update(JSON.stringify(pages)).digest('hex');
 
-for (const { slug } of catalog) test(`${slug}: reviewed Linux Chromium contact sheet`, async ({ page, browser, browserName, servers }, testInfo) => {
+for (const { slug } of catalog) for (const [pageIndex, cases] of pages.entries()) test(`${slug}: reviewed Linux Chromium contact sheet page${pageIndex + 1}`, async ({ page, browser, browserName, servers }, testInfo) => {
   expect(process.platform, 'goldens are pinned to Linux; use workflow-dispatch to record candidates').toBe('linux');
   expect(browserName).toBe('chromium');
   expect(process.arch, 'CI golden platform is linux/amd64').toBe('x64');
   expect(testInfo.project.use.deviceScaleFactor).toBe(1);
   const environment = { schema: 1, platform: 'linux', arch: process.arch, browser: 'chromium',
     browserVersion: browser.version(), playwrightVersion, deviceScaleFactor: 1, viewport: [1280, 960],
-    caseDigest, themeSlugs: catalog.map(t => t.slug),
+    caseDigest, casePages: pages.map(cases => cases.map(c => c.id)), themeSlugs: catalog.map(t => t.slug),
     requiredContainerImage: 'mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f',
     fonts: Object.fromEntries(['virtue.woff', 'charcoal-12.woff'].map(name => [name, createHash('sha256').update(readFileSync(new URL(`../../demo/assets/fonts/${name}`, import.meta.url))).digest('hex')])),
     sourceArchives: Object.fromEntries(catalog.map(({ slug, source }) => [slug, createHash('sha256').update(readFileSync(new URL(`../../themes/${slug}/${source}`, import.meta.url))).digest('hex')])),
@@ -50,7 +50,7 @@ for (const { slug } of catalog) test(`${slug}: reviewed Linux Chromium contact s
     // Hide transient server URLs; the cases, labels, dimensions and native DOM
     // stay visible. Backing font binaries and viewport are pinned above.
     await page.locator('#status').evaluate(el => el.remove());
-    await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}.png`, {
+    await expect(page.locator('#matrix')).toHaveScreenshot(`${slug}-page-${pageIndex + 1}.png`, {
       animations: 'disabled', caret: 'hide', threshold: 0, maxDiffPixels: 0,
     });
   } catch (error) { await attachCase(page, testInfo, { slug, current, result, environment }, error); throw error; }

@@ -21,6 +21,9 @@ jobs:
       - run: npm ci
       - run: npm run build:themes
       - run: npm run test:rendering:goldens:update
+      # A fresh ordinary verification proves repeatability; candidates still
+      # need visual/source review before anyone commits or enables them.
+      - run: npm run test:rendering:goldens
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -9,7 +9,8 @@ layout defects.
 
 ## Run and review
 
-The companion browser runner supplies these commands:
+The companion browser runner supplies these commands. [CI and golden workflow
+details](./CI.md) cover the pinned container, exact comparisons and failure artifacts:
 
 ```sh
 npx playwright install --with-deps chromium
@@ -28,6 +29,9 @@ The separate golden workflow is explicit:
 ```sh
 npm run test:rendering:goldens
 npm run test:rendering:goldens:update
+# Cross-platform entry to the exact Linux/amd64 environment:
+npm run test:rendering:container -- record
+npm run test:rendering:container -- verify
 ```
 
 Golden verification must fail when the reviewed manifest or image is missing.
@@ -37,7 +41,7 @@ System 7 / Windows 95 rendering fixes and source/invariant checks pass. Goldens
 are not part of default CI until that reviewed seed is committed. Browser/font,
 DPR, source and runtime provenance belong with every captured set.
 
-Contact sheets show ordered case IDs, requested options via metadata, actual
+Interactive contact sheets show ordered case IDs, requested options via metadata, actual
 control output, and decoded source-art candidates. Source canvases use labeled
 integer magnification for inspection; their backing pixels remain untouched.
 The separate 12px label probe is an input aid, **not** the renderer's resolved

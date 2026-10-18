@@ -24,13 +24,19 @@ export async function openHarness(page, servers, mode) {
 export async function attachCase(page, testInfo, metadata, error) {
   const record = { ...metadata, error: error?.stack ?? String(error), url: page.url() };
   const path = testInfo.outputPath('case.json');
-  await writeFile(path, JSON.stringify(record, null, 2));
-  await testInfo.attach('case.json', { path, contentType: 'application/json' });
-  const canvases = await page.locator('canvas').evaluateAll(nodes => nodes.map((canvas, index) => ({
-    index, width: canvas.width, height: canvas.height, data: canvas.toDataURL(),
-  })));
-  for (const canvas of canvases) await testInfo.attach(`canvas-${canvas.index}-${canvas.width}x${canvas.height}.png`, {
-    body: Buffer.from(canvas.data.split(',')[1], 'base64'), contentType: 'image/png',
-  });
-  await testInfo.attach('consumer-dom.png', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  await writeFile(path, JSON.stringify(record, null, 2)).catch(() => {});
+  await testInfo.attach('case.json', { path, contentType: 'application/json' }).catch(() => {});
+  try {
+    const canvases = await page.locator('canvas').evaluateAll(nodes => nodes.map((canvas, index) => ({
+      index, width: canvas.width, height: canvas.height, data: canvas.toDataURL(),
+    })));
+    for (const canvas of canvases) await testInfo.attach(`canvas-${canvas.index}-${canvas.width}x${canvas.height}.png`, {
+      body: Buffer.from(canvas.data.split(',')[1], 'base64'), contentType: 'image/png',
+    });
+    // The raw canvases carry full resolution; a bounded viewport screenshot
+    // avoids another huge allocation after a contact-sheet capture failure.
+    await testInfo.attach('consumer-dom.png', { body: await page.screenshot({ fullPage: false }), contentType: 'image/png' });
+  } catch (artifactError) {
+    await testInfo.attach('artifact-warning.txt', { body: String(artifactError), contentType: 'text/plain' }).catch(() => {});
+  }
 }
