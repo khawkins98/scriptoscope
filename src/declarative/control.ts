@@ -68,6 +68,16 @@ export async function promoteControl(el: Promotable, theme: LoadedTheme): Promis
         input.dispatchEvent(new Event('change', { bubbles: true }));
       },
     });
+    // The native carrier becomes AT-hidden below. Preserve naming on its sole
+    // accessible replacement: live labelledby references outrank aria-label,
+    // which outranks associated labels; title remains the browser's fallback.
+    const labelledby = input.getAttribute('aria-labelledby');
+    if (labelledby) skinned.setAttribute('aria-labelledby', labelledby);
+    const explicitLabel = input.getAttribute('aria-label');
+    const rangeLabel = explicitLabel?.trim() ? explicitLabel
+      : [...(input.labels ?? [])].map((label) => label.textContent?.trim() ?? '').filter(Boolean).join(' ');
+    if (rangeLabel) skinned.setAttribute('aria-label', rangeLabel);
+    if (input.hasAttribute('title')) skinned.setAttribute('title', input.title);
   }
 
   // VISUALLY-HIDE the native input rather than `display: none`. `display: none`
