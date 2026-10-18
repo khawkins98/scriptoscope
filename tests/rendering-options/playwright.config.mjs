@@ -9,7 +9,7 @@ export default defineConfig({
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,
   timeout: extended ? 180_000 : 90_000, expect: { timeout: 10_000 }, retries: 0,
   outputDir: '../../test-results/rendering-options',
-  reporter: [...(goldens ? [] : [['../rendering-requirements/reporter.mjs']]), ['list'], ['html', { outputFolder: '../../playwright-report/rendering-options', open: 'never' }]],
+  reporter: [['./failure-reporter.mjs'], ...(goldens ? [] : [['../rendering-requirements/reporter.mjs']]), ['list'], ['html', { outputFolder: '../../playwright-report/rendering-options', open: 'never' }]],
   use: { viewport: { width: 1280, height: 960 }, screenshot: 'only-on-failure', trace: 'retain-on-failure' },
   projects: browsers.flatMap(browserName => (extended && browserName === 'chromium' ? [1, 2] : [1]).map(deviceScaleFactor => ({
     name: `${browserName}-dpr${deviceScaleFactor}`, metadata: { caseProfile: extended && browserName === 'chromium' && deviceScaleFactor === 1 ? 'extended' : 'smoke' }, use: { browserName, deviceScaleFactor },
