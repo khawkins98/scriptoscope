@@ -23,13 +23,13 @@ for (const { slug } of catalog) test(`${slug}: reviewed Linux Chromium contact s
   const environment = { schema: 1, platform: 'linux', arch: process.arch, browser: 'chromium',
     browserVersion: browser.version(), playwrightVersion, deviceScaleFactor: 1, viewport: [1280, 960],
     caseDigest, themeSlugs: catalog.map(t => t.slug),
-    containerImage: 'mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f',
+    requiredContainerImage: 'mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f',
     fonts: Object.fromEntries(['virtue.woff', 'charcoal-12.woff'].map(name => [name, createHash('sha256').update(readFileSync(new URL(`../../demo/assets/fonts/${name}`, import.meta.url))).digest('hex')])),
     sourceArchives: Object.fromEntries(catalog.map(({ slug, source }) => [slug, createHash('sha256').update(readFileSync(new URL(`../../themes/${slug}/${source}`, import.meta.url))).digest('hex')])),
     sourceZoom: 4, labelZoom: 1, runtime: 'built-public-entry' };
   if (update) {
     mkdirSync(directory, { recursive: true });
-    const provenance = { gitCommit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
+    const provenance = { gitCommit: process.env.SCRIPTOSCOPE_GIT_COMMIT ?? execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       bundleSha256: createHash('sha256').update(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))).digest('hex') };
     writeFileSync(manifestPath, JSON.stringify({ environment, provenance }, null, 2)+'\n');
   } else {
@@ -38,6 +38,9 @@ for (const { slug } of catalog) test(`${slug}: reviewed Linux Chromium contact s
   }
   let current, result;
   await openHarness(page, servers, 'built');
+  const actualInputs = await page.evaluate(() => window.controlMatrix.ready);
+  expect(actualInputs.sourceZoom).toBe(environment.sourceZoom);
+  expect(actualInputs.labelZoom).toBe(environment.labelZoom);
   try {
     for (const c of cases) {
       current = c;

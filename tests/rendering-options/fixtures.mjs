@@ -12,7 +12,7 @@ export { expect };
 export function harnessUrl(servers, mode) {
   const runtime = mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts';
   const css = mode === 'built' ? '/dist/scriptoscope.css' : '/src/scriptoscope.css';
-  return `${servers[mode]}/tests/rendering-options/page.html?${new URLSearchParams({ runtime, css, themeBase: '/themes', fonts: '/demo/assets/fonts/' })}`;
+  return `${servers[mode]}/tests/rendering-options/page.html?${new URLSearchParams({ runtime, css, themeBase: '/themes', fonts: '/demo/assets/fonts/', sourceZoom: '4', labelZoom: '1' })}`;
 }
 export async function openHarness(page, servers, mode) {
   await page.goto(harnessUrl(servers, mode));

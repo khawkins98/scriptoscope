@@ -75,7 +75,8 @@
     "test:rendering": "npm run build && playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:extended": "npm run build && SCRIPTOSCOPE_RENDERING_PROFILE=extended playwright test --config tests/rendering-options/playwright.config.mjs",
     "test:rendering:goldens": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
-    "test:rendering:goldens:update": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 SCRIPTOSCOPE_UPDATE_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs"
+    "test:rendering:goldens:update": "npm run build && SCRIPTOSCOPE_RENDERING_GOLDENS=1 SCRIPTOSCOPE_UPDATE_GOLDENS=1 playwright test --config tests/rendering-options/playwright.config.mjs",
+    "test:rendering:container": "node tests/rendering-options/container.mjs"
   },
   "engines": {
     "node": ">=20"

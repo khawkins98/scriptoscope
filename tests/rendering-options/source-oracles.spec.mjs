@@ -45,16 +45,20 @@ for (const mode of ['source', 'built']) {
         const cornerColors = [[230, 10, 20, 255], [20, 220, 30, 255], [30, 40, 230, 255], [220, 40, 210, 255]];
         const makeArt = (size, ring = false) => {
           const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
-          const ctx = canvas.getContext('2d'); ctx.fillStyle = ring ? '#786432' : '#cacaca'; ctx.fillRect(0, 0, size, size);
+          const ctx = canvas.getContext('2d'); ctx.fillStyle = ring ? '#786432' : '#cacaca';
+          const rim = ring ? 1 : 0; ctx.fillRect(rim, rim, size - rim * 2, size - rim * 2);
           for (let i = 0; i < 4; i++) {
             ctx.fillStyle = `rgb(${cornerColors[i].slice(0, 3).join(',')})`;
-            ctx.fillRect(i % 2 ? size - 1 : 0, i >= 2 ? size - 1 : 0, 1, 1);
+            ctx.fillRect(i % 2 ? size - 1 - rim : rim, i >= 2 ? size - 1 - rim : rim, 1, 1);
+          }
+          if (!ring) for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = `rgb(${cornerColors[i].slice(0, 3).join(',')})`; ctx.fillRect(i + 1, 0, 1, 1);
           }
           document.body.append(canvas); return canvas.toDataURL();
         };
         const face = makeArt(6), ring = makeArt(10, true);
         const ce = (id, asset, size) => ({ sourceCicnId: id, asset, width: size, height: size,
-          slice: { corner: 1, side: 1, tile: false }, bgAnchor: [3, 3], textAnchor: [3, 3] });
+          slice: { corner: size === 10 ? 2 : 1, side: size === 10 ? 2 : 1, tile: true }, bgAnchor: [3, 3], textAnchor: [3, 3] });
         const theme = { baseUrl: location.origin, manifest: { chromeElements: {
           face: ce(-10239, face, 6), ring: ce(-10231, ring, 10),
         } } };
@@ -63,19 +67,23 @@ for (const mode of ['source', 'built']) {
           const output = await api.composeButton(theme, { label: '', height, default: isDefault });
           const canvas = document.createElement('canvas'); canvas.width = output.width; canvas.height = output.height;
           canvas.getContext('2d').putImageData(output.toImageData(), 0, 0); document.body.append(canvas);
-          const inset = 2; // authored ring10 minus face6, divided by two
+          const inset = 4; // kDEF0x7698..76a2 expands the control rectangle4px
           const at = (x, y) => [...output.getPixel(x, y)];
           rows.push({ height, isDefault, width: output.width, actualHeight: output.height,
             corners: [at(inset, inset), at(output.width-inset-1, inset), at(inset, output.height-inset-1), at(output.width-inset-1, output.height-inset-1)],
+            topEdge: Array.from({ length: 10 }, (_, i) => at(inset + 1 + i, inset)),
+            ringCorners: [at(1, 1), at(output.width-2, 1), at(1, output.height-2), at(output.width-2, output.height-2)],
             outerCorners: [at(0, 0), at(output.width-1, 0), at(0, output.height-1), at(output.width-1, output.height-1)] });
         }
         return { rows, cornerColors };
       }, mode);
       for (const row of results.rows) {
-        expect(row.width).toBe(60); // public default minimum56 + authored2px ring on each side
-        expect(row.actualHeight).toBe(row.height + 4);
+        expect(row.width).toBe(64); // public minimum56 plus documented4px ring rect expansion
+        expect(row.actualHeight).toBe(row.height + 8);
         expect(row.corners, 'face corner source pixels survive slicing').toEqual(results.cornerColors);
-        expect(row.outerCorners).toEqual(row.isDefault ? results.cornerColors : Array(4).fill([0, 0, 0, 0]));
+        expect(row.topEdge, 'tiled edge repeats the authored interior strip without stretching').toEqual(Array.from({ length: 10 }, (_, i) => results.cornerColors[i % 4]));
+        expect(row.ringCorners).toEqual(row.isDefault ? results.cornerColors : Array(4).fill([0, 0, 0, 0]));
+        expect(row.outerCorners, 'authored transparent ring rim must not be cropped').toEqual(Array(4).fill([0, 0, 0, 0]));
       }
     } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'slice-sentinels', results }, error); throw error; }
   });

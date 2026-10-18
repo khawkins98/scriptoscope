@@ -20,7 +20,9 @@ function assertOutput(result, c) {
     expect(result.canvases).toHaveLength(0);
     return;
   }
-  expect(result.canvases.length, `${c.id} produces visible backing pixels`).toBeGreaterThan(0);
+  if (c.mode === 'direct') expect(result.canvases.length, `${c.id} produces visible backing pixels`).toBeGreaterThan(0);
+  // Native/CSS fallback controls can correctly have no canvas. Their real DOM
+  // remains subject to style, focus, geometry and source/built screenshot checks.
   for (const canvas of result.canvases) {
     expect(canvas.width).toBeGreaterThan(0); expect(canvas.height).toBeGreaterThan(0);
     expect(canvas.opaqueBounds, 'a rendered canvas contains art').not.toBeNull();
@@ -80,6 +82,9 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         result = await activePage.evaluate(({ c, slug }) => window.controlMatrix.runCase(c, { slug }), { c, slug });
         assertOutput(result, c);
         versions[mode] = { status: result.status, pixels: await pixels(activePage, result.canvases) };
+        if (c.mode === 'declarative' && result.canvases.length === 0) {
+          versions[mode].domPng = (await activePage.locator(result.outputSelector).screenshot({ animations: 'disabled', caret: 'hide' })).toString('base64');
+        }
         if (mode === 'built' && c.mode === 'declarative') await assertKeyboardFocus(activePage, result);
         if (['push', 'default', 'bevel'].includes(c.family) && c.labelKind !== 'empty' && result.status === 'rendered') {
           const key = `${mode}/${c.group}`;
@@ -89,7 +94,8 @@ for (const { slug } of catalog) test(`${slug}: option contracts and source/built
         }
       }
       expect(versions.built, `${c.id}: actual published entry preserves source pixels`).toEqual(versions.source);
-      summary.push({ id: c.id, ...versions.built });
+      const { domPng, ...record } = versions.built;
+      summary.push({ id: c.id, ...record, nativeScreenshotCompared: !!domPng });
     }
     // Keep a compact executed-case inventory even on success. It distinguishes
     // absent source art from an asserted fallback and exposes actual coverage.
