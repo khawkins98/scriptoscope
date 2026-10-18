@@ -9,6 +9,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Extend the partial rendering requirement inventory to sixteen exact direct
+  cases, with bounded authored RGB16 text/emboss and pattern phase/clip evidence.
+  Preserve the original eight cases, all OPEN closures and explicit unknown
+  typography, transfer, device and original-port requirements. Synchronize draft
+  authority 0.1.4 with the unchanged 13 capture requests (#274).
+
 - Reject requirement assessments backed only by unrelated archive or synthetic
   inputs, while retaining general engine rules and explicitly shared source
   evidence. This adds an association guard without promoting any fidelity claim

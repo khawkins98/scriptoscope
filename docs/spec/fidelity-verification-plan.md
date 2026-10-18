@@ -34,6 +34,13 @@ mismatches and unverified requirements found while reviewing the initial sheets.
 
 Track regression coverage separately: source/built parity, reviewed browser golden, interaction contract, browser/DPR configuration. Freeze a finite acceptance inventory before claiming its completion. Use native/minimum/representative/resized dimension classes plus independent allocation, clipping and endpoint invariants; never imply that a finite screenshot set exhausts continuous size/value inputs.
 
+The finite [inventory 1.1.0](../../tests/rendering-requirements/README.md) adds
+selected authored-text and direct pattern requirements under #274. All sixteen
+case inventories remain OPEN. Selected raw RGB16 consumption and bounded phase/
+clip checks do not establish original typography, transfer, device color, resource
+search policy or managed original port state. Exact sample and sentinel coverage
+is declared per requirement; passing broader regression loops does not enlarge it.
+
 ## Phase 1 — Preserve the evidence chain
 
 Keep original archives and sidecar provenance. Extend capture metadata with archive hashes, package/build identity, stylesheet/chunk hashes, browser/font/DPR, ordered case IDs and requested options. Record actual per-case status and dimensions beside golden candidates. Review an explicit expected-availability inventory; verification must fail when an expected themed render becomes null, even if source and built agree.

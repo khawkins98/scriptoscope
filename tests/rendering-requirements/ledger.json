@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.0.1",
+  "inventoryVersion": "1.1.0",
   "scope": {
-    "description": "Eight exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Sixteen exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -12,7 +12,7 @@
       "placement",
       "interaction"
     ],
-    "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation."
   },
   "inputs": [
     {
@@ -72,6 +72,418 @@
         ]
       },
       "sha256": "fc66f368d6c836574d99b701ace17b4eab7c905e3416bf5dd7b03f44d6b40e9f"
+    },
+    {
+      "id": "theme.crayon-os",
+      "kind": "theme-archive",
+      "path": "themes/crayon-os/scheme.sit",
+      "sha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f"
+    },
+    {
+      "id": "synthetic.text.masked-owner",
+      "kind": "synthetic",
+      "definition": {
+        "kind": "hand-encoded-resource-fork",
+        "fixtureModule": "tests/decoder-fixtures/control-colors.mjs",
+        "forkModule": "tests/resource-provenance/fixtures.mjs",
+        "recordOrder": [
+          {
+            "type": "cicn",
+            "id": -10239
+          },
+          {
+            "type": "cinf",
+            "id": -10239
+          },
+          {
+            "type": "cicn",
+            "id": -10238
+          },
+          {
+            "type": "cinf",
+            "id": -10238
+          },
+          {
+            "type": "cicn",
+            "id": -10240
+          },
+          {
+            "type": "cinf",
+            "id": -10240
+          },
+          {
+            "type": "cicn",
+            "id": -10175
+          },
+          {
+            "type": "cinf",
+            "id": -10175
+          },
+          {
+            "type": "cicn",
+            "id": -10174
+          },
+          {
+            "type": "cinf",
+            "id": -10174
+          },
+          {
+            "type": "cicn",
+            "id": -10176
+          },
+          {
+            "type": "cinf",
+            "id": -10176
+          }
+        ],
+        "cicn": {
+          "pixelSize": 8,
+          "width": 4,
+          "height": 2,
+          "rowBytes": 4,
+          "boundsOrigin": [
+            7,
+            7
+          ],
+          "mask": [
+            0,
+            0
+          ],
+          "maskRowBytes": 1,
+          "monochromeBitmap": "NIL",
+          "ctFlags": 0,
+          "entries": [
+            [
+              0,
+              65535,
+              65535,
+              65535
+            ],
+            [
+              1,
+              65535,
+              0,
+              0
+            ],
+            [
+              2,
+              0,
+              65535,
+              0
+            ]
+          ],
+          "pixels": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "cinf": {
+          "byteLength": 18,
+          "corner": 1,
+          "side": 1,
+          "tile": 0,
+          "bodyMode": 0,
+          "bodyResourceId": 0,
+          "background": [
+            0,
+            0
+          ],
+          "text": [
+            1,
+            0
+          ],
+          "emboss": [
+            2,
+            0
+          ]
+        }
+      },
+      "sha256": "2d40fdc290d931887b004850630804336de4881c050a4ac1bca781e0d159a753"
+    },
+    {
+      "id": "synthetic.text.empty-child",
+      "kind": "synthetic",
+      "definition": {
+        "chromeElements": {},
+        "base": "synthetic.text.masked-owner",
+        "baseUrlIdentity": "misleading-child"
+      },
+      "sha256": "9c2e5a562c2b882c74f17a8b58eec381e8100dcbf703f807a79a9735e3b4ae95"
+    },
+    {
+      "id": "synthetic.pattern.union-owner",
+      "kind": "synthetic",
+      "definition": {
+        "face": {
+          "width": 7,
+          "height": 7,
+          "rgba": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "corner": 3,
+          "side": 1,
+          "tile": false,
+          "bodyMode": 0,
+          "bodyResourceId": 0,
+          "sourceIds": [
+            -10239,
+            -10238,
+            -10240,
+            -10166,
+            -10165,
+            -10167
+          ],
+          "bgPattern": "mislinked"
+        },
+        "patterns": {
+          "zero": {
+            "sourcePpatId": 0,
+            "width": 4,
+            "height": 2,
+            "rgbaRowMajor": [
+              [
+                0,
+                0,
+                0,
+                255
+              ],
+              [
+                255,
+                0,
+                0,
+                255
+              ],
+              [
+                0,
+                255,
+                0,
+                255
+              ],
+              [
+                255,
+                255,
+                0,
+                255
+              ],
+              [
+                0,
+                0,
+                255,
+                255
+              ],
+              [
+                255,
+                0,
+                255,
+                255
+              ],
+              [
+                0,
+                255,
+                255,
+                255
+              ],
+              [
+                255,
+                255,
+                255,
+                255
+              ]
+            ]
+          },
+          "mislinked": {
+            "sourcePpatId": 999,
+            "asset": "must-not-load-mismatched-pattern.png"
+          }
+        }
+      },
+      "sha256": "ea610c1dcf753288124f52255bd76c514f78e63b4ebcbf59d9250c96bfab74c7"
+    },
+    {
+      "id": "synthetic.pattern.union-child",
+      "kind": "synthetic",
+      "definition": {
+        "chromeElements": {},
+        "patterns": {
+          "wrong": {
+            "sourcePpatId": 0,
+            "width": 7,
+            "height": 7,
+            "rgba": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "base": "synthetic.pattern.union-owner"
+      },
+      "sha256": "29a1a6bac28deb56f61e3bf78c080209bc8fe6e5ef2370612e55fb2443f19c0d"
+    },
+    {
+      "id": "synthetic.pattern.clip",
+      "kind": "synthetic",
+      "definition": {
+        "face": {
+          "sourceCicnId": -10239,
+          "width": 7,
+          "height": 7,
+          "defaultRgba": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sentinel": {
+            "x": 0,
+            "y": 0,
+            "rgba": [
+              199,
+              33,
+              77,
+              255
+            ]
+          },
+          "corner": 3,
+          "side": 1,
+          "tile": false,
+          "bodyMode": 2,
+          "bodyResourceId": 0
+        },
+        "ring": {
+          "sourceCicnId": -10231,
+          "width": 9,
+          "height": 9,
+          "defaultRgba": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "sentinel": {
+            "x": 0,
+            "y": 0,
+            "rgba": [
+              123,
+              45,
+              67,
+              255
+            ]
+          },
+          "corner": 1,
+          "side": 1,
+          "tile": false
+        },
+        "pattern": {
+          "manifestKey": "tile",
+          "sourcePpatId": 0,
+          "width": 5,
+          "height": 3,
+          "rgbaRowMajor": [
+            [
+              10,
+              0,
+              0,
+              255
+            ],
+            [
+              20,
+              0,
+              0,
+              255
+            ],
+            [
+              30,
+              0,
+              0,
+              255
+            ],
+            [
+              40,
+              0,
+              0,
+              255
+            ],
+            [
+              50,
+              0,
+              0,
+              255
+            ],
+            [
+              60,
+              0,
+              0,
+              255
+            ],
+            [
+              70,
+              0,
+              0,
+              255
+            ],
+            [
+              80,
+              0,
+              0,
+              255
+            ],
+            [
+              90,
+              0,
+              0,
+              255
+            ],
+            [
+              100,
+              0,
+              0,
+              255
+            ],
+            [
+              110,
+              0,
+              0,
+              255
+            ],
+            [
+              120,
+              0,
+              0,
+              255
+            ],
+            [
+              130,
+              0,
+              0,
+              255
+            ],
+            [
+              140,
+              0,
+              0,
+              255
+            ],
+            [
+              150,
+              0,
+              0,
+              255
+            ]
+          ]
+        }
+      },
+      "sha256": "513be0a1ec1d6a8a2127545da6b7c70cc3dc6d0ee6fd6c22b98bbd755c654f09"
     }
   ],
   "evidence": [
@@ -181,6 +593,169 @@
       "requirementIds": [
         "face.square-corner-retention"
       ]
+    },
+    {
+      "kind": "primary-decode",
+      "id": "kdef.text-samples",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "locator": "At 0x10922..0x10934, selected cinf +10/+12 coordinates supply the text RGB output; fc5c samples local raster coordinates and continues RGB lookup independently of the mask bit.",
+      "claim": "Selected authored text RGB16 is sampled independently of source mask alpha.",
+      "addresses": [
+        "0x10922",
+        "0x10934",
+        "0xfc5c",
+        "0xfd34",
+        "0x10702"
+      ],
+      "requirementIds": [
+        "text.authored-rgb16"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "034264e7704100137fda927d125350e0927bd61d84012174edb2c4c786e476bd",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "kind": "primary-decode",
+      "id": "kdef.emboss-decision",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "locator": "At 0x1093e..0x10990, emboss coordinates (0,0) or exact three-word RGB16 equality with background disable emboss; the caller tests the raw red 0x1234 sentinel before display conversion.",
+      "claim": "Exact absent/equal/sentinel decisions precede RGB8/display conversion.",
+      "addresses": [
+        "0x1093e",
+        "0x10954",
+        "0x10970",
+        "0x10990",
+        "0x759a"
+      ],
+      "requirementIds": [
+        "text.emboss-decision"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "696e0fc81cc70bb92488f02aa23dfe80b920a05111b4139cb77de7284af9a7ae",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "kind": "primary-decode",
+      "id": "kdef.emboss-order",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "locator": "Push 0x75ca..0x75ea with 0x70a6..0x70ba and bevel 0x89bc..0x8a08 paint enabled emboss at (+1,+1) before foreground; this establishes pass order and relative offset, not browser glyph or TextMode equivalence.",
+      "claim": "Emboss-first relative offset only.",
+      "addresses": [
+        "0x75ca",
+        "0x75ea",
+        "0x70a6",
+        "0x70ba",
+        "0x89bc",
+        "0x8a08"
+      ],
+      "requirementIds": [
+        "text.emboss-order-offset"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "a1778dbad2284977561b125b06007d2605021572e806b5cd49a1c9e34e7e4dcf",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "kind": "primary-decode",
+      "id": "kdef.pattern-context",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "locator": "The 0x10ac8..0x10af6 corner anchors use original exclusive Rect edges; f930 translates both destination and finite clip by -P while changing origin to O-P, leaving physical D-O unchanged.",
+      "claim": "Original face Rect phase, shared inset phase and clip transformation.",
+      "addresses": [
+        "0x10ac8",
+        "0x10af6",
+        "0xf930",
+        "0xf94e",
+        "0xf9a8"
+      ],
+      "requirementIds": [
+        "pattern.phase-arithmetic",
+        "pattern.clip-sentinels"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "4e116ade107dc76a5fd828e0feef8980ec3d9521c66d8e842a0b1ca6a6aa1c66",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "kind": "source-art",
+      "id": "art.crayon-text",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "locator": "Crayon selected active push -10239 and small bevel -10175 text RGB16 is (8481,8481,8481); inactive push -10240 is (34952,34952,34952). Their emboss coordinate is (0,0). Exact cicn/cinf payload hashes and sample coordinates are pinned in tests/decoder-fixtures/control-text-source-samples.json.",
+      "claim": "Exact selected source samples and absent emboss for the three declared Crayon cases.",
+      "requirementIds": [
+        "text.authored-rgb16",
+        "text.emboss-decision"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "e80fed1ac900a6600de229a1ad512cdffdb764fa36065c399526e61677900ce2",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "kind": "source-art",
+      "id": "art.crayon-pattern",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "locator": "Crayon ppat17 payload SHA256 35c7aa22b9da7e01f83fa5dbd6443e5c93459a3450401ab2c18050f37cdcfea4 has raw RGB samples (231,222,198) at (8,8), (247,247,214) at (63,9), and (247,239,214) at (0,9). The current display policy maps these to (235,228,207), (248,248,221), and (248,242,221).",
+      "claim": "Three actual selected-pattern samples under declared transform only.",
+      "requirementIds": [
+        "pattern.selected-source-samples"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "excerptSha256": "003eb0305b991e6dac8745ec941c8e93bf1b378b728f4d33a8798393f2c54fd0",
+      "limits": "Exact finite source-model claim only. Original lookup, complete decoder/paint behavior, device/transfer, typography and actual port context remain unknown."
+    },
+    {
+      "id": "kdef.pattern-inset-union",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "At 0x108a6..0x108b0, d3/d4 read cinf corner/side bytes. 0x10afa..0x10b10 copies the original Rect and insets left/right by corner, top/bottom by side, then 0x10b22 calls f930. If corner differs from side (0x10b26..0x10b2c), 0x10b2e..0x10b44 copies the original Rect again with transposed insets and 0x10b56 fills it using the same pattern and phase arguments. The body coverage is the union of these two rectangles.",
+      "excerptSha256": "acb9217ab9e2a43949929f317f5efee60f9fa9e63428eba64db98dfe612e3dff",
+      "addresses": [
+        "0x108a6",
+        "0x108b0",
+        "0x10afa",
+        "0x10b10",
+        "0x10b22",
+        "0x10b26",
+        "0x10b2c",
+        "0x10b2e",
+        "0x10b44",
+        "0x10b56"
+      ],
+      "requirementIds": [
+        "pattern.literal-union"
+      ],
+      "claim": "Two unequal corner/side inset rectangles are filled with shared phase; the literal 29x9 endpoint fixture checks their full union.",
+      "limits": "Finite body geometry/source-phase requirement only. Original resource lookup, device color, mask branches and actual port remain unknown."
+    },
+    {
+      "id": "apple.pattern-origin-offset",
+      "kind": "period-document",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Apple Universal Interfaces 3.4.1 QDSetPatternOrigin documents Rect(3,3,10,10) sampling the lower-right 7x7 of a 10x10 tile and SetOrigin(+10,+10) paired with pattern origin (-10,-10) preserving content alignment. These examples support additive R in sample(q)=floorMod(D.origin+q-P+R,tile dimensions); the K2 f930 wrapper alone establishes only the -P translation, not preexisting R.",
+      "excerptSha256": "6ba5c592a09dcdf7337f4dcc5556c44008156b8dd57607d178776b3157e388c3",
+      "requirementIds": [
+        "pattern.phase-arithmetic"
+      ],
+      "claim": "Additive sampling offset convention from the pinned API examples.",
+      "limits": "API availability and actual R in any original environment are not established. Synthetic known R is a declared arithmetic input, not historical capture metadata."
     }
   ],
   "requirements": [
@@ -243,6 +818,56 @@
       "id": "face.square-corner-retention",
       "dimension": "geometry",
       "claim": "Retain square authored corner blocks independently of side thickness."
+    },
+    {
+      "id": "color.device-original",
+      "dimension": "fillMask",
+      "claim": "Original destination palette/device mapping and producer/display transform are independently established."
+    },
+    {
+      "id": "text.authored-rgb16",
+      "dimension": "typography",
+      "claim": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity."
+    },
+    {
+      "id": "text.emboss-decision",
+      "dimension": "typography",
+      "claim": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input."
+    },
+    {
+      "id": "text.emboss-order-offset",
+      "dimension": "typography",
+      "claim": "At the exact opaque/zero browser-mask probes, paint enabled emboss first at (+1,+1) relative to foreground, then foreground; no original glyph or transfer-mode claim."
+    },
+    {
+      "id": "text.transfer-original",
+      "dimension": "typography",
+      "claim": "Original QuickDraw text transfer, low-depth disabled and anti-aliased overlap behavior are independently established."
+    },
+    {
+      "id": "port.original-state",
+      "dimension": "placement",
+      "claim": "Actual original port origin, pattern offset, clip and valid caller environment are independently established."
+    },
+    {
+      "id": "pattern.phase-arithmetic",
+      "dimension": "fillMask",
+      "claim": "Use the original face Rect and declared pattern offset for exact source-derived phase samples; ring reservation does not shift phase."
+    },
+    {
+      "id": "pattern.literal-union",
+      "dimension": "fillMask",
+      "claim": "Every pixel in the specified 29x9 literal fixture matches the two unequal-inset body rectangles with their shared phase."
+    },
+    {
+      "id": "pattern.clip-sentinels",
+      "dimension": "fillMask",
+      "claim": "For the specified finite clip, retain the two probed interior samples and exclude four named outside face/ring sentinels; remaining clipped raster is unknown."
+    },
+    {
+      "id": "pattern.selected-source-samples",
+      "dimension": "fillMask",
+      "claim": "Consume the actual selected ppat payload and match three independently pinned raw source samples under the declared current display transform; not original lookup/device-color fidelity."
     }
   ],
   "assertions": [
@@ -295,6 +920,74 @@
         "lisa.push.normal.empty.h20"
       ],
       "claim": "Retain all four Lisa source corner blocks (alpha and opaque colors) for normal empty label, minWidth80 and height20. No other face requirement inferred.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "text.authored-rgb16",
+      "path": "tests/rendering-options/control-text-colors.spec.mjs",
+      "marker": "description: 'text.authored-rgb16'",
+      "caseIds": [
+        "crayon.push.normal.H.w80.h20",
+        "crayon.push.disabled.H.w80.h20",
+        "crayon.bevel.small.normal.H.w80.h20"
+      ],
+      "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "text.masked-emboss-order",
+      "path": "tests/rendering-options/control-text-colors.spec.mjs",
+      "marker": "description: 'text.masked-emboss-order'",
+      "caseIds": [
+        "synthetic.text.masked.push.normal.H.w80.h20",
+        "synthetic.text.masked.bevel.small.normal.H.w80.h20"
+      ],
+      "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "pattern.inset-union-phase",
+      "path": "tests/rendering-options/pattern-body.spec.mjs",
+      "marker": "description: 'pattern.inset-union-phase'",
+      "caseIds": [
+        "synthetic.pattern.union.push.normal.empty.w29.h9"
+      ],
+      "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "pattern.exclusive-anchor-clip",
+      "path": "tests/rendering-options/pattern-body.spec.mjs",
+      "marker": "description: 'pattern.exclusive-anchor-clip'",
+      "caseIds": [
+        "synthetic.pattern.TR.default.clipped.empty.w29.h8"
+      ],
+      "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "pattern.actual-source-samples",
+      "path": "tests/rendering-options/pattern-body.spec.mjs",
+      "marker": "description: 'pattern.actual-source-samples'",
+      "caseIds": [
+        "crayon.pattern.normal.empty.w80.h20"
+      ],
+      "claim": "Exact registered finite input subset only; broader test loops do not expand this ledger claim.",
       "modes": [
         "source",
         "built"
@@ -662,6 +1355,516 @@
         "reason": "Partial reviewed obligations; original whole-control requirements have not been exhaustively traced."
       },
       "substitutions": []
+    },
+    {
+      "id": "crayon.push.normal.H.w80.h20",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "H",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.authored-rgb16",
+          "text.emboss-decision",
+          "typography.original",
+          "text.transfer-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Browser glyph raster/placement and alpha-over transfer are compatibility policies, not original QuickDraw typography.",
+        "Omitted composition context applies compatibility defaults; original port state is unknown.",
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "crayon.push.disabled.H.w80.h20",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "H",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "default": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.authored-rgb16",
+          "text.emboss-decision",
+          "typography.original",
+          "text.transfer-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Browser glyph raster/placement and alpha-over transfer are compatibility policies, not original QuickDraw typography.",
+        "Omitted composition context applies compatibility defaults; original port state is unknown.",
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "crayon.bevel.small.normal.H.w80.h20",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "bevel",
+      "options": {
+        "label": "H",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "small": true,
+        "on": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.authored-rgb16",
+          "text.emboss-decision",
+          "typography.original",
+          "text.transfer-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Browser glyph raster/placement and alpha-over transfer are compatibility policies, not original QuickDraw typography.",
+        "Omitted composition context applies compatibility defaults; original port state is unknown.",
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "synthetic.text.masked.push.normal.H.w80.h20",
+      "inputs": [
+        "synthetic.text.empty-child"
+      ],
+      "baseInputs": [
+        "synthetic.text.masked-owner"
+      ],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "H",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.authored-rgb16",
+          "text.emboss-decision",
+          "typography.original",
+          "text.transfer-original",
+          "text.emboss-order-offset"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Browser glyph raster/placement and alpha-over transfer are compatibility policies, not original QuickDraw typography.",
+        "Omitted composition context applies compatibility defaults; original port state is unknown.",
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "inputs": [
+        "synthetic.text.empty-child"
+      ],
+      "baseInputs": [
+        "synthetic.text.masked-owner"
+      ],
+      "mode": "direct",
+      "family": "bevel",
+      "options": {
+        "label": "H",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "small": true,
+        "on": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.authored-rgb16",
+          "text.emboss-decision",
+          "typography.original",
+          "text.transfer-original",
+          "text.emboss-order-offset"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Browser glyph raster/placement and alpha-over transfer are compatibility policies, not original QuickDraw typography.",
+        "Omitted composition context applies compatibility defaults; original port state is unknown.",
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
+    },
+    {
+      "id": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "inputs": [
+        "synthetic.pattern.union-child"
+      ],
+      "baseInputs": [
+        "synthetic.pattern.union-owner"
+      ],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 9,
+        "pressed": false,
+        "disabled": false,
+        "default": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "known",
+            "offset": [
+              0,
+              0
+            ]
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original",
+          "pattern.phase-arithmetic",
+          "pattern.literal-union"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Direct display-space RGBA fixture pixels are transported through PNG/canvas without the loader LUT; not original destination device/palette evidence."
+      ]
+    },
+    {
+      "id": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "inputs": [
+        "synthetic.pattern.clip"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "default",
+      "options": {
+        "label": "",
+        "minWidth": 29,
+        "height": 8,
+        "pressed": false,
+        "disabled": false,
+        "default": true,
+        "compositionContext": {
+          "controlOrigin": [
+            23,
+            25
+          ],
+          "portOrigin": [
+            3,
+            5
+          ],
+          "patternOrigin": {
+            "status": "known",
+            "offset": [
+              -3,
+              5
+            ]
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 27,
+              "y": 27,
+              "w": 5,
+              "h": 4
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original",
+          "pattern.phase-arithmetic",
+          "pattern.clip-sentinels"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Direct display-space RGBA fixture pixels are transported through PNG/canvas without the loader LUT; not original destination device/palette evidence.",
+        "5x3 diagnostic tile tests arithmetic, not original QuickDraw resource-size eligibility."
+      ]
+    },
+    {
+      "id": "crayon.pattern.normal.empty.w80.h20",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false,
+        "compositionContext": {
+          "controlOrigin": [
+            0,
+            0
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "known",
+            "offset": [
+              0,
+              0
+            ]
+          },
+          "clip": {
+            "kind": "unbounded"
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original",
+          "pattern.selected-source-samples"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only; mounted DOM interaction and managed context require separate cases.",
+          "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Finite source-derived obligations only; complete original behavior and environment remain unreviewed."
+      },
+      "substitutions": [
+        "Existing high-byte plus 1.8/2.2 LUT is a declared display policy, not original device/palette evidence."
+      ]
     }
   ],
   "assessments": [
@@ -1211,7 +2414,1079 @@
       "issues": [],
       "rationale": "Original requirement is declared but independent source evidence and exact executable acceptance are incomplete.",
       "review": "Initial #227 scope reviewed by project maintainer; source claims separately bounded in EVIDENCE.md."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "text.authored-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.text-samples",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "text.emboss-decision",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-decision",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.normal.H.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "text.authored-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.text-samples",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "text.emboss-decision",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-decision",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.push.disabled.H.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.authored-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.text-samples",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.emboss-decision",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-decision",
+        "art.crayon-text"
+      ],
+      "assertions": [
+        "text.authored-rgb16"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.bevel.small.normal.H.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "text.authored-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.text-samples"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "text.emboss-decision",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-decision"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "text.emboss-order-offset",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-order"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "At the exact opaque/zero browser-mask probes, paint enabled emboss first at (+1,+1) relative to foreground, then foreground; no original glyph or transfer-mode claim.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.push.normal.H.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.authored-rgb16",
+      "status": "verified",
+      "evidence": [
+        "kdef.text-samples"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the selected face's independently pinned authored RGB16 text sample under the explicitly declared current display policy; not original displayed-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.emboss-decision",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-decision"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Apply the exact source RGB16/coordinate/sentinel emboss enable-or-disable decision for this selected input.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "text.emboss-order-offset",
+      "status": "verified",
+      "evidence": [
+        "kdef.emboss-order"
+      ],
+      "assertions": [
+        "text.masked-emboss-order"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "At the exact opaque/zero browser-mask probes, paint enabled emboss first at (+1,+1) relative to foreground, then foreground; no original glyph or transfer-mode claim.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.text.masked.bevel.small.normal.H.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "pattern.phase-arithmetic",
+      "status": "verified",
+      "evidence": [
+        "kdef.pattern-context",
+        "apple.pattern-origin-offset"
+      ],
+      "assertions": [
+        "pattern.inset-union-phase"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Use the original face Rect and declared pattern offset for exact source-derived phase samples; ring reservation does not shift phase.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "pattern.literal-union",
+      "status": "verified",
+      "evidence": [
+        "kdef.pattern-inset-union"
+      ],
+      "assertions": [
+        "pattern.inset-union-phase"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Every pixel in the specified 29x9 literal fixture matches the two unequal-inset body rectangles with their shared phase.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.union.push.normal.empty.w29.h9",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "pattern.phase-arithmetic",
+      "status": "verified",
+      "evidence": [
+        "kdef.pattern-context",
+        "apple.pattern-origin-offset"
+      ],
+      "assertions": [
+        "pattern.exclusive-anchor-clip"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Use the original face Rect and declared pattern offset for exact source-derived phase samples; ring reservation does not shift phase.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "pattern.clip-sentinels",
+      "status": "verified",
+      "evidence": [
+        "kdef.pattern-context"
+      ],
+      "assertions": [
+        "pattern.exclusive-anchor-clip"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "For the specified finite clip, retain the two probed interior samples and exclude four named outside face/ring sentinels; remaining clipped raster is unknown.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "synthetic.pattern.TR.default.clipped.empty.w29.h8",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "pattern.selected-source-samples",
+      "status": "verified",
+      "evidence": [
+        "art.crayon-pattern"
+      ],
+      "assertions": [
+        "pattern.actual-source-samples"
+      ],
+      "issues": [
+        274
+      ],
+      "rationale": "Consume the actual selected ppat payload and match three independently pinned raw source samples under the declared current display transform; not original lookup/device-color fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
+    },
+    {
+      "caseId": "crayon.pattern.normal.empty.w80.h20",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [
+        274
+      ],
+      "rationale": "Declared obligation remains unknown; source-model/policy execution does not establish original whole-control or environment fidelity.",
+      "review": "Independent automated root and Astra review, 2026-10-18: approved the finite #274 source-model claim only. Not human reference-capture attestation or whole-control approval."
     }
   ],
-  "inventorySha256": "1cefbc190b52b72cbe893d14c924081eaf9179ae62fd8f2cb42471bcab984a75"
+  "inventorySha256": "2b729e0bebdfa2624820bbd88f91e719d8a16cd9c7141af82e2dec757c9d1ee6"
 }

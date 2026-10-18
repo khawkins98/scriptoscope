@@ -4,6 +4,7 @@ const sourceSamples = JSON.parse(readFileSync(new URL('../decoder-fixtures/contr
 const crayonPins = JSON.parse(readFileSync(new URL('../resource-provenance/pattern-pins.json', import.meta.url)));
 
 for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples and emboss order survive actual loader and face owner selection`, async ({ page, servers }, info) => {
+  info.annotations.push({ type: 'fidelity-assertion', description: 'text.masked-emboss-order' });
   await openHarness(page, servers, mode);
   let result;
   try {
@@ -36,7 +37,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
         const rows = [];
         for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) for (const override of [false, true]) {
           let trace;
-          const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, { label: 'H', minWidth: 80, height: 20, small: true,
+          const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](child, { label: 'H', minWidth: 80, height: 20, ...(family === 'bevel' ? { small: true } : {}),
             pressed: state === 'pressed', disabled: state === 'disabled', ...(override ? { fg: '#0000ff' } : {}), diagnostics: { onComplete: value => { trace = value; } } });
           rows.push({ family, state, override, size: [output.width, output.height], trace,
             foreground: foreground.map(([x, y]) => [...output.getPixel(x, y)]), emboss: emboss.map(([x, y]) => [...output.getPixel(x, y)]) });
@@ -45,13 +46,19 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
       } finally { owner.dispose(); }
     }, mode);
     expect(result.foregroundCount).toBeGreaterThan(0); expect(result.embossCount).toBeGreaterThan(0);
+    expect(result.rows.filter(r => r.state === 'normal' && !r.override).map(r => r.family).sort()).toEqual(['bevel', 'push']);
     for (const row of result.rows) {
+      expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled' });
+      expect(row.trace.textColors.embossDecision).toBe(row.override ? 'caller-override' : 'present');
       expect(row.size).toEqual([80, 20]);
       for (const pixel of row.foreground) expect(pixel).toEqual(row.override ? [0, 0, 255, 255] : [255, 0, 0, 255]);
       for (const pixel of row.emboss) expect(pixel).toEqual(row.override ? [0, 0, 0, 0] : [0, 255, 0, 255]);
       expect(row.trace.textColors).toMatchObject({ policy: row.override ? 'caller-override' : 'source-samples', sourceOwnerDepth: 1, labelPainted: true, deviceMode: 'full-color-policy' });
       const selected = row.trace.steps.find(s => s.role === 'face' && s.action === 'selected');
       expect(row.trace.textColors.sourceManifestKey).toBe(selected.resource.manifestKey);
+      expect(selected.resource).toMatchObject({ signedId: { push: { normal: -10239, pressed: -10238, disabled: -10240 }, bevel: { normal: -10175, pressed: -10174, disabled: -10176 } }[row.family][row.state] });
+      expect(selected.owner.chainDepth).toBe(1);
+      expect(selected.resource.manifestKey).toBe(`cicn-${{ push: { normal: -10239, pressed: -10238, disabled: -10240 }, bevel: { normal: -10175, pressed: -10174, disabled: -10176 } }[row.family][row.state]}`);
       expect(selected.resource.byteProvenance.cinfResourceIndex).not.toBeNull();
     }
     await attachObservations(info, 'control-text-colors', `${mode}-masked`, { mode, result,
@@ -60,6 +67,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw masked text samples a
 });
 
 for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel labels consume independently pinned authored RGB16`, async ({ page, servers }, info) => {
+  info.annotations.push({ type: 'fidelity-assertion', description: 'text.authored-rgb16' });
   await openHarness(page, servers, mode);
   let result;
   try {
@@ -70,9 +78,9 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel lab
         const rows = [];
         for (const family of ['push', 'bevel']) for (const state of ['normal', 'pressed', 'disabled']) {
           let trace;
-          const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](owner, { label: 'H', minWidth: 80, height: 20, small: true,
+          const output = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](owner, { label: 'H', minWidth: 80, height: 20, ...(family === 'bevel' ? { small: true } : {}),
             pressed: state === 'pressed', disabled: state === 'disabled', diagnostics: { onComplete: value => { trace = value; } } });
-          const empty = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](owner, { label: '', minWidth: 80, height: 20, small: true,
+          const empty = await api[family === 'push' ? 'composeButton' : 'composeBevelButton'](owner, { label: '', minWidth: 80, height: 20, ...(family === 'bevel' ? { small: true } : {}),
             pressed: state === 'pressed', disabled: state === 'disabled' });
           const selected = trace.steps.find(s => s.role === 'face' && s.action === 'selected'), entry = owner.manifest.chromeElements[selected.resource.manifestKey];
           const bytes = owner.byteProvenance.resources;
@@ -91,8 +99,15 @@ for (const mode of ['source', 'built']) test(`${mode}: Crayon push and bevel lab
     }, mode);
     expect(result.load.input.sha256).toBe(crayonPins.archiveSha256);
     expect(result.load.fork.sha256).toBe(crayonPins.forkSha256);
+    expect(result.rows.filter(r => (r.family === 'push' && r.state !== 'pressed') || (r.family === 'bevel' && r.state === 'normal')).map(r => `${r.family}/${r.state}`).sort()).toEqual(['bevel/normal', 'push/disabled', 'push/normal']);
     for (const row of result.rows) {
+      expect(row.trace.requested).toMatchObject({ state: row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed', pressed: row.state === 'pressed', disabled: row.state === 'disabled' });
       const selected = row.trace.steps.find(s => s.role === 'face' && s.action === 'selected');
+      const expectedId = { push: { normal: -10239, pressed: -10238, disabled: -10240 }, bevel: { normal: -10175, pressed: -10174, disabled: -10176 } }[row.family][row.state];
+      const expectedKey = `${row.family === 'push' ? 'push-button' : 'small-bevel-button-off'}-${row.state === 'normal' ? 'active' : row.state === 'disabled' ? 'inactive' : 'pressed'}`;
+      expect(selected.resource).toMatchObject({ type: 'cicn', signedId: expectedId, sourceCinfId: expectedId, manifestKey: expectedKey });
+      expect(selected.owner.chainDepth).toBe(0);
+      expect(row.trace.textColors).toMatchObject({ policy: 'source-samples', labelPainted: true, sourceManifestKey: expectedKey, sourceOwnerDepth: 0 });
       const pin = sourceSamples.samples.find(s => s.id === selected.resource.signedId);
       expect(pin).toBeTruthy();
       expect(row.colors.text.rgb16).toEqual(pin.textRgb16);
