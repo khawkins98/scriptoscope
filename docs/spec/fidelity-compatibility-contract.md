@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.7**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.8**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -51,7 +51,8 @@ Kaleidoscope feature or every future scheme.
 | Family | Inputs to enumerate before closure | Integration paths |
 | --- | --- | --- |
 | Push/default and bevel buttons | Available sizes; normal/pressed/disabled/on combinations; ring reservation/paint; empty/short/long/ink labels | Direct pixels, imperative interaction, declarative promotion where exposed |
-| List headers | Column count/width, explicit/automatic height, active/inactive and labels | Direct pixels and supported consumer use |
+| Compatibility list-header columns | Column count/width, explicit/automatic height, active/inactive and labels | Existing direct text/cell helper and supported consumer use |
+| Whole header surfaces | Explicit Rect/UInt32 state, ordinary/list-view kind, caller clip, solid-body and sampling admission; unavailable/unsupported boundaries | Separate direct `composeHeaderSurface` API; no labels/columns or automatic migration |
 | Checkbox/radio | Available check/mixed/disabled combinations, labels, grouping | Direct pixels and native declarative controls |
 | Closed select | Selection text, empty/long labels, disabled, available closed-face states | Declarative native select with themed closed face |
 | Slider/progress/scrollbar | Supported orientation/state, minimum/native/resized length, endpoint/interior values; scrollbar thumb model/extent | Direct pixels; supported imperative and declarative paths separately |
@@ -95,7 +96,7 @@ not original-engine pixels.
 
 The current [ledger 1.2.0](../../tests/rendering-requirements/ledger.json) contains
 eighteen OPEN cases and 150 declared obligations: 28 narrowly verified, 0 mismatched,
-122 unknown. The separate [availability inventory 1.0.3](../../tests/control-availability/expectations.json)
+122 unknown. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
 contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains
 **unclosed; no overall fidelity percentage is established**.
