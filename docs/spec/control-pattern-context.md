@@ -2,10 +2,8 @@
 
 This is the intermediate direct-composition stage of #218/#221. It implements
 full-color PixPat bodies for push/bevel faces with every raw cinf byte except
-mode5, which requests a separate color-icon body. It does not
-complete mounted-window phase propagation: the next stage must connect logical
-content-port coordinates and layout invalidation to imperative and declarative
-controls. List headers, tabs and mode5 color-icon bodies remain separate.
+mode5, which requests a separate color-icon body. The [managed button adapter](managed-control-context.md) connects this model
+to current browser window coordinates under an explicit integration policy. List headers, tabs and mode5 color-icon bodies remain separate.
 
 ## Source and coordinates
 
@@ -75,7 +73,7 @@ a public button option. The browser oracles assert the actual29×9 or80×20 face
 dimensions instead of assuming a requested minimum is an exact width. A ring expands the
 output buffer but does not translate D or restart its pattern. The internal
 `composeButtonWithLayout`/`composeBevelButtonWithLayout` result exposes the actual
-face rectangle inside that buffer for the upcoming adapters; public compose
+face rectangle inside that buffer for the managed adapter; public compose
 functions retain their PixelBuffer/null returns.
 
 Omitted context applies local D=0/O=0, zero extra offset and an unbounded clip as
@@ -88,10 +86,11 @@ out-of-range right/bottom edges.
 The implementation does not emulate QuickDraw integer overflow or sentinel clips.
 
 Direct interactive buttons forward one context snapshot to normal/pressed paints.
-They do not yet observe position/reflow/scroll. Detached preparation remains valid.
-The next managed adapter must distinguish window translation, logical content
-scroll, scale and DPR, account for actual ring layout, and invalidate both cached
-state paints atomically. DOM position is not silently interpreted as a GrafPort.
+Detached preparation remains valid. Explicit managed bindings and scanner-owned
+buttons inside the same mount's windows observe position/reflow/scroll through the
+[managed adapter](managed-control-context.md), which accounts for actual face
+layout, scale and DPR and commits both state buffers atomically. Independent
+controls keep their caller/local context; DOM position is not original-port proof.
 
 ## Actual dependency, scope and lifetime
 
@@ -156,7 +155,7 @@ paint with and without observation, legacy ambiguity, and exact legacy links.
 This verifies the stated source/context model, not original lookup,
 complete device color fidelity, arbitrary clipping regions or whole-control truth.
 
-Remaining delivery obligations: managed imperative/declarative propagation (#270) and
-layout invalidation; mode5 cicn source/mask/owner behavior; monochrome/4-bit variants;
+Remaining fidelity obligations: original-port validation of the managed browser
+policy (#270); mode5 cicn source/mask/owner behavior; monochrome/4-bit variants;
 original port/scroll/pattern-offset integration; and independently eligible
 reference comparisons. #218 and the epic remain OPEN.

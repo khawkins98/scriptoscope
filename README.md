@@ -436,6 +436,38 @@ The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs 
 
 See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
+### Managed button pattern context
+
+Push buttons promoted inside a window owned by the same declarative mount follow
+that content viewport's logical position and scroll. Standalone controls keep
+local context. Imperative consumers opt in explicitly:
+
+```ts
+const content = document.createElement('div');
+const button = await interactiveButton(theme, { label: 'OK', default: true });
+content.append(button);
+const manager = new WindowManager();
+const host = await manager.add(theme, { width: 320, height: 180, scale: 2 }, {}, { contentEl: content });
+document.body.append(host);
+const binding = bindButtonToContentPort(button, manager.contentPort(host)!);
+await binding.refresh();
+// binding.state separates requested measurement from committedContext/pending/error.
+// Before releasing the theme:
+await binding.dispose();
+manager.remove(host);
+host.remove();
+```
+
+Import these functions from `scriptoscope`. Binding adopts the committed window
+scale by default, so a1x button deliberately grows to2x in this example; ordinary
+HTML siblings do not. `{ scale: 'preserve' }` keeps the caller's size and reports
+incompatible units explicitly. A direct `setButtonCompositionContext(button,
+context)` replaces provider ownership. Unbind preserves newer consumer style
+edits. Unsupported mappings use explicit compatibility defaults; measured browser
+coordinates do not establish original GrafPort state. See the
+[managed-context contract](docs/spec/managed-control-context.md) for lifetimes,
+coordinate limits and automatic/foreign-manager boundaries.
+
 ### Declarative — `mountDeclarative()` + `data-scriptoscope-*`
 
 The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<div>` and one bootstrap line promotes it into a faithful Mac window wrapping the live HTML content — no per-window JS:

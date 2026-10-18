@@ -4,7 +4,7 @@ import type { ControlCompositionContext, ControlRect } from './controlCompositio
 export type ManagedPortMeasurement =
   | { readonly status: 'ready'; readonly portId: string; readonly scale: number; readonly context: ControlCompositionContext }
   | { readonly status: 'unsupported'; readonly portId: string; readonly reason:
-    'uncommitted' | 'detached' | 'outside-port' | 'hidden' | 'transform' | 'canvas-box' | 'scale-mismatch' | 'fractional-coordinate' | 'coordinate-range' | 'face-layout' | 'document-mismatch' };
+    'uncommitted' | 'detached' | 'outside-port' | 'hidden' | 'transform' | 'canvas-box' | 'scale-mismatch' | 'fractional-coordinate' | 'coordinate-range' | 'face-layout' | 'document-mismatch' | 'state-layout-mismatch' | 'port-removed' };
 
 type UnsupportedReason = Extract<ManagedPortMeasurement, { status: 'unsupported' }>['reason'];
 type PortGeometry = { reason: UnsupportedReason } | { host: HTMLElement; left: number; top: number; width: number; height: number; unit: number };
@@ -13,6 +13,7 @@ type PortGeometry = { reason: UnsupportedReason } | { host: HTMLElement; left: n
 export interface ManagedControlPort {
   readonly id: string;
   readonly displayScale: number | null;
+  readonly disposed: boolean;
   measure(canvas: HTMLCanvasElement, faceRect: ControlRect): ManagedPortMeasurement;
   observe(canvas: HTMLCanvasElement, faceRect: () => ControlRect, changed: (measurement: ManagedPortMeasurement) => void): { refresh(): void; dispose(): void };
   refresh(): void;
@@ -53,17 +54,19 @@ function axisAligned(el: Element): boolean {
   return true;
 }
 
-/** Prototype adapter. The manager must call commit only after mounting its new
+/** Browser-layout adapter. The manager must call commit only after mounting its new
  * viewport; preparing a theme must never update this coordinate authority. */
 export class ManagedContentPort {
   readonly id = `managed-content-${++nextPort}`;
   readonly port: ManagedControlPort;
+  private removed = false;
 
   constructor() {
     const authority = this;
     this.port = Object.freeze({
       get id() { return authority.id; },
       get displayScale() { return authority.committed?.scale ?? null; },
+      get disposed() { return authority.removed; },
       measure: (canvas: HTMLCanvasElement, rect: ControlRect) => authority.measure(canvas, rect),
       observe: (canvas: HTMLCanvasElement, rect: () => ControlRect, changed: (measurement: ManagedPortMeasurement) => void) => trackManagedContent(authority, canvas, rect, changed),
       refresh: () => { for (const wake of authority.invalidated) wake(); },
@@ -74,10 +77,20 @@ export class ManagedContentPort {
   private cached: { frame: object; geometry: PortGeometry } | null = null;
 
   commit(host: HTMLElement, viewport: HTMLElement, scale: number): void {
+    if (this.removed) throw new Error('Removed content port cannot be recommitted');
     if (!Number.isInteger(scale) || scale < 1) throw new RangeError('Managed display scale must be a positive integer');
     this.committed = { host, viewport, scale };
     this.cached = null;
     for (const wake of this.invalidated) wake();
+  }
+
+  dispose(): void {
+    if (this.removed) return;
+    this.removed = true; this.committed = null; this.cached = null;
+    for (const wake of this.invalidated) {
+      try { wake(); } catch (error) { console.error('[scriptoscope] content-port subscriber threw during removal:', error); }
+    }
+    this.invalidated.clear();
   }
 
   clear(): void { this.committed = null; this.cached = null; for (const wake of this.invalidated) wake(); }
@@ -88,6 +101,7 @@ export class ManagedContentPort {
   private geometry(frame: object): PortGeometry {
     if (this.cached?.frame === frame) return this.cached.geometry;
     const read = (): PortGeometry => {
+      if (this.removed) return { reason: 'port-removed' };
       const current = this.committed;
       if (!current) return { reason: 'uncommitted' };
       const { host, viewport, scale } = current;
@@ -181,7 +195,7 @@ function scheduleTracker(view: Window, tracker: PortTracker): void {
   });
 }
 
-/** Internal prototype subscription; public button binding owns scale and paints.
+/** Internal subscription; public button binding owns scale and paints.
  * A change callback must reset to explicit compatibility-default on unsupported
  * measurements. Retaining an old managed D would incorrectly imply valid state. */
 export function trackManagedContent(
@@ -201,14 +215,17 @@ export function trackManagedContent(
   const binding: PortBinding = { canvas, active: true, refresh(frame = {}) {
     if (!live) return;
     const measurement = port.measureInFrame(canvas, faceRect(), frame);
-    binding.active = measurement.status === 'ready' || !['uncommitted', 'hidden', 'detached'].includes(measurement.reason);
+    binding.active = measurement.status === 'ready' || !['uncommitted', 'hidden', 'detached', 'outside-port', 'port-removed'].includes(measurement.reason);
     const signature = JSON.stringify(measurement);
     if (signature === previous) return;
     previous = signature;
     changed(measurement);
   } };
   tracker.bindings.add(binding);
-  const unobserveCommit = port.onCommit(() => { binding.active = true; scheduleTracker(view, tracker); });
+  const unobserveCommit = port.onCommit(() => {
+    if (port.port.disposed) { try { binding.refresh(); } finally { dispose(); } }
+    else { binding.active = true; scheduleTracker(view, tracker); }
+  });
   const dispose = () => {
     if (!live) return;
     live = false; unobserveCommit(); tracker.bindings.delete(binding);
@@ -220,7 +237,7 @@ export function trackManagedContent(
     }
   };
   // A throwing initial consumer must not leave a registration without a disposer.
-  try { binding.refresh(); scheduleTracker(view, tracker); }
+  try { binding.refresh(); if (port.port.disposed) dispose(); else scheduleTracker(view, tracker); }
   catch (error) { dispose(); throw error; }
   return { refresh() { binding.refresh(); scheduleTracker(view, tracker); }, dispose };
 }

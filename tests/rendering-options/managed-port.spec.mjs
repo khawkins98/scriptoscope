@@ -1,7 +1,7 @@
 import { test, expect, openHarness } from './fixtures.mjs';
 
-// Standalone D prototype. Public binding/pixel integration is deliberately not claimed.
-test('managed port prototype maps actual face layout without screen-translation drift', async ({page,servers}) => {
+// Internal geometry and tracker checks complement public source/built integration.
+test('managed port maps actual face layout without screen-translation drift', async ({page,servers}) => {
 await openHarness(page,servers,'source');
 const result=await page.evaluate(async()=>{
   const runtime=await import('/src/index.ts');
@@ -40,7 +40,7 @@ for (const row of result) {
   expect(row.canvasBorder.measured).toMatchObject({status:'unsupported',reason:'canvas-box'});
 }
 });
-test('managed port prototype shares viewport reads and owns dormant tracking', async ({page,servers}) => {
+test('managed port shares viewport reads and owns dormant tracking', async ({page,servers}) => {
 await openHarness(page,servers,'source');
 const result=await page.evaluate(async({count,depth})=>{
   const runtime=await import('/src/index.ts');
@@ -67,7 +67,7 @@ const result=await page.evaluate(async({count,depth})=>{
   reset();host.style.display='none';await frames(3);const hidden=snapshot();reset();await frames(5);const hiddenIdle=snapshot();host.style.display='';await frames(3);
   bindings.forEach(x=>x.dispose());reset();await frames(3);const disposed=snapshot();
   let initialThrow=false;try{trackManagedContent(port,controls[0].querySelector('canvas'),()=>layout.faceRect,()=>{throw new Error('expected callback failure');});}catch{initialThrow=true;}reset();await frames(3);const failedSubscribe=snapshot();const invalidFace=port.measure(controls[0].querySelector('canvas'),{...layout.faceRect,w:NaN});
-  manager.remove(host);theme.dispose?.();return{depth,initialThrow,failedSubscribe,invalidFace,hidden,hiddenIdle,controls:count,framePolicy:'one shared pass; prototype notifications, no pixel recomposition yet',idle,translated,reflow,detached,reconnected,disposed};
+  manager.remove(host);theme.dispose?.();return{depth,initialThrow,failedSubscribe,invalidFace,hidden,hiddenIdle,controls:count,framePolicy:'one shared pass; internal measurement notifications',idle,translated,reflow,detached,reconnected,disposed};
  },{count:12,depth:0});
 expect(result.idle.changes).toBe(0);
 expect(result.translated.changes).toBe(0);
@@ -80,7 +80,7 @@ expect(result.initialThrow).toBe(true);
 expect(result.invalidFace.reason).toBe('face-layout');
 });
 
-test('managed port prototype uses its owner realm and rejects invalid declared layout', async ({page,servers}) => {
+test('managed port uses its owner realm and rejects invalid declared layout', async ({page,servers}) => {
   await openHarness(page,servers,'source');
   const result = await page.evaluate(async () => {
     const {ManagedContentPort} = await import('/src/managedContentPort.ts');

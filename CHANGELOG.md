@@ -20,6 +20,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   evidence. This adds an association guard without promoting any fidelity claim
   or changing the reviewed inventory (#274).
 
+- Bind interactive push-button patterns to committed managed content ports, with
+  explicit context/scale ownership, paired state repaint epochs and finite shared
+  tracking. Same-mount declared buttons follow window scroll and reparenting;
+  imperative binding is opt-in and exposes unsupported/pending states (#270).
+
 - Preserve failed browser-test attachments and their hashes outside the next
   run's replaceable output, including original failure metadata and explicit
   incomplete-copy reporting. Slider lifetime probes measure the current canvas

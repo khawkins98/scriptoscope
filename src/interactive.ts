@@ -1,4 +1,5 @@
-import { snapshotControlComposition } from './controlComposition.js';
+import { prepareButtonPainter, registerButtonPainter } from './buttonComposition.js';
+import { ManagedContentPort, type ManagedControlPort } from './managedContentPort.js';
 // Interactivity layer — wires real interaction onto the rendered chrome/controls.
 //
 // The compositor already renders per-STATE cicns (ControlState normal/pressed/
@@ -87,7 +88,7 @@ import { snapshotControlComposition } from './controlComposition.js';
 import { resolveWindowSelection, resolveCollapsedWindowTypeSlug } from './resolveWindowType.js';
 import { listenUntilAborted } from './listenUntilAborted.js';
 import {
-  composeButtonWithLayout, composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
+  composeCheckable, composeDisclosure, composeSlider, composeSliderWithLayout, composeScrollbar,
   baselineButton, baselineCheckable, bufferToCanvas,
   type ButtonOptions, type ControlState,
 } from './controls.js';
@@ -133,10 +134,9 @@ export async function interactiveButton(
   const current = (): void => { if (signal?.aborted) throw new DOMException('Button preparation aborted', 'AbortError'); };
   current();
   const { onClick, scale = 1, ...bo } = opts;
-  const composition = snapshotControlComposition(bo.compositionContext);
-  const normalBuf = (await composeButtonWithLayout(theme, { ...bo, pressed: false }, signal, composition))?.buffer ?? null;
+  const painter = await prepareButtonPainter(theme, bo, scale, signal);
   current();
-  if (!normalBuf) {
+  if (!painter) {
     // No themed button cicns → the native CSS baseline button is already a real,
     // accessible, interactive <button>.
     const b = baselineButton(bo.label ?? '', bo);
@@ -145,11 +145,6 @@ export async function interactiveButton(
     if (onClick && !bo.disabled) listenUntilAborted(events.signal, b, 'click', onClick);
     return b;
   }
-  const pressedBuf = bo.disabled ? null : (await composeButtonWithLayout(theme, { ...bo, pressed: true }, signal, composition))?.buffer ?? null;
-  current();
-  const normal = bufferToCanvas(normalBuf, scale);
-  const pressed = pressedBuf ? bufferToCanvas(pressedBuf, scale) : normal;
-
   const el = document.createElement('span');
   el.className = 'scriptoscope-button';
   el.setAttribute('role', 'button');
@@ -160,17 +155,17 @@ export async function interactiveButton(
     display: 'inline-block', lineHeight: '0', userSelect: 'none',
     cursor: bo.disabled ? 'default' : 'pointer', outlineOffset: '2px',
   } satisfies Partial<CSSStyleDeclaration>);
-  el.appendChild(normal);
-  if (bo.disabled) return el;
-
+  el.appendChild(painter.canvas);
+  registerButtonPainter(el, painter);
   const events = new AbortController();
-  controlDisposers.set(el, () => events.abort());
+  controlDisposers.set(el, () => { painter.dispose(); events.abort(); });
+  if (bo.disabled) return el;
   let down = false;
-  const press = (): void => { down = true; el.replaceChildren(pressed); };
+  const press = (): void => { down = true; painter.press(true); };
   const release = (fire: boolean): void => {
     if (!down) return;
     down = false;
-    el.replaceChildren(normal);
+    painter.press(false);
     if (fire && onClick) onClick();
   };
   // Pointer events cover mouse + touch + pen in one path. pointerleave releases without firing the
@@ -730,6 +725,7 @@ export function titleWidgetHits(
 
 // ── Window focus manager ────────────────────────────────────────────────────
 interface ManagedWindow {
+  contentPort: ManagedContentPort;
   /** Invalidates asynchronous paints when geometry/state changes or the entry is removed. */
   renderEpoch: number;
   initializing: boolean;
@@ -847,6 +843,11 @@ export class WindowManager {
     };
   }
 
+  /** Read-only browser coordinate authority for this manager's committed window. */
+  contentPort(host: HTMLElement): ManagedControlPort | null {
+    return this.windows.find(entry => entry.host === host)?.contentPort.port ?? null;
+  }
+
   /**
    * Add a window. Returns a positioned host element (caller places it). The
    * FIRST window added is active by default. `handlers` wire the title-bar
@@ -896,7 +897,7 @@ export class WindowManager {
     // Initial focus: the first window added is active — UNLESS it explicitly requests inactive
     // (so a declarative `data-scriptoscope-state="inactive"` is honored; then no window starts focused).
     const entry: ManagedWindow = {
-      theme, opts, handlers, host, renderEpoch: 0, initializing: true,
+      theme, opts, handlers, host, renderEpoch: 0, initializing: true, contentPort: new ManagedContentPort(),
       ...(opts.reuseCanvas ? { chromeCanvas: opts.reuseCanvas } : {}),
       active: this.windows.length === 0 && opts.state !== 'inactive',
       // Declared z (data-scriptoscope-z) wins; else take the next stacking-clock tick. We still bump the
@@ -930,6 +931,7 @@ export class WindowManager {
     const i = this.windows.findIndex((w) => w.host === host);
     if (i < 0) return;
     this.windows[i]!.renderEpoch++;
+    this.windows[i]!.contentPort.dispose();
     this.windows[i]?.scrollAbort?.abort();
     this.windows.splice(i, 1);
     // Drag-handoff placeholder cleanup (toAbsolute inserts one to keep the
@@ -1271,6 +1273,9 @@ export class WindowManager {
     const shadow = entry.host.shadowRoot;
     if (shadow) shadow.replaceChildren(win);
     else entry.host.replaceChildren(win);  // defensive fallback (host without shadow — shouldn't happen)
+    const viewport = win.querySelector<HTMLElement>('.scriptoscope-content');
+    if (viewport) entry.contentPort.commit(entry.host, viewport, Math.max(1, Math.round(entry.opts.scale ?? 1)));
+    else entry.contentPort.clear();
     // Themed scrollbar (replaces the native one) when the content overflows. Must run AFTER the window
     // is in the DOM — overflow can only be measured once the content is laid out.
     void this.wireScrollbars(entry, win, 0);

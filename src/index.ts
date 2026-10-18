@@ -1,3 +1,5 @@
+export { bindButtonToContentPort, setButtonCompositionContext, type ButtonCompositionBinding, type ButtonBindingState } from './buttonComposition.js';
+export type { ManagedControlPort, ManagedPortMeasurement } from './managedContentPort.js';
 export type { ControlCompositionContext, ControlCompositionSnapshot, ControlPoint, ControlRect } from './controlComposition.js';
 // Scriptoscope — a web-native runtime for classic-Mac Kaleidoscope schemes.
 //

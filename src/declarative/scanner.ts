@@ -1,3 +1,5 @@
+import { bindOwnedButtonToContentPort, type ButtonCompositionBinding } from '../buttonComposition.js';
+import type { ManagedControlPort } from '../managedContentPort.js';
 // The declarative scanner: find `data-scriptoscope-window` / `data-scriptoscope-button` elements (+ `.aaron-*`
 // class fallbacks) and promote them, then keep promoting elements added later via a MutationObserver.
 // Idempotent: promoted elements are stamped `data-scriptoscope-promoted`, so re-scans (incl. the observer
@@ -403,6 +405,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       aw.host.dataset.scriptoscopeTheme = ref;
       if (id) idForHost.set(aw.host, id);
       mounted.push(aw);
+      bindManagedSubtree(aw.host);
       markInertIfWiping(aw.host);
       stats.windows += 1;
       debug('promote', `window: ${el.dataset.scriptoscopeTitle ?? '(untitled)'}`, { theme: ref, x: pos.x, y: pos.y, restored: !!persisted });
@@ -432,6 +435,31 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
     frame = requestAnimationFrame(finish);
   });
 
+  const managedFaces = new WeakSet<HTMLElement>();
+  const managedBindings = new WeakMap<HTMLElement, { port: ManagedControlPort; binding: ButtonCompositionBinding }>();
+  const bindManagedButton = (button: HTMLElement): void => {
+    managedFaces.add(button);
+    const host = button.closest<HTMLElement>('[data-scriptoscope-window-host]');
+    const port = root.contains(button) && host ? manager.contentPort(host) : null;
+    const prior = managedBindings.get(button);
+    if (prior?.port === port && !prior.binding.state.disposed) return;
+    if (port) {
+      // A new binding invalidates the old paint epoch synchronously, even when
+      // the two windows happen to produce identical numeric coordinates.
+      const binding = bindOwnedButtonToContentPort(button, port);
+      if (binding) managedBindings.set(button, { port, binding });
+    } else if (prior) {
+      managedBindings.delete(button);
+      void prior.binding.dispose().catch(error => reportPromoteError('button', button, error));
+    }
+  };
+  const bindManagedSubtree = (within: Element): void => {
+    if (within instanceof HTMLElement && managedFaces.has(within)) bindManagedButton(within);
+    for (const button of within.querySelectorAll<HTMLElement>('.scriptoscope-button')) {
+      if (managedFaces.has(button)) bindManagedButton(button);
+    }
+  };
+
   const promoteBtn = async (el: HTMLElement): Promise<void> => {
     if (isPromoted(el)) return; // buttons inside window content ARE wanted
     ownedButtonSources.add(el);
@@ -456,6 +484,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
         }
         if (lifetime.signal.aborted) { disposePromotedButtonFace(el, skinned); restoreButton(el); return; }
         skinnedButtons.push({ el, skinned });
+        bindManagedButton(skinned);
         markInertIfWiping(skinned);
         stats.buttons += 1;
         debug('promote', `button: ${el.textContent?.trim().slice(0, 30) ?? ''}`);
@@ -591,6 +620,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
           const focused = b.skinned.contains(document.activeElement);
           disposePromotedButtonFace(b.el, b.skinned); // replacement is already inserted after the source
           b.skinned = fresh;
+          bindManagedButton(fresh);
           if (focused) fresh.focus({ preventScroll: true });
         } catch (err) { if (current()) console.error('[scriptoscope] button re-skin failed:', err); }
       }
@@ -890,7 +920,13 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
   // freeze the observer (fix from 2026-05-28 review — defensive against future regressions).
   let scheduled = false;
   const obs = new MutationObserver((records) => {
-    if (scheduled || lifetime.signal.aborted) return;
+    if (lifetime.signal.aborted) return;
+    // Existing owned faces can move without requiring another promotion. Keep
+    // this before scan coalescing so a move during an in-flight scan isn't lost.
+    for (const record of records) for (const node of record.addedNodes) {
+      if (node instanceof Element) bindManagedSubtree(node);
+    }
+    if (scheduled) return;
     // Walk records and collect ONLY the added Element subtrees (not the
     // whole root). On a busy host page — CMS with rotating banners,
     // tooltips, modals — the prior "rescan root" path triggered the
