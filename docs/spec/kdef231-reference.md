@@ -131,7 +131,7 @@ in `docs/spec/apple-primary-source.md`.
 | addr | name | purpose | key args / fields | callees | returns |
 |---|---|---|---|---|---|
 | `0x6cdc` | install-drawers | registers the FACE drawer per GDevice via `0xf112`; pushes `0x7424` (color twin) then `0x70f6` (b/w twin) | `pea 0x7424` / `pea 0x70f6` then `bsrl 0xf112` | `0xf112` | — |
-| `0x7424` | **push-button FACE drawer** (color) | draw the button face cicn into the control rect; pick state cicn; then default-ring | `fp@(8)`→`a2` (state blob: `a2@(8)`=disabled, `a2@(9)`=pressed, `a2@(14..18)`=Rect, `a2@(24)` scratch), `fp@(12)`→`a3`; `fp@(18)`=varCode | `0xea08`,`0xe978`,`0xf2d6`,`0x10fc0` (9-slice), `0x107a4` (ring), `0x6d22` | `rtd #12` |
+| `0x7424` | **push-button FACE drawer** (color) | draw the button face cicn into the control rect; pick state cicn; then default-ring | `fp@(8)`→`a2` (state blob: `a2@(8)`=disabled, `a2@(9)`=pressed, `a2@(14..18)`=Rect, `a2@(24)` scratch), `fp@(12)`→`a3`; `fp@(18)`=varCode | `0xea08`,`0xe978`,`0xf2d6`,`0x10fc0` (body + independent border bands), `0x107a4` (ring), `0x6d22` | `rtd #12` |
 | `0x70f6` | b/w FACE drawer | 1-bit-screen twin of `0x7424` | same blob | `0x10472` (cicn) | — |
 | `0x757c` | **face state-select** | choose face cicn id | `a2@(8)` set → **-10240**; else `a2@(9)` set → **-10238**; else **-10239** | pushes id → `0x10fc0` | — |
 | `0x76a8` | **aux-struct 'Acid' gate** | `cmpil #1097034084,%a0@` (= `0x41636964` = `'Acid'`, the kDEF aux-struct magic), then `tstb %a0@(30)`; both must hold to draw the default ring. Reached via `a2@`→`@`→`@(28)`→`@` handle chain (`0x768c`-`0x76a8`) | aux struct: `+0`='Acid', `+30`=default-button flag | — | — |
@@ -220,9 +220,9 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x0feae` | **TILE blit** (default) | step dst by src cell w/h, CopyBits/CopyMask one src-sized tile at a time, clamp last partial tile. 1px-tall/1px-wide fast paths. | `fp@(8)`=dir byte (→`d4`; `(pc==11\|\|pc==14)?0:1` from caller `0x59c8`), `fp@(12)`=src rect (`a3`), `fp@(16)`=dst rect (`a2`) | `$A8EC` CopyBits / `$A817` CopyMask, `0x1027a` (skip if degenerate) |
 | `0x10320` | **single scaled blit** (code 18) | ONE CopyBits (`0x103ea` `$A8EC`) or CopyMask (`0x10402` `$A817`), mapped src→dst (scales if dst grew) | `fp@(8)`=cicn (`a2`), `fp@(12)`=src rect (`d6`), `fp@(16)`=dst rect (`a3`) | `$A8EC`/`$A817`, RGBForeColor `0xf30a` |
 | `0x102d0` | **corner 1:1 copy** | translate src rect by (dst−src) offset, then `0x10320` → places a corner at 1:1 size | `fp@(8)`=cicn, `fp@(12)`=src (`a2`), `fp@(16/18)`=dst origin | `0x10320` |
-| `0x107fe` | **cinf 9-slice engine** | load cicn + cinf for an id, read corner insets, blit 4 corners 1:1 + 4 edges + center per cinf style byte | `fp@(8)`=id (`d4`), `fp@(10)`=dst rect (`a2`), `fp@(18)`=optional rect, `fp@(22)`=scale flag (?), pushed scale-flag at `fp@(?)` | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (GetPixel — sample px → RGB; see §1.4), `0xf930`, `0xfdf8` |
-| `0x108a0` | (inside `0x107fe`) | reads cinf corner insets: `d3`=byte[0] (`a3@`), `d4`=byte[1] (`a3@(1)`); style switch on cinf byte[3] (`a0@(3)`, `cmpib #5` + `subq #1` chain) | cinf `a3@`: `[0]`=cornerX, `[1]`=cornerY, `[3]`=style/mode | — |
-| `0x10fc0` | 9-slice wrapper (controls) | pushes `#1` scale-flag, forwards `fp@(8..18)` to `0x107fe` | `fp@(8)`=id, `fp@(10/14/18)`=rects/flags | `0x107fe` |
+| `0x107fe` | **cinf body + border engine** | load cicn + cinf, optionally fill body, then paint square corners and independently thick masked edge bands | `fp@(8)`=id (`d4`), `fp@(10)`=dst rect (`a2`), `fp@(14)`=text RGB output, `fp@(18)`=emboss RGB output, `fp@(22)`=body-fill flag | `0x116f8` (cinf), `0x10472`/`0xed70` (cicn), `0xfc5c` (GetPixel — sample px → RGB; see §1.4), `0xf930`, `0xfdf8` |
+| `0x108a0` | (inside `0x107fe`) | reads cinf corner size and side thickness: `d3`=byte[0] (`a3@`), `d4`=byte[1] (`a3@(1)`); style switch on cinf byte[3] (`a0@(3)`, `cmpib #5` + `subq #1` chain) | cinf `a3@`: `[0]`=square corner size, `[1]`=independent side thickness, `[3]`=pattern anchor/mode | — |
+| `0x10fc0` | face wrapper (controls) | pushes body-fill true, forwards `fp@(8..18)` to `0x107fe` | `fp@(8)`=id, `fp@(10)`=dst rect, `fp@(14/18)`=text/emboss RGB outputs | `0x107fe` |
 | `0x10fe0` | 9-slice wrapper (window regions) | sibling: loads cicn (`0x10472`) + cinf (`0x116f8`) itself, then slices | `fp@(8)`=id (`a3`), `fp@(10)`=rect (`a2`), `fp@(14)`=`d4`, `fp@(18)`=alt flag | `0x10472`, `0x116f8` |
 
 ### 1.6 Resource loaders
@@ -618,8 +618,8 @@ title anchor).
 | TILE | `0x0feae` | `feae(dirByte, srcRect*, dstRect*)` (`fp@8/12/16`) | step dst by src cell size, CopyBits/CopyMask one tile, clamp last partial. `dir` = horizontal vs vertical run (`(pc==11\|\|pc==14)?0:1`). 1px-tall and 1px-wide fast paths. **Always tiles; never scales.** |
 | SCALE | `0x10320` | `f10320(cicn, srcRect*, dstRect*)` (`fp@8/12/16`) | ONE CopyBits (`$A8EC`)/CopyMask (`$A817`) src→dst → scales if dst grew. Used for partCode 18 (`0x59ba`) and named-widget rects (`0x5ddc`). |
 | CORNER 1:1 | `0x102d0` | `(cicn, srcRect*, dstX, dstY)` | shift src by dst−src, call `0x10320` → 1:1 placement |
-| 9-SLICE | `0x107fe` | `(id, dstRect*, …, scaleFlag)` | cinf-driven: 4 corners 1:1 (`0x102d0`-style), 4 edges + center per cinf byte[3] style; corner insets from cinf byte[0]/[1] |
-| 9-SLICE wrap (control) | `0x10fc0` | `(id, …)` pushes `#1` scaleFlag → `0x107fe` | used by button face (`0x7594`) + ring (`0x107a4`-region) |
+| BODY + BORDER | `0x107fe` | `(id, dstRect*, textRGB*, embossRGB*, bodyFill)` | square corners from byte[0], independent side bands from byte[1], optional body; see [solid face geometry](control-face-geometry.md) |
+| FACE wrap (control) | `0x10fc0` | `(id, …)` pushes bodyFill=true → `0x107fe` | push face (`0x7594`) and bevel (`0x7778`); ring uses false via `0x107de` |
 | 9-SLICE wrap (window) | `0x10fe0` | `(id, rect, d4, altFlag)` | loads cicn+cinf itself, then slices |
 | RING blit | `0x107a4` | `(id, dstRect*, flag)` | the default-button ring 9-slice (its own wrapper over the slice engine) |
 
@@ -779,8 +779,9 @@ For a false repeat flag, top/bottom use the first source column at x=corner
 the final tile. Thus a 21px source with corner7/side14 is valid overlapping
 art, not malformed or a pair of 14px vertical corner insets.
 
-The runtime applies this model to default rings. Its common face helper still
-uses a rectangular approximation; face/pattern migration requires separate
-source-driven validation. Reserving the four-pixel margin on plain buttons is
+The runtime applies this border model to default rings and to solid push/bevel
+faces with explicit cinf and a valid background sample. Solid faces fill the
+inset-union body first; [details and remaining limits](control-face-geometry.md).
+Pattern-backed/legacy faces and list headers retain their approximation. Reserving the four-pixel margin on plain buttons is
 a runtime layout policy to keep state changes stable, not an additional
 claim about the original Control Manager's layout.

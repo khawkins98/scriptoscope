@@ -3569,3 +3569,25 @@ promoted name, real Tab/Arrow interaction, and retheming in source/built entries
 under Windows95 and System7. It failed on the old unnamed slider before the fix.
 This does not change min/max/step/disabled handling or claim native restoration:
 `disconnect()` currently leaves promoted form controls, tracked separately in #232.
+
+### 2026-10-18 — Solid faces share the ring's border engine, not rectangular nine-slicing
+
+Push (`0x7594`) and bevel (`0x7778`) call the same `0x107fe` engine as default
+rings, with body-fill true through `0x10fc0`. The solid fill is the union of
+inset(corner,side) and inset(side,corner), painted before the eight masked border
+regions. Reuse the proven border helper; do not reinterpret corner/side as
+horizontal/vertical rectangular nine-slice insets. Independent sentinels cover
+square corners, unequal/overlapping bands, source-strip sampling, body union and
+transparent overlaps. Source corner checks cover Animals/Monkey/Lisa states.
+
+Eligibility matters: explicit slice metadata plus a valid solid background
+sample earns this path. Pattern-backed faces (including Crayon), list headers
+without proven original call-site equivalence, and legacy/masked samples retain
+the prior approximation. Text contrast and sizing remain policies, not original
+text/emboss sample reconstruction. See `docs/spec/control-face-geometry.md` and
+remaining #218 work.
+
+Original numeric-ID dispatch does not prove our named-role/anti-role or state
+fallback policies. Source labels carry provenance; interpreting them is still a
+heuristic. Diagnostics must report those decisions rather than describing them
+as verified original Appearance Manager behavior.

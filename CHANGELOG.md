@@ -53,6 +53,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Promoted range sliders retain associated labels and explicit ARIA naming,
   including naming precedence and live label references after retheming (#229).
 
+- Solid push and bevel faces with explicit cinf metadata now use square corners,
+  independent masked edge bands and the source-defined inset-union body fill.
+  Pattern-backed faces and list headers remain tracked separately under #218.
+
 - Fixed Firefox startup in the extended rendering workflow by matching the
   container user to its mounted home. Browser launch preflight now fails before
   running the matrix; optional focused workflow reruns retain the full default.
