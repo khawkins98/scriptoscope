@@ -1,6 +1,7 @@
 import { test, expect, openHarness, attachCase } from './fixtures.mjs';
 
 for (const mode of ['source', 'built']) test(`${mode}: sliders retain and center complete authored thumb cells`, async ({ page, servers }, testInfo) => {
+  testInfo.annotations.push({ type: 'fidelity-assertion', description: 'slider.decoded-opaque-retention' });
   await openHarness(page, servers, mode);
   let rows;
   try {

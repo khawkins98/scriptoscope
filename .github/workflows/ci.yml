@@ -81,6 +81,15 @@ jobs:
       - name: Reviewed rendering goldens (exact Linux comparison)
         run: npm run test:rendering:goldens
 
+      # Fidelity assessments are reviewed data; execution is a separate column.
+      # Require the exact registered source/built assertions to have actually run.
+      - name: Validate fidelity requirements and report executions
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SCRIPTOSCOPE_GIT_COMMIT: ${{ github.sha }}
+        run: npm run test:requirements -- --check-issues --require-execution
+
       - name: Upload compact rendering observations
         if: always()
         uses: actions/upload-artifact@v4

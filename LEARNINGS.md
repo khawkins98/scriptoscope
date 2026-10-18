@@ -3591,3 +3591,19 @@ Original numeric-ID dispatch does not prove our named-role/anti-role or state
 fallback policies. Source labels carry provenance; interpreting them is still a
 heuristic. Diagnostics must report those decisions rather than describing them
 as verified original Appearance Manager behavior.
+
+## 2026-10-18 — A passing source-art assertion is a partial requirement
+
+The slider retention check compares every decoded opaque cell pixel with output
+pixels, yet it cannot establish the original decoder, state-cell selection,
+transparent-mask behavior or historical placement formula. Recording the whole
+slider as verified would turn a useful independent assertion into an unsupported
+certificate. The #227 ledger declares these as separate obligations, keeps them
+in the denominator, and leaves initial case inventories OPEN. Runtime observations
+and reviewed regression goldens remain a different evidence category.
+
+A stable assertion reference also does not prove the assertion ran. The browser
+reporter records actual source/built test results and execution commit independently
+of reviewed fidelity statuses; missing or stale results are not run. A source-fix
+PR must update its mismatch assessment before closing the tracked issue, because
+CI checks issue liveness rather than treating a stale issue link as active work.
