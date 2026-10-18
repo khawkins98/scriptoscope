@@ -1,0 +1,1940 @@
+{
+  "schemaVersion": 1,
+  "inventoryVersion": "1.0.0",
+  "reviewStatus": "reviewed",
+  "scope": {
+    "description": "14 real archive cases and 13 synthetic direct/interactive cases; 26 reviewed API availability expectations and one explicit UNKNOWN. All unlisted combinations remain unknown.",
+    "unlistedAvailability": "unknown",
+    "wholeCorpusCompletion": "not claimed"
+  },
+  "sourceCandidateFile": "tests/control-availability/source-candidates.json",
+  "sourceChoicesFile": "tests/control-availability/source-choices.json",
+  "fixturesFile": "tests/control-availability/fixtures.json",
+  "policy": {
+    "id": "compatibility-policy.v1-draft",
+    "basis": "declared-public-api-policy",
+    "historicalSelection": "not established by this policy",
+    "rules": [
+      {
+        "id": "self-first",
+        "claim": "Resolve each owner before inheriting from its base; canonical child art outranks named base art."
+      },
+      {
+        "id": "named-preference",
+        "claim": "A named role wins over canonical raw IDs within one owner; actual signed ID or null remains unchanged."
+      },
+      {
+        "id": "anti-role",
+        "claim": "Reject an author-labelled Solo Menu Background candidate on a face slot while seeking a safe face; this is an interpretation policy."
+      },
+      {
+        "id": "face-state-substitution",
+        "claim": "Missing active face may use pressed; missing inactive face may use active. Does not certify historical face-state fallback."
+      },
+      {
+        "id": "direct-missing",
+        "claim": "An explicitly empty finite/cyclic source graph yields null from the direct compositor; caller owns fallback."
+      },
+      {
+        "id": "native-fallback",
+        "claim": "interactiveButton on empty art returns a labelled native button with keyboard action and disabled semantics."
+      },
+      {
+        "id": "plain-ring-reservation",
+        "claim": "Plain button may reserve ring layout metadata but must not paint a default ring."
+      },
+      {
+        "id": "bevel-self-first",
+        "claim": "Canonical bevel lookup respects child ownership before base inheritance."
+      },
+      {
+        "id": "canonical-push-states",
+        "claim": "For these exact API states, request active -10239, pressed -10238, inactive -10240. Source resource existence is separate from compatibility resolution."
+      },
+      {
+        "id": "canonical-bevel-states",
+        "claim": "For these exact normal-size clear bevel API states, request active -10166, pressed -10165, inactive -10167; no broader state/size combinations inferred."
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "windows-95.push.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": -10239,
+            "manifestKey": "cicn--10239"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "59912b61e1a606d1416af5e5e12c0e08f9a757f8d447e4870ba90e5c3e6b3aa2",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.push.pressed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": true,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": -10238,
+            "manifestKey": "cicn--10238"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "941481c70a95a575e6242f4a0d5540d317ce44aafd5b125dbbedc6146a2acc7f",
+          "byteLength": 282
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "7da4022bbfb99b5391884b8c9d6f280f0f791b66484a904ccdb078aff4946b92",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.push.disabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10240,
+            "sourceCinfId": -10240,
+            "manifestKey": "cicn--10240"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "payloadSha256": "91af9e1b40b147f9da45618e213869b719c9cf1952b0f8f3df546050a760aff5",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "present",
+          "payloadSha256": "33b042378a62a608c48957d556975139372cbdd8cb8dd3da1df127b8b2cc4e09",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "system7-nostalgia-silver.push.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.system7-nostalgia-silver",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.system7-nostalgia-silver",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "active-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "5bb8a10b2e18668dba4d071887d3ed411a682b7f87195bdf5b4ec625040ee6fc",
+          "byteLength": 362
+        },
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "absent-from-selected-fork"
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "system7-nostalgia-silver.push.pressed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.system7-nostalgia-silver",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": true,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.system7-nostalgia-silver",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": null,
+            "manifestKey": "pressed-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "5ce5e3baf6986071576909d9b79f0bc1f227cc10fcd0bb578212b895349d2431",
+          "byteLength": 354
+        },
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "absent-from-selected-fork"
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "system7-nostalgia-silver.push.disabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.system7-nostalgia-silver",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.system7-nostalgia-silver",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10240,
+            "sourceCinfId": null,
+            "manifestKey": "inactive-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "payloadSha256": "142e2bf34de2c7fa35500a0bb454c780c2eeefd4a9aeb9ffe253543fe5aaa6fb",
+          "byteLength": 322
+        },
+        {
+          "slug": "system7-nostalgia-silver",
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "absent-from-selected-fork"
+        }
+      ],
+      "notes": "Source-backed resource presence plus public state dispatch; named/ID interpretation does not certify complete historical selection.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "animals.push.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.animals",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.animals",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": -10238,
+            "manifestKey": "pressed-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "rejected",
+            "reason": "anti-role-label",
+            "signedId": -10239,
+            "basis": "compatibility-policy"
+          },
+          {
+            "action": "fallback",
+            "reason": "active-to-pressed",
+            "basis": "compatibility-policy"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "anti-role",
+        "face-state-substitution",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "animals",
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128",
+          "byteLength": 314
+        },
+        {
+          "slug": "animals",
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078",
+          "byteLength": 314
+        },
+        {
+          "slug": "animals",
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Author labels establish names, not authoritative intent or dispatch: cicn -10239 is Solo Menu Background while same-ID cinf is Push Button. Rejection and pressed substitution are declared compatibility policy, not original-engine proof.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "monkey-paradise.push.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.monkey-paradise",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.monkey-paradise",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": -10238,
+            "manifestKey": "pressed-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "rejected",
+            "reason": "anti-role-label",
+            "signedId": -10239,
+            "basis": "compatibility-policy"
+          },
+          {
+            "action": "fallback",
+            "reason": "active-to-pressed",
+            "basis": "compatibility-policy"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "anti-role",
+        "face-state-substitution",
+        "plain-ring-reservation"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "monkey-paradise",
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128",
+          "byteLength": 314
+        },
+        {
+          "slug": "monkey-paradise",
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078",
+          "byteLength": 314
+        },
+        {
+          "slug": "monkey-paradise",
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Author labels establish names, not authoritative intent or dispatch: cicn -10239 is Solo Menu Background while same-ID cinf is Push Button. Rejection and pressed substitution are declared compatibility policy, not original-engine proof.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.default.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": true
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": -10239,
+            "manifestKey": "cicn--10239"
+          },
+          {
+            "role": "default-ring",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10231,
+            "sourceCinfId": -10231,
+            "manifestKey": "cicn--10231"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "59912b61e1a606d1416af5e5e12c0e08f9a757f8d447e4870ba90e5c3e6b3aa2",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "payloadSha256": "4fe4c5f9224ffac5ed847f8314dc1cdcbdd6acbca387a33d0ffa7b1042e3aedf",
+          "byteLength": 426
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x76c4"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b5d8a676f37b4683dd299a2f4398a741da4bac1181d50119b2662b33c80c0935",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62",
+          "byteLength": 18
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "present",
+          "payloadSha256": "53d219c2fd8be52fb779ffd1d88f23c8bd362e2b9bdeacd82a938ee7eac671fa",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Default-ring paint is distinct from metadata-only layout reservation; pressed fallback requires missing -10230 and source dispatch.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.default.pressed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": true,
+        "disabled": false,
+        "default": true
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": -10238,
+            "manifestKey": "cicn--10238"
+          },
+          {
+            "role": "default-ring",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10231,
+            "sourceCinfId": -10231,
+            "manifestKey": "cicn--10231"
+          }
+        ],
+        "requiredDecisions": [
+          {
+            "action": "fallback",
+            "reason": "pressed-ring-to-active",
+            "basis": "source-dispatch"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "941481c70a95a575e6242f4a0d5540d317ce44aafd5b125dbbedc6146a2acc7f",
+          "byteLength": 282
+        },
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10231,
+          "presence": "present",
+          "payloadSha256": "4fe4c5f9224ffac5ed847f8314dc1cdcbdd6acbca387a33d0ffa7b1042e3aedf",
+          "byteLength": 426
+        },
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10230,
+          "presence": "absent-from-selected-fork"
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x76c4"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b5d8a676f37b4683dd299a2f4398a741da4bac1181d50119b2662b33c80c0935",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b",
+          "addressRange": [
+            "0x76d2",
+            "0x76fe"
+          ]
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10238,
+          "presence": "present",
+          "payloadSha256": "7da4022bbfb99b5391884b8c9d6f280f0f791b66484a904ccdb078aff4946b92",
+          "byteLength": 18
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10231,
+          "presence": "present",
+          "payloadSha256": "53d219c2fd8be52fb779ffd1d88f23c8bd362e2b9bdeacd82a938ee7eac671fa",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Default-ring paint is distinct from metadata-only layout reservation; pressed fallback requires missing -10230 and source dispatch.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.default.disabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "default": true
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10240,
+            "sourceCinfId": -10240,
+            "manifestKey": "cicn--10240"
+          },
+          {
+            "role": "default-ring",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10232,
+            "sourceCinfId": -10232,
+            "manifestKey": "cicn--10232"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10240,
+          "presence": "present",
+          "payloadSha256": "91af9e1b40b147f9da45618e213869b719c9cf1952b0f8f3df546050a760aff5",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10232,
+          "presence": "present",
+          "payloadSha256": "779f22adbcb3192855d9721396aba5a1beb26bd7ee5f41461bc71d9725ec5878",
+          "byteLength": 434
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x76c4"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b5d8a676f37b4683dd299a2f4398a741da4bac1181d50119b2662b33c80c0935",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10240,
+          "presence": "present",
+          "payloadSha256": "33b042378a62a608c48957d556975139372cbdd8cb8dd3da1df127b8b2cc4e09",
+          "byteLength": 18
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10232,
+          "presence": "present",
+          "payloadSha256": "53d219c2fd8be52fb779ffd1d88f23c8bd362e2b9bdeacd82a938ee7eac671fa",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Default-ring paint is distinct from metadata-only layout reservation; pressed fallback requires missing -10230 and source dispatch.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.bevel.normal",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "bevel-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "on": false,
+        "small": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10166,
+            "sourceCinfId": -10166,
+            "manifestKey": "cicn--10166"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-bevel-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10166,
+          "presence": "present",
+          "payloadSha256": "6a6eb6973997fa33b4495aa177e10d7aa520a6b7d7a01bd96605cf192a38224e",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10166,
+          "presence": "present",
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Bounded canonical public state dispatch; no bevel fallback or pattern fidelity inferred.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.bevel.pressed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "bevel-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": true,
+        "disabled": false,
+        "on": false,
+        "small": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10165,
+            "sourceCinfId": -10165,
+            "manifestKey": "cicn--10165"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-bevel-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10165,
+          "presence": "present",
+          "payloadSha256": "cd996aade6d8417961dba424a17e7797b65f6591b328f49730096b283d19d80e",
+          "byteLength": 138
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10165,
+          "presence": "present",
+          "payloadSha256": "0fe9340627b3d1aa4abec3f00ca305eb9c8d612b35397519c84ac5609a9bcf62",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Bounded canonical public state dispatch; no bevel fallback or pattern fidelity inferred.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "windows-95.bevel.disabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "bevel-button",
+      "input": "theme.windows-95",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "on": false,
+        "small": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "theme.windows-95",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10167,
+            "sourceCinfId": -10167,
+            "manifestKey": "cicn--10167"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ]
+      },
+      "policyRefs": [
+        "canonical-bevel-states"
+      ],
+      "sourceEvidence": [
+        {
+          "slug": "windows-95",
+          "type": "cicn",
+          "signedId": -10167,
+          "presence": "present",
+          "payloadSha256": "63e3fc4d9f46390ccd26c436b3221b96a495dd995d5ccad4184645955dd725f9",
+          "byteLength": 146
+        },
+        {
+          "slug": "windows-95",
+          "type": "cinf",
+          "signedId": -10167,
+          "presence": "present",
+          "payloadSha256": "33b042378a62a608c48957d556975139372cbdd8cb8dd3da1df127b8b2cc4e09",
+          "byteLength": 18
+        }
+      ],
+      "notes": "Bounded canonical public state dispatch; no bevel fallback or pattern fidelity inferred.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.child-canonical",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.child-canonical",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "cicn--10239"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": []
+      },
+      "policyRefs": [
+        "self-first"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "child-canonical",
+          "sha256": "0a22013f48a7b9548a5999e822ca868206ae435a18eab9c32214457ce27f73fd"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.child-missing",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.child-missing",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "base",
+            "chainDepth": 1,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "push-button-active"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": []
+      },
+      "policyRefs": [
+        "self-first"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "child-missing",
+          "sha256": "f9f0793236f88799b46a5749b68522e179da48d5607d85312fe47451587be998"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.child-repurposed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.child-repurposed",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "base",
+            "chainDepth": 1,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "push-button-active"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "rejected",
+            "reason": "anti-role-label",
+            "signedId": -10239,
+            "basis": "compatibility-policy"
+          }
+        ]
+      },
+      "policyRefs": [
+        "self-first",
+        "anti-role"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "child-repurposed",
+          "sha256": "9356aee3a5aa304e1aaab284f98f51b932c5d25dee6e5cfb783f21e545b470c7"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.named-preference",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.named-preference",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -123,
+            "sourceCinfId": null,
+            "manifestKey": "push-button-active"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": []
+      },
+      "policyRefs": [
+        "named-preference"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "named-preference",
+          "sha256": "1befbfc4adeb41a9db1191d211ae4c7f91605549239d9da181f8884871b5bebe"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.named-unknown-id",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.named-unknown-id",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": null,
+            "sourceCinfId": null,
+            "manifestKey": "push-button-active"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": []
+      },
+      "policyRefs": [
+        "named-preference"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "named-unknown-id",
+          "sha256": "78140eb4bb1a313d7ae939f5bbac89fb8cb3f5ce46484bd5655b0633c4f7df54"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.active-to-pressed",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.active-to-pressed",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10238,
+            "sourceCinfId": null,
+            "manifestKey": "pressed-push-button"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "fallback",
+            "reason": "active-to-pressed",
+            "basis": "compatibility-policy"
+          }
+        ]
+      },
+      "policyRefs": [
+        "anti-role",
+        "face-state-substitution"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "active-to-pressed",
+          "sha256": "0ab857a399e1d65f77863343aeca076bab8f6596c65da1a802affa144944d953"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.inactive-to-active",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.inactive-to-active",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": true,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "cicn--10239"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "fallback",
+            "reason": "inactive-to-active",
+            "basis": "compatibility-policy"
+          }
+        ]
+      },
+      "policyRefs": [
+        "face-state-substitution"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "inactive-to-active",
+          "sha256": "f5885ff4d9cd91feba97c5e0b0d2354c579fe3326e2aeccd1cf6a73dd98df092"
+        }
+      ],
+      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.empty-chain",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "unavailable",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.empty-chain",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "unavailable",
+        "realization": "none",
+        "paint": [],
+        "callerFallback": "unspecified"
+      },
+      "policyRefs": [
+        "direct-missing"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "empty-chain",
+          "sha256": "f3abaff938502b335d3f8f22c63f55d77e16e5f4301bf2fcb0b9dd0ddd6ec3fd"
+        }
+      ],
+      "notes": "Unavailable direct composition is distinct from deliberately unsupported control families or verified native realization.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.empty-cycle",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "unavailable",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.empty-cycle",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": {
+        "outcome": "unavailable",
+        "realization": "none",
+        "paint": [],
+        "callerFallback": "unspecified"
+      },
+      "policyRefs": [
+        "direct-missing"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "empty-cycle",
+          "sha256": "ce372836bead4958213b5da716231036800704f5a6e8fff25acec7cb572b68ca"
+        }
+      ],
+      "notes": "Unavailable direct composition is distinct from deliberately unsupported control families or verified native realization.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.bevel-child-base",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "themed",
+      "mode": "direct",
+      "family": "bevel-button",
+      "input": "fixture.bevel-child-base",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "on": false,
+        "small": false
+      },
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10166,
+            "sourceCinfId": null,
+            "manifestKey": "cicn--10166"
+          }
+        ]
+      },
+      "policyRefs": [
+        "bevel-self-first"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "bevel-child-base",
+          "sha256": "9ca49e243b322b418e557c81d5f89bff62024c34ac9415505b26635e911b2365"
+        }
+      ],
+      "notes": "Synthetic child/base ownership policy.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.raw-repurposed-only",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "unknown",
+      "mode": "direct",
+      "family": "push-button",
+      "input": "fixture.raw-repurposed-only",
+      "baseInputs": [],
+      "options": {
+        "label": "OK",
+        "minWidth": 80,
+        "height": 20,
+        "pressed": false,
+        "disabled": false,
+        "default": false
+      },
+      "proposed": null,
+      "policyRefs": [],
+      "sourceEvidence": [
+        {
+          "fixture": "raw-repurposed-only",
+          "sha256": "b74c4eb1c587347c1d75776964ee8ed766dcc00f60afb6259339b1e27085f34a"
+        }
+      ],
+      "notes": "UNKNOWN/policy-pending: final raw-ID escape may reselect rejected art. Do not bless observed behavior as availability truth.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.native-empty.enabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "native-procedural",
+      "mode": "interactive",
+      "family": "push-button",
+      "input": "fixture.empty-chain",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "Action",
+        "disabled": false
+      },
+      "proposed": {
+        "outcome": "native-procedural",
+        "element": "button",
+        "accessibleName": "Action",
+        "keyboard": [
+          "Tab-focus",
+          "Enter-activation",
+          "Space-activation"
+        ],
+        "canvasRequired": false
+      },
+      "policyRefs": [
+        "native-fallback"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "empty-chain",
+          "sha256": "f3abaff938502b335d3f8f22c63f55d77e16e5f4301bf2fcb0b9dd0ddd6ec3fd"
+        }
+      ],
+      "notes": "Public interactiveButton fallback contract; separate from original pixels.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    },
+    {
+      "id": "synthetic.native-empty.disabled",
+      "reviewStatus": "reviewed",
+      "effectiveAvailability": "native-procedural",
+      "mode": "interactive",
+      "family": "push-button",
+      "input": "fixture.empty-chain",
+      "baseInputs": [
+        "fixture-defined-base"
+      ],
+      "options": {
+        "label": "Action",
+        "disabled": true
+      },
+      "proposed": {
+        "outcome": "native-procedural",
+        "element": "button",
+        "accessibleName": "Action",
+        "keyboard": [
+          "Tab-skips-disabled"
+        ],
+        "canvasRequired": false,
+        "activation": false
+      },
+      "policyRefs": [
+        "native-fallback"
+      ],
+      "sourceEvidence": [
+        {
+          "fixture": "empty-chain",
+          "sha256": "f3abaff938502b335d3f8f22c63f55d77e16e5f4301bf2fcb0b9dd0ddd6ec3fd"
+        }
+      ],
+      "notes": "Public interactiveButton fallback contract; separate from original pixels.",
+      "exclusions": [
+        "pixel fidelity",
+        "historical whole-control selection",
+        "actual decoder/fork provenance"
+      ]
+    }
+  ],
+  "themeRemainder": [
+    {
+      "slug": "1138",
+      "archiveSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "entryName": null,
+      "entryIndex": null,
+      "forkSha256": "2b14d10e0907e058474b980df57713191a9e1bf1b39c4ed7df8f82ba3ac1fcdb",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "1984",
+      "archiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
+      "entryName": "1984 �/1984",
+      "entryIndex": 0,
+      "forkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "1990",
+      "archiveSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "entryName": null,
+      "entryIndex": null,
+      "forkSha256": "767bd46d55b98c55ac891ad3e917993681571a4485880e7105f01abd7224768a",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "animals",
+      "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "entryName": "Animals/animals",
+      "entryIndex": 0,
+      "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": [
+        "animals.push.normal"
+      ]
+    },
+    {
+      "slug": "apple-lisa",
+      "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "entryName": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+      "entryIndex": 0,
+      "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "apple-platinum-2",
+      "archiveSha256": "ab667ce7ee19b2495413b25782013137a5e891adbe12c54143ed8f7ece34e091",
+      "entryName": "Apple platinum 2/Apple platinum 2",
+      "entryIndex": 0,
+      "forkSha256": "4b7bd9b05fc1ef0b98531a1c9580205f40f7e2eaa67842107146b62f414e0369",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "beos-r503",
+      "archiveSha256": "04b315396840c5f6e53555381d51ab86087169d5687640261d92c3f85510c0c0",
+      "entryName": "BeOSr503/BeOS R5.0.3",
+      "entryIndex": 0,
+      "forkSha256": "f8d70eb86bdda078c07ba509a0e069f525700b7af1a2c7b022265c65decf2bac",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "black-platinum",
+      "archiveSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "entryName": null,
+      "entryIndex": null,
+      "forkSha256": "84b1b90c49909cdf2107759784c0c5aa2da14499dec1cc070e9a67eac77db9fc",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "crayon-os",
+      "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "entryName": "Crayon OS Folder/Crayon OS",
+      "entryIndex": 0,
+      "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "dolphin-som",
+      "archiveSha256": "fc48448f8c322dda0a8704380d3f3b9823afbb3524b48f2db54423f60b4e3c15",
+      "entryName": "dsom/dsom",
+      "entryIndex": 50,
+      "forkSha256": "3cbe736723e4b8f4b56ad2232b85427ba3e84c8985d7e6b339c0b29bfb35ad85",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "evolution",
+      "archiveSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "entryName": null,
+      "entryIndex": null,
+      "forkSha256": "9491fd7a68134249988b07971d222527709636438c59ca1d0daf5ade82a26740",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "floppies",
+      "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
+      "entryName": "Floppies! �/Floppies!",
+      "entryIndex": 0,
+      "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "monkey-paradise",
+      "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "entryName": "MonkeyParadise/MonkeyParadise",
+      "entryIndex": 1,
+      "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": [
+        "monkey-paradise.push.normal"
+      ]
+    },
+    {
+      "slug": "platinum-8",
+      "archiveSha256": "1f064eb95c8c7ba5b71bf97b91b79bec08177ed289a44b985b5af9d3ac5683b7",
+      "entryName": "Platinum 8 Folder/Platinum 8",
+      "entryIndex": 2,
+      "forkSha256": "97165ac623a4cdfda072b5f849d90aa0e087b2fbd05bc44966898c2238231f75",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "slimes",
+      "archiveSha256": "4c87df6b3d0ef2852458f6ebaee818db8b20f12edd75afac68a6f077d063372b",
+      "entryName": "slimes.1.5/slimes1.5",
+      "entryIndex": 6,
+      "forkSha256": "63e9617379f4d3e42355268c93ec6e1059ce13788ca0af683b0c37235d993529",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "system7-nostalgia-silver",
+      "archiveSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "entryName": null,
+      "entryIndex": null,
+      "forkSha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": [
+        "system7-nostalgia-silver.push.normal",
+        "system7-nostalgia-silver.push.pressed",
+        "system7-nostalgia-silver.push.disabled"
+      ]
+    },
+    {
+      "slug": "windows-31",
+      "archiveSha256": "1daeb997cb3a84d96d2ac31680fe2cf099ef962cc80ca2bded3256b2243642e6",
+      "entryName": "Windows 3.1/Windows 3.1",
+      "entryIndex": 2,
+      "forkSha256": "398958500f22ec988fd60600fac1c24064e1b89dd0b168a57de101edd71da441",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": []
+    },
+    {
+      "slug": "windows-95",
+      "archiveSha256": "57a00943640bf92f1b8dd2482ee22f96b625bbca45032a1284442756770d8622",
+      "entryName": "Windows 95/Windows 95",
+      "entryIndex": 2,
+      "forkSha256": "07d544814769dcfb935873c96a5fcf6f07d8716d2590a97b8322aa2e144f6999",
+      "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
+      "draftCaseIds": [
+        "windows-95.push.normal",
+        "windows-95.push.pressed",
+        "windows-95.push.disabled",
+        "windows-95.default.normal",
+        "windows-95.default.pressed",
+        "windows-95.default.disabled",
+        "windows-95.bevel.normal",
+        "windows-95.bevel.pressed",
+        "windows-95.bevel.disabled"
+      ]
+    }
+  ],
+  "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+  "engineEvidence": {
+    "id": "Kaleidoscope2.3.1-kDEF0",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "dispatchReference": "docs/spec/kdef231-reference.md",
+    "addresses": [
+      "0x76c4"
+    ],
+    "executed": false,
+    "detailReference": "tests/control-availability/SOURCE-EVIDENCE.md",
+    "addressRanges": [
+      [
+        "0x76d2",
+        "0x76fe"
+      ]
+    ]
+  },
+  "manifestKeyPolicy": "Keys are manually pinned expectations for the declared bundle naming policy (raw-ID key for unnamed source, normalized author label otherwise), not historical identities. Synthetic keys are exact declared graph keys. Competing keys are never interchangeable.",
+  "review": {
+    "date": "2026-10-18",
+    "reviewers": [
+      "root: independent source and policy review",
+      "Astra architecture: independent source identity and dispatch review"
+    ],
+    "inventoryVersion": "1.0.0",
+    "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+    "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
+    "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+  }
+}

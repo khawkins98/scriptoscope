@@ -9,6 +9,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-18)
 
+- Finite independently reviewed control availability expectations: 26 API-policy
+  outcomes plus an explicit unknown, checked against actual source/built resource
+  traces, pinned archive evidence and native fallback keyboard behavior.
+
 - Versioned partial fidelity requirement inventory for eight exact control cases,
   with independent evidence, explicit unknown obligations, live mismatch tracking
   and CI reports separating reviewed requirements from actual test executions.

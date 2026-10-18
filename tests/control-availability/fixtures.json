@@ -1,0 +1,555 @@
+{
+  "schemaVersion": 1,
+  "reviewStatus": "draft-requires-review",
+  "fixtures": [
+    {
+      "id": "child-canonical",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  31,
+                  71,
+                  111,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "push-button-active",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  121,
+                  51,
+                  21,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "0a22013f48a7b9548a5999e822ca868206ae435a18eab9c32214457ce27f73fd",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "child-missing",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": []
+        },
+        {
+          "id": "base",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "push-button-active",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  121,
+                  51,
+                  21,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "f9f0793236f88799b46a5749b68522e179da48d5607d85312fe47451587be998",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "child-repurposed",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": "Solo Menu Background",
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  14,
+                  24,
+                  34,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "push-button-active",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  121,
+                  51,
+                  21,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "9356aee3a5aa304e1aaab284f98f51b932c5d25dee6e5cfb783f21e545b470c7",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "named-preference",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  31,
+                  71,
+                  111,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            },
+            {
+              "manifestKey": "push-button-active",
+              "type": "cicn",
+              "signedId": -123,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  51,
+                  101,
+                  151,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "1befbfc4adeb41a9db1191d211ae4c7f91605549239d9da181f8884871b5bebe",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "named-unknown-id",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "push-button-active",
+              "type": "cicn",
+              "signedId": null,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  31,
+                  71,
+                  111,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "78140eb4bb1a313d7ae939f5bbac89fb8cb3f5ce46484bd5655b0633c4f7df54",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "active-to-pressed",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": "Solo Menu Background",
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  14,
+                  24,
+                  34,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            },
+            {
+              "manifestKey": "pressed-push-button",
+              "type": "cicn",
+              "signedId": -10238,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  27,
+                  67,
+                  107,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "0ab857a399e1d65f77863343aeca076bab8f6596c65da1a802affa144944d953",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "inactive-to-active",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  31,
+                  71,
+                  111,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "f5885ff4d9cd91feba97c5e0b0d2354c579fe3326e2aeccd1cf6a73dd98df092",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "empty-chain",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": []
+        },
+        {
+          "id": "base",
+          "base": null,
+          "resources": []
+        }
+      ],
+      "sha256": "f3abaff938502b335d3f8f22c63f55d77e16e5f4301bf2fcb0b9dd0ddd6ec3fd",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "empty-cycle",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": []
+        },
+        {
+          "id": "base",
+          "base": "child",
+          "resources": []
+        }
+      ],
+      "sha256": "ce372836bead4958213b5da716231036800704f5a6e8fff25acec7cb572b68ca",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "raw-repurposed-only",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "cicn--10239",
+              "type": "cicn",
+              "signedId": -10239,
+              "sourceCinfId": null,
+              "authorLabel": "Solo Menu Background",
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  14,
+                  24,
+                  34,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "b74c4eb1c587347c1d75776964ee8ed766dcc00f60afb6259339b1e27085f34a",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    },
+    {
+      "id": "bevel-child-base",
+      "kind": "synthetic",
+      "themes": [
+        {
+          "id": "child",
+          "base": "base",
+          "resources": [
+            {
+              "manifestKey": "cicn--10166",
+              "type": "cicn",
+              "signedId": -10166,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  22,
+                  62,
+                  102,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "id": "base",
+          "base": null,
+          "resources": [
+            {
+              "manifestKey": "cicn--10166",
+              "type": "cicn",
+              "signedId": -10166,
+              "sourceCinfId": null,
+              "authorLabel": null,
+              "art": {
+                "width": 8,
+                "height": 8,
+                "rgba": [
+                  122,
+                  62,
+                  22,
+                  255
+                ]
+              },
+              "slice": {
+                "corner": 1,
+                "side": 1,
+                "tile": false
+              },
+              "bgAnchor": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "sha256": "9ca49e243b322b418e557c81d5f89bff62024c34ac9415505b26635e911b2365",
+      "limits": "Engineered public-API fixture, not an original scheme or historical selection certificate."
+    }
+  ]
+}
