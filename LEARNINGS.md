@@ -3246,3 +3246,9 @@ source's location. If it moves or is removed while rendering awaits, discard onl
 the prepared host. A mount AbortSignal cancels pending promotion on disconnect;
 per-preparation stamp ownership lets a new mount start immediately without an old
 completion clearing its stamp or attaching a late window.
+
+### 2026-10-18 — Theme disposal follows ownership, including derived raster caches
+
+A declarative resolver owns themes it loaded, but register() borrows the supplied theme and its base chain. Registration removes previously owned bases from the owned set, with cycle protection, because external callers can keep using them after mount teardown. Dispose the resolver only after removing its windows; invalidate the resolver immediately, and dispose any still-pending internal load when it eventually finishes. Never revoke registered/shared resources by blindly walking the cache or base pointers.
+
+Revoking blob URLs alone leaves decoded PixelBuffers retained in the runtime's module-level image cache. The browser loader now emits per-URL release notifications through a small callback registry in tools/theme-loader; cicnImage subscribes and drops just those cache entries. This keeps the conversion layer independent of the TypeScript runtime and handles both completed and pending decodes without clearing unrelated consumers' caches. Late decode completion does not reinsert a removed entry, and late rejection cannot delete a replacement.

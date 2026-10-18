@@ -67,6 +67,10 @@ export interface ThemeResolver {
    *  hits the cache without ever fetching. The ref doesn't need to correspond to a real URL.
    *  An existing entry under the same key is overwritten (drop-newer-wins). */
   register(ref: string, theme: LoadedTheme): void;
+  /** Release only internally loaded themes. Registered themes and their base
+   * chains are borrowed. Idempotent; subsequent load/register calls fail and
+   * pending loads clean up their own results before rejecting. */
+  dispose(): void;
   /** Preload the bundled Charcoal faces so the first window paint doesn't flash a fallback font. */
   preloadFonts(): Promise<void>;
 }
@@ -76,6 +80,20 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
   const baseSlug = opts.baseSlug; // undefined = no base
   const baseUrl = baseSlug ? themeRefToUrl(baseSlug, themeBaseUrl) : null;
   const cache = new Map<string, Promise<LoadedTheme>>(); // keyed by resolved bundle URL
+  const owned = new Set<LoadedTheme>();
+  const borrowed = new WeakSet<LoadedTheme>();
+  let disposed = false;
+  const disposedError = () => new Error('ThemeResolver: disposed');
+  // Registration borrows the whole graph, including a base that this resolver
+  // previously loaded. The caller may keep rendering it after this mount ends.
+  const borrowChain = (theme: LoadedTheme): void => {
+    const seen = new Set<LoadedTheme>();
+    for (let t: LoadedTheme | undefined = theme; t && !seen.has(t); t = t.base) {
+      seen.add(t);
+      borrowed.add(t);
+      owned.delete(t);
+    }
+  };
   // Display labels do not contain provenance. Only explicit complete `meta`
   // substitutes for meta.json; source hints still avoid archive fallback RTT.
   const hintBySlug = new Map<string, ThemeEntry>(
@@ -86,17 +104,25 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
   const slugOfUrl = (url: string): string => url.replace(/\/+$/, '').split('/').pop() ?? '';
 
   const loadByUrl = (url: string): Promise<LoadedTheme> => {
+    if (disposed) return Promise.reject(disposedError());
     const cached = cache.get(url);
     if (cached) return cached;
     const p = (async (): Promise<LoadedTheme> => {
       const base = (baseUrl && url !== baseUrl) ? await loadByUrl(baseUrl) : undefined;
+      if (disposed) throw disposedError();
       // Source hints and complete sidecars are independent of picker labels.
       const hint = hintBySlug.get(slugOfUrl(url));
       const loadOpts: Parameters<typeof loadTheme>[1] = {};
       if (base) loadOpts.base = base;
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.meta) loadOpts.meta = hint.meta;
-      return loadTheme(url, loadOpts);
+      const theme = await loadTheme(url, loadOpts);
+      if (disposed) {
+        if (!borrowed.has(theme)) theme.dispose?.();
+        throw disposedError();
+      }
+      if (!borrowed.has(theme)) owned.add(theme);
+      return theme;
     })().catch((error: unknown) => {
       // A later register() may already have replaced this failed attempt.
       if (cache.get(url) === p) cache.delete(url);
@@ -108,8 +134,19 @@ export function createThemeResolver(opts: ThemeBootstrapOpts = {}): ThemeResolve
 
   return {
     load: (ref) => loadByUrl(themeRefToUrl(ref, themeBaseUrl)),
-    register: (ref, theme) => { cache.set(themeRefToUrl(ref, themeBaseUrl), Promise.resolve(theme)); },
-    preloadFonts,
+    register: (ref, theme) => {
+      if (disposed) throw disposedError();
+      borrowChain(theme);
+      cache.set(themeRefToUrl(ref, themeBaseUrl), Promise.resolve(theme));
+    },
+    dispose: () => {
+      if (disposed) return;
+      disposed = true;
+      cache.clear();
+      for (const theme of owned) theme.dispose?.();
+      owned.clear();
+    },
+    preloadFonts: () => disposed ? Promise.reject(disposedError()) : preloadFonts(),
   };
 }
 

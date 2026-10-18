@@ -877,6 +877,7 @@ export async function mountDeclarative(opts: MountOptions = {}): Promise<MountHa
       for (const el of inertDuringWipe) el.removeAttribute('inert');
       inertDuringWipe.clear();
       for (const w of mounted.splice(0)) w.unmount();
+      resolver.dispose();
       dispatch('unmounted');
       // (Posture B 2026-05-30: no ancestor min-height pins to restore.
       // Hosts were in flow during their life, so ancestors never lost

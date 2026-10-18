@@ -258,7 +258,8 @@ export interface LoadedTheme {
    * for asset rasters + glyphs). Call after the theme is unmounted to release the
    * pinned ImageBitmap memory — without it, switching themes 50× across a session
    * leaves 25k blob URLs alive until tab unload. Idempotent; absent on pre-extracted
-   * (file-fetched) themes since they don't own any blob: URLs.
+   * (file-fetched) themes since they don't own any blob: URLs. Also evicts the
+   * runtime's raster cache for these URLs. Does not dispose the base theme.
    */
   dispose?: () => void;
 }

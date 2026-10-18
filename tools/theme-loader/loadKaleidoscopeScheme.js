@@ -9,6 +9,7 @@
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
+import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
 import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
@@ -124,7 +125,10 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
 /** Release the URLs owned by one decode, once even if an encoder reused a URL. */
 function revokeAssetUrls(urlByPath) {
   for (const url of new Set(urlByPath.values())) {
-    if (typeof url === 'string' && url.startsWith('blob:')) URL.revokeObjectURL(url);
+    if (typeof url === 'string' && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+      notifyAssetUrlReleased(url);
+    }
   }
   urlByPath.clear();
 }

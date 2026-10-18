@@ -241,6 +241,13 @@ handle.openModal(wrap, { returnFocusTo }); // themed modal helper: focus trap (i
 handle.stats;  // { windows, buttons, controls, tabs, fields } — five numeric counts updated on each promote
 ```
 
+`disconnect()` releases themes loaded internally by that mount and their decoded
+raster caches. Pending loads release their assets when they finish. Themes passed
+to `registerTheme`, including their base chains, are borrowed: the caller owns
+their lifetime and calls `theme.dispose?.()` after their last consumer unmounts.
+Standalone `createThemeResolver()` users should call `resolver.dispose()` at the
+same point; disposed resolvers reject loads and registrations.
+
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
 ### CSS classes (fallback if `data-scriptoscope-*` isn't an option)
