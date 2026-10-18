@@ -3322,3 +3322,29 @@ bytes unchanged. The survey found no pWin resources, so there is no evidence for
 adding that decoder. Filename/id comparisons would currently just cross-check two
 outputs generated from the same resource record; they are not an independent
 identity oracle for the source-only runtime.
+
+### 2026-10-18 — A tiny control template is not a usable label rectangle
+
+Windows 95's active push-button cicn `-10239` is 5×6 and inactive `-10240`
+is 6×6, both with cinf corner/side 2. Its pressed `-10238` is 14×20. Passing
+these source heights through produced a 6px face containing a minimum-font
+11px label raster, then jumped to 20px on press. The template dimensions are
+9-slice input, not sufficient evidence for a readable final control size.
+
+`composeFaceButton` now checks the complete label raster against the chosen
+height. Without an explicit height, a too-short face uses the existing 20px
+fallback and rerasterizes the label. Cinf side thickness is a slice-band size,
+not a text inset: e.g. 1138 has 7px bands in a 16px template, so subtracting
+both bands as text padding would incorrectly reject its existing geometry.
+
+A before/after push-button pixel comparison of all 18 schemes across normal, pressed,
+disabled, default, `height: 22` and `height: 6` states changed only Apple Lisa,
+Windows 3.1, and Windows 95 automatic sizing; the other 15 schemes and every
+explicit-height result remained identical. The shared face helper also corrects
+clipped automatic bevel labels in nine schemes; explicit bevel heights and all
+list-header pixels are unchanged. Empty labels retain their original template
+height. All 18 diagnostic Scene snapshots
+also stayed identical because those controls request `height: 22`: they did not
+exercise this bug. The new browser test checks automatic showcase sizing,
+complete centered glyph ink, stable state geometry, and native select changes.
+The select still uses the existing native popup over a themed closed face.

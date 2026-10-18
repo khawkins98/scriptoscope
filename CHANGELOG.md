@@ -41,6 +41,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Inventory every source resource in extraction diagnostics, with explicit skipped
   types, consumed header palettes, and totals that match the resource fork (#179).
 
+- Tiny resizable button templates now use the standard face height when their
+  label would otherwise be clipped. Fixes squashed Windows 95 showcase buttons
+  and closed selects, including the press-state size jump; Apple Lisa and Windows
+  3.1 push-button templates and undersized bevel labels receive the same general
+  correction. Explicit heights are preserved.
+  ([#207](https://github.com/khawkins98/scriptoscope/issues/207))
+
 - Include lazy library chunks in the public deployment, extract archive-only
   themes locally, and release picker listeners/timers on teardown. Repair the
   boot smoke harness's server and browser cleanup.

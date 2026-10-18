@@ -948,12 +948,10 @@ export interface ButtonOptions {
   pressed?: boolean;
   disabled?: boolean;
   minWidth?: number;
-  /** Force the button face height. Defaults to the cicn's native height, which is
-   *  fine for the small 16×16 Platinum-family rings but blows up to ~80px tall for
-   *  schemes like crayon-os that ship 74×74 face cicns. The demo's segmented On/Off
-   *  toggle (which expects ~20px tabs) passes this so big-face themes still produce
-   *  tab-sized output. 9-slice with `slice.tile: true` preserves the artist's pixel
-   *  pattern at the shrunken size. */
+  /** Force the button face height, including deliberately compact controls.
+   *  Without an override, oversized templates use the standard 20px height;
+   *  a template shorter than its label raster also uses 20px. Otherwise the
+   *  native height is retained. Cinf slicing preserves the source border art. */
   height?: number;
   /** Title color (themed buttons carry no text-color metadata yet). */
   fg?: string;
@@ -1015,8 +1013,16 @@ async function composeFaceButton(theme: LoadedTheme, face: PixelBuffer, faceId: 
   const fg = opts.fg ?? (opts.disabled
     ? (lum < 128 ? '#b0b0b0' : '#707070')
     : lum < 128 ? '#ffffff' : '#000000');
-  const lineH = resolveControlHeight(face, opts.height);
-  const glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
+  let lineH = resolveControlHeight(face, opts.height);
+  let glyphs = label ? rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg) : null;
+  // A cicn is a resizable template, not a minimum control rectangle. Tiny
+  // templates (e.g. a 5×6 face) cannot contain even our smallest label raster.
+  // Use the existing standard height in that case, and size the label again.
+  // Caller-specified heights remain authoritative, including compact controls.
+  if (opts.height == null && glyphs && glyphs.height > lineH) {
+    lineH = APPLE_PUSH_BUTTON_HEIGHT;
+    glyphs = rasterizeText(label, Math.max(8, Math.round(lineH * 0.6)), fg);
+  }
   const padX = opts.padX ?? 12;
   const innerW = opts.width ?? Math.max(opts.minWidth ?? 56, (glyphs ? glyphs.width : 0) + padX * 2);
   const innerH = lineH;

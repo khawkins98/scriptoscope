@@ -100,3 +100,14 @@ Uses the same optional Playwright setup and an isolated server. At 320px and
 390px mobile viewports it checks four showcase schemes, the upload modal,
 OFF → Restore chrome, and the personal blog's locally scrolling code. Page
 width and visible window bounds must fit without scaling the chrome canvases.
+
+## Automatic control-template sizing
+
+```sh
+node --test --experimental-strip-types tests/visual-baselines/control-template-size.spec.mjs
+```
+
+Uses the optional Playwright setup above. Exercises the actual Windows 95 source
+art, full centered label pixels, all 18 schemes' state geometry, explicit heights,
+and showcase buttons/select interaction. Diagnostic Scene controls request fixed
+heights and therefore do not cover this automatic-sizing path.
