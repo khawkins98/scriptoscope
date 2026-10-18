@@ -15,7 +15,8 @@
       <a class="site-brand" href="./"><span class="site-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>Scriptoscope</a>
       <nav class="site-primary-nav" aria-label="Main navigation">
         <a href="./">Home</a>
-        <a href="./showcase.html">Try & install</a>
+        <a href="./showcase.html">Showcase</a>
+        <a href="./install.html">Install</a>
         <a href="./showcase.html#examples">Examples</a>
         <a href="./story.html" aria-current="page">Story</a>
         <a href="./diagnostic.html">Diagnostics</a>
@@ -39,7 +40,7 @@
         <p class="powers-lede">A Kaleidoscope scheme is a <a href="https://en.wikipedia.org/wiki/Resource_fork">Mac resource fork</a>: a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a <code>&lt;canvas&gt;</code> renderer that speaks the same scheme format the original control panel did. <em>(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md">the ledger</a> if you care.)</em> All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.</p>
         <p class="powers-lede">To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.</p>
         <p class="powers-lede">Why? No good reason. Kaleidoscope lost to OS X a quarter-century ago and the world was right to move on. I rebuilt the rendering layer anyway, so eighteen schemes by people who mostly stopped making them in 2002 could run in a browser tab. This is a deeply silly use of anyone's time, including yours. If you're unhinged enough to ship it on a real website, <a href="https://github.com/khawkins98/scriptoscope/issues">I genuinely want to hear about it</a>.</p>
-        <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser.</p>
+        <p class="powers-lede">Building it has been an interesting endeavor — a real education in how Kaleidoscope's theming actually worked, and how Mac OS theming worked more generally. It also led me into some fun side quests, like extracting <code>.sit</code> files inside the browser. <a href="./acknowledgements.html#ai-agents">I’ve written more about directing the project with AI agents in the acknowledgements.</a></p>
 
         <p class="powers-lede">The runtime is a clean-room reimplementation of the kDEF rendering interpreter, written from the decompile used only as a test oracle. No original Kaleidoscope code ships or executes. This is the same legal posture every modern emulator operates under; the canonical precedent is <em>Sony v. Connectix</em> (2000), where the Ninth Circuit held that clean-room reverse engineering of the PlayStation BIOS for compatibility was fair use. The bundled scheme files are third-party freeware from the 1990s; Scriptoscope ships them under the same good-faith preservation posture <a href="https://macintoshgarden.org/">Macintosh Garden</a> and the <a href="https://archive.org/details/softwarelibrary_apple">Internet Archive</a> use, including take-down-on-request.</p>
         <p class="powers-lede">Beyond the legal questions, this is really a technical curiosity, a way to bring back to life a corner of computing that's effectively dead and bit-rotting. Maybe someone will be crazy enough to author a new Kaleidoscope scheme. If you do, I'd love to see it.</p>
@@ -50,7 +51,7 @@
   </main>
   <section class="site-next" aria-label="Continue exploring">
     <div><h2>Give your page a little character.</h2><p>Try a scheme. Add a few attributes. Keep your HTML.</p></div>
-    <a href="./showcase.html">Try &amp; install →</a>
+    <a href="./showcase.html">Try the showcase →</a>
     <a href="./showcase.html#examples">Explore the examples →</a>
   </section>
 </body>

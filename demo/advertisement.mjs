@@ -9,6 +9,7 @@ if (params.has('theme')) {
   const collage = document.getElementById('collage');
   const space = collage.parentElement;
   const reset = document.getElementById('reset-collage');
+  const retry = document.getElementById('retry-collage');
   const status = document.getElementById('collage-status');
   const errorMessage = document.getElementById('collage-error');
   const caption = document.querySelector('figcaption > .art-caption');
@@ -27,6 +28,17 @@ if (params.has('theme')) {
     height: Number(el.dataset.scriptoscopeHeight),
   }));
   let windows = [];
+  const initialPositions = new Map();
+  let hasMoved = false;
+
+  manager.setChangeListener(host => {
+    if (rebuilding) return;
+    const position = initialPositions.get(host);
+    if (position && (host.style.left !== position.left || host.style.top !== position.top)) {
+      hasMoved = true;
+      reset.hidden = false;
+    }
+  });
   let selectedTheme = null;
   let rebuilding = false;
   let lastWidth = space.clientWidth;
@@ -36,10 +48,10 @@ if (params.has('theme')) {
   // never repaints a host while reassembly is replacing it.
   function run(update) {
     pending = pending.then(async () => {
-      const focusedControl = [reset, ...schemeButtons].includes(document.activeElement)
+      const focusedControl = [reset, retry, ...schemeButtons].includes(document.activeElement)
         ? document.activeElement : null;
       reset.disabled = true;
-      reset.hidden = false;
+      retry.disabled = true;
       collage.inert = true;
       collage.setAttribute('aria-busy', 'true');
       errorMessage.hidden = true;
@@ -52,6 +64,7 @@ if (params.has('theme')) {
         console.warn('[scriptoscope] Advertisement chrome unavailable:', error);
       } finally {
         reset.disabled = false;
+        retry.disabled = false;
         collage.inert = false;
         collage.removeAttribute('aria-busy');
         for (const button of schemeButtons) button.disabled = false;
@@ -100,6 +113,7 @@ if (params.has('theme')) {
     try {
       for (const window of windows) window.unmount();
       windows = [];
+      initialPositions.clear();
       for (const [index, panel] of panels.entries()) {
         const theme = nextTheme ?? panel.theme;
         const window = await ScriptoscopeWindow.promote(panel.el, {
@@ -107,9 +121,12 @@ if (params.has('theme')) {
         });
         window.host.dataset.scriptoscopeTheme = theme;
         windows.push(window);
+        initialPositions.set(window.host, { left: window.host.style.left, top: window.host.style.top });
       }
       collage.dataset.interactive = '';
       selectedTheme = nextTheme;
+      hasMoved = false;
+      reset.hidden = true;
       syncSelection();
     } catch (error) {
       // If painting fails after teardown, restore the complete HTML collage
@@ -129,16 +146,26 @@ if (params.has('theme')) {
   });
   collage.addEventListener('scriptoscope:close', (event) => {
     if (rebuilding) return;
-    status.textContent = `${event.target.dataset.scriptoscopeTheme} closed. Reassemble the face to restore it.`;
-    reset.focus({ preventScroll: true });
+    status.textContent = hasMoved
+      ? `${event.target.dataset.scriptoscopeTheme} closed. Reassemble the face to restore it.`
+      : `${event.target.dataset.scriptoscopeTheme} closed. Choose Original mix below to restore all five windows.`;
+    const nextMove = windows.find(window => window.host !== event.target && window.host.isConnected)?.host.shadowRoot
+      ?.querySelector('[aria-label="Move window"]');
+    if (hasMoved) reset.focus({ preventScroll: true });
+    else if (nextMove) nextMove.focus({ preventScroll: true });
+    else schemeButtons.find(button => button.dataset.portraitTheme === 'mix')?.focus();
   });
-  reset.addEventListener('click', async () => {
+  const restore = async () => {
     await run(async () => {
       await reassemble();
       status.textContent = 'Portrait reassembled. All five windows restored.';
     });
-    reset.focus({ preventScroll: true });
-  });
+    if (errorMessage.hidden) {
+      windows[0]?.host.shadowRoot?.querySelector('[aria-label="Move window"]')?.focus({ preventScroll: true });
+    } else retry.focus({ preventScroll: true });
+  };
+  reset.addEventListener('click', restore);
+  retry.addEventListener('click', restore);
 
   for (const button of schemeButtons) {
     button.addEventListener('click', async (event) => {

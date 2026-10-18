@@ -41,8 +41,6 @@ body.site-support {
 .site-showcase #powers .powers-inner { max-width: 1136px; }
 .site-showcase #powers .powers-toolbar { max-width: 1136px; padding: 0; margin-bottom: 10px; }
 .site-showcase #powers .powers-tools-row { gap: 28px; margin: 28px 0 0; align-items: start; }
-.site-showcase #powers .powers-install { max-width: none; font-size: 11px; line-height: 1.65; }
-.site-showcase #powers .powers-install-meta { max-width: none; }
 .site-showcase #powers .site-install-heading { margin: 0 0 8px; font: 400 25px/1.1 'Times New Roman', serif; }
 .site-showcase #powers .site-install-note { font-size: 14px; line-height: 1.5; margin: 0 0 15px; }
 .site-showcase #powers .site-examples { margin: 40px 0 30px; padding-top: 28px; border-top: 1px solid var(--site-rule); }
@@ -111,7 +109,7 @@ body.site-support {
 .site-example :is([data-scriptoscope-theme="evolution"], [data-scriptoscope-theme="black-platinum"]) .scriptoscope-fit pre { color: #28251f; }
 @media (max-width: 760px) {
   .site-header-inner { padding: 18px 22px 12px; gap: 15px; flex-wrap: wrap; }
-  .site-primary-nav { gap: 0 20px; width: 100%; }
+  .site-primary-nav { gap: 0 12px; width: 100%; }
   .site-intro { padding: 30px 22px 23px; }
   .site-intro .site-deck { font-size: 16px; }
   .site-steps { margin: 0 22px; grid-template-columns: 1fr; gap: 8px; padding: 15px 0; }
@@ -160,3 +158,42 @@ body.site-support {
 .site-credit-notes { padding-left: 20px; font: 16px/1.7 Georgia, serif; color: #514a40; }
 .site-credit-notes li { padding: 0 0 14px 3px; }
 @media (max-width: 480px) { .site-credit-list li { grid-template-columns: 1fr; gap: 3px; } }
+
+.site-install-content { max-width: 1200px; margin: auto; padding: 0 32px; }
+.site-install-section { padding: 28px 0 38px; border-top: 1px solid var(--site-rule); scroll-margin-top: 25px; }
+.site-install-section h2 { margin: 13px 0 18px; font: 400 42px/1.05 'Instrument Serif', Georgia, serif; letter-spacing: -.025em; text-wrap: balance; }
+.site-install-section h3 { margin: 30px 0 12px; font: 400 26px/1.15 'Instrument Serif', Georgia, serif; }
+.site-install-section p { max-width: 74ch; color: #514a40; font: 16px/1.65 Georgia, serif; margin: 0 0 18px; }
+.site-install-section a { color: var(--site-accent); text-underline-offset: 4px; }
+.site-install-section p code { font-size: .85em; overflow-wrap: anywhere; }
+.site-code-frame { margin: 22px 0 30px; }
+.site-code-example { margin: 0; min-width: 0; --scriptoscope-content-padding: 0; }
+.site-code-example .scriptoscope-fit { background: #fffbef; color: #28251f; }
+.site-code-example[data-scriptoscope-window-host] .site-code-bar { justify-content: flex-end; }
+.site-code-example[data-scriptoscope-window-host] .site-code-bar span { display: none; }
+.site-code-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 15px; background: #ebe5d8; }
+.site-code-bar span { color: #625747; font: 10px/1.5 Monaco, 'Courier New', monospace; text-transform: uppercase; letter-spacing: .08em; }
+.site-code-bar button { min-height: 36px; padding: 6px 14px; border: 1px solid #a99b84; border-radius: 0; background: #fcfaf5; color: #51402c; cursor: pointer; font: 13px Georgia, serif; }
+.site-code-bar button:hover { background: #e4dac7; }
+.site-code-bar button:focus-visible, .site-code-example pre:focus-visible { outline: 2px solid #98703d; outline-offset: 3px; }
+.site-code-example pre { margin: 0; padding: 20px; overflow-x: auto; color: #28251f; font: 12px/1.75 Monaco, 'Courier New', monospace; tab-size: 2; }
+.site-reference-wrap { margin: 26px 0; }
+.site-reference { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; font: 14px/1.6 Georgia, serif; }
+.site-reference caption { text-align: left; margin-bottom: 12px; font: italic 15px Georgia, serif; color: #6f6659; }
+.site-reference th, .site-reference td { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--site-rule); vertical-align: top; }
+.site-reference thead th { color: #6f6659; font: 10px/1.5 Monaco, monospace; text-transform: uppercase; letter-spacing: .08em; }
+.site-reference th:first-child { width: 38%; }
+.site-reference tbody th { font-weight: 400; }
+.site-reference code { font: 11px/1.7 Monaco, 'Courier New', monospace; overflow-wrap: anywhere; }
+.site-reference td { color: #514a40; }
+.site-install-section .site-install-aside { color: #6f6659; font-size: 14px; padding-left: 16px; border-left: 2px solid var(--site-rule); }
+.site-copy-status { color: #514a40; font: italic 14px/1.5 Georgia, serif; }
+@media (max-width: 760px) {
+  .site-install-content { padding: 0 22px; }
+  .site-install-section h2 { font-size: 35px; }
+  .site-code-example pre { padding: 15px; font-size: 11px; }
+  .site-reference th:first-child { width: 44%; }
+  .site-reference th, .site-reference td { padding-right: 10px; }
+}
+
+.site-install-section .site-section-label { color: var(--site-muted); font: 10px/1.5 Monaco, 'Courier New', monospace; text-transform: uppercase; letter-spacing: .13em; }
