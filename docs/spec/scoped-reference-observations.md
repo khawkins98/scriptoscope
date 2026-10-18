@@ -1,12 +1,12 @@
 # Scoped public-API face observations
 
-Scope ID `public-api-empty-face`, version **1**, is an additive eligibility path
+Scope ID `public-api-empty-face` is an additive eligibility path
 within the [existing reference intake](../../tests/reference-captures/README.md).
 It admits no records itself. Request draft **0.2.0** preserves all thirteen exact
 request objects and the existing compatibility authority; its digest also binds
 the applicable scope definition, claim, associated IDs and exclusions.
 
-The only supported requests are `windows-95.normal` and
+Version **1** remains unchanged for `windows-95.normal` and
 `system7-nostalgia-silver.normal`: empty title, enabled normal control in an
 active window, no default API requested, fixed port Rect (20,20,80,20), native
 scale, white opaque background and the original port/context. This records a
@@ -14,6 +14,27 @@ public `NewControl` / `Draw1Control` invocation's visible result, with recorded
 procedure/variant/hilite/value all zero and no default API invoked. It does not
 infer private control flags,
 selected resource providers or painters from the public state.
+
+Version **2** is available only for the existing `windows-95.pressed`,
+`windows-95.inactive`, `system7-nostalgia-silver.pressed` and
+`system7-nostalgia-silver.inactive` requests. Their geometry, empty title,
+background, context and provenance requirements remain the same. Each records
+`NewControl` / `Draw1Control`, procedure/variant/value0 and the actual state API
+`HiliteControl`:
+
+| Request state | Observed hilite | Enabled | Window active | Bounded observation |
+|---|---:|---|---|---|
+| `pressed` | 10 | true | true | Logical control highlight after `HiliteControl(10)` |
+| `inactive` | 255 | false | true | Disabled control after `HiliteControl(255)` |
+
+Neither state establishes a physical mouse gesture or an inactive window; v2
+explicitly excludes both claims. `invocation.stateApi` must be `HiliteControl`,
+and the observed control-definition hilite must match the request's v2 scope.
+The public normal v1 scope, its request digests and existing records remain exact.
+Catalog version0.2.0, all thirteen request objects, compatibility authority and
+ledger are unchanged. Only these four requests gain new scope-bound digests;
+previous attestations cannot silently acquire v2 eligibility. This change adds
+no capture or review records.
 
 ## Fixed comparison extent and limits
 
@@ -54,7 +75,7 @@ required. The scoped path additionally records `observed.publicApiFace`:
 | Field | Required observation |
 |---|---|
 | `configuredScheme` | Matching archive/fork hashes and evidence of the configured scheme file; this is not selected-provider attribution |
-| `invocation` | Actual public creation/draw APIs, exact control Rect, empty title, normal state and `defaultRing:false` |
+| `invocation` | Actual public creation/draw APIs, exact control Rect, empty title, matching request state, v2 `stateApi:HiliteControl`, and `defaultRing:false` |
 | `port` | Exact origin/bounds, effective full-port clip, recorded RGB background and opaque composited-background condition |
 | `producer` | Name, exact external build identities, producer table hash, RGBA8 encoding, recorded color realization and measurement timing |
 | `fullFrame` | Original complete frame hash/dimensions and request-image extraction Rect/transform |
@@ -105,8 +126,8 @@ visible instead of becoming a completion percentage.
 
 Omitting `reviewScope` retains the old full-admission path. Explicit
 `{id:"full",version:1}` uses that same strict path. Both still require font,
-patch/base/provider and all prior review checks. Default-ring, pressed, inactive,
-Crayon and nonzero-origin gates are unchanged. Unknown scope IDs, expanded face
+patch/base/provider and all prior review checks, including for pressed/inactive
+requests. Default-ring, Crayon and nonzero-origin gates are unchanged. Unknown scope IDs, expanded face
 regions/claims, stale versions or a review with different scope reject intake.
 Actual capture/review additions require a separate evidence review. The
 [current corpus](../../tests/reference-captures/ORIGINALS.md) contains two such

@@ -38,15 +38,24 @@ const scopedChecks = ['originalEnvironment', 'installationAndConfiguredSource', 
   'conditionsAndTransform', 'imageAndArtifacts', 'independentOfScriptoscope', 'scopeAndLimits'];
 export function publicFaceScope(request) {
   const c = request?.conditions;
-  return ['windows-95.normal', 'system7-nostalgia-silver.normal'].includes(request?.id)
-    && request.sourceSlug === request.id.slice(0, -7)
-    && c?.surface === 'push-button' && c.state === 'normal' && c.text === '' && c.defaultRing === false
-    && c.enabled === true && c.windowActive === true
+  const state = c?.state;
+  const supported = ['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
+    && ['normal', 'pressed', 'inactive'].includes(state) && request.id === `${request.sourceSlug}.${state}`;
+  const enabled = state !== 'inactive';
+  if (!(supported && c.surface === 'push-button' && c.text === '' && c.defaultRing === false
+    && c.enabled === enabled && c.windowActive === true
     && isDeepStrictEqual(c.controlRect, [20, 20, 80, 20]) && isDeepStrictEqual(c.portOrigin, [0, 0])
     && isDeepStrictEqual(c.portBounds, [0, 0, 160, 80]) && isDeepStrictEqual(c.imageSize, [160, 80])
     && isDeepStrictEqual(c.scale, [1, 1]) && isDeepStrictEqual(c.backgroundRGB, [255, 255, 255])
-    && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36])
-    ? structuredClone(faceScope) : null;
+    && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36]))) return null;
+  // Keep the already-reviewed normal v1 definition and request digests exact.
+  if (state === 'normal') return structuredClone(faceScope);
+  const hilite = state === 'pressed' ? 10 : 255;
+  return { ...structuredClone(faceScope), version: 2,
+    publicInvocation: { ...faceScope.publicInvocation, stateApi: 'HiliteControl', hilite, enabled, windowActive: true },
+    claim: `Recorded composited pixels of the complete fixed empty ${state === 'pressed' ? 'logically highlighted' : 'disabled'} face after HiliteControl(${hilite}) in an active window under the observed public invocation, environment and background.`,
+    excludedClaims: [...faceScope.excludedClaims, 'physical-mouse-gesture', 'inactive-window'],
+  };
 }
 
 /** Reuse source/requirement authorities; this contract never approves their draft selections. */
@@ -147,6 +156,7 @@ export function reviewTemplate(capture, request) {
 export function assessCapture(capture, request, reviews, { intakeRoot, known = [] }) {
   const missing = [], rejected = [], unresolvedConditions = [];
   const scoped = capture?.reviewScope?.id === faceScope.id;
+  const allowedScope = scoped ? publicFaceScope(request) : null;
   const need = (ok, field) => { if (!ok) missing.push(field); };
   const equal = (actual, expected, field) => {
     if (actual == null) missing.push(field);
@@ -159,7 +169,7 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
   const result = status => ({ captureId: capture?.id ?? null, requestId: capture?.requestId ?? null, kind, status, missing, rejected,
     ...(scoped ? { reviewScope: capture.reviewScope, associatedRequirementIds: [...faceScope.associatedRequirementIds],
       verifiedRequirementIds: [], unresolvedRequirementIds: [...(request?.targetRequirementIds ?? [])],
-      excludedClaims: [...faceScope.excludedClaims], unresolvedConditions } : {}) });
+      excludedClaims: [...(allowedScope ?? faceScope).excludedClaims], unresolvedConditions } : {}) });
   need(text(capture?.id), 'id');
   if (!['independent-original', 'qualitative-author-preview', 'scriptoscope-regression', 'synthetic-test'].includes(kind)) rejected.push('unknown evidence kind');
   let bytes;
@@ -180,7 +190,7 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
   if (!request) { rejected.push('unknown capture request'); return result('rejected'); }
   if (capture.reviewScope !== undefined) {
     if (scoped) {
-      const allowed = publicFaceScope(request);
+      const allowed = allowedScope;
       if (!allowed) rejected.push('reviewScope: request does not support public-api-empty-face');
       else equal(capture.reviewScope, allowed, 'reviewScope');
     } else equal(capture.reviewScope, fullScope, 'reviewScope');
@@ -238,12 +248,15 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     equal(f?.configuredScheme?.archiveSha256, request.source.archiveSha256, 'configuredScheme.archiveSha256');
     equal(f?.configuredScheme?.forkSha256, request.source.forkSha256, 'configuredScheme.forkSha256');
     need(text(f?.configuredScheme?.evidence), 'configuredScheme.evidence (configured file, not selected provider)');
-    for (const field of ['api', 'drawApi', 'defaultApiInvoked']) equal(f?.invocation?.[field], faceScope.publicInvocation[field], `publicInvocation.${field}`);
-    for (const field of ['procedureId', 'variant', 'hilite', 'value']) equal(o.controlDefinition?.[field], 0, `scoped controlDefinition.${field}`);
+    const invocation = (allowedScope ?? faceScope).publicInvocation;
+    for (const field of ['api', 'drawApi', 'defaultApiInvoked', ...(allowedScope?.version === 2 ? ['stateApi'] : [])])
+      equal(f?.invocation?.[field], invocation[field], `publicInvocation.${field}`);
+    for (const field of ['procedureId', 'variant', 'hilite', 'value'])
+      equal(o.controlDefinition?.[field], invocation[field], `scoped controlDefinition.${field}`);
     if (knownCondition('privateDefaultState')) rejected.push('privateDefaultState: this scope requires an explicitly unknown private flag');
     equal(f?.invocation?.controlRect, request.conditions.controlRect, 'publicInvocation.controlRect');
     equal(f?.invocation?.title, '', 'publicInvocation.title');
-    equal(f?.invocation?.state, 'normal', 'publicInvocation.state');
+    equal(f?.invocation?.state, request.conditions.state, 'publicInvocation.state');
     equal(f?.invocation?.defaultRing, false, 'publicInvocation.defaultRing');
     equal(f?.port?.origin, request.conditions.portOrigin, 'publicPort.origin');
     equal(f?.port?.bounds, request.conditions.portBounds, 'publicPort.bounds');

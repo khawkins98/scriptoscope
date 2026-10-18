@@ -142,6 +142,14 @@ It preserves the full 160×80 request image, 96×36 context and original full fr
 it cannot certify alpha/masks, fonts, automatic size, other states, rings or
 private provider/painter selection.
 
+Version 2 additionally supports only the four existing Windows95/System7
+`pressed` and `inactive` requests: `HiliteControl(10)` logical highlight or
+`HiliteControl(255)` disabled control in an **active window**, respectively.
+It binds the actual state API/hilite and excludes physical mouse gestures and
+inactive-window claims. Normal v1 scope/digests and the two current records stay
+unchanged; only the four new scope-bound request digests change. No new evidence
+is admitted by defining this extension.
+
 Unknown font/patch/base/provider/cache fields may remain explicitly null with
 reasons, while relevant installation, configured scheme, public invocation,
 port/clip/background, indexed palette and producer evidence remain mandatory.
