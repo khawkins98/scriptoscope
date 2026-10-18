@@ -27,7 +27,7 @@ Scriptoscope is **desktop windowing**. Classic Mac chrome assumes pointer + keyb
 - The chrome canvas is `image-rendering: pixelated`; on high-DPR displays the integer-upscale looks clean.
 - Window-types sized larger than the viewport overflow horizontally. There's no auto-shrink mode.
 
-**Recommended pattern: skip mounting entirely below your breakpoint.** This is the only clean answer — the chrome canvas + the runtime's interactive overlays (move handle, grow box, title widget hit-buttons, themed scrollbars) all live inside a shadow root that page CSS can't reach. Hiding only the chrome canvas via CSS leaves the overlays as invisible-but-clickable regions, an accessibility trap.
+**Choose a responsive layout or skip mounting below your breakpoint.** Consumer grids should allow tracks to shrink (`minmax(0, 1fr)` and `min-width: 0`) and reserve space for cascade offsets before promotion measures their content. Fixed-art chrome still has a minimum useful width, so test your selected themes at the narrowest supported viewport. If your layout cannot fit, conditional mounting keeps the bare HTML available. The chrome canvas and interactive overlays share a shadow root; hiding only the canvas leaves invisible click targets.
 
 ```js
 // Conditional mount — the cleanest pattern.
