@@ -152,3 +152,11 @@ body.site-support {
 .site-story-article a { color: var(--site-accent); text-underline-offset: 4px; }
 .site-story-article code { font-size: .88em; }
 @media (max-width: 760px) { .site-story-article { padding: 0 22px 20px; } }
+
+.site-acknowledgements-copy > section { max-width: 75ch; margin: 0 0 42px; }
+.site-credit-list { list-style: none; padding: 0; margin: 0 0 24px; }
+.site-credit-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--site-rule); font: 15px/1.5 Georgia, serif; }
+.site-credit-list span { color: var(--site-muted); }
+.site-credit-notes { padding-left: 20px; font: 16px/1.7 Georgia, serif; color: #514a40; }
+.site-credit-notes li { padding: 0 0 14px 3px; }
+@media (max-width: 480px) { .site-credit-list li { grid-template-columns: 1fr; gap: 3px; } }

@@ -599,10 +599,12 @@ Tracker issues for new ideas: <https://github.com/khawkins98/scriptoscope/issues
 
 ## License
 
+The site’s [Acknowledgements page](./demo/acknowledgements.html) collects scheme authors, archives, visual inspiration, image provenance, fonts, and supporting tools.
+
 **Scriptoscope's own code is [MIT](./LICENSE)** (best for adoption — the library is meant to be embedded in other projects). The bundled third-party material keeps its own terms and is **not** relicensed:
 
 - **`themes/<slug>/`** — assets extracted from community-authored Kaleidoscope schemes, redistributed under each original author's freeware-with-redistribution terms. Provenance is in every bundle's `meta.json` (`origin.originalLicense`, `sourceUrl`) and `PROVENANCE.md`.
 - **`tools/sit-wasm/munbox/`** — a vendored subset of [munbox](https://github.com/idolpx/munbox) (MIT); see `tools/sit-wasm/munbox/LICENSE` and `PATCHES.md`.
-- **`demo/assets/fonts/`** — Charcoal 12 (Jeremy Sachs, CC BY-SA) and Virtue (Marty Pfeiffer, free-with-credit); see the license files alongside them.
+- **`demo/assets/fonts/`** — Instrument Serif and Cormorant Garamond (SIL OFL 1.1), Charcoal 12 (Jeremy Sachs, CC BY-SA), and Virtue (Marty Pfeiffer, author’s terms); see the license files alongside them.
 
 The standalone StuffIt decoder, [`tools/sit-wasm/`](./tools/sit-wasm/), carries its own MIT `LICENSE` so it stays self-contained if extracted.

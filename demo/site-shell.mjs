@@ -28,7 +28,7 @@ document.addEventListener('click', event => {
   const url = new URL(link.href, location.href);
   if (url.origin !== location.origin) return;
   const theme = new URL(location.href).searchParams.get('theme');
-  if (theme && /\/(showcase|personal|shareware|landing|docs|diagnostic|story)\.html$/.test(url.pathname)) {
+  if (theme && /\/(showcase|personal|shareware|landing|docs|diagnostic|story|acknowledgements)\.html$/.test(url.pathname)) {
     url.searchParams.set('theme', theme);
     link.href = url.href;
   }
