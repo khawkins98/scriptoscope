@@ -4227,3 +4227,18 @@ actual selected owner's display sample once. An opaque palette-policy collision
 proves the same rule cannot depend on mask state. The finite 270-selection corpus
 survey found no affected solid case; diagnostic evidence and real impact remain
 separate, and neither establishes original device color or resource ownership.
+
+## 2026-10-18 — a public default border has more than one source caller
+
+The kDEF Acid default flag controls one painter route, while PACH130 separately
+patches FrameRoundRect using pen size, oval size, color, pattern and recording
+state. The same ring resource IDs do not make these routes interchangeable:
+PACH may construct and erase a region, and receives its caller's rectangle rather
+than applying kDEF's unconditional four-pixel outset. Its two-long pattern OR
+comparison also cannot be paraphrased as testing all eight bytes for black.
+
+A before/after flag readout does not observe transient during-paint state.
+Conditioned public Dialog Manager captures can establish public API output
+without proving every internal call, while specific painter attribution needs
+separate evidence. Keep those obligations distinct; see the
+[caller boundary note](./docs/spec/default-button-caller-boundaries.md).
