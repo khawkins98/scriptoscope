@@ -92,6 +92,7 @@ The runtime touches a few CSP-restricted features:
 
 - **WebAssembly** for the `.sit` decoder (`tools/sit-wasm/`). Required if the consumer's themes ship as `scheme.sit`. Needs `script-src 'wasm-unsafe-eval'` in strict CSP.
 - **`blob:` URLs** for decoded chrome / pattern assets (`tools/theme-loader/loadKaleidoscopeScheme.js`). The runtime creates `URL.createObjectURL(blob)` and references those URLs from `<canvas>` draws and `<img>` swaps. Needs `blob:` in `img-src` and `connect-src` (or relaxed `default-src`).
+- **`data:` images** for small folder-only theme-picker previews and the placeholder icon. Keep `data:` in `img-src`; preview images remain self-contained when the picker retains its tiles in bare-HTML mode.
 - **Inline-style writes** (`el.style.x = ...` throughout the codebase). These use the IDL setter, which CSP3 allows even under strict `style-src 'self'`. Older CSP-level-2 enforcement may complain about the resulting baked-in `style="..."` HTML; the impact is cosmetic (the styles still apply via the setter).
 
 Recommended CSP header for a site using Scriptoscope:

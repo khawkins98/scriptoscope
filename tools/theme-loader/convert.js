@@ -242,10 +242,12 @@ const ICON_TYPES = {
  * (dedup per type+id), gamma'd palettes, mask from ICN#/ics# (else corner-flood).
  *
  * @param {Uint8Array|ArrayBuffer} fork
+ * @param {{ ids?: number[] }} [options] Restrict decoding to these resource ids.
  * @returns {{ assets: {path,rgba,width,height}[], index: object[], census: object }}
  */
-export function convertIcons(fork) {
+export function convertIcons(fork, { ids } = {}) {
   const entries = parseResourceFork(asBytes(fork));
+  const requested = ids ? new Set(ids) : null;
   const maskOf = (type, id) => { const r = entries.find((x) => x.type === type && x.id === id); return r ? r.data : null; };
   const assets = [];
   const index = [];
@@ -258,6 +260,7 @@ export function convertIcons(fork) {
     const need = cfg.depth === 4 ? (cfg.size * cfg.size) / 2 : cfg.size * cfg.size;
     for (const e of entries) {
       if (e.type !== type) continue;
+      if (requested && !requested.has(e.id)) continue;
       const key = `${type}:${e.id}`;
       if (done.has(key)) continue;
       if (e.data.length < need) continue;
