@@ -129,3 +129,5 @@ export {
   parseWindowAttrs, parseButtonAttrs, resolveThemeRef, themeRefToUrl, isThemeUrl,
   type ParsedWindow, type ParsedButton, type SizeMode,
 } from './declarative/index.js';
+
+export type { ElementByteProvenance, ThemeByteProvenance } from './loadProvenance.js';

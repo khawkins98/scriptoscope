@@ -72,7 +72,7 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver } = {}) {
   const entries = parseResourceFork(asBytes(fork));
   const assets = [];      // { path, rgba, width, height } — gamma-applied
   const flatAssets = [];  // extraction-manifest (flat file names)
@@ -80,7 +80,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
   const counts = { total: 0, ok: 0, skipped: 0, errored: 0, raster: 0, geometry: 0, color: 0 };
   const headerCluts = new Map();
 
-  for (const e of entries) {
+  for (const [resourceIndex, e] of entries.entries()) {
     counts.total++;
     const base = { type: e.type, id: e.id, name: e.name || null };
     // The diagnostic manifest inventories the entire fork, not just resources
@@ -100,6 +100,8 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
       flatAssets.push({ ...base, status: 'skipped', reason: 'not extracted by convertChrome' });
       continue;
     }
+    const byteReference = resourceObserver?.begin(e, resourceIndex);
+    if (byteReference) base.byteReference = byteReference;
     let payload = null, error = null;
     try {
       if (e.type === 'cicn') payload = decodeCicn(e.data);
@@ -114,6 +116,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
       else if (e.type === 'Colr') payload = decodeColr(e.data);
     } catch (err) { error = err instanceof Error ? err.message : String(err); }
 
+    resourceObserver?.end(byteReference, error ? 'error' : payload ? 'decoded' : 'skipped');
     if (error) {
       counts.errored++;
       flatAssets.push({ ...base, status: 'error', error });
@@ -129,6 +132,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc' } = {}) 
     if (e.type === 'cicn' || e.type === 'ppat') {
       const fname = `${e.type}-${idStr(e.id)}-${slugify(e.name)}.png`;
       const sub = e.type === 'cicn' ? 'cicns' : 'ppats';
+      resourceObserver?.bindAsset(byteReference, `${sub}/${fname}`);
       gammaCorrectRgba(payload.rgba); // Mac→sRGB display transform (mac-gamma.js)
       assets.push({ path: `${sub}/${fname}`, rgba: payload.rgba, width: payload.width, height: payload.height });
       counts.ok++; counts.raster++;
@@ -311,9 +315,9 @@ export function convertIcons(fork, { ids } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc' } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source });
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver });
   const icons = convertIcons(bytes);
   return {
     theme: chrome.theme,

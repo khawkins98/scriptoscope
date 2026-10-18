@@ -47,7 +47,7 @@ export interface ThemeMeta {
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean } = {},
 ): Promise<LoadedTheme> {
   const baseUrl = bundleUrl.replace(/\/$/, '');
 
@@ -76,6 +76,7 @@ export async function loadTheme(
   const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
     meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
+    ...(opts.provenance ? { provenance: true } : {}),
   });
 
   // Preserve the bundle URL as the LoadedTheme's `baseUrl`. The decoder default is

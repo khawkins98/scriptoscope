@@ -29,3 +29,10 @@ export function decodeArchive(bytes: Uint8Array | ArrayBuffer): Promise<ArchiveE
  * file (`Icon\r`). Throws if the archive has no resource fork.
  */
 export function stuffItResourceFork(bytes: Uint8Array | ArrayBuffer): Promise<Uint8Array>;
+
+/** Same selector, exposing the actual chosen entry without decoding a second time. */
+export function stuffItResourceForkWithSelection(bytes: Uint8Array | ArrayBuffer): Promise<{
+  bytes: Uint8Array;
+  selection: { policy: 'largest-non-icon-resource-fork'; entryIndex: number; entryName: string;
+    forkType: 0 | 1; fileType: number; creator: number };
+}>;

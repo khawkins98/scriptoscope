@@ -23,7 +23,7 @@
   "toolchain": {
     "tests/control-availability/candidates.mjs": "48eba4d917f93598f634ffa31b8097ab5eed7661f7e3eaacef84992bbdf5da82",
     "tests/control-availability/source.mjs": "c36bb5a423fdeac97a16101dd7a771401bd15959c1f34f8e0494b4718518f236",
-    "tools/sit-wasm/index.mjs": "3008f70d3afb98f4208a2bdfa6cef6098f0da9203cfa008a9a19555f019ea6c8",
+    "tools/sit-wasm/index.mjs": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19",
     "tools/sit-wasm/dist/munbox.wasm": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812",
     "tools/theme-loader/resource-fork.js": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4",
     "tools/theme-loader/decoders/cicn.js": "907d322688536fbbbbc92ce819ee8268795a42d1588cc3681ced7b8c53c2bd27"
