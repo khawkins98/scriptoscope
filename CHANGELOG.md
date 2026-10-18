@@ -80,6 +80,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed (2026-10-18)
 
+- Native slider composition stops at disposal boundaries between image decodes;
+  a held track cannot resume and request a thumb after owned theme URLs revoke.
+  Native restoration stays synchronous; public/imperative rendering is unchanged.
+
 - Promoted range pointer hit testing now uses the geometry that drew its canvas.
   Stationary thumb grabs preserve exact native values, dragging retains grab
   offsets, and track clicks center the thumb without changing imperative slider

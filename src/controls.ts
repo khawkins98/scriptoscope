@@ -669,7 +669,16 @@ export async function composeSlider(
 export async function composeSliderWithLayout(
   theme: LoadedTheme,
   opts: SliderOptions = {},
+  signal?: AbortSignal,
 ): Promise<SliderComposition | null> {
+  // Native faces can be disposed while a track is decoding. Guard every
+  // sequential dependency so resuming cannot start a thumb/fallback read from
+  // a theme whose owned URLs have already been revoked.
+  const load = async (id: number): Promise<PixelBuffer | null> => {
+    if (signal?.aborted) return null;
+    const buffer = await loadByIdSelf(theme, id);
+    return signal?.aborted ? null : buffer;
+  };
   const orientation = opts.orientation ?? 'horizontal';
   const length = Math.max(32, opts.length ?? 120);
   const value = Math.min(1, Math.max(0, opts.value ?? 0.5));
@@ -691,9 +700,10 @@ export async function composeSliderWithLayout(
   // corner-sprite schemes ship NO slider groove (their -10205..-10208 are the
   // scrollbar thumb / directional indicators, not a groove+thumb pair — verified
   // by pixel-decode), so they fall to platinumSlider rather than the replica's.
-  const track = (await loadByIdSelf(theme, tId)) ?? (await loadByIdSelf(theme, tA));
+  const track = (await load(tId)) ?? (await load(tA));
   if (!track) return null;
-  const thumbs = await loadByIdSelf(theme, horiz ? 10129 : 10113);
+  const thumbs = await load(horiz ? 10129 : 10113);
+  if (signal?.aborted) return null;
 
   const thickness = horiz ? track.height : track.width;
   const longSrc = horiz ? track.width : track.height;
