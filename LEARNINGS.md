@@ -4171,3 +4171,15 @@ time is too close to claim CPU improvement; roughly 2 ms/frame remained. Actual 
 record zero idle/whole-window-drag compositions, one viewport read per frame,
 exactly two state compositions for one logical move, and no work after disposal.
 These are browser/source-model observations, not original-port or field metrics.
+
+### Tab metadata markers are not a stretchable body band
+
+The independently pinned installer CDEF 8 uses full-height end strips, top and
+bottom side bands, and a separate center. For tile=false, a band repeats only
+its first source column. Cropping before applying cinf corner sizes can erase
+the middle, while stretching the entire uncropped middle repeats semantic color
+samples. Neither is the source painter. Top/bottom overlap in these equal-height
+rectangles maps identical source coordinates, so its source order is statically
+known but cannot be distinguished by swapping those two pixel operations. Keep
+literal coverage tests honest about that limit. Original typography, pattern
+phase and device transfer require separate evidence; see the CDEF 8 body spec.

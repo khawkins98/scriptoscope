@@ -1,6 +1,6 @@
-# CDEF 8 tab painter: bounded static source plan
+# CDEF 8 tab body: full-raster bands and a separate center
 
-Read-only investigation, 2026-10-18. No original code executed or redistributed;
+Static investigation and bounded implementation, 2026-10-18. No original code executed or redistributed;
 held `/tmp/scriptoscope-tab-slices` prototype untouched.
 
 ## Identity
@@ -67,13 +67,13 @@ ordinary masked raster subset, opaque pixels write and transparent pixels leave
 previous paint intact; overlapping lower band must not erase a prior upper
 opaque sample merely because its own mask bit is zero.
 
-## Why the two concrete fixtures fail now
+## Why the prior compositor failed the two concrete fixtures
 
--1138 rear: full23x16,c10,s10, tilefalse; cropped width19 makes current middle
+- 1138 rear: full23x16,c10,s10, tilefalse; cropped width19 makes prior middle
 negative. Original horizontal band repeats only column10. Its text sample at
 (11,5) is semantic, not repeated center art. Top/bottom bands overlap y6..9;
 center height16-20 is empty.
--1990 rear: full32x16,c14,s14,tilefalse; cropped width28 makes current middle
+- 1990 rear: full32x16,c14,s14,tilefalse; cropped width28 makes prior middle
 zero. Original repeats only column14, not text sample column15. Bands overlap
 y2..13; center height16-28 is empty.
 These explain both the current missing strips and the marker bars in the held
@@ -111,11 +111,11 @@ Independent acceptance before visual deltas:
 - tile=true multi-column diagnostic band with a partial final repeat; alpha holes
   remain transparent; sides retain fullsourceheight; source marker not
   arbitrarily erased outside the documented center/band selection;
-- a positive center fixture c3/s1/H9 with separate authored bg sample and glyph
+- a positive center fixture c2/s1/H9 with separate authored bg sample and glyph
   marker: fill center from bg, preserve all four bands, no stretched marker;
 - actual1138/1990 rear empty-label proofs against independently pinned cicn/cinf
-  bounds/bytes plus source-coordinate oracles, source+built; record exact runtime
-  owner/ID/key, no historical fallback claim;
+  bounds/bytes plus source-coordinate oracles, source+built; record the expected
+  catalog binding separately from paint selection, which has no tab trace yet;
 - review all affected goldens after these source checks. Keep original font,
   transfer/device, variant fallback, pattern phase and full-tab placement unknown
   where not covered. Existing two ledger mismatch claims can be reassessed only
@@ -135,3 +135,38 @@ opaque pixels (expected alpha255, actual0). These are implementation negatives,
 not original screenshot comparisons. The raw archive/cicn/cinf pins are in
 `tests/decoder-fixtures/tab-body-source-pins.json`, obtained with independent
 big-endian resource-map/header reads. Original binaries are not test fixtures.
+
+## Background sample equivalence, limited to the full-color path
+
+CDEF `0x19bc..0x19e6` calls `0x1bce` and sets RGBBackColor (`AA15`)
+unconditionally. The sampler computes the mask bit separately, but its color
+path reads local x/y, indexed row bytes and packed 1/2/4/8-bit pixels
+(`0x1cb0..0x1d6c`), then calls `0x2678` (`0x1d70..0x1d80`). The mask is
+returned only at `0x1d8a`; it does not suppress the background RGB assignment.
+The palette branches match kDEF `0x10702`: positional value match at `0x269a`,
+last-entry value-zero shortcut at `0x26aa`, reverse search at `0x26b4..0x26ca`,
+and entry-zero fallback at `0x26cc..0x26d0`. Neither samples through ctFlags.
+Thus the existing raw background sample metadata supports this specific color
+path, including RGB under a mask hole. The runtime consumes its declared display
+RGB; it does not apply the display transform twice. A masked-background fixture
+checks that transport boundary. It does not independently prove the loader or
+historical device conversion. Mono sampling, device palette, custom port
+procedures and browser/original transfer equivalence remain outside this claim.
+
+Positive centers require an explicit raw bodyRequest.resourceId of zero. Missing
+raw requests cannot be inferred from absent catalog links and retain the legacy
+compositor. Given an explicit zero request, manifests lacking usable sample
+metadata may use an opaque, in-bounds background sample. A transparent canvas sample is unknown because premultiplying
+transport loses its RGB. Missing/unsafe metadata retains the old compositor.
+The source-model helper also declines invalid slice dimensions rather than
+claiming original behavior for malformed resources.
+
+## Exact labeled acceptance
+
+The same pinned 1138/1990 inputs also exercise `{label: 'AgjpQy', selected:
+false}`. Every output pixel outside the current browser glyph mask is compared
+to its independently determined full-source end/first-column coordinate. The
+mask only excludes the separate text layer; it does not synthesize body pixels
+or establish the historical font. Whole-body empty-label and literal diagnostic
+fixtures cover the area under that excluded text layer separately. The resulting
+requirement is middle-strip/source-coordinate retention, not whole-tab fidelity.
