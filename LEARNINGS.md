@@ -4487,3 +4487,14 @@ inputs, target definitions, scopes, source pins and applicable normative
 eligibility rules now determine reference identity. Global revisions remain
 provenance. Transitive validator changes still require explicit policy-impact
 review; a smaller digest must not hide a changed admission rule.
+
+
+## 2026-10-19 — Port placement remains part of a recorded patterned-face comparison
+
+The Crayon v14c comparison matches its complete empty normal face only when the
+modern composition receives the recorded control origin20,20 and full160×80
+port clip. Buffer-local face4,4 is not the port-local placement. Original
+pattern origin remains unknown despite output equality; zero-offset modern
+policy is a substitution, not an observed original API value. The new scope
+therefore admits one conditioned output without weakening full-request phase
+requirements or rebinding unrelated existing attestations. Refs #190/#221.

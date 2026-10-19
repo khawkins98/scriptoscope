@@ -168,7 +168,7 @@ export function makeReport(ledger, { execution, executionCommit, workingTreeDirt
     wholeControlCertification: 'Not claimed. This is a partial inventory; open cases cannot be verified.',
     issueLiveness: issuesChecked ? 'checked against live GitHub issue state' : 'unchecked (offline)',
     execution: { executionCommit, evidenceCommit: execution?.executionCommit ?? null, freshness, workingTreeDirty, evidenceWorkingTreeDirty: execution?.workingTreeDirty ?? null, assertions },
-    recordedConditionComparisons: { claim: 'Only exact composited pixels under the explicit measured profile; no whole-control percentage.', cases: cases.filter(c=>ledger.cases.find(x=>x.id===c.id)?.recordedComparison).map(c=>({...c, execution: assertions.find(a=>a.id==='recorded.empty-face-six')?.modes ?? []})) },
+    recordedConditionComparisons: { claim: 'Only exact composited pixels under the explicit measured profile; no whole-control percentage.', cases: cases.filter(c=>ledger.cases.find(x=>x.id===c.id)?.recordedComparison).map(c=>({...c, execution: assertions.find(a=>a.id===ledger.assessments.find(r=>r.caseId===c.id&&r.requirementId===REQUIREMENT)?.assertions[0])?.modes ?? []})) },
     regressionObservations: { evidence: 'observed-execution; not independent fidelity or expected availability', files: observations } };
 }
 export function markdownReport(report) {

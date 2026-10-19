@@ -40,8 +40,9 @@ const scopedChecks = ['originalEnvironment', 'installationAndConfiguredSource', 
 export function publicFaceScope(request) {
   const c = request?.conditions;
   const state = c?.state;
-  const supported = ['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
-    && ['normal', 'pressed', 'inactive'].includes(state) && request.id === `${request.sourceSlug}.${state}`;
+  const crayon = request?.sourceSlug === 'crayon-os' && request.id === 'crayon-os.normal' && state === 'normal';
+  const supported = crayon || (['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
+    && ['normal', 'pressed', 'inactive'].includes(state) && request.id === `${request.sourceSlug}.${state}`);
   const enabled = state !== 'inactive';
   if (!(supported && c.surface === 'push-button' && c.text === '' && c.defaultRing === false
     && c.enabled === enabled && c.windowActive === true
@@ -49,6 +50,10 @@ export function publicFaceScope(request) {
     && isDeepStrictEqual(c.portBounds, [0, 0, 160, 80]) && isDeepStrictEqual(c.imageSize, [160, 80])
     && isDeepStrictEqual(c.scale, [1, 1]) && isDeepStrictEqual(c.backgroundRGB, [255, 255, 255])
     && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36]))) return null;
+  if (crayon) return { ...structuredClone(faceScope), version: 3,
+    claim: 'Recorded composited pixels of the complete fixed empty Crayon normal face under the observed public invocation, environment and background; original pattern phase remains unknown.',
+    excludedClaims: [...faceScope.excludedClaims, 'original-pattern-phase', 'general-body-paint', 'pattern-mask', 'private-pattern-provider'],
+  };
   // Keep the already-reviewed normal v1 scope definition exact.
   if (state === 'normal') return structuredClone(faceScope);
   const hilite = state === 'pressed' ? 10 : 255;
@@ -263,7 +268,12 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     if (typeof o.controlDefinition?.[field] === 'boolean') equal(o.controlDefinition[field], request.conditions[field], `observed.controlDefinition.${field}`);
   }
   for (const field of ['defaultMechanism', 'invocation']) need(text(o.controlDefinition?.[field]), `observed.controlDefinition.${field}`);
-  if (Object.hasOwn(request.toObserve, 'patternOriginState')) {
+  if (scoped && allowedScope?.version === 3) {
+    need(Object.hasOwn(o, 'patternOriginState'), 'observed.patternOriginState (v3 explicit unknown)');
+    if (o.patternOriginState !== null) rejected.push('observed.patternOriginState: v3 requires explicit unknown');
+    need(text(o.unknownConditions?.patternOriginState), 'observed.unknownConditions.patternOriginState');
+    unresolvedConditions.push({ field: 'patternOriginState', reason: o.unknownConditions?.patternOriginState ?? null });
+  } else if (Object.hasOwn(request.toObserve, 'patternOriginState')) {
     const state = o.patternOriginState;
     need(['available', 'unavailable'].includes(state?.apiAvailability), 'observed.patternOriginState.apiAvailability');
     need(text(state?.evidence), 'observed.patternOriginState.evidence');

@@ -206,3 +206,15 @@ the reviewed semantic-digest migration. All thirty cases, 257 assessments and
 requirement definitions are unchanged. Global provenance versions no longer
 force reference re-attestation; original artifacts and earlier reviews remain
 exactly preserved.
+
+
+## Crayon recorded output (1.6.0)
+
+One additional OPEN case compares the empty normal Crayon face under the
+separately pinned v14c profile. Existing source/built renders gain one row with
+explicit controlOrigin20,20, portOrigin0, unknown patternOrigin and full-port
+clip. The complete1600 composited pixels, face/cinf/ppat byte identities and
+completed face output must agree; selected pattern metadata is not occupancy
+proof. All prior30 cases/257 assessments and requirement definitions remain
+exact. Totals:31 OPEN,263 obligations,49 narrow verified,1 unsupported,213 unknown.
+No original phase/mask/provider or general body claim follows.

@@ -1,0 +1,7 @@
+{
+  "originalCorrectionSha256": "a9ce2b1f5b76aa6dd4e29f7d488b92549124e9eed1ec6fb8e9a97030f5f37217",
+  "originalCaptureReceiptSha256": "ab65f126df3b85c83e7682d702e493a9da16873894d33bd22e4e63fde7cabe77",
+  "inheritedIncorrectSubject": "Requested Windows95 copied environment; public designated file must be checked against same-run telemetry; private provider order not inferred",
+  "correctedConfiguredTheme": "Crayon OS",
+  "basis": "Same-run Copl FCB and stopped canonical fork; original wrapper retained unchanged externally."
+}

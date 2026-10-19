@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.5.1",
+  "inventoryVersion": "1.6.0",
   "scope": {
-    "description": "Thirty exact direct composition cases, including six separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Thirty-one exact direct composition cases, including seven separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; all inventory closures OPEN. Not a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -1643,7 +1643,7 @@
         "721a..7260 solid union",
         "72a8..7620 corners/bands and order",
         "5e86..5f84 forward repeat/partial CopyMask",
-        "0x5cb8;0x5d48..0x5e26;0x5810\u21920x5874;0x5a32\u21920x687e"
+        "0x5cb8;0x5d48..0x5e26;0x5810→0x5874;0x5a32→0x687e"
       ]
     },
     {
@@ -1705,7 +1705,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1754,7 +1754,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1803,7 +1803,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1852,7 +1852,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1901,7 +1901,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1950,7 +1950,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -2036,6 +2036,55 @@
         "text.prepared-source-pen",
         "text.prepared-mask-paint"
       ]
+    },
+    {
+      "id": "recorded.crayon-os.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "One Crayon v14c empty normal80×20 face at port20,20 is compared over recorded white using its same-run2263-tuple display profile. Full port clip is observed, but original pattern phase, private provider/cache, alpha/mask and general body behavior remain unknown. Actual selected cicn−10239/cinf−10239/ppat17 bytes and completed face output are joined; selected pattern metadata is not a completed pattern occupancy measurement.",
+      "excerptSha256": "2e7554675bb2ef3d3591e0765b2701d45463c7137b6d40f9e4aa155d4a6b1d77",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Exact scope/profile/context/image and clean execution required; no original phase/mask/provider or general body proof.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "crayon-os.normal.v14c.draft",
+        "requestId": "crayon-os.normal",
+        "requestDigest": "80d332f11d006a4003f21e661de335422501f81a09dd52415ea3886f8a4e1218",
+        "captureDigest": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01",
+        "imageSha256": "1d36261bad2e6c56d2ff634f0bd07b6c82b8a94f2663499e3bf49ba1d4931be8",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 3,
+          "digest": "c8210bb0e19cdcb92d718980049de5fc40e3876f3ddbd023e0875a1adc290561"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+          "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+          "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a"
+        }
+      }
     }
   ],
   "requirements": [
@@ -2192,7 +2241,7 @@
     {
       "id": "output.recorded-composited-face",
       "dimension": "fillMask",
-      "claim": "Every pixel of the exact empty80\u00d720 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
+      "claim": "Every pixel of the exact empty80×20 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
     },
     {
       "id": "text.prepared-strike-identity",
@@ -2413,7 +2462,7 @@
         "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
         "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile"
       ],
-      "claim": "Six exact full80\u00d720 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
+      "claim": "Six exact full80×20 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
       "modes": [
         "source",
         "built"
@@ -2428,6 +2477,19 @@
         "synthetic.bitmap.push.X-space-X.negative-overhang.clip"
       ],
       "claim": "Only two existing paint renders: exact caller strike ID/data and request, completed actual font/metrics/pen/context/clip/occupancy, independent literal selected pixels. Existing lifetime renders remain guards, not extra ledger cases.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "recorded.crayon-normal",
+      "path": "tests/rendering-options/display-profile.spec.mjs",
+      "marker": "description:'recorded.crayon-normal'",
+      "caseIds": [
+        "recorded.crayon-os.normal.empty.w80.h20.v14c-profile"
+      ],
+      "claim": "One complete80×20 original composed-pixel comparison with exact v14c profile, port placement and actual face/cinf/ppat byte joins; not pattern occupancy.",
       "modes": [
         "source",
         "built"
@@ -4318,6 +4380,114 @@
         "Automatic size and omitted local context are compatibility declarations; explicit clip case is a synthetic caller context.",
         "Selected authored text colors use current display policy; original device and transfer remain unknown."
       ]
+    },
+    {
+      "id": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "inputs": [
+        "theme.crayon-os"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false,
+        "compositionContext": {
+          "controlOrigin": [
+            20,
+            20
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "w": 160,
+              "h": 80
+            }
+          }
+        }
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit same-run v14c measured profile; original private provider/cache/search state unknown.",
+        "Modern explicit port placement20,20 with unknown pattern offset. Pixel equality does not establish original pattern phase.",
+        "Buffer-local face[4,4,80,20] composed over recorded white; no original alpha/mask claim."
+      ],
+      "recordedComparison": {
+        "captureId": "crayon-os.normal.v14c.draft",
+        "requestId": "crayon-os.normal",
+        "requestDigest": "80d332f11d006a4003f21e661de335422501f81a09dd52415ea3886f8a4e1218",
+        "captureDigest": "19a9410ee2615684b10df57b5e6d1262076828ca4444e908e23b6520e675be01",
+        "imageSha256": "1d36261bad2e6c56d2ff634f0bd07b6c82b8a94f2663499e3bf49ba1d4931be8",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 3,
+          "digest": "c8210bb0e19cdcb92d718980049de5fc40e3876f3ddbd023e0875a1adc290561"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+          "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+          "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a"
+        }
+      }
     }
   ],
   "assessments": [
@@ -7400,7 +7570,71 @@
       "issues": [],
       "rationale": "Prepared synthetic output does not establish this broader original obligation.",
       "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.crayon-os.normal"
+      ],
+      "assertions": [
+        "recorded.crayon-normal"
+      ],
+      "issues": [],
+      "rationale": "Only complete composed face pixels under this exact measured profile and explicit port context; original pattern phase and broad requirements remain unknown.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
+    },
+    {
+      "caseId": "recorded.crayon-os.normal.empty.w80.h20.v14c-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed narrow recorded-condition assessment; independent scoped intake/integration review pending."
     }
   ],
-  "inventorySha256": "46e636c655b4a91388e666cd506631171cf6486171a31a518ac3b6d87248c15d"
+  "inventorySha256": "96cfc8751fecdb1c17f4e9b69437fac85579678c9a8f2b8eac57c29f5496df7a"
 }

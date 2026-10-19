@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.12**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.13**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -94,11 +94,12 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.5.1](../../tests/rendering-requirements/ledger.json) contains
-thirty OPEN cases and 257 declared obligations: 48 narrowly verified,
-0 mismatched, 1 explicitly unsupported and 208 unknown. Six of those verified
+The current [ledger 1.6.0](../../tests/rendering-requirements/ledger.json) contains
+thirty-one OPEN cases and 263 declared obligations: 49 narrowly verified,
+0 mismatched, 1 explicitly unsupported and 213 unknown. Seven of those verified
 obligations concern only complete recorded-condition empty80×20 faces under an
-explicit measured profile. They are reported separately and do not establish
+explicit measured profile, including one Crayon normal face with recorded port placement
+and original pattern origin explicitly unknown. They are reported separately and do not establish
 original alpha/mask, typography, hidden selection, general state/placement or
 default-display fidelity. Six additional SOURCE obligations cover only two caller-declared
 synthetic prepared-strike identities, signed source-metric pens and literal clipped
