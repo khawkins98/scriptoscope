@@ -4429,3 +4429,13 @@ await, measure clipped nonzero-alpha occupancy before text/rings, and publish on
 when the whole render succeeds. A later ring failure must not turn an offscreen
 intermediate into completed paint evidence. Exact pixels and actual dependency
 identity are complementary observations, not historical provider authentication.
+
+## 2026-10-19 — Button Rect height does not select font size
+
+kDEF0 copies the effective port txSize into TextSize at 0x7546/0x754a;
+GetFontInfo at 0x6fbc then supplies placement metrics. Deriving font size from
+face height made 12/20/24px faces select 8/12/14px text. The shared themed
+push/bevel API now captures an explicit size once (12px compatibility default),
+including when automatic face sizing grows a tiny template. This establishes
+size/geometry independence, not original browser glyph or baseline fidelity.
+See [the font-size policy](docs/spec/control-font-size.md).
