@@ -576,6 +576,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 ## Documents
 
 - **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
+- **[`docs/maintainer-reference-environment.md`](./docs/maintainer-reference-environment.md)** — private Forgejo reference assets, verified fetch instructions and native acquisition/restore limits; optional for maintainers, never a public CI dependency.
 - **[`docs/history.md`](./docs/history.md)** — the full project arc (v1 → v2 clean-break → v3 part-code reset) and the "Dead ends — don't relitigate these" list. Start here.
 - **[`docs/spec/README.md`](./docs/spec/README.md)** — the **index** of every primary-source decode under `docs/spec/` (the citation chain: corpus → Scheme Factory → Apple → kDEF 2.3.1 → kDEF 1.8.2). First stop when chasing "what does id/field/address X mean?". The spec tree has grown to 30+ docs and this index is kept current.
 - **[`docs/spec/kdef-architecture.md`](./docs/spec/kdef-architecture.md)** — the runtime architecture tour: the subsystems, the compose pipeline, and how a `wnd#` recipe maps to a drawn window. Read this for **"how does it work?"**
@@ -655,12 +656,14 @@ tab, font, device and window fidelity remain active work in
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221); the independent
 reference corpus is tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190).
 The [reference intake](./tests/reference-captures/README.md) also defines a narrow
-review scope for complete fixed-size empty Windows 95/System 7 face observations.
+review scope for complete fixed-size empty face observations.
 Such composited-pixel evidence leaves the broader requirements unresolved; it
-cannot certify masks, typography, other states or private painter selection.
-The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains six
-independently AI-reviewed scoped observations. All six whole requests remain
-evidence-incomplete, with all broader requirements unresolved.
+cannot certify masks, typography, unobserved states or private painter selection.
+The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains twelve
+independently AI-reviewed scoped observations. All twelve whole requests remain
+evidence-incomplete, with all broader requirements unresolved. Maintainers can
+reuse the [private original-reference environment](./docs/maintainer-reference-environment.md)
+to acquire additional evidence; access is optional and never required by public CI.
 
 [Actual resource-byte provenance](./docs/spec/resource-byte-provenance.md) can opt in
 to joining loaded archive, fork and resource bytes to selected manifest entries

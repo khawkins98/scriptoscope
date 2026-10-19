@@ -54,6 +54,7 @@ toolchain requirement.
    current output alone does not establish fidelity to Kaleidoscope. Keep
    unsupported cases visible and distinguish regression coverage from original
    engine evidence.
+   For original captures, reuse the [private maintainer reference environment](./docs/maintainer-reference-environment.md); it is optional and is not a public CI dependency.
 
    Run the required change-appropriate checks on the finished implementation.
    `gates` already includes typechecking, unit tests and strict theme lint;
