@@ -37,15 +37,15 @@ export function decodeWnd(bytes) {
   const r = new Reader(bytes);
   return {
     rectangles: readRectList(r),
-    topSide:    readSideList(r),
-    bottomSide: readSideList(r),
-    leftSide:   readSideList(r),
-    rightSide:  readSideList(r),
+    topSide:    readSideList(r, 'top side'),
+    bottomSide: readSideList(r, 'bottom side'),
+    leftSide:   readSideList(r, 'left side'),
+    rightSide:  readSideList(r, 'right side'),
   };
 }
 
 function readRectList(r) {
-  const cnt = r.readInt16() + 1; // ZCNT — zero-based count
+  const cnt = readCount(r, 10, 'rectangle list');
   const out = [];
   for (let i = 0; i < cnt; i++) {
     const part = r.readInt16();
@@ -58,8 +58,8 @@ function readRectList(r) {
   return out;
 }
 
-function readSideList(r) {
-  const cnt = r.readInt16() + 1;
+function readSideList(r, label) {
+  const cnt = readCount(r, 4, label);
   const out = [];
   for (let i = 0; i < cnt; i++) {
     const part = r.readInt16();
@@ -67,4 +67,16 @@ function readSideList(r) {
     out.push({ part, border });
   }
   return out;
+}
+
+// Local bounds only: other decoders retain their existing Reader semantics.
+// kDEF uses signed counts and -1 as empty (see docs/spec/wnd-decoding.md).
+function readCount(r, stride, label) {
+  if (r.remaining() < 2) throw new Error(`wnd#: truncated ${label} count`);
+  const stored = r.readInt16();
+  if (stored < -1) throw new Error(`wnd#: invalid signed count ${stored} for ${label}`);
+  const count = stored + 1;
+  // Division avoids speculative reads/allocations and uses the actual byte view.
+  if (count > Math.floor(r.remaining() / stride)) throw new Error(`wnd#: truncated ${label} records`);
+  return count;
 }

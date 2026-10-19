@@ -1,6 +1,15 @@
 # Learnings
 
 
+## 2026-10-19 — A decoded recipe needs complete list spans
+
+The shared binary Reader does not reject missing bytes. A wnd# decoder must
+validate each count word and complete fixed-size list span before reading records,
+or truncated inputs can fabricate zero geometry. Keep that fix local: signed
+`-1` is an empty list, while other negative counts are not silently empty.
+See [the source-bound decoder contract](docs/spec/wnd-decoding.md).
+
+
 ## 2026-10-19 — Window construction needs the selected record, not its path
 
 A window's recipe, state chrome and neighboring cinf can come from different

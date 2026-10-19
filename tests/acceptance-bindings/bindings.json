@@ -101,7 +101,7 @@
     },
     {
       "path": "tools/theme-loader/decoders/wnd.js",
-      "sha256": "7e5fc26d48c4eeb3861d92f63007d139723f6d99f61c12c8bb828e8a0ba02afd"
+      "sha256": "e972f3d75902bbc28977cb272e9f9fc2e395a16bdbfecacff335c82e8c798d60"
     },
     {
       "path": "tools/theme-loader/derez-parser.js",
