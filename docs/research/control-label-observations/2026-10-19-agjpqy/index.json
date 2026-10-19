@@ -181,7 +181,7 @@
     "Current device public fields/depth/table/gamma are observed; current==main pointer was not newly queried",
     "Private selected cicn/cinf/cache/base/patch order and exact original transfer remain UNKNOWN",
     "Finder shutdown requested, clean shutdown acknowledgment UNKNOWN",
-    "No reference admission, ledger promotion or modern pixel result"
+    "No reference admission or ledger promotion. The native observation alone contains no modern comparison; comparison.json separately records the conditional public result."
   ],
   "externalEvidence": [
     {
@@ -248,8 +248,8 @@
   "includedFiles": [
     {
       "name": "README.md",
-      "bytes": 2817,
-      "sha256": "6d245d295701e26dbe7f9bff636e9dfb3ad2175059d9470d7baff402fce1061b",
+      "bytes": 2866,
+      "sha256": "e2431a8d2d680923f9cbf5edf222c20bbdc18a8408bff579c6e922591822b2f6",
       "availability": "INCLUDED"
     },
     {

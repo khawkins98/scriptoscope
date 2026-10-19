@@ -25,8 +25,8 @@ public loader and `prepareBitmapFont` → `composeButton`, with the private cand
 strike and existing measured 194-tuple profile. Its 113 System7 conversion tuples
 are covered; v17 device fields, palette and gamma match that profile’s recorded
 v9 environment. No new mapping query or color interpolation was performed.
-The independent kDEF placement formula gives pen (37,34), advance 46 and 211 ink
-pixels in [38,25,82,37). With explicit source-over composition onto the recorded
+The private candidate supplies advance 46 and 211 ink pixels; the independent
+kDEF placement formula gives pen (37,34), yielding ink bounds [38,25,82,37). With explicit source-over composition onto the recorded
 white port, **all 12,800 RGBA pixels match exactly**. Raw buffer and displayed
 plane identities are retained separately; opaque equality is not mask proof.
 
