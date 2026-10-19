@@ -77,12 +77,11 @@ under Scriptoscope's declared current-display color policy:
   Clipping never restarts the source phase.
 - A source width1 expanded horizontally, or source height1 expanded vertically,
   reaches the original raw-color line sampler, regardless of the tile flag.
-  This initial API uses decoded pixels there only with matching
-  [opaque current-display equivalence](indexed-sampling-equivalence.md): exact
-  model, comparison, display policy, decoded dimensions, equivalent status and
-  success reason. Missing, different or unknown proof returns
-  `unsupported: unverified-line-sampling`. Whole-raster proof is deliberately
-  conservative; a mismatch outside a particular consumed band can still reject.
+  Decoded pixels require matching [opaque current-display equivalence](indexed-sampling-equivalence.md).
+  Otherwise the selected owner's matching sampled companion supplies those
+  lines, with exact dimension/display-policy and mask checks. Missing or invalid
+  data remains `unsupported: unverified-line-sampling`; no raster-color fallback
+  is invented. See [sampled-line support and its finite literal](header-sampled-lines.md).
 - A visible band requiring source coordinates outside the raster returns
   `unsupported: unsafe-source-geometry`; an equivalence record cannot establish
   out-of-bounds sampling. Valid unequal/overlapping insets are not rejected merely

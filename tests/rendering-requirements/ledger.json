@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.7.0",
+  "inventoryVersion": "1.8.0",
   "scope": {
     "description": "Thirty-two exact direct composition cases, including eight separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; all inventory closures OPEN. Not a whole-control denominator.",
     "dimensions": [
@@ -1643,7 +1643,7 @@
         "721a..7260 solid union",
         "72a8..7620 corners/bands and order",
         "5e86..5f84 forward repeat/partial CopyMask",
-        "0x5cb8;0x5d48..0x5e26;0x5810→0x5874;0x5a32→0x687e"
+        "0x5cb8;0x5d48..0x5e26;0x5810\u21920x5874;0x5a32\u21920x687e"
       ]
     },
     {
@@ -1690,12 +1690,12 @@
         "synthetic.header.collision-owner"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.",
-      "excerptSha256": "5762de0c35e3bf41201605567382aa198a9a046a234968a13f10518c24be3262",
+      "locator": "The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. For the unchanged ordinary11x16 c3/s1 repeat header, sampled top line x3..7/y0 and left line x0/y3..12 use gray48; the solid union is x3..7/y1..14 plus x1..9/y3..12, all remaining pixels transparent. The full176-pixel literal and actual owned companion joins establish only this current-display sampled-color case.",
+      "excerptSha256": "c5b6ceead8068a047e9bc114cd2998154b9340ca6c0c3157402f2db73327049c",
       "requirementIds": [
         "fill.sampled-line-color"
       ],
-      "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API.",
+      "claim": "Required raw indexed sampled-line colors agree with the exact literal current-display samples; push retains ordinary corner colors and the header retains its declared solid union and mask holes.",
       "limits": "Exact band/corner observations only; no complete body/border/mask proof for push case."
     },
     {
@@ -1705,7 +1705,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1754,7 +1754,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1803,7 +1803,7 @@
         "theme.windows-95"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1852,7 +1852,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1901,7 +1901,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -1950,7 +1950,7 @@
         "theme.system7-nostalgia-silver"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "locator": "Six exact Windows95/System7 empty80\u00d720 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
       "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
@@ -2044,7 +2044,7 @@
         "theme.crayon-os"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "One Crayon v14c empty normal80×20 face at port20,20 is compared over recorded white using its same-run2263-tuple display profile. Full port clip is observed, but original pattern phase, private provider/cache, alpha/mask and general body behavior remain unknown. Actual selected cicn−10239/cinf−10239/ppat17 bytes and completed face output are joined; selected pattern metadata is not a completed pattern occupancy measurement.",
+      "locator": "One Crayon v14c empty normal80\u00d720 face at port20,20 is compared over recorded white using its same-run2263-tuple display profile. Full port clip is observed, but original pattern phase, private provider/cache, alpha/mask and general body behavior remain unknown. Actual selected cicn\u221210239/cinf\u221210239/ppat17 bytes and completed face output are joined; selected pattern metadata is not a completed pattern occupancy measurement.",
       "excerptSha256": "2e7554675bb2ef3d3591e0765b2701d45463c7137b6d40f9e4aa155d4a6b1d77",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Exact scope/profile/context/image and clean execution required; no original phase/mask/provider or general body proof.",
@@ -2093,7 +2093,7 @@
         "theme.apple-lisa"
       ],
       "document": "tests/rendering-requirements/EVIDENCE.md",
-      "locator": "One Lisa v16 empty normal80×20 face at port20,20 is compared over recorded white using its same-run22-tuple display profile. Normal stopped HFS export contains all34,254 bytes after explicit File Manager checks. Actual selected cicn−10239/cinf−10239 payloads and completed face output join this case; modern ppat0 absence is observed separately. Original private provider/cache/pattern phase, mask and general body behavior remain unknown.",
+      "locator": "One Lisa v16 empty normal80\u00d720 face at port20,20 is compared over recorded white using its same-run22-tuple display profile. Normal stopped HFS export contains all34,254 bytes after explicit File Manager checks. Actual selected cicn\u221210239/cinf\u221210239 payloads and completed face output join this case; modern ppat0 absence is observed separately. Original private provider/cache/pattern phase, mask and general body behavior remain unknown.",
       "excerptSha256": "fbc8b4d100c1552f6f833b603860356739290f69b64e5ba48823d0d1791915e7",
       "claim": "Only the complete recorded-condition composited face pixels.",
       "limits": "Exact scope/profile/context/image and clean execution required; no original provider/phase/mask or general body proof.",
@@ -2290,7 +2290,7 @@
     {
       "id": "output.recorded-composited-face",
       "dimension": "fillMask",
-      "claim": "Every pixel of the exact empty80×20 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
+      "claim": "Every pixel of the exact empty80\u00d720 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
     },
     {
       "id": "text.prepared-strike-identity",
@@ -2480,7 +2480,7 @@
       "caseIds": [
         "synthetic.header.collision.repeat.state1.w11.h16"
       ],
-      "claim": "Unsupported result, actual collision payload and sampler status, no paint dependencies. Compatibility admission assertion only, not a verified historical behavior.",
+      "claim": "Exact unchanged collision input, complete independently derived 11x16 literal, PACH130 horizontal/vertical sampled branches and actual selected owner/load/occurrence/payload plus derived companion transport joins. Separate missing-data rejection coverage does not alter this registered input.",
       "modes": [
         "source",
         "built"
@@ -2511,7 +2511,7 @@
         "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
         "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile"
       ],
-      "claim": "Six exact full80×20 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
+      "claim": "Six exact full80\u00d720 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
       "modes": [
         "source",
         "built"
@@ -2538,7 +2538,7 @@
       "caseIds": [
         "recorded.crayon-os.normal.empty.w80.h20.v14c-profile"
       ],
-      "claim": "One complete80×20 original composed-pixel comparison with exact v14c profile, port placement and actual face/cinf/ppat byte joins; not pattern occupancy.",
+      "claim": "One complete80\u00d720 original composed-pixel comparison with exact v14c profile, port placement and actual face/cinf/ppat byte joins; not pattern occupancy.",
       "modes": [
         "source",
         "built"
@@ -2551,7 +2551,7 @@
       "caseIds": [
         "recorded.apple-lisa.normal.empty.w80.h20.v16l-profile"
       ],
-      "claim": "One complete80×20 original composed-pixel comparison with exact v16 profile, port placement and actual face/cinf byte joins; modern no-ppat0 condition, not original provider attribution.",
+      "claim": "One complete80\u00d720 original composed-pixel comparison with exact v16 profile, port placement and actual face/cinf byte joins; modern no-ppat0 condition, not original provider attribution.",
       "modes": [
         "source",
         "built"
@@ -6874,9 +6874,9 @@
     {
       "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
       "requirementId": "fill.sampled-line-color",
-      "status": "unsupported",
-      "rationale": "Source requires sampled line colors for this collision, but the bounded header API does not provide that path: this exact input is rejected with no output or paint dependency. New header API conservatively rejects divergent line-sampling metadata; this is not a claim the original engine could not render it.",
-      "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+      "status": "verified",
+      "rationale": "For the unchanged synthetic 7x7 collision with c3/s1 repeat=true and ordinary 11x16 Rect, PACH130 one-pixel expansion selects raw-sampler gray48 rather than ordinary-raster red. The independent full176-pixel literal and actual owner/occurrence/payload/companion transport joins establish this current-display sampled-color obligation only. Missing or incompatible companion data remains unsupported; original device/cache/resource-search, pattern and mode5 behavior are not established.",
+      "review": "Root independently reviewed f212e4e41f49167192680e2c0c4493c4ad823bb7 runtime, exact PACH source, unchanged input, full literal and actual companion joins; approved this one obligation transition. Not original-device or whole-header certification.",
       "evidence": [
         "source.pach130-header-rect-mask",
         "fixture.band-collision-literal"

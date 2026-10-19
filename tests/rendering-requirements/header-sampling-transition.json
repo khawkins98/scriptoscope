@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "description": "Reversible metadata snapshot of ledger1.7.0 before the single approved sampled-header assessment transition; all other fields are preserved in ledger1.8.0.",
+  "priorCommit": "6e9714aa06060137c6d3c8d8bbfcb8d6e8a0cb2e",
+  "priorLedgerSha256": "f133ec5f3ec4a31127e0de71367bee303caf7d2122a53fa4cdd4f4fad58d35be",
+  "priorInventoryVersion": "1.7.0",
+  "priorAssessment": {
+    "caseId": "synthetic.header.collision.repeat.state1.w11.h16",
+    "requirementId": "fill.sampled-line-color",
+    "status": "unsupported",
+    "rationale": "Source requires sampled line colors for this collision, but the bounded header API does not provide that path: this exact input is rejected with no output or paint dependency. New header API conservatively rejects divergent line-sampling metadata; this is not a claim the original engine could not render it.",
+    "review": "Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation.",
+    "evidence": [
+      "source.pach130-header-rect-mask",
+      "fixture.band-collision-literal"
+    ],
+    "assertions": [
+      "header.sampling-admission-policy"
+    ],
+    "issues": []
+  },
+  "priorAssertion": {
+    "id": "header.sampling-admission-policy",
+    "path": "tests/rendering-options/header-band-requirements.spec.mjs",
+    "marker": "id:'header.sampling-admission-policy'",
+    "caseIds": [
+      "synthetic.header.collision.repeat.state1.w11.h16"
+    ],
+    "claim": "Unsupported result, actual collision payload and sampler status, no paint dependencies. Compatibility admission assertion only, not a verified historical behavior.",
+    "modes": [
+      "source",
+      "built"
+    ]
+  },
+  "priorEvidence": {
+    "id": "fixture.band-collision-literal",
+    "kind": "source-art",
+    "inputs": [
+      "synthetic.band.collision-owner",
+      "synthetic.header.collision-owner"
+    ],
+    "document": "tests/rendering-requirements/EVIDENCE.md",
+    "locator": "The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.",
+    "excerptSha256": "5762de0c35e3bf41201605567382aa198a9a046a234968a13f10518c24be3262",
+    "requirementIds": [
+      "fill.sampled-line-color"
+    ],
+    "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API.",
+    "limits": "Exact band/corner observations only; no complete body/border/mask proof for push case."
+  },
+  "review": "Root independently reviewed f212e4e41f49167192680e2c0c4493c4ad823bb7 runtime, exact PACH source, unchanged input, full literal and actual companion joins; approved this one obligation transition. Not original-device or whole-header certification."
+}

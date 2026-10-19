@@ -32,11 +32,12 @@ export const headerBandMutations = indices => [
     ['wrong missing-pattern decision',rows=>{rows[0].trace.steps.find(s=>s.role==='body-fill').action='selected';}],
     ['no actual paint',rows=>{rows[0].trace.steps=rows[0].trace.steps.filter(s=>s.usage!=='paint');}],
   ]:indices[0]===2?[
-    ['manufactured rendered surface',rows=>{rows[0].status='rendered';}],
-    ['manufactured output pixels',rows=>{rows[0].pixels=[];}],
+    ['stale unsupported result',rows=>{rows[0].status='unsupported';}],
+    ['raster red substituted for sampled gray',rows=>{rows[0].pixels[0][4]=[255,0,0,255];}],
+    ['missing output pixels',rows=>{rows[0].pixels=null;}],
     ['false sampling proof',rows=>{rows[0].sampling.status='equivalent';}],
-    ['rejected face marked paint',rows=>{face(rows[0]).usage='paint';}],
-    ['rejected sampled dependency marked paint',rows=>{rows[0].trace.bandPaints=[{policy:'sampled-companion'}];}],
+    ['missing actual sampled dependency',rows=>{rows[0].trace.bandPaints=[];}],
+    ['wrong sampled dependency URL',rows=>{rows[0].trace.bandPaints[0].derived.assetUrl='blob:wrong';}],
   ]:[
     ['raster red substituted for sampled band',rows=>{rows[0].pixels[0].rgba=[255,0,0,255];}],
     ['sampled gray substituted for ordinary corner',rows=>{rows[0].pixels[2].rgba=[48,48,48,255];}],

@@ -730,9 +730,10 @@
         "cinfIndex": 1
       },
       "expectedApi": {
-        "status": "unsupported",
-        "reason": "unverified-line-sampling",
-        "paintDependencies": 0
+        "status": "rendered",
+        "lineSampling": "sampled-companion",
+        "paintDependencies": 1,
+        "sampledBandPaints": 2
       }
     },
     {
