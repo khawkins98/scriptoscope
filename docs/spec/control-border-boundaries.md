@@ -1,13 +1,14 @@
 # Finite push/bevel border-size checks
 
 `tests/rendering-options/border-boundaries.spec.mjs` executes one group per
-source and runtime: all 18 canonical sources, source and built modules, one
-cached load per group. It checks empty push faces in active/pressed/inactive
+source and runtime: all 18 canonical sources, source and built modules, cached
+default and (where applicable) declared-provider loads. It checks empty push faces in active/pressed/inactive
 states and all twelve bevel combinations of small/normal, on/off and those
 three states. It never sets pressed and disabled simultaneously. Existing
 resolver fallbacks are observed modern policy, not an original selection oracle.
-Default rings and typography are outside this claim. Every generated composition
-supplies minWidth and height; omitted/default-dimension behavior remains OPEN.
+Default rings and typography are outside this claim. Explicit-size cases supply
+`minWidth` and `height`; the omitted-dimension cases below check modern empty-label
+sizing separately from historical sizing.
 
 ## Inputs and size selection
 
