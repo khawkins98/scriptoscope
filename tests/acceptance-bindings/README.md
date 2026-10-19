@@ -46,10 +46,11 @@ values are hash-bound, not copied as a second recipe authority. `windowSelection
 finite union of emitted keys and authority identity aliases across four states,
 recording actual key/path/standalone owner or null. This includes the modern
 resolver's state fallback; it does not execute collapse selection, arbitrary
-base chains or paint. Exact `wnd#` occurrence → emitted window-key binding remains
-OPEN: the builder exposes no occurrence reference for that output. Raw `wnd#`
-records and emitted keys remain separately complete; geometry hashes and asset
-candidates do not fill that gap. Alias equivalence is not missing-resource fallback. Current child
+base chains or paint. `constructionBinding` now carries exact builder references
+for `wnd#`, selected chrome/cinf and sprites. Synthesized windows explicitly name
+the modern corner-sprite table key and trigger; they have no invented original
+`wnd#` occurrence. Missing observation stays OPEN. These are construction inputs,
+not completed paint or all window dependencies. Alias equivalence is not missing-resource fallback. Current child
 selection may choose a heuristic before consulting a base; this inventory does
 not certify that behavior historically.
 

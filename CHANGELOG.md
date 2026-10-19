@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add opt-in exact window construction byte provenance for sliced recipes and explicitly synthetic corner-sprite windows; carry those occurrence links into the full-envelope inventory without changing default manifests or paint.
+
 - Bind all 18 sources and the full draft acceptance envelope to repeatable modern loader/resource/window-key inventories, retaining duplicate/error occurrences and explicit canonical-versus-loader selection comparisons. No fidelity or coverage promotion.
 
 - Record a quarantined executed font-result and RAM-strike follow-up for the existing AgjpQy research note; retain cache/provider, whole-font and pixel-contribution limits without new intake or runtime claims (#221, #190, #315).

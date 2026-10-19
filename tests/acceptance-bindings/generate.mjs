@@ -89,10 +89,18 @@ export function describeConversion(bytes, meta = {}, source = 'scheme.rsrc') {
   const paths = new Set(assets.map(a => a.path));
   const windows = Object.entries(theme.windowTypes ?? {}).map(([key, value]) => ({
     key, canonicalIdentity: canonicalWindowTypeSlug(key), equivalentKeys: equivalentWindowTypeKeys(key),
-    model: value.model ?? 'sliced', valueSha256: hashObject(value),
-    recipeOccurrence: { status: 'OPEN', reason: 'buildThemeJson-does-not-return-window-recipe-occurrence' },
+    model: value.model ?? 'sliced', valueSha256: hashObject(withoutReferences(value)),
+    constructionBinding: value.byteProvenance ? (({ loadId, ...binding }) => binding)(value.byteProvenance)
+      : { status: 'OPEN', reason: 'no-complete-builder-observation' },
     assets: assetPaths(value, paths).map(ref => ({ ...ref, candidateOccurrences: resources.filter(r => r.assetPaths.includes(ref.path)).map(r => r.resourceIndex) })),
   }));
+  for (const window of windows) {
+    const binding = window.constructionBinding;
+    if (binding.status === 'OPEN') continue;
+    const occurrences = [...Object.values(binding.chrome), ...Object.values(binding.sprites).map(r => r.resourceIndex), binding.cinfResourceIndex,
+      binding.recipe.kind === 'wnd-resource' ? binding.recipe.resourceIndex : null];
+    for (const index of new Set(occurrences.filter(i => i !== null))) resources[index].emittedKeys.push(`windowTypes/${window.key}`);
+  }
   const requests = [...new Set([...Object.keys(theme.windowTypes ?? {}), ...WINDOW_TYPE_IDENTITIES.flatMap(i => equivalentWindowTypeKeys(i.canonicalSlug))])];
   const loaded = { manifest: theme, baseUrl: '' };
   const windowSelections = requests.flatMap(request => ['active', 'inactive', 'collapsed-active', 'collapsed-inactive'].map(state => {

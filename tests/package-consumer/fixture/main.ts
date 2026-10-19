@@ -1,5 +1,5 @@
 import { VERSION, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, composeTab, composeHeaderSurface,
-  type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
+  type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
 import { mountDeclarative, type MountHandle } from 'scriptoscope/declarative';
 import 'scriptoscope/scriptoscope.css';
 
@@ -17,6 +17,8 @@ const tabDiagnostics: ControlDiagnostics = { onComplete(trace) { const body: Tab
   void body; void legacyOccupancy; } };
 const tabOptions: NonNullable<Parameters<typeof composeTab>[1]> = { selected: true, diagnostics: tabDiagnostics };
 void tabOptions;
+const windowBinding: WindowByteProvenance | undefined = undefined;
+void windowBinding;
 const buttonTypography: ButtonOptions = { label: 'OK', fontSize: 12, height: 24 };
 const bevelTypography: BevelButtonOptions = { label: 'OK', fontSize: 16 };
 void buttonTypography; void bevelTypography;

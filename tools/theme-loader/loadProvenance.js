@@ -19,7 +19,7 @@ export async function beginLoadProvenance(bytes, container) {
     },
     observer: {
       begin(entry, resourceIndex) {
-        if (entry.type !== 'cicn' && entry.type !== 'cinf' && entry.type !== 'ppat') return undefined;
+        if (entry.type !== 'cicn' && entry.type !== 'cinf' && entry.type !== 'ppat' && entry.type !== 'wnd#') return undefined;
         const record = { resourceIndex, type: entry.type, signedId: entry.id, byteLength: entry.data.length,
           sha256: null, status: 'pending' };
         resources.push(record);
@@ -41,7 +41,7 @@ export async function beginLoadProvenance(bytes, container) {
     async finish() {
       await Promise.all(pending);
       if (failures.length) throw failures[0];
-      return freeze({ version: 1, loadId, scope: { resourceTypes: ['cicn', 'cinf', 'ppat'], evidence: 'decoder-input-bytes' }, input, fork, resources });
+      return freeze({ version: 1, loadId, scope: { resourceTypes: ['cicn', 'cinf', 'ppat', 'wnd#'], evidence: 'decoder-input-bytes' }, input, fork, resources });
     },
   };
 }

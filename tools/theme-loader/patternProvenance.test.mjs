@@ -21,7 +21,7 @@ const expected = (bytes, data, index = 2) => ({ inputSha256: sha(bytes), forkSha
 
 test('actual pattern occurrences bind distinct same-ID catalog entries without a filename/ID rejoin', async () => {
   const bytes = fixture(), theme = await load(bytes);
-  assert.deepEqual(theme.byteProvenance.scope.resourceTypes, ['cicn', 'cinf', 'ppat']);
+  assert.deepEqual(theme.byteProvenance.scope.resourceTypes, ['cicn', 'cinf', 'ppat', 'wnd#']);
   for (const [key, data, index] of [['first', twoPixelPpat(), 2], ['second', twoPixelPpat({ red: 0 }), 3]]) {
     assert.equal(comparePatternBinding(theme, key, expected(bytes, data, index)).status, 'matched');
     assert.ok(Object.isFrozen(theme.manifest.patterns[key].byteProvenance));

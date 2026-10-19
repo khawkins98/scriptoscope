@@ -12,12 +12,23 @@ export interface PatternByteProvenance {
   readonly manifestKey: string;
   readonly ppatResourceIndex: number;
 }
+/** Exact modern builder inputs, not historical selection or completed paint. */
+export interface WindowByteProvenance {
+  readonly loadId: string;
+  readonly manifestKey: string;
+  /** Synthesized corner geometry has no original wnd# recipe occurrence. */
+  readonly recipe: Readonly<{ kind: 'wnd-resource'; resourceIndex: number } | { kind: 'corner-sprite-table'; key: string; trigger: 'no-emitted-wnd-window-types' }>;
+  readonly chrome: Readonly<Partial<Record<'active' | 'inactive', number>>>;
+  /** Null means no successful cinf was selected by the existing builder policy. */
+  readonly cinfResourceIndex: number | null;
+  readonly sprites: Readonly<Partial<Record<'pinstripe' | 'growBox', Readonly<{ type: 'cicn' | 'ppat'; resourceIndex: number }>>>>;
+}
 export interface ThemeByteProvenance {
   readonly version: 1;
   /** Per-load correlation only. Content hashes establish stable byte identity. */
   readonly loadId: string;
-  /** Authoritative observation scope; older version1 records omit ppat. */
-  readonly scope: { readonly resourceTypes: readonly ('cicn' | 'cinf' | 'ppat')[]; readonly evidence: 'decoder-input-bytes' };
+  /** Authoritative observation scope; older version1 records may omit ppat or wnd#. */
+  readonly scope: { readonly resourceTypes: readonly ('cicn' | 'cinf' | 'ppat' | 'wnd#')[]; readonly evidence: 'decoder-input-bytes' };
   readonly input: { readonly container: string; readonly byteLength: number; readonly sha256: string };
   readonly fork: {
     readonly byteLength: number; readonly sha256: string;
@@ -30,7 +41,7 @@ export interface ThemeByteProvenance {
   readonly resources: readonly {
     /** Occurrence in the parser's resource array, distinct even for duplicate IDs. */
     readonly resourceIndex: number;
-    readonly type: 'cicn' | 'cinf' | 'ppat'; readonly signedId: number;
+    readonly type: 'cicn' | 'cinf' | 'ppat' | 'wnd#'; readonly signedId: number;
     readonly byteLength: number; readonly sha256: string;
     readonly status: 'decoded' | 'skipped' | 'error';
   }[];
