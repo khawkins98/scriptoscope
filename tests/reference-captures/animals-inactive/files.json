@@ -1,0 +1,87 @@
+[
+  {
+    "path": "acquisition.json",
+    "bytes": 2140,
+    "sha256": "d39d0bd32a23b965574261c4fb0b7d85b8f742b94f29fe87158867c593bbbb6d"
+  },
+  {
+    "path": "candidate.json",
+    "bytes": 2455,
+    "sha256": "cb9a4bf95535fcbdd8069a21dd6dccea167372f5abf96ce1b156a2cc648ea5f3"
+  },
+  {
+    "path": "capture-bindings.json",
+    "bytes": 6223,
+    "sha256": "a6e154fbc5f64181246050e83257ed7b72059ea398df675dd249f2eb7a73d7b0"
+  },
+  {
+    "path": "capture-log.json",
+    "bytes": 17750,
+    "sha256": "4f137161a1f1933e574df503741d3629d129ea89a75da1f7f4b5b2b70822c2df"
+  },
+  {
+    "path": "configured-source-bindings.json",
+    "bytes": 1467,
+    "sha256": "976749ff4fd959c32a1f59bf0624689e2477aa11156adbe3a037c0ab4fffd766"
+  },
+  {
+    "path": "context.png",
+    "bytes": 204,
+    "sha256": "fa63256180cc08772d1fa1bb0fa96b641aab2eebf8467cef55e1918dcfb2f607"
+  },
+  {
+    "path": "durable-status.png",
+    "bytes": 70178,
+    "sha256": "44904a8cceaadc95b65e5aefdda96066fe9e5bcd08f077115ab95bfea6db4c76"
+  },
+  {
+    "path": "environment.json",
+    "bytes": 4896,
+    "sha256": "292b8068ea45423ac61a7e4067797c877318af08e53c03865b1a5bcb14c4393f"
+  },
+  {
+    "path": "face.png",
+    "bytes": 146,
+    "sha256": "c24e14f630faf6f4c5873fd97eb44dd5a5ae3c04c25dd58b625171e2ab0a5ef8"
+  },
+  {
+    "path": "fixture-identities.json",
+    "bytes": 717,
+    "sha256": "c9dea5778efeaa514f88247ba62b436f09e94b0c33ffa9798ebdd5c4da967f75"
+  },
+  {
+    "path": "full-frame.png",
+    "bytes": 95694,
+    "sha256": "92d12bb4b970b3212ef87d0a301496125303dac9080250b828fff7e75896fe55"
+  },
+  {
+    "path": "indexed-palette.bin",
+    "bytes": 2056,
+    "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+  },
+  {
+    "path": "pixel-conditions.json",
+    "bytes": 3011,
+    "sha256": "0ad089267510158b3724044c74238bdd65444f537f15dd39894b3aa0976e463c"
+  },
+  {
+    "path": "port.png",
+    "bytes": 327,
+    "sha256": "5139050ef38be5b653bcc3d69357dc995744fc1ee4b8b1149a4335ae6b355e1d"
+  },
+  {
+    "path": "producer-identities.json",
+    "bytes": 1139,
+    "sha256": "c3128473a52e21871f43d0a094d65afc51a9386d999d4520362c090e7164a79a"
+  },
+  {
+    "path": "producer-table.bin",
+    "bytes": 268,
+    "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+  },
+  {
+    "path": "public-invocation.json",
+    "bytes": 521,
+    "sha256": "4bdfc54b8586679b6b70e791df81423ebd65aa50848a373a103f7cb2ea69a204"
+  }
+]

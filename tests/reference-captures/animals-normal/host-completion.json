@@ -1,0 +1,82 @@
+{
+  "status": "HOST_ONLY_COMPLETION_NO_NATIVE_RECAPTURE",
+  "originalFailure": {
+    "path": "state-0-host-capture-failure.json",
+    "bytes": 1795,
+    "sha256": "fe057e6eee38a5422b10fbc25be13b30dad47f8d0309c4c88f665dcd1517385b"
+  },
+  "oldBoundHelperUnchanged": {
+    "path": "capture-state.mjs",
+    "bytes": 4478,
+    "sha256": "53daff49e44477cbb2cf78f8971645e47becef5c4c33a0b7f2055c74445f527e"
+  },
+  "futureStateHelper": {
+    "path": "capture-state-absolute.mjs",
+    "bytes": 4504,
+    "sha256": "a000c9a67ff789ffeb3c2d1f23d8e8b14410492719ecfbabc75b2e1ea799e513"
+  },
+  "delta": {
+    "path": "absolute-screenshot-fix.diff",
+    "bytes": 2854,
+    "sha256": "2965c83a42eb006e27670d1fd1e74839c5a0ca0f8949ddcc728c69692d2c48ed"
+  },
+  "originalFrameRawJsonPreserved": true,
+  "nativeCPresses": 1,
+  "nativeNPressesBeforeCompletion": 0,
+  "rawRepeatedChangedBytes": 0,
+  "rawCanvasMismatchedBytes": 0,
+  "pngRawEquality": true,
+  "statusObserved": {
+    "ordinal": 0,
+    "hilite": 0,
+    "generation": 1,
+    "ackCount": 0,
+    "sevenChecks": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedWrittenEOF": [
+      20392,
+      20392,
+      20392
+    ]
+  },
+  "completedFiles": [
+    {
+      "path": "animals-state-0-status.png",
+      "bytes": 70953,
+      "sha256": "efefd618f68ee5688c223e394a59010b16616688d24b45f0c141e8e86e191fab"
+    },
+    {
+      "path": "animals-state-0-port.png",
+      "bytes": 1160,
+      "sha256": "d14fce248b418581a1461fa6e2625823439d2d5df07dda094d76bfcbaaba9802"
+    },
+    {
+      "path": "animals-state-0-context.png",
+      "bytes": 932,
+      "sha256": "dadd79ac219a52772cd6574c5573a193375fdd971d49c00496f36d3c2847925b"
+    },
+    {
+      "path": "animals-state-0-face.png",
+      "bytes": 825,
+      "sha256": "b13d291f2fd11d44e435a62b31222de51ed330be9032885ddc23c6a34bd62793"
+    },
+    {
+      "path": "animals-state-0-crops.json",
+      "bytes": 1069,
+      "sha256": "bd30482e5b7918ff7e9ad5a295c93cee040e9a38462a474303f514385ebdfc87"
+    }
+  ],
+  "originalSupplement": {
+    "name": "state-0-host-completion.json",
+    "bytes": 2748,
+    "sha256": "e2a8c578e69852f5ea7dae918738f434ced5c493bbaab3553af4d190490d1881"
+  },
+  "meaning": "State0 relative status-screenshot path failed after stable raw/PNG/JSON save. Original bound files preserved; root-authorized absolute screenshot + crops from retained plane completed before ACK. Separate corrected helper used for states1/2; no native or raw/frame recapture."
+}
