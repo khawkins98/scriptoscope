@@ -1,0 +1,243 @@
+{
+  "status": "QUARANTINED_PARTIAL",
+  "evidenceKind": "public-api-comparison-summary",
+  "label": "AgjpQy",
+  "publicApi": [
+    "prepareDisplayProfile",
+    "loadTheme",
+    "prepareBitmapFont",
+    "composeButton"
+  ],
+  "publishedPages": {
+    "run": 39194196711,
+    "conclusion": "success",
+    "headSha": "4af92a6a024850e5a9b11d89a23f4062f0bb953d",
+    "status": "completed"
+  },
+  "moduleBefore": {
+    "bytes": 344605,
+    "sha256": "342b7dd964e506d918fc656f8215cf82d38406bcf6957ba883916b2d85f8ffb3",
+    "url": "https://khawkins98.github.io/scriptoscope/scriptoscope.js"
+  },
+  "moduleAfter": {
+    "bytes": 344605,
+    "sha256": "342b7dd964e506d918fc656f8215cf82d38406bcf6957ba883916b2d85f8ffb3",
+    "url": "https://khawkins98.github.io/scriptoscope/scriptoscope.js"
+  },
+  "input": {
+    "byteLength": 130067,
+    "container": "raw",
+    "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+  },
+  "fork": {
+    "byteLength": 130067,
+    "selection": {
+      "creator": null,
+      "entryIndex": null,
+      "entryName": null,
+      "fileType": null,
+      "forkType": 1,
+      "policy": "raw-resource-fork"
+    },
+    "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+  },
+  "expectedAndCheckedFace": {
+    "signedId": -10239,
+    "resourceIndex": 50,
+    "payloadSha256": "5bb8a10b2e18668dba4d071887d3ed411a682b7f87195bdf5b4ec625040ee6fc",
+    "pairedCinf": null
+  },
+  "actualSelectedAndCompletedFace": {
+    "owner": {
+      "baseUrl": "https://khawkins98.github.io/scriptoscope/themes/system7-nostalgia-silver",
+      "chainDepth": 0
+    },
+    "resource": {
+      "type": "cicn",
+      "signedId": -10239,
+      "sourceCinfId": null,
+      "manifestKey": "active-push-button",
+      "byteProvenance": {
+        "cicnResourceIndex": 50,
+        "cinfResourceIndex": null,
+        "loadId": "d4bb4565fffb402171e26ea4ffe5222a",
+        "manifestKey": "active-push-button"
+      }
+    },
+    "assetUrlEqualityChecked": true,
+    "paintOperation": "legacy-nine-slice-and-sample-fill",
+    "paintBasis": "compatibility-policy",
+    "retainedNonzeroAlphaPixels": 1596,
+    "originalPainterAttribution": "UNKNOWN"
+  },
+  "profile": {
+    "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+    "mappingCount": 194,
+    "inputSha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00",
+    "sourceCoverage": {
+      "System7WholeLoadTuples": 113,
+      "missing": 0
+    },
+    "crossRunLink": "v9 measured profile; v17 device fields, complete palette and gamma match. No new v17 color-mapping query."
+  },
+  "privatePreparedFont": {
+    "id": "bitmap-font:cbb267dbecc473de8f1b3db9f9c160855f1646e4ef0e60c6bb66176187fd2a0d",
+    "inputSha256": "ecb0c68a3b33c9d2a644afa2610dcd81f413e23be0b74eedf61e33172144ebe9",
+    "strikeSize": 12,
+    "glyphCount": 6,
+    "payloadAvailability": "PRIVATE_NOT_INCLUDED",
+    "providerBasis": "caller-declared"
+  },
+  "options": {
+    "compositionContext": {
+      "clip": {
+        "kind": "rect",
+        "rect": {
+          "h": 80,
+          "w": 160,
+          "x": 0,
+          "y": 0
+        }
+      },
+      "controlOrigin": [
+        20,
+        20
+      ],
+      "patternOrigin": {
+        "status": "unknown"
+      },
+      "portOrigin": [
+        0,
+        0
+      ]
+    },
+    "default": false,
+    "fontSize": 12,
+    "height": 20,
+    "label": "AgjpQy",
+    "minWidth": 80
+  },
+  "completedBitmapTextPaint": {
+    "advance": 46,
+    "contextBasis": "caller-declared",
+    "coordinateSpace": "port",
+    "declaredClip": {
+      "kind": "rect",
+      "rect": {
+        "h": 80,
+        "w": 160,
+        "x": 0,
+        "y": 0
+      }
+    },
+    "emboss": null,
+    "faceRect": {
+      "h": 20,
+      "w": 80,
+      "x": 20,
+      "y": 20
+    },
+    "fontId": "bitmap-font:cbb267dbecc473de8f1b3db9f9c160855f1646e4ef0e60c6bb66176187fd2a0d",
+    "foreground": {
+      "bounds": {
+        "h": 12,
+        "w": 44,
+        "x": 38,
+        "y": 25
+      },
+      "pixels": 211,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    "inkBounds": {
+      "h": 12,
+      "w": 44,
+      "x": 38,
+      "y": 25
+    },
+    "label": "AgjpQy",
+    "layoutBasis": "kdef-2.3.1-single-line-push",
+    "lineHeight": 16,
+    "metrics": {
+      "ascent": 12,
+      "descent": 3,
+      "leading": 1
+    },
+    "pen": [
+      37,
+      34
+    ],
+    "providerBasis": "caller-declared",
+    "strikeSize": 12
+  },
+  "composition": {
+    "bufferSize": [
+      88,
+      28
+    ],
+    "bufferPlacementInPort": [
+      16,
+      16
+    ],
+    "faceRectInBuffer": [
+      4,
+      4,
+      80,
+      20
+    ],
+    "faceRectInPort": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portSize": [
+      160,
+      80
+    ],
+    "backgroundRGBA": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "method": "Source-over raw public buffer onto explicitly recorded opaque white port; no dropped alpha or tolerance"
+  },
+  "result": {
+    "comparedPixels": 12800,
+    "differentPixels": 0,
+    "differentChannels": 0,
+    "differenceBoundsLTRB": null
+  },
+  "storedPlanes": [
+    {
+      "name": "label-buffer.rgba",
+      "bytes": 9856,
+      "sha256": "dc313380ccdeaee566fac74119f4df5240207a2d66473ef9407e972448f3ff21",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "label-port.rgba",
+      "bytes": 51200,
+      "sha256": "5a83268b0192d8fafebff83e1f6e59a96075dce061795f0737182620cacd9108",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    }
+  ],
+  "nativePortPngSha256": "f695049b68046a68fb1e9fcf7f2ddcff986ea93720b5da1b5aff6e1fd99f423a",
+  "privateReceipt": {
+    "name": "comparison.json",
+    "bytes": 20648,
+    "sha256": "2a34e09169107c34693be7add5937eb40124b3b8b88468fa4c658be9e3601f81",
+    "availability": "EXTERNAL_NOT_INCLUDED"
+  },
+  "limits": [
+    "Exact conditional output for this supplied strike, profile, label and placement only",
+    "Opaque white displayed equality does not independently verify original masks or alpha",
+    "Original active glyph provider, full-font identity, private selection and full transfer semantics remain unknown",
+    "No original font masks or binaries, native code, host paths, reference admission or ledger promotion"
+  ]
+}

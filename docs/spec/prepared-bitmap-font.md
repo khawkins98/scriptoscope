@@ -83,7 +83,11 @@ Empty or wholly clipped ink emits no font-paint record. Completion publishes the
 record only on successful whole rendering; later ring errors and aborts suppress
 it. It never contains masks or font bytes.
 
-Repository fixtures are synthetic owned glyphs. The [later public-API comparison](../research/control-label-observations/2026-10-19/FOLLOWUP.md) records one exact conditional candidate/output match. The separate
+Repository fixtures are synthetic owned glyphs. The [AgjpQy follow-up](../research/control-label-observations/2026-10-19-agjpqy/README.md)
+records one exact six-glyph conditional public-output comparison with complete
+public metrics; original provider and whole-font identity remain unknown. The
+[later O/K public-API comparison](../research/control-label-observations/2026-10-19/FOLLOWUP.md)
+records the earlier exact conditional candidate/output match. The separate
 [quarantined native observation](../research/control-label-observations/2026-10-19/README.md)
 is conditional evidence, not an admitted reference or proof that an original
 control selected the private candidate font/provider. The runtime feature does not admit that observation. Ledger 1.5.0 separately
