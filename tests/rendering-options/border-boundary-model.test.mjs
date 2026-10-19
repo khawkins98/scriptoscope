@@ -78,3 +78,44 @@ test('solid admission rejects present or ambiguous pattern evidence and malforme
   assert.deepEqual(solidBodyOrInitial({ corner: 4, side: 1 }, { width: 8, height: 2 }, 4, 1,
     admitSolidBody(solidInput())), { kind: 'initial', rgba: [0, 0, 0, 0] }); // both union rectangles empty
 });
+
+import { admitPatternBody, patternBodyOrInitial } from './border-boundary-model.mjs';
+import { headerPatternBytes, headerPatternFace, headerPatternInfo, headerPatternRows, headerPatternColors } from '../decoder-fixtures/header-pattern.mjs';
+const patternContext = () => ({ controlOrigin: [-5, 7], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [1, -2] },
+  clip: { kind: 'rect', rect: { x: -5, y: 7, w: 11, h: 9 } } });
+const literalTile = () => new Uint8Array('ABCDEFGH'.split('').flatMap(c => headerPatternColors[c]));
+test('control pattern phase reuses five literal original-Rect rows; clipping never restarts phase or extends bottom', () => {
+  const converted = convertScheme(forkOf([{ type: 'cicn', id: -9567, data: headerPatternFace() },
+    { type: 'cinf', id: -9567, data: headerPatternInfo() }, { type: 'ppat', id: 0, name: 'asymmetric', data: headerPatternBytes() }]));
+  const e = Object.values(converted.theme.chromeElements)[0], art = converted.assets.find(a => a.path === e.asset);
+  const tile = converted.assets.find(a => a.path === converted.theme.patterns.asymmetric.asset);
+  assert.deepEqual(tile.rgba, literalTile());
+  const model = { width: 7, height: 7, corner: 2, side: 3, tile: true };
+  for (const mode of [0, 1, 2, 3, 4]) for (const clipped of [false, true]) {
+    const context = patternContext();
+    if (clipped) context.clip.rect = { x: -3, y: 9, w: 7, h: 5 };
+    const admitted = admitPatternBody({ mode, context, width: 11, height: 9, tileWidth: 4, tileHeight: 2, rgba: tile.rgba });
+    assert.ok(admitted);
+    for (let y = 0; y < 9; y++) for (let x = 0; x < 11; x++) {
+      const writer = borderWriter(model, { width: 11, height: 9, ...(clipped ? { clip: [2, 2, 7, 5] } : {}) }, x, y,
+        (sx, sy) => art.rgba[(sy * 7 + sx) * 4 + 3]);
+      const offset = writer && (writer.source[1] * 7 + writer.source[0]) * 4;
+      const actual = writer ? Array.from(art.rgba.slice(offset, offset + 4)) : patternBodyOrInitial(model, admitted, x, y).rgba;
+      const outside = clipped && (x < 2 || x >= 9 || y < 2 || y >= 7);
+      assert.deepEqual(actual, headerPatternColors[outside ? '.' : headerPatternRows[mode][y][x]], `mode${mode}/${clipped}/${x},${y}`);
+    }
+  }
+});
+test('pattern admission rejects unknown origin, unsupported mode, malformed context and nonopaque/short tiles', () => {
+  const input = () => ({ mode: 0, context: patternContext(), width: 11, height: 9, tileWidth: 4, tileHeight: 2, rgba: literalTile() });
+  for (const mutate of [x => { x.context.patternOrigin = { status: 'unknown' }; }, x => { x.mode = 5; },
+    x => { x.mode = -1; }, x => { x.context.controlOrigin = [32767, 0]; }, x => { x.context.portOrigin = [1, 0]; },
+    x => { x.context.patternOrigin.offset = new Array(2); }, x => { x.context.clip = { kind: 'unknown' }; },
+    x => { x.context.clip.rect.w = -1; }, x => { x.rgba[3] = 0; }, x => { x.rgba[3] = 128; },
+    x => { x.rgba = x.rgba.slice(4); }, x => { x.tileWidth = 0; }]) {
+    const value = input(); mutate(value); assert.equal(admitPatternBody(value), null);
+  }
+  const a = input(), b = input(); b.mode = 255; // non5 modes outside1..4 retain P=(0,0)
+  assert.deepEqual(patternBodyOrInitial({ corner: 2, side: 3 }, admitPatternBody(a), 3, 3),
+    patternBodyOrInitial({ corner: 2, side: 3 }, admitPatternBody(b), 3, 3));
+});

@@ -85,3 +85,37 @@ export function solidBodyOrInitial(input, destination, x, y, background) {
   return inside ? { kind: 'body', rgba: [...background.displayRgb, 255] }
     : { kind: 'initial', rgba: [0, 0, 0, 0] };
 }
+
+/** Control body only:10ab0–10af6 original-Rect anchor,10afa–10b56 same
+ * phase for both inset rectangles, f930 destination/clip translation. */
+export function admitPatternBody({ mode, context, width, height, tileWidth, tileHeight, rgba }) {
+  const signed = n => Number.isInteger(n) && n >= -32768 && n <= 32767;
+  const pair = v => Array.isArray(v) && v.length === 2 && Array.from(v).every(signed);
+  if (!Number.isInteger(mode) || mode < 0 || mode > 255 || mode === 5
+    || !pair(context?.controlOrigin) || !pair(context?.portOrigin) || context.portOrigin.some(v => v !== 0)
+    || context.patternOrigin?.status !== 'known' || !pair(context.patternOrigin.offset)
+    || !Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0
+    || !signed(context.controlOrigin[0] + width) || !signed(context.controlOrigin[1] + height)
+    || context.clip?.kind !== 'rect' || !['x', 'y', 'w', 'h'].every(k => signed(context.clip.rect?.[k]))
+    || context.clip.rect.w < 0 || context.clip.rect.h < 0
+    || !signed(context.clip.rect.x + context.clip.rect.w) || !signed(context.clip.rect.y + context.clip.rect.h)
+    || !Number.isInteger(tileWidth) || !Number.isInteger(tileHeight) || tileWidth <= 0 || tileHeight <= 0
+    || !rgba || rgba.length !== tileWidth * tileHeight * 4
+    || Array.from(rgba).some((v, i) => !Number.isInteger(v) || v < 0 || v > 255 || (i % 4 === 3 && v !== 255))) return null;
+  return { mode, context, width, height, tileWidth, tileHeight, rgba };
+}
+export function patternBodyOrInitial(input, admitted, x, y) {
+  const { mode, context, width: W, height: H, tileWidth, tileHeight, rgba } = admitted;
+  const [dx, dy] = context.controlOrigin, [rx, ry] = context.patternOrigin.offset, clip = context.clip.rect;
+  const px = mode === 1 || mode === 3 ? dx : mode === 2 || mode === 4 ? dx + W : 0;
+  const py = mode === 1 || mode === 2 ? dy : mode === 3 || mode === 4 ? dy + H : 0;
+  const { corner: c, side: s } = input;
+  if (x < 0 || y < 0 || x >= W || y >= H || dx + x < clip.x || dy + y < clip.y
+    || dx + x >= clip.x + clip.w || dy + y >= clip.y + clip.h
+    || !((x >= c && x < W - c && y >= s && y < H - s) || (x >= s && x < W - s && y >= c && y < H - c)))
+    return { kind: 'initial', rgba: [0, 0, 0, 0] };
+  const mod = (n, d) => ((n % d) + d) % d;
+  const source = [mod(dx + x - px + rx, tileWidth), mod(dy + y - py + ry, tileHeight)];
+  const offset = (source[1] * tileWidth + source[0]) * 4;
+  return { kind: 'body', source, rgba: Array.from(rgba.slice(offset, offset + 4)) };
+}

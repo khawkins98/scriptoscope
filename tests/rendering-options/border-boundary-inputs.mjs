@@ -33,6 +33,12 @@ export async function boundaryInput(choice) {
       cinf: cinf && cinf.length >= 18 ? { corner: cinf[0], side: cinf[1], tile: cinf[2] !== 0 } : null,
       status: cinf === null ? 'missing-cinf' : cinf.length < 18 ? 'unsafe-short-cinf' : 'candidate' }];
   }));
-  return { choice, choicesSha256, elements, resources: Object.fromEntries(raw.flatMap((r, i) => ['cicn', 'cinf'].includes(r.type)
+  const patterns = Object.fromEntries(Object.entries(theme.patterns ?? {}).map(([key, p]) => {
+    const a = byPath.get(p.asset), ref = p.byteProvenance;
+    return [key, { signedId: p.sourcePpatId, resourceIndex: ref?.ppatResourceIndex ?? null,
+      width: a?.width ?? null, height: a?.height ?? null, rgbaSha256: a ? hash(a.rgba) : null,
+      opaque: !!a && a.rgba.every((v, i) => i % 4 !== 3 || v === 255), displayPolicy: 'mac-1.8-to-2.2-high-byte' }];
+  }));
+  return { choice, choicesSha256, elements, patterns, resources: Object.fromEntries(raw.flatMap((r, i) => ['cicn', 'cinf', 'ppat'].includes(r.type)
     ? [[i, { resourceIndex: i, type: r.type, signedId: r.id, byteLength: r.data.length, sha256: hash(r.data) }]] : [])) };
 }
