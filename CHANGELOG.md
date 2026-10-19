@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Extend existing push/bevel corpus checks with deduplicated tiny-height corner/side overlap cases at public width anchors, retaining all prior cases and unresolved provider/body limits (#221).
+
 - Check omitted empty-label push/bevel dimensions across the existing corpus and declared-cinf tuples, preserving explicit-size cases and unknown fidelity boundaries; automatic dimensions remain modern public policy (#221).
 
 - Exercise the 87 default missing-cinf push/bevel tuples with a separately declared owned cinf-0 provider in the existing source/built boundary harness; preserve default unknown rows and historical-provider limits (#221).

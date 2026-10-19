@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { borderWriter, boundarySizes, boundaryVariants, omittedDimensions } from './border-boundary-model.mjs';
+import { borderWriter, boundarySizes, tinyBoundarySizes, boundaryVariants, omittedDimensions } from './border-boundary-model.mjs';
 const opaque = () => 255;
 const at = (input, size, x, y, alpha = opaque, clip) => borderWriter(input, { width: size[0], height: size[1], clip }, x, y, alpha);
 test('reverse source model retains literal square corners and unequal-band overlap order', () => {
@@ -126,4 +126,28 @@ test('omitted empty-label dimensions pin modern width and the inclusive height t
     for (const [input, height] of [[6, 6], [20, 20], [28, 28], [29, 20], [74, 20]])
       assert.deepEqual(omittedDimensions(variant, input), [width, height]);
   }
+});
+
+
+test('tiny height plan deduplicates explicit cases and records unreachable width analogues', () => {
+  const plan = tinyBoundarySizes({ width: 9, height: 9, corner: 4, side: 1, tile: true }, 'push');
+  assert.deepEqual(plan.heights, [1, 2, 3, 4, 5, 7]);
+  assert.deepEqual(plan.sizes, [[24, 1], [24, 2], [24, 3], [24, 4], [24, 5], [24, 7]]);
+  assert.deepEqual(plan.unreachableWidths, plan.heights);
+  const thick = tinyBoundarySizes({ width: 21, height: 21, corner: 7, side: 14, tile: true }, 'bevel');
+  assert.ok(thick.heights.includes(27) && thick.heights.includes(28) && thick.heights.includes(29));
+  assert.deepEqual(thick.alreadyExplicit, [[16, 14], [16, 15], [16, 29]]);
+  assert.equal(new Set(thick.sizes.map(String)).size, thick.sizes.length);
+});
+
+test('one-pixel height retains negative bottom origins, masked earlier corners and no vertical middle', () => {
+  const thin = { width: 9, height: 9, corner: 4, side: 1, tile: true };
+  assert.deepEqual(at(thin, [24, 1], 0, 0), { region: 3, source: [0, 8], branch: 'copy' });
+  assert.deepEqual(at(thin, [24, 1], 0, 0, (x, y) => x === 0 && y === 8 ? 0 : 255),
+    { region: 0, source: [0, 0], branch: 'copy' });
+  assert.deepEqual(at(thin, [24, 1], 10, 0), { region: 5, source: [4, 8], branch: 'horizontal-lines' });
+  const thick = { ...thin, side: 3 };
+  assert.deepEqual(at(thick, [24, 2], 10, 0), { region: 5, source: [4, 7], branch: 'horizontal-lines' });
+  for (let y = 0; y < 2; y++) for (let x = 0; x < 24; x++) assert.ok(at(thick, [24, 2], x, y).region < 6);
+  assert.equal(solidBodyOrInitial(thick, { width: 24, height: 2 }, 10, 0, { displayRgb: [10, 20, 30] }).kind, 'initial');
 });

@@ -10,7 +10,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
     try {
       result = await page.evaluate(async ({ mode, input }) => {
         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-        const { boundaryVariants, boundarySizes, omittedDimensions, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
+        const { boundaryVariants, boundarySizes, tinyBoundarySizes, omittedDimensions, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
         const check = (value, message) => { if (!value) throw new Error(message); };
         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
@@ -183,13 +183,16 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               }
             }
             const plan = boundarySizes(model, variant.family), row = { variant, key, defaultDimensions, ...(consumed ? { consumed } : {}), status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
+            row.tinyPlan = tinyBoundarySizes(model, variant.family);
+            row.tinyCases = [];
             rows.push(row);
             const invocations = (pattern ? [false, true] : [false]).flatMap(knownPattern => plan.sizes.map(size => ({ knownPattern, size })));
             invocations.push({ knownPattern: false, size: defaultSize, prepared: omitted });
-            for (const { knownPattern, size: [width, height], prepared } of invocations) {
+            invocations.push(...row.tinyPlan.sizes.map(size => ({ knownPattern: false, size, tiny: true })));
+            for (const { knownPattern, size: [width, height], prepared, tiny } of invocations) {
               const { buffer, trace, context } = prepared ?? await compose(variant, width, height, knownPattern);
               const recordCase = summary => prepared ? Object.assign(row.defaultDimensions, summary)
-                : (knownPattern ? row.knownPatternCases : row.cases).push(summary);
+                : (tiny ? row.tinyCases : knownPattern ? row.knownPatternCases : row.cases).push(summary);
               const tile = knownPattern ? patternCache.get(pattern.key) : null;
               const patterned = knownPattern ? admitPatternBody({ mode: bodyInput.request.mode, context, width, height,
                 tileWidth: tile.width, tileHeight: tile.height, rgba: tile.data }) : null;
