@@ -1,0 +1,93 @@
+{
+  "id": "animals.inactive.a3a",
+  "requestId": "animals.inactive",
+  "status": "REGISTERED_AWAITING_INDEPENDENT_SCOPED_REVIEW",
+  "proposedScope": {
+    "id": "public-api-empty-face",
+    "version": 5
+  },
+  "conditions": {
+    "surface": "push-button",
+    "state": "inactive",
+    "defaultRing": false,
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "text": "",
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "imageSize": [
+      160,
+      80
+    ],
+    "scale": [
+      1,
+      1
+    ],
+    "cropPortRect": [
+      12,
+      12,
+      96,
+      36
+    ],
+    "cropImageRect": [
+      12,
+      12,
+      96,
+      36
+    ],
+    "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "enabled": false,
+    "windowActive": true
+  },
+  "source": {
+    "slug": "animals",
+    "path": "themes/animals/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+    "entryIndex": 0,
+    "entryName": "Animals/animals",
+    "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "animals"
+  },
+  "captureAt": "2026-10-19T14:18:20.163Z",
+  "image": "port.png",
+  "contextImage": "context.png",
+  "faceImage": "face.png",
+  "fullFrameImage": "full-frame.png",
+  "scopedIntakeReview": "PENDING independent root review",
+  "measuredProfile": {
+    "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+    "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
+    "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7"
+  },
+  "profileCalibration": "209 finite mappings independently reviewed; semantic device/palette/gamma/producer join supports bounded cross-run use. Whole-load inventory coverage is not actual pixel equality.",
+  "modernComparison": "NOT_RUN",
+  "ledgerAssessment": "NOT_PROPOSED",
+  "acquisitionEvidence": "acquisition.json",
+  "limits": [
+    "Shared scheme/OS/cache history; no cold-cache/state-order independence.",
+    "Counters are fixture activity, not private painter events; host frame not claimed uniquely bracketed by telemetry.",
+    "Transfer fork is loaded stopped seed; no guest transfer persistence claim.",
+    "Color calibration incomplete; no public reference admission/comparison/provider/phase/mask claim.",
+    "Earlier failed and successful single-state attempts preserved."
+  ]
+}

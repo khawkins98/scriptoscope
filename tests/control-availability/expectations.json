@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.0.6",
+  "inventoryVersion": "1.0.7",
   "reviewStatus": "reviewed",
   "scope": {
-    "description": "14 real archive cases and 13 synthetic direct/interactive cases; 26 reviewed API availability expectations and one explicit UNKNOWN. All unlisted combinations remain unknown.",
+    "description": "14 real archive cases and 13 synthetic direct/interactive cases; 27 finite API availability expectations. All unlisted combinations remain unknown.",
     "unlistedAvailability": "unknown",
     "wholeCorpusCompletion": "not claimed"
   },
@@ -11,7 +11,7 @@
   "sourceChoicesFile": "tests/control-availability/source-choices.json",
   "fixturesFile": "tests/control-availability/fixtures.json",
   "policy": {
-    "id": "compatibility-policy.v1-draft",
+    "id": "compatibility-policy.v2-canonical-first",
     "basis": "declared-public-api-policy",
     "historicalSelection": "not established by this policy",
     "rules": [
@@ -20,12 +20,16 @@
         "claim": "Resolve each owner before inheriting from its base; canonical child art outranks named base art."
       },
       {
+        "id": "canonical-first",
+        "claim": "Within each owner, asset-bearing exact signed state ID wins before named roles, regardless author label/key. Owner/base order remains an explicit modern policy."
+      },
+      {
         "id": "named-preference",
-        "claim": "A named role wins over canonical raw IDs within one owner; actual signed ID or null remains unchanged."
+        "claim": "When an owner has no asset-bearing exact negative state ID, named roles precede positive-ID aliases; actual signed ID or null remains unchanged."
       },
       {
         "id": "anti-role",
-        "claim": "Reject an author-labelled Solo Menu Background candidate on a face slot while seeking a safe face; this is an interpretation policy."
+        "claim": "Only positive-ID compatibility aliases may be rejected by role labels/keys; author labels never reject the exact negative source-dispatch ID."
       },
       {
         "id": "face-state-substitution",
@@ -455,9 +459,19 @@
             "ownerId": "theme.animals",
             "chainDepth": 0,
             "type": "cicn",
-            "signedId": -10238,
-            "sourceCinfId": -10238,
-            "manifestKey": "pressed-push-button"
+            "signedId": -10239,
+            "sourceCinfId": -10239,
+            "manifestKey": "solo-menu-background-2"
+          },
+          {
+            "role": "body-fill",
+            "usage": "paint",
+            "ownerId": "theme.animals",
+            "chainDepth": 0,
+            "type": "ppat",
+            "signedId": -12239,
+            "sourceCinfId": null,
+            "manifestKey": "ppat--12239"
           }
         ],
         "noPaintRoles": [
@@ -465,22 +479,17 @@
         ],
         "requiredDecisions": [
           {
-            "action": "rejected",
-            "reason": "anti-role-label",
+            "action": "selected",
+            "reason": "resource-id",
             "signedId": -10239,
-            "basis": "compatibility-policy"
-          },
-          {
-            "action": "fallback",
-            "reason": "active-to-pressed",
-            "basis": "compatibility-policy"
+            "basis": "source-dispatch"
           }
         ]
       },
       "policyRefs": [
         "canonical-push-states",
-        "anti-role",
-        "face-state-substitution",
+        "canonical-first",
+        "self-first",
         "plain-ring-reservation"
       ],
       "sourceEvidence": [
@@ -507,9 +516,36 @@
           "presence": "present",
           "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2",
           "byteLength": 18
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
+        },
+        {
+          "slug": "animals",
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "77915b3acb8858e3a3334d705428676d699f431d1d73bc7f8f14532ad44f9932",
+          "byteLength": 18
+        },
+        {
+          "slug": "animals",
+          "type": "ppat",
+          "signedId": -12239,
+          "presence": "present",
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f",
+          "byteLength": 454
         }
       ],
-      "notes": "Author labels establish names, not authoritative intent or dispatch: cicn -10239 is Solo Menu Background while same-ID cinf is Push Button. Rejection and pressed substitution are declared compatibility policy, not original-engine proof.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -541,9 +577,19 @@
             "ownerId": "theme.monkey-paradise",
             "chainDepth": 0,
             "type": "cicn",
-            "signedId": -10238,
-            "sourceCinfId": -10238,
-            "manifestKey": "pressed-push-button"
+            "signedId": -10239,
+            "sourceCinfId": -10239,
+            "manifestKey": "solo-menu-background-2"
+          },
+          {
+            "role": "body-fill",
+            "usage": "paint",
+            "ownerId": "theme.monkey-paradise",
+            "chainDepth": 0,
+            "type": "ppat",
+            "signedId": 128,
+            "sourceCinfId": null,
+            "manifestKey": "ppat-128"
           }
         ],
         "noPaintRoles": [
@@ -551,22 +597,17 @@
         ],
         "requiredDecisions": [
           {
-            "action": "rejected",
-            "reason": "anti-role-label",
+            "action": "selected",
+            "reason": "resource-id",
             "signedId": -10239,
-            "basis": "compatibility-policy"
-          },
-          {
-            "action": "fallback",
-            "reason": "active-to-pressed",
-            "basis": "compatibility-policy"
+            "basis": "source-dispatch"
           }
         ]
       },
       "policyRefs": [
         "canonical-push-states",
-        "anti-role",
-        "face-state-substitution",
+        "canonical-first",
+        "self-first",
         "plain-ring-reservation"
       ],
       "sourceEvidence": [
@@ -593,9 +634,36 @@
           "presence": "present",
           "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2",
           "byteLength": 18
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
+        },
+        {
+          "slug": "monkey-paradise",
+          "type": "cinf",
+          "signedId": -10239,
+          "presence": "present",
+          "payloadSha256": "e1439cb976e79d782327a62c405aa8ae7abd3de3ae41b5788f609eb7f1099396",
+          "byteLength": 18
+        },
+        {
+          "slug": "monkey-paradise",
+          "type": "ppat",
+          "signedId": 128,
+          "presence": "present",
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f",
+          "byteLength": 454
         }
       ],
-      "notes": "Author labels establish names, not authoritative intent or dispatch: cicn -10239 is Solo Menu Background while same-ID cinf is Push Button. Rejection and pressed substitution are declared compatibility policy, not original-engine proof.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -672,7 +740,7 @@
           "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
-          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         },
         {
           "slug": "windows-95",
@@ -781,7 +849,7 @@
           "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
-          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a",
           "addressRange": [
             "0x76d2",
             "0x76fe"
@@ -881,7 +949,7 @@
           "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
           "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
           "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
-          "detailDocumentSha256": "f43aab1243ae59befeadedb6ff91c7b5727a9326d38ba2d2c6c89b73c44d152b"
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         },
         {
           "slug": "windows-95",
@@ -1226,12 +1294,12 @@
           {
             "role": "face",
             "usage": "paint",
-            "ownerId": "base",
-            "chainDepth": 1,
+            "ownerId": "child",
+            "chainDepth": 0,
             "type": "cicn",
             "signedId": -10239,
             "sourceCinfId": null,
-            "manifestKey": "push-button-active"
+            "manifestKey": "cicn--10239"
           }
         ],
         "noPaintRoles": [
@@ -1239,24 +1307,36 @@
         ],
         "requiredDecisions": [
           {
-            "action": "rejected",
-            "reason": "anti-role-label",
+            "action": "selected",
+            "reason": "resource-id",
             "signedId": -10239,
-            "basis": "compatibility-policy"
+            "basis": "source-dispatch"
           }
         ]
       },
       "policyRefs": [
-        "self-first",
-        "anti-role"
+        "canonical-push-states",
+        "canonical-first",
+        "self-first"
       ],
       "sourceEvidence": [
         {
           "fixture": "child-repurposed",
           "sha256": "9356aee3a5aa304e1aaab284f98f51b932c5d25dee6e5cfb783f21e545b470c7"
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         }
       ],
-      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -1288,26 +1368,46 @@
             "ownerId": "child",
             "chainDepth": 0,
             "type": "cicn",
-            "signedId": -123,
+            "signedId": -10239,
             "sourceCinfId": null,
-            "manifestKey": "push-button-active"
+            "manifestKey": "cicn--10239"
           }
         ],
         "noPaintRoles": [
           "default-ring"
         ],
-        "requiredDecisions": []
+        "requiredDecisions": [
+          {
+            "action": "selected",
+            "reason": "resource-id",
+            "signedId": -10239,
+            "basis": "source-dispatch"
+          }
+        ]
       },
       "policyRefs": [
-        "named-preference"
+        "canonical-push-states",
+        "canonical-first",
+        "self-first"
       ],
       "sourceEvidence": [
         {
           "fixture": "named-preference",
           "sha256": "1befbfc4adeb41a9db1191d211ae4c7f91605549239d9da181f8884871b5bebe"
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         }
       ],
-      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -1390,9 +1490,9 @@
             "ownerId": "child",
             "chainDepth": 0,
             "type": "cicn",
-            "signedId": -10238,
+            "signedId": -10239,
             "sourceCinfId": null,
-            "manifestKey": "pressed-push-button"
+            "manifestKey": "cicn--10239"
           }
         ],
         "noPaintRoles": [
@@ -1400,23 +1500,36 @@
         ],
         "requiredDecisions": [
           {
-            "action": "fallback",
-            "reason": "active-to-pressed",
-            "basis": "compatibility-policy"
+            "action": "selected",
+            "reason": "resource-id",
+            "signedId": -10239,
+            "basis": "source-dispatch"
           }
         ]
       },
       "policyRefs": [
-        "anti-role",
-        "face-state-substitution"
+        "canonical-push-states",
+        "canonical-first",
+        "self-first"
       ],
       "sourceEvidence": [
         {
           "fixture": "active-to-pressed",
           "sha256": "0ab857a399e1d65f77863343aeca076bab8f6596c65da1a802affa144944d953"
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         }
       ],
-      "notes": "Synthetic policy acceptance only; not original-engine selection truth.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -1613,7 +1726,7 @@
     {
       "id": "synthetic.raw-repurposed-only",
       "reviewStatus": "reviewed",
-      "effectiveAvailability": "unknown",
+      "effectiveAvailability": "themed",
       "mode": "direct",
       "family": "push-button",
       "input": "fixture.raw-repurposed-only",
@@ -1626,15 +1739,55 @@
         "disabled": false,
         "default": false
       },
-      "proposed": null,
-      "policyRefs": [],
+      "proposed": {
+        "outcome": "themed",
+        "paint": [
+          {
+            "role": "face",
+            "usage": "paint",
+            "ownerId": "child",
+            "chainDepth": 0,
+            "type": "cicn",
+            "signedId": -10239,
+            "sourceCinfId": null,
+            "manifestKey": "cicn--10239"
+          }
+        ],
+        "noPaintRoles": [
+          "default-ring"
+        ],
+        "requiredDecisions": [
+          {
+            "action": "selected",
+            "reason": "resource-id",
+            "signedId": -10239,
+            "basis": "source-dispatch"
+          }
+        ]
+      },
+      "policyRefs": [
+        "canonical-push-states",
+        "canonical-first",
+        "self-first"
+      ],
       "sourceEvidence": [
         {
           "fixture": "raw-repurposed-only",
           "sha256": "b74c4eb1c587347c1d75776964ee8ed766dcc00f60afb6259339b1e27085f34a"
+        },
+        {
+          "engine": "Kaleidoscope2.3.1-kDEF0",
+          "addresses": [
+            "0x758e"
+          ],
+          "document": "docs/spec/kdef231-reference.md",
+          "documentSha256": "b0fda725b1f989d4f926e126cb18361825c0c917c6cf37e96b2c2acfcede44f6",
+          "engineSha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+          "detailDocument": "tests/control-availability/SOURCE-EVIDENCE.md",
+          "detailDocumentSha256": "7bf7a2459cd0ab46318cc56472271d0587a0bd0eb429a6ef6f297fd2c8d5a13a"
         }
       ],
-      "notes": "UNKNOWN/policy-pending: final raw-ID escape may reselect rejected art. Do not bless observed behavior as availability truth.",
+      "notes": "Exact signed normal ID -10239 resolves despite friendly label/key or competing named art. Synthetic case IDs retain their historical spelling. This is finite API selection/availability, not original provider or pixel-fidelity certification.",
       "exclusions": [
         "pixel fidelity",
         "historical whole-control selection",
@@ -1736,7 +1889,7 @@
     {
       "slug": "1984",
       "archiveSha256": "1fbf62f376ad4f7277ea8cd87cf379c7ea71382e84d83f88e96d5c6502022c21",
-      "entryName": "1984 �/1984",
+      "entryName": "1984 \ufffd/1984",
       "entryIndex": 0,
       "forkSha256": "f086875e048980d1a7523b949000bc37daf3e22848c97230c107c4b426eba873",
       "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
@@ -1828,7 +1981,7 @@
     {
       "slug": "floppies",
       "archiveSha256": "45557a8b2eae7419b5175c02f46363b9edb2efe2cdf109ef1bf70806acadf5c9",
-      "entryName": "Floppies! �/Floppies!",
+      "entryName": "Floppies! \ufffd/Floppies!",
       "entryIndex": 0,
       "forkSha256": "5121774b5594cd660965b77e4e71d5ef9d24e82023fd80b8a11c7cca335bd062",
       "unlistedFamiliesStatesOptionsAndBaseChains": "unknown",
@@ -1905,7 +2058,7 @@
       ]
     }
   ],
-  "inventorySha256": "d40a5e489a8a74047dedaf3c003730be84d9b6d708dc385d0c53afb020b6b0d6",
+  "inventorySha256": "fde472f13748fbe83e53b04a6777dadaa843dc1e7ae8883fdceed59f1f8eab12",
   "engineEvidence": {
     "id": "Kaleidoscope2.3.1-kDEF0",
     "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
@@ -1914,7 +2067,8 @@
     "extractionReference": "docs/spec/kdef-binary-inventory.md",
     "dispatchReference": "docs/spec/kdef231-reference.md",
     "addresses": [
-      "0x76c4"
+      "0x76c4",
+      "0x758e"
     ],
     "executed": false,
     "detailReference": "tests/control-availability/SOURCE-EVIDENCE.md",
@@ -1929,65 +2083,74 @@
   "review": {
     "date": "2026-10-19",
     "reviewers": [
-      "frontend_performance_review: independent automated hash-only review at c77e7e64; exact 27 cases retained apart from three document hashes, not original provider or pixel-fidelity approval"
+      "root: independent automated numeric-dispatch and six-case expectation review, plus exact two raw cinf mode2/ppat dependency additions at digest fde472f1 on 2026-10-19; no whole-control fidelity or original provider approval"
     ],
-    "inventoryVersion": "1.0.6",
-    "inventorySha256": "d40a5e489a8a74047dedaf3c003730be84d9b6d708dc385d0c53afb020b6b0d6",
-    "transition": "Only three source-document hashes changed after correcting the CICN mixed-state selector description. All 27 case inputs, outcomes, detailed source evidence and ring dispatch claims remain exact; no availability or fidelity promotion.",
+    "inventoryVersion": "1.0.7",
+    "inventorySha256": "fde472f13748fbe83e53b04a6777dadaa843dc1e7ae8883fdceed59f1f8eab12",
+    "transition": "Canonical negative push ID precedes friendly names and label heuristics: six exact case selections revised, including raw-only UNKNOWN to themed; all fixture/input bytes unchanged. No original pixel, provider or ledger promotion. Three prior ring detail-document hashes refresh after the source-note addition; ring claims unchanged. Normal Animals/Monkey also declare their independently raw-cinf-bound same-owner ppats; no body dependency is omitted.",
     "previousReview": {
       "date": "2026-10-19",
       "reviewers": [
-        "root: independent automated hash-only availability transition review; ring dispatch claims and exact cases retained, not original provider or pixel-fidelity approval"
+        "frontend_performance_review: independent automated hash-only review at c77e7e64; exact 27 cases retained apart from three document hashes, not original provider or pixel-fidelity approval"
       ],
-      "inventoryVersion": "1.0.5",
-      "inventorySha256": "409b8b6254e5ec0d6baf7d653fbbe35d712632ac7e24d0dd9cc8f67967642882",
-      "transition": "Only three full-document source hashes changed after correcting A9A0 to GetResource and documenting conditional cinf lookup. Ring dispatch at 0x76c4/0x76d2–0x76fe, detailed source evidence, all 27 exact inputs/outcomes and payload pins are unchanged.",
+      "inventoryVersion": "1.0.6",
+      "inventorySha256": "d40a5e489a8a74047dedaf3c003730be84d9b6d708dc385d0c53afb020b6b0d6",
+      "transition": "Only three source-document hashes changed after correcting the CICN mixed-state selector description. All 27 case inputs, outcomes, detailed source evidence and ring dispatch claims remain exact; no availability or fidelity promotion.",
       "previousReview": {
-        "date": "2026-10-18",
+        "date": "2026-10-19",
         "reviewers": [
-          "root: independent automated hash-only availability transition review; exact cases and prior review preserved, not original-fidelity approval"
+          "root: independent automated hash-only availability transition review; ring dispatch claims and exact cases retained, not original provider or pixel-fidelity approval"
         ],
-        "inventoryVersion": "1.0.4",
-        "inventorySha256": "b8d4dd10cef45c6128887e7df571d0067da29ac6c2b2a35a9af10a6c015541cd",
-        "transition": "Only three full-document source hashes changed after distinguishing the compatibility column helper from the separately sourced bounded whole-header surface. All 27 case inputs, source identities, expected outcomes and prior review are unchanged; no header availability or fidelity assessment is added.",
+        "inventoryVersion": "1.0.5",
+        "inventorySha256": "409b8b6254e5ec0d6baf7d653fbbe35d712632ac7e24d0dd9cc8f67967642882",
+        "transition": "Only three full-document source hashes changed after correcting A9A0 to GetResource and documenting conditional cinf lookup. Ring dispatch at 0x76c4/0x76d2\u20130x76fe, detailed source evidence, all 27 exact inputs/outcomes and payload pins are unchanged.",
         "previousReview": {
           "date": "2026-10-18",
           "reviewers": [
             "root: independent automated hash-only availability transition review; exact cases and prior review preserved, not original-fidelity approval"
           ],
-          "inventoryVersion": "1.0.3",
-          "inventorySha256": "37412eb6c820f06585f7aed82562a0b6679977fac6463ff546e1cf7a76b88d1b",
-          "transition": "Only three full-document source hashes changed after reconciling pattern/text summaries and implementing supported raw solid-background consumption. Exact API inputs, source payload identities, ring source addresses and all expected policy outcomes are unchanged.",
+          "inventoryVersion": "1.0.4",
+          "inventorySha256": "b8d4dd10cef45c6128887e7df571d0067da29ac6c2b2a35a9af10a6c015541cd",
+          "transition": "Only three full-document source hashes changed after distinguishing the compatibility column helper from the separately sourced bounded whole-header surface. All 27 case inputs, source identities, expected outcomes and prior review are unchanged; no header availability or fidelity assessment is added.",
           "previousReview": {
             "date": "2026-10-18",
             "reviewers": [
-              "root: independent source and policy review",
-              "Astra architecture: independent source identity and dispatch review"
+              "root: independent automated hash-only availability transition review; exact cases and prior review preserved, not original-fidelity approval"
             ],
-            "inventoryVersion": "1.0.2",
-            "inventorySha256": "d0ddff1c4b0ceb303efae5143198a31b73a17b74f55e179cd3d068bf667af07f",
-            "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-            "transition": "Only three source-evidence document hashes changed after correcting the push DeviceLoop callback fp18 from variation code to device depth. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+            "inventoryVersion": "1.0.3",
+            "inventorySha256": "37412eb6c820f06585f7aed82562a0b6679977fac6463ff546e1cf7a76b88d1b",
+            "transition": "Only three full-document source hashes changed after reconciling pattern/text summaries and implementing supported raw solid-background consumption. Exact API inputs, source payload identities, ring source addresses and all expected policy outcomes are unchanged.",
             "previousReview": {
               "date": "2026-10-18",
               "reviewers": [
                 "root: independent source and policy review",
                 "Astra architecture: independent source identity and dispatch review"
               ],
-              "inventoryVersion": "1.0.1",
-              "inventorySha256": "18780e634b364e281f24dab8b5f470d84ee6b8a7b58d5c853dbbbe8438ec9652",
+              "inventoryVersion": "1.0.2",
+              "inventorySha256": "d0ddff1c4b0ceb303efae5143198a31b73a17b74f55e179cd3d068bf667af07f",
               "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-              "transition": "Only three source-evidence document hashes changed after the cinf body/trap documentation correction. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+              "transition": "Only three source-evidence document hashes changed after correcting the push DeviceLoop callback fp18 from variation code to device depth. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
               "previousReview": {
                 "date": "2026-10-18",
                 "reviewers": [
                   "root: independent source and policy review",
                   "Astra architecture: independent source identity and dispatch review"
                 ],
-                "inventoryVersion": "1.0.0",
-                "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+                "inventoryVersion": "1.0.1",
+                "inventorySha256": "18780e634b364e281f24dab8b5f470d84ee6b8a7b58d5c853dbbbe8438ec9652",
                 "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
-                "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+                "transition": "Only three source-evidence document hashes changed after the cinf body/trap documentation correction. Exact API inputs, source payload identities, ring dispatch addresses and expected policy outcomes are unchanged.",
+                "previousReview": {
+                  "date": "2026-10-18",
+                  "reviewers": [
+                    "root: independent source and policy review",
+                    "Astra architecture: independent source identity and dispatch review"
+                  ],
+                  "inventoryVersion": "1.0.0",
+                  "inventorySha256": "3d4c2b6908157c510f8b5731b8bb0159260c5fa44156e0f3c057aa42430e0d97",
+                  "reviewedDraftSha256": "410f07d1c8098aa352d3f2d5aff9b3eeb65ab060369e021e5d46fa8bb962de7a",
+                  "transition": "Only case reviewStatus and effectiveAvailability changed from the approved draft; exact inputs, identities and policy expectations are unchanged."
+                }
               }
             }
           }

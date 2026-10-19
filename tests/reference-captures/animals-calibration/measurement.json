@@ -1,0 +1,8286 @@
+{
+  "version": 1,
+  "status": "REVIEWED_FINITE_CALIBRATION_NOT_PIXEL_EQUALITY",
+  "nativeTelemetry": {
+    "sha256": "920c98b8feb202a1f869cca453e2c87546f715aec7c5dca3551c3fbd652d7cfd",
+    "bytes": 70125,
+    "encoding": "MacRoman CR",
+    "filename": "A209-00002135-001.txt"
+  },
+  "fixture": {
+    "sourceSha256": "1bade05ebe3faa4b42fd4443927f57d32fa0112928f60a51c6c69a96b87c331d",
+    "compiledStoppedFixtureForkSha256": "88fd6895467c78c617c6a9430b02cf98b96a0bb6fd83812cf52e3ab82d8831ce",
+    "configuredForkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+    "installedEngineForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+    "actualDefinitionWrappersExact": true,
+    "configuredCoplFCB": "ref2728, animals, volume -2, parent2, file20"
+  },
+  "producer": {
+    "reference.ts": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+    "emulator-worker.ts": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc",
+    "emulator-input.ts": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5",
+    "BasiliskII.js": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b",
+    "BasiliskII.wasm": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb",
+    "Quadra-650.rom": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+  },
+  "conditions": {
+    "name": "a209-animals-main-indexed8-finite209",
+    "status": "QUARANTINED_PARTIAL",
+    "fixtureNonce": "A209-420e60d508",
+    "systemVersion": "7.5.5",
+    "configuredScheme": {
+      "slug": "animals",
+      "path": "themes/animals/scheme.sit",
+      "format": "sit",
+      "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "entryIndex": 0,
+      "entryName": "Animals/animals",
+      "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "selectionReviewStatus": "reviewed-contract-input",
+      "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
+      "selectionReviewEvidence": "animals"
+    },
+    "device": {
+      "currentEqualsMain": true,
+      "depth": 8,
+      "pixelType": 0,
+      "gdType": 0,
+      "gdRefNum": -49,
+      "bounds": [
+        0,
+        0,
+        640,
+        480
+      ]
+    },
+    "palette": {
+      "seed": 1023,
+      "flags": 32768,
+      "entryCount": 256,
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+    },
+    "gamma": {
+      "header": [
+        0,
+        0,
+        0,
+        1,
+        256,
+        8
+      ],
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+    },
+    "timing": "Conditions bracket mapping AFTER normal draw; state observations bracket Draw1Control/HiliteControl in a separate run.",
+    "scope": "Exact 209 measured joint RGB16 inputs only; current converter whole-load inventory, including fixed icon RGB8 times 257 compatibility inputs.",
+    "limits": [
+      "Conditions bracket Color2Index/Index2Color mapping AFTER face draw, not the draw itself.",
+      "Different fixture/run/preboot images and timestamps; shared semantic device/palette/gamma/producer equality is measured, not identical full environment.",
+      "Calibration retains the reviewed v16 font serialization without widMax; three-state logs additionally report widMax=14. Shared named font fields match; no cross-run complete font/provider identity is claimed.",
+      "Original cache state, active provider/patch order, mapping internals, and pattern origin remain unknown.",
+      "Observed finite mappings only; no interpolation, universal transfer proof, or original selected painter/provider proof.",
+      "Three-state face pixel comparison is still required; no equality, ledger or scoped intake promotion by this review.",
+      "Explicit worker poweroff acknowledgment remains unknown; transfer source is loaded seed, not guest persistence proof.",
+      "Caller-selected measured compatibility profile; not original provider or universal device-transfer certification."
+    ]
+  },
+  "mappingRows": [
+    {
+      "line": 157,
+      "batch": 1,
+      "sample": 0,
+      "rgb16": [
+        0,
+        0,
+        0
+      ],
+      "deviceIndex": 255,
+      "deviceRgb16": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 158,
+      "batch": 1,
+      "sample": 1,
+      "rgb16": [
+        0,
+        0,
+        17476
+      ],
+      "deviceIndex": 242,
+      "deviceRgb16": [
+        0,
+        0,
+        17476
+      ]
+    },
+    {
+      "line": 159,
+      "batch": 1,
+      "sample": 2,
+      "rgb16": [
+        0,
+        0,
+        21845
+      ],
+      "deviceIndex": 241,
+      "deviceRgb16": [
+        0,
+        0,
+        21845
+      ]
+    },
+    {
+      "line": 160,
+      "batch": 1,
+      "sample": 3,
+      "rgb16": [
+        0,
+        0,
+        26214
+      ],
+      "deviceIndex": 213,
+      "deviceRgb16": [
+        0,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 161,
+      "batch": 1,
+      "sample": 4,
+      "rgb16": [
+        0,
+        0,
+        34952
+      ],
+      "deviceIndex": 239,
+      "deviceRgb16": [
+        0,
+        0,
+        34952
+      ]
+    },
+    {
+      "line": 162,
+      "batch": 1,
+      "sample": 5,
+      "rgb16": [
+        0,
+        0,
+        54227
+      ],
+      "deviceIndex": 236,
+      "deviceRgb16": [
+        0,
+        0,
+        56797
+      ]
+    },
+    {
+      "line": 163,
+      "batch": 1,
+      "sample": 6,
+      "rgb16": [
+        0,
+        0,
+        56797
+      ],
+      "deviceIndex": 236,
+      "deviceRgb16": [
+        0,
+        0,
+        56797
+      ]
+    },
+    {
+      "line": 164,
+      "batch": 1,
+      "sample": 7,
+      "rgb16": [
+        0,
+        0,
+        65535
+      ],
+      "deviceIndex": 210,
+      "deviceRgb16": [
+        0,
+        0,
+        65535
+      ]
+    },
+    {
+      "line": 165,
+      "batch": 1,
+      "sample": 8,
+      "rgb16": [
+        0,
+        4369,
+        0
+      ],
+      "deviceIndex": 234,
+      "deviceRgb16": [
+        0,
+        4369,
+        0
+      ]
+    },
+    {
+      "line": 166,
+      "batch": 1,
+      "sample": 9,
+      "rgb16": [
+        0,
+        8738,
+        0
+      ],
+      "deviceIndex": 233,
+      "deviceRgb16": [
+        0,
+        8738,
+        0
+      ]
+    },
+    {
+      "line": 167,
+      "batch": 1,
+      "sample": 10,
+      "rgb16": [
+        0,
+        13107,
+        26214
+      ],
+      "deviceIndex": 207,
+      "deviceRgb16": [
+        0,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 168,
+      "batch": 1,
+      "sample": 11,
+      "rgb16": [
+        0,
+        13107,
+        39321
+      ],
+      "deviceIndex": 206,
+      "deviceRgb16": [
+        0,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 169,
+      "batch": 1,
+      "sample": 12,
+      "rgb16": [
+        0,
+        13107,
+        52428
+      ],
+      "deviceIndex": 205,
+      "deviceRgb16": [
+        0,
+        13107,
+        52428
+      ]
+    },
+    {
+      "line": 170,
+      "batch": 1,
+      "sample": 13,
+      "rgb16": [
+        0,
+        13107,
+        65535
+      ],
+      "deviceIndex": 204,
+      "deviceRgb16": [
+        0,
+        13107,
+        65535
+      ]
+    },
+    {
+      "line": 171,
+      "batch": 1,
+      "sample": 14,
+      "rgb16": [
+        0,
+        17476,
+        0
+      ],
+      "deviceIndex": 232,
+      "deviceRgb16": [
+        0,
+        17476,
+        0
+      ]
+    },
+    {
+      "line": 172,
+      "batch": 1,
+      "sample": 15,
+      "rgb16": [
+        0,
+        21845,
+        0
+      ],
+      "deviceIndex": 231,
+      "deviceRgb16": [
+        0,
+        21845,
+        0
+      ]
+    },
+    {
+      "line": 173,
+      "batch": 1,
+      "sample": 16,
+      "rgb16": [
+        0,
+        25700,
+        4626
+      ],
+      "deviceIndex": 203,
+      "deviceRgb16": [
+        0,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 174,
+      "batch": 1,
+      "sample": 17,
+      "rgb16": [
+        0,
+        26214,
+        0
+      ],
+      "deviceIndex": 203,
+      "deviceRgb16": [
+        0,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 175,
+      "batch": 1,
+      "sample": 18,
+      "rgb16": [
+        0,
+        26214,
+        52428
+      ],
+      "deviceIndex": 199,
+      "deviceRgb16": [
+        0,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 176,
+      "batch": 1,
+      "sample": 19,
+      "rgb16": [
+        0,
+        26214,
+        65535
+      ],
+      "deviceIndex": 198,
+      "deviceRgb16": [
+        0,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 177,
+      "batch": 1,
+      "sample": 20,
+      "rgb16": [
+        0,
+        30583,
+        0
+      ],
+      "deviceIndex": 230,
+      "deviceRgb16": [
+        0,
+        30583,
+        0
+      ]
+    },
+    {
+      "line": 178,
+      "batch": 1,
+      "sample": 21,
+      "rgb16": [
+        0,
+        34952,
+        0
+      ],
+      "deviceIndex": 229,
+      "deviceRgb16": [
+        0,
+        34952,
+        0
+      ]
+    },
+    {
+      "line": 179,
+      "batch": 1,
+      "sample": 22,
+      "rgb16": [
+        0,
+        39321,
+        13107
+      ],
+      "deviceIndex": 196,
+      "deviceRgb16": [
+        0,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 180,
+      "batch": 1,
+      "sample": 23,
+      "rgb16": [
+        0,
+        39321,
+        65535
+      ],
+      "deviceIndex": 192,
+      "deviceRgb16": [
+        0,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 181,
+      "batch": 1,
+      "sample": 24,
+      "rgb16": [
+        0,
+        43690,
+        0
+      ],
+      "deviceIndex": 228,
+      "deviceRgb16": [
+        0,
+        43690,
+        0
+      ]
+    },
+    {
+      "line": 182,
+      "batch": 1,
+      "sample": 25,
+      "rgb16": [
+        0,
+        48059,
+        0
+      ],
+      "deviceIndex": 227,
+      "deviceRgb16": [
+        0,
+        48059,
+        0
+      ]
+    },
+    {
+      "line": 183,
+      "batch": 1,
+      "sample": 26,
+      "rgb16": [
+        0,
+        52428,
+        0
+      ],
+      "deviceIndex": 191,
+      "deviceRgb16": [
+        0,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 184,
+      "batch": 1,
+      "sample": 27,
+      "rgb16": [
+        0,
+        56797,
+        0
+      ],
+      "deviceIndex": 226,
+      "deviceRgb16": [
+        0,
+        56797,
+        0
+      ]
+    },
+    {
+      "line": 185,
+      "batch": 1,
+      "sample": 28,
+      "rgb16": [
+        0,
+        65535,
+        65535
+      ],
+      "deviceIndex": 180,
+      "deviceRgb16": [
+        0,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 186,
+      "batch": 1,
+      "sample": 29,
+      "rgb16": [
+        514,
+        43947,
+        60138
+      ],
+      "deviceIndex": 192,
+      "deviceRgb16": [
+        0,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 187,
+      "batch": 1,
+      "sample": 30,
+      "rgb16": [
+        4369,
+        0,
+        0
+      ],
+      "deviceIndex": 224,
+      "deviceRgb16": [
+        4369,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 188,
+      "batch": 1,
+      "sample": 31,
+      "rgb16": [
+        4369,
+        4369,
+        4369
+      ],
+      "deviceIndex": 254,
+      "deviceRgb16": [
+        4369,
+        4369,
+        4369
+      ]
+    },
+    {
+      "line": 189,
+      "batch": 1,
+      "sample": 32,
+      "rgb16": [
+        7967,
+        47031,
+        5140
+      ],
+      "deviceIndex": 227,
+      "deviceRgb16": [
+        0,
+        48059,
+        0
+      ]
+    },
+    {
+      "line": 190,
+      "batch": 1,
+      "sample": 33,
+      "rgb16": [
+        8192,
+        8192,
+        8192
+      ],
+      "deviceIndex": 253,
+      "deviceRgb16": [
+        8738,
+        8738,
+        8738
+      ]
+    },
+    {
+      "line": 191,
+      "batch": 1,
+      "sample": 34,
+      "rgb16": [
+        8738,
+        0,
+        0
+      ],
+      "deviceIndex": 223,
+      "deviceRgb16": [
+        8738,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 192,
+      "batch": 1,
+      "sample": 35,
+      "rgb16": [
+        8738,
+        8738,
+        8738
+      ],
+      "deviceIndex": 253,
+      "deviceRgb16": [
+        8738,
+        8738,
+        8738
+      ]
+    },
+    {
+      "line": 193,
+      "batch": 1,
+      "sample": 36,
+      "rgb16": [
+        12288,
+        4096,
+        8192
+      ],
+      "deviceIndex": 178,
+      "deviceRgb16": [
+        13107,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 194,
+      "batch": 1,
+      "sample": 37,
+      "rgb16": [
+        12288,
+        12288,
+        16384
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 195,
+      "batch": 1,
+      "sample": 38,
+      "rgb16": [
+        13107,
+        0,
+        0
+      ],
+      "deviceIndex": 179,
+      "deviceRgb16": [
+        13107,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 196,
+      "batch": 1,
+      "sample": 39,
+      "rgb16": [
+        13107,
+        0,
+        13107
+      ],
+      "deviceIndex": 178,
+      "deviceRgb16": [
+        13107,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 197,
+      "batch": 1,
+      "sample": 40,
+      "rgb16": [
+        13107,
+        0,
+        39321
+      ],
+      "deviceIndex": 176,
+      "deviceRgb16": [
+        13107,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 198,
+      "batch": 1,
+      "sample": 41,
+      "rgb16": [
+        13107,
+        13107,
+        0
+      ],
+      "deviceIndex": 173,
+      "deviceRgb16": [
+        13107,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 199,
+      "batch": 1,
+      "sample": 42,
+      "rgb16": [
+        13107,
+        13107,
+        13107
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 200,
+      "batch": 1,
+      "sample": 43,
+      "rgb16": [
+        13107,
+        13107,
+        26214
+      ],
+      "deviceIndex": 171,
+      "deviceRgb16": [
+        13107,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 201,
+      "batch": 1,
+      "sample": 44,
+      "rgb16": [
+        13107,
+        13107,
+        39321
+      ],
+      "deviceIndex": 170,
+      "deviceRgb16": [
+        13107,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 202,
+      "batch": 1,
+      "sample": 45,
+      "rgb16": [
+        13107,
+        26214,
+        0
+      ],
+      "deviceIndex": 167,
+      "deviceRgb16": [
+        13107,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 203,
+      "batch": 1,
+      "sample": 46,
+      "rgb16": [
+        13107,
+        26214,
+        13107
+      ],
+      "deviceIndex": 166,
+      "deviceRgb16": [
+        13107,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 204,
+      "batch": 1,
+      "sample": 47,
+      "rgb16": [
+        13107,
+        26214,
+        26214
+      ],
+      "deviceIndex": 165,
+      "deviceRgb16": [
+        13107,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 205,
+      "batch": 1,
+      "sample": 48,
+      "rgb16": [
+        13107,
+        26214,
+        52428
+      ],
+      "deviceIndex": 163,
+      "deviceRgb16": [
+        13107,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 206,
+      "batch": 1,
+      "sample": 49,
+      "rgb16": [
+        13107,
+        26214,
+        65535
+      ],
+      "deviceIndex": 162,
+      "deviceRgb16": [
+        13107,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 207,
+      "batch": 1,
+      "sample": 50,
+      "rgb16": [
+        13107,
+        39321,
+        0
+      ],
+      "deviceIndex": 161,
+      "deviceRgb16": [
+        13107,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 208,
+      "batch": 1,
+      "sample": 51,
+      "rgb16": [
+        13107,
+        39321,
+        13107
+      ],
+      "deviceIndex": 160,
+      "deviceRgb16": [
+        13107,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 209,
+      "batch": 1,
+      "sample": 52,
+      "rgb16": [
+        13107,
+        39321,
+        26214
+      ],
+      "deviceIndex": 159,
+      "deviceRgb16": [
+        13107,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 210,
+      "batch": 1,
+      "sample": 53,
+      "rgb16": [
+        13107,
+        39321,
+        65535
+      ],
+      "deviceIndex": 156,
+      "deviceRgb16": [
+        13107,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 211,
+      "batch": 1,
+      "sample": 54,
+      "rgb16": [
+        13107,
+        52428,
+        0
+      ],
+      "deviceIndex": 155,
+      "deviceRgb16": [
+        13107,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 212,
+      "batch": 1,
+      "sample": 55,
+      "rgb16": [
+        13107,
+        52428,
+        13107
+      ],
+      "deviceIndex": 154,
+      "deviceRgb16": [
+        13107,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 213,
+      "batch": 1,
+      "sample": 56,
+      "rgb16": [
+        13107,
+        52428,
+        26214
+      ],
+      "deviceIndex": 153,
+      "deviceRgb16": [
+        13107,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 214,
+      "batch": 1,
+      "sample": 57,
+      "rgb16": [
+        13107,
+        65535,
+        13107
+      ],
+      "deviceIndex": 148,
+      "deviceRgb16": [
+        13107,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 215,
+      "batch": 1,
+      "sample": 58,
+      "rgb16": [
+        13107,
+        65535,
+        39321
+      ],
+      "deviceIndex": 146,
+      "deviceRgb16": [
+        13107,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 216,
+      "batch": 1,
+      "sample": 59,
+      "rgb16": [
+        14336,
+        14336,
+        14336
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 217,
+      "batch": 1,
+      "sample": 60,
+      "rgb16": [
+        14592,
+        11776,
+        5888
+      ],
+      "deviceIndex": 173,
+      "deviceRgb16": [
+        13107,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 218,
+      "batch": 1,
+      "sample": 61,
+      "rgb16": [
+        16448,
+        16448,
+        16448
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 219,
+      "batch": 1,
+      "sample": 62,
+      "rgb16": [
+        17408,
+        17408,
+        17408
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 220,
+      "batch": 1,
+      "sample": 63,
+      "rgb16": [
+        17476,
+        0,
+        0
+      ],
+      "deviceIndex": 222,
+      "deviceRgb16": [
+        17476,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 221,
+      "batch": 1,
+      "sample": 64,
+      "rgb16": [
+        17476,
+        17476,
+        17476
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 222,
+      "batch": 1,
+      "sample": 65,
+      "rgb16": [
+        17920,
+        17920,
+        17920
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 223,
+      "batch": 1,
+      "sample": 66,
+      "rgb16": [
+        18247,
+        0,
+        42405
+      ],
+      "deviceIndex": 176,
+      "deviceRgb16": [
+        13107,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 224,
+      "batch": 1,
+      "sample": 67,
+      "rgb16": [
+        19456,
+        19456,
+        19456
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 225,
+      "batch": 1,
+      "sample": 68,
+      "rgb16": [
+        20480,
+        16384,
+        8192
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 226,
+      "batch": 1,
+      "sample": 69,
+      "rgb16": [
+        20736,
+        16640,
+        8192
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 227,
+      "batch": 1,
+      "sample": 70,
+      "rgb16": [
+        21845,
+        0,
+        0
+      ],
+      "deviceIndex": 221,
+      "deviceRgb16": [
+        21845,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 228,
+      "batch": 1,
+      "sample": 71,
+      "rgb16": [
+        21845,
+        21845,
+        21845
+      ],
+      "deviceIndex": 251,
+      "deviceRgb16": [
+        21845,
+        21845,
+        21845
+      ]
+    },
+    {
+      "line": 229,
+      "batch": 1,
+      "sample": 72,
+      "rgb16": [
+        22102,
+        11308,
+        1285
+      ],
+      "deviceIndex": 137,
+      "deviceRgb16": [
+        26214,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 230,
+      "batch": 1,
+      "sample": 73,
+      "rgb16": [
+        23130,
+        30840,
+        23130
+      ],
+      "deviceIndex": 251,
+      "deviceRgb16": [
+        21845,
+        21845,
+        21845
+      ]
+    },
+    {
+      "line": 231,
+      "batch": 1,
+      "sample": 74,
+      "rgb16": [
+        26112,
+        26112,
+        26112
+      ],
+      "deviceIndex": 129,
+      "deviceRgb16": [
+        26214,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 232,
+      "batch": 1,
+      "sample": 75,
+      "rgb16": [
+        26214,
+        0,
+        0
+      ],
+      "deviceIndex": 143,
+      "deviceRgb16": [
+        26214,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 233,
+      "batch": 1,
+      "sample": 76,
+      "rgb16": [
+        26214,
+        0,
+        26214
+      ],
+      "deviceIndex": 141,
+      "deviceRgb16": [
+        26214,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 234,
+      "batch": 1,
+      "sample": 77,
+      "rgb16": [
+        26214,
+        0,
+        39321
+      ],
+      "deviceIndex": 140,
+      "deviceRgb16": [
+        26214,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 235,
+      "batch": 1,
+      "sample": 78,
+      "rgb16": [
+        26214,
+        13107,
+        0
+      ],
+      "deviceIndex": 137,
+      "deviceRgb16": [
+        26214,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 236,
+      "batch": 1,
+      "sample": 79,
+      "rgb16": [
+        26214,
+        13107,
+        13107
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 237,
+      "batch": 1,
+      "sample": 80,
+      "rgb16": [
+        26214,
+        13107,
+        26214
+      ],
+      "deviceIndex": 135,
+      "deviceRgb16": [
+        26214,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 238,
+      "batch": 1,
+      "sample": 81,
+      "rgb16": [
+        26214,
+        26214,
+        0
+      ],
+      "deviceIndex": 131,
+      "deviceRgb16": [
+        26214,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 239,
+      "batch": 1,
+      "sample": 82,
+      "rgb16": [
+        26214,
+        26214,
+        13107
+      ],
+      "deviceIndex": 130,
+      "deviceRgb16": [
+        26214,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 240,
+      "batch": 1,
+      "sample": 83,
+      "rgb16": [
+        26214,
+        26214,
+        26214
+      ],
+      "deviceIndex": 129,
+      "deviceRgb16": [
+        26214,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 241,
+      "batch": 1,
+      "sample": 84,
+      "rgb16": [
+        26214,
+        26214,
+        39321
+      ],
+      "deviceIndex": 128,
+      "deviceRgb16": [
+        26214,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 242,
+      "batch": 1,
+      "sample": 85,
+      "rgb16": [
+        26214,
+        26214,
+        52428
+      ],
+      "deviceIndex": 127,
+      "deviceRgb16": [
+        26214,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 243,
+      "batch": 1,
+      "sample": 86,
+      "rgb16": [
+        26214,
+        39321,
+        0
+      ],
+      "deviceIndex": 125,
+      "deviceRgb16": [
+        26214,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 244,
+      "batch": 1,
+      "sample": 87,
+      "rgb16": [
+        26214,
+        39321,
+        13107
+      ],
+      "deviceIndex": 124,
+      "deviceRgb16": [
+        26214,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 245,
+      "batch": 1,
+      "sample": 88,
+      "rgb16": [
+        26214,
+        39321,
+        26214
+      ],
+      "deviceIndex": 123,
+      "deviceRgb16": [
+        26214,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 246,
+      "batch": 1,
+      "sample": 89,
+      "rgb16": [
+        26214,
+        39321,
+        39321
+      ],
+      "deviceIndex": 122,
+      "deviceRgb16": [
+        26214,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 247,
+      "batch": 1,
+      "sample": 90,
+      "rgb16": [
+        26214,
+        39321,
+        65535
+      ],
+      "deviceIndex": 120,
+      "deviceRgb16": [
+        26214,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 248,
+      "batch": 1,
+      "sample": 91,
+      "rgb16": [
+        26214,
+        52428,
+        0
+      ],
+      "deviceIndex": 119,
+      "deviceRgb16": [
+        26214,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 249,
+      "batch": 1,
+      "sample": 92,
+      "rgb16": [
+        26214,
+        52428,
+        13107
+      ],
+      "deviceIndex": 118,
+      "deviceRgb16": [
+        26214,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 250,
+      "batch": 1,
+      "sample": 93,
+      "rgb16": [
+        26214,
+        52428,
+        26214
+      ],
+      "deviceIndex": 117,
+      "deviceRgb16": [
+        26214,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 251,
+      "batch": 1,
+      "sample": 94,
+      "rgb16": [
+        26214,
+        52428,
+        39321
+      ],
+      "deviceIndex": 116,
+      "deviceRgb16": [
+        26214,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 252,
+      "batch": 1,
+      "sample": 95,
+      "rgb16": [
+        26214,
+        52428,
+        65535
+      ],
+      "deviceIndex": 114,
+      "deviceRgb16": [
+        26214,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 253,
+      "batch": 1,
+      "sample": 96,
+      "rgb16": [
+        26214,
+        65535,
+        26214
+      ],
+      "deviceIndex": 111,
+      "deviceRgb16": [
+        26214,
+        65535,
+        26214
+      ]
+    },
+    {
+      "line": 254,
+      "batch": 1,
+      "sample": 97,
+      "rgb16": [
+        26214,
+        65535,
+        65535
+      ],
+      "deviceIndex": 108,
+      "deviceRgb16": [
+        26214,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 255,
+      "batch": 1,
+      "sample": 98,
+      "rgb16": [
+        30583,
+        30583,
+        30583
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 256,
+      "batch": 1,
+      "sample": 99,
+      "rgb16": [
+        31232,
+        31232,
+        31232
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 257,
+      "batch": 1,
+      "sample": 100,
+      "rgb16": [
+        31488,
+        31488,
+        31488
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 258,
+      "batch": 1,
+      "sample": 101,
+      "rgb16": [
+        32512,
+        32512,
+        32512
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 259,
+      "batch": 1,
+      "sample": 102,
+      "rgb16": [
+        32896,
+        32896,
+        32896
+      ],
+      "deviceIndex": 249,
+      "deviceRgb16": [
+        34952,
+        34952,
+        34952
+      ]
+    },
+    {
+      "line": 260,
+      "batch": 1,
+      "sample": 103,
+      "rgb16": [
+        34952,
+        0,
+        0
+      ],
+      "deviceIndex": 219,
+      "deviceRgb16": [
+        34952,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 261,
+      "batch": 1,
+      "sample": 104,
+      "rgb16": [
+        34952,
+        34952,
+        34952
+      ],
+      "deviceIndex": 249,
+      "deviceRgb16": [
+        34952,
+        34952,
+        34952
+      ]
+    },
+    {
+      "line": 262,
+      "batch": 1,
+      "sample": 105,
+      "rgb16": [
+        37008,
+        29041,
+        14906
+      ],
+      "deviceIndex": 94,
+      "deviceRgb16": [
+        39321,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 263,
+      "batch": 1,
+      "sample": 106,
+      "rgb16": [
+        39064,
+        52171,
+        39064
+      ],
+      "deviceIndex": 80,
+      "deviceRgb16": [
+        39321,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 264,
+      "batch": 1,
+      "sample": 107,
+      "rgb16": [
+        39321,
+        0,
+        26214
+      ],
+      "deviceIndex": 105,
+      "deviceRgb16": [
+        39321,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 265,
+      "batch": 1,
+      "sample": 108,
+      "rgb16": [
+        39321,
+        0,
+        52428
+      ],
+      "deviceIndex": 103,
+      "deviceRgb16": [
+        39321,
+        0,
+        52428
+      ]
+    },
+    {
+      "line": 266,
+      "batch": 1,
+      "sample": 109,
+      "rgb16": [
+        39321,
+        13107,
+        0
+      ],
+      "deviceIndex": 101,
+      "deviceRgb16": [
+        39321,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 267,
+      "batch": 1,
+      "sample": 110,
+      "rgb16": [
+        39321,
+        13107,
+        13107
+      ],
+      "deviceIndex": 100,
+      "deviceRgb16": [
+        39321,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 268,
+      "batch": 1,
+      "sample": 111,
+      "rgb16": [
+        39321,
+        13107,
+        26214
+      ],
+      "deviceIndex": 99,
+      "deviceRgb16": [
+        39321,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 269,
+      "batch": 1,
+      "sample": 112,
+      "rgb16": [
+        39321,
+        13107,
+        39321
+      ],
+      "deviceIndex": 98,
+      "deviceRgb16": [
+        39321,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 270,
+      "batch": 1,
+      "sample": 113,
+      "rgb16": [
+        39321,
+        26214,
+        0
+      ],
+      "deviceIndex": 95,
+      "deviceRgb16": [
+        39321,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 271,
+      "batch": 1,
+      "sample": 114,
+      "rgb16": [
+        39321,
+        26214,
+        13107
+      ],
+      "deviceIndex": 94,
+      "deviceRgb16": [
+        39321,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 272,
+      "batch": 1,
+      "sample": 115,
+      "rgb16": [
+        39321,
+        26214,
+        26214
+      ],
+      "deviceIndex": 93,
+      "deviceRgb16": [
+        39321,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 273,
+      "batch": 1,
+      "sample": 116,
+      "rgb16": [
+        39321,
+        26214,
+        39321
+      ],
+      "deviceIndex": 92,
+      "deviceRgb16": [
+        39321,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 274,
+      "batch": 1,
+      "sample": 117,
+      "rgb16": [
+        39321,
+        39321,
+        13107
+      ],
+      "deviceIndex": 88,
+      "deviceRgb16": [
+        39321,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 275,
+      "batch": 1,
+      "sample": 118,
+      "rgb16": [
+        39321,
+        39321,
+        26214
+      ],
+      "deviceIndex": 87,
+      "deviceRgb16": [
+        39321,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 276,
+      "batch": 1,
+      "sample": 119,
+      "rgb16": [
+        39321,
+        39321,
+        39321
+      ],
+      "deviceIndex": 86,
+      "deviceRgb16": [
+        39321,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 277,
+      "batch": 1,
+      "sample": 120,
+      "rgb16": [
+        39321,
+        39321,
+        52428
+      ],
+      "deviceIndex": 85,
+      "deviceRgb16": [
+        39321,
+        39321,
+        52428
+      ]
+    },
+    {
+      "line": 278,
+      "batch": 1,
+      "sample": 121,
+      "rgb16": [
+        39321,
+        39321,
+        65535
+      ],
+      "deviceIndex": 84,
+      "deviceRgb16": [
+        39321,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 279,
+      "batch": 1,
+      "sample": 122,
+      "rgb16": [
+        39321,
+        52428,
+        0
+      ],
+      "deviceIndex": 83,
+      "deviceRgb16": [
+        39321,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 280,
+      "batch": 1,
+      "sample": 123,
+      "rgb16": [
+        39321,
+        52428,
+        26214
+      ],
+      "deviceIndex": 81,
+      "deviceRgb16": [
+        39321,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 281,
+      "batch": 1,
+      "sample": 124,
+      "rgb16": [
+        39321,
+        52428,
+        39321
+      ],
+      "deviceIndex": 80,
+      "deviceRgb16": [
+        39321,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 282,
+      "batch": 1,
+      "sample": 125,
+      "rgb16": [
+        39321,
+        52428,
+        65535
+      ],
+      "deviceIndex": 78,
+      "deviceRgb16": [
+        39321,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 283,
+      "batch": 1,
+      "sample": 126,
+      "rgb16": [
+        39321,
+        65535,
+        13107
+      ],
+      "deviceIndex": 76,
+      "deviceRgb16": [
+        39321,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 284,
+      "batch": 1,
+      "sample": 127,
+      "rgb16": [
+        39321,
+        65535,
+        65535
+      ],
+      "deviceIndex": 72,
+      "deviceRgb16": [
+        39321,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 285,
+      "batch": 1,
+      "sample": 128,
+      "rgb16": [
+        43690,
+        0,
+        0
+      ],
+      "deviceIndex": 218,
+      "deviceRgb16": [
+        43690,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 286,
+      "batch": 1,
+      "sample": 129,
+      "rgb16": [
+        43690,
+        43690,
+        43690
+      ],
+      "deviceIndex": 248,
+      "deviceRgb16": [
+        43690,
+        43690,
+        43690
+      ]
+    },
+    {
+      "line": 287,
+      "batch": 1,
+      "sample": 130,
+      "rgb16": [
+        44800,
+        35840,
+        17920
+      ],
+      "deviceIndex": 88,
+      "deviceRgb16": [
+        39321,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 288,
+      "batch": 1,
+      "sample": 131,
+      "rgb16": [
+        45056,
+        36096,
+        17920
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 289,
+      "batch": 1,
+      "sample": 132,
+      "rgb16": [
+        45312,
+        45312,
+        45312
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 290,
+      "batch": 1,
+      "sample": 133,
+      "rgb16": [
+        45568,
+        45568,
+        45568
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 291,
+      "batch": 1,
+      "sample": 134,
+      "rgb16": [
+        45746,
+        45746,
+        45746
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 292,
+      "batch": 1,
+      "sample": 135,
+      "rgb16": [
+        46592,
+        37376,
+        18688
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 293,
+      "batch": 1,
+      "sample": 136,
+      "rgb16": [
+        46592,
+        46592,
+        37376
+      ],
+      "deviceIndex": 44,
+      "deviceRgb16": [
+        52428,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 294,
+      "batch": 1,
+      "sample": 137,
+      "rgb16": [
+        48059,
+        0,
+        0
+      ],
+      "deviceIndex": 217,
+      "deviceRgb16": [
+        48059,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 295,
+      "batch": 1,
+      "sample": 138,
+      "rgb16": [
+        48059,
+        48059,
+        48059
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 296,
+      "batch": 1,
+      "sample": 139,
+      "rgb16": [
+        49344,
+        49344,
+        49344
+      ],
+      "deviceIndex": 43,
+      "deviceRgb16": [
+        52428,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 297,
+      "batch": 1,
+      "sample": 140,
+      "rgb16": [
+        52428,
+        0,
+        0
+      ],
+      "deviceIndex": 71,
+      "deviceRgb16": [
+        52428,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 298,
+      "batch": 1,
+      "sample": 141,
+      "rgb16": [
+        52428,
+        0,
+        52428
+      ],
+      "deviceIndex": 67,
+      "deviceRgb16": [
+        52428,
+        0,
+        52428
+      ]
+    },
+    {
+      "line": 299,
+      "batch": 1,
+      "sample": 142,
+      "rgb16": [
+        52428,
+        13107,
+        26214
+      ],
+      "deviceIndex": 63,
+      "deviceRgb16": [
+        52428,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 300,
+      "batch": 1,
+      "sample": 143,
+      "rgb16": [
+        52428,
+        13107,
+        39321
+      ],
+      "deviceIndex": 62,
+      "deviceRgb16": [
+        52428,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 301,
+      "batch": 1,
+      "sample": 144,
+      "rgb16": [
+        52428,
+        26214,
+        0
+      ],
+      "deviceIndex": 59,
+      "deviceRgb16": [
+        52428,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 302,
+      "batch": 1,
+      "sample": 145,
+      "rgb16": [
+        52428,
+        26214,
+        13107
+      ],
+      "deviceIndex": 58,
+      "deviceRgb16": [
+        52428,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 303,
+      "batch": 1,
+      "sample": 146,
+      "rgb16": [
+        52428,
+        26214,
+        26214
+      ],
+      "deviceIndex": 57,
+      "deviceRgb16": [
+        52428,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 304,
+      "batch": 1,
+      "sample": 147,
+      "rgb16": [
+        52428,
+        26214,
+        39321
+      ],
+      "deviceIndex": 56,
+      "deviceRgb16": [
+        52428,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 305,
+      "batch": 1,
+      "sample": 148,
+      "rgb16": [
+        52428,
+        39321,
+        0
+      ],
+      "deviceIndex": 53,
+      "deviceRgb16": [
+        52428,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 306,
+      "batch": 1,
+      "sample": 149,
+      "rgb16": [
+        52428,
+        39321,
+        13107
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 307,
+      "batch": 1,
+      "sample": 150,
+      "rgb16": [
+        52428,
+        39321,
+        26214
+      ],
+      "deviceIndex": 51,
+      "deviceRgb16": [
+        52428,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 308,
+      "batch": 1,
+      "sample": 151,
+      "rgb16": [
+        52428,
+        39321,
+        39321
+      ],
+      "deviceIndex": 50,
+      "deviceRgb16": [
+        52428,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 309,
+      "batch": 1,
+      "sample": 152,
+      "rgb16": [
+        52428,
+        39321,
+        65535
+      ],
+      "deviceIndex": 48,
+      "deviceRgb16": [
+        52428,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 310,
+      "batch": 1,
+      "sample": 153,
+      "rgb16": [
+        52428,
+        52428,
+        13107
+      ],
+      "deviceIndex": 46,
+      "deviceRgb16": [
+        52428,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 311,
+      "batch": 1,
+      "sample": 154,
+      "rgb16": [
+        52428,
+        52428,
+        26214
+      ],
+      "deviceIndex": 45,
+      "deviceRgb16": [
+        52428,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 312,
+      "batch": 1,
+      "sample": 155,
+      "rgb16": [
+        52428,
+        52428,
+        39321
+      ],
+      "deviceIndex": 44,
+      "deviceRgb16": [
+        52428,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 313,
+      "batch": 1,
+      "sample": 156,
+      "rgb16": [
+        52428,
+        52428,
+        52428
+      ],
+      "deviceIndex": 43,
+      "deviceRgb16": [
+        52428,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 314,
+      "batch": 1,
+      "sample": 157,
+      "rgb16": [
+        52428,
+        52428,
+        65535
+      ],
+      "deviceIndex": 42,
+      "deviceRgb16": [
+        52428,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 315,
+      "batch": 1,
+      "sample": 158,
+      "rgb16": [
+        52428,
+        65535,
+        13107
+      ],
+      "deviceIndex": 40,
+      "deviceRgb16": [
+        52428,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 316,
+      "batch": 1,
+      "sample": 159,
+      "rgb16": [
+        52428,
+        65535,
+        39321
+      ],
+      "deviceIndex": 38,
+      "deviceRgb16": [
+        52428,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 317,
+      "batch": 1,
+      "sample": 160,
+      "rgb16": [
+        52428,
+        65535,
+        52428
+      ],
+      "deviceIndex": 37,
+      "deviceRgb16": [
+        52428,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 318,
+      "batch": 1,
+      "sample": 161,
+      "rgb16": [
+        52428,
+        65535,
+        65535
+      ],
+      "deviceIndex": 36,
+      "deviceRgb16": [
+        52428,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 319,
+      "batch": 1,
+      "sample": 162,
+      "rgb16": [
+        56797,
+        0,
+        0
+      ],
+      "deviceIndex": 216,
+      "deviceRgb16": [
+        56797,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 320,
+      "batch": 1,
+      "sample": 163,
+      "rgb16": [
+        56797,
+        2313,
+        1799
+      ],
+      "deviceIndex": 216,
+      "deviceRgb16": [
+        56797,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 321,
+      "batch": 1,
+      "sample": 164,
+      "rgb16": [
+        56797,
+        56797,
+        56797
+      ],
+      "deviceIndex": 246,
+      "deviceRgb16": [
+        56797,
+        56797,
+        56797
+      ]
+    },
+    {
+      "line": 322,
+      "batch": 1,
+      "sample": 165,
+      "rgb16": [
+        57079,
+        57079,
+        57079
+      ],
+      "deviceIndex": 246,
+      "deviceRgb16": [
+        56797,
+        56797,
+        56797
+      ]
+    },
+    {
+      "line": 323,
+      "batch": 1,
+      "sample": 166,
+      "rgb16": [
+        58624,
+        58624,
+        58624
+      ],
+      "deviceIndex": 245,
+      "deviceRgb16": [
+        61166,
+        61166,
+        61166
+      ]
+    },
+    {
+      "line": 324,
+      "batch": 1,
+      "sample": 167,
+      "rgb16": [
+        58982,
+        54612,
+        45874
+      ],
+      "deviceIndex": 7,
+      "deviceRgb16": [
+        65535,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 325,
+      "batch": 1,
+      "sample": 168,
+      "rgb16": [
+        60160,
+        48128,
+        24064
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 326,
+      "batch": 1,
+      "sample": 169,
+      "rgb16": [
+        60416,
+        48384,
+        24064
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 327,
+      "batch": 1,
+      "sample": 170,
+      "rgb16": [
+        61166,
+        0,
+        0
+      ],
+      "deviceIndex": 215,
+      "deviceRgb16": [
+        61166,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 328,
+      "batch": 1,
+      "sample": 171,
+      "rgb16": [
+        61166,
+        61166,
+        61166
+      ],
+      "deviceIndex": 245,
+      "deviceRgb16": [
+        61166,
+        61166,
+        61166
+      ]
+    },
+    {
+      "line": 329,
+      "batch": 1,
+      "sample": 172,
+      "rgb16": [
+        62194,
+        2056,
+        33924
+      ],
+      "deviceIndex": 32,
+      "deviceRgb16": [
+        65535,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 330,
+      "batch": 1,
+      "sample": 173,
+      "rgb16": [
+        64764,
+        62451,
+        1285
+      ],
+      "deviceIndex": 5,
+      "deviceRgb16": [
+        65535,
+        65535,
+        0
+      ]
+    },
+    {
+      "line": 331,
+      "batch": 1,
+      "sample": 174,
+      "rgb16": [
+        64768,
+        51712,
+        25856
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 332,
+      "batch": 1,
+      "sample": 175,
+      "rgb16": [
+        65280,
+        52224,
+        26112
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 333,
+      "batch": 1,
+      "sample": 176,
+      "rgb16": [
+        65280,
+        65280,
+        52224
+      ],
+      "deviceIndex": 1,
+      "deviceRgb16": [
+        65535,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 334,
+      "batch": 1,
+      "sample": 177,
+      "rgb16": [
+        65339,
+        52360,
+        26409
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 335,
+      "batch": 1,
+      "sample": 178,
+      "rgb16": [
+        65535,
+        0,
+        0
+      ],
+      "deviceIndex": 35,
+      "deviceRgb16": [
+        65535,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 336,
+      "batch": 1,
+      "sample": 179,
+      "rgb16": [
+        65535,
+        0,
+        13107
+      ],
+      "deviceIndex": 34,
+      "deviceRgb16": [
+        65535,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 337,
+      "batch": 1,
+      "sample": 180,
+      "rgb16": [
+        65535,
+        0,
+        39321
+      ],
+      "deviceIndex": 32,
+      "deviceRgb16": [
+        65535,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 338,
+      "batch": 1,
+      "sample": 181,
+      "rgb16": [
+        65535,
+        0,
+        65535
+      ],
+      "deviceIndex": 30,
+      "deviceRgb16": [
+        65535,
+        0,
+        65535
+      ]
+    },
+    {
+      "line": 339,
+      "batch": 1,
+      "sample": 182,
+      "rgb16": [
+        65535,
+        13107,
+        26214
+      ],
+      "deviceIndex": 27,
+      "deviceRgb16": [
+        65535,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 340,
+      "batch": 1,
+      "sample": 183,
+      "rgb16": [
+        65535,
+        13107,
+        65535
+      ],
+      "deviceIndex": 24,
+      "deviceRgb16": [
+        65535,
+        13107,
+        65535
+      ]
+    },
+    {
+      "line": 341,
+      "batch": 1,
+      "sample": 184,
+      "rgb16": [
+        65535,
+        25700,
+        771
+      ],
+      "deviceIndex": 23,
+      "deviceRgb16": [
+        65535,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 342,
+      "batch": 1,
+      "sample": 185,
+      "rgb16": [
+        65535,
+        26214,
+        0
+      ],
+      "deviceIndex": 23,
+      "deviceRgb16": [
+        65535,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 343,
+      "batch": 1,
+      "sample": 186,
+      "rgb16": [
+        65535,
+        26214,
+        13107
+      ],
+      "deviceIndex": 22,
+      "deviceRgb16": [
+        65535,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 344,
+      "batch": 1,
+      "sample": 187,
+      "rgb16": [
+        65535,
+        26214,
+        26214
+      ],
+      "deviceIndex": 21,
+      "deviceRgb16": [
+        65535,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 345,
+      "batch": 1,
+      "sample": 188,
+      "rgb16": [
+        65535,
+        26214,
+        39321
+      ],
+      "deviceIndex": 20,
+      "deviceRgb16": [
+        65535,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 346,
+      "batch": 1,
+      "sample": 189,
+      "rgb16": [
+        65535,
+        26214,
+        52428
+      ],
+      "deviceIndex": 19,
+      "deviceRgb16": [
+        65535,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 347,
+      "batch": 1,
+      "sample": 190,
+      "rgb16": [
+        65535,
+        26214,
+        65535
+      ],
+      "deviceIndex": 18,
+      "deviceRgb16": [
+        65535,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 348,
+      "batch": 1,
+      "sample": 191,
+      "rgb16": [
+        65535,
+        39321,
+        0
+      ],
+      "deviceIndex": 17,
+      "deviceRgb16": [
+        65535,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 349,
+      "batch": 1,
+      "sample": 192,
+      "rgb16": [
+        65535,
+        39321,
+        13107
+      ],
+      "deviceIndex": 16,
+      "deviceRgb16": [
+        65535,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 350,
+      "batch": 1,
+      "sample": 193,
+      "rgb16": [
+        65535,
+        39321,
+        26214
+      ],
+      "deviceIndex": 15,
+      "deviceRgb16": [
+        65535,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 351,
+      "batch": 1,
+      "sample": 194,
+      "rgb16": [
+        65535,
+        39321,
+        39321
+      ],
+      "deviceIndex": 14,
+      "deviceRgb16": [
+        65535,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 352,
+      "batch": 1,
+      "sample": 195,
+      "rgb16": [
+        65535,
+        39321,
+        52428
+      ],
+      "deviceIndex": 13,
+      "deviceRgb16": [
+        65535,
+        39321,
+        52428
+      ]
+    },
+    {
+      "line": 353,
+      "batch": 1,
+      "sample": 196,
+      "rgb16": [
+        65535,
+        39321,
+        65535
+      ],
+      "deviceIndex": 12,
+      "deviceRgb16": [
+        65535,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 354,
+      "batch": 1,
+      "sample": 197,
+      "rgb16": [
+        65535,
+        52428,
+        0
+      ],
+      "deviceIndex": 11,
+      "deviceRgb16": [
+        65535,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 355,
+      "batch": 1,
+      "sample": 198,
+      "rgb16": [
+        65535,
+        52428,
+        13107
+      ],
+      "deviceIndex": 10,
+      "deviceRgb16": [
+        65535,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 356,
+      "batch": 1,
+      "sample": 199,
+      "rgb16": [
+        65535,
+        52428,
+        26214
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 357,
+      "batch": 1,
+      "sample": 200,
+      "rgb16": [
+        65535,
+        52428,
+        39321
+      ],
+      "deviceIndex": 8,
+      "deviceRgb16": [
+        65535,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 358,
+      "batch": 1,
+      "sample": 201,
+      "rgb16": [
+        65535,
+        52428,
+        52428
+      ],
+      "deviceIndex": 7,
+      "deviceRgb16": [
+        65535,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 359,
+      "batch": 1,
+      "sample": 202,
+      "rgb16": [
+        65535,
+        52428,
+        65535
+      ],
+      "deviceIndex": 6,
+      "deviceRgb16": [
+        65535,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 360,
+      "batch": 1,
+      "sample": 203,
+      "rgb16": [
+        65535,
+        65535,
+        0
+      ],
+      "deviceIndex": 5,
+      "deviceRgb16": [
+        65535,
+        65535,
+        0
+      ]
+    },
+    {
+      "line": 361,
+      "batch": 1,
+      "sample": 204,
+      "rgb16": [
+        65535,
+        65535,
+        13107
+      ],
+      "deviceIndex": 4,
+      "deviceRgb16": [
+        65535,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 362,
+      "batch": 1,
+      "sample": 205,
+      "rgb16": [
+        65535,
+        65535,
+        26214
+      ],
+      "deviceIndex": 3,
+      "deviceRgb16": [
+        65535,
+        65535,
+        26214
+      ]
+    },
+    {
+      "line": 363,
+      "batch": 1,
+      "sample": 206,
+      "rgb16": [
+        65535,
+        65535,
+        39321
+      ],
+      "deviceIndex": 2,
+      "deviceRgb16": [
+        65535,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 364,
+      "batch": 1,
+      "sample": 207,
+      "rgb16": [
+        65535,
+        65535,
+        52428
+      ],
+      "deviceIndex": 1,
+      "deviceRgb16": [
+        65535,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 365,
+      "batch": 1,
+      "sample": 208,
+      "rgb16": [
+        65535,
+        65535,
+        65535
+      ],
+      "deviceIndex": 0,
+      "deviceRgb16": [
+        65535,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 367,
+      "batch": 2,
+      "sample": 0,
+      "rgb16": [
+        0,
+        0,
+        0
+      ],
+      "deviceIndex": 255,
+      "deviceRgb16": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 368,
+      "batch": 2,
+      "sample": 1,
+      "rgb16": [
+        0,
+        0,
+        17476
+      ],
+      "deviceIndex": 242,
+      "deviceRgb16": [
+        0,
+        0,
+        17476
+      ]
+    },
+    {
+      "line": 369,
+      "batch": 2,
+      "sample": 2,
+      "rgb16": [
+        0,
+        0,
+        21845
+      ],
+      "deviceIndex": 241,
+      "deviceRgb16": [
+        0,
+        0,
+        21845
+      ]
+    },
+    {
+      "line": 370,
+      "batch": 2,
+      "sample": 3,
+      "rgb16": [
+        0,
+        0,
+        26214
+      ],
+      "deviceIndex": 213,
+      "deviceRgb16": [
+        0,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 371,
+      "batch": 2,
+      "sample": 4,
+      "rgb16": [
+        0,
+        0,
+        34952
+      ],
+      "deviceIndex": 239,
+      "deviceRgb16": [
+        0,
+        0,
+        34952
+      ]
+    },
+    {
+      "line": 372,
+      "batch": 2,
+      "sample": 5,
+      "rgb16": [
+        0,
+        0,
+        54227
+      ],
+      "deviceIndex": 236,
+      "deviceRgb16": [
+        0,
+        0,
+        56797
+      ]
+    },
+    {
+      "line": 373,
+      "batch": 2,
+      "sample": 6,
+      "rgb16": [
+        0,
+        0,
+        56797
+      ],
+      "deviceIndex": 236,
+      "deviceRgb16": [
+        0,
+        0,
+        56797
+      ]
+    },
+    {
+      "line": 374,
+      "batch": 2,
+      "sample": 7,
+      "rgb16": [
+        0,
+        0,
+        65535
+      ],
+      "deviceIndex": 210,
+      "deviceRgb16": [
+        0,
+        0,
+        65535
+      ]
+    },
+    {
+      "line": 375,
+      "batch": 2,
+      "sample": 8,
+      "rgb16": [
+        0,
+        4369,
+        0
+      ],
+      "deviceIndex": 234,
+      "deviceRgb16": [
+        0,
+        4369,
+        0
+      ]
+    },
+    {
+      "line": 376,
+      "batch": 2,
+      "sample": 9,
+      "rgb16": [
+        0,
+        8738,
+        0
+      ],
+      "deviceIndex": 233,
+      "deviceRgb16": [
+        0,
+        8738,
+        0
+      ]
+    },
+    {
+      "line": 377,
+      "batch": 2,
+      "sample": 10,
+      "rgb16": [
+        0,
+        13107,
+        26214
+      ],
+      "deviceIndex": 207,
+      "deviceRgb16": [
+        0,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 378,
+      "batch": 2,
+      "sample": 11,
+      "rgb16": [
+        0,
+        13107,
+        39321
+      ],
+      "deviceIndex": 206,
+      "deviceRgb16": [
+        0,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 379,
+      "batch": 2,
+      "sample": 12,
+      "rgb16": [
+        0,
+        13107,
+        52428
+      ],
+      "deviceIndex": 205,
+      "deviceRgb16": [
+        0,
+        13107,
+        52428
+      ]
+    },
+    {
+      "line": 380,
+      "batch": 2,
+      "sample": 13,
+      "rgb16": [
+        0,
+        13107,
+        65535
+      ],
+      "deviceIndex": 204,
+      "deviceRgb16": [
+        0,
+        13107,
+        65535
+      ]
+    },
+    {
+      "line": 381,
+      "batch": 2,
+      "sample": 14,
+      "rgb16": [
+        0,
+        17476,
+        0
+      ],
+      "deviceIndex": 232,
+      "deviceRgb16": [
+        0,
+        17476,
+        0
+      ]
+    },
+    {
+      "line": 382,
+      "batch": 2,
+      "sample": 15,
+      "rgb16": [
+        0,
+        21845,
+        0
+      ],
+      "deviceIndex": 231,
+      "deviceRgb16": [
+        0,
+        21845,
+        0
+      ]
+    },
+    {
+      "line": 383,
+      "batch": 2,
+      "sample": 16,
+      "rgb16": [
+        0,
+        25700,
+        4626
+      ],
+      "deviceIndex": 203,
+      "deviceRgb16": [
+        0,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 384,
+      "batch": 2,
+      "sample": 17,
+      "rgb16": [
+        0,
+        26214,
+        0
+      ],
+      "deviceIndex": 203,
+      "deviceRgb16": [
+        0,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 385,
+      "batch": 2,
+      "sample": 18,
+      "rgb16": [
+        0,
+        26214,
+        52428
+      ],
+      "deviceIndex": 199,
+      "deviceRgb16": [
+        0,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 386,
+      "batch": 2,
+      "sample": 19,
+      "rgb16": [
+        0,
+        26214,
+        65535
+      ],
+      "deviceIndex": 198,
+      "deviceRgb16": [
+        0,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 387,
+      "batch": 2,
+      "sample": 20,
+      "rgb16": [
+        0,
+        30583,
+        0
+      ],
+      "deviceIndex": 230,
+      "deviceRgb16": [
+        0,
+        30583,
+        0
+      ]
+    },
+    {
+      "line": 388,
+      "batch": 2,
+      "sample": 21,
+      "rgb16": [
+        0,
+        34952,
+        0
+      ],
+      "deviceIndex": 229,
+      "deviceRgb16": [
+        0,
+        34952,
+        0
+      ]
+    },
+    {
+      "line": 389,
+      "batch": 2,
+      "sample": 22,
+      "rgb16": [
+        0,
+        39321,
+        13107
+      ],
+      "deviceIndex": 196,
+      "deviceRgb16": [
+        0,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 390,
+      "batch": 2,
+      "sample": 23,
+      "rgb16": [
+        0,
+        39321,
+        65535
+      ],
+      "deviceIndex": 192,
+      "deviceRgb16": [
+        0,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 391,
+      "batch": 2,
+      "sample": 24,
+      "rgb16": [
+        0,
+        43690,
+        0
+      ],
+      "deviceIndex": 228,
+      "deviceRgb16": [
+        0,
+        43690,
+        0
+      ]
+    },
+    {
+      "line": 392,
+      "batch": 2,
+      "sample": 25,
+      "rgb16": [
+        0,
+        48059,
+        0
+      ],
+      "deviceIndex": 227,
+      "deviceRgb16": [
+        0,
+        48059,
+        0
+      ]
+    },
+    {
+      "line": 393,
+      "batch": 2,
+      "sample": 26,
+      "rgb16": [
+        0,
+        52428,
+        0
+      ],
+      "deviceIndex": 191,
+      "deviceRgb16": [
+        0,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 394,
+      "batch": 2,
+      "sample": 27,
+      "rgb16": [
+        0,
+        56797,
+        0
+      ],
+      "deviceIndex": 226,
+      "deviceRgb16": [
+        0,
+        56797,
+        0
+      ]
+    },
+    {
+      "line": 395,
+      "batch": 2,
+      "sample": 28,
+      "rgb16": [
+        0,
+        65535,
+        65535
+      ],
+      "deviceIndex": 180,
+      "deviceRgb16": [
+        0,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 396,
+      "batch": 2,
+      "sample": 29,
+      "rgb16": [
+        514,
+        43947,
+        60138
+      ],
+      "deviceIndex": 192,
+      "deviceRgb16": [
+        0,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 397,
+      "batch": 2,
+      "sample": 30,
+      "rgb16": [
+        4369,
+        0,
+        0
+      ],
+      "deviceIndex": 224,
+      "deviceRgb16": [
+        4369,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 398,
+      "batch": 2,
+      "sample": 31,
+      "rgb16": [
+        4369,
+        4369,
+        4369
+      ],
+      "deviceIndex": 254,
+      "deviceRgb16": [
+        4369,
+        4369,
+        4369
+      ]
+    },
+    {
+      "line": 399,
+      "batch": 2,
+      "sample": 32,
+      "rgb16": [
+        7967,
+        47031,
+        5140
+      ],
+      "deviceIndex": 227,
+      "deviceRgb16": [
+        0,
+        48059,
+        0
+      ]
+    },
+    {
+      "line": 400,
+      "batch": 2,
+      "sample": 33,
+      "rgb16": [
+        8192,
+        8192,
+        8192
+      ],
+      "deviceIndex": 253,
+      "deviceRgb16": [
+        8738,
+        8738,
+        8738
+      ]
+    },
+    {
+      "line": 401,
+      "batch": 2,
+      "sample": 34,
+      "rgb16": [
+        8738,
+        0,
+        0
+      ],
+      "deviceIndex": 223,
+      "deviceRgb16": [
+        8738,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 402,
+      "batch": 2,
+      "sample": 35,
+      "rgb16": [
+        8738,
+        8738,
+        8738
+      ],
+      "deviceIndex": 253,
+      "deviceRgb16": [
+        8738,
+        8738,
+        8738
+      ]
+    },
+    {
+      "line": 403,
+      "batch": 2,
+      "sample": 36,
+      "rgb16": [
+        12288,
+        4096,
+        8192
+      ],
+      "deviceIndex": 178,
+      "deviceRgb16": [
+        13107,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 404,
+      "batch": 2,
+      "sample": 37,
+      "rgb16": [
+        12288,
+        12288,
+        16384
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 405,
+      "batch": 2,
+      "sample": 38,
+      "rgb16": [
+        13107,
+        0,
+        0
+      ],
+      "deviceIndex": 179,
+      "deviceRgb16": [
+        13107,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 406,
+      "batch": 2,
+      "sample": 39,
+      "rgb16": [
+        13107,
+        0,
+        13107
+      ],
+      "deviceIndex": 178,
+      "deviceRgb16": [
+        13107,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 407,
+      "batch": 2,
+      "sample": 40,
+      "rgb16": [
+        13107,
+        0,
+        39321
+      ],
+      "deviceIndex": 176,
+      "deviceRgb16": [
+        13107,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 408,
+      "batch": 2,
+      "sample": 41,
+      "rgb16": [
+        13107,
+        13107,
+        0
+      ],
+      "deviceIndex": 173,
+      "deviceRgb16": [
+        13107,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 409,
+      "batch": 2,
+      "sample": 42,
+      "rgb16": [
+        13107,
+        13107,
+        13107
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 410,
+      "batch": 2,
+      "sample": 43,
+      "rgb16": [
+        13107,
+        13107,
+        26214
+      ],
+      "deviceIndex": 171,
+      "deviceRgb16": [
+        13107,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 411,
+      "batch": 2,
+      "sample": 44,
+      "rgb16": [
+        13107,
+        13107,
+        39321
+      ],
+      "deviceIndex": 170,
+      "deviceRgb16": [
+        13107,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 412,
+      "batch": 2,
+      "sample": 45,
+      "rgb16": [
+        13107,
+        26214,
+        0
+      ],
+      "deviceIndex": 167,
+      "deviceRgb16": [
+        13107,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 413,
+      "batch": 2,
+      "sample": 46,
+      "rgb16": [
+        13107,
+        26214,
+        13107
+      ],
+      "deviceIndex": 166,
+      "deviceRgb16": [
+        13107,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 414,
+      "batch": 2,
+      "sample": 47,
+      "rgb16": [
+        13107,
+        26214,
+        26214
+      ],
+      "deviceIndex": 165,
+      "deviceRgb16": [
+        13107,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 415,
+      "batch": 2,
+      "sample": 48,
+      "rgb16": [
+        13107,
+        26214,
+        52428
+      ],
+      "deviceIndex": 163,
+      "deviceRgb16": [
+        13107,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 416,
+      "batch": 2,
+      "sample": 49,
+      "rgb16": [
+        13107,
+        26214,
+        65535
+      ],
+      "deviceIndex": 162,
+      "deviceRgb16": [
+        13107,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 417,
+      "batch": 2,
+      "sample": 50,
+      "rgb16": [
+        13107,
+        39321,
+        0
+      ],
+      "deviceIndex": 161,
+      "deviceRgb16": [
+        13107,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 418,
+      "batch": 2,
+      "sample": 51,
+      "rgb16": [
+        13107,
+        39321,
+        13107
+      ],
+      "deviceIndex": 160,
+      "deviceRgb16": [
+        13107,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 419,
+      "batch": 2,
+      "sample": 52,
+      "rgb16": [
+        13107,
+        39321,
+        26214
+      ],
+      "deviceIndex": 159,
+      "deviceRgb16": [
+        13107,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 420,
+      "batch": 2,
+      "sample": 53,
+      "rgb16": [
+        13107,
+        39321,
+        65535
+      ],
+      "deviceIndex": 156,
+      "deviceRgb16": [
+        13107,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 421,
+      "batch": 2,
+      "sample": 54,
+      "rgb16": [
+        13107,
+        52428,
+        0
+      ],
+      "deviceIndex": 155,
+      "deviceRgb16": [
+        13107,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 422,
+      "batch": 2,
+      "sample": 55,
+      "rgb16": [
+        13107,
+        52428,
+        13107
+      ],
+      "deviceIndex": 154,
+      "deviceRgb16": [
+        13107,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 423,
+      "batch": 2,
+      "sample": 56,
+      "rgb16": [
+        13107,
+        52428,
+        26214
+      ],
+      "deviceIndex": 153,
+      "deviceRgb16": [
+        13107,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 424,
+      "batch": 2,
+      "sample": 57,
+      "rgb16": [
+        13107,
+        65535,
+        13107
+      ],
+      "deviceIndex": 148,
+      "deviceRgb16": [
+        13107,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 425,
+      "batch": 2,
+      "sample": 58,
+      "rgb16": [
+        13107,
+        65535,
+        39321
+      ],
+      "deviceIndex": 146,
+      "deviceRgb16": [
+        13107,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 426,
+      "batch": 2,
+      "sample": 59,
+      "rgb16": [
+        14336,
+        14336,
+        14336
+      ],
+      "deviceIndex": 172,
+      "deviceRgb16": [
+        13107,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 427,
+      "batch": 2,
+      "sample": 60,
+      "rgb16": [
+        14592,
+        11776,
+        5888
+      ],
+      "deviceIndex": 173,
+      "deviceRgb16": [
+        13107,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 428,
+      "batch": 2,
+      "sample": 61,
+      "rgb16": [
+        16448,
+        16448,
+        16448
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 429,
+      "batch": 2,
+      "sample": 62,
+      "rgb16": [
+        17408,
+        17408,
+        17408
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 430,
+      "batch": 2,
+      "sample": 63,
+      "rgb16": [
+        17476,
+        0,
+        0
+      ],
+      "deviceIndex": 222,
+      "deviceRgb16": [
+        17476,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 431,
+      "batch": 2,
+      "sample": 64,
+      "rgb16": [
+        17476,
+        17476,
+        17476
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 432,
+      "batch": 2,
+      "sample": 65,
+      "rgb16": [
+        17920,
+        17920,
+        17920
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 433,
+      "batch": 2,
+      "sample": 66,
+      "rgb16": [
+        18247,
+        0,
+        42405
+      ],
+      "deviceIndex": 176,
+      "deviceRgb16": [
+        13107,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 434,
+      "batch": 2,
+      "sample": 67,
+      "rgb16": [
+        19456,
+        19456,
+        19456
+      ],
+      "deviceIndex": 252,
+      "deviceRgb16": [
+        17476,
+        17476,
+        17476
+      ]
+    },
+    {
+      "line": 435,
+      "batch": 2,
+      "sample": 68,
+      "rgb16": [
+        20480,
+        16384,
+        8192
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 436,
+      "batch": 2,
+      "sample": 69,
+      "rgb16": [
+        20736,
+        16640,
+        8192
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 437,
+      "batch": 2,
+      "sample": 70,
+      "rgb16": [
+        21845,
+        0,
+        0
+      ],
+      "deviceIndex": 221,
+      "deviceRgb16": [
+        21845,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 438,
+      "batch": 2,
+      "sample": 71,
+      "rgb16": [
+        21845,
+        21845,
+        21845
+      ],
+      "deviceIndex": 251,
+      "deviceRgb16": [
+        21845,
+        21845,
+        21845
+      ]
+    },
+    {
+      "line": 439,
+      "batch": 2,
+      "sample": 72,
+      "rgb16": [
+        22102,
+        11308,
+        1285
+      ],
+      "deviceIndex": 137,
+      "deviceRgb16": [
+        26214,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 440,
+      "batch": 2,
+      "sample": 73,
+      "rgb16": [
+        23130,
+        30840,
+        23130
+      ],
+      "deviceIndex": 251,
+      "deviceRgb16": [
+        21845,
+        21845,
+        21845
+      ]
+    },
+    {
+      "line": 441,
+      "batch": 2,
+      "sample": 74,
+      "rgb16": [
+        26112,
+        26112,
+        26112
+      ],
+      "deviceIndex": 129,
+      "deviceRgb16": [
+        26214,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 442,
+      "batch": 2,
+      "sample": 75,
+      "rgb16": [
+        26214,
+        0,
+        0
+      ],
+      "deviceIndex": 143,
+      "deviceRgb16": [
+        26214,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 443,
+      "batch": 2,
+      "sample": 76,
+      "rgb16": [
+        26214,
+        0,
+        26214
+      ],
+      "deviceIndex": 141,
+      "deviceRgb16": [
+        26214,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 444,
+      "batch": 2,
+      "sample": 77,
+      "rgb16": [
+        26214,
+        0,
+        39321
+      ],
+      "deviceIndex": 140,
+      "deviceRgb16": [
+        26214,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 445,
+      "batch": 2,
+      "sample": 78,
+      "rgb16": [
+        26214,
+        13107,
+        0
+      ],
+      "deviceIndex": 137,
+      "deviceRgb16": [
+        26214,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 446,
+      "batch": 2,
+      "sample": 79,
+      "rgb16": [
+        26214,
+        13107,
+        13107
+      ],
+      "deviceIndex": 136,
+      "deviceRgb16": [
+        26214,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 447,
+      "batch": 2,
+      "sample": 80,
+      "rgb16": [
+        26214,
+        13107,
+        26214
+      ],
+      "deviceIndex": 135,
+      "deviceRgb16": [
+        26214,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 448,
+      "batch": 2,
+      "sample": 81,
+      "rgb16": [
+        26214,
+        26214,
+        0
+      ],
+      "deviceIndex": 131,
+      "deviceRgb16": [
+        26214,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 449,
+      "batch": 2,
+      "sample": 82,
+      "rgb16": [
+        26214,
+        26214,
+        13107
+      ],
+      "deviceIndex": 130,
+      "deviceRgb16": [
+        26214,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 450,
+      "batch": 2,
+      "sample": 83,
+      "rgb16": [
+        26214,
+        26214,
+        26214
+      ],
+      "deviceIndex": 129,
+      "deviceRgb16": [
+        26214,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 451,
+      "batch": 2,
+      "sample": 84,
+      "rgb16": [
+        26214,
+        26214,
+        39321
+      ],
+      "deviceIndex": 128,
+      "deviceRgb16": [
+        26214,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 452,
+      "batch": 2,
+      "sample": 85,
+      "rgb16": [
+        26214,
+        26214,
+        52428
+      ],
+      "deviceIndex": 127,
+      "deviceRgb16": [
+        26214,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 453,
+      "batch": 2,
+      "sample": 86,
+      "rgb16": [
+        26214,
+        39321,
+        0
+      ],
+      "deviceIndex": 125,
+      "deviceRgb16": [
+        26214,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 454,
+      "batch": 2,
+      "sample": 87,
+      "rgb16": [
+        26214,
+        39321,
+        13107
+      ],
+      "deviceIndex": 124,
+      "deviceRgb16": [
+        26214,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 455,
+      "batch": 2,
+      "sample": 88,
+      "rgb16": [
+        26214,
+        39321,
+        26214
+      ],
+      "deviceIndex": 123,
+      "deviceRgb16": [
+        26214,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 456,
+      "batch": 2,
+      "sample": 89,
+      "rgb16": [
+        26214,
+        39321,
+        39321
+      ],
+      "deviceIndex": 122,
+      "deviceRgb16": [
+        26214,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 457,
+      "batch": 2,
+      "sample": 90,
+      "rgb16": [
+        26214,
+        39321,
+        65535
+      ],
+      "deviceIndex": 120,
+      "deviceRgb16": [
+        26214,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 458,
+      "batch": 2,
+      "sample": 91,
+      "rgb16": [
+        26214,
+        52428,
+        0
+      ],
+      "deviceIndex": 119,
+      "deviceRgb16": [
+        26214,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 459,
+      "batch": 2,
+      "sample": 92,
+      "rgb16": [
+        26214,
+        52428,
+        13107
+      ],
+      "deviceIndex": 118,
+      "deviceRgb16": [
+        26214,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 460,
+      "batch": 2,
+      "sample": 93,
+      "rgb16": [
+        26214,
+        52428,
+        26214
+      ],
+      "deviceIndex": 117,
+      "deviceRgb16": [
+        26214,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 461,
+      "batch": 2,
+      "sample": 94,
+      "rgb16": [
+        26214,
+        52428,
+        39321
+      ],
+      "deviceIndex": 116,
+      "deviceRgb16": [
+        26214,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 462,
+      "batch": 2,
+      "sample": 95,
+      "rgb16": [
+        26214,
+        52428,
+        65535
+      ],
+      "deviceIndex": 114,
+      "deviceRgb16": [
+        26214,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 463,
+      "batch": 2,
+      "sample": 96,
+      "rgb16": [
+        26214,
+        65535,
+        26214
+      ],
+      "deviceIndex": 111,
+      "deviceRgb16": [
+        26214,
+        65535,
+        26214
+      ]
+    },
+    {
+      "line": 464,
+      "batch": 2,
+      "sample": 97,
+      "rgb16": [
+        26214,
+        65535,
+        65535
+      ],
+      "deviceIndex": 108,
+      "deviceRgb16": [
+        26214,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 465,
+      "batch": 2,
+      "sample": 98,
+      "rgb16": [
+        30583,
+        30583,
+        30583
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 466,
+      "batch": 2,
+      "sample": 99,
+      "rgb16": [
+        31232,
+        31232,
+        31232
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 467,
+      "batch": 2,
+      "sample": 100,
+      "rgb16": [
+        31488,
+        31488,
+        31488
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 468,
+      "batch": 2,
+      "sample": 101,
+      "rgb16": [
+        32512,
+        32512,
+        32512
+      ],
+      "deviceIndex": 250,
+      "deviceRgb16": [
+        30583,
+        30583,
+        30583
+      ]
+    },
+    {
+      "line": 469,
+      "batch": 2,
+      "sample": 102,
+      "rgb16": [
+        32896,
+        32896,
+        32896
+      ],
+      "deviceIndex": 249,
+      "deviceRgb16": [
+        34952,
+        34952,
+        34952
+      ]
+    },
+    {
+      "line": 470,
+      "batch": 2,
+      "sample": 103,
+      "rgb16": [
+        34952,
+        0,
+        0
+      ],
+      "deviceIndex": 219,
+      "deviceRgb16": [
+        34952,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 471,
+      "batch": 2,
+      "sample": 104,
+      "rgb16": [
+        34952,
+        34952,
+        34952
+      ],
+      "deviceIndex": 249,
+      "deviceRgb16": [
+        34952,
+        34952,
+        34952
+      ]
+    },
+    {
+      "line": 472,
+      "batch": 2,
+      "sample": 105,
+      "rgb16": [
+        37008,
+        29041,
+        14906
+      ],
+      "deviceIndex": 94,
+      "deviceRgb16": [
+        39321,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 473,
+      "batch": 2,
+      "sample": 106,
+      "rgb16": [
+        39064,
+        52171,
+        39064
+      ],
+      "deviceIndex": 80,
+      "deviceRgb16": [
+        39321,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 474,
+      "batch": 2,
+      "sample": 107,
+      "rgb16": [
+        39321,
+        0,
+        26214
+      ],
+      "deviceIndex": 105,
+      "deviceRgb16": [
+        39321,
+        0,
+        26214
+      ]
+    },
+    {
+      "line": 475,
+      "batch": 2,
+      "sample": 108,
+      "rgb16": [
+        39321,
+        0,
+        52428
+      ],
+      "deviceIndex": 103,
+      "deviceRgb16": [
+        39321,
+        0,
+        52428
+      ]
+    },
+    {
+      "line": 476,
+      "batch": 2,
+      "sample": 109,
+      "rgb16": [
+        39321,
+        13107,
+        0
+      ],
+      "deviceIndex": 101,
+      "deviceRgb16": [
+        39321,
+        13107,
+        0
+      ]
+    },
+    {
+      "line": 477,
+      "batch": 2,
+      "sample": 110,
+      "rgb16": [
+        39321,
+        13107,
+        13107
+      ],
+      "deviceIndex": 100,
+      "deviceRgb16": [
+        39321,
+        13107,
+        13107
+      ]
+    },
+    {
+      "line": 478,
+      "batch": 2,
+      "sample": 111,
+      "rgb16": [
+        39321,
+        13107,
+        26214
+      ],
+      "deviceIndex": 99,
+      "deviceRgb16": [
+        39321,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 479,
+      "batch": 2,
+      "sample": 112,
+      "rgb16": [
+        39321,
+        13107,
+        39321
+      ],
+      "deviceIndex": 98,
+      "deviceRgb16": [
+        39321,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 480,
+      "batch": 2,
+      "sample": 113,
+      "rgb16": [
+        39321,
+        26214,
+        0
+      ],
+      "deviceIndex": 95,
+      "deviceRgb16": [
+        39321,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 481,
+      "batch": 2,
+      "sample": 114,
+      "rgb16": [
+        39321,
+        26214,
+        13107
+      ],
+      "deviceIndex": 94,
+      "deviceRgb16": [
+        39321,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 482,
+      "batch": 2,
+      "sample": 115,
+      "rgb16": [
+        39321,
+        26214,
+        26214
+      ],
+      "deviceIndex": 93,
+      "deviceRgb16": [
+        39321,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 483,
+      "batch": 2,
+      "sample": 116,
+      "rgb16": [
+        39321,
+        26214,
+        39321
+      ],
+      "deviceIndex": 92,
+      "deviceRgb16": [
+        39321,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 484,
+      "batch": 2,
+      "sample": 117,
+      "rgb16": [
+        39321,
+        39321,
+        13107
+      ],
+      "deviceIndex": 88,
+      "deviceRgb16": [
+        39321,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 485,
+      "batch": 2,
+      "sample": 118,
+      "rgb16": [
+        39321,
+        39321,
+        26214
+      ],
+      "deviceIndex": 87,
+      "deviceRgb16": [
+        39321,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 486,
+      "batch": 2,
+      "sample": 119,
+      "rgb16": [
+        39321,
+        39321,
+        39321
+      ],
+      "deviceIndex": 86,
+      "deviceRgb16": [
+        39321,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 487,
+      "batch": 2,
+      "sample": 120,
+      "rgb16": [
+        39321,
+        39321,
+        52428
+      ],
+      "deviceIndex": 85,
+      "deviceRgb16": [
+        39321,
+        39321,
+        52428
+      ]
+    },
+    {
+      "line": 488,
+      "batch": 2,
+      "sample": 121,
+      "rgb16": [
+        39321,
+        39321,
+        65535
+      ],
+      "deviceIndex": 84,
+      "deviceRgb16": [
+        39321,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 489,
+      "batch": 2,
+      "sample": 122,
+      "rgb16": [
+        39321,
+        52428,
+        0
+      ],
+      "deviceIndex": 83,
+      "deviceRgb16": [
+        39321,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 490,
+      "batch": 2,
+      "sample": 123,
+      "rgb16": [
+        39321,
+        52428,
+        26214
+      ],
+      "deviceIndex": 81,
+      "deviceRgb16": [
+        39321,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 491,
+      "batch": 2,
+      "sample": 124,
+      "rgb16": [
+        39321,
+        52428,
+        39321
+      ],
+      "deviceIndex": 80,
+      "deviceRgb16": [
+        39321,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 492,
+      "batch": 2,
+      "sample": 125,
+      "rgb16": [
+        39321,
+        52428,
+        65535
+      ],
+      "deviceIndex": 78,
+      "deviceRgb16": [
+        39321,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 493,
+      "batch": 2,
+      "sample": 126,
+      "rgb16": [
+        39321,
+        65535,
+        13107
+      ],
+      "deviceIndex": 76,
+      "deviceRgb16": [
+        39321,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 494,
+      "batch": 2,
+      "sample": 127,
+      "rgb16": [
+        39321,
+        65535,
+        65535
+      ],
+      "deviceIndex": 72,
+      "deviceRgb16": [
+        39321,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 495,
+      "batch": 2,
+      "sample": 128,
+      "rgb16": [
+        43690,
+        0,
+        0
+      ],
+      "deviceIndex": 218,
+      "deviceRgb16": [
+        43690,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 496,
+      "batch": 2,
+      "sample": 129,
+      "rgb16": [
+        43690,
+        43690,
+        43690
+      ],
+      "deviceIndex": 248,
+      "deviceRgb16": [
+        43690,
+        43690,
+        43690
+      ]
+    },
+    {
+      "line": 497,
+      "batch": 2,
+      "sample": 130,
+      "rgb16": [
+        44800,
+        35840,
+        17920
+      ],
+      "deviceIndex": 88,
+      "deviceRgb16": [
+        39321,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 498,
+      "batch": 2,
+      "sample": 131,
+      "rgb16": [
+        45056,
+        36096,
+        17920
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 499,
+      "batch": 2,
+      "sample": 132,
+      "rgb16": [
+        45312,
+        45312,
+        45312
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 500,
+      "batch": 2,
+      "sample": 133,
+      "rgb16": [
+        45568,
+        45568,
+        45568
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 501,
+      "batch": 2,
+      "sample": 134,
+      "rgb16": [
+        45746,
+        45746,
+        45746
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 502,
+      "batch": 2,
+      "sample": 135,
+      "rgb16": [
+        46592,
+        37376,
+        18688
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 503,
+      "batch": 2,
+      "sample": 136,
+      "rgb16": [
+        46592,
+        46592,
+        37376
+      ],
+      "deviceIndex": 44,
+      "deviceRgb16": [
+        52428,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 504,
+      "batch": 2,
+      "sample": 137,
+      "rgb16": [
+        48059,
+        0,
+        0
+      ],
+      "deviceIndex": 217,
+      "deviceRgb16": [
+        48059,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 505,
+      "batch": 2,
+      "sample": 138,
+      "rgb16": [
+        48059,
+        48059,
+        48059
+      ],
+      "deviceIndex": 247,
+      "deviceRgb16": [
+        48059,
+        48059,
+        48059
+      ]
+    },
+    {
+      "line": 506,
+      "batch": 2,
+      "sample": 139,
+      "rgb16": [
+        49344,
+        49344,
+        49344
+      ],
+      "deviceIndex": 43,
+      "deviceRgb16": [
+        52428,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 507,
+      "batch": 2,
+      "sample": 140,
+      "rgb16": [
+        52428,
+        0,
+        0
+      ],
+      "deviceIndex": 71,
+      "deviceRgb16": [
+        52428,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 508,
+      "batch": 2,
+      "sample": 141,
+      "rgb16": [
+        52428,
+        0,
+        52428
+      ],
+      "deviceIndex": 67,
+      "deviceRgb16": [
+        52428,
+        0,
+        52428
+      ]
+    },
+    {
+      "line": 509,
+      "batch": 2,
+      "sample": 142,
+      "rgb16": [
+        52428,
+        13107,
+        26214
+      ],
+      "deviceIndex": 63,
+      "deviceRgb16": [
+        52428,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 510,
+      "batch": 2,
+      "sample": 143,
+      "rgb16": [
+        52428,
+        13107,
+        39321
+      ],
+      "deviceIndex": 62,
+      "deviceRgb16": [
+        52428,
+        13107,
+        39321
+      ]
+    },
+    {
+      "line": 511,
+      "batch": 2,
+      "sample": 144,
+      "rgb16": [
+        52428,
+        26214,
+        0
+      ],
+      "deviceIndex": 59,
+      "deviceRgb16": [
+        52428,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 512,
+      "batch": 2,
+      "sample": 145,
+      "rgb16": [
+        52428,
+        26214,
+        13107
+      ],
+      "deviceIndex": 58,
+      "deviceRgb16": [
+        52428,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 513,
+      "batch": 2,
+      "sample": 146,
+      "rgb16": [
+        52428,
+        26214,
+        26214
+      ],
+      "deviceIndex": 57,
+      "deviceRgb16": [
+        52428,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 514,
+      "batch": 2,
+      "sample": 147,
+      "rgb16": [
+        52428,
+        26214,
+        39321
+      ],
+      "deviceIndex": 56,
+      "deviceRgb16": [
+        52428,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 515,
+      "batch": 2,
+      "sample": 148,
+      "rgb16": [
+        52428,
+        39321,
+        0
+      ],
+      "deviceIndex": 53,
+      "deviceRgb16": [
+        52428,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 516,
+      "batch": 2,
+      "sample": 149,
+      "rgb16": [
+        52428,
+        39321,
+        13107
+      ],
+      "deviceIndex": 52,
+      "deviceRgb16": [
+        52428,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 517,
+      "batch": 2,
+      "sample": 150,
+      "rgb16": [
+        52428,
+        39321,
+        26214
+      ],
+      "deviceIndex": 51,
+      "deviceRgb16": [
+        52428,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 518,
+      "batch": 2,
+      "sample": 151,
+      "rgb16": [
+        52428,
+        39321,
+        39321
+      ],
+      "deviceIndex": 50,
+      "deviceRgb16": [
+        52428,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 519,
+      "batch": 2,
+      "sample": 152,
+      "rgb16": [
+        52428,
+        39321,
+        65535
+      ],
+      "deviceIndex": 48,
+      "deviceRgb16": [
+        52428,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 520,
+      "batch": 2,
+      "sample": 153,
+      "rgb16": [
+        52428,
+        52428,
+        13107
+      ],
+      "deviceIndex": 46,
+      "deviceRgb16": [
+        52428,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 521,
+      "batch": 2,
+      "sample": 154,
+      "rgb16": [
+        52428,
+        52428,
+        26214
+      ],
+      "deviceIndex": 45,
+      "deviceRgb16": [
+        52428,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 522,
+      "batch": 2,
+      "sample": 155,
+      "rgb16": [
+        52428,
+        52428,
+        39321
+      ],
+      "deviceIndex": 44,
+      "deviceRgb16": [
+        52428,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 523,
+      "batch": 2,
+      "sample": 156,
+      "rgb16": [
+        52428,
+        52428,
+        52428
+      ],
+      "deviceIndex": 43,
+      "deviceRgb16": [
+        52428,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 524,
+      "batch": 2,
+      "sample": 157,
+      "rgb16": [
+        52428,
+        52428,
+        65535
+      ],
+      "deviceIndex": 42,
+      "deviceRgb16": [
+        52428,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 525,
+      "batch": 2,
+      "sample": 158,
+      "rgb16": [
+        52428,
+        65535,
+        13107
+      ],
+      "deviceIndex": 40,
+      "deviceRgb16": [
+        52428,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 526,
+      "batch": 2,
+      "sample": 159,
+      "rgb16": [
+        52428,
+        65535,
+        39321
+      ],
+      "deviceIndex": 38,
+      "deviceRgb16": [
+        52428,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 527,
+      "batch": 2,
+      "sample": 160,
+      "rgb16": [
+        52428,
+        65535,
+        52428
+      ],
+      "deviceIndex": 37,
+      "deviceRgb16": [
+        52428,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 528,
+      "batch": 2,
+      "sample": 161,
+      "rgb16": [
+        52428,
+        65535,
+        65535
+      ],
+      "deviceIndex": 36,
+      "deviceRgb16": [
+        52428,
+        65535,
+        65535
+      ]
+    },
+    {
+      "line": 529,
+      "batch": 2,
+      "sample": 162,
+      "rgb16": [
+        56797,
+        0,
+        0
+      ],
+      "deviceIndex": 216,
+      "deviceRgb16": [
+        56797,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 530,
+      "batch": 2,
+      "sample": 163,
+      "rgb16": [
+        56797,
+        2313,
+        1799
+      ],
+      "deviceIndex": 216,
+      "deviceRgb16": [
+        56797,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 531,
+      "batch": 2,
+      "sample": 164,
+      "rgb16": [
+        56797,
+        56797,
+        56797
+      ],
+      "deviceIndex": 246,
+      "deviceRgb16": [
+        56797,
+        56797,
+        56797
+      ]
+    },
+    {
+      "line": 532,
+      "batch": 2,
+      "sample": 165,
+      "rgb16": [
+        57079,
+        57079,
+        57079
+      ],
+      "deviceIndex": 246,
+      "deviceRgb16": [
+        56797,
+        56797,
+        56797
+      ]
+    },
+    {
+      "line": 533,
+      "batch": 2,
+      "sample": 166,
+      "rgb16": [
+        58624,
+        58624,
+        58624
+      ],
+      "deviceIndex": 245,
+      "deviceRgb16": [
+        61166,
+        61166,
+        61166
+      ]
+    },
+    {
+      "line": 534,
+      "batch": 2,
+      "sample": 167,
+      "rgb16": [
+        58982,
+        54612,
+        45874
+      ],
+      "deviceIndex": 7,
+      "deviceRgb16": [
+        65535,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 535,
+      "batch": 2,
+      "sample": 168,
+      "rgb16": [
+        60160,
+        48128,
+        24064
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 536,
+      "batch": 2,
+      "sample": 169,
+      "rgb16": [
+        60416,
+        48384,
+        24064
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 537,
+      "batch": 2,
+      "sample": 170,
+      "rgb16": [
+        61166,
+        0,
+        0
+      ],
+      "deviceIndex": 215,
+      "deviceRgb16": [
+        61166,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 538,
+      "batch": 2,
+      "sample": 171,
+      "rgb16": [
+        61166,
+        61166,
+        61166
+      ],
+      "deviceIndex": 245,
+      "deviceRgb16": [
+        61166,
+        61166,
+        61166
+      ]
+    },
+    {
+      "line": 539,
+      "batch": 2,
+      "sample": 172,
+      "rgb16": [
+        62194,
+        2056,
+        33924
+      ],
+      "deviceIndex": 32,
+      "deviceRgb16": [
+        65535,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 540,
+      "batch": 2,
+      "sample": 173,
+      "rgb16": [
+        64764,
+        62451,
+        1285
+      ],
+      "deviceIndex": 5,
+      "deviceRgb16": [
+        65535,
+        65535,
+        0
+      ]
+    },
+    {
+      "line": 541,
+      "batch": 2,
+      "sample": 174,
+      "rgb16": [
+        64768,
+        51712,
+        25856
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 542,
+      "batch": 2,
+      "sample": 175,
+      "rgb16": [
+        65280,
+        52224,
+        26112
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 543,
+      "batch": 2,
+      "sample": 176,
+      "rgb16": [
+        65280,
+        65280,
+        52224
+      ],
+      "deviceIndex": 1,
+      "deviceRgb16": [
+        65535,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 544,
+      "batch": 2,
+      "sample": 177,
+      "rgb16": [
+        65339,
+        52360,
+        26409
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 545,
+      "batch": 2,
+      "sample": 178,
+      "rgb16": [
+        65535,
+        0,
+        0
+      ],
+      "deviceIndex": 35,
+      "deviceRgb16": [
+        65535,
+        0,
+        0
+      ]
+    },
+    {
+      "line": 546,
+      "batch": 2,
+      "sample": 179,
+      "rgb16": [
+        65535,
+        0,
+        13107
+      ],
+      "deviceIndex": 34,
+      "deviceRgb16": [
+        65535,
+        0,
+        13107
+      ]
+    },
+    {
+      "line": 547,
+      "batch": 2,
+      "sample": 180,
+      "rgb16": [
+        65535,
+        0,
+        39321
+      ],
+      "deviceIndex": 32,
+      "deviceRgb16": [
+        65535,
+        0,
+        39321
+      ]
+    },
+    {
+      "line": 548,
+      "batch": 2,
+      "sample": 181,
+      "rgb16": [
+        65535,
+        0,
+        65535
+      ],
+      "deviceIndex": 30,
+      "deviceRgb16": [
+        65535,
+        0,
+        65535
+      ]
+    },
+    {
+      "line": 549,
+      "batch": 2,
+      "sample": 182,
+      "rgb16": [
+        65535,
+        13107,
+        26214
+      ],
+      "deviceIndex": 27,
+      "deviceRgb16": [
+        65535,
+        13107,
+        26214
+      ]
+    },
+    {
+      "line": 550,
+      "batch": 2,
+      "sample": 183,
+      "rgb16": [
+        65535,
+        13107,
+        65535
+      ],
+      "deviceIndex": 24,
+      "deviceRgb16": [
+        65535,
+        13107,
+        65535
+      ]
+    },
+    {
+      "line": 551,
+      "batch": 2,
+      "sample": 184,
+      "rgb16": [
+        65535,
+        25700,
+        771
+      ],
+      "deviceIndex": 23,
+      "deviceRgb16": [
+        65535,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 552,
+      "batch": 2,
+      "sample": 185,
+      "rgb16": [
+        65535,
+        26214,
+        0
+      ],
+      "deviceIndex": 23,
+      "deviceRgb16": [
+        65535,
+        26214,
+        0
+      ]
+    },
+    {
+      "line": 553,
+      "batch": 2,
+      "sample": 186,
+      "rgb16": [
+        65535,
+        26214,
+        13107
+      ],
+      "deviceIndex": 22,
+      "deviceRgb16": [
+        65535,
+        26214,
+        13107
+      ]
+    },
+    {
+      "line": 554,
+      "batch": 2,
+      "sample": 187,
+      "rgb16": [
+        65535,
+        26214,
+        26214
+      ],
+      "deviceIndex": 21,
+      "deviceRgb16": [
+        65535,
+        26214,
+        26214
+      ]
+    },
+    {
+      "line": 555,
+      "batch": 2,
+      "sample": 188,
+      "rgb16": [
+        65535,
+        26214,
+        39321
+      ],
+      "deviceIndex": 20,
+      "deviceRgb16": [
+        65535,
+        26214,
+        39321
+      ]
+    },
+    {
+      "line": 556,
+      "batch": 2,
+      "sample": 189,
+      "rgb16": [
+        65535,
+        26214,
+        52428
+      ],
+      "deviceIndex": 19,
+      "deviceRgb16": [
+        65535,
+        26214,
+        52428
+      ]
+    },
+    {
+      "line": 557,
+      "batch": 2,
+      "sample": 190,
+      "rgb16": [
+        65535,
+        26214,
+        65535
+      ],
+      "deviceIndex": 18,
+      "deviceRgb16": [
+        65535,
+        26214,
+        65535
+      ]
+    },
+    {
+      "line": 558,
+      "batch": 2,
+      "sample": 191,
+      "rgb16": [
+        65535,
+        39321,
+        0
+      ],
+      "deviceIndex": 17,
+      "deviceRgb16": [
+        65535,
+        39321,
+        0
+      ]
+    },
+    {
+      "line": 559,
+      "batch": 2,
+      "sample": 192,
+      "rgb16": [
+        65535,
+        39321,
+        13107
+      ],
+      "deviceIndex": 16,
+      "deviceRgb16": [
+        65535,
+        39321,
+        13107
+      ]
+    },
+    {
+      "line": 560,
+      "batch": 2,
+      "sample": 193,
+      "rgb16": [
+        65535,
+        39321,
+        26214
+      ],
+      "deviceIndex": 15,
+      "deviceRgb16": [
+        65535,
+        39321,
+        26214
+      ]
+    },
+    {
+      "line": 561,
+      "batch": 2,
+      "sample": 194,
+      "rgb16": [
+        65535,
+        39321,
+        39321
+      ],
+      "deviceIndex": 14,
+      "deviceRgb16": [
+        65535,
+        39321,
+        39321
+      ]
+    },
+    {
+      "line": 562,
+      "batch": 2,
+      "sample": 195,
+      "rgb16": [
+        65535,
+        39321,
+        52428
+      ],
+      "deviceIndex": 13,
+      "deviceRgb16": [
+        65535,
+        39321,
+        52428
+      ]
+    },
+    {
+      "line": 563,
+      "batch": 2,
+      "sample": 196,
+      "rgb16": [
+        65535,
+        39321,
+        65535
+      ],
+      "deviceIndex": 12,
+      "deviceRgb16": [
+        65535,
+        39321,
+        65535
+      ]
+    },
+    {
+      "line": 564,
+      "batch": 2,
+      "sample": 197,
+      "rgb16": [
+        65535,
+        52428,
+        0
+      ],
+      "deviceIndex": 11,
+      "deviceRgb16": [
+        65535,
+        52428,
+        0
+      ]
+    },
+    {
+      "line": 565,
+      "batch": 2,
+      "sample": 198,
+      "rgb16": [
+        65535,
+        52428,
+        13107
+      ],
+      "deviceIndex": 10,
+      "deviceRgb16": [
+        65535,
+        52428,
+        13107
+      ]
+    },
+    {
+      "line": 566,
+      "batch": 2,
+      "sample": 199,
+      "rgb16": [
+        65535,
+        52428,
+        26214
+      ],
+      "deviceIndex": 9,
+      "deviceRgb16": [
+        65535,
+        52428,
+        26214
+      ]
+    },
+    {
+      "line": 567,
+      "batch": 2,
+      "sample": 200,
+      "rgb16": [
+        65535,
+        52428,
+        39321
+      ],
+      "deviceIndex": 8,
+      "deviceRgb16": [
+        65535,
+        52428,
+        39321
+      ]
+    },
+    {
+      "line": 568,
+      "batch": 2,
+      "sample": 201,
+      "rgb16": [
+        65535,
+        52428,
+        52428
+      ],
+      "deviceIndex": 7,
+      "deviceRgb16": [
+        65535,
+        52428,
+        52428
+      ]
+    },
+    {
+      "line": 569,
+      "batch": 2,
+      "sample": 202,
+      "rgb16": [
+        65535,
+        52428,
+        65535
+      ],
+      "deviceIndex": 6,
+      "deviceRgb16": [
+        65535,
+        52428,
+        65535
+      ]
+    },
+    {
+      "line": 570,
+      "batch": 2,
+      "sample": 203,
+      "rgb16": [
+        65535,
+        65535,
+        0
+      ],
+      "deviceIndex": 5,
+      "deviceRgb16": [
+        65535,
+        65535,
+        0
+      ]
+    },
+    {
+      "line": 571,
+      "batch": 2,
+      "sample": 204,
+      "rgb16": [
+        65535,
+        65535,
+        13107
+      ],
+      "deviceIndex": 4,
+      "deviceRgb16": [
+        65535,
+        65535,
+        13107
+      ]
+    },
+    {
+      "line": 572,
+      "batch": 2,
+      "sample": 205,
+      "rgb16": [
+        65535,
+        65535,
+        26214
+      ],
+      "deviceIndex": 3,
+      "deviceRgb16": [
+        65535,
+        65535,
+        26214
+      ]
+    },
+    {
+      "line": 573,
+      "batch": 2,
+      "sample": 206,
+      "rgb16": [
+        65535,
+        65535,
+        39321
+      ],
+      "deviceIndex": 2,
+      "deviceRgb16": [
+        65535,
+        65535,
+        39321
+      ]
+    },
+    {
+      "line": 574,
+      "batch": 2,
+      "sample": 207,
+      "rgb16": [
+        65535,
+        65535,
+        52428
+      ],
+      "deviceIndex": 1,
+      "deviceRgb16": [
+        65535,
+        65535,
+        52428
+      ]
+    },
+    {
+      "line": 575,
+      "batch": 2,
+      "sample": 208,
+      "rgb16": [
+        65535,
+        65535,
+        65535
+      ],
+      "deviceIndex": 0,
+      "deviceRgb16": [
+        65535,
+        65535,
+        65535
+      ]
+    }
+  ],
+  "wholeLoadCoverage": {
+    "inventoryInputs": 209,
+    "measured": 209,
+    "missing": 0,
+    "unknownInventoryInputs": 0,
+    "resourcePayloadsJoined": 516,
+    "rawResourceCount": 808,
+    "channels": {
+      "ordinary-cicn-all-pixels-including-hidden": 130,
+      "engine-sampler-potential-coordinates": 130,
+      "paired-cinf-background": 14,
+      "paired-cinf-text": 7,
+      "paired-cinf-emboss": 11,
+      "manifest-header-clut-emitted-parts": 6,
+      "fixed-icon-palette-used-including-hidden": 155,
+      "indexed-ppat-used-pixels": 67
+    },
+    "scope": "Strict coverage of the retained current-converter input inventory; no independent decoder/provider completeness claim."
+  },
+  "crossRunThreeStates": [
+    {
+      "stateOrdinal": 0,
+      "semanticScalarCount": 15,
+      "sharedPayloadCount": 8,
+      "payloadsExact": true,
+      "producerCoreArtifactsExact": 6,
+      "captureAt": "2026-10-19T14:14:48.198Z"
+    },
+    {
+      "stateOrdinal": 1,
+      "semanticScalarCount": 15,
+      "sharedPayloadCount": 8,
+      "payloadsExact": true,
+      "producerCoreArtifactsExact": 6,
+      "captureAt": "2026-10-19T14:17:24.583Z"
+    },
+    {
+      "stateOrdinal": 2,
+      "semanticScalarCount": 15,
+      "sharedPayloadCount": 8,
+      "payloadsExact": true,
+      "producerCoreArtifactsExact": 6,
+      "captureAt": "2026-10-19T14:18:20.163Z"
+    }
+  ],
+  "durability": {
+    "sevenStatusesVisuallyInspected": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "expectedWrittenReadbackExportBytes": [
+      70125,
+      70125,
+      70125,
+      70125
+    ],
+    "filename": "A209-00002135-001.txt"
+  },
+  "independentReview": {
+    "sha256": "f9d8d31929749296ecf9043845d6b9aed1a72e8a8ec3058029740af9742e9308",
+    "decision": "APPROVED finite measurement bytes and bounded cross-run reuse prerequisites; no profile or intake generated"
+  },
+  "acquisitionResultSha256": "0674872423aee53febd7da7fb2e4fe024353e3bbe26912b5127c6d76b697d858",
+  "redactions": [
+    {
+      "line": 1,
+      "sha256": "66c92f01e729f5fbf1f86a8a68987214bb701b83d88bec30138751f02b0d5700",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 2,
+      "sha256": "c5ae29ea9bb22035946fe73e254555b845e021da6e7fa90de0ff49fc12c579b7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 3,
+      "sha256": "b29cccf434a725f9f9ed58876455a93a54e1262ac2b45c98e0259e578a0155f7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 4,
+      "sha256": "9fc56fae1736859f0f3a48bd8f6452952c9ad99ea5308328a4b3492f2542ea76",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 5,
+      "sha256": "b085c4bfaacec6273b26ed3c94f4d1aeccfbabecf5563730f44bd86876b973e7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 6,
+      "sha256": "3a7a7a447a987aa7344e88182c4f14cfc98c3272ce5c7311549bd8462c0dfa1e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 7,
+      "sha256": "6fd3dbc55380b4c7f9f399cf01664d135eb0ab0e27bf9353c762a5e484062db8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 8,
+      "sha256": "034aaa4c527dc8038d29c0c481863c850fdfb32187f54dac93fffc1bb3dc84f7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 9,
+      "sha256": "b674cd493c24acd7b9b0a350b645f6f2b7bee4b4aaf8e5e6824aeda85302e24d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 10,
+      "sha256": "09ea11a44c44bf562f0cf0144242018b5f6111c866a04ddb26349a04b30b5acf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 11,
+      "sha256": "83446abce3e7a62586d33d0aede2ba7353b8e2fe56ca10190df0a9f73a170de0",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 12,
+      "sha256": "c01b16500d35c8702e884ccfc4c42dba4c0e519ec80c4725d19f6a78b7552a03",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 13,
+      "sha256": "718cb3167c1225ae121f0672269226db10a99dcba7064529bb69e5a4c0495345",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 14,
+      "sha256": "efef4cf3c5d851b31c5f9d84c42b3e59474272dac24842d200f10eae5c20622d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 15,
+      "sha256": "b085c4bfaacec6273b26ed3c94f4d1aeccfbabecf5563730f44bd86876b973e7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 16,
+      "sha256": "3a7a7a447a987aa7344e88182c4f14cfc98c3272ce5c7311549bd8462c0dfa1e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 17,
+      "sha256": "6fd3dbc55380b4c7f9f399cf01664d135eb0ab0e27bf9353c762a5e484062db8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 18,
+      "sha256": "034aaa4c527dc8038d29c0c481863c850fdfb32187f54dac93fffc1bb3dc84f7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 19,
+      "sha256": "b674cd493c24acd7b9b0a350b645f6f2b7bee4b4aaf8e5e6824aeda85302e24d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 20,
+      "sha256": "09ea11a44c44bf562f0cf0144242018b5f6111c866a04ddb26349a04b30b5acf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 21,
+      "sha256": "83446abce3e7a62586d33d0aede2ba7353b8e2fe56ca10190df0a9f73a170de0",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 22,
+      "sha256": "7c61c7dcebd6eb60589bdc09e299e87350bddc6668a2550e0e6ab2197960303b",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 23,
+      "sha256": "d676a8064ab9021616cbcef0dfb02f318f909c433563b82584dd6118558a3a8f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 24,
+      "sha256": "4ec89a23d7fbf5ac136bc2d872c9b7ee08764f14d1c32cc491694e2165068790",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 25,
+      "sha256": "a9bd7397a5baa01e3832e09b1f94505bc77320ce3c24c6a51644921202f5b075",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 26,
+      "sha256": "502a728928aff2fe062e89bbde9efd2627da7c5d4b08d0588d4e2f7c13f16c65",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 27,
+      "sha256": "58fc1790ced80f1dd1d72ada0e5efa97007b14c0662cbe83b96bd495d7ae0dae",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 28,
+      "sha256": "f806cb2005022bfc26f4eaec151c9691c2de9b7e55fb7a38b6b8380c4abbabd7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 29,
+      "sha256": "7d28ca9b6420ebf918e336360fa033143e67d0a1648694ba517535c6b4392487",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 30,
+      "sha256": "e2ebc5e6e594badf6b6ef1fe81cbf8bc6206ef2e651593e4c8b2a47fa4017f32",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 31,
+      "sha256": "631b7f0b342cdc0b9eae3bec8c6e00b8c03f4c8329e82db211ef0b64e7d92b9e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 32,
+      "sha256": "3d438538ccb5cba8063142a64d06fa30ce931bb4f0fec02adbffc5c6590da758",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 33,
+      "sha256": "9c17be3c0bddd1f1dc220957b22226e0e83963933c179dda988a7852523ba981",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 34,
+      "sha256": "81d3920e001d8bee77eeacd993ced676113ccc92d72fade25d5b17ea6f7f9e14",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 35,
+      "sha256": "56ecc6036916d69540cbd92dfe1502ad1518df8094cf306715c5877f34dbf64d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 36,
+      "sha256": "229f8b6c2b46f5bac4999314dd503f289e4df0d0dccd0e828e4c212dffef2e59",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 37,
+      "sha256": "0d263fe7735dfc55f98fa45109a01847c8fd420f5d75f3344625a1c5dfeca28d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 38,
+      "sha256": "efd18bab5d49fcc7eaa5039d6663d03a226a5b8b0f39215b0341fb5cd7c77e3d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 39,
+      "sha256": "f633cd733d17591ed5bd3e56e7750380a8917113b740e2b59f15ed69d12b8f87",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 40,
+      "sha256": "74949302983e8b2d3e5246ea4e4c62614b501410c1be0692f62fc57855265ad7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 41,
+      "sha256": "0423f49b9204812eea1ef21f7c32c6e773fda71afaed645b578a8be4fa8ba2b2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 42,
+      "sha256": "fde845e8045b5fbe376c580f8f2d88c272e8e0f87578f91220b2c0319d3f6268",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 43,
+      "sha256": "157fedb3c03ce773ef4a7eab1ce64b3ac317e0da860591595cac9a00eeeda82c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 44,
+      "sha256": "8e7769955d8a7ca980c4f18d3783617b69587ebc5adc623990235e5e623b6fd9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 45,
+      "sha256": "3524cc692a59df00818951a7c9c2414c44f994499a99282f75ba6fb39ff2592c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 46,
+      "sha256": "ae1b69db2024e64b50bce2bfc98f84dd89cec3bce84e4b8f16573043974c1642",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 47,
+      "sha256": "cee693b505ad9272b5bbf01fdef22c5887ada1950559e7c495639b6fe0a030f0",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 48,
+      "sha256": "489f9b5667e69aa0f2aa47412e09e61827473fcf9ac098a8e460ec52c0b087c2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 49,
+      "sha256": "39c8f02e81e81d4998a137855c7dd1998eb4ab07366307c3e0f733594d16c146",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 50,
+      "sha256": "004f21e09fab4bd24c9b3f6bb1e7bb060ae097284dac407d7e96a44163ddfdb3",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 51,
+      "sha256": "15a9ffac9246fc6c13befefe1f8792ca73bfaaed8b791a403858349c7fe2f64f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 52,
+      "sha256": "5703f27acebd68524f6a8e70222496fd50f321c2f7ac492d2bae66fca9628ab2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 53,
+      "sha256": "e77d91e3de0e98e315467d5910def65b9c2673d1ba87a94c0b7aa89b937873ea",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 54,
+      "sha256": "22a34f8d7dbf758d528a90a85ffebf2571ea187ed23c4a3697f39ed5a6b93d50",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 55,
+      "sha256": "a26857df3e0c524b31baee97d35b286a96378f6bcd56a8cd2dca0b3af7196ab3",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 56,
+      "sha256": "e41e86f0c40a4ad295492ba0a03585c08d9b83d980f48ab80aef888a86ea7c1f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 57,
+      "sha256": "f3c6e48cd582678010a551a245307e7def66f52d18ea76dc5534ba79742a161d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 58,
+      "sha256": "43407eab06912c758c2262c7c2bd57a3892baadccf7bffc926d1c20128d4aa39",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 59,
+      "sha256": "10d181639ef061516302d4a529e53ea129221e6c79de27dedd08ebde9752d9f1",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 60,
+      "sha256": "8625b8dc91cd01d381e0d2a1211263487c9053c999d6d15c3480e4e50c319b61",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 61,
+      "sha256": "7138dafcfe4f205ff114ae95c98e9a33ae2e63ff9e29792ca76e29f2b4912dd9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 62,
+      "sha256": "008aae5561a46a934f2a059101576602c3a87de1fdf83370661c84ab303bbb63",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 63,
+      "sha256": "602aeebecfd9c327833eb7cc4a2866958cc2461c39377ebc7230f0b6f583ea87",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 64,
+      "sha256": "144f14128fcb6c021339efb5f6b58b23fa22de37dbca29111a8915f0c9a45347",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 65,
+      "sha256": "7441b1a17b12193868215e003d8b5f75a331e1e7e1f084fe5c694daa02b8e01e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 66,
+      "sha256": "f58cf5724eb7f0442060cf1b95ccd00c97150f2718690fa83c8863fd2b46bb1d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 67,
+      "sha256": "b0b53cdeb76f517ad89c35e33fe8e43762c18882997c596a8b60fadb5c5c282d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 68,
+      "sha256": "595b0de3452a2718b2f3dabcea6722fd60fdce532e346cf4b09519378eecd1bd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 69,
+      "sha256": "a880ed9cd32e8fb0969c0d3e9246372adfd0daedebf1f55150a3514043f66459",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 70,
+      "sha256": "61fe7d00cda33e42fe9a05e8c039fd52e4de037e24c05a324fac1d21ce2f6161",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 71,
+      "sha256": "bce137b29a39befab9d867d92ca8de18984c3c00dbd75219c17362a7796c4cdd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 72,
+      "sha256": "84dad87adff0c70dd8a359ebf98556bd00cb71d756b25806848efc5d43f0a390",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 73,
+      "sha256": "082522b266775a8f9e869c18bc318b389a4ca6438b2981a359886d39c031592e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 74,
+      "sha256": "98dded75336d19b0bba49f17c2e598da8691c56b747689ba7f7d2c34943756ef",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 75,
+      "sha256": "4da08e697305cef5c3a865ac35889499df10f96a05092b08c225517e7020d0a5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 76,
+      "sha256": "eb8f2913b117a4cb8d7fed4e45640e2e244a901bcd94d7a523482d260c3ceaf4",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 77,
+      "sha256": "936481f53c09015e575881c461289049249c01894cabacb2decff12c962451e5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 78,
+      "sha256": "0904e8c63541955d0a8df42b4cbcf75556d2ffe268d812759d4b10682f16937f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 79,
+      "sha256": "fc444661c336d044ffa3fc3ae5f7e512966f6a10ad3ea112e68fd51c62f98396",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 80,
+      "sha256": "18dea7314dfe142abbd09656f150bd08795e30fd7c77e40e1527daed200df004",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 81,
+      "sha256": "e8779b494a5b80762950c85b90dae29b3d751a0180ca465a7876e3a013cddea9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 82,
+      "sha256": "8959eda0ef52fe88302ee3ce934c60a699b7fe46e0ee9e3d43ce30edd66f2230",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 83,
+      "sha256": "f92c36e071fab26fe99818f71c20d67f91a4bcea9e97c043c9f798442de96f31",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 84,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 85,
+      "sha256": "d924e70f5b73c2e001626665d69d7f881fedec47901e5abbead9df5b88b27bdf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 86,
+      "sha256": "5783c01d948c955092e44149da790c45faccc99a5fed41a30856f1faa4b72d81",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 87,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 88,
+      "sha256": "d8f15c05232ff741670f33dd52d366bede0350a6637dd3395a6ac560fa19b0ed",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 89,
+      "sha256": "d9a07255d01e1f5e9645a1cefc7221f934fb9817e48a92e4a33d29ca75d39998",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 90,
+      "sha256": "81648b6ef7d763f1f0f7f0977dec92a821414d3aa6398853355f9c49f4e0722d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 91,
+      "sha256": "bd16878b4733030132a9c6e120045acc38e0bdea640e998bb04e4638814b0927",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 92,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 93,
+      "sha256": "50f9885a44f9d1dec9b0f446ac05be54ae8fb79c59ec37d40be3ba63371c1c7c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 94,
+      "sha256": "b7a2fa792a0966471de862994494cc3d305921d2622d1048d567007346541c32",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 95,
+      "sha256": "8156df67bd7158a267867d23e637a5db50715cc96f8b5cd831e6eaf5f8d6aeb2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 96,
+      "sha256": "d907c4508c7c3f168d1cbed5506fe9099789eaf4a2a9d5c21fde0a5ae84e8158",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 97,
+      "sha256": "5d356aaefa7358af83d82591ff03bfd99f1169d6d5069b79cfc7a91ea017c108",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 98,
+      "sha256": "e7545af45b26deb1c4b6d7b3026b04b55b9cf1be06f01e02628a8bddfc14e553",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 99,
+      "sha256": "b2af53d09707c8df42d1db1d611fd332bb67080daaccb63b4c2e1d8b6d207973",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 100,
+      "sha256": "a18918cda9c6dc7cf05913a10ea6a2544ad26e647e714b839aca884d0f19e6da",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 101,
+      "sha256": "ac8b3746384fa5801535d2d9d4b5df790419a4148e116543c845a7a8588414fd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 102,
+      "sha256": "a2067fe00a9b39313c09d60a282b264a7690c1c7882d97ca714e0e82fb6c38c8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 103,
+      "sha256": "b755547aa7a0028fe81f0b00ae008bf86f462889e7d1688dc76f372f6eb8b657",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 104,
+      "sha256": "11dca82da92e0db7c6a7b310459612089c81732a815e511a6e704bc81b84351e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 105,
+      "sha256": "dab9f37844f866995d29475e5d85362fa865f1575d80edb9edf6d8d35219e477",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 106,
+      "sha256": "e1960ac2783558827250b17820073383097c4895d078afbeb05ea7c848eee7c2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 107,
+      "sha256": "3144c0c25b924fc0c33b9c7ed5d1d72038132642c05d96714ba35c6b894b8c01",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 108,
+      "sha256": "5b4d023ebec1c65abbbda4003ece19d600a78377b8a8a8fa84872593fdbd2107",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 109,
+      "sha256": "52655cb60eb063e499deae5252fa8234ab4baf8d7c19b3f46d57059335150ee9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 110,
+      "sha256": "1e9573929e619b179d7daa58ab1df856fe138dabf8fe7f121b197ec662cc1220",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 111,
+      "sha256": "3379b8c9ec2f9713aadb561f40541fbd14c025808f187746db05f5104a69c92f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 112,
+      "sha256": "c10a969bdf3f29eea7338efade1efc749f2594747367e1e4d18ead50ea91a949",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 113,
+      "sha256": "98378917d2312bc407812765afb32a4cabe3aac392cd1f4e816dc10a519ea39e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 114,
+      "sha256": "a5a6ca1511c5526556820aa5062b0f2e408dc256a002a1c395a92b2d8f56dc5c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 115,
+      "sha256": "7f66b80bd305362deb187983a89d467b00369ef1e82481b6be3f8d686ac84fed",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 116,
+      "sha256": "d45b8fefad72e91b01d9f1706075d5860a98509410addc2b4e6190eb8445d872",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 117,
+      "sha256": "d54009a868c234806ff0b063a21573d402dcf7b45a22078ae2a3763a03f56632",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 118,
+      "sha256": "80149df43a2b794067dcea7770798decedc76345086e7c835caf428c87357215",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 119,
+      "sha256": "d1e2954f90f7beda654a8e39b6b4a824b605d3bcb0682ef8af2fff6e9da6bccc",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 120,
+      "sha256": "e5212ad5c17484c947d413ae273ea01d93406c2e7a4ac2fde2bd4821643ff992",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 121,
+      "sha256": "765ae96e88a22d5f6a3bde6ce26f6d85bab063d96f6275f2d9f2e1047427cd1b",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 122,
+      "sha256": "15be5a27d83dcd3aa7296ce94cfb4b3542774c88af61d8d799b3b7227d6a0a57",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 123,
+      "sha256": "37ec76796c42619e8651f2601a89fe1f3f02f7dc96adfa403d01fe8d92ff756a",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 124,
+      "sha256": "1ca92e20dffddec9b96f7491283f8419e7e71240dca35878ff88004a0fe20e2e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 125,
+      "sha256": "0a0e4010053b822a06fda0fd20fbb0449b8229210eaa01b54d106fb6fa9e4f26",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 126,
+      "sha256": "3484c04c7484c3ee98c934db1347c12b3a3ee1c40497114ecf6d20c02b91a214",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 127,
+      "sha256": "74bc8451c928f4eb89113aaa2b75869841b722a7f495300fa59396f7c67d9149",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 128,
+      "sha256": "cbc457e7623b4f70008ccb5dafca45af8cfbcad2a6969d9ac75c289cd40e8f26",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 129,
+      "sha256": "f2e206633c01758022de761f94c1fa90432757d0aefce1edf27388dd2f46c7a5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 130,
+      "sha256": "9c9c1b527bf935468dd05622139f9b1f05e3a89ee3958ab1f0514903b36a99db",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 131,
+      "sha256": "655d2012605b5df21a4973efd5469f2e0076cb9e2beed5334a9a02fd9bcdda36",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 132,
+      "sha256": "fad787db9e008fda3832ab5757edacc2f32c39d34574dfe4f341b0069c7836e5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 133,
+      "sha256": "ee2f6d993dd5be351a7f2ed2203e92067e5d6baa7ae8347d6b008438f3a17041",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 134,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 135,
+      "sha256": "c294d5f081da65562de56eefb4e1f0b32ae1b5c8367cd3e4a746433ec408611f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 136,
+      "sha256": "1c067bab48e3da75601b494387862c793e258542ca0c72935eff0829d3de7d5e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 137,
+      "sha256": "860ef3ea818bd05c473342f9ccbd40dc752d5ab67aee3a091cf54fa98a0f63e6",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 138,
+      "sha256": "68cc4b56fecc2885ca49c5e060b56e89ead0d443de517fa28ea8c800ff5beb70",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 139,
+      "sha256": "6494b4b20afaf6bf225aaed17688bb0ce763586a894ef1af9d480275e2a62680",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 140,
+      "sha256": "cadef6207cd382c2e883db294abe93e333241bc91b9bdeaafa93db8c4cf79cbb",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 141,
+      "sha256": "138dd3cdaa10b7e5c57ad62d2966e45d1d97843fd96ad4fa87fe92e17cb4579d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 142,
+      "sha256": "ffb8407187dc9d6ade7d6474b37d12279f6161477268916bf9030fb0f20a08c9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 143,
+      "sha256": "81f33be5afc714ab8b01f812ca1536c09f44c1313868dae9050023206a361c7e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 144,
+      "sha256": "9504b46d2a4fe951d11d19fe069307020c8c03e4d5463627d6036e4d60184afa",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 145,
+      "sha256": "352fa991c41fabaf27af0bdad761e5f0864fe3491799fb83b7d6da77fb19c3bf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 146,
+      "sha256": "01885a1d3fd98fbc2485ca9b0c2ae178af014110a13c3c2b2d686ea5269f0651",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 147,
+      "sha256": "45c39ddd8fbf054f0af7c7682621665d858ca289abc3f3ff10e27d6e6bcda481",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 148,
+      "sha256": "c1e6d7d096c507e2d3b2a349de142f06c0314db67e1a0f88ae755e26462ed704",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 149,
+      "sha256": "32c44bb427c1764e74d2cedd41ebcb8a14b6baa00f501536f1a5a1f650f4b611",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 150,
+      "sha256": "1199182e8c748842c8135d7270ae870eaed6494c9d507b66c00d8d3b7c119a20",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 151,
+      "sha256": "de4d03395474090349ad50c6453d29eaba47fefb3dd67dc7d88d43b274171461",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 152,
+      "sha256": "0ad50e89cc378c7c463fe94546b367e3cfc4eab92541bd5371d332792ca8398f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 153,
+      "sha256": "1d690bee8647da449d807f5b58d5f7337eb48c0172401195a77d1d75043a3461",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 154,
+      "sha256": "ef16ca7dc16ab6f86904b36ad0a40a08169f733e762a953f4a04a3c16b24273f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 155,
+      "sha256": "c3a381be13ca8ae92b8950d73bfc526b3b11707e271fd870c9b97fe15749c63e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 156,
+      "sha256": "8d77872bbd7424f12862b9ddac454ca315b07e6b3eb1913690a976b6f22ccf2a",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 577,
+      "sha256": "cd19d6718820e072cb75dbbbf405660be3054a99f26a47f393465a2a642ef80a",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 578,
+      "sha256": "1a35dfc510ea1a4cfd67f2f63600301348929527f428dfa795ea3897af869922",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 579,
+      "sha256": "0e8a38fb1cbec45f34513c16f0f2a8f427a18f34c3a507a722fa2925b7969dee",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 580,
+      "sha256": "d676a8064ab9021616cbcef0dfb02f318f909c433563b82584dd6118558a3a8f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 581,
+      "sha256": "4ec89a23d7fbf5ac136bc2d872c9b7ee08764f14d1c32cc491694e2165068790",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 582,
+      "sha256": "a9bd7397a5baa01e3832e09b1f94505bc77320ce3c24c6a51644921202f5b075",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 583,
+      "sha256": "502a728928aff2fe062e89bbde9efd2627da7c5d4b08d0588d4e2f7c13f16c65",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 584,
+      "sha256": "58fc1790ced80f1dd1d72ada0e5efa97007b14c0662cbe83b96bd495d7ae0dae",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 585,
+      "sha256": "f806cb2005022bfc26f4eaec151c9691c2de9b7e55fb7a38b6b8380c4abbabd7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 586,
+      "sha256": "7d28ca9b6420ebf918e336360fa033143e67d0a1648694ba517535c6b4392487",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 587,
+      "sha256": "e2ebc5e6e594badf6b6ef1fe81cbf8bc6206ef2e651593e4c8b2a47fa4017f32",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 588,
+      "sha256": "631b7f0b342cdc0b9eae3bec8c6e00b8c03f4c8329e82db211ef0b64e7d92b9e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 589,
+      "sha256": "3d438538ccb5cba8063142a64d06fa30ce931bb4f0fec02adbffc5c6590da758",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 590,
+      "sha256": "9c17be3c0bddd1f1dc220957b22226e0e83963933c179dda988a7852523ba981",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 591,
+      "sha256": "81d3920e001d8bee77eeacd993ced676113ccc92d72fade25d5b17ea6f7f9e14",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 592,
+      "sha256": "56ecc6036916d69540cbd92dfe1502ad1518df8094cf306715c5877f34dbf64d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 593,
+      "sha256": "229f8b6c2b46f5bac4999314dd503f289e4df0d0dccd0e828e4c212dffef2e59",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 594,
+      "sha256": "0d263fe7735dfc55f98fa45109a01847c8fd420f5d75f3344625a1c5dfeca28d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 595,
+      "sha256": "efd18bab5d49fcc7eaa5039d6663d03a226a5b8b0f39215b0341fb5cd7c77e3d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 596,
+      "sha256": "f633cd733d17591ed5bd3e56e7750380a8917113b740e2b59f15ed69d12b8f87",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 597,
+      "sha256": "74949302983e8b2d3e5246ea4e4c62614b501410c1be0692f62fc57855265ad7",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 598,
+      "sha256": "0423f49b9204812eea1ef21f7c32c6e773fda71afaed645b578a8be4fa8ba2b2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 599,
+      "sha256": "fde845e8045b5fbe376c580f8f2d88c272e8e0f87578f91220b2c0319d3f6268",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 600,
+      "sha256": "157fedb3c03ce773ef4a7eab1ce64b3ac317e0da860591595cac9a00eeeda82c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 601,
+      "sha256": "8e7769955d8a7ca980c4f18d3783617b69587ebc5adc623990235e5e623b6fd9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 602,
+      "sha256": "3524cc692a59df00818951a7c9c2414c44f994499a99282f75ba6fb39ff2592c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 603,
+      "sha256": "ae1b69db2024e64b50bce2bfc98f84dd89cec3bce84e4b8f16573043974c1642",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 604,
+      "sha256": "cee693b505ad9272b5bbf01fdef22c5887ada1950559e7c495639b6fe0a030f0",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 605,
+      "sha256": "489f9b5667e69aa0f2aa47412e09e61827473fcf9ac098a8e460ec52c0b087c2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 606,
+      "sha256": "39c8f02e81e81d4998a137855c7dd1998eb4ab07366307c3e0f733594d16c146",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 607,
+      "sha256": "004f21e09fab4bd24c9b3f6bb1e7bb060ae097284dac407d7e96a44163ddfdb3",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 608,
+      "sha256": "15a9ffac9246fc6c13befefe1f8792ca73bfaaed8b791a403858349c7fe2f64f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 609,
+      "sha256": "5703f27acebd68524f6a8e70222496fd50f321c2f7ac492d2bae66fca9628ab2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 610,
+      "sha256": "e77d91e3de0e98e315467d5910def65b9c2673d1ba87a94c0b7aa89b937873ea",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 611,
+      "sha256": "22a34f8d7dbf758d528a90a85ffebf2571ea187ed23c4a3697f39ed5a6b93d50",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 612,
+      "sha256": "a26857df3e0c524b31baee97d35b286a96378f6bcd56a8cd2dca0b3af7196ab3",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 613,
+      "sha256": "e41e86f0c40a4ad295492ba0a03585c08d9b83d980f48ab80aef888a86ea7c1f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 614,
+      "sha256": "f3c6e48cd582678010a551a245307e7def66f52d18ea76dc5534ba79742a161d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 615,
+      "sha256": "43407eab06912c758c2262c7c2bd57a3892baadccf7bffc926d1c20128d4aa39",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 616,
+      "sha256": "10d181639ef061516302d4a529e53ea129221e6c79de27dedd08ebde9752d9f1",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 617,
+      "sha256": "8625b8dc91cd01d381e0d2a1211263487c9053c999d6d15c3480e4e50c319b61",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 618,
+      "sha256": "7138dafcfe4f205ff114ae95c98e9a33ae2e63ff9e29792ca76e29f2b4912dd9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 619,
+      "sha256": "008aae5561a46a934f2a059101576602c3a87de1fdf83370661c84ab303bbb63",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 620,
+      "sha256": "602aeebecfd9c327833eb7cc4a2866958cc2461c39377ebc7230f0b6f583ea87",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 621,
+      "sha256": "144f14128fcb6c021339efb5f6b58b23fa22de37dbca29111a8915f0c9a45347",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 622,
+      "sha256": "7441b1a17b12193868215e003d8b5f75a331e1e7e1f084fe5c694daa02b8e01e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 623,
+      "sha256": "f58cf5724eb7f0442060cf1b95ccd00c97150f2718690fa83c8863fd2b46bb1d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 624,
+      "sha256": "b0b53cdeb76f517ad89c35e33fe8e43762c18882997c596a8b60fadb5c5c282d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 625,
+      "sha256": "595b0de3452a2718b2f3dabcea6722fd60fdce532e346cf4b09519378eecd1bd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 626,
+      "sha256": "a880ed9cd32e8fb0969c0d3e9246372adfd0daedebf1f55150a3514043f66459",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 627,
+      "sha256": "61fe7d00cda33e42fe9a05e8c039fd52e4de037e24c05a324fac1d21ce2f6161",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 628,
+      "sha256": "bce137b29a39befab9d867d92ca8de18984c3c00dbd75219c17362a7796c4cdd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 629,
+      "sha256": "84dad87adff0c70dd8a359ebf98556bd00cb71d756b25806848efc5d43f0a390",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 630,
+      "sha256": "082522b266775a8f9e869c18bc318b389a4ca6438b2981a359886d39c031592e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 631,
+      "sha256": "98dded75336d19b0bba49f17c2e598da8691c56b747689ba7f7d2c34943756ef",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 632,
+      "sha256": "4da08e697305cef5c3a865ac35889499df10f96a05092b08c225517e7020d0a5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 633,
+      "sha256": "eb8f2913b117a4cb8d7fed4e45640e2e244a901bcd94d7a523482d260c3ceaf4",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 634,
+      "sha256": "936481f53c09015e575881c461289049249c01894cabacb2decff12c962451e5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 635,
+      "sha256": "0904e8c63541955d0a8df42b4cbcf75556d2ffe268d812759d4b10682f16937f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 636,
+      "sha256": "fc444661c336d044ffa3fc3ae5f7e512966f6a10ad3ea112e68fd51c62f98396",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 637,
+      "sha256": "18dea7314dfe142abbd09656f150bd08795e30fd7c77e40e1527daed200df004",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 638,
+      "sha256": "e8779b494a5b80762950c85b90dae29b3d751a0180ca465a7876e3a013cddea9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 639,
+      "sha256": "8959eda0ef52fe88302ee3ce934c60a699b7fe46e0ee9e3d43ce30edd66f2230",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 640,
+      "sha256": "f92c36e071fab26fe99818f71c20d67f91a4bcea9e97c043c9f798442de96f31",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 641,
+      "sha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 642,
+      "sha256": "d924e70f5b73c2e001626665d69d7f881fedec47901e5abbead9df5b88b27bdf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 643,
+      "sha256": "5783c01d948c955092e44149da790c45faccc99a5fed41a30856f1faa4b72d81",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 644,
+      "sha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 645,
+      "sha256": "d8f15c05232ff741670f33dd52d366bede0350a6637dd3395a6ac560fa19b0ed",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 646,
+      "sha256": "d9a07255d01e1f5e9645a1cefc7221f934fb9817e48a92e4a33d29ca75d39998",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 647,
+      "sha256": "81648b6ef7d763f1f0f7f0977dec92a821414d3aa6398853355f9c49f4e0722d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 648,
+      "sha256": "bd16878b4733030132a9c6e120045acc38e0bdea640e998bb04e4638814b0927",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 649,
+      "sha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 650,
+      "sha256": "50f9885a44f9d1dec9b0f446ac05be54ae8fb79c59ec37d40be3ba63371c1c7c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 651,
+      "sha256": "b7a2fa792a0966471de862994494cc3d305921d2622d1048d567007346541c32",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 652,
+      "sha256": "8156df67bd7158a267867d23e637a5db50715cc96f8b5cd831e6eaf5f8d6aeb2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 653,
+      "sha256": "d907c4508c7c3f168d1cbed5506fe9099789eaf4a2a9d5c21fde0a5ae84e8158",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 654,
+      "sha256": "5d356aaefa7358af83d82591ff03bfd99f1169d6d5069b79cfc7a91ea017c108",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 655,
+      "sha256": "e7545af45b26deb1c4b6d7b3026b04b55b9cf1be06f01e02628a8bddfc14e553",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 656,
+      "sha256": "b2af53d09707c8df42d1db1d611fd332bb67080daaccb63b4c2e1d8b6d207973",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 657,
+      "sha256": "a18918cda9c6dc7cf05913a10ea6a2544ad26e647e714b839aca884d0f19e6da",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 658,
+      "sha256": "ac8b3746384fa5801535d2d9d4b5df790419a4148e116543c845a7a8588414fd",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 659,
+      "sha256": "a2067fe00a9b39313c09d60a282b264a7690c1c7882d97ca714e0e82fb6c38c8",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 660,
+      "sha256": "b755547aa7a0028fe81f0b00ae008bf86f462889e7d1688dc76f372f6eb8b657",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 661,
+      "sha256": "11dca82da92e0db7c6a7b310459612089c81732a815e511a6e704bc81b84351e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 662,
+      "sha256": "dab9f37844f866995d29475e5d85362fa865f1575d80edb9edf6d8d35219e477",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 663,
+      "sha256": "e1960ac2783558827250b17820073383097c4895d078afbeb05ea7c848eee7c2",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 664,
+      "sha256": "3144c0c25b924fc0c33b9c7ed5d1d72038132642c05d96714ba35c6b894b8c01",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 665,
+      "sha256": "5b4d023ebec1c65abbbda4003ece19d600a78377b8a8a8fa84872593fdbd2107",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 666,
+      "sha256": "52655cb60eb063e499deae5252fa8234ab4baf8d7c19b3f46d57059335150ee9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 667,
+      "sha256": "1e9573929e619b179d7daa58ab1df856fe138dabf8fe7f121b197ec662cc1220",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 668,
+      "sha256": "3379b8c9ec2f9713aadb561f40541fbd14c025808f187746db05f5104a69c92f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 669,
+      "sha256": "c10a969bdf3f29eea7338efade1efc749f2594747367e1e4d18ead50ea91a949",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 670,
+      "sha256": "98378917d2312bc407812765afb32a4cabe3aac392cd1f4e816dc10a519ea39e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 671,
+      "sha256": "a5a6ca1511c5526556820aa5062b0f2e408dc256a002a1c395a92b2d8f56dc5c",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 672,
+      "sha256": "7f66b80bd305362deb187983a89d467b00369ef1e82481b6be3f8d686ac84fed",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 673,
+      "sha256": "d45b8fefad72e91b01d9f1706075d5860a98509410addc2b4e6190eb8445d872",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 674,
+      "sha256": "d54009a868c234806ff0b063a21573d402dcf7b45a22078ae2a3763a03f56632",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 675,
+      "sha256": "80149df43a2b794067dcea7770798decedc76345086e7c835caf428c87357215",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 676,
+      "sha256": "d1e2954f90f7beda654a8e39b6b4a824b605d3bcb0682ef8af2fff6e9da6bccc",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 677,
+      "sha256": "e5212ad5c17484c947d413ae273ea01d93406c2e7a4ac2fde2bd4821643ff992",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 678,
+      "sha256": "765ae96e88a22d5f6a3bde6ce26f6d85bab063d96f6275f2d9f2e1047427cd1b",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 679,
+      "sha256": "15be5a27d83dcd3aa7296ce94cfb4b3542774c88af61d8d799b3b7227d6a0a57",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 680,
+      "sha256": "37ec76796c42619e8651f2601a89fe1f3f02f7dc96adfa403d01fe8d92ff756a",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 681,
+      "sha256": "1ca92e20dffddec9b96f7491283f8419e7e71240dca35878ff88004a0fe20e2e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 682,
+      "sha256": "0a0e4010053b822a06fda0fd20fbb0449b8229210eaa01b54d106fb6fa9e4f26",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 683,
+      "sha256": "3484c04c7484c3ee98c934db1347c12b3a3ee1c40497114ecf6d20c02b91a214",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 684,
+      "sha256": "74bc8451c928f4eb89113aaa2b75869841b722a7f495300fa59396f7c67d9149",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 685,
+      "sha256": "cbc457e7623b4f70008ccb5dafca45af8cfbcad2a6969d9ac75c289cd40e8f26",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 686,
+      "sha256": "f2e206633c01758022de761f94c1fa90432757d0aefce1edf27388dd2f46c7a5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 687,
+      "sha256": "9c9c1b527bf935468dd05622139f9b1f05e3a89ee3958ab1f0514903b36a99db",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 688,
+      "sha256": "655d2012605b5df21a4973efd5469f2e0076cb9e2beed5334a9a02fd9bcdda36",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 689,
+      "sha256": "fad787db9e008fda3832ab5757edacc2f32c39d34574dfe4f341b0069c7836e5",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 690,
+      "sha256": "ee2f6d993dd5be351a7f2ed2203e92067e5d6baa7ae8347d6b008438f3a17041",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 691,
+      "sha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 692,
+      "sha256": "c294d5f081da65562de56eefb4e1f0b32ae1b5c8367cd3e4a746433ec408611f",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 693,
+      "sha256": "1c067bab48e3da75601b494387862c793e258542ca0c72935eff0829d3de7d5e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 694,
+      "sha256": "860ef3ea818bd05c473342f9ccbd40dc752d5ab67aee3a091cf54fa98a0f63e6",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 695,
+      "sha256": "68cc4b56fecc2885ca49c5e060b56e89ead0d443de517fa28ea8c800ff5beb70",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 696,
+      "sha256": "6494b4b20afaf6bf225aaed17688bb0ce763586a894ef1af9d480275e2a62680",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 697,
+      "sha256": "cadef6207cd382c2e883db294abe93e333241bc91b9bdeaafa93db8c4cf79cbb",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 698,
+      "sha256": "138dd3cdaa10b7e5c57ad62d2966e45d1d97843fd96ad4fa87fe92e17cb4579d",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 699,
+      "sha256": "ffb8407187dc9d6ade7d6474b37d12279f6161477268916bf9030fb0f20a08c9",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 700,
+      "sha256": "81f33be5afc714ab8b01f812ca1536c09f44c1313868dae9050023206a361c7e",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 701,
+      "sha256": "9504b46d2a4fe951d11d19fe069307020c8c03e4d5463627d6036e4d60184afa",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 702,
+      "sha256": "352fa991c41fabaf27af0bdad761e5f0864fe3491799fb83b7d6da77fb19c3bf",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 703,
+      "sha256": "01885a1d3fd98fbc2485ca9b0c2ae178af014110a13c3c2b2d686ea5269f0651",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 704,
+      "sha256": "45c39ddd8fbf054f0af7c7682621665d858ca289abc3f3ff10e27d6e6bcda481",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 705,
+      "sha256": "c1e6d7d096c507e2d3b2a349de142f06c0314db67e1a0f88ae755e26462ed704",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 706,
+      "sha256": "32c44bb427c1764e74d2cedd41ebcb8a14b6baa00f501536f1a5a1f650f4b611",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 707,
+      "sha256": "1199182e8c748842c8135d7270ae870eaed6494c9d507b66c00d8d3b7c119a20",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    },
+    {
+      "line": 708,
+      "sha256": "95cee66ef2eab20fecc36ed9d251941288cc27098b9dc7da9a168820c6755fd0",
+      "reason": "Non-mapping native telemetry retained privately; engine/region payload bytes and unrelated scalar lines not redistributed."
+    }
+  ]
+}

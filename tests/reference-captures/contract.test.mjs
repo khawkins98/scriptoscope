@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, symlinkSyn
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { deflateSync } from 'node:zlib';
-import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, repositoryRoot, publicFaceScope } from './contract.mjs';
+import { readContract, knownImages, captureTemplate, reviewTemplate, assessCapture, assessCorpus, sha256, digest, reviewDigest, repositoryRoot, publicFaceScope } from './contract.mjs';
 
 import { inspectPNG } from './png.mjs';
 
@@ -49,9 +49,9 @@ function fixture(t, request = contract.requests.find(r => r.id === 'windows-95.n
 test('actual checked-in originals are scoped observations with every broader requirement unresolved', () => {
   const report = assessCorpus(contract, JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))), JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))), { intakeRoot: join(repositoryRoot, 'tests/reference-captures'), known: knownImages() });
   assert.equal(report.requests.length, 59);
-  assert.equal(report.requests.filter(r => r.status === 'missing').length, 47);
-  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'apple-lisa.pressed', 'apple-lisa.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
-  assert.equal(report.captures.length, 12);
+  assert.equal(report.requests.filter(r => r.status === 'missing').length, 44);
+  assert.deepEqual(report.requests.filter(r => r.status === 'evidence-incomplete').map(r => r.id), ['windows-95.normal', 'windows-95.pressed', 'windows-95.inactive', 'system7-nostalgia-silver.normal', 'system7-nostalgia-silver.pressed', 'system7-nostalgia-silver.inactive', 'apple-lisa.normal', 'crayon-os.normal', 'animals.normal', 'animals.pressed', 'animals.inactive', 'apple-lisa.pressed', 'apple-lisa.inactive', 'crayon-os.pressed', 'crayon-os.inactive']);
+  assert.equal(report.captures.length, 15);
   for (const capture of report.captures) {
     assert.equal(capture.status, 'reviewed-scoped-observation');
     assert.deepEqual(capture.missing, []); assert.deepEqual(capture.rejected, []);
@@ -611,4 +611,25 @@ test('v5 policy changes invalidate only new campaign requests, never old applica
  p.sections.publicFaceV5.version++;writeFileSync(file,JSON.stringify(p));
  const next=readContract(root);
  for(const req of contract.requests)assert.equal(next.requests.find(r=>r.id===req.id).requestDigest===req.requestDigest,publicFaceScope(req)?.version!==5);
+});
+
+// The Animals extension adds observations without changing prior scope authority.
+test('Animals intake retains all prior requests, captures and reviews exactly', () => {
+  const retained = JSON.parse(readFileSync(new URL('./animals-retention.json', import.meta.url)));
+  const catalog = JSON.parse(readFileSync(new URL('./requests.json', import.meta.url)));
+  const captures = JSON.parse(readFileSync(new URL('./captures.json', import.meta.url))).captures;
+  const reviews = JSON.parse(readFileSync(new URL('./reviews.json', import.meta.url))).reviews;
+  assert.equal(retained.requests.length, 59);
+  assert.equal(retained.captures.length, 12); assert.equal(retained.reviews.length, 12);
+  for (const row of retained.requests) {
+    assert.equal(digest(catalog.requests.find(r => r.id === row.id)), row.objectSha256);
+    assert.equal(contract.requests.find(r => r.id === row.id).requestDigest, row.requestDigest);
+  }
+  for (const [i, row] of retained.captures.entries()) {
+    assert.equal(captures[i].id, row.id); assert.equal(reviewDigest(captures[i]), row.captureDigest);
+    assert.equal(digest(captures[i]), row.objectSha256);
+  }
+  for (const [i, row] of retained.reviews.entries()) {
+    assert.equal(reviews[i].captureId, row.captureId); assert.equal(digest(reviews[i]), row.objectSha256);
+  }
 });

@@ -2,14 +2,14 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Twelve original observations have independent AI review under the narrow
+**Fifteen original observations have independent AI review under the narrow
 `public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. The four new Crayon/Lisa state observations bring the stored corpus to twelve
-reviewed scoped records; 47 requests have no capture (42 campaign states and
-five older experiments). All twelve scoped requests remain evidence-incomplete.
+separate, for 59 requests total. The three Animals state observations bring the stored corpus to fifteen
+reviewed scoped records; 44 requests have no capture (39 campaign states and
+five older experiments). All fifteen scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
@@ -292,3 +292,29 @@ Only `apple-lisa.normal` adds a scoped observation: empty 80×20 at 20,20 in a
 private resource/provider/cache and pattern state remain unknown. The modern
 selected face/cinf bytes and missing ppat 0 observation are checked separately;
 no whole-request or mask/phase claim follows. Prior scopes and records remain exact.
+
+## Animals fixed-order acquisition batch
+
+The three Animals candidates use the existing v5 requests and scope, with no
+policy or request changes. One boot captures normal, logically highlighted and
+disabled empty controls in that order. Each control is newly created, and each
+ordinary HFS log is durable before the host frame is acknowledged and the next
+control is created. The boot's OS/resource/cache history is shared; this does not
+certify cold-cache or order independence. State 0's screenshot-path failure was
+completed on the host from the retained frame before ACK, without another native
+C or frame acquisition. Original images and timestamps remain exact.
+
+A separate Animals calibration measures all 209 current whole-load inventory
+RGB16 tuples twice. Index2Color results join the same-run positional palette;
+palette, gamma, semantic device fields and producer core match the three-state
+observations. Conditions bracket mapping after the calibration draw, while the
+state logs bracket their fixture redraws; neither establishes private cache
+identity or uniquely brackets the later host image. The calibration retains the
+v16 font log format without widMax, whereas the state logs record widMax 14.
+No complete cross-run font/provider identity is inferred.
+
+Acquisition and measurement approval are distinct from scoped intake and actual
+pixel comparison. See [the batch proposal](animals-state-proposal.md) and
+`animals-calibration/measurement.json`. The prior 12 capture/review objects and
+all 59 request objects/digests are pinned by `animals-retention.json`. No original
+mask, phase, private provider, default state or whole-control claim is added.

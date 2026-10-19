@@ -1,0 +1,44 @@
+{
+  "bootNonce": "A3A-84320f7f95",
+  "hostRunNonce": "9b5727f9bf",
+  "bootCount": 1,
+  "fixedOrder": [
+    0,
+    10,
+    255
+  ],
+  "ordinal": 2,
+  "controlGeneration": 3,
+  "actualBeforeLines": [
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=22619 priorDisposedTicks=22619",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=22619 priorFile=A3A1-000022bb-001.txt",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0"
+  ],
+  "actualAfterLines": [
+    "acquisition.stateOrdinal=2 requestedHilite=255 controlGeneration=3 createdTicks=22619 priorDisposedTicks=22619",
+    "acquisition.priorAcknowledgedState=1 hostAckCount=2 lastHostAckTicks=22619 priorFile=A3A1-000022bb-001.txt",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "bootNonce": "A3A-84320f7f95",
+    "stateOrdinal": 2,
+    "fixtureNonce": "A3A2-84320f7f95",
+    "telemetryFileObserved": "A3A2-000022bb-001.txt",
+    "frameRecordSha256": "99de53f3316a97035c91c4cd914e6d0e7f1d281698a71a1da5d253b463d3dbb4",
+    "cropRecordSha256": "5306207cab765b10e91f98d8d64f1cc6b2eb33d8cd32c892e30f25df8f6fbd64",
+    "statusScreenshotSha256": "44904a8cceaadc95b65e5aefdda96066fe9e5bcd08f077115ab95bfea6db4c76",
+    "at": "2026-10-19T14:18:33.604Z",
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "limits": "Operator must inspect displayed state, seven zero statuses and exact counts; N is not a cryptographic native acknowledgment. Native acceptance requires next log/UI."
+  },
+  "nativeAcceptance": "final ACK3 UI; no next-state log",
+  "finalNativeAckCountObserved": 3,
+  "sharedHistory": "One selected-scheme boot; fresh controls, shared OS/resource/cache history. No cold-cache or order-independence claim.",
+  "acquisitionReview": {
+    "name": "scriptoscope-three-state-acquisition-review.json",
+    "bytes": 2083,
+    "sha256": "6c7eb15db3f14be3ea69becf863936bf70f9f888a23976853a68d398d4152855"
+  },
+  "reviewDecision": "APPROVED acquisition quality, not intake/profile or order-independence certification",
+  "scopedIntakeReview": "PENDING"
+}

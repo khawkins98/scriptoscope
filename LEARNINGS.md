@@ -2547,7 +2547,7 @@ When something looks wrong against the reference:
 These didn't fit the codex pattern — they're per-bundle quirks where the bundle data is non-canonical or the kDEF model isn't a straightforward field lookup:
 
 - **floppies + windows-95 default ring thin.** [RESOLVED 2026-05-28] Bundle shipped `-10231`/`-10232` (16×16) with 3px TRANSPARENT outer rim. Fix: `opaqueBounds` as the 9-slice source (`src/controls.ts` composeButton) — period-faithful kDEF behaviour, the kDEF blitted the visible art, not the raster bounds.
-- **monkey-paradise + animals OK button shows menu wallpaper.** [RESOLVED 2026-05-29] Two bundles assign `-10239` (the canonical active push-button id slot) to `solo-menu-background-2` — non-canonical authoring. They ship inactive (-10240) + pressed (-10238) push-button cicns but no active slot at all. Fix: `loadPushButtonFace` (src/controls.ts) resolves the face via the manifest's STRUCTURED role name first (`push-button-active`, `active-push-button`, `active-button`, `push-button`), then falls back to id-based lookup that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`). When no active face exists, substitutes the pressed face — the AppearanceManager's documented behaviour when an active-state slot was empty. Codex-aligned: the manifest carries the structured answer (the role name), the runtime was guessing from an id collision.
+- **monkey-paradise + animals OK button shows menu wallpaper.** **Superseded 2026-10-19 by [Canonical push IDs override author labels](#2026-10-19--canonical-push-ids-override-author-labels). The historical diagnosis and native-fallback attribution below were incorrect.** [RESOLVED 2026-05-29] Two bundles assign `-10239` (the canonical active push-button id slot) to `solo-menu-background-2` — non-canonical authoring. They ship inactive (-10240) + pressed (-10238) push-button cicns but no active slot at all. Fix: `loadPushButtonFace` (src/controls.ts) resolves the face via the manifest's STRUCTURED role name first (`push-button-active`, `active-push-button`, `active-button`, `push-button`), then falls back to id-based lookup that REJECTS anti-role keys (`/menu|tab-pane|pull-down|popup|window|dialog|scroll/`). When no active face exists, substitutes the pressed face — the AppearanceManager's documented behaviour when an active-state slot was empty. Codex-aligned: the manifest carries the structured answer (the role name), the runtime was guessing from an id collision.
 - **dolphin-som title nameplate too narrow + left frame thin.** Specific to its wnd# recipe — needs the kdef231-recipe-walk per part code.
 
 **Application.**
@@ -3321,6 +3321,8 @@ ThemeEntry name/author/year describe picker labels; they omit meta.json's origin
 
 ### 2026-10-18 — Resolve each owner's button face before inheriting
 
+**Within-owner ordering superseded 2026-10-19 by [Canonical push IDs override author labels](#2026-10-19--canonical-push-ids-override-author-labels). Self-first base traversal remains modern compatibility policy.**
+
 Role-name lookup across the entire base chain followed by id lookup across the chain let a base's named push-button override a child's canonical, unlabelled -10239 face. The base chain must be the outer traversal: within each theme prefer the named role, then accept the canonical id only if its authorLabel/key does not identify an unrelated role. Only then consult the base. This preserves per-theme author intent and existing anti-role rejection while keeping cycle protection and owner-relative asset URLs.
 
 ### 2026-10-18 — Picker previews should decode icons, not whole themes
@@ -3489,6 +3491,8 @@ The pressed face samples [6,9], also #cacaca. Solid faces now use valid opaque
 authored samples. Pattern-backed faces retain their existing approximation,
 and masked samples retain the legacy fallback because the decoded RGBA raster
 has discarded the RGB under the mask. This is not complete pattern/label fidelity.
+
+**The Animals/Monkey selection premise below is superseded 2026-10-19 by [Canonical push IDs override author labels](#2026-10-19--canonical-push-ids-override-author-labels). The selected-face/metadata ownership rule remains valid.**
 
 The face and its metadata must travel together through state and base-theme
 fallbacks. Animals and Monkey Paradise resolve missing active faces to pressed
@@ -4594,3 +4598,19 @@ changing the tier. `composeCheckable` previously honored `mixed` only in its
 icon fallback, so a present unchecked CICN hid the mixed art. Public mixed-over-
 checked precedence and the later active-state fallback remain API compatibility
 policy; source arithmetic alone establishes neither resource provider nor pixels.
+
+### 2026-10-19 — Canonical push IDs override author labels
+
+The reviewed Animals normal capture exposed a real selection error: the measured
+comparison differed at 1,404 of 1,600 pixels because the runtime rejected cicn
+−10239's menu-like author label and selected pressed cicn −10238. The failed
+comparison remains evidence; neither native pixels nor measured colors were
+changed to make it pass. kDEF 0x7576/0x7582/0x758e selects −10240/−10238/−10239
+for disabled/pressed/normal and passes that ID at 0x7592–0x7594. It does not
+interpret the resource name.
+
+Within each loaded owner, a usable exact negative ID now precedes friendly names
+and positive-ID aliases. Alias heuristics, base traversal and missing-state
+fallbacks remain explicitly modern compatibility behavior. This numeric branch
+does not establish historical resource-provider ordering, decoder truth, or
+whole-control fidelity. See [the bounded selection contract](docs/spec/push-button-selection.md).

@@ -5,7 +5,13 @@ import { compareByteProvenance } from '../resource-provenance/compare.mjs';
 import { gitIdentity } from '../rendering-requirements/execution.mjs';
 import { preservePrimaryFailure } from '../rendering-requirements/observation-execution.mjs';
 import { sha256 } from '../control-availability/source.mjs';
-const pins = JSON.parse(readFileSync(new URL('../control-availability/source-candidates.json', import.meta.url))).themes;
+const patternPins = JSON.parse(readFileSync(new URL('../resource-provenance/body-pattern-pins.json', import.meta.url))).themes;
+const pins = JSON.parse(readFileSync(new URL('../control-availability/source-candidates.json', import.meta.url))).themes.map(pin => {
+  const extra = patternPins.find(p => p.slug === pin.slug);
+  if (!extra) return pin;
+  if (extra.archiveSha256 !== pin.archive.sha256 || extra.forkSha256 !== pin.selectedFork.forkSha256) throw new Error('Pattern pin source identity mismatch');
+  return { ...pin, candidates: [...pin.candidates, ...extra.candidates] };
+});
 const inventory = JSON.parse(readFileSync(new URL('../control-availability/expectations.json', import.meta.url)));
 const cases = inventory.cases.filter(c => c.input.startsWith('theme.') && c.mode === 'direct');
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -59,7 +65,7 @@ for (const mode of ['source', 'built']) {
       await attachObservations(info, 'byte-provenance', mode, { execution: { ...gitIdentity(root), mode,
         browserVersion: page.context().browser().version(), builtBundleSha256: sha256(readFileSync(new URL('../../dist/scriptoscope.js', import.meta.url))) },
         complete, loads, rows, limitations: ['Actual input identity only; shared archive/resource decoding and historical pixel correctness remain unverified.',
-          'Only the four pinned archives and finite cicn/cinf paint selections are independently joined; all other inputs remain unassessed.'] });
+          'Only the four pinned archives and finite cicn/cinf and ppat paint selections are independently joined; all other inputs remain unassessed.'] });
       }, description => info.annotations.push({ type: 'observation-metadata-error', description }));
     }
   });

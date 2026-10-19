@@ -1,0 +1,101 @@
+{
+  "status": "SCOPED_REVIEWS_ACCEPTED_DEVELOPMENT_COMPARISON_MATCHED",
+  "baseCommit": "d3c0c4274f00a16c0c291ea2a011151a62d3435e",
+  "candidates": [
+    {
+      "id": "animals.normal.a3a",
+      "requestId": "animals.normal",
+      "path": "animals-normal/candidate.json",
+      "captureAt": "2026-10-19T14:14:48.198Z"
+    },
+    {
+      "id": "animals.pressed.a3a",
+      "requestId": "animals.pressed",
+      "path": "animals-pressed/candidate.json",
+      "captureAt": "2026-10-19T14:17:24.583Z"
+    },
+    {
+      "id": "animals.inactive.a3a",
+      "requestId": "animals.inactive",
+      "path": "animals-inactive/candidate.json",
+      "captureAt": "2026-10-19T14:18:20.163Z"
+    }
+  ],
+  "unchangedRegistries": {
+    "captures.json": {
+      "name": "captures.json",
+      "bytes": 176967,
+      "sha256": "b0f1606f9762a9e0e68116bb6c8d385983b8960196fc1cbe13ee59da07a20b82"
+    },
+    "reviews.json": {
+      "name": "reviews.json",
+      "bytes": 71526,
+      "sha256": "4d17d2802bbba036dc2655900c6d95dea6e8b0e2c2aae415b530bfde04a9eda9"
+    },
+    "requests.json": {
+      "name": "requests.json",
+      "bytes": 77731,
+      "sha256": "813c74b6e2cd2aa98599854089cb511730ca48654ae247e7a31237ddfe732350"
+    },
+    "eligibility-policy.json": {
+      "name": "eligibility-policy.json",
+      "bytes": 8461,
+      "sha256": "b3179862dbda76b6ee6cda69ca878ad3a8e9a41186a74a9858fcbbfdb5934377"
+    },
+    "contract.mjs": {
+      "name": "contract.mjs",
+      "bytes": 36817,
+      "sha256": "ab003bd807efe53d82a051f0fdf106075c6bd22a36242153a45b4078bfc3b93a"
+    }
+  },
+  "existingCounts": {
+    "captures": 12,
+    "reviews": 12,
+    "requests": 59
+  },
+  "proposedRegisteredIncrementAfterReview": {
+    "captures": 3,
+    "reviews": 3,
+    "requests": 0,
+    "scopeChanges": 0
+  },
+  "pending": [
+    "Final combined implementation review and required registered execution"
+  ],
+  "currentEffect": "Three independently root-reviewed v5 scoped records appended; source/built development comparison at b6ac38af matched all three 1,600-pixel faces after the source-defined numeric selector correction. All broader fidelity and inventory closure claims remain unknown/open.",
+  "calibration": {
+    "path": "animals-calibration/measurement.json",
+    "sha256": "8ac86b9c3a92272a6a5fbd961d8df8856c797bd1dd9b2777306677a2d1312940",
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+      "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
+      "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7"
+    }
+  },
+  "comparisonHistory": {
+    "before": {
+      "head": "fb9f7ecdf8d225daa3cfa0308885c5eb89c69c3a",
+      "normalDifferentPixels": 1404,
+      "selectedSignedId": -10238,
+      "referenceUnchanged": true
+    },
+    "after": {
+      "head": "b6ac38af3155096f71dab1d800a6c69190700dcd",
+      "states": [
+        "normal",
+        "pressed",
+        "inactive"
+      ],
+      "pixelsPerState": 1600,
+      "differentPixelsPerState": [
+        0,
+        0,
+        0
+      ],
+      "modes": [
+        "source",
+        "built"
+      ]
+    }
+  }
+}

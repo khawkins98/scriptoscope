@@ -10,13 +10,14 @@ const CRAYON_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/
 export const CRAYON_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-crayon.json', id: 'display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0', sha256: 'fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a' };
 const LISA_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/lisa-recorded-source-pins.json', import.meta.url)));
 export const STATE_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json', import.meta.url)));
-export const sourcePinsFor = (slug,state) => state === 'normal' ? (slug === 'crayon-os' ? CRAYON_SOURCE_PINS : LISA_SOURCE_PINS) : STATE_SOURCE_PINS[slug]?.[state];
+export const sourcePinsFor = (slug,state) => STATE_SOURCE_PINS[slug]?.[state] ?? (state === 'normal' ? (slug === 'crayon-os' ? CRAYON_SOURCE_PINS : LISA_SOURCE_PINS) : undefined);
 export const LISA_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-lisa.json', id: 'display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2', sha256: 'f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6' };
-export const profileFor = slug => slug === 'apple-lisa' ? LISA_PROFILE : slug === 'crayon-os' ? CRAYON_PROFILE : PROFILE;
+export const ANIMALS_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-animals.json', id: 'display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7', sha256: '8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5' };
+export const profileFor = slug => slug === 'animals' ? ANIMALS_PROFILE : slug === 'apple-lisa' ? LISA_PROFILE : slug === 'crayon-os' ? CRAYON_PROFILE : PROFILE;
 export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
 const check = (ok, message) => { if (!ok) throw Error(`recorded face: ${message}`); };
-export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${slug === 'apple-lisa' ? 'v16l' : slug === 'crayon-os' ? 'v14c' : 'v9'}-profile`;
-export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(['crayon-os','apple-lisa'].includes(slug) ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
+export const caseId = (slug, state) => `recorded.${slug}.${state}.empty.w80.h20.${slug === 'animals' ? 'a209' : slug === 'apple-lisa' ? 'v16l' : slug === 'crayon-os' ? 'v14c' : 'v9'}-profile`;
+export const exactOptions = (state, slug) => ({ label: '', minWidth: 80, height: 20, default: false, pressed: state === 'pressed', disabled: state === 'inactive', ...(['crayon-os','apple-lisa','animals'].includes(slug) ? {compositionContext: structuredClone(CRAYON_CONTEXT)} : {}) });
 export const captureBinding = capture => ({ captureId: capture.id, requestId: capture.requestId, requestDigest: capture.requestDigest, captureDigest: reviewDigest(capture), imageSha256: capture.image.sha256, reviewScope: { id: capture.reviewScope.id, version: capture.reviewScope.version, digest: digest(capture.reviewScope) }, faceImageRect: [20, 20, 80, 20], publicFaceRect: [4, 4, 80, 20], background: [255, 255, 255], profile: profileFor(capture.source.slug) });
 
 /** Reuse the intake authority. A matching filename or runtime observation is insufficient. */
@@ -25,7 +26,7 @@ export function readRecordedContext(root) {
   const corpus = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/captures.json')));
   const reviews = JSON.parse(readFileSync(resolve(root, 'tests/reference-captures/reviews.json')));
   const report = assessCorpus(contract, corpus, reviews, { intakeRoot: resolve(root, 'tests/reference-captures'), known: [] });
-  for (const profile of [PROFILE, CRAYON_PROFILE, LISA_PROFILE]) {
+  for (const profile of [PROFILE, CRAYON_PROFILE, LISA_PROFILE, ANIMALS_PROFILE]) {
     const profileSha = createHash('sha256').update(readFileSync(resolve(root, profile.path))).digest('hex');
     check(profileSha === profile.sha256, 'profile DATA bytes changed');
   }
@@ -38,7 +39,7 @@ export function validateRecordedBinding(c, binding, context) {
   check(assessed?.status === 'reviewed-scoped-observation', 'capture is not currently reviewed scoped evidence');
   check(same(binding, captureBinding(capture)), 'stale or wrong capture/profile/crop binding');
   const slug = capture.source.slug, state = capture.conditions.state;
-  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (['crayon-os','apple-lisa'].includes(slug) && ['normal','pressed','inactive'].includes(state)), 'outside finite recorded cases');
+  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (['crayon-os','apple-lisa','animals'].includes(slug) && ['normal','pressed','inactive'].includes(state)), 'outside finite recorded cases');
   check(c.mode === 'direct' && c.family === 'push', 'wrong exact mode/family');
   check(c.id === caseId(slug, state) && same(c.options, exactOptions(state, slug)), 'wrong exact case/options');
   check(same(c.inputs, ['theme.' + slug]) && same(c.baseInputs, []), 'wrong exact source/base inputs');
@@ -86,7 +87,7 @@ export function validateRecordedExecution(row, binding, capture) {
     check(same(row.selectedBodyRequest,sourcePins.bodyRequest), 'wrong actual state body request');
     check(resource?.byteLength===sourcePins.face.bytes && cinf?.byteLength===sourcePins.cinf.bytes, 'wrong state payload lengths');
   }
-  if (row.slug === 'crayon-os') {
+  if (row.slug === 'crayon-os' || (row.slug === 'animals' && sourcePins.pattern)) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
     check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
     const pins = row.recordedSourcePins;
@@ -101,9 +102,9 @@ export function validateRecordedExecution(row, binding, capture) {
       proof.manifestKey===p.resource.manifestKey && p.resource.assetUrl===row.patternAsset &&
       actual?.type==='ppat' && actual.status==='decoded' && actual.resourceIndex===pins.pattern.resourceIndex &&
       actual.signedId===pins.pattern.signedId && actual.sha256===pins.pattern.payloadSha256 &&
-      (row.state==='normal' || actual.byteLength===pins.pattern.bytes), 'wrong selected pattern owner/payload');
+      ((row.state==='normal' && row.slug==='crayon-os') || actual.byteLength===pins.pattern.bytes), 'wrong selected pattern owner/payload');
   }
-  if (row.slug === 'apple-lisa') {
+  if (row.slug === 'apple-lisa' || (row.slug === 'animals' && sourcePins.missingPatternId===0)) {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
       same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) &&
       row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong Lisa port context');

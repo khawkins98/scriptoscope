@@ -1,0 +1,35 @@
+{
+  "canonicalSource": {
+    "slug": "animals",
+    "path": "themes/animals/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+    "entryIndex": 0,
+    "entryName": "Animals/animals",
+    "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "animals"
+  },
+  "actualCopl": "ref2728; animals; volumeRef-2; parent2; fileID20;667199 bytes; stopped canonical fork exact",
+  "configuredFCB": {
+    "volumeRef": -2,
+    "parentDir": 2,
+    "fileID": 20
+  },
+  "stoppedConfiguredFile": {
+    "name": "stopped-scheme.bin",
+    "bytes": 667392,
+    "sha256": "4377103356f0f7b819c8928960f938f8d179a759c688e2c468b543ce74dcb6fb"
+  },
+  "resourceFork": {
+    "bytes": 667199,
+    "sha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5"
+  },
+  "installedEngineResourceFork": {
+    "bytes": 1005535,
+    "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+  },
+  "actualDefinitionsMatchStoppedKaleidoscope": true,
+  "limits": "Configured file only, not actual private cicn/cinf/provider/cache ownership. Transfer is the loaded stopped seed; guest transfer-write persistence is not established."
+}

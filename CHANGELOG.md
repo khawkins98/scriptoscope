@@ -7,6 +7,12 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Document the fidelity workflow: prefer shared-model corrections, retain evidence and limits for interim overrides, and consolidate them when independent references establish the common behavior.
+
+- Select each owner's exact signed push-button resource before author-name aliases, correcting the Animals normal face mismatch without changing recorded pixels or measured profiles. Preserve explicit compatibility fallback when the canonical art is absent.
+
+- Add Animals normal, logically highlighted and disabled empty-face acquisition evidence from one fixed-order boot, a separately measured 209-tuple display profile, and bounded cross-run calibration joins. Preserve prior capture/request bindings and all broader provider, phase, mask and whole-control unknowns (#221, #190).
+
 - Document the private maintainer reference-asset store, verified fetch workflow, restore limits and separation from public CI; refresh the README to twelve reviewed scoped observations.
 
 - Add four independently reviewed Crayon/Lisa highlighted and disabled empty-face observations, calibrated measured-profile comparisons and narrow recorded-output ledger bindings. Define one fixed empty-push campaign across 18 sources and three states, preserving prior bindings and leaving 42 unacquired campaign states and all broad fidelity claims unresolved (#221, #190).

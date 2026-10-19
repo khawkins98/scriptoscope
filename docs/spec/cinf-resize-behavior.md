@@ -150,8 +150,9 @@ Concrete #218 leads:
   Mode5 is not needed to reach the patterned-body path.
 - Animals cinf-10239 uses mode2 and background ID-12239; both cicn and ppat
   candidates exist at that ID. The branch determines the requested type.
-- Monkey Paradise cinf-10239 uses mode2 and ppat128. These raw active slots
-  do not override the runtime's separately documented anti-role fallback policy.
+- Monkey Paradise cinf-10239 uses mode2 and ppat128. The exact signed active
+  slot now precedes author-name aliases; the former anti-role rejection was
+  superseded by the [source numeric dispatch correction](push-button-selection.md).
 - 1990 finder headers use mode1/2 and ppat-9567/-9568. This is resource evidence,
   not proof that list headers call the same original painter as push buttons.
 

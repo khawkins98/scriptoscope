@@ -855,6 +855,231 @@
         "scopeAndLimits": true
       },
       "notes": "Accepted only public-api-empty-face v5 for this exact empty 80×20 recorded face in the declared logical-highlight or disabled active-window state. Independently reviewed capture data at 72b46c0f and source fixture; all private result/public artifact hashes, ordinary stopped native export byte counts, actual before/after state/variant/value/geometry/clip, compiled-installed fixture and stopped installed/configured source forks, preboot/archive identities, all 307200 producer/frame pixels, integer crops and exact environment object were checked. Root byte-review SHA256 f79a3c6b2ec45a419430525f47e9ae8a4ee8af49c1c9cfea4b3aaaabf8fbc853; acquisition batch review SHA256 a5eedd488a11399d4b0468de4328655a2928b65c2de4deae6af0669a2857db6d independently reconstructed all 32 native condition pairs and protected inputs. Original captures are independent of Scriptoscope; no compositor output generated these PNGs. Palette/gamma/device/producer conditions bracket the new drawing; retained finite measured mappings are cross-run conditioned, not newly measured or universal conversion proof. Resource whole-load coverage is separate from actual completed-paint/pixel comparison, which remains pending. Private provider/cache/search/base/patch order, font realization, pattern phase, alpha/mask, physical gestures, inactive windows, private default flags and whole controls remain unknown. Normal shutdown was requested; explicit worker power-off acknowledgment remains unknown. Transfer exports represent the loaded seed. ZERO broad intake requirement IDs are verified and ALL FIVE request targets remain unresolved. This is automated scope/evidence review, not human attestation or original-pixel agreement approval."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "animals.normal.a3a",
+      "verdict": "accepted",
+      "reviewer": "Independent Codex root reviewer (/root; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-19T14:43:05.909Z",
+      "captureDigest": "9c2256bb4d1cf2d70d67956219f381c620e1c72995a6f1f6ad47b28235df3774",
+      "requestDigest": "f611e030e330be2cec30f375736419000663db140e2d4560210bd255a9c250f0",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only the exact public-api-empty-face v5 composited 80×20 empty face in the recorded state (native hilite 0), active window and observed white background. Root reviewed the fixture/public invocation and prepared-input deltas, viewed all three original port images, independently matched 15 public PNG byte/timestamp copies and 369 retained native lines/redaction hashes, and inspected the frozen capture/environment/invocation/provenance wrappers. Independent acquisition review reconstructed three ordinary exports, 24 stable payload pairs, actual source/fixture/Copl/engine joins, all 921600 raw/frame pixels and integer crops. Fresh control generations1→3, fixed0→10→255 order, prior ACK/file joins and finalACK3 are observed; shared OS/cache history is explicit and order/cold-cache independence is not established. State0 host screenshot failure was completed from the retained plane without a new native C/frame; original helper/frame bindings remain exact. Finite calibration has separately reviewed 418 native query rows/209 exact inputs and conditioned palette/gamma/device/producer joins, not universal transfer or full font identity; calibration omits widMax and that unknown remains explicit. Source/built actual comparison remains pending. Original pattern phase, alpha/mask, typography/provider/cache/base/patch/search order, physical gestures, inactive windows, private default flags, whole requirements/requests/controls remain unresolved. Normal shutdown requested; explicit worker exit acknowledgment unknown. Independent three-state acquisition review retained separately; finite calibration independent-review SHA256 f9d8d31929749296ecf9043845d6b9aed1a72e8a8ec3058029740af9742e9308. Local review paths are private reviewer audit pointers, not public artifact requirements."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "animals.pressed.a3a",
+      "verdict": "accepted",
+      "reviewer": "Independent Codex root reviewer (/root; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-19T14:43:05.953Z",
+      "captureDigest": "21462836bc125f6abad0407ba3e7353979f4cefb1a7dbe293864d73507b6edad",
+      "requestDigest": "865d92e840cd6fd316beac28b1a97ae5ec6055af33751db43b4805b1562e1976",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only the exact public-api-empty-face v5 composited 80×20 empty face in the recorded state (native hilite 10), active window and observed white background. Root reviewed the fixture/public invocation and prepared-input deltas, viewed all three original port images, independently matched 15 public PNG byte/timestamp copies and 369 retained native lines/redaction hashes, and inspected the frozen capture/environment/invocation/provenance wrappers. Independent acquisition review reconstructed three ordinary exports, 24 stable payload pairs, actual source/fixture/Copl/engine joins, all 921600 raw/frame pixels and integer crops. Fresh control generations1→3, fixed0→10→255 order, prior ACK/file joins and finalACK3 are observed; shared OS/cache history is explicit and order/cold-cache independence is not established. State0 host screenshot failure was completed from the retained plane without a new native C/frame; original helper/frame bindings remain exact. Finite calibration has separately reviewed 418 native query rows/209 exact inputs and conditioned palette/gamma/device/producer joins, not universal transfer or full font identity; calibration omits widMax and that unknown remains explicit. Source/built actual comparison remains pending. Original pattern phase, alpha/mask, typography/provider/cache/base/patch/search order, physical gestures, inactive windows, private default flags, whole requirements/requests/controls remain unresolved. Normal shutdown requested; explicit worker exit acknowledgment unknown. Independent three-state acquisition review retained separately; finite calibration independent-review SHA256 f9d8d31929749296ecf9043845d6b9aed1a72e8a8ec3058029740af9742e9308. Local review paths are private reviewer audit pointers, not public artifact requirements."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "animals.inactive.a3a",
+      "verdict": "accepted",
+      "reviewer": "Independent Codex root reviewer (/root; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-19T14:43:05.976Z",
+      "captureDigest": "1b771eb0455eebde7f844d21fd306f0aae76577d996dea1807006d0c925075a2",
+      "requestDigest": "b5b6ba6dc22f0bdd2b3d62c5e707f60e089364474c66024169179694b1377fca",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only the exact public-api-empty-face v5 composited 80×20 empty face in the recorded state (native hilite 255), active window and observed white background. Root reviewed the fixture/public invocation and prepared-input deltas, viewed all three original port images, independently matched 15 public PNG byte/timestamp copies and 369 retained native lines/redaction hashes, and inspected the frozen capture/environment/invocation/provenance wrappers. Independent acquisition review reconstructed three ordinary exports, 24 stable payload pairs, actual source/fixture/Copl/engine joins, all 921600 raw/frame pixels and integer crops. Fresh control generations1→3, fixed0→10→255 order, prior ACK/file joins and finalACK3 are observed; shared OS/cache history is explicit and order/cold-cache independence is not established. State0 host screenshot failure was completed from the retained plane without a new native C/frame; original helper/frame bindings remain exact. Finite calibration has separately reviewed 418 native query rows/209 exact inputs and conditioned palette/gamma/device/producer joins, not universal transfer or full font identity; calibration omits widMax and that unknown remains explicit. Source/built actual comparison remains pending. Original pattern phase, alpha/mask, typography/provider/cache/base/patch/search order, physical gestures, inactive windows, private default flags, whole requirements/requests/controls remain unresolved. Normal shutdown requested; explicit worker exit acknowledgment unknown. Independent three-state acquisition review retained separately; finite calibration independent-review SHA256 f9d8d31929749296ecf9043845d6b9aed1a72e8a8ec3058029740af9742e9308. Local review paths are private reviewer audit pointers, not public artifact requirements."
     }
   ]
 }

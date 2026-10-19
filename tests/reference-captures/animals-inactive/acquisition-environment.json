@@ -1,0 +1,175 @@
+{
+  "source": {
+    "slug": "animals",
+    "path": "themes/animals/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+    "entryIndex": 0,
+    "entryName": "Animals/animals",
+    "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Animals/animals\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "animals"
+  },
+  "engineComponent": {
+    "id": "engine.kaleidoscope-2.3.1-kdef0",
+    "kind": "engine",
+    "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+    "bytes": 107726,
+    "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+    "extractionReference": "docs/spec/kdef-binary-inventory.md",
+    "redistributed": false
+  },
+  "prebootSystem": {
+    "path": "system755-run.dsk",
+    "bytes": 25165824,
+    "sha256": "a72f049e06a4be466e9ce9a785a5bdddc74646fc54dd5dc2bbd356598be12810"
+  },
+  "loadedTransferSeed": {
+    "path": "transfer.dsk",
+    "bytes": 8388608,
+    "sha256": "3261d0e81fcaf0cb42adff0a408b9a3f0ba553dc87878f9aefdcabd7cb53645c"
+  },
+  "osVersionObserved": "7.5.5 (Gestalt 0x755)",
+  "fixtureAndProducerInputs": [
+    {
+      "name": "run.json",
+      "bytes": 1834,
+      "sha256": "67fdbf6216b889d87894fc23bf1824aa4827006c84648c4fd9300ff7e4d4f63b"
+    },
+    {
+      "name": "candidate.json",
+      "bytes": 883,
+      "sha256": "d1cf910f099c2768e192567deb74e16d33d5047a7b0b3c27884b3ba3f9bb258a"
+    },
+    {
+      "name": "PushThreeStates.c",
+      "bytes": 19996,
+      "sha256": "ff3e5f58aadb84265a97d6d348bff5be3881742c6d1509eda557815b7145f2bb"
+    },
+    {
+      "name": "PushThreeStates-with-size.bin",
+      "bytes": 70656,
+      "sha256": "077e9fe7ccf39d11f2af2cbc3dd2a423f20d9f7240c63595033e5b60f1e7eafb"
+    },
+    {
+      "name": "reference.ts",
+      "bytes": 2245,
+      "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+    },
+    {
+      "name": "vite.config.mjs",
+      "bytes": 1834,
+      "sha256": "4f43c4959de72bdbf2a8df21699d5a747dae0526d5843eb182c0eb2cbaf27f81"
+    },
+    {
+      "name": "emulator-worker.ts",
+      "bytes": 37925,
+      "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+    },
+    {
+      "name": "emulator-input.ts",
+      "bytes": 14561,
+      "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+    },
+    {
+      "name": "system755-before-boot.dsk",
+      "bytes": 25165824,
+      "sha256": "a72f049e06a4be466e9ce9a785a5bdddc74646fc54dd5dc2bbd356598be12810"
+    },
+    {
+      "name": "transfer.dsk",
+      "bytes": 8388608,
+      "sha256": "3261d0e81fcaf0cb42adff0a408b9a3f0ba553dc87878f9aefdcabd7cb53645c"
+    },
+    {
+      "name": "BasiliskII.js",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+    },
+    {
+      "name": "Quadra-650.rom",
+      "bytes": 1048576,
+      "sha256": "05ad753fb594e656cf078023ec189e09e2a7655a780de993b75b8c51ed6b09ca"
+    },
+    {
+      "name": "capture-state-absolute.mjs",
+      "bytes": 4504,
+      "sha256": "a000c9a67ff789ffeb3c2d1f23d8e8b14410492719ecfbabc75b2e1ea799e513"
+    },
+    {
+      "name": "crop-state.py",
+      "bytes": 1017,
+      "sha256": "83c7a5d56f0dae4e47dd79cb36cfd1860f85d1b6b5494d30f8bfdd2db5e73029"
+    },
+    {
+      "name": "ack-state.mjs",
+      "bytes": 2657,
+      "sha256": "089a5d19e87cb2ed40367ec4ca3c5e40426a9f77d0ae56a59d4bf7934000a1ba"
+    }
+  ],
+  "observedControl": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 255,
+    "value": 0,
+    "enabled": false,
+    "windowActive": true,
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "defaultApiInvoked": false,
+    "title": "",
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "portOrigin": [
+      0,
+      0
+    ],
+    "portBounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "state": "inactive"
+  },
+  "unknown": [
+    "original pattern origin",
+    "original selected painter/resource provider",
+    "resource cache and search order",
+    "complete patch stack",
+    "font provider",
+    "original mask/alpha",
+    "whole-control fidelity"
+  ],
+  "shutdown": {
+    "normalFixtureQuitObserved": true,
+    "normalGuestShutdownRequested": true,
+    "explicitPoweroffAcknowledgment": "UNKNOWN",
+    "browserClosed": true,
+    "serverExit": 130,
+    "serverStopped": true,
+    "hfsUnmounted": true
+  }
+}

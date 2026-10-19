@@ -90,8 +90,10 @@ an ID. Repeated cinf metadata remains observable by exact occurrence.
 ## Bounded independent acceptance
 
 `provenance.spec.mjs` joins the 14 existing reviewed real control cases (17 painted
-face/ring selections per runtime) in Animals, Monkey Paradise, System7 Nostalgia
+face/ring selections plus two body-pattern selections per runtime) in Animals, Monkey Paradise, System7 Nostalgia
 Silver and Windows95 to their separately pinned archive/fork/payload identities.
+The typed join uses the same owner/load/fork checks for cicn/cinf and ppat;
+`body-pattern-pins.json` additionally pins the two raw ppat occurrence indexes.
 Source and built results are assessed independently, with opted-in/off pixel
 comparison as a regression check only. A separate own/base test proves inherited
 ownership and unknown evidence on an unobserved borrowed base. Successful artifacts
@@ -104,7 +106,7 @@ The join verifier rejects wrong owner, key, occurrence, fork, payload and usage;
 reservation cannot satisfy paint. Missing evidence is unknown, never passed.
 
 This proves which bytes entered the shared conversion path. It does not verify
-archive decompression, resource parsing, cicn/cinf decoding, image encoding,
+archive decompression, resource parsing, cicn/cinf/ppat decoding, image encoding,
 original-engine selection, or historical pixels independently. The remaining
 families/types/containers and independent decoder fixtures remain work under
 [#221](https://github.com/khawkins98/scriptoscope/issues/221).

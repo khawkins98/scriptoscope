@@ -1,0 +1,44 @@
+{
+  "bootNonce": "A3A-84320f7f95",
+  "hostRunNonce": "9b5727f9bf",
+  "bootCount": 1,
+  "fixedOrder": [
+    0,
+    10,
+    255
+  ],
+  "ordinal": 0,
+  "controlGeneration": 1,
+  "actualBeforeLines": [
+    "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=8913 priorDisposedTicks=-1",
+    "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE",
+    "acquisition.faceDrawCount=2 initial=1 update=1 mouse=0 capture=0"
+  ],
+  "actualAfterLines": [
+    "acquisition.stateOrdinal=0 requestedHilite=0 controlGeneration=1 createdTicks=8913 priorDisposedTicks=-1",
+    "acquisition.priorAcknowledgedState=-1 hostAckCount=0 lastHostAckTicks=-1 priorFile=NONE",
+    "acquisition.faceDrawCount=3 initial=1 update=1 mouse=0 capture=1"
+  ],
+  "hostAck": {
+    "bootNonce": "A3A-84320f7f95",
+    "stateOrdinal": 0,
+    "fixtureNonce": "A3A0-84320f7f95",
+    "telemetryFileObserved": "A3A0-000022bb-001.txt",
+    "frameRecordSha256": "b8d272adb5af0acb243df2d84301f433e7d6d13c85f872a163130110714be24c",
+    "cropRecordSha256": "bd30482e5b7918ff7e9ad5a295c93cee040e9a38462a474303f514385ebdfc87",
+    "statusScreenshotSha256": "efefd618f68ee5688c223e394a59010b16616688d24b45f0c141e8e86e191fab",
+    "at": "2026-10-19T14:16:43.845Z",
+    "status": "COMMAND_SENT_NATIVE_ACCEPTANCE_PENDING",
+    "limits": "Operator must inspect displayed state, seven zero statuses and exact counts; N is not a cryptographic native acknowledgment. Native acceptance requires next log/UI."
+  },
+  "nativeAcceptance": "next-state log and ready UI",
+  "finalNativeAckCountObserved": 3,
+  "sharedHistory": "One selected-scheme boot; fresh controls, shared OS/resource/cache history. No cold-cache or order-independence claim.",
+  "acquisitionReview": {
+    "name": "scriptoscope-three-state-acquisition-review.json",
+    "bytes": 2083,
+    "sha256": "6c7eb15db3f14be3ea69becf863936bf70f9f888a23976853a68d398d4152855"
+  },
+  "reviewDecision": "APPROVED acquisition quality, not intake/profile or order-independence certification",
+  "scopedIntakeReview": "PENDING"
+}

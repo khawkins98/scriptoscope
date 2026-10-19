@@ -17,6 +17,9 @@ for (const mode of ['source', 'built']) {
         rejected: [theme('rejected', { menu: element(-10239, { authorLabel: 'Solo Menu Background' }) }, base), {}],
         rejectedKey: [theme('rejected-key', { 'menu-wallpaper': element(-10239) }, base), {}],
         rawEscape: [theme('raw', { menu: element(-10239, { authorLabel: 'Solo Menu Background' }) }), {}],
+        canonicalNamed: [theme('canonical-named', { 'push-button-active': element(-123), menu: element(-10239, {authorLabel:'Solo Menu Background'}) }), {}],
+        positiveRejected: [theme('positive-rejected', { menu: element(10239, {authorLabel:'Solo Menu Background'}) }, base), {}],
+        activeMissing: [theme('active-missing', { 'pressed-push-button': element(-10238) }), {}],
         unknown: [theme('unknown', { 'push-button-active': element(undefined) }), {}],
         bevel: [theme('bevel', {}, base), { small: true, disabled: true }],
         plain: [theme('plain', { slot: element(-10239), ring: element(-10231, { asset: 'invalid:must-not-decode' }) }), {}],
@@ -44,11 +47,15 @@ for (const mode of ['source', 'built']) {
     expect(selected(t.inherited)).toMatchObject({ owner: { chainDepth: 1 }, resource: { signedId: -10239, manifestKey: 'push-button-active' } });
     expect(selected(t.inherited).owner.baseUrl).toMatch(/\/synthetic\/base$/);
     expect(t.inherited.steps.some(s => s.reason === 'base-inheritance')).toBe(true);
-    expect(t.rejected.steps[0]).toMatchObject({ action: 'rejected', reason: 'anti-role-label', basis: 'compatibility-policy', resource: { signedId: -10239, manifestKey: 'menu' } });
-    expect(selected(t.rejected).owner.chainDepth).toBe(1);
-    expect(t.rejectedKey.steps[0]).toMatchObject({ action: 'rejected', reason: 'anti-role-key', basis: 'compatibility-policy', resource: { manifestKey: 'menu-wallpaper' } });
-    expect(t.rawEscape.steps.some(s => s.reason === 'raw-id-escape')).toBe(true);
-    expect(selected(t.rawEscape)).toMatchObject({ basis: 'compatibility-policy', resource: { manifestKey: 'menu', signedId: -10239 } });
+    for (const name of ['rejected','rejectedKey','rawEscape','canonicalNamed']) {
+      expect(selected(t[name])).toMatchObject({owner:{chainDepth:0},resource:{signedId:-10239},basis:'source-dispatch',reason:'resource-id'});
+      expect(t[name].steps.some(s=>s.action==='rejected'||s.reason==='active-to-pressed'||s.reason==='raw-id-escape')).toBe(false);
+    }
+    expect(selected(t.canonicalNamed).resource.manifestKey).toBe('menu');
+    expect(t.positiveRejected.steps[0]).toMatchObject({action:'rejected',reason:'anti-role-label',basis:'compatibility-policy',resource:{signedId:10239}});
+    expect(selected(t.positiveRejected).owner.chainDepth).toBe(1);
+    expect(t.activeMissing.steps.some(s=>s.reason==='active-to-pressed')).toBe(true);
+    expect(selected(t.activeMissing).resource.signedId).toBe(-10238);
     expect(selected(t.unknown).resource).toMatchObject({ signedId: null, sourceCinfId: null, manifestKey: 'push-button-active' });
     expect(selected(t.bevel)).toMatchObject({ requestedId: -10163, owner: { chainDepth: 1 }, resource: { signedId: -10163 }, basis: 'compatibility-policy' });
     expect(t.bevel.steps.filter(s => s.reason.startsWith('bevel-')).map(s => s.reason)).toEqual(['bevel-unpressed-fallback', 'bevel-default-fallback']);
@@ -63,7 +70,7 @@ for (const mode of ['source', 'built']) {
     expect(result.attached).toMatchObject({ version: 1, family: 'push-button', outcome: { status: 'themed' } });
   });
 
-  test(`${mode}: corpus traces record rejected active slots and exact face/ring state choices`, async ({ page, servers }) => {
+  test(`${mode}: corpus traces retain canonical active slots and exact face/ring state choices`, async ({ page, servers }) => {
     await openHarness(page, servers, mode);
     const rows = await page.evaluate(async mode => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
@@ -87,15 +94,15 @@ for (const mode of ['source', 'built']) {
       // Expectations are explicit reviewed source IDs and runtime policy choices,
       // not derived by repeating the production resolver in the harness.
       const faceId = family === 'bevel' ? { active: -10166, pressed: -10165, inactive: -10167 }[state]
-        : { active: slug === 'windows-95' ? -10239 : -10238, pressed: -10238, inactive: -10240 }[state];
+        : { active: -10239, pressed: -10238, inactive: -10240 }[state];
       expect(face.resource.signedId, `${slug}/${family}/${state}`).toBe(faceId);
       expect(face.resource.sourceCinfId).toBe(faceId);
       expect(face.owner.chainDepth).toBe(0);
       if (family === 'push') {
         expect(trace.steps.find(s => s.reason === 'ring-paint').resource.signedId).toBe(state === 'inactive' ? -10232 : -10231);
         if (slug !== 'windows-95' && state === 'active') {
-          expect(trace.steps.find(s => s.action === 'rejected')).toMatchObject({ reason: 'anti-role-label', resource: { signedId: -10239, manifestKey: 'solo-menu-background-2' } });
-          expect(trace.steps.some(s => s.reason === 'active-to-pressed')).toBe(true);
+          expect(face).toMatchObject({basis:'source-dispatch',reason:'resource-id',resource:{signedId:-10239,manifestKey:'solo-menu-background-2'}});
+          expect(trace.steps.some(s => s.action==='rejected'||s.reason==='active-to-pressed')).toBe(false);
         }
       }
     }

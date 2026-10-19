@@ -29,9 +29,8 @@ not reauthenticate the original binary in CI.
 
 Animals and Monkey Paradise label cicn -10239 `Solo Menu Background`; their
 same-ID cinf is labelled `Push Button`. These labels establish names, not an
-authoritative original dispatch role. Rejecting the menu-labelled cicn while
-seeking a push face and then choosing pressed art is an explicitly reviewed
-compatibility policy.
+authoritative original dispatch role. The former label-rejection/pressed substitution was a modern compatibility
+policy, corrected by the numeric dispatch evidence below.
 
 Manifest keys are a separate public bundle naming policy. Unnamed source art
 uses the signed raw-ID key; these named sources use normalized author labels.
@@ -39,3 +38,15 @@ The finite expectations pin exact keys independently of runtime traces. Two
 resources with the same signed metadata under competing keys are not treated
 as interchangeable. Source fork/payload hashes are independently pinned input
 evidence, but the initial trace exposes no actual decoder fork/payload identity.
+
+## Canonical push-face dispatch (2026-10-19)
+
+At 0x7576 the disabled byte selects -10240 at 0x757c; otherwise the pressed
+byte at 0x7582 selects -10238 at 0x7588. The remaining path loads -10239 at
+0x758e, pushes that signed ID at 0x7592 and calls the face helper at 0x7594.
+No author-name test intervenes. Thus an available exact negative state ID
+precedes friendly names in the modern resolver. Base-chain ordering, named
+aliases, positive-ID aliases and missing-state fallbacks remain compatibility
+policies; this correction does not authenticate original resource providers
+or establish whole-control pixel fidelity. The same pinned engine identity
+and static-analysis limits above apply.

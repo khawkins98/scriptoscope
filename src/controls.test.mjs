@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 const { loadPushButtonFace } = await import('./controls.ts');
 
-test('button face inheritance is self-first across named and canonical resources', async (t) => {
+test('button faces retain canonical signed IDs before aliases within each owner', async (t) => {
   const previous = { Image: globalThis.Image, document: globalThis.document };
   t.after(() => Object.assign(globalThis, previous));
   const loaded = [];
@@ -26,16 +26,26 @@ test('button face inheritance is self-first across named and canonical resources
 
   child.manifest.chromeElements['push-button-active'] = { asset: 'named-child.png' };
   await loadPushButtonFace(child, 'active');
-  assert.equal(loaded.at(-1), '/child/named-child.png');
+  assert.equal(loaded.at(-1), '/child/child.png');
   delete child.manifest.chromeElements['push-button-active'];
   child.manifest.chromeElements['cicn--10239'].authorLabel = 'Solo Menu Background';
   await loadPushButtonFace(child, 'active');
-  assert.equal(loaded.at(-1), '/base/base.png');
+  assert.equal(loaded.at(-1), '/child/child.png');
 
   delete child.manifest.chromeElements['cicn--10239'].authorLabel;
   child.manifest.chromeElements['menu-background'] = child.manifest.chromeElements['cicn--10239'];
   delete child.manifest.chromeElements['cicn--10239'];
+  await loadPushButtonFace(child, 'active');
+  assert.equal(loaded.at(-1), '/child/child.png');
+  delete child.manifest.chromeElements['menu-background'];
+  child.manifest.chromeElements['push-button-active'] = { asset: 'named-child.png' };
+  await loadPushButtonFace(child, 'active');
+  assert.equal(loaded.at(-1), '/child/named-child.png');
+  delete child.manifest.chromeElements['push-button-active'];
+  await loadPushButtonFace(child, 'active');
+  assert.equal(loaded.at(-1), '/base/base.png');
+
   base.manifest.chromeElements = {};
-  base.base = child; // Missing face in a cycle still terminates.
+  base.base = child; // Truly missing face in a cycle still terminates.
   assert.equal(await loadPushButtonFace(child, 'active'), null);
 });

@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.11.0 declares sixty-six exact direct cases and seven explicit dimensions per
+Inventory 1.12.0 declares sixty-nine exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -326,3 +326,31 @@ root and frontend review approved the bounded integration at 8600ff04; the clean
 development source/built pair matched all 1,600 pixels per face. Final registered
 execution remains separately required. No historical provider,
 alpha/mask, original phase, font, whole request or whole-control claim is added.
+
+## Animals measured-profile comparisons (1.12.0)
+
+Three fixed empty Animals state cases reuse the existing measured-profile
+source/built loop and 80×20 native face crop. The separate 209-tuple calibration
+covers the current whole-load inventory; exact positional palette reverse joins
+and recorded device/gamma/producer agreement support bounded cross-run use.
+Actual pixel equality is a separate requirement. The normal face selects its
+bound ppat −12239 with mode 2; highlighted and disabled faces retain the actual
+same-owner ppat 0 absence observation. No original private pattern ownership or
+phase is inferred from those modern dependencies.
+
+The original observations share one boot in fixed normal→highlighted→disabled
+order, with fresh controls and host acknowledgment before advancement. This is
+not cold-cache or state-order independence. The face is compared over recorded
+white; original alpha/mask, provider/cache, font and whole-control claims remain
+unknown. Calibration telemetry omits widMax, while the capture logs record 14;
+no complete cross-run font identity is asserted.
+
+`animals-recorded-transition.json` retains all six prior registry arrays,
+including 66 cases and 473 assessments. The first clean comparison at `fb9f7ecd`
+retained a 1,404-pixel Animals normal mismatch caused by author-label rejection.
+The source-defined numeric selector correction at `b6ac38af` matched all three
+1,600-pixel faces in source and built modes, with unchanged originals/profile/pins;
+root independently checked the actual planes. Only the three recorded-output
+obligations become verified. The resulting 69 OPEN cases contain 491 obligations:
+88 narrowly verified and 403 unknown. Final combined review and registered
+execution remain separate gates; no original provider, phase or mask claim is added.
