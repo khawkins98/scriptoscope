@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.5.0",
+  "inventoryVersion": "1.5.1",
   "scope": {
     "description": "Thirty exact direct composition cases, including six separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
@@ -1715,8 +1715,8 @@
       "reference": {
         "captureId": "windows-95.normal.v9.draft",
         "requestId": "windows-95.normal",
-        "requestDigest": "fd26cf4e9ca7e7b8c9eb2ae2c8dc0a471e8b3a941dc27934308dd04756f14ef4",
-        "captureDigest": "dd005fc4d690406640081986f48c0cecc3a06a9990581ed45f389a13be80d87f",
+        "requestDigest": "8e4252db9a235ea4b500ac74fe23c7b037e013a28f28255c3a41697334db8a30",
+        "captureDigest": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d",
         "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1764,8 +1764,8 @@
       "reference": {
         "captureId": "windows-95.pressed.v10w.draft",
         "requestId": "windows-95.pressed",
-        "requestDigest": "997cfa81415bfeeab497e90cec720e0e9414a55d5b974f7e573760e0cc5b8936",
-        "captureDigest": "7557a89ec172249b4ef1d40314977ce90f35e85e9ca3d77f170637e0e13d5cc9",
+        "requestDigest": "20c60aac92353913e68a43073fba0835ba722ea62db682581e4303a9c4232dad",
+        "captureDigest": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5",
         "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1813,8 +1813,8 @@
       "reference": {
         "captureId": "windows-95.inactive.v10w.draft",
         "requestId": "windows-95.inactive",
-        "requestDigest": "360564cf7b9cf222c04bc9de0176f0645002dd8414df5a3218f94daabf0c4e34",
-        "captureDigest": "2411faf2580bab729a058bfed0ce35006a7fb3b6d54f7c0b71b119d85ce180b3",
+        "requestDigest": "ab653bb949bbeeab42c6b1e5609e5bcba6c483cb8c41f504e9d5c1d270be05e5",
+        "captureDigest": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23",
         "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1862,8 +1862,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.normal.v7d.draft",
         "requestId": "system7-nostalgia-silver.normal",
-        "requestDigest": "c2411f8e57c327432b38df500520b829281793b04ed78aee9feb9137bfd16bef",
-        "captureDigest": "fe1818de17c31c04ea08b8f570508e2be9af004b8878a073de6e105497b660bd",
+        "requestDigest": "9c96bd9093cc0c5d4e9d3221b49add6b6102255f4f838a829a8542d86fdd8e1a",
+        "captureDigest": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae",
         "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1911,8 +1911,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
         "requestId": "system7-nostalgia-silver.pressed",
-        "requestDigest": "2d024905f90e6db0fc20f93355049dadbcf93f2837a9c6766db515826e4db740",
-        "captureDigest": "70b7a22502333f95c386e37d7ee8c987a1e17b2582bb554a19056fe6f4cf008a",
+        "requestDigest": "736a6a7d29281d418c4648499bf1e74eb06a4f6475f74568b91378582f98f998",
+        "captureDigest": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed",
         "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1960,8 +1960,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
         "requestId": "system7-nostalgia-silver.inactive",
-        "requestDigest": "80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0",
-        "captureDigest": "1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9",
+        "requestDigest": "ef415a5b8220936349a3a35e3229556fc9c03562a3c5ffa22a04a933156b7e51",
+        "captureDigest": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9",
         "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3735,8 +3735,8 @@
       "recordedComparison": {
         "captureId": "windows-95.normal.v9.draft",
         "requestId": "windows-95.normal",
-        "requestDigest": "fd26cf4e9ca7e7b8c9eb2ae2c8dc0a471e8b3a941dc27934308dd04756f14ef4",
-        "captureDigest": "dd005fc4d690406640081986f48c0cecc3a06a9990581ed45f389a13be80d87f",
+        "requestDigest": "8e4252db9a235ea4b500ac74fe23c7b037e013a28f28255c3a41697334db8a30",
+        "captureDigest": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d",
         "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3820,8 +3820,8 @@
       "recordedComparison": {
         "captureId": "windows-95.pressed.v10w.draft",
         "requestId": "windows-95.pressed",
-        "requestDigest": "997cfa81415bfeeab497e90cec720e0e9414a55d5b974f7e573760e0cc5b8936",
-        "captureDigest": "7557a89ec172249b4ef1d40314977ce90f35e85e9ca3d77f170637e0e13d5cc9",
+        "requestDigest": "20c60aac92353913e68a43073fba0835ba722ea62db682581e4303a9c4232dad",
+        "captureDigest": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5",
         "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3905,8 +3905,8 @@
       "recordedComparison": {
         "captureId": "windows-95.inactive.v10w.draft",
         "requestId": "windows-95.inactive",
-        "requestDigest": "360564cf7b9cf222c04bc9de0176f0645002dd8414df5a3218f94daabf0c4e34",
-        "captureDigest": "2411faf2580bab729a058bfed0ce35006a7fb3b6d54f7c0b71b119d85ce180b3",
+        "requestDigest": "ab653bb949bbeeab42c6b1e5609e5bcba6c483cb8c41f504e9d5c1d270be05e5",
+        "captureDigest": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23",
         "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3990,8 +3990,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.normal.v7d.draft",
         "requestId": "system7-nostalgia-silver.normal",
-        "requestDigest": "c2411f8e57c327432b38df500520b829281793b04ed78aee9feb9137bfd16bef",
-        "captureDigest": "fe1818de17c31c04ea08b8f570508e2be9af004b8878a073de6e105497b660bd",
+        "requestDigest": "9c96bd9093cc0c5d4e9d3221b49add6b6102255f4f838a829a8542d86fdd8e1a",
+        "captureDigest": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae",
         "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -4075,8 +4075,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
         "requestId": "system7-nostalgia-silver.pressed",
-        "requestDigest": "2d024905f90e6db0fc20f93355049dadbcf93f2837a9c6766db515826e4db740",
-        "captureDigest": "70b7a22502333f95c386e37d7ee8c987a1e17b2582bb554a19056fe6f4cf008a",
+        "requestDigest": "736a6a7d29281d418c4648499bf1e74eb06a4f6475f74568b91378582f98f998",
+        "captureDigest": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed",
         "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -4160,8 +4160,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
         "requestId": "system7-nostalgia-silver.inactive",
-        "requestDigest": "80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0",
-        "captureDigest": "1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9",
+        "requestDigest": "ef415a5b8220936349a3a35e3229556fc9c03562a3c5ffa22a04a933156b7e51",
+        "captureDigest": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9",
         "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -7402,5 +7402,5 @@
       "review": "Independent Astra AI architecture review approved the finite prepared-strike SOURCE scope at 60c800d7 plus count-only 6702b7af (2026-10-19), scope digest b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81. Actual clean execution separately required; not human attestation or original-font/provider approval."
     }
   ],
-  "inventorySha256": "b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81"
+  "inventorySha256": "46e636c655b4a91388e666cd506631171cf6486171a31a518ac3b6d87248c15d"
 }

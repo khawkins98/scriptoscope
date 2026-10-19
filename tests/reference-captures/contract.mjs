@@ -33,6 +33,7 @@ const faceScope = {
     'default-ring', 'private-resource-or-painter-selection', 'provider-cache-or-search-order', 'whole-requirements', 'whole-request'],
 };
 const fullScope = { id: 'full', version: 1 };
+const requestDigestModel = 'request-semantic-v1';
 const scopedUnknownFields = ['font', 'patchStack', 'baseChain', 'resourceSearchOrder', 'selectedProvider', 'resourceCache', 'privateDefaultState'];
 const scopedChecks = ['originalEnvironment', 'installationAndConfiguredSource', 'publicInvocation', 'recordedPixelConditions',
   'conditionsAndTransform', 'imageAndArtifacts', 'independentOfScriptoscope', 'scopeAndLimits'];
@@ -48,7 +49,7 @@ export function publicFaceScope(request) {
     && isDeepStrictEqual(c.portBounds, [0, 0, 160, 80]) && isDeepStrictEqual(c.imageSize, [160, 80])
     && isDeepStrictEqual(c.scale, [1, 1]) && isDeepStrictEqual(c.backgroundRGB, [255, 255, 255])
     && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36]))) return null;
-  // Keep the already-reviewed normal v1 definition and request digests exact.
+  // Keep the already-reviewed normal v1 scope definition exact.
   if (state === 'normal') return structuredClone(faceScope);
   const hilite = state === 'pressed' ? 10 : 255;
   return { ...structuredClone(faceScope), version: 2,
@@ -73,6 +74,16 @@ export function readContract(root = repositoryRoot) {
   const choices = readJSON(resolve(root, catalog.sourceRegistry));
   const ledger = readJSON(resolve(root, catalog.requirementLedger));
   check(catalog.schemaVersion === 1 && text(catalog.requestVersion), 'unsupported request schema/version');
+  const policyPath = 'tests/reference-captures/eligibility-policy.json';
+  const policyBytes = readFileSync(resolve(root, policyPath));
+  const policy = JSON.parse(policyBytes);
+  check(policy.schemaVersion === 1 && policy.id === 'scriptoscope.reference-eligibility', 'unsupported eligibility policy');
+  const policySections = keys => Object.fromEntries(keys.map(key => {
+    const section = policy.sections?.[key];
+    check(Number.isInteger(section?.version) && section.version > 0 && Array.isArray(section.rules)
+      && section.rules.length > 0 && section.rules.every(text), `missing normative eligibility section: ${key}`);
+    return [key, section];
+  }));
   const engine = ledger.inputs.find(input => input.id === catalog.engineComponentId);
   check(engine?.kind === 'engine' && hash(engine.sha256), 'missing pinned engine component');
   const ids = new Set();
@@ -101,12 +112,32 @@ export function readContract(root = repositoryRoot) {
       check(isDeepStrictEqual(c.controlRect, fixed ? translate(b.controlRect) : b.controlRect)
         && isDeepStrictEqual(c.cropPortRect, fixed ? translate(b.cropPortRect) : b.cropPortRect), `${request.id}: inconsistent experiment placement`);
     }
-    const pinned = { compatibility, requestVersion: catalog.requestVersion, reviewScopes: publicFaceScope(request) ? [publicFaceScope(request)] : [],
-      ledgerVersion: ledger.inventoryVersion, targetRequirements: request.targetRequirementIds.map(id => ledger.requirements.find(r => r.id === id)), sourceRegistrySchema: choices.schemaVersion, sourceRegistryReview: choices.reviewStatus,
-      request, source, engineComponent: engine };
+    const scope = publicFaceScope(request);
+    const keys = ['common', 'full', ...(scope ? ['publicFace', `publicFaceV${scope.version}`] : []),
+      ...(Object.hasOwn(request.toObserve, 'patternOriginState') ? ['patternOrigin'] : []),
+      ...(c.requiredInvocationClass ? ['directOrigin'] : [])];
+    // Include transitive baseline inputs, not an unrelated catalog-wide version.
+    const baselines = [], visited = new Set([request.id]);
+    let baselineId = request.experiment?.baselineRequestId;
+    while (baselineId) {
+      check(!visited.has(baselineId), `${request.id}: cyclic experiment baseline`); visited.add(baselineId);
+      const baseline = catalog.requests.find(r => r.id === baselineId);
+      check(baseline, `${request.id}: missing experiment baseline`);
+      check(baseline.targetRequirementIds.every(id => request.targetRequirementIds.includes(id)),
+        `${request.id}: baseline targets must be covered by this request's pinned definitions`);
+      baselines.push(baseline);
+      baselineId = baseline.experiment?.baselineRequestId;
+    }
+    const pinned = { model: requestDigestModel, contractId: compatibility.id,
+      eligibility: { id: policy.id, sections: policySections(keys) }, reviewScopes: [fullScope, ...(scope ? [scope] : [])],
+      targetRequirements: request.targetRequirementIds.map(id => ledger.requirements.find(r => r.id === id)),
+      request, baselines, source, engineComponent: engine };
     return { ...request, source, engineComponent: engine, requestDigest: digest(pinned) };
   });
-  return { catalog, compatibility, requests };
+  const provenance = { compatibility, catalogRequestVersion: catalog.requestVersion, ledgerVersion: ledger.inventoryVersion,
+    sourceRegistrySchema: choices.schemaVersion, sourceRegistryReview: choices.reviewStatus,
+    eligibilityPolicy: { id: policy.id, path: policyPath, sha256: sha256(policyBytes) } };
+  return { catalog, compatibility, requests, requestDigestModel, provenance };
 }
 
 /** Known-byte contamination screen, NOT authentication of unknown external images. */
@@ -353,7 +384,7 @@ export function assessCorpus(contract, corpus, reviewFile, options) {
   check(ids.every(text) && new Set(ids).size === ids.length, 'missing/duplicate capture id');
   check(reviewFile.reviews.every(review => ids.includes(review.captureId)), 'orphan review does not name an intake capture');
   const captures = corpus.captures.map(capture => assessCapture(capture, contract.requests.find(r => r.id === capture.requestId), reviewFile.reviews, options));
-  return { schemaVersion: 1, compatibilityContract: contract.compatibility, contractId: contract.compatibility.id, requestVersion: contract.catalog.requestVersion,
+  return { schemaVersion: 1, requestDigestModel: contract.requestDigestModel, provenance: contract.provenance, compatibilityContract: contract.compatibility, contractId: contract.compatibility.id, requestVersion: contract.catalog.requestVersion,
     interpretation: 'Evidence eligibility only. Missing captures are not passes; reviewed intake does not verify renderer output, original decoder, whole cases or complete fidelity.',
     requests: contract.requests.map(request => {
       const records = captures.filter(c => c.requestId === request.id && c.kind === 'independent-original');

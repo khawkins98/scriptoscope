@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.5.0 declares thirty exact direct cases and seven explicit dimensions per
+Inventory 1.5.1 declares thirty exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -200,3 +200,9 @@ are refreshed after authority 0.1.11 freezes. Request definitions/artifacts rema
 unchanged. Independent metadata-only amendments are required before intake passes.
 Actual source/built markers, exact test path and clean current execution remain
 necessary; dirty or missing evidence is not run.
+
+Inventory 1.5.1 refreshes only recorded-face request/capture digest bindings for
+the reviewed semantic-digest migration. All thirty cases, 257 assessments and
+requirement definitions are unchanged. Global provenance versions no longer
+force reference re-attestation; original artifacts and earlier reviews remain
+exactly preserved.

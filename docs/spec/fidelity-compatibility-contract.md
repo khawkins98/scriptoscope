@@ -1,6 +1,6 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.11**,
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.12**,
 2026-10-18. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
@@ -94,7 +94,7 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.5.0](../../tests/rendering-requirements/ledger.json) contains
+The current [ledger 1.5.1](../../tests/rendering-requirements/ledger.json) contains
 thirty OPEN cases and 257 declared obligations: 48 narrowly verified,
 0 mismatched, 1 explicitly unsupported and 208 unknown. Six of those verified
 obligations concern only complete recorded-condition empty80×20 faces under an
