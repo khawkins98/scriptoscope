@@ -1,0 +1,47 @@
+{
+  "originalIndexSha256": "76fa9589dbc27e0eff95c93512a97afa723be9b57f5f46d3874225507fe9fdb2",
+  "originalCaptureReceiptSha256": "7d7918677189ee179a5fc937822606c1c33a174dd00468f52fc2bf2429857138",
+  "rawProducer": {
+    "bytes": 1228800,
+    "sha256": "4496b3795d829730ffa63067a27dc08e11e028a1252d70cd10529d8c348fdd41"
+  },
+  "rawPngEqualityBytes": 1228800,
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "faceFrameBoxLTRB": [
+    100,
+    110,
+    180,
+    130
+  ],
+  "nonce": "V16L-20261019-01",
+  "sequence": 1,
+  "mappingRows": 44,
+  "exactRepeatedMappings": 22,
+  "profileDataSha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6",
+  "profileRelationship": "Same-run22 tuples/palette/producer table, no imported mappings; mapping conditions AFTER draw.",
+  "exportMethod": "Normal stopped HFS data-fork export; no carving",
+  "fileManagerStatuses": {
+    "write": 0,
+    "short": 0,
+    "close": 0,
+    "flush": 0,
+    "reopen": 0,
+    "GetEOF": 0,
+    "readClose": 0,
+    "expectedBytes": 34254,
+    "writtenBytes": 34254,
+    "readbackEOF": 34254
+  },
+  "fileManagerStatusImageSha256": "3ea54ef3a511918202bd52264220ade3fb9c39dfcf0b0cc5b722b1e675e8783f"
+}

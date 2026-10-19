@@ -486,6 +486,75 @@
         "scopeAndLimits": true
       },
       "notes": "Accepted only public-api-empty-face v3 for this recorded Crayon normal empty80x20 face. Carried forward the previously completed independent v14 factual review, bound by evidence-index SHA256 2eca5a645cbff0d0ef9098307f5e842874a7367c1c7b65f0ce3a9ccce0902fac. Reviewed the new scope, sanitized artifact joins and exact copied image/palette/table/profile bytes; retained native log excerpts match their declared source lines. Native NewControl/Draw1Control procedure0/variant0/hilite0/value0, enabled active window, Rect20,20,80,20 and full160x80 port/effective clip are recorded. Public Copl/FCB volume−3,parent2,file18 joins the stopped canonical Crayon fork; it does not identify the actual private painter/cache provider. The inherited Windows95 wrapper subject is preserved and explicitly corrected using those independent bindings. Conditions bracket the mapping batch AFTER drawing, not Draw1Control itself. Full-frame/port/context transforms and opaque-white composition retain the previously reviewed no-resampling transport. Exact producer builds, same-run palette/gamma and finite profile are identified, without claiming universal device conversion. Original pattern origin/API state, private provider/cache/base/search/patch order, font realization, private default state and source alpha/mask remain unknown. This attestation verifies ZERO broad requirement IDs; ALL FIVE request targets remain unresolved and the request remains evidence-incomplete. Separate modern recorded-output assertions do not expand this scope. No new guest capture or repeated original evidence audit was performed."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 4,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty Lisa normal face under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "original-pattern-phase",
+          "general-body-paint",
+          "private-pattern-provider"
+        ]
+      },
+      "captureId": "apple-lisa.normal.v16l",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated independent review, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-19T03:08:09.413Z",
+      "captureDigest": "72080c09a93c6c54e983e31a6feff7e50f5f06d9ebdec3fff759792c1de4b14f",
+      "requestDigest": "70da66e6307d3b08cb8a2853db2e32e78c7a2f9553e9bf4ad8f9a6d3335b8d56",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Accepted only public-api-empty-face v4 for this recorded Lisa normal empty80x20 face. Carried forward the previously completed independent v16 factual review, bound by evidence-index SHA256 76fa9589dbc27e0eff95c93512a97afa723be9b57f5f46d3874225507fe9fdb2. Reviewed the new scope, sanitized artifact joins and exact copied image/palette/table/profile bytes; retained native log excerpts match their declared source lines. Native NewControl/Draw1Control procedure0/variant0/hilite0/value0, enabled active window, Rect20,20,80,20 and full160x80 port/effective clip are recorded. Public Copl/FCB volume−2,parent2,file19 joins the stopped canonical Lisa fork; this does not identify the actual private painter/cache provider. File Manager statuses and expected/written/readback count34254 were followed by a normal stopped HFS export of34254 bytes; this is v16 evidence, not the v15 recovered export. Conditions bracket mapping AFTER drawing, not Draw1Control. Exact frame/port/context transforms and opaque-white composition retain previously reviewed transport. Same-run finite22-tuple profile, palette/gamma and external producer identities are bound, without claiming universal conversion. Original pattern phase, private provider/cache/base/search/patch order, font realization, private default state and source alpha/mask remain unknown. ZERO broad requirement IDs are verified; ALL FIVE request targets remain unresolved and the request stays evidence-incomplete. Separate modern face/cinf/no-ppat0 trace checks and recorded-output assertions do not expand historical claims. This is independent automated Astra AI review, not human or maintainer attestation. No new guest capture or repeated original evidence audit was performed."
     }
   ]
 }

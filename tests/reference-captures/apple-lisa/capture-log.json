@@ -1,0 +1,468 @@
+{
+  "status": "SANITIZED_EXCERPT_PENDING_SCOPE_REVIEW",
+  "nonce": "V16L-20261019-01",
+  "originalRawLog": {
+    "bytes": 34254,
+    "sha256": "c6e7d7ed6238265e5398c5ad12b137b4fba14bf23952ca84aea8bb6fdffafb1e"
+  },
+  "readableDerivative": {
+    "bytes": 34254,
+    "sha256": "30222c3a98befb3a180168dbf5b9df2d4b76f548bb5c06219c90114e5bad6f72"
+  },
+  "lineNumberBasis": "1-based CR-to-LF derivative only",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=V16L-20261019-01 launchDate=3875230669 launchTicks=1170 sequence=1"
+    },
+    {
+      "line": 4,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2634 queryHasOSErr=0"
+    },
+    {
+      "line": 7,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=000005e2 callerAfterGetter=2634"
+    },
+    {
+      "line": 8,
+      "text": "resourceContext.Copl.signedLow16Ref=1506"
+    },
+    {
+      "line": 9,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 10,
+      "text": "CoplResourceFile.file.name=Apple Lisa Office System volumeRef=-2 parentDir=2 fileID=19 flags=512 logicalEOF=390320 physicalEOF=390656"
+    },
+    {
+      "line": 11,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 12,
+      "text": "immediateBeforePublicFace.CurResFile=2634"
+    },
+    {
+      "line": 13,
+      "text": "immediateAfterPublicFace.CurResFile=2634"
+    },
+    {
+      "line": 14,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2634 queryHasOSErr=0"
+    },
+    {
+      "line": 17,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=000005e2 callerAfterGetter=2634"
+    },
+    {
+      "line": 18,
+      "text": "resourceContext.Copl.signedLow16Ref=1506"
+    },
+    {
+      "line": 19,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 20,
+      "text": "CoplResourceFile.file.name=Apple Lisa Office System volumeRef=-2 parentDir=2 fileID=19 flags=512 logicalEOF=390320 physicalEOF=390656"
+    },
+    {
+      "line": 21,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 22,
+      "text": "phase=before-color-mapping ticks=1870"
+    },
+    {
+      "line": 23,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 24,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 25,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 26,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 27,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 28,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;no-default-API"
+    },
+    {
+      "line": 29,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=0000e100 actualWindowDefinitionHandle=0000e198"
+    },
+    {
+      "line": 30,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 45,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 46,
+      "text": "portPixMap.handle=03e6f5ac colorTableHandle=0000210c depth=8"
+    },
+    {
+      "line": 47,
+      "text": "portColorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 82,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 85,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 88,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 89,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 90,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 93,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 94,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 95,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 96,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 131,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 132,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 142,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 144,
+      "text": "body.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 145,
+      "text": "edge.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 146,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 147,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 148,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 149,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 150,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 153,
+      "text": "mapping.currentDevice=00002120 mainDevice=00002120 equal=1"
+    },
+    {
+      "line": 204,
+      "text": "mapping.status=OBSERVED;repeat-and-color-environment-stability-require-host-comparison"
+    },
+    {
+      "line": 205,
+      "text": "phase=after-color-mapping ticks=1871"
+    },
+    {
+      "line": 206,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 207,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 208,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 209,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 210,
+      "text": "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 211,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;no-default-API"
+    },
+    {
+      "line": 212,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=0000e100 actualWindowDefinitionHandle=0000e198"
+    },
+    {
+      "line": 213,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 228,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 leading=1"
+    },
+    {
+      "line": 229,
+      "text": "portPixMap.handle=03e6f5ac colorTableHandle=0000210c depth=8"
+    },
+    {
+      "line": 230,
+      "text": "portColorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 265,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 268,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 271,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 272,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 273,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 276,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 277,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 278,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 279,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 314,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 315,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 325,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 327,
+      "text": "body.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 328,
+      "text": "edge.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 329,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 330,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 331,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 332,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 333,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 334,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactedRanges": [
+    {
+      "firstLine": 2,
+      "lastLine": 3,
+      "lineTextSha256": "bd7f9f2ac72da4b71c60ed9bd606065b60d837f58b9ef3a8578a428d34505cc1",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 5,
+      "lastLine": 6,
+      "lineTextSha256": "a224ad82e3b4ea9eec9c96b0420363ed07d3d4958cf4d2bde2de98cb54a2d6cb",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 15,
+      "lastLine": 16,
+      "lineTextSha256": "a224ad82e3b4ea9eec9c96b0420363ed07d3d4958cf4d2bde2de98cb54a2d6cb",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 31,
+      "lastLine": 44,
+      "lineTextSha256": "7874c234a924e11d4a41d64aa74c18fb8651ff62bddc39b9d74fce55aa7b7c5c",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 48,
+      "lastLine": 81,
+      "lineTextSha256": "f506b53fd264b550aeaa89f6de35522c12656eea40555ab62cd791ef9923b4fd",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 83,
+      "lastLine": 84,
+      "lineTextSha256": "f7ada05fe2bcad8bf722441c6a6fdb8d2fa2c3fb9d4c406a9a3fc1f59672299b",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 86,
+      "lastLine": 87,
+      "lineTextSha256": "5ca489a0e109933eb23bf1147461337110fb533216a838ee60fafebc972de954",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 91,
+      "lastLine": 92,
+      "lineTextSha256": "7c95c747a80e1be2efe1aea86c37a4d1f62609c7e95d59c9a2f7941651bca87f",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 97,
+      "lastLine": 130,
+      "lineTextSha256": "9647155d11035dc342099405f3c067d627c1a9ba6d20996c80dc6bd815a04fc3",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 133,
+      "lastLine": 141,
+      "lineTextSha256": "31d44f34c08c75af63aecba832ff9c933613d747dd59c987e8b04339ed4a22cb",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 143,
+      "lastLine": 143,
+      "lineTextSha256": "81f33be5afc714ab8b01f812ca1536c09f44c1313868dae9050023206a361c7e",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 151,
+      "lastLine": 152,
+      "lineTextSha256": "a39b8cc4cb4a8316354baa99f73e41e98ad8ae9b60be221758b0d842e487286c",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 154,
+      "lastLine": 203,
+      "lineTextSha256": "2aae77c54d54e97b67a3d8ae048e4e26cedd9438f3c6ff0b58fcddd40e585962",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 214,
+      "lastLine": 227,
+      "lineTextSha256": "7874c234a924e11d4a41d64aa74c18fb8651ff62bddc39b9d74fce55aa7b7c5c",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 231,
+      "lastLine": 264,
+      "lineTextSha256": "f506b53fd264b550aeaa89f6de35522c12656eea40555ab62cd791ef9923b4fd",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 266,
+      "lastLine": 267,
+      "lineTextSha256": "f7ada05fe2bcad8bf722441c6a6fdb8d2fa2c3fb9d4c406a9a3fc1f59672299b",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 269,
+      "lastLine": 270,
+      "lineTextSha256": "5ca489a0e109933eb23bf1147461337110fb533216a838ee60fafebc972de954",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 274,
+      "lastLine": 275,
+      "lineTextSha256": "7c95c747a80e1be2efe1aea86c37a4d1f62609c7e95d59c9a2f7941651bca87f",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 280,
+      "lastLine": 313,
+      "lineTextSha256": "9647155d11035dc342099405f3c067d627c1a9ba6d20996c80dc6bd815a04fc3",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 316,
+      "lastLine": 324,
+      "lineTextSha256": "31d44f34c08c75af63aecba832ff9c933613d747dd59c987e8b04339ed4a22cb",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    },
+    {
+      "firstLine": 326,
+      "lastLine": 326,
+      "lineTextSha256": "81f33be5afc714ab8b01f812ca1536c09f44c1313868dae9050023206a361c7e",
+      "reason": "Binary/resource payload and query rows omitted; permitted palette/table and numeric mappings supplied separately."
+    }
+  ],
+  "fixtureSourceSha256": "b4bbb76862245fec8deb7647a50b81eb705d567d2906182e6d4e7051141dec27",
+  "fixtureAppSha256": "b76527f4de42e7711ea182ac59ee5ddaa1cf087b62a4179e5f8e6c114639a2aa",
+  "launchTicks": 1170,
+  "launchDateMacSeconds": 3875230669,
+  "sequence": 1
+}

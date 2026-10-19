@@ -64,6 +64,13 @@
         "For this scope only, patternOriginState must be explicit null with a nonempty unknown reason. Port origin0 does not establish original pattern phase or API availability. The full request still requires patternOrigin evidence.",
         "Claim only complete conditioned composited-face output. Exclude original pattern phase, general body paint, pattern mask and private pattern provider; all broad request targets stay unresolved."
       ]
+    },
+    "publicFaceV4": {
+      "version": 1,
+      "rules": [
+        "Only apple-lisa.normal qualifies: empty80x20 at20,20, origin0, full160x80 effective clip, normal hilite0/enabled/active, no default API. Existing v1/v2/v3 scopes remain unchanged.",
+        "Claim only the complete conditioned composited face. No original provider/cache, pattern phase, alpha/mask or general body-paint claim. This scope does not alter full-request requirements or prior capture eligibility."
+      ]
     }
   },
   "maintenance": {

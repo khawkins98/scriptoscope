@@ -218,3 +218,14 @@ completed face output must agree; selected pattern metadata is not occupancy
 proof. All prior30 cases/257 assessments and requirement definitions remain
 exact. Totals:31 OPEN,263 obligations,49 narrow verified,1 unsupported,213 unknown.
 No original phase/mask/provider or general body claim follows.
+
+## Lisa recorded output (1.7.0)
+
+One new OPEN direct case compares the complete recorded 80×20 empty normal face
+under its same-run 22-tuple profile. Source/built execution must join the exact
+scope-v4 capture, selected face/cinf payloads, completed face paint, explicit port
+context and modern no-ppat 0 observation. The original provider/cache/pattern state,
+mask and broader requirements remain unknown. Existing 31 cases/263 assessments
+and definitions remain exact. Totals: 32 OPEN, 269 obligations, 50 narrow verified,
+1 unsupported,218 unknown. Eight recorded-condition comparisons remain separate
+from SOURCE requirements and never close cases.

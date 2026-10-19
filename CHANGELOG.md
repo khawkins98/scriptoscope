@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add one scoped Lisa normal-face reference with its measured 22-color profile, exact recorded-output comparison and stopped-export guidance; preserve prior scopes and broad unknowns.
+
 - Add one scoped Crayon normal-face observation and exact recorded-profile comparison with explicit port placement. Original pattern phase/provider/mask and whole-request obligations remain unknown; existing six attestations retain their semantic bindings.
 
 - Bind reference attestations to request-specific semantics and versioned eligibility rules, retaining global documentation/ledger versions as provenance. Preserve prior attestations through one reviewed metadata migration; admission outcomes and original artifacts stay unchanged.

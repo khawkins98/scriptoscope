@@ -1,0 +1,48 @@
+{
+  "palette": {
+    "depth": 8,
+    "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+    "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+  },
+  "producer": {
+    "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+    "buildArtifacts": [
+      {
+        "name": "BasiliskII.js",
+        "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+      },
+      {
+        "name": "BasiliskII.wasm",
+        "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+      },
+      {
+        "name": "reference-v16l.ts",
+        "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+      },
+      {
+        "name": "vite-v16l.config.mjs",
+        "sha256": "ef2ae0be9506a9807210528a46656b27a1d77a5312e61a9012541a2c0bc7a189"
+      },
+      {
+        "name": "emulator-worker.ts",
+        "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+      },
+      {
+        "name": "emulator-input.ts",
+        "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+      },
+      {
+        "name": "capture-v16l-frame.mjs",
+        "sha256": "75c511399677e1d150402845b09635fb74152df32a3c27d215734a4f8d649c24"
+      }
+    ],
+    "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+    "pixelEncoding": "rgba8",
+    "colorRealization": "Recorded indexed8 device palette and actual status8 gamma table; same-run GetCPixel and producer RGBWK/body/edge observations. No universal conversion formula or original painter path inferred.",
+    "timing": "Before/after mapping batch AFTER face draw; not a bracket of Draw1Control",
+    "version": {
+      "status": "unknown",
+      "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+    }
+  }
+}
