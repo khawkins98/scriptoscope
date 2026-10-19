@@ -29,6 +29,10 @@ silently eliminate vertical transitions. Cross the remaining finite axis sets.
 Planning only: 270 option tuples yielded 159 cinf-backed candidates, 87 missing
 cinf cases and 24 missing faces; 623 axis transitions were below public limits.
 The estimated 960 compositions per runtime exclude 270 selection-only probes.
+The threshold set begins at middle0: below-2c overlap is covered by the literal
+short-height vectors (and incidental minimum-width anchors), not systematically
+across corpus heights. Ring footprint offset is current standalone layout policy,
+not historical geometry or a general base-chain claim.
 Executed observations, not this estimate, report actual selected faces/counts.
 The probes use minimum width/height1 solely to observe selection, without pixel
 claims. Every requested tuple remains in the report.
