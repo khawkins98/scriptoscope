@@ -1,5 +1,15 @@
 # Learnings
 
+
+## 2026-10-19 — Complete input inventory is distinct from selected paint
+
+The portable conversion core can bind every raw resource occurrence and emitted
+window key without a browser or PNG encoding. Its chrome observer identifies
+actual occurrence links; icon selection uses a separate first-sufficient-payload
+policy, and window asset paths can still be ambiguous. Preserve those differences
+instead of turning an inventory into a historical provider or paint claim.
+See [the full-envelope binding generator](tests/acceptance-bindings/README.md).
+
 ### 2026-10-19: list-view extension participates in pattern anchoring
 
 PACH130 chooses the body-pattern anchor from the full paint Rect before filling
