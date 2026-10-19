@@ -14,11 +14,16 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
         const check = (value, message) => { if (!value) throw new Error(message); };
         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
-        const theme = await api.loadTheme(`/themes/${input.choice.slug}`, { source: input.choice.path.split('/').at(-1), provenance: true });
+        const run = async (cinfEnvironment, variants = boundaryVariants) => {
+        const declared = !!cinfEnvironment;
+        const theme = await api.loadTheme(`/themes/${input.choice.slug}`, { source: input.choice.path.split('/').at(-1), provenance: true, ...(declared ? { cinfEnvironment } : {}) });
         const rows = [], faces = {}, patterns = {}, patternCache = new Map(), provenance = theme.byteProvenance, sourceCache = new Map();
         const resources = new Map(provenance.resources.map(r => [r.resourceIndex, r]));
         const join = resource => {
-          const key = resource?.manifestKey, e = theme.manifest.chromeElements[key], expected = input.elements[key], ref = resource?.byteProvenance;
+          const key = resource?.manifestKey, original = theme.manifest.chromeElements[key], rawExpected = input.elements[key], ref = resource?.byteProvenance;
+          const e = declared && original?.bodyCinf?.metadata ? { ...original, ...original.bodyCinf.metadata } : original;
+          const expected = declared && rawExpected?.status === 'missing-cinf'
+            ? { ...rawExpected, status: 'candidate', cinf: { corner: 3, side: 1, tile: false }, body: rawExpected.declaredBody } : rawExpected;
           check(e && expected && ref && resource.type === 'cicn', `Missing selected face identity ${key}`);
           check(resource.assetUrl === api.assetUrl(theme, e.asset) && resource.signedId === expected.signedId, 'Selected asset/ID mismatch');
           check(ref.loadId === provenance.loadId && ref.manifestKey === key && e.byteProvenance.loadId === ref.loadId,
@@ -52,6 +57,21 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
           if (!patterns[key]) patterns[key] = { input: expected, resource, owner: step.owner, payload: actual };
           return { key, p, expected };
         };
+        const consumedJoin = (trace, e, expected) => {
+          const view = e.bodyCinf, { metadata, ...lookup } = view ?? {};
+          const p = input.declaredProvider, selected = lookup.selected;
+          check(view?.status === 'ready' && view.requestedId === expected.signedId
+            && view.bindingId === theme.manifest.cinfEnvironment.bindingId
+            && view.environmentId === cinfEnvironment.id && view.themeForkSha256 === input.choice.forkSha256,
+          'Consumed cinf environment/face mismatch');
+          check(same(view.attempts.map(a => [a.id, a.outcome]), [[expected.signedId, 'missing'], [0, 'found']])
+            && selected.providerId === 'owned-cinf0' && selected.providerKind === 'raw-fork'
+            && ['forkSha256', 'occurrence', 'signedId', 'byteLength', 'sha256'].every(k => selected[k] === p[k])
+            && same(view.attempts[1].resource, selected), 'Foreign cinf exact NULL→0 payload join failed');
+          check(trace.steps.some(s => s.role === 'face' && s.usage === 'admission' && same(s.cinfLookup, lookup)),
+            'Missing actual consumed-view admission');
+          return lookup;
+        };
         const compose = async (variant, width, height, knownPattern = false) => {
           let trace;
           const context = { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: knownPattern ? { status: 'known', offset: [-3, 5] } : { status: 'unknown' },
@@ -68,7 +88,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             'Canonical input/actual loader fork mismatch');
           check(provenance.fork.selection.entryIndex === input.choice.entryIndex && provenance.fork.selection.entryName === input.choice.entryName,
             'Archive occurrence mismatch');
-          for (const variant of boundaryVariants) {
+          for (const variant of variants) {
             const minimum = variant.family === 'push' ? 24 : 16;
             // Selection-only probe: no pixel correctness assertion at this size.
             const probe = await compose(variant, minimum, 1);
@@ -82,11 +102,17 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             if (!faces[key]) faces[key] = { input: expected, resource: selected.resource, owner: selected.owner,
               cicn: resources.get(expected.cicnResourceIndex), cinf: resources.get(expected.cinfResourceIndex) ?? null };
             if (expected.status !== 'candidate') { rows.push({ variant, key, status: expected.status }); continue; }
+            const requestedId = variant.family === 'push'
+              ? { active: -10239, pressed: -10238, inactive: -10240 }[variant.state]
+              : -((variant.small ? 10171 : 10162) + (variant.on ? 0 : 3)
+                + { pressed: 0, active: 1, inactive: 2 }[variant.state]);
+            if (declared) check(expected.signedId === requestedId, 'Declared provider selected substitute face');
+            const consumed = declared ? consumedJoin(probe.trace, e, expected) : null;
             const model = { width: expected.width, height: expected.height, ...expected.cinf };
             check(e.slice && ['corner', 'side', 'tile'].every(field => e.slice[field] === expected.cinf[field]),
               'Actual slice differs from raw selected cinf');
             if (model.width < 2 * model.corner || model.height < 2 * model.corner || !model.width || !model.height) {
-              rows.push({ variant, key, status: 'unknown-unsafe-source-span' }); continue;
+              rows.push({ variant, key, status: 'unknown-unsafe-source-span', ...(consumed ? { consumed } : {}) }); continue;
             }
             if (!sourceCache.has(key)) {
               const art = await api.loadCicnBuffer(api.assetUrl(theme, e.asset));
@@ -130,7 +156,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 patternCache.set(pattern.key, tile);
               }
             }
-            const plan = boundarySizes(model, variant.family), row = { variant, key, status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
+            const plan = boundarySizes(model, variant.family), row = { variant, key, ...(consumed ? { consumed } : {}), status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
             rows.push(row);
             for (const knownPattern of pattern ? [false, true] : [false]) for (const [width, height] of plan.sizes) {
               const { buffer, trace, context } = await compose(variant, width, height, knownPattern);
@@ -142,16 +168,18 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               check(buffer && trace.outcome.status === 'themed', 'Expected completed themed face');
               const actualSelection = trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
               check(join(actualSelection.resource).key === key, 'Boundary changed actual selected face');
+              if (declared) check(same(consumedJoin(trace, e, expected), consumed), 'Boundary changed consumed cinf');
               check(same(trace.composition?.context, { basis: 'caller-declared', ...context })
                 && same(trace.composition?.faceRect, { x: 13, y: 17, w: width, h: height }), 'Actual composition context/face mismatch');
               const offset = variant.family === 'push' && Object.values(theme.manifest.chromeElements).some(v => [10230, 10231, 10232].includes(Math.abs(v.sourceCicnId))) ? 4 : 0;
               check(buffer.width === width + 2 * offset && buffer.height === height + 2 * offset, 'Public size policy mismatch');
-              if (knownPattern) check(!trace.legacyFacePaint, 'Bound known-pattern case entered legacy painter');
+              if (knownPattern || declared) check(!trace.legacyFacePaint, 'Bound known-pattern case entered legacy painter');
               if (trace.legacyFacePaint) { caseRows.push({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
               const paints = trace.bandPaints ?? [];
               for (const p of paints) {
                 check(p.role === 'face' && p.owner.chainDepth === 0 && p.owner.baseUrl === theme.baseUrl && join(p.resource).key === key,
                   'Completed band dependency mismatch');
+                if (declared) check(same(p.resource.consumedCinf, consumed), 'Completed band foreign cinf mismatch');
               }
               let bodyAdmission;
               if (patterned) {
@@ -197,10 +225,26 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
           }
           return { rows, faces, patterns, loadId: provenance.loadId, input: provenance.input, fork: provenance.fork };
         } finally { theme.dispose(); }
+        };
+        const result = await run();
+        if (result.failed) return result;
+        const missing = result.rows.filter(r => r.status === 'missing-cinf');
+        check(missing.length === input.expectedMissingTuples, 'Default missing-cinf tuple inventory changed');
+        if (missing.length) {
+          const cinfEnvironment = await api.prepareCinfEnvironment({ version: 1, complete: true, providers: [
+            { kind: 'theme-fork', id: 'actual-theme', complete: true },
+            { kind: 'raw-fork', id: 'owned-cinf0', complete: true, bytes: new Uint8Array(input.declaredProvider.bytes) },
+          ] });
+          result.declaredProvider = await run(cinfEnvironment, missing.map(r => r.variant));
+          check(same(result.declaredProvider.rows.map(r => [r.variant, r.key]), missing.map(r => [r.variant, r.key])),
+            'Declared provider changed/discarded original missing-cinf tuples');
+          if (result.declaredProvider.failed) result.failed = result.declaredProvider.failed;
+        }
+        return result;
       }, { mode, input });
       expect(result.failed, JSON.stringify(result.failed)).toBeUndefined();
       expect(result.rows).toHaveLength(15);
     } catch (error) { await attachCase(page, info, { mode, slug: choice.slug, result }, error); throw error; }
     await attachObservations(info, 'border-boundaries', `${mode}-${choice.slug}`, { mode, slug: choice.slug,
-      sourceChoicesSha256: input.choicesSha256, claim: 'conditional solid/known-pattern full-face plus retained unknown-origin opaque-border-only source model; decoded inputs, modern same-owner NULL and transparent initialization declared, original providers/destination and broader fidelity OPEN', result });
+      sourceChoicesSha256: input.choicesSha256, claim: 'conditional solid/known-pattern full-face plus retained unknown-origin opaque-border-only source model; decoded inputs, modern same-owner NULL and transparent initialization declared, separate owned cinf0 provider rows retain all default missing-cinf tuples; original providers/destination and broader fidelity OPEN', result });
   });

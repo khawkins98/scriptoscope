@@ -80,3 +80,27 @@ public seam; no original engine/provider resource bytes are bundled. Historical
 provider/cache order, original palette/device state and broad fidelity remain
 unknown. The 87 previously missing-cinf corpus tuples do not establish original
 NULL results or authorize unconditional engine defaults.
+
+
+### Conditional corpus boundary checks
+
+The existing 36 source/built border groups retain their default-load observations
+and separately exercise all 87 missing-cinf state tuples with an owned synthetic
+provider after the actual theme fork. Its literal cinf-0 declares corner 3, side 1,
+first-line expansion, mode 0 / pattern ID 0, background and text anchor (6,6), and
+no emboss. This is a test input, not a recovered engine default. Labels are empty;
+default rings are disabled. The existing reachable size thresholds and reverse
+opaque-writer / inset-union oracle remain unchanged.
+
+Expected background RGB is sampled from the selected raw cicn at that explicit
+anchor before consulting the prepared role view. Raster decoding, raw sampler and
+current-display conversion remain declared input assumptions, not independent
+decoder/device proof. Each observed provider row binds the actual face payload,
+same-ID miss then cinf-0 hit, external fork/occurrence/payload, consumed admission
+and completed border dependency. Pattern ID 0 still resolves against the actual
+face owner; a selected pattern requires its own byte/plane join and explicit known
+origin for full-face assertions. Border-only and unresolved results remain visible.
+At the current corpus checkpoint the 87 provider rows produce 348 full-face size
+cases per runtime (four each); all have actual same-owner ppat-0 absence. These
+counts accompany, rather than replace, the original 270 state rows per runtime.
+No historical provider ordering, ledger assessment or original fidelity is promoted.

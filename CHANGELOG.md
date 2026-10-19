@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Exercise the 87 default missing-cinf push/bevel tuples with a separately declared owned cinf-0 provider in the existing source/built boundary harness; preserve default unknown rows and historical-provider limits (#221).
+
 - Add an opt-in prepared cinf-only provider environment for standalone push/bevel faces, with separate consumed-owner diagnostics and explicit unknown/unsupported results; preserve common metadata and default loading behavior (#221).
 
 - Add declared known-origin pattern full-face checks to the existing source/built border groups, binding actual ppat bytes and independent control-body phase while retaining unknown-origin invocations and original environment limits (#221).
