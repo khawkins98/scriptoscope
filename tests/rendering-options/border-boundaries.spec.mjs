@@ -10,7 +10,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
     try {
       result = await page.evaluate(async ({ mode, input }) => {
         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-        const { boundaryVariants, boundarySizes, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
+        const { boundaryVariants, boundarySizes, omittedDimensions, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
         const check = (value, message) => { if (!value) throw new Error(message); };
         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
@@ -73,11 +73,11 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             'Missing actual consumed-view admission');
           return lookup;
         };
-        const compose = async (variant, width, height, knownPattern = false) => {
+        const compose = async (variant, width, height, knownPattern = false, omitDimensions = false) => {
           let trace;
           const context = { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: knownPattern ? { status: 'known', offset: [-3, 5] } : { status: 'unknown' },
-            clip: { kind: 'rect', rect: { x: 13, y: 17, w: width, h: height } } };
-          const options = { label: '', minWidth: width, height, pressed: variant.state === 'pressed', disabled: variant.state === 'inactive',
+            clip: width === null ? { kind: 'unbounded' } : { kind: 'rect', rect: { x: 13, y: 17, w: width, h: height } } };
+          const options = { label: '', ...(omitDimensions ? {} : { minWidth: width, height }), pressed: variant.state === 'pressed', disabled: variant.state === 'inactive',
             ...(variant.family === 'push' ? { default: false } : { small: variant.small, on: variant.on }),
             compositionContext: context, diagnostics: { onComplete: t => { trace = t; } } };
           const buffer = await api[variant.family === 'push' ? 'composeButton' : 'composeBevelButton'](theme, options);
@@ -96,13 +96,38 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             const selected = probe.trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
             if (!probe.buffer) {
               check(!selected && probe.trace.outcome.status === 'unavailable', 'Unavailable face reported selected');
-              rows.push({ variant, status: 'missing-face', selection: probe.trace.steps }); continue;
+              const omitted = await compose(variant, null, null, false, true);
+              check(omitted.buffer === null && omitted.trace.outcome.status === 'unavailable'
+                && !omitted.trace.steps.some(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected'),
+              'Omitted dimensions changed unavailable selection');
+              rows.push({ variant, status: 'missing-face', selection: probe.trace.steps,
+                defaultDimensions: { size: null, allocation: null, omittedOptions: ['minWidth', 'height'],
+                  status: 'unavailable', asserted: 0, unassessed: null, selection: omitted.trace.steps } }); continue;
             }
             const { key, e, expected } = join(selected.resource);
             check(selected.owner.chainDepth === 0 && selected.owner.baseUrl === theme.baseUrl, 'Unexpected face owner');
             if (!faces[key]) faces[key] = { input: expected, resource: selected.resource, owner: selected.owner,
               cicn: resources.get(expected.cicnResourceIndex), cinf: resources.get(expected.cinfResourceIndex) ?? null };
-            if (expected.status !== 'candidate') { rows.push({ variant, key, status: expected.status }); continue; }
+            const defaultSize = omittedDimensions(variant, expected.height);
+            const omitted = await compose(variant, ...defaultSize, false, true);
+            const omittedSelection = omitted.trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
+            check(omitted.buffer && omitted.trace.outcome.status === 'themed' && join(omittedSelection.resource).key === key
+              && omittedSelection.owner.chainDepth === 0 && omittedSelection.owner.baseUrl === theme.baseUrl,
+            'Omitted dimensions changed actual face/owner');
+            const reservation = variant.family === 'push' && Object.values(theme.manifest.chromeElements).some(v => [10230, 10231, 10232].includes(Math.abs(v.sourceCicnId))) ? 4 : 0;
+            check(omitted.buffer.width === defaultSize[0] + 2 * reservation && omitted.buffer.height === defaultSize[1] + 2 * reservation
+              && same(omitted.trace.composition?.faceRect, { x: 13, y: 17, w: defaultSize[0], h: defaultSize[1] })
+              && same(omitted.trace.composition?.context, { basis: 'caller-declared', ...omitted.context }), 'Omitted public sizing/context policy mismatch');
+            const defaultDimensions = { size: defaultSize, omittedOptions: ['minWidth', 'height'], basis: 'modern-public-policy',
+              allocation: [omitted.buffer.width, omitted.buffer.height], status: `unknown-${expected.status}`,
+              asserted: 0, unassessed: defaultSize[0] * defaultSize[1], outputSha256: await digest(omitted.buffer.data) };
+            if (omitted.trace.legacyFacePaint) {
+              const paint = omitted.trace.legacyFacePaint;
+              check(join(paint.resource).key === key && paint.owner.chainDepth === 0 && paint.owner.baseUrl === theme.baseUrl
+                && same(paint.destinationRect, { x: 0, y: 0, w: defaultSize[0], h: defaultSize[1] }), 'Omitted legacy dependency/rectangle mismatch');
+              defaultDimensions.legacyPaint = paint;
+            }
+            if (expected.status !== 'candidate') { rows.push({ variant, key, status: expected.status, defaultDimensions }); continue; }
             const requestedId = variant.family === 'push'
               ? { active: -10239, pressed: -10238, inactive: -10240 }[variant.state]
               : -((variant.small ? 10171 : 10162) + (variant.on ? 0 : 3)
@@ -113,7 +138,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             check(e.slice && ['corner', 'side', 'tile'].every(field => e.slice[field] === expected.cinf[field]),
               'Actual slice differs from raw selected cinf');
             if (model.width < 2 * model.corner || model.height < 2 * model.corner || !model.width || !model.height) {
-              rows.push({ variant, key, status: 'unknown-unsafe-source-span', ...(consumed ? { consumed } : {}) }); continue;
+              rows.push({ variant, key, defaultDimensions, status: 'unknown-unsafe-source-span', ...(consumed ? { consumed } : {}) }); continue;
             }
             if (!sourceCache.has(key)) {
               const art = await api.loadCicnBuffer(api.assetUrl(theme, e.asset));
@@ -125,7 +150,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             }
             const art = sourceCache.get(key);
             if (art.data.some((v, i) => i % 4 === 3 && v !== 0 && v !== 255)) {
-              rows.push({ variant, key, status: 'unknown-nonbinary-mask' }); continue;
+              rows.push({ variant, key, defaultDimensions, status: 'unknown-nonbinary-mask' }); continue;
             }
             const equivalence = e.samplingEquivalence;
             const equalSampler = equivalence?.model === 'kaleidoscope-2.3.1-opaque-sampling-v1'
@@ -157,11 +182,14 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 patternCache.set(pattern.key, tile);
               }
             }
-            const plan = boundarySizes(model, variant.family), row = { variant, key, ...(consumed ? { consumed } : {}), status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
+            const plan = boundarySizes(model, variant.family), row = { variant, key, defaultDimensions, ...(consumed ? { consumed } : {}), status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
             rows.push(row);
-            for (const knownPattern of pattern ? [false, true] : [false]) for (const [width, height] of plan.sizes) {
-              const { buffer, trace, context } = await compose(variant, width, height, knownPattern);
-              const caseRows = knownPattern ? row.knownPatternCases : row.cases;
+            const invocations = (pattern ? [false, true] : [false]).flatMap(knownPattern => plan.sizes.map(size => ({ knownPattern, size })));
+            invocations.push({ knownPattern: false, size: defaultSize, prepared: omitted });
+            for (const { knownPattern, size: [width, height], prepared } of invocations) {
+              const { buffer, trace, context } = prepared ?? await compose(variant, width, height, knownPattern);
+              const recordCase = summary => prepared ? Object.assign(row.defaultDimensions, summary)
+                : (knownPattern ? row.knownPatternCases : row.cases).push(summary);
               const tile = knownPattern ? patternCache.get(pattern.key) : null;
               const patterned = knownPattern ? admitPatternBody({ mode: bodyInput.request.mode, context, width, height,
                 tileWidth: tile.width, tileHeight: tile.height, rgba: tile.data }) : null;
@@ -175,7 +203,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               const offset = variant.family === 'push' && Object.values(theme.manifest.chromeElements).some(v => [10230, 10231, 10232].includes(Math.abs(v.sourceCicnId))) ? 4 : 0;
               check(buffer.width === width + 2 * offset && buffer.height === height + 2 * offset, 'Public size policy mismatch');
               if (knownPattern || declared) check(!trace.legacyFacePaint, 'Bound known-pattern case entered legacy painter');
-              if (trace.legacyFacePaint) { caseRows.push({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
+              if (trace.legacyFacePaint) { recordCase({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
               const paints = trace.bandPaints ?? [];
               for (const p of paints) {
                 check(p.role === 'face' && p.owner.chainDepth === 0 && p.owner.baseUrl === theme.baseUrl && join(p.resource).key === key,
@@ -220,7 +248,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 ...(solid ? { bodyAdmission, background: solid, initialDestination: [0, 0, 0, 0], completedOutcome: trace.outcome.status } : {}), outputSha256: await digest(buffer.data),
                 paintRegions: paints.map(p => [p.region, p.branch, p.policy]), ...(failures.length ? { failures } : {}) };
               if (solid || patterned) check(asserted === width * height && unassessed === 0, 'Full-face coverage incomplete');
-              caseRows.push(summary);
+              recordCase(summary);
               if (mismatches) { document.body.append(api.bufferToCanvas(buffer)); return { failed: { variant, key, model, summary }, rows, faces, patterns, loadId: provenance.loadId }; }
             }
           }
@@ -229,6 +257,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
         };
         const result = await run();
         if (result.failed) return result;
+        check(result.rows.every(r => r.defaultDimensions), 'Omitted-dimension tuple discarded');
         const missing = result.rows.filter(r => r.status === 'missing-cinf');
         check(missing.length === input.expectedMissingTuples, 'Default missing-cinf tuple inventory changed');
         if (missing.length) {
@@ -239,6 +268,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
           result.declaredProvider = await run(cinfEnvironment, missing.map(r => r.variant));
           check(same(result.declaredProvider.rows.map(r => [r.variant, r.key]), missing.map(r => [r.variant, r.key])),
             'Declared provider changed/discarded original missing-cinf tuples');
+          check(result.declaredProvider.rows.every(r => r.defaultDimensions), 'Omitted declared-provider tuple discarded');
           if (result.declaredProvider.failed) result.failed = result.declaredProvider.failed;
         }
         return result;

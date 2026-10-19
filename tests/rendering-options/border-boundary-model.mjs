@@ -5,6 +5,11 @@ export const boundaryVariants = [
   ...[false, true].flatMap(small => [false, true].flatMap(on =>
     ['active', 'pressed', 'inactive'].map(state => ({ family: 'bevel', small, on, state })))),
 ];
+/** Empty-label public allocation policy, NOT historical automatic sizing.
+ * Independent constants: no runtime helper, output or trace supplies these. */
+export function omittedDimensions(variant, sourceHeight) {
+  return [variant.family === 'push' ? 56 : variant.small ? 18 : 22, sourceHeight <= 28 ? sourceHeight : 20];
+}
 export function boundarySizes({ width, height, corner, tile }, family) {
   const minimumWidth = family === 'push' ? 24 : 16;
   const spans = tile ? [width - 2 * corner, height - 2 * corner] : [1, 1];

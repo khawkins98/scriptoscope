@@ -165,3 +165,28 @@ Decoded art and the default `mac-1.8-to-2.2-high-byte` realization are condition
 inputs, not independent decoder, original provider/cache/device/palette or
 original destination/mask proof. Missing-cinf cases, broader fidelity and ledger
 closure remain OPEN.
+
+
+## Omitted public dimensions
+
+Each existing state tuple also receives one empty-label invocation omitting both
+`minWidth` and `height`, including the separate 87 declared-cinf provider tuples.
+Explicit-size and known-pattern invocations above remain unchanged. Expected
+face width is independently pinned to 56 for push, 22 for regular bevel and 18
+for small bevel. Expected height is the selected raw face height through 28
+inclusive, otherwise 20. Empty labels do not trigger glyph-height enlargement.
+These are modern policies (`src/controls.ts`: `resolveControlHeight`,
+`composeFaceButton`, `composeBevelButtonWithTrace`), not original automatic sizing:
+kDEF copies the caller's rectangle at `7434`; it does not derive these defaults.
+
+The check verifies the resulting face rectangle and public allocation (including
+existing plain-push ring reservation), actual selected resource and consumed
+metadata, then reuses the same pixel oracle. Unavailable faces also receive the
+omitted-options call, retaining null dimensions and an unbounded caller clip
+rather than inventing a source height. Selected-face inputs keep explicit context
+D=(13,17), O=(0,0), unknown pattern origin and a clip equal to the independently
+expected face rectangle. The unknown-origin pattern cases therefore remain
+border-only; default missing-cinf rows retain unknown pixels even when their
+modern dimensions and actual legacy dependency are observed. The separate
+provider rows retain their conditional source checks. No labels, native control
+sizing, original provider/device behavior or ledger assessments are promoted.

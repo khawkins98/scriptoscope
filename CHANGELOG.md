@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Check omitted empty-label push/bevel dimensions across the existing corpus and declared-cinf tuples, preserving explicit-size cases and unknown fidelity boundaries; automatic dimensions remain modern public policy (#221).
+
 - Exercise the 87 default missing-cinf push/bevel tuples with a separately declared owned cinf-0 provider in the existing source/built boundary harness; preserve default unknown rows and historical-provider limits (#221).
 
 - Add an opt-in prepared cinf-only provider environment for standalone push/bevel faces, with separate consumed-owner diagnostics and explicit unknown/unsupported results; preserve common metadata and default loading behavior (#221).

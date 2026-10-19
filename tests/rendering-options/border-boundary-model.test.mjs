@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { borderWriter, boundarySizes, boundaryVariants } from './border-boundary-model.mjs';
+import { borderWriter, boundarySizes, boundaryVariants, omittedDimensions } from './border-boundary-model.mjs';
 const opaque = () => 255;
 const at = (input, size, x, y, alpha = opaque, clip) => borderWriter(input, { width: size[0], height: size[1], clip }, x, y, alpha);
 test('reverse source model retains literal square corners and unequal-band overlap order', () => {
@@ -118,4 +118,12 @@ test('pattern admission rejects unknown origin, unsupported mode, malformed cont
   const a = input(), b = input(); b.mode = 255; // non5 modes outside1..4 retain P=(0,0)
   assert.deepEqual(patternBodyOrInitial({ corner: 2, side: 3 }, admitPatternBody(a), 3, 3),
     patternBodyOrInitial({ corner: 2, side: 3 }, admitPatternBody(b), 3, 3));
+});
+
+
+test('omitted empty-label dimensions pin modern width and the inclusive height threshold', () => {
+  for (const [variant, width] of [[{ family: 'push' }, 56], [{ family: 'bevel', small: false }, 22], [{ family: 'bevel', small: true }, 18]]) {
+    for (const [input, height] of [[6, 6], [20, 20], [28, 28], [29, 20], [74, 20]])
+      assert.deepEqual(omittedDimensions(variant, input), [width, height]);
+  }
 });
