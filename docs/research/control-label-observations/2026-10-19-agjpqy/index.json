@@ -1,0 +1,291 @@
+{
+  "status": "QUARANTINED_PARTIAL",
+  "scope": "One System7 normal AgjpQy public-control observation and one conditional public prepared-strike comparison",
+  "captureAgent": "OpenAI Codex AI resource_correctness_fixes",
+  "comparisonAgent": "OpenAI Codex AI root",
+  "humanAttestation": false,
+  "run": {
+    "nonce": "V17S-20261019-01",
+    "launchTicks": 111,
+    "sequence": 1
+  },
+  "publicInvocation": {
+    "create": "NewControl",
+    "procedureId": 0,
+    "variant": 0,
+    "draw": "Draw1Control",
+    "stateApi": "HiliteControl",
+    "hilite": 0,
+    "defaultApiInvoked": false,
+    "title": "AgjpQy",
+    "titleBytesHex": "41676a705179",
+    "controlRectXYWH": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "activeWindow": true
+  },
+  "actualPublicConditions": [
+    "control.hilite=0 visible=255 value=0 min=0 max=1 titleLength=6 active=1 windowKind=8",
+    "control.title.bytes=41,67,6a,70,51,79",
+    "label.width.query=TextWidth firstByte=0 byteCount=6 sameTargetPort=1 result=46",
+    "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1",
+    "control.variant.query=GetControlVariant actual=0",
+    "controlRect=20,20,100,40",
+    "portRect=0,0,160,80",
+    "globalOrigin=80,90",
+    "effectiveClipBounds=0,0,160,80",
+    "port.backgroundRGB16=ffff,ffff,ffff",
+    "pixMap.depth=8",
+    "device.ref=-49 id=0 type=0 flags=47137 mode=131",
+    "CoplResourceFile.file.name=System 7 Nostalgia Silver volumeRef=-1 parentDir=2 fileID=441"
+  ],
+  "fontInfo": {
+    "ascent": 12,
+    "descent": 3,
+    "widMax": 14,
+    "leading": 1
+  },
+  "textWidth": {
+    "actualAsciiHex": "41676a705179",
+    "firstByte": 0,
+    "byteCount": 6,
+    "result": 46,
+    "sameTargetPort": true,
+    "beforeAfterIdentical": true
+  },
+  "fileManagerChecks": {
+    "write": 0,
+    "short": 0,
+    "close": 0,
+    "flush": 0,
+    "reopen": 0,
+    "getEOF": 0,
+    "readClose": 0,
+    "expectedBytes": 19809,
+    "writtenBytes": 19809,
+    "readbackEOF": 19809
+  },
+  "stoppedExport": {
+    "method": "normal hfsutils hcopy -r after owned worker/server stop and host fsync",
+    "bytes": 19809,
+    "complete": true,
+    "carved": false
+  },
+  "conditionPayloadsBeforeAfterIdentical": {
+    "actualControlDefinition": {
+      "bytes": 174,
+      "sha256": "aeae16018c5b2b6fc377ba7b7a09eb5ed4a8fec0c5c581f39ce29d113deed28c"
+    },
+    "actualWindowDefinition": {
+      "bytes": 176,
+      "sha256": "4dbd59ae18774bacc80b84521d7fd8e2eddc44614642746e388c6ee2f2bf4006"
+    },
+    "clipRegion": {
+      "bytes": 10,
+      "sha256": "349ac4369aec9010457e1bd0d06e95b7386d73c407ef9446df9fd66f09370fa6"
+    },
+    "visibleRegion": {
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3"
+    },
+    "effectiveClipRegion": {
+      "bytes": 10,
+      "sha256": "c014620701850ed8caf3b2e500b656ca2fdc63e9e7ac26c2ea2f23f9fd0f93c3"
+    },
+    "colorTable": {
+      "bytes": 2056,
+      "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+    },
+    "gammaFixedPrefix": {
+      "bytes": 12,
+      "sha256": "b0705e174b70023061519516ca0243bde00bcd4fe44ee43a8b5b2f50a57b4cf1"
+    },
+    "gammaTable": {
+      "bytes": 268,
+      "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+    }
+  },
+  "configuredResourceForks": [
+    {
+      "role": "scheme",
+      "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+    },
+    {
+      "role": "Kaleidoscope",
+      "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333"
+    },
+    {
+      "role": "fixture",
+      "sha256": "bf7f8fd625c26d3ba8c694483cf88bafa380a324ab3ca878a63b9b36830bab36"
+    }
+  ],
+  "capture": {
+    "guestDepth": 8,
+    "frameSize": [
+      640,
+      480
+    ],
+    "portSize": [
+      160,
+      80
+    ],
+    "portFrameLTRB": [
+      80,
+      90,
+      240,
+      170
+    ],
+    "contextSize": [
+      96,
+      36
+    ],
+    "contextFrameLTRB": [
+      92,
+      102,
+      188,
+      138
+    ],
+    "rawProducerBytes": 1228800,
+    "rawProducerEqualsPng": true,
+    "rawRepeatedChangedBytes": 0,
+    "transport": "Copied Basilisk producer RGBA transported without resampling; transport depth is not guest depth",
+    "producerIdentity": [
+      {
+        "name": "BasiliskII.js",
+        "bytes": 156114,
+        "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b",
+        "availability": "EXTERNAL_NOT_INCLUDED"
+      },
+      {
+        "name": "BasiliskII.wasm",
+        "bytes": 1713564,
+        "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb",
+        "availability": "EXTERNAL_NOT_INCLUDED"
+      }
+    ],
+    "wrapper": {
+      "name": "reference-v17.ts",
+      "bytes": 2245,
+      "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    }
+  },
+  "sample60x30": "Recorded coordinate sample only; it may intersect the label and is not guaranteed uncovered body color",
+  "shutdownAcknowledgment": "UNKNOWN",
+  "limits": [
+    "Active font/glyph provider remains UNKNOWN; public port metrics are not executed provider attribution",
+    "Fixed sample60,30 may intersect label and is not claimed as body color",
+    "Current device public fields/depth/table/gamma are observed; current==main pointer was not newly queried",
+    "Private selected cicn/cinf/cache/base/patch order and exact original transfer remain UNKNOWN",
+    "Finder shutdown requested, clean shutdown acknowledgment UNKNOWN",
+    "No reference admission or ledger promotion. The native observation alone contains no modern comparison; comparison.json separately records the conditional public result."
+  ],
+  "externalEvidence": [
+    {
+      "name": "v17-evidence-index.json",
+      "bytes": 13717,
+      "sha256": "91e6fd8628a6b328123337a18b8848105af053357d8a777ec4eb21c139bdd7d7",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "v17-V17S-0000006f-001.txt.raw",
+      "bytes": 19809,
+      "sha256": "7b7031e8ed35fa19c5a2bd9bd96c2836058e1cda3446628099b2aaf3f0399811",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "LabeledControl-v17.c",
+      "bytes": 17360,
+      "sha256": "7fe8a7da2d07b204923c106f6b0d889b0538d7447c93bb866d9327228f88eea2",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "LabeledControl-v17-with-size.bin",
+      "bytes": 69248,
+      "sha256": "a4f6ad7ab628ddac6c5c24a489ec3b0ca2ac93ece96fcad1182411d52e367595",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "v17-system7-agjpqy-producer.rgba",
+      "bytes": 1228800,
+      "sha256": "b280fe0f139823dfd59bcf9cd92de6497f0ced5f4800d146d3f40ece4931fbee",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "v17-system7-agjpqy-frame.json",
+      "bytes": 3750,
+      "sha256": "7c89552ced800c90a2ce06cd65d703d4ba27e599b045d661a79937822c022e89",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "profile-subset.json",
+      "bytes": 7195,
+      "sha256": "e811efaf993607858f1f2ed61595669b4d5b8c5c04b1b425d38d07b3a1b49a81",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "scriptoscope-v17-private-glyph-receipt.json",
+      "bytes": 4496,
+      "sha256": "3a5366efef4aff2fded766686f412fe2685978ce7626f8dccf684ea9b11484d5",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "scriptoscope-kdef-label-layout-receipt.md",
+      "bytes": 2178,
+      "sha256": "1b6785a2f41b0eeae45df49f9e93cdb0fc8b5d057c24c725ffeb27a9edfd7fc5",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "scriptoscope-astra-v17-source-review.json",
+      "bytes": 1449,
+      "sha256": "179dd2f8c6f4527ac6cec831692e26ad4826746858d23698b39ff67569af3eca",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    }
+  ],
+  "includedFiles": [
+    {
+      "name": "README.md",
+      "bytes": 2866,
+      "sha256": "e2431a8d2d680923f9cbf5edf222c20bbdc18a8408bff579c6e922591822b2f6",
+      "availability": "INCLUDED"
+    },
+    {
+      "name": "comparison.json",
+      "bytes": 6272,
+      "sha256": "cb2d085ba32c38cc696b4969fc84a047ca5524bf1a637a9c82462b40bb4fec80",
+      "availability": "INCLUDED"
+    },
+    {
+      "name": "native-frame.png",
+      "bytes": 34865,
+      "sha256": "e231f67165b2103360a26e6c78792e56b8e79143e72840a60d5c98fd7913874c",
+      "availability": "INCLUDED"
+    },
+    {
+      "name": "native-port.png",
+      "bytes": 610,
+      "sha256": "f695049b68046a68fb1e9fcf7f2ddcff986ea93720b5da1b5aff6e1fd99f423a",
+      "availability": "INCLUDED"
+    },
+    {
+      "name": "native-context.png",
+      "bytes": 457,
+      "sha256": "907538cf9c315fec8a23b2525d0ab7df897ba2605e6c9cce88dc453036002187",
+      "availability": "INCLUDED"
+    }
+  ],
+  "factualReview": {
+    "reviewer": "Independent Astra AI",
+    "status": "APPROVED_QUARANTINED_CONDITIONED_PRIVATE_CANDIDATE_OUTPUT",
+    "humanAttestation": false,
+    "receipt": {
+      "name": "scriptoscope-astra-v17-evidence-review.json",
+      "bytes": 2612,
+      "sha256": "5b93a40c0a71dc0adbf81a401cdf55ea1de13871c50e08a6507cbf86999fe38a",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    }
+  }
+}
