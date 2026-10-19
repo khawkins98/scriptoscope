@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add finite source/built push and bevel border-size checks across all 18 inputs, with independent opaque-writer coordinates, exact input/paint joins and explicit unreachable or unknown cases; broader fidelity and ledger closure remain OPEN (#221).
+
 - Reject truncated wnd# counts/records and invalid negative list counts before decoding fabricated window geometry; preserve the signed empty sentinel and valid corpus outputs (#330).
 
 - Add opt-in exact window construction byte provenance for sliced recipes and explicitly synthetic corner-sprite windows; carry those occurrence links into the full-envelope inventory without changing default manifests or paint.
