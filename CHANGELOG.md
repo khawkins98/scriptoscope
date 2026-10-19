@@ -9,6 +9,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 - Record a quarantined executed font-result and RAM-strike follow-up for the existing AgjpQy research note; retain cache/provider, whole-font and pixel-contribution limits without new intake or runtime claims (#221, #190, #315).
 
+- Materialize a DRAFT acceptance envelope for all 18 source references and 15 contracted families across 33 public family/path bindings, preserving unresolved options, boundaries and evidence without coverage or closure claims.
+
 - Admit direct full-color whole-header pattern bodies with explicit known pattern-origin state, shared original-Rect phase and clipped inset union; retain unsupported mode5, device/cache and unknown-origin paths.
 
 - Support whole-header one-pixel line colors through the existing owner-bound sampled companion, preserving strict missing-data, mask and device-policy limits. Resolve only the existing collision sampled-color obligation in ledger1.8.0 (51 verified,218 unknown; all32 cases OPEN).
