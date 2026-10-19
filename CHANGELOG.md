@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Keep slider groove cap/tile metadata attached to the actual selected resource when a missing requested state falls back to active art; add literal public-loader checks without changing endpoint policy.
+
 - Document the source-bound progress PaintRect interceptor and the unresolved upstream value-to-rectangle connection, without changing runtime behavior or fidelity status.
 
 - Register eight exact owned mixed checkbox/radio selector and same-tier fallback cases in the partial requirement ledger, with actual source/built fork/occurrence/pixel joins and explicit historical-environment limits (#221).

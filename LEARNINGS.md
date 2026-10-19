@@ -1,5 +1,13 @@
 # Learnings
 
+## 2026-10-19 — Retain metadata with fallback-selected pixels
+
+A successful fallback raster must carry its selected element. Looking metadata
+up again by the original missing request can silently change caps and tiling.
+The slider groove fix keeps those inputs together; native endpoint layout cinf
+is a separate unresolved integration, not interchangeable selected-art metadata.
+See [slider selected metadata](docs/spec/slider-selected-metadata.md).
+
 ## 2026-10-19 — A progress painter does not establish progress endpoints
 
 The pinned 2.3.1 PaintRect interceptor receives rectangles already formed by a
