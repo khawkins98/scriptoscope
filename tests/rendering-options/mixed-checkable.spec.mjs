@@ -54,6 +54,7 @@ for (const mode of ['source','built']) test(`${mode}: mixed checkables select ow
       const [key,e]=row.selected[0],ref=e.byteProvenance,resource=row.provenance.resources[ref.cicnResourceIndex];
       expect(e.sourceCicnId).toBe(ids[row.kind][row.expected]);
       expect(ref.loadId).toBe(row.provenance.loadId);expect(ref.manifestKey).toBe(key);
+      expect(resource).toMatchObject({type:'cicn',signedId:ids[row.kind][row.expected],status:'decoded',byteLength:payload(colors[row.expected]).length});
       expect(resource.sha256).toBe(createHash('sha256').update(payload(colors[row.expected])).digest('hex'));
     }
   }catch(error){await attachCase(page,info,{mode,result},error);throw error;}

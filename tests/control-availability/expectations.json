@@ -1929,7 +1929,7 @@
   "review": {
     "date": "2026-10-19",
     "reviewers": [
-      "Pending independent automated hash-only review; not an approval"
+      "frontend_performance_review: independent automated hash-only review at c77e7e64; exact 27 cases retained apart from three document hashes, not original provider or pixel-fidelity approval"
     ],
     "inventoryVersion": "1.0.6",
     "inventorySha256": "d40a5e489a8a74047dedaf3c003730be84d9b6d708dc385d0c53afb020b6b0d6",
