@@ -49,7 +49,7 @@ export function publicFaceScope(request) {
     && isDeepStrictEqual(c.portBounds, [0, 0, 160, 80]) && isDeepStrictEqual(c.imageSize, [160, 80])
     && isDeepStrictEqual(c.scale, [1, 1]) && isDeepStrictEqual(c.backgroundRGB, [255, 255, 255])
     && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36]))) return null;
-  // Keep the already-reviewed normal v1 definition and request digests exact.
+  // Keep the already-reviewed normal v1 scope definition exact.
   if (state === 'normal') return structuredClone(faceScope);
   const hilite = state === 'pressed' ? 10 : 255;
   return { ...structuredClone(faceScope), version: 2,
@@ -122,7 +122,10 @@ export function readContract(root = repositoryRoot) {
     while (baselineId) {
       check(!visited.has(baselineId), `${request.id}: cyclic experiment baseline`); visited.add(baselineId);
       const baseline = catalog.requests.find(r => r.id === baselineId);
-      check(baseline, `${request.id}: missing experiment baseline`); baselines.push(baseline);
+      check(baseline, `${request.id}: missing experiment baseline`);
+      check(baseline.targetRequirementIds.every(id => request.targetRequirementIds.includes(id)),
+        `${request.id}: baseline targets must be covered by this request's pinned definitions`);
+      baselines.push(baseline);
       baselineId = baseline.experiment?.baselineRequestId;
     }
     const pinned = { model: requestDigestModel, contractId: compatibility.id,

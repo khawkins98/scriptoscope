@@ -482,3 +482,35 @@ test('origin experiments bind transitive baseline inputs without changing unrela
   const next=readContract(root);
   for(const r of contract.requests) assert.equal(next.requests.find(n=>n.id===r.id).requestDigest===r.requestDigest,r.sourceSlug!=='crayon-os');
 });
+
+test('adding a future unrelated scoped policy leaves all current bindings exact',t=>{
+  const root=contractRoot(t),file=join(root,'tests/reference-captures/eligibility-policy.json'),p=JSON.parse(readFileSync(file));
+  p.sections.crayonConditionedPixels={version:1,rules:['Future Crayon-only scope; not admitted by this implementation.']};
+  writeFileSync(file,JSON.stringify(p));
+  assert.deepEqual(readContract(root).requests.map(r=>r.requestDigest),contract.requests.map(r=>r.requestDigest));
+});
+test('baseline target definitions cannot escape the dependent request binding',t=>{
+  const root=contractRoot(t),file=join(root,'tests/reference-captures/requests.json'),c=JSON.parse(readFileSync(file));
+  c.requests.find(r=>r.id==='crayon-os.normal').targetRequirementIds.push('typography.original');
+  writeFileSync(file,JSON.stringify(c));assert.throws(()=>readContract(root),/baseline targets must be covered/);
+});
+
+test('migration preserves prior facts and rejects old bindings instead of grandfathering them',()=>{
+  const read=name=>readFileSync(new URL(name,import.meta.url));
+  const receipt=JSON.parse(read('review-amendment-semantic-v1.json'));
+  const priorBytes=read('captures-before-semantic-v1.json'), priorReviewBytes=read('reviews-before-semantic-v1.json');
+  assert.equal(sha256(priorBytes),receipt.priorCapturesFileSha256);
+  assert.equal(sha256(priorReviewBytes),receipt.priorReviewsFileSha256);
+  assert.equal(sha256(read('captures.json')),receipt.capturesFileSha256);
+  assert.equal(sha256(read('reviews.json')),receipt.amendedReviewsFileSha256);
+  const prior=JSON.parse(priorBytes),current=JSON.parse(read('captures.json'));
+  assert.equal(prior.captures.length,6);
+  assert.deepEqual(current.captures.map(c=>({...c,requestDigest:null})),prior.captures.map(c=>({...c,requestDigest:null})));
+  for(const c of prior.captures){
+    const q=contract.requests.find(r=>r.id===c.requestId);
+    assert.notEqual(c.requestDigest,q.requestDigest);
+    const result=assessCapture(c,q,JSON.parse(priorReviewBytes).reviews,{intakeRoot:join(repositoryRoot,'tests/reference-captures')});
+    assert.equal(result.status,'rejected');
+    assert.ok(result.rejected.some(r=>r==='requestDigest: does not match request/pin'));
+  }
+});

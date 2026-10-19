@@ -4478,3 +4478,12 @@ source-derived signed pen arithmetic separately, preserving negative bearings
 until face/port clipping. Existing renders supply execution; no extra matrix is
 needed. Authority text must freeze before refreshing capture digests, and an
 independent reviewer owns metadata-only amendments.
+
+### 2026-10-19 — Reference attestations should bind their own obligations
+
+Hashing the whole compatibility document and global ledger version forced
+unchanged observations through repeated metadata amendments. Request-specific
+inputs, target definitions, scopes, source pins and applicable normative
+eligibility rules now determine reference identity. Global revisions remain
+provenance. Transitive validator changes still require explicit policy-impact
+review; a smaller digest must not hide a changed admission rule.

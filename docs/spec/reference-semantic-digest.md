@@ -9,6 +9,9 @@ record and engine component, exact target requirement definitions, full and
 applicable scoped definitions, transitive experiment baseline request objects,
 and applicable versioned sections of `eligibility-policy.json`. A changed
 source, input, obligation, scope or eligibility rule invalidates prior bindings.
+Baseline links must use the same source and only target definitions already pinned
+by the dependent request; the engine component is shared. A future dependency
+outside this set is rejected until its binding is explicitly modeled.
 Canonical object-key ordering is unchanged; array order remains significant.
 
 Global document SHA/version, catalog request version, ledger inventory version,
@@ -51,3 +54,10 @@ metadata-only amendments remain historical records.
 
 The six scoped observations retain zero verified requirement IDs and all five
 broader targets unresolved. No request becomes complete and no ledger changes.
+
+The reviewed transition is recorded in
+[`review-amendment-semantic-v1.json`](../../tests/reference-captures/review-amendment-semantic-v1.json).
+The preceding complete corpora are retained as `captures-before-semantic-v1.json`
+and `reviews-before-semantic-v1.json` alongside it. The receipt describes the
+frozen policy review before the mechanical ledger 1.5.1 / authority 0.1.12
+provenance refresh; that refresh changes none of the six semantic digests.

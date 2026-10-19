@@ -1,0 +1,91 @@
+{
+  "status": "APPROVED_SEMANTIC_DIGEST_MIGRATION_AND_METADATA_AMENDMENTS",
+  "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+  "reviewedAt": "2026-10-19T02:12:02.048Z",
+  "implementationCommit": "986f227b13599d2380848559addcfacdc592c80e",
+  "policySha256": "279feb69e99fec339e3776b574a0c5d93377b27ad2e160662616a3d145473072",
+  "priorCapturesFileSha256": "f2ec4a5fada0ee934dbec1908c0f860c37bde825f648d76120140d974dfb52e4",
+  "priorReviewsFileSha256": "df04c623e157eccb5e36d474e621fcca1783b4c4c87174481de524f35fbae5a4",
+  "capturesFileSha256": "756535b6425d08cd68609331cdcd200786f546284daa9bbf5432b115151f7920",
+  "amendedReviewsFileSha256": "19201fc6a62ce39507d5d3f71c834f7d010245a419da086c933093fce045527c",
+  "unchangedFiles": [
+    {
+      "path": "tests/reference-captures/requests.json",
+      "sha256": "cee35a85909e5e58554b4521b7affe323289392df2e571c4f63a986adef8936a"
+    },
+    {
+      "path": "tests/rendering-requirements/ledger.json",
+      "sha256": "76ed4ebbdb7ceb1569aea9b9aabc58f1b03f805b86ccfef73367aef8c8842a9f"
+    },
+    {
+      "path": "docs/spec/fidelity-compatibility-contract.md",
+      "sha256": "32ee683c6d0f5067dc637ed9504ebff7c8d71ec9ad9b859dd6a11ffdc0359284"
+    },
+    {
+      "path": "tests/control-availability/source-choices.json",
+      "sha256": "2d5a74527fa2c9c3bfc2c4c486bbfb2c41b8de2690dff69e7f27145775aca487"
+    }
+  ],
+  "amendments": [
+    {
+      "captureId": "windows-95.normal.v9.draft",
+      "priorRequestDigest": "fd26cf4e9ca7e7b8c9eb2ae2c8dc0a471e8b3a941dc27934308dd04756f14ef4",
+      "requestDigest": "8e4252db9a235ea4b500ac74fe23c7b037e013a28f28255c3a41697334db8a30",
+      "priorCaptureDigest": "dd005fc4d690406640081986f48c0cecc3a06a9990581ed45f389a13be80d87f",
+      "captureDigest": "2371425a7ad8d187d69f9c473feb2bb034cc0459542984b82fea4e0db75e7f3d",
+      "priorReviewSha256": "fcd2387873be087d865f32c2e6e0a6b09b9000e31aeb786a8c6e79ead5178b7b",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+      "priorRequestDigest": "c2411f8e57c327432b38df500520b829281793b04ed78aee9feb9137bfd16bef",
+      "requestDigest": "9c96bd9093cc0c5d4e9d3221b49add6b6102255f4f838a829a8542d86fdd8e1a",
+      "priorCaptureDigest": "fe1818de17c31c04ea08b8f570508e2be9af004b8878a073de6e105497b660bd",
+      "captureDigest": "bc3ee8a1f3e46a71a37c1f9138bc27e6e9d622f0691820f03178c341a051c2ae",
+      "priorReviewSha256": "ba6189892e288406573bcb48293a1be8081d6458dc23e14558d095a053916044",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    },
+    {
+      "captureId": "windows-95.pressed.v10w.draft",
+      "priorRequestDigest": "997cfa81415bfeeab497e90cec720e0e9414a55d5b974f7e573760e0cc5b8936",
+      "requestDigest": "20c60aac92353913e68a43073fba0835ba722ea62db682581e4303a9c4232dad",
+      "priorCaptureDigest": "7557a89ec172249b4ef1d40314977ce90f35e85e9ca3d77f170637e0e13d5cc9",
+      "captureDigest": "99eec783762099f59d7469523e50e40383552dc8f0a8d79a80452718296d59c5",
+      "priorReviewSha256": "e0145c3d3f2cbc35c26fe3b94788f1de449c65f903af706447c8b6671e8249c2",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    },
+    {
+      "captureId": "windows-95.inactive.v10w.draft",
+      "priorRequestDigest": "360564cf7b9cf222c04bc9de0176f0645002dd8414df5a3218f94daabf0c4e34",
+      "requestDigest": "ab653bb949bbeeab42c6b1e5609e5bcba6c483cb8c41f504e9d5c1d270be05e5",
+      "priorCaptureDigest": "2411faf2580bab729a058bfed0ce35006a7fb3b6d54f7c0b71b119d85ce180b3",
+      "captureDigest": "e7d5665897b00164f728c616e9d5354f71e7043dc8813f6e2a4fdacd03953e23",
+      "priorReviewSha256": "a5c0c852defcfd2d83e29f91dca1ac24e77a186879c4da8ee6ae4c450adb83bb",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+      "priorRequestDigest": "2d024905f90e6db0fc20f93355049dadbcf93f2837a9c6766db515826e4db740",
+      "requestDigest": "736a6a7d29281d418c4648499bf1e74eb06a4f6475f74568b91378582f98f998",
+      "priorCaptureDigest": "70b7a22502333f95c386e37d7ee8c987a1e17b2582bb554a19056fe6f4cf008a",
+      "captureDigest": "571404476b72d404ba92cd60cd378dbdd5edb6cd84cedc7ae0036f53463489ed",
+      "priorReviewSha256": "c8d7ed65a7f95936f5bf9e01dc9bfc0fe205c9644cc45fad95dc82d7283cdf31",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+      "priorRequestDigest": "80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0",
+      "requestDigest": "ef415a5b8220936349a3a35e3229556fc9c03562a3c5ffa22a04a933156b7e51",
+      "priorCaptureDigest": "1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9",
+      "captureDigest": "02dd210323ff821ca2f16c1eb4d0ddb5161f06bd79a83221016c402eddd12ce9",
+      "priorReviewSha256": "f63596953b31c5af1878797165e283226c96e3ff5baf56e4cd3469560fdd97c4",
+      "priorReviewedAt": "2026-10-19T01:42:43.052Z"
+    }
+  ],
+  "limits": [
+    "Original factual reviews carried forward; no new original audit, browser, guest run or test suite.",
+    "Six scoped observations remain zero verified intake requirements and all five broader targets unresolved.",
+    "Applicable policy-impact review remains necessary for transitive executable eligibility changes; no legacy digest dual acceptance.",
+    "Final integrated validation pending; prior corpus and amendment history must be preserved verbatim."
+  ]
+}
