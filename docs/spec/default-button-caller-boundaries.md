@@ -47,3 +47,20 @@ No change to Scriptoscope ring outset, state selection, erase behavior, or resou
 ## Review and remaining claim boundary
 
 Two automated reviewers independently checked the pinned binary identity and fourteen opcode bindings, the ordinary guard/dispatch ranges, and the region-versus-paint wrapper. This is source review, not human attestation of an original capture. Prior shorthand that treated an observed Acid0 field as globally disabling authored default borders is superseded by the separate source routes above. The original public Dialog Manager caller rectangle and during-paint state remain unknown. No capture eligibility, requirement assessment, golden, or compatibility-authority version changes with this note.
+
+## Public Scriptoscope option and transition observations (2026-10-19)
+
+`ButtonOptions.default` requests the kDEF-style control-painter ring around the
+button face. It does not perform `SetDialogDefaultItem`, select a dialog item, or
+install Return/Enter handling. The current ring geometry/state policy remains
+unchanged; this option is not a promise of equivalence with every DialogManager
+caller sequence.
+
+The [v11/v11b System7 observations](../research/default-dialog-transitions/2026-10-19/README.md)
+record successful public default-item switches between two empty buttons with
+actual standard-filter processing. Their complete port planes did not change.
+v11 explicitly erased/redrew after the setter; v11b removed that operation and
+used genuine 1→2→1→2 switches. The differing v6 output remains unresolved. These
+negative results establish only these caller sequences, not absence of native
+default painting, an internal route, or a renderer bug. No authority, intake or
+requirement status changes.

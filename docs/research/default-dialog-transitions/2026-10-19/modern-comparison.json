@@ -1,0 +1,76 @@
+{
+  "nativePort": {
+    "path": "captures/v11b-system7-default2-first-port.png",
+    "bytes": 503,
+    "sha256": "e7c508ba7cd0d1ff2ec3be93e5f33a01f96c8c548f152a7e0fdd3d0e226068b9",
+    "frameBoxLTRB": [
+      80,
+      90,
+      240,
+      170
+    ],
+    "availability": "EXTERNAL_NOT_INCLUDED"
+  },
+  "nativeDefaultItemTransitions": [
+    2,
+    1,
+    2
+  ],
+  "nativePortPixelsIdentical": true,
+  "rows": [
+    {
+      "modernDefaultItem": 1,
+      "comparedPixels": 12800,
+      "differentPixels": 628,
+      "insideFaceDifferences": 4,
+      "outsideFacesDifferences": 624,
+      "boundsLTRB": [
+        17,
+        17,
+        103,
+        43
+      ],
+      "modernPortSha256": "4526eeac41ecdaff7066279d8d64dbc011164f9d21c76db4b3aa66d6a173ffc0"
+    },
+    {
+      "modernDefaultItem": 2,
+      "comparedPixels": 12800,
+      "differentPixels": 628,
+      "insideFaceDifferences": 4,
+      "outsideFacesDifferences": 624,
+      "boundsLTRB": [
+        17,
+        49,
+        103,
+        75
+      ],
+      "modernPortSha256": "f5b3f07c777eceb253d416ca5493014f7bb7fb3bfadf79637de644bd0b94796e"
+    }
+  ],
+  "interpretation": "Different caller contracts; not an established renderer defect. Native public dialog-item selection does not match direct control-painter ring invocation in this conditioned experiment.",
+  "limits": [
+    "Original PACH/provider attribution and v6 difference unresolved.",
+    "No intake or ledger promotion."
+  ],
+  "status": "EXPLORATORY_MODERN_COMPARISON_NOT_REFERENCE_ADMISSION",
+  "publishedCommit": "6356ab350c0ccf7e489396948879cfb3187ff86a",
+  "moduleSha256BeforeAndAfter": "74007015a30f94dfd594b22bcb51cdb44cabbc4350515d4c161f0942b75bb571",
+  "profileId": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+  "externalReceipts": [
+    {
+      "name": "caller-comparison.json",
+      "sha256": "d2ac67ac650a19cf79db942d5c47126786065221f19fcd640774e5c1e15b9b3d",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "execution.json",
+      "sha256": "ea5f735b489b7c8bab07ccc65a850f9b9783f15f26a4e8478704b9e53303a432",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    },
+    {
+      "name": "published-system7-nostalgia-silver.json",
+      "sha256": "a6f5c2f8d7af0ba6abfd266598962591da0a78c770d316eb4751c0701c86a2d5",
+      "availability": "EXTERNAL_NOT_INCLUDED"
+    }
+  ]
+}

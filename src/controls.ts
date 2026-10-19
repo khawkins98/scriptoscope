@@ -1082,6 +1082,7 @@ export interface ButtonOptions {
   label?: string;
   /** Resolved nominal CSS pixel size, finite and >= 6. Compatibility default: 12, independent of face height. */
   fontSize?: number;
+  /** Request the kDEF-style control-painter ring; does not select a DialogManager default item or bind Return/Enter. */
   default?: boolean;
   pressed?: boolean;
   disabled?: boolean;
