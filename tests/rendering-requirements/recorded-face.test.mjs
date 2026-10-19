@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,12);
+ assert.equal(report.recordedConditionComparisons.cases.length,15);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -90,16 +90,16 @@ test('Lisa requires its exact profile/context/payloads and actual no-ppat0 obser
  }
 });
 
-test('four new state joins require their own face/cinf/body/pattern pins and completed paint',()=>{
+test('recorded state joins require their own face/cinf/body/pattern pins and completed paint',()=>{
  const statePins=JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json',import.meta.url)));
- for(const slug of ['crayon-os','apple-lisa'])for(const state of ['pressed','inactive']){
+ for(const slug of ['crayon-os','apple-lisa','animals'])for(const state of slug==='animals'?['normal','pressed','inactive']:['pressed','inactive']){
   // Synthetic trace structure isolates verifier failures; original PNGs remain the browser oracle.
   const capture=structuredClone(captures.find(c=>c.requestId===slug+'.normal'));
   capture.conditions.state=state;capture.requestId=slug+'.'+state;
   const binding=captureBinding(capture),pins=statePins[slug][state];
   const make=()=>{
    const r=execution().row,options=exactOptions(state,slug),owner=r.paintSelectionSteps[0].owner;
-   Object.assign(r,{slug,state,options,requested:{state,pressed:options.pressed,disabled:options.disabled,default:false},profile:binding.profile.id,policy:binding.profile.id,
+   Object.assign(r,{slug,state,options,requested:{state:state==='normal'?'active':state,pressed:options.pressed,disabled:options.disabled,default:false},profile:binding.profile.id,policy:binding.profile.id,
     profileInput:capture.source.archiveSha256,profileFork:capture.source.forkSha256,originalComparison:{binding,differentPixels:0,comparedPixels:1600},
     selectedKey:pins.emittedKey,selectedCinfId:pins.cinf.signedId,selectedBodyRequest:structuredClone(pins.bodyRequest),recordedSourcePins:structuredClone(pins),
     composition:{faceRect:{x:20,y:20,w:80,h:20},context:{...options.compositionContext,basis:'caller-declared'},appliedUnknownPatternOffset:true,originalPortState:'unverified'},patternAsset:pins.pattern?'unit:pattern':null});
@@ -112,7 +112,7 @@ test('four new state joins require their own face/cinf/body/pattern pins and com
   };
   validateRecordedExecution(make(),binding,capture);
   for(const [mutate,reason]of [
-   [r=>r.state='normal',/execution case/],
+   [r=>r.state=state==='normal'?'pressed':'normal',/execution case/],
    [r=>r.selectedKey='wrong-state-key',/face identity/],
    [r=>r.selectedBodyRequest.resourceId=999,/body request/],
    [r=>r.resources[0].sha256='wrong-face',/payload/],

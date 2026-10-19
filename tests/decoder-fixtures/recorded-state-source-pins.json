@@ -100,5 +100,78 @@
       },
       "missingPatternId": 0
     }
+  },
+  "animals": {
+    "normal": {
+      "sourceArchiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "sourceForkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "emittedKey": "solo-menu-background-2",
+      "face": {
+        "resourceIndex": 98,
+        "signedId": -10239,
+        "bytes": 314,
+        "payloadSha256": "9ee11b23383ff1ab88e58f1d8ca5e4df4688f0bb1be5cb4d4f0a9341b8a0c128"
+      },
+      "cinf": {
+        "resourceIndex": 195,
+        "signedId": -10239,
+        "bytes": 18,
+        "payloadSha256": "77915b3acb8858e3a3334d705428676d699f431d1d73bc7f8f14532ad44f9932"
+      },
+      "bodyRequest": {
+        "mode": 2,
+        "resourceId": -12239
+      },
+      "pattern": {
+        "resourceIndex": 785,
+        "signedId": -12239,
+        "bytes": 454,
+        "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f"
+      }
+    },
+    "pressed": {
+      "sourceArchiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "sourceForkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "emittedKey": "pressed-push-button",
+      "face": {
+        "resourceIndex": 23,
+        "signedId": -10238,
+        "bytes": 314,
+        "payloadSha256": "1bfa32584929c9e8df52c0c250a82776100ae935f7e8ddfd92e23977a359c078"
+      },
+      "cinf": {
+        "resourceIndex": 194,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "sourceForkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "emittedKey": "inactive-push-button",
+      "face": {
+        "resourceIndex": 22,
+        "signedId": -10240,
+        "bytes": 298,
+        "payloadSha256": "a9e62888e7679b16a738e0c448af1b024b8e2fd8cfa53aa1fb8393871e348c1c"
+      },
+      "cinf": {
+        "resourceIndex": 196,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "7912efafb6cdd3cb37b301d952ec05574ea72de410e6d853516f29e7f9a5ffa2"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    }
   }
 }
