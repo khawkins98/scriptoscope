@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add declared known-origin pattern full-face checks to the existing source/built border groups, binding actual ppat bytes and independent control-body phase while retaining unknown-origin invocations and original environment limits (#221).
+
 - Extend existing border-boundary checks to conditional solid-body full face rectangles using bound raw background samples, actual modern null-pattern admission and explicitly transparent initialization; retain pattern/missing-cinf cases and original environment claims as unresolved (#221).
 
 - Specify the source-derived cinf same-ID/default lookup sequence with synthetic conditional fixtures and explicit unknown provider environments; correct `$A9A0` to GetResource in the source reference without changing runtime loading or injecting defaults (#221).

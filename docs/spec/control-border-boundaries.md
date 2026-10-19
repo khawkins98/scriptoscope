@@ -122,3 +122,46 @@ pixels. The 87 missing-cinf tuples remain unknown. Actual execution reports
 full-face versus border-only cases and body/border/initial counts separately.
 No original destination transparency, mask truth, device colors, provider order,
 whole-control fidelity or ledger closure follows from this conditional result.
+
+## Separately declared known-origin pattern subset
+
+The existing unknown-origin invocations remain unchanged and border-only.
+Within the same groups, 13 pattern-present tuples receive one additional
+invocation per size, with control origin D=(13,17), port origin (0,0), known
+pattern offset R=(−3,5), and the finite face rectangle as clip. This adds 290
+compositions per runtime, not a mode cross-product. Expected totals are 960
+full-face cases (670 solid plus 290 known-pattern) alongside the retained 290
+unknown-origin border-only cases; the latter still have 1,009,232 unassessed
+pixels. No old invocation gains an inferred known origin.
+
+For the pinned kDEF source, `10ab0–10af6` selects P from the **original face
+rectangle**: mode0 (and non5 modes6–255) uses (0,0); modes1–4 use TL, TR, BL,
+BR with exclusive right/bottom edges. `10afa–10b56` fills both transposed inset
+rectangles with the same P. `f956–f962` establishes O−P, `f980–f9a8` translates
+clip/destination by −P, and `f9b2 → f7cc`, `f858–f85e` reaches full-color fill.
+The independent sample is floorMod(D+q−P+R,tileSize). Clipping never restarts
+phase; list-header bottom+1 is not a control rule. Existing asymmetric 4×2
+literal rows anchor all five modes, including negative coordinates/offset and
+clipping, independently of production phase helpers or diagnostic phase fields.
+
+The eight actual ppat occurrences are Animals −9567/−12239 (32×16,4-bit),
+Lisa −10173 (8×8,1-bit), and Crayon17/−10238/−8206/−10172/−10173 (64×64,
+4/8-bit). Ten tuples use mode0; three use mode1. Admission requires a unique
+raw matching occurrence, actual selected same-owner ID/key/load/payload hash,
+successful conversion, exact decoded-plane hash, opaque finite tile, supported
+binary/sampled border, declared context and completed themed composition.
+Tiles are cached once per occurrence per source/built pass. Present-but-
+undecoded, ambiguous or nonopaque inputs never become NULL.
+
+The independent expected pixel is last opaque border writer, otherwise pattern
+inside the inset union, otherwise explicitly initialized modern transparent
+RGBA. The added invocations predict 1,218,718 assessed face pixels per runtime:
+209,486 border, 1,007,072 patterned union and 2,160 initialized-transparent.
+Passing receipts retain counts/hashes and shared pattern identities rather than
+full planes. Actual pattern selection and completed composition are observed;
+there is no separate non-mode5 pattern occupancy/write event in the trace.
+Full pixel agreement supplies the output check, not a fabricated trace event.
+Decoded art and the default `mac-1.8-to-2.2-high-byte` realization are conditional
+inputs, not independent decoder, original provider/cache/device/palette or
+original destination/mask proof. Missing-cinf cases, broader fidelity and ledger
+closure remain OPEN.

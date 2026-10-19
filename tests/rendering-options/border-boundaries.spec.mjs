@@ -10,12 +10,12 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
     try {
       result = await page.evaluate(async ({ mode, input }) => {
         const api = await import(mode === 'source' ? '/src/index.ts' : '/dist/scriptoscope.js');
-        const { boundaryVariants, boundarySizes, borderWriter, admitSolidBody, solidBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
+        const { boundaryVariants, boundarySizes, borderWriter, admitSolidBody, solidBodyOrInitial, admitPatternBody, patternBodyOrInitial } = await import('/tests/rendering-options/border-boundary-model.mjs');
         const check = (value, message) => { if (!value) throw new Error(message); };
         const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
         const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(v => v.toString(16).padStart(2, '0')).join('');
         const theme = await api.loadTheme(`/themes/${input.choice.slug}`, { source: input.choice.path.split('/').at(-1), provenance: true });
-        const rows = [], faces = {}, provenance = theme.byteProvenance, sourceCache = new Map();
+        const rows = [], faces = {}, patterns = {}, patternCache = new Map(), provenance = theme.byteProvenance, sourceCache = new Map();
         const resources = new Map(provenance.resources.map(r => [r.resourceIndex, r]));
         const join = resource => {
           const key = resource?.manifestKey, e = theme.manifest.chromeElements[key], expected = input.elements[key], ref = resource?.byteProvenance;
@@ -33,9 +33,28 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
           }
           return { key, e, expected };
         };
-        const compose = async (variant, width, height) => {
+        const patternJoin = (step, bodyInput) => {
+          const resource = step?.resource, key = resource?.manifestKey, p = theme.manifest.patterns?.[key], expected = input.patterns[key];
+          const ref = resource?.byteProvenance, raw = expected && input.resources[expected.resourceIndex], actual = expected && resources.get(expected.resourceIndex);
+          check(step?.action === 'selected' && step.role === 'body-fill' && step.usage === 'paint'
+            && step.bodyMode === bodyInput.request.mode && step.requestedId === bodyInput.request.resourceId
+            && step.requestedResourceType === 'ppat' && step.owner?.chainDepth === 0 && step.owner.baseUrl === theme.baseUrl,
+          'Actual selected pattern request/owner mismatch');
+          check(resource?.type === 'ppat' && p && expected && ref && raw && actual?.status === 'decoded'
+            && same(bodyInput.rawPatternOccurrences, [expected.resourceIndex])
+            && resource.signedId === expected.signedId && p.sourcePpatId === bodyInput.request.resourceId
+            && resource.assetUrl === api.assetUrl(theme, p.asset) && ref.manifestKey === key
+            && ref.loadId === provenance.loadId && p.byteProvenance.loadId === provenance.loadId
+            && ref.ppatResourceIndex === expected.resourceIndex && p.byteProvenance.ppatResourceIndex === expected.resourceIndex
+            && actual.type === 'ppat' && actual.signedId === raw.signedId && actual.sha256 === raw.sha256 && actual.byteLength === raw.byteLength,
+          'Actual pattern occurrence/payload mismatch');
+          check(expected.opaque && expected.displayPolicy === 'mac-1.8-to-2.2-high-byte', 'Pattern input not opaque/current-display');
+          if (!patterns[key]) patterns[key] = { input: expected, resource, owner: step.owner, payload: actual };
+          return { key, p, expected };
+        };
+        const compose = async (variant, width, height, knownPattern = false) => {
           let trace;
-          const context = { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'unknown' },
+          const context = { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: knownPattern ? { status: 'known', offset: [-3, 5] } : { status: 'unknown' },
             clip: { kind: 'rect', rect: { x: 13, y: 17, w: width, h: height } } };
           const options = { label: '', minWidth: width, height, pressed: variant.state === 'pressed', disabled: variant.state === 'inactive',
             ...(variant.family === 'push' ? { default: false } : { small: variant.small, on: variant.on }),
@@ -94,10 +113,32 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               && (e.colorSamplesUnavailableReason ?? null) === bodyInput.unavailableReason, 'Actual body metadata differs from bound input');
             const solid = equalSampler ? admitSolidBody({ ...bodyInput, width: model.width, height: model.height,
               lookup: 'declared-same-owner-null' }) : null;
-            const plan = boundarySizes(model, variant.family), row = { variant, key, status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [] };
+            let pattern = null;
+            const selectedPattern = probe.trace.steps.filter(s => s.role === 'body-fill' && s.usage === 'paint' && s.action === 'selected').at(-1);
+            const candidatePatterns = Object.entries(input.patterns).filter(([, p]) => p.signedId === bodyInput.request.resourceId
+              && p.opaque && p.rgbaSha256 && same(bodyInput.rawPatternOccurrences, [p.resourceIndex]));
+            const expectedPattern = equalSampler && bodyInput.request.mode !== 5 && candidatePatterns.length === 1;
+            if (expectedPattern) {
+              check(selectedPattern, 'Bound decoded pattern was not actually selected');
+              pattern = patternJoin(selectedPattern, bodyInput);
+              check(pattern.key === candidatePatterns[0][0], 'Actual pattern differs from bound candidate');
+              if (!patternCache.has(pattern.key)) {
+                const tile = await api.loadCicnBuffer(api.assetUrl(theme, pattern.p.asset));
+                check(tile.width === pattern.expected.width && tile.height === pattern.expected.height
+                  && await digest(tile.data) === pattern.expected.rgbaSha256 && tile.data.every((v, i) => i % 4 !== 3 || v === 255),
+                'Actual pattern decoded plane/opacity mismatch');
+                patternCache.set(pattern.key, tile);
+              }
+            }
+            const plan = boundarySizes(model, variant.family), row = { variant, key, status: 'observed', bodyScope: solid ? 'conditional-solid-full-face' : 'border-only', plan, cases: [], ...(pattern ? { knownPatternKey: pattern.key, knownPatternContext: { controlOrigin: [13, 17], portOrigin: [0, 0], patternOrigin: { status: 'known', offset: [-3, 5] }, clip: 'finite-face-rect-from-case-size' }, knownPatternCases: [] } : {}) };
             rows.push(row);
-            for (const [width, height] of plan.sizes) {
-              const { buffer, trace, context } = await compose(variant, width, height);
+            for (const knownPattern of pattern ? [false, true] : [false]) for (const [width, height] of plan.sizes) {
+              const { buffer, trace, context } = await compose(variant, width, height, knownPattern);
+              const caseRows = knownPattern ? row.knownPatternCases : row.cases;
+              const tile = knownPattern ? patternCache.get(pattern.key) : null;
+              const patterned = knownPattern ? admitPatternBody({ mode: bodyInput.request.mode, context, width, height,
+                tileWidth: tile.width, tileHeight: tile.height, rgba: tile.data }) : null;
+              if (knownPattern) check(patterned, 'Known pattern context/tile admission failed');
               check(buffer && trace.outcome.status === 'themed', 'Expected completed themed face');
               const actualSelection = trace.steps.filter(s => s.role === 'face' && s.usage === 'paint' && s.action === 'selected').at(-1);
               check(join(actualSelection.resource).key === key, 'Boundary changed actual selected face');
@@ -105,13 +146,19 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 && same(trace.composition?.faceRect, { x: 13, y: 17, w: width, h: height }), 'Actual composition context/face mismatch');
               const offset = variant.family === 'push' && Object.values(theme.manifest.chromeElements).some(v => [10230, 10231, 10232].includes(Math.abs(v.sourceCicnId))) ? 4 : 0;
               check(buffer.width === width + 2 * offset && buffer.height === height + 2 * offset, 'Public size policy mismatch');
-              if (trace.legacyFacePaint) { row.cases.push({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
+              if (trace.legacyFacePaint) { caseRows.push({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
               const paints = trace.bandPaints ?? [];
               for (const p of paints) {
                 check(p.role === 'face' && p.owner.chainDepth === 0 && p.owner.baseUrl === theme.baseUrl && join(p.resource).key === key,
                   'Completed band dependency mismatch');
               }
               let bodyAdmission;
+              if (patterned) {
+                const bodySteps = trace.steps.filter(s => s.role === 'body-fill' && s.usage === 'paint');
+                const step = bodySteps.filter(s => s.action === 'selected').at(-1);
+                check(patternJoin(step, bodyInput).key === pattern.key
+                  && !bodySteps.some(s => ['missing', 'rejected', 'fallback'].includes(s.action)), 'Known pattern admission changed');
+              }
               if (solid) {
                 const bodySteps = trace.steps.filter(s => s.role === 'body-fill' && s.usage === 'paint');
                 bodyAdmission = bodySteps.find(s => s.action === 'missing' && s.reason === 'same-face-owner-pattern-unavailable');
@@ -125,9 +172,9 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
               const writers = {}, failures = [];
               for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
                 const writer = borderWriter(model, { width, height }, x, y, (sx, sy) => art.getPixel(sx, sy)[3]);
-                if (!writer && !solid) { unassessed++; continue; }
+                if (!writer && !solid && !patterned) { unassessed++; continue; }
                 if (writer && writer.branch !== 'copy' && !equalSampler) { unknownSampler++; unassessed++; continue; }
-                const fallback = writer ? null : solidBodyOrInitial(model, { width, height }, x, y, solid);
+                const fallback = writer ? null : patterned ? patternBodyOrInitial(model, patterned, x, y) : solidBodyOrInitial(model, { width, height }, x, y, solid);
                 const expectedPixel = writer ? art.getPixel(...writer.source) : fallback.rgba, actual = buffer.getPixel(x + offset, y + offset);
                 asserted++;
                 if (writer) {
@@ -137,21 +184,22 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 } else if (fallback.kind === 'body') bodyPixels++; else initialPixels++;
                 if (!same(actual, expectedPixel)) { mismatches++; if (failures.length < 8) failures.push({ at: [x, y], writer, fallback, expected: expectedPixel, actual }); }
               }
-              const summary = { size: [width, height], status: solid ? 'asserted-conditional-solid-full-face' : asserted ? (unknownSampler ? 'partial-unknown-sampler' : 'asserted-opaque-border') : 'unknown-no-assessed-border',
+              const summary = { size: [width, height], status: patterned ? 'asserted-known-pattern-full-face' : solid ? 'asserted-conditional-solid-full-face' : asserted ? (unknownSampler ? 'partial-unknown-sampler' : 'asserted-opaque-border') : 'unknown-no-assessed-border',
                 asserted, unassessed, borderPixels, bodyPixels, initialPixels, unknownSampler, writers, mismatches,
+                ...(patterned ? { patternKey: pattern.key, context: 'row-known-pattern-context', initialDestination: [0, 0, 0, 0], completedOutcome: trace.outcome.status } : {}),
                 ...(solid ? { bodyAdmission, background: solid, initialDestination: [0, 0, 0, 0], completedOutcome: trace.outcome.status } : {}), outputSha256: await digest(buffer.data),
                 paintRegions: paints.map(p => [p.region, p.branch, p.policy]), ...(failures.length ? { failures } : {}) };
-              if (solid) check(asserted === width * height && unassessed === 0, 'Full-face coverage incomplete');
-              row.cases.push(summary);
-              if (mismatches) { document.body.append(api.bufferToCanvas(buffer)); return { failed: { variant, key, model, summary }, rows, faces, loadId: provenance.loadId }; }
+              if (solid || patterned) check(asserted === width * height && unassessed === 0, 'Full-face coverage incomplete');
+              caseRows.push(summary);
+              if (mismatches) { document.body.append(api.bufferToCanvas(buffer)); return { failed: { variant, key, model, summary }, rows, faces, patterns, loadId: provenance.loadId }; }
             }
           }
-          return { rows, faces, loadId: provenance.loadId, input: provenance.input, fork: provenance.fork };
+          return { rows, faces, patterns, loadId: provenance.loadId, input: provenance.input, fork: provenance.fork };
         } finally { theme.dispose(); }
       }, { mode, input });
       expect(result.failed, JSON.stringify(result.failed)).toBeUndefined();
       expect(result.rows).toHaveLength(15);
     } catch (error) { await attachCase(page, info, { mode, slug: choice.slug, result }, error); throw error; }
     await attachObservations(info, 'border-boundaries', `${mode}-${choice.slug}`, { mode, slug: choice.slug,
-      sourceChoicesSha256: input.choicesSha256, claim: 'conditional solid full-face or opaque-border-only source model; decoded inputs, modern same-owner NULL and transparent initialization declared, original providers/destination and broader fidelity OPEN', result });
+      sourceChoicesSha256: input.choicesSha256, claim: 'conditional solid/known-pattern full-face plus retained unknown-origin opaque-border-only source model; decoded inputs, modern same-owner NULL and transparent initialization declared, original providers/destination and broader fidelity OPEN', result });
   });
