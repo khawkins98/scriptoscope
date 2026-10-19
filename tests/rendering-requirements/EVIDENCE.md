@@ -203,3 +203,11 @@ The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec v
 Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.
 
 The scoped-original evidence kind reuses reference intake review, never the renderer as its expected-image authority. Exact capture/request/image/profile bindings and actual source/built execution are separate obligations. Metadata-only re-attestation binds changed authority versions without recapturing or changing original image/condition bytes.
+
+## Prepared synthetic strike: two finite SOURCE cases
+
+For one ordinary push line, kDEF0 GetFontInfo at 0x6fbc supplies L=A+D+G; 0x6ff2..0x7036 computes baseline=bottom-trunc((bottom+1-top-L)/2)-G-D (minus1 if L<13), and 0x707c..0x709c computes x=trunc((left+right-advance)/2). Signed division truncates toward zero. Control clipping is at 0x6d64..0x6d80; emboss adds(+1,+1) at 0x70a6..0x70b2.
+
+The owned X mask is 101/010/101, advance2 and bearing(-1,-2), with space advance3 and no ink. X X has advance7 and ten foreground mask points. Metrics12/3/1 give lineHeight16: the automatic31x20 face has pen(12,14). Changing only X bearingX to -14 and declaring face(-20,-2,32,6), clip(-20,2,6,4), gives pen(-7,4), four foreground and three emboss mask points; the complete surviving output is eight literal RGBA pixels. These are caller-defined synthetic glyphs, not original font data.
+
+The pinned engine identity is unchanged. See [prepared text contract](../../docs/spec/prepared-bitmap-font.md) and [literal pins](../decoder-fixtures/bitmap-font-pins.json). Normalized data hashes identify caller declarations, not font authenticity. Auto coverage checks all nonwhite opaque pixels; the clipped case checks every nontransparent pixel. Stage occupancy is measured before foreground overwrites; it is not a unique surviving-contribution count. Original glyph provider, transfer, destination device and port state remain UNKNOWN.

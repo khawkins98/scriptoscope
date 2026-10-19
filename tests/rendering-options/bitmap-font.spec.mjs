@@ -1,8 +1,10 @@
+import {verifyBitmapRows,bitmapPins} from '../rendering-requirements/bitmap-cases.mjs';
 import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 for (const mode of ['source', 'built']) {
   test(`${mode}: prepared bitmap push keeps signed ink, source pen, clip and emboss without browser glyphs`, async ({ page, servers }, info) => {
+    info.annotations.push({type:'fidelity-assertion',description:'bitmap.prepared-literal-paint'});
     await openHarness(page, servers, mode);
-    const result = await page.evaluate(async mode => {
+    const result = await page.evaluate(async ({mode,caseIds}) => {
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
       const { bitmapFontFixture } = await import('/tests/decoder-fixtures/bitmap-font.mjs');
       const { colorIcon, colorInfo } = await import('/tests/decoder-fixtures/control-colors.mjs');
@@ -24,17 +26,23 @@ for (const mode of ['source', 'built']) {
         const output = await api.composeButton(theme,{...opts,diagnostics:{correlationId:'clip',onComplete}});
         const plain = await api.composeButton(theme,opts);
         await api.composeButton(theme,{...opts,compositionContext:{...context,clip:{kind:'rect',rect:{x:100,y:100,w:1,h:1}}},diagnostics:{correlationId:'empty-clip',onComplete}});
-        const automatic = await api.composeButton(theme,{bitmapFont:font,label:'X X',minWidth:0,diagnostics:{correlationId:'auto',onComplete}});
+        const autoOptions={label:'X X',minWidth:0};
+        const automatic = await api.composeButton(theme,{bitmapFont:font,...autoOptions,diagnostics:{correlationId:'auto',onComplete}});
         await Promise.all(['X',' '].map(label=>api.composeButton(theme,{bitmapFont:font,label,height:20,diagnostics:{correlationId:label,onComplete}})));
         const pixels=[];
         for(let y=0;y<output.height;y++)for(let x=0;x<output.width;x++)if(output.getPixel(x,y)[3])pixels.push([x,y,...output.getPixel(x,y)]);
         let unsupported;
         try { await api.composeButton(theme,{bitmapFont:font,label:'Y'}); } catch(e) { unsupported=e.message; }
         const frozen=v=>!v||typeof v!=='object'||Object.isFrozen(v)&&Object.values(v).every(frozen);
-        return {fontId:font.id,overhangId:overhangFont.id,size:[output.width,output.height],automatic:[automatic.width,automatic.height],pixels,
+        const inkPixels=[];for(let y=0;y<automatic.height;y++)for(let x=0;x<automatic.width;x++){const p=automatic.getPixel(x,y);if(p[3]&&p.slice(0,3).some(v=>v!==255))inkPixels.push([x,y,...p]);}
+        const {bitmapFont:ignored,...clipOptions}=opts;
+        const rows=[{caseId:caseIds[0],options:autoOptions,fontId:font.id,fontData:font.data,size:[automatic.width,automatic.height],trace:traces.get('auto'),pixelSelection:'nonwhite-opaque',pixels:inkPixels},
+          {caseId:caseIds[1],options:clipOptions,fontId:overhangFont.id,fontData:overhangFont.data,size:[output.width,output.height],trace:traces.get('clip'),pixelSelection:'all-nontransparent',pixels}];
+        return {rows,fontId:font.id,overhangId:overhangFont.id,size:[output.width,output.height],automatic:[automatic.width,automatic.height],pixels,
           parity:output.data.every((v,i)=>v===plain.data[i]),traces:Object.fromEntries(traces),unsupported,frozen:frozen(traces.get('auto'))};
       } finally {CanvasRenderingContext2D.prototype.fillText=fill;theme.dispose();}
-    },mode);
+    },{mode,caseIds:bitmapPins.cases.map(c=>c.id)});
+    verifyBitmapRows(result.rows);
     expect(result.size).toEqual([32,6]);expect(result.automatic).toEqual([31,20]);expect(result.parity).toBe(true);
     // Independent clipped plane: red foreground overwrites green emboss at
     // overlapping mask points; negative bearing survives until actual face clip.

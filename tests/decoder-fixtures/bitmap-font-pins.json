@@ -1,0 +1,481 @@
+{
+  "version": 1,
+  "fixture": {
+    "path": "tests/decoder-fixtures/bitmap-font.mjs",
+    "sha256": "b236fe3d4a77abe2451c0659dd3f5a1cb482bf5af970cf67a5183885c8c9677a"
+  },
+  "derivation": "Owned literal X mask/space advances; authored expected coordinates from signed source formula, not renderer snapshots. Auto selection records every nonwhite opaque output pixel; clipped selection every nontransparent output pixel. Occupancy counts precede foreground overwrites.",
+  "cases": [
+    {
+      "id": "synthetic.bitmap.push.X-space-X.auto",
+      "inputId": "synthetic.bitmap.ordinary",
+      "traceKey": "auto",
+      "options": {
+        "label": "X X",
+        "minWidth": 0
+      },
+      "fontData": {
+        "version": 1,
+        "strikeSize": 12,
+        "metrics": {
+          "ascent": 12,
+          "descent": 3,
+          "leading": 1
+        },
+        "glyphs": [
+          {
+            "character": " ",
+            "advance": 3,
+            "bearingX": 0,
+            "bearingY": 0,
+            "width": 0,
+            "height": 0,
+            "mask": []
+          },
+          {
+            "character": "X",
+            "advance": 2,
+            "bearingX": -1,
+            "bearingY": -2,
+            "width": 3,
+            "height": 3,
+            "mask": [
+              1,
+              0,
+              1,
+              0,
+              1,
+              0,
+              1,
+              0,
+              1
+            ]
+          }
+        ],
+        "provenance": {
+          "kind": "caller-declared",
+          "description": "Synthetic X and space test glyphs, not a historical font"
+        }
+      },
+      "size": [
+        31,
+        20
+      ],
+      "paint": {
+        "providerBasis": "caller-declared",
+        "layoutBasis": "kdef-2.3.1-single-line-push",
+        "coordinateSpace": "port",
+        "strikeSize": 12,
+        "metrics": {
+          "ascent": 12,
+          "descent": 3,
+          "leading": 1
+        },
+        "label": "X X",
+        "advance": 7,
+        "lineHeight": 16,
+        "pen": [
+          12,
+          14
+        ],
+        "faceRect": {
+          "x": 0,
+          "y": 0,
+          "w": 31,
+          "h": 20
+        },
+        "declaredClip": {
+          "kind": "unbounded"
+        },
+        "contextBasis": "compatibility-default",
+        "inkBounds": {
+          "x": 11,
+          "y": 12,
+          "w": 8,
+          "h": 3
+        },
+        "foreground": {
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "pixels": 10,
+          "bounds": {
+            "x": 11,
+            "y": 12,
+            "w": 8,
+            "h": 3
+          }
+        },
+        "emboss": {
+          "rgba": [
+            0,
+            255,
+            0,
+            255
+          ],
+          "pixels": 10,
+          "bounds": {
+            "x": 12,
+            "y": 13,
+            "w": 8,
+            "h": 3
+          }
+        },
+        "fontId": "bitmap-font:072027944e9aac494a408bdd6258430f49b8cfc93c066dc1dc3ba3fc50f81ebc"
+      },
+      "pixelSelection": "nonwhite-opaque",
+      "literalPixels": [
+        [
+          11,
+          12,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          13,
+          12,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          16,
+          12,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          18,
+          12,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          12,
+          13,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          14,
+          13,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          17,
+          13,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          19,
+          13,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          11,
+          14,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          13,
+          14,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          16,
+          14,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          18,
+          14,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          12,
+          15,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          14,
+          15,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          17,
+          15,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          19,
+          15,
+          0,
+          255,
+          0,
+          255
+        ]
+      ],
+      "fontId": "bitmap-font:072027944e9aac494a408bdd6258430f49b8cfc93c066dc1dc3ba3fc50f81ebc"
+    },
+    {
+      "id": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "inputId": "synthetic.bitmap.overhang",
+      "traceKey": "clip",
+      "options": {
+        "label": "X X",
+        "height": 6,
+        "minWidth": 32,
+        "compositionContext": {
+          "controlOrigin": [
+            -20,
+            -2
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": -20,
+              "y": 2,
+              "w": 6,
+              "h": 4
+            }
+          }
+        }
+      },
+      "fontData": {
+        "version": 1,
+        "strikeSize": 12,
+        "metrics": {
+          "ascent": 12,
+          "descent": 3,
+          "leading": 1
+        },
+        "glyphs": [
+          {
+            "character": " ",
+            "advance": 3,
+            "bearingX": 0,
+            "bearingY": 0,
+            "width": 0,
+            "height": 0,
+            "mask": []
+          },
+          {
+            "character": "X",
+            "advance": 2,
+            "bearingX": -14,
+            "bearingY": -2,
+            "width": 3,
+            "height": 3,
+            "mask": [
+              1,
+              0,
+              1,
+              0,
+              1,
+              0,
+              1,
+              0,
+              1
+            ]
+          }
+        ],
+        "provenance": {
+          "kind": "caller-declared",
+          "description": "Synthetic X and space test glyphs, not a historical font"
+        }
+      },
+      "size": [
+        32,
+        6
+      ],
+      "paint": {
+        "providerBasis": "caller-declared",
+        "layoutBasis": "kdef-2.3.1-single-line-push",
+        "coordinateSpace": "port",
+        "strikeSize": 12,
+        "metrics": {
+          "ascent": 12,
+          "descent": 3,
+          "leading": 1
+        },
+        "label": "X X",
+        "advance": 7,
+        "lineHeight": 16,
+        "pen": [
+          -7,
+          4
+        ],
+        "faceRect": {
+          "x": -20,
+          "y": -2,
+          "w": 32,
+          "h": 6
+        },
+        "declaredClip": {
+          "kind": "rect",
+          "rect": {
+            "x": -20,
+            "y": 2,
+            "w": 6,
+            "h": 4
+          }
+        },
+        "contextBasis": "caller-declared",
+        "inkBounds": {
+          "x": -21,
+          "y": 2,
+          "w": 8,
+          "h": 3
+        },
+        "foreground": {
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "pixels": 4,
+          "bounds": {
+            "x": -20,
+            "y": 2,
+            "w": 6,
+            "h": 2
+          }
+        },
+        "emboss": {
+          "rgba": [
+            0,
+            255,
+            0,
+            255
+          ],
+          "pixels": 3,
+          "bounds": {
+            "x": -20,
+            "y": 3,
+            "w": 6,
+            "h": 1
+          }
+        },
+        "fontId": "bitmap-font:9db9e7301af3130472a10d3267e4fd6d0ff55a093855fb923689b464029ec403"
+      },
+      "pixelSelection": "all-nontransparent",
+      "literalPixels": [
+        [
+          1,
+          4,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          2,
+          4,
+          255,
+          255,
+          255,
+          255
+        ],
+        [
+          3,
+          4,
+          255,
+          255,
+          255,
+          255
+        ],
+        [
+          4,
+          4,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          5,
+          4,
+          255,
+          255,
+          255,
+          255
+        ],
+        [
+          0,
+          5,
+          255,
+          0,
+          0,
+          255
+        ],
+        [
+          2,
+          5,
+          0,
+          255,
+          0,
+          255
+        ],
+        [
+          5,
+          5,
+          255,
+          0,
+          0,
+          255
+        ]
+      ],
+      "fontId": "bitmap-font:9db9e7301af3130472a10d3267e4fd6d0ff55a093855fb923689b464029ec403"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.4.0",
+  "inventoryVersion": "1.5.0",
   "scope": {
-    "description": "Twenty-eight exact direct composition cases, including six separately reported recorded-condition composed-pixel comparisons; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Thirty exact direct composition cases, including six separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -1085,6 +1085,196 @@
       "kind": "theme-archive",
       "path": "themes/system7-nostalgia-silver/scheme.rsrc",
       "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
+    },
+    {
+      "id": "synthetic.bitmap.ordinary",
+      "kind": "synthetic",
+      "definition": {
+        "fixture": {
+          "path": "tests/decoder-fixtures/bitmap-font.mjs",
+          "sha256": "b236fe3d4a77abe2451c0659dd3f5a1cb482bf5af970cf67a5183885c8c9677a"
+        },
+        "fontId": "bitmap-font:072027944e9aac494a408bdd6258430f49b8cfc93c066dc1dc3ba3fc50f81ebc",
+        "fontData": {
+          "version": 1,
+          "strikeSize": 12,
+          "metrics": {
+            "ascent": 12,
+            "descent": 3,
+            "leading": 1
+          },
+          "glyphs": [
+            {
+              "character": " ",
+              "advance": 3,
+              "bearingX": 0,
+              "bearingY": 0,
+              "width": 0,
+              "height": 0,
+              "mask": []
+            },
+            {
+              "character": "X",
+              "advance": 2,
+              "bearingX": -1,
+              "bearingY": -2,
+              "width": 3,
+              "height": 3,
+              "mask": [
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1
+              ]
+            }
+          ],
+          "provenance": {
+            "kind": "caller-declared",
+            "description": "Synthetic X and space test glyphs, not a historical font"
+          }
+        },
+        "theme": {
+          "fixture": "tests/decoder-fixtures/control-colors.mjs",
+          "cicnId": -10239,
+          "entries": [
+            [
+              0,
+              65535,
+              65535,
+              65535
+            ],
+            [
+              1,
+              65535,
+              0,
+              0
+            ],
+            [
+              2,
+              0,
+              65535,
+              0
+            ]
+          ],
+          "pixels": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "cinf": {
+            "emboss": [
+              2,
+              0
+            ]
+          }
+        }
+      },
+      "sha256": "0239f5c14a1b1e7258263601eadd4db3514ed962735c0cfd9c134846b4462d36"
+    },
+    {
+      "id": "synthetic.bitmap.overhang",
+      "kind": "synthetic",
+      "definition": {
+        "fixture": {
+          "path": "tests/decoder-fixtures/bitmap-font.mjs",
+          "sha256": "b236fe3d4a77abe2451c0659dd3f5a1cb482bf5af970cf67a5183885c8c9677a"
+        },
+        "fontId": "bitmap-font:9db9e7301af3130472a10d3267e4fd6d0ff55a093855fb923689b464029ec403",
+        "fontData": {
+          "version": 1,
+          "strikeSize": 12,
+          "metrics": {
+            "ascent": 12,
+            "descent": 3,
+            "leading": 1
+          },
+          "glyphs": [
+            {
+              "character": " ",
+              "advance": 3,
+              "bearingX": 0,
+              "bearingY": 0,
+              "width": 0,
+              "height": 0,
+              "mask": []
+            },
+            {
+              "character": "X",
+              "advance": 2,
+              "bearingX": -14,
+              "bearingY": -2,
+              "width": 3,
+              "height": 3,
+              "mask": [
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1,
+                0,
+                1
+              ]
+            }
+          ],
+          "provenance": {
+            "kind": "caller-declared",
+            "description": "Synthetic X and space test glyphs, not a historical font"
+          }
+        },
+        "theme": {
+          "fixture": "tests/decoder-fixtures/control-colors.mjs",
+          "cicnId": -10239,
+          "entries": [
+            [
+              0,
+              65535,
+              65535,
+              65535
+            ],
+            [
+              1,
+              65535,
+              0,
+              0
+            ],
+            [
+              2,
+              0,
+              65535,
+              0
+            ]
+          ],
+          "pixels": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "cinf": {
+            "emboss": [
+              2,
+              0
+            ]
+          }
+        }
+      },
+      "sha256": "734b60fd8dd774ffde05ecfce09543b9a8eaf4b5bda3a2227db1855c1ecd0826"
     }
   ],
   "evidence": [
@@ -1525,8 +1715,8 @@
       "reference": {
         "captureId": "windows-95.normal.v9.draft",
         "requestId": "windows-95.normal",
-        "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
-        "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+        "requestDigest": "fd26cf4e9ca7e7b8c9eb2ae2c8dc0a471e8b3a941dc27934308dd04756f14ef4",
+        "captureDigest": "dd005fc4d690406640081986f48c0cecc3a06a9990581ed45f389a13be80d87f",
         "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1574,8 +1764,8 @@
       "reference": {
         "captureId": "windows-95.pressed.v10w.draft",
         "requestId": "windows-95.pressed",
-        "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
-        "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+        "requestDigest": "997cfa81415bfeeab497e90cec720e0e9414a55d5b974f7e573760e0cc5b8936",
+        "captureDigest": "7557a89ec172249b4ef1d40314977ce90f35e85e9ca3d77f170637e0e13d5cc9",
         "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1623,8 +1813,8 @@
       "reference": {
         "captureId": "windows-95.inactive.v10w.draft",
         "requestId": "windows-95.inactive",
-        "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
-        "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+        "requestDigest": "360564cf7b9cf222c04bc9de0176f0645002dd8414df5a3218f94daabf0c4e34",
+        "captureDigest": "2411faf2580bab729a058bfed0ce35006a7fb3b6d54f7c0b71b119d85ce180b3",
         "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1672,8 +1862,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.normal.v7d.draft",
         "requestId": "system7-nostalgia-silver.normal",
-        "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
-        "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+        "requestDigest": "c2411f8e57c327432b38df500520b829281793b04ed78aee9feb9137bfd16bef",
+        "captureDigest": "fe1818de17c31c04ea08b8f570508e2be9af004b8878a073de6e105497b660bd",
         "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1721,8 +1911,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
         "requestId": "system7-nostalgia-silver.pressed",
-        "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
-        "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+        "requestDigest": "2d024905f90e6db0fc20f93355049dadbcf93f2837a9c6766db515826e4db740",
+        "captureDigest": "70b7a22502333f95c386e37d7ee8c987a1e17b2582bb554a19056fe6f4cf008a",
         "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1770,8 +1960,8 @@
       "reference": {
         "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
         "requestId": "system7-nostalgia-silver.inactive",
-        "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
-        "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+        "requestDigest": "80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0",
+        "captureDigest": "1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9",
         "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -1801,6 +1991,51 @@
           "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
         }
       }
+    },
+    {
+      "id": "kdef.prepared-single-line-pen",
+      "kind": "primary-decode",
+      "inputs": [
+        "engine.kaleidoscope-2.3.1-kdef0"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "For one ordinary push line, kDEF0 GetFontInfo at 0x6fbc supplies L=A+D+G; 0x6ff2..0x7036 computes baseline=bottom-trunc((bottom+1-top-L)/2)-G-D (minus1 if L<13), and 0x707c..0x709c computes x=trunc((left+right-advance)/2). Signed division truncates toward zero. Control clipping is at 0x6d64..0x6d80; emboss adds(+1,+1) at 0x70a6..0x70b2.",
+      "excerptSha256": "cb54375c71453189bf2c6c6e6df996682313f1f1418c91938cb327d0f8e237ca",
+      "claim": "Exact finite single-line signed pen formula and control clipping/emboss offset.",
+      "limits": "Assumes supplied metrics/plain variant, bounded signed arithmetic. Does not identify original font or port/caller policy.",
+      "addresses": [
+        "0x6fbc",
+        "0x6ff2",
+        "0x7036",
+        "0x707c",
+        "0x709c",
+        "0x6d64",
+        "0x6d80",
+        "0x70a6",
+        "0x70b2"
+      ],
+      "requirementIds": [
+        "text.prepared-source-pen",
+        "text.prepared-mask-paint"
+      ]
+    },
+    {
+      "id": "synthetic.prepared-literal-strikes",
+      "kind": "source-art",
+      "inputs": [
+        "synthetic.bitmap.ordinary",
+        "synthetic.bitmap.overhang"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "The owned X mask is 101/010/101, advance2 and bearing(-1,-2), with space advance3 and no ink. X X has advance7 and ten foreground mask points. Metrics12/3/1 give lineHeight16: the automatic31x20 face has pen(12,14). Changing only X bearingX to -14 and declaring face(-20,-2,32,6), clip(-20,2,6,4), gives pen(-7,4), four foreground and three emboss mask points; the complete surviving output is eight literal RGBA pixels. These are caller-defined synthetic glyphs, not original font data.",
+      "excerptSha256": "f6038ccac5641d9da7261aa2a584b4794c80da55c1d1704ab57cf6cbafa78b52",
+      "claim": "Owned exact strike definitions, literal masks/advance, expected finite paint coordinates and coverage.",
+      "limits": "Synthetic DATA declaration only; no original font/provider/device/transfer proof. Automatic sizing is existing compatibility policy.",
+      "requirementIds": [
+        "text.prepared-strike-identity",
+        "text.prepared-source-pen",
+        "text.prepared-mask-paint"
+      ]
     }
   ],
   "requirements": [
@@ -1958,6 +2193,21 @@
       "id": "output.recorded-composited-face",
       "dimension": "fillMask",
       "claim": "Every pixel of the exact empty80×20 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
+    },
+    {
+      "id": "text.prepared-strike-identity",
+      "dimension": "typography",
+      "claim": "Consume the exact caller-declared synthetic strike identity and metrics in a completed paint; no original font/provider authentication."
+    },
+    {
+      "id": "text.prepared-source-pen",
+      "dimension": "typography",
+      "claim": "For this single plain push line, place the pen using pinned source signed-truncation metrics arithmetic under the exact declared context; no original caller/default-size claim."
+    },
+    {
+      "id": "text.prepared-mask-paint",
+      "dimension": "typography",
+      "claim": "Paint the literal declared binary glyph occupancy at the independently derived pen, emboss(+1,+1) before foreground, bounded by the exact face/port clip; only the registered literal output probes, not original glyphs/transfer."
     }
   ],
   "assertions": [
@@ -2164,6 +2414,20 @@
         "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile"
       ],
       "claim": "Six exact full80×20 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "bitmap.prepared-literal-paint",
+      "path": "tests/rendering-options/bitmap-font.spec.mjs",
+      "marker": "description:'bitmap.prepared-literal-paint'",
+      "caseIds": [
+        "synthetic.bitmap.push.X-space-X.auto",
+        "synthetic.bitmap.push.X-space-X.negative-overhang.clip"
+      ],
+      "claim": "Only two existing paint renders: exact caller strike ID/data and request, completed actual font/metrics/pen/context/clip/occupancy, independent literal selected pixels. Existing lifetime renders remain guards, not extra ledger cases.",
       "modes": [
         "source",
         "built"
@@ -3471,8 +3735,8 @@
       "recordedComparison": {
         "captureId": "windows-95.normal.v9.draft",
         "requestId": "windows-95.normal",
-        "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
-        "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+        "requestDigest": "fd26cf4e9ca7e7b8c9eb2ae2c8dc0a471e8b3a941dc27934308dd04756f14ef4",
+        "captureDigest": "dd005fc4d690406640081986f48c0cecc3a06a9990581ed45f389a13be80d87f",
         "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3556,8 +3820,8 @@
       "recordedComparison": {
         "captureId": "windows-95.pressed.v10w.draft",
         "requestId": "windows-95.pressed",
-        "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
-        "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+        "requestDigest": "997cfa81415bfeeab497e90cec720e0e9414a55d5b974f7e573760e0cc5b8936",
+        "captureDigest": "7557a89ec172249b4ef1d40314977ce90f35e85e9ca3d77f170637e0e13d5cc9",
         "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3641,8 +3905,8 @@
       "recordedComparison": {
         "captureId": "windows-95.inactive.v10w.draft",
         "requestId": "windows-95.inactive",
-        "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
-        "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+        "requestDigest": "360564cf7b9cf222c04bc9de0176f0645002dd8414df5a3218f94daabf0c4e34",
+        "captureDigest": "2411faf2580bab729a058bfed0ce35006a7fb3b6d54f7c0b71b119d85ce180b3",
         "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3726,8 +3990,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.normal.v7d.draft",
         "requestId": "system7-nostalgia-silver.normal",
-        "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
-        "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+        "requestDigest": "c2411f8e57c327432b38df500520b829281793b04ed78aee9feb9137bfd16bef",
+        "captureDigest": "fe1818de17c31c04ea08b8f570508e2be9af004b8878a073de6e105497b660bd",
         "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3811,8 +4075,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
         "requestId": "system7-nostalgia-silver.pressed",
-        "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
-        "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+        "requestDigest": "2d024905f90e6db0fc20f93355049dadbcf93f2837a9c6766db515826e4db740",
+        "captureDigest": "70b7a22502333f95c386e37d7ee8c987a1e17b2582bb554a19056fe6f4cf008a",
         "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3896,8 +4160,8 @@
       "recordedComparison": {
         "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
         "requestId": "system7-nostalgia-silver.inactive",
-        "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
-        "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+        "requestDigest": "80093481cbbfbf05c0a39618183a0400a95ace06ea1a7b63e80289fa38274bd0",
+        "captureDigest": "1ef0f6fa2ff46b8b296ea75912016887e6357fbca947a50819c03d7eb76a29f9",
         "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
         "reviewScope": {
           "id": "public-api-empty-face",
@@ -3927,6 +4191,133 @@
           "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
         }
       }
+    },
+    {
+      "id": "synthetic.bitmap.push.X-space-X.auto",
+      "inputs": [
+        "synthetic.bitmap.ordinary"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "X X",
+        "minWidth": 0,
+        "bitmapFont": "bitmap-font:072027944e9aac494a408bdd6258430f49b8cfc93c066dc1dc3ba3fc50f81ebc"
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.prepared-strike-identity",
+          "text.prepared-source-pen",
+          "text.prepared-mask-paint",
+          "typography.original",
+          "text.transfer-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Declared strike/source-layout obligations only. Original font/provider/transfer/device/caller and remaining behavior unknown."
+      },
+      "substitutions": [
+        "Synthetic caller-owned binary strike, not an original glyph/provider oracle.",
+        "Automatic size and omitted local context are compatibility declarations; explicit clip case is a synthetic caller context.",
+        "Selected authored text colors use current display policy; original device and transfer remain unknown."
+      ]
+    },
+    {
+      "id": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "inputs": [
+        "synthetic.bitmap.overhang"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "X X",
+        "height": 6,
+        "minWidth": 32,
+        "compositionContext": {
+          "controlOrigin": [
+            -20,
+            -2
+          ],
+          "portOrigin": [
+            0,
+            0
+          ],
+          "patternOrigin": {
+            "status": "unknown"
+          },
+          "clip": {
+            "kind": "rect",
+            "rect": {
+              "x": -20,
+              "y": 2,
+              "w": 6,
+              "h": 4
+            }
+          }
+        },
+        "bitmapFont": "bitmap-font:9db9e7301af3130472a10d3267e4fd6d0ff55a093855fb923689b464029ec403"
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "fill.remaining",
+          "color.device-original"
+        ],
+        "typography": [
+          "text.prepared-strike-identity",
+          "text.prepared-source-pen",
+          "text.prepared-mask-paint",
+          "typography.original",
+          "text.transfer-original"
+        ],
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original",
+          "port.original-state"
+        ],
+        "interaction": [
+          "interaction.native-original"
+        ]
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Declared strike/source-layout obligations only. Original font/provider/transfer/device/caller and remaining behavior unknown."
+      },
+      "substitutions": [
+        "Synthetic caller-owned binary strike, not an original glyph/provider oracle.",
+        "Automatic size and omitted local context are compatibility declarations; explicit clip case is a synthetic caller context.",
+        "Selected authored text colors use current display policy; original device and transfer remain unknown."
+      ]
     }
   ],
   "assessments": [
@@ -6721,7 +7112,295 @@
       "issues": [],
       "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
       "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "text.prepared-strike-identity",
+      "status": "verified",
+      "evidence": [
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "text.prepared-source-pen",
+      "status": "verified",
+      "evidence": [
+        "kdef.prepared-single-line-pen",
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "text.prepared-mask-paint",
+      "status": "verified",
+      "evidence": [
+        "kdef.prepared-single-line-pen",
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.auto",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "color.device-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "text.prepared-strike-identity",
+      "status": "verified",
+      "evidence": [
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "text.prepared-source-pen",
+      "status": "verified",
+      "evidence": [
+        "kdef.prepared-single-line-pen",
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "text.prepared-mask-paint",
+      "status": "verified",
+      "evidence": [
+        "kdef.prepared-single-line-pen",
+        "synthetic.prepared-literal-strikes"
+      ],
+      "assertions": [
+        "bitmap.prepared-literal-paint"
+      ],
+      "issues": [],
+      "rationale": "Exact declared synthetic strike, independently derived source pen and literal pixel/occupancy observations only; actual clean source/built execution separately required.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "typography.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "text.transfer-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "port.original-state",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
+    },
+    {
+      "caseId": "synthetic.bitmap.push.X-space-X.negative-overhang.clip",
+      "requirementId": "interaction.native-original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "Prepared synthetic output does not establish this broader original obligation.",
+      "review": "Proposed finite prepared-strike SOURCE assessment; independent automated review pending. No original-font/provider or reference admission."
     }
   ],
-  "inventorySha256": "3893dd45071ede118f15cf00405dcfb9167c4bb1fdc8f00cdbe590c9dfa26569"
+  "inventorySha256": "b54ee98703ac03359ef3cca0a24b3dbc6e325aea79d8c62d2443f8e9a796af81"
 }
