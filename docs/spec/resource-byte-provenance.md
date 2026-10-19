@@ -32,7 +32,7 @@ null archive entry identity. Other containers record their actual output fork
 hash but use `unverified-container-unwrapping`: their container-selection
 semantics have not been independently assessed here.
 
-At the existing chrome decoder dispatch, the observer hashes the exact cicn/cinf/ppat
+At the existing chrome decoder dispatch, the observer hashes the exact cicn/cinf/ppat/wnd#
 payload view passed into that decoder and records its parser occurrence index,
 signed ID, type, byte length and conversion outcome (`decoded`, `skipped`,
 `error`). No resource is parsed or selected again to obtain this evidence. The
@@ -40,7 +40,7 @@ index distinguishes repeated IDs. The existing manifest builder carries exact
 successful resource references into each generated key, including the last
 successful same-ID cinf used by its existing metadata map. Missing cinf metadata
 has a null reference. Version1 now declares an expanded `scope.resourceTypes`
-list (`cicn`, `cinf`, `ppat`); older version1 records can declare only cicn/cinf.
+list (`cicn`, `cinf`, `ppat`, `wnd#`); older version1 records may omit ppat or wnd#.
 Consumers must inspect scope rather than infer observation from the version alone.
 Other types still have no payload evidence.
 
@@ -132,3 +132,26 @@ numeric catalog keys can reorder. It is distinct from both raw `bodyRequest` and
 occurrence-level `PatternByteProvenance`; it does not certify original Resource
 Manager lookup. Legacy `bgPattern` and catalog keys remain unchanged. Catalog
 presence alone still cannot establish a paint dependency.
+
+## Window construction bindings
+
+Opted-in `WindowType.byteProvenance` carries the generated key and load ID plus
+exact selected parser occurrence indexes. Sliced windows identify their actual
+`wnd#` record, state chrome records and the cinf selected by the existing builder
+neighborhood policy. Duplicate recipes keep distinct emitted keys; failed records
+do not replace successful selections. This records decoder outcomes, not proof
+that a decoder validates every malformed input.
+
+Corner-sprite windows instead identify a **modern synthesis table key**, with
+trigger `no-emitted-wnd-window-types`. That can occur even when raw `wnd#`
+resources exist. No original recipe occurrence is invented. State fallback and
+cicn-before-ppat sprite selection retain their actual source references. A null
+cinf means none selected; omitted sprite roles are interpreted against that table
+key. Each nested record is frozen, and asset URL encoding leaves it unchanged.
+
+These are construction inputs, not completed paint, original selection/provider
+truth or all window dependencies. The default path adds nothing. A partial/custom
+observer that cannot supply all selected records from one load yields no window
+binding; consumers must retain UNKNOWN, never infer that the resources are absent.
+The acceptance inventory consumes the same references, separately from its
+non-unique asset-path candidate lists and finite modern resolver observations.

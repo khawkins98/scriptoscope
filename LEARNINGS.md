@@ -1,6 +1,16 @@
 # Learnings
 
 
+## 2026-10-19 — Window construction needs the selected record, not its path
+
+A window's recipe, state chrome and neighboring cinf can come from different
+occurrences. Preserve the actual objects selected by the builder before encoding;
+reverse lookup by shared asset path cannot prove ownership. Corner-sprite
+synthesis is triggered by no emitted recipe windows, which is different from no
+raw wnd# resources. Its provenance names the modern table instead of inventing a
+resource recipe. See [window construction bindings](docs/spec/resource-byte-provenance.md#window-construction-bindings).
+
+
 ## 2026-10-19 — Complete input inventory is distinct from selected paint
 
 The portable conversion core can bind every raw resource occurrence and emitted

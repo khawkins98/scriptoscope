@@ -185,8 +185,10 @@ export function buildThemeJson(manifest, options = {}) {
     const canonical = CANONICAL_WNDTYPE_SLUGS[String(wnd.id)];
     const slug = uniqueElementSlug(windowTypes, canonical || named || `wnd-${wnd.id}`);
 
-    const chrome = pairChromeStates(wnd.id, byTypeAndId);
+    const chromeRecords = pairChromeStates(wnd.id, byTypeAndId);
+    const chrome = Object.fromEntries(Object.entries(chromeRecords).map(([state, record]) => [state, record.file]));
     if (Object.keys(chrome).length === 0) continue; // skip if no cicn pairs found
+    const cinfRecord = findWindowCinf(wnd.id, byTypeAndId);
 
     /** @type {Record<string, {rect: [number,number,number,number]}>} */
     const parts = {};
@@ -215,10 +217,12 @@ export function buildThemeJson(manifest, options = {}) {
       // slider/tab/dialog elements), so this is null for every observed scheme
       // → the compositor defaults to stretch (tileSides=0). The path is wired so
       // a scheme that DOES ship a window cinf surfaces it. See WindowCinf.
-      cinf: findWindowCinf(wnd.id, byTypeAndId),
+      cinf: windowCinfValue(cinfRecord),
       bodyPattern: null, // wnd# doesn't reference a body pattern directly;
                          // body composition comes from the chrome cicn's cinf.bgPatternId.
     };
+    const provenance = windowByteProvenance(slug, wnd, null, chromeRecords, cinfRecord, {});
+    if (provenance) windowTypes[slug].byteProvenance = provenance;
   }
 
   // ─── Corner-sprite windows (look-only Platinum schemes) ───────────────
@@ -246,7 +250,7 @@ export function buildThemeJson(manifest, options = {}) {
   // uses the faithful sliced path).
   if (Object.keys(windowTypes).length === 0) {
     // Resolve a row to PNG files; skip the row if its corner cicns are absent.
-    const cicnFile = (id) => byTypeAndId[`cicn:${id}`]?.file ?? null;
+    const cicnRecord = (id) => byTypeAndId[`cicn:${id}`] ?? null;
     // Side-utility ships no own pinstripe (-14318 is absent in the corpus); it
     // reuses the utility racing-stripes (-14314). The table notes the fallback.
     // Sprite resolver: cicn preferred (pre-rendered raster), ppat fallback (tile
@@ -255,20 +259,24 @@ export function buildThemeJson(manifest, options = {}) {
     // The runtime compositor tiles either kind, so both wire up the same way at
     // theme.json level. Used for ALL sprite roles (pinstripe, growBox, …) so future
     // ppat-shipped scheme variants don't silently lose their sprites.
-    const cicnOrPpatFile = (id) =>
-      cicnFile(id) ?? byTypeAndId[`ppat:${id}`]?.file ?? null;
+    const cicnOrPpatRecord = (id) =>
+      cicnRecord(id) ?? byTypeAndId[`ppat:${id}`] ?? null;
     for (const row of CORNER_SPRITE_WINDOWS) {
       const rec = WINDOW_RECIPES[row.slug]; // titleH / widgets / collapsed (shared)
       if (!rec) continue; // a wired slug with no recipe would be a spec bug
-      const activeFile = cicnFile(row.active);
-      const inactiveFile = cicnFile(row.inactive) ?? activeFile;
+      const activeRecord = cicnRecord(row.active);
+      const inactiveRecord = cicnRecord(row.inactive) ?? activeRecord;
+      const activeFile = activeRecord?.file;
+      const inactiveFile = inactiveRecord?.file;
       if (!activeFile) continue; // no corner cicn for this type → can't draw it
 
       // Title-less frames carry NO pinstripe. Titled types need their stripe
       // sprite present; if the stripe is missing we still draw a plain bar
       // (the header fill) rather than dropping the type, but record null.
-      const pinstripeFile = row.pinstripe != null ? cicnOrPpatFile(row.pinstripe) : null;
-      const growFile = row.growBox != null ? cicnOrPpatFile(row.growBox) : null;
+      const pinstripeRecord = row.pinstripe != null ? cicnOrPpatRecord(row.pinstripe) : null;
+      const growRecord = row.growBox != null ? cicnOrPpatRecord(row.growBox) : null;
+      const pinstripeFile = pinstripeRecord?.file;
+      const growFile = growRecord?.file;
 
       const sprites = {};
       if (pinstripeFile) sprites.pinstripe = pinstripeFile;
@@ -293,6 +301,12 @@ export function buildThemeJson(manifest, options = {}) {
       // ([close,collapse,zoom]) so the document-window row stays byte-identical
       // to the prior single-type output (which omitted the field).
       if (!isDefaultWidgets(rec.widgets)) wt.widgets = rec.widgets;
+      const spriteRecords = {};
+      if (pinstripeRecord) spriteRecords.pinstripe = pinstripeRecord;
+      if (growRecord) spriteRecords.growBox = growRecord;
+      const provenance = windowByteProvenance(row.slug, null, row.slug,
+        { active: activeRecord, inactive: inactiveRecord }, null, spriteRecords);
+      if (provenance) wt.byteProvenance = provenance;
       windowTypes[row.slug] = wt;
     }
   }
@@ -362,21 +376,36 @@ export function buildThemeJson(manifest, options = {}) {
  *
  * @param {number} wndId
  * @param {Record<string, ManifestAsset>} byTypeAndId
- * @returns {{cornerSize:number, sideThickness:number, tileSides:number, textPixel:[number,number]|null}|null}
+ * @returns {ManifestAsset|null}
  */
 function findWindowCinf(wndId, byTypeAndId) {
   for (let delta = -8; delta <= 8; delta++) {
     const cinf = byTypeAndId[`cinf:${wndId + delta}`];
     if (!cinf?.data) continue;
-    const d = cinf.data;
-    return {
-      cornerSize: d.cornerSize,
-      sideThickness: d.sideThickness,
-      tileSides: d.tileSides,
-      textPixel: d.textPixel ? [d.textPixel.x, d.textPixel.y] : null,
-    };
+    return cinf;
   }
   return null;
+}
+function windowCinfValue(cinf) {
+  if (!cinf) return null;
+  const d = cinf.data;
+  return { cornerSize: d.cornerSize, sideThickness: d.sideThickness, tileSides: d.tileSides,
+    textPixel: d.textPixel ? [d.textPixel.x, d.textPixel.y] : null };
+}
+
+/** Opt-in builder binding, from the exact selected records before asset encoding.
+ * A missing/mixed reference omits the whole observation rather than guessing. */
+function windowByteProvenance(manifestKey, wnd, synthesizedKey, chrome, cinf, sprites) {
+  const records = [wnd, ...Object.values(chrome), cinf, ...Object.values(sprites)].filter(Boolean);
+  const loadId = records[0]?.byteReference?.loadId;
+  if (!loadId || records.some(record => !record.byteReference || record.byteReference.loadId !== loadId)) return undefined;
+  const indexes = entries => Object.freeze(Object.fromEntries(Object.entries(entries).map(([role, record]) => [role, record.byteReference.resourceIndex])));
+  return Object.freeze({ loadId, manifestKey,
+    recipe: Object.freeze(wnd ? { kind: 'wnd-resource', resourceIndex: wnd.byteReference.resourceIndex }
+      : { kind: 'corner-sprite-table', key: synthesizedKey, trigger: 'no-emitted-wnd-window-types' }),
+    chrome: indexes(chrome), cinfResourceIndex: cinf?.byteReference.resourceIndex ?? null,
+    sprites: Object.freeze(Object.fromEntries(Object.entries(sprites).map(([role, record]) => [role,
+      Object.freeze({ type: record.type, resourceIndex: record.byteReference.resourceIndex })]))) });
 }
 
 /**
@@ -402,15 +431,15 @@ function findWindowCinf(wndId, byTypeAndId) {
  *
  * @param {number} wndId
  * @param {Record<string, ManifestAsset>} byTypeAndId
- * @returns {Record<string, string>} state slug → PNG filename
+ * @returns {Record<string, ManifestAsset>} state slug → actual converted record
  */
 function pairChromeStates(wndId, byTypeAndId) {
-  /** @type {Record<string, string>} */
+  /** @type {Record<string, ManifestAsset>} */
   const out = {};
   const inactive = byTypeAndId[`cicn:${wndId}`];
   const active = byTypeAndId[`cicn:${wndId + 1}`] ?? inactive; // single-state → id+0
-  if (active) out.active = active.file;
-  if (inactive) out.inactive = inactive.file;
+  if (active) out.active = active;
+  if (inactive) out.inactive = inactive;
   return out;
 }
 

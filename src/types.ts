@@ -1,5 +1,5 @@
 import type { DisplayProfile, DisplayPolicy } from '../tools/theme-loader/display-profile.js';
-import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance } from './loadProvenance.js';
+import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance, WindowByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
 // is the schema of record; the full bundle (produced by the extractor) is
 // richer, and fields are surfaced here as the runtime needs them.
@@ -60,6 +60,8 @@ export interface WindowCinf {
 }
 
 export interface WindowType {
+  /** Opt-in exact converted input occurrences; not a paint/provider claim. */
+  readonly byteProvenance?: WindowByteProvenance;
   /** State → relative path of the chrome cicn for that state. */
   chrome: Partial<Record<WindowState, string>>;
   /**
