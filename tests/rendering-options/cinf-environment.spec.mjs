@@ -9,7 +9,14 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
     result = await page.evaluate(async runtime => {
       const api = await import(runtime==='source'?'/src/index.ts':'/dist/scriptoscope.js');
       const f = await import('/tests/decoder-fixtures/cinf-environment.mjs');
-      const first=f.providerFork(), second=f.providerFork(0,[0,0]), records=[];
+      const first=f.providerFork(), second=f.providerFork(0,[0,0]), records=[], malformedSections=[];
+      for(const field of [8,12]) {
+        const bytes=f.providerFork(0);new DataView(bytes.buffer).setUint32(field,0);
+        try {
+          await api.prepareCinfEnvironment(f.declaration([f.marker(),f.external('malformed-default',bytes)]));
+          malformedSections.push({field,accepted:true});
+        } catch(error) {malformedSections.push({field,accepted:false,message:error.message});}
+      }
       const env = await api.prepareCinfEnvironment(f.declaration([f.external('first',first),f.marker(),f.external('second',second)]));
       const theme=await api.loadTheme('/__cinf-environment',{source:'scheme.rsrc',meta:{name:'owned synthetic'},provenance:true,cinfEnvironment:env});
       const common=JSON.stringify(theme.manifest.chromeElements.face);
@@ -48,11 +55,15 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
           const pending=draw(twins);await started;a.bodyCinf=b.bodyCinf;release();
           records.push({kind:'held-decode-original-view',...await pending,original,substitute:b.bodyCinf});
         } finally {release?.();HTMLImageElement.prototype.decode=decode;twins.dispose();}
-        return {records,provenance:theme.byteProvenance,environment:env.id,commonUnchanged:common===JSON.stringify(theme.manifest.chromeElements.face)};
+        return {records,malformedSections,provenance:theme.byteProvenance,environment:env.id,commonUnchanged:common===JSON.stringify(theme.manifest.chromeElements.face)};
       } finally {theme.dispose();}
     },runtime);
     const rows=result.records, expected=solidBackgroundRows.flatMap(row=>[...row].flatMap(c=>c==='.'?[0,0,0,0]:c==='G'?[48,48,48,255]:[0,0,255,255]));
     expect(result.commonUnchanged).toBe(true);
+    expect(result.malformedSections).toEqual([
+      {field:8,accepted:false,message:expect.stringMatching(/^parseResourceFork:.*data section/)},
+      {field:12,accepted:false,message:expect.stringMatching(/^parseResourceFork:.*map section/)},
+    ]);
     for(const kind of ['separate-owner','fallback0','bevel','empty-label-text-unavailable']) {
       const row=rows.find(r=>r.kind===kind);expect(row.error).toBeUndefined();expect(row.size).toEqual([29,9]);expect(row.pixels).toEqual(expected);
       const admitted=row.trace.steps.find(s=>s.cinfLookup?.status==='ready');expect(admitted.cinfLookup.selected.providerKind).toBe('raw-fork');
@@ -76,5 +87,5 @@ for (const runtime of ['source','built']) test(`${runtime}: explicit cinf enviro
       expect(row.trace.outcome.status).toBe('error');expect(row.trace.bandPaints??[]).toEqual([]);
     }
   } catch(error) {await attachCase(page,info,{runtime,result},error);throw error;}
-  await attachObservations(info,'cinf-environment',runtime,{runtime,result,claim:'Explicit declared provider order and actual role-view input/paint joins; not original Resource Manager or body-resource provider proof'});
+  await attachObservations(info,'cinf-environment',runtime,{runtime,mode:runtime,result,claim:'Explicit declared provider order and actual role-view input/paint joins; not original Resource Manager or body-resource provider proof'});
 });

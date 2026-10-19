@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Reject resource-fork reads beyond declared data/map sections even when trailing file bytes are readable; preserve empty lists, zero-length resources and valid corpus decoding.
+
 - Extend existing push/bevel corpus checks with deduplicated tiny-height corner/side overlap cases at public width anchors, retaining all prior cases and unresolved provider/body limits (#221).
 
 - Check omitted empty-label push/bevel dimensions across the existing corpus and declared-cinf tuples, preserving explicit-size cases and unknown fidelity boundaries; automatic dimensions remain modern public policy (#221).
