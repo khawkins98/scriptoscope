@@ -1,7 +1,7 @@
 {
   "id": "animals.pressed.a3a",
   "requestId": "animals.pressed",
-  "status": "CANDIDATE_NOT_REGISTERED",
+  "status": "REGISTERED_AWAITING_INDEPENDENT_SCOPED_REVIEW",
   "proposedScope": {
     "id": "public-api-empty-face",
     "version": 5
@@ -74,8 +74,12 @@
   "faceImage": "face.png",
   "fullFrameImage": "full-frame.png",
   "scopedIntakeReview": "PENDING independent root review",
-  "measuredProfile": null,
-  "profileCalibration": "PENDING empirical mappings and actual cross-run condition/coverage join",
+  "measuredProfile": {
+    "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+    "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
+    "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7"
+  },
+  "profileCalibration": "209 finite mappings independently reviewed; semantic device/palette/gamma/producer join supports bounded cross-run use. Whole-load inventory coverage is not actual pixel equality.",
   "modernComparison": "NOT_RUN",
   "ledgerAssessment": "NOT_PROPOSED",
   "acquisitionEvidence": "acquisition.json",

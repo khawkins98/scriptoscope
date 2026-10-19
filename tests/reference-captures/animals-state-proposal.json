@@ -1,5 +1,5 @@
 {
-  "status": "SUPPORT_CANDIDATES_ONLY",
+  "status": "PROPOSED_INTAKE_PENDING_INDEPENDENT_SCOPED_REVIEW",
   "baseCommit": "d3c0c4274f00a16c0c291ea2a011151a62d3435e",
   "candidates": [
     {
@@ -61,10 +61,17 @@
   },
   "pending": [
     "Independent scoped intake review of actual three-state conditions and support bytes",
-    "Empirical Animals RGB16 mappings and whole-load/state dependency coverage",
-    "Cross-run palette/gamma/device/producer equivalence",
     "Registered source/built actual pixel comparisons",
     "Any narrowly justified ledger increment"
   ],
-  "currentEffect": "No capture/review registration, eligibility, comparison, profile or ledger changes."
+  "currentEffect": "Three capture candidates registered pending independent scoped review; no review, eligibility, comparison or ledger closure authored by the acquisition agent.",
+  "calibration": {
+    "path": "animals-calibration/measurement.json",
+    "sha256": "8ac86b9c3a92272a6a5fbd961d8df8856c797bd1dd9b2777306677a2d1312940",
+    "profile": {
+      "path": "tests/decoder-fixtures/measured-display-profile-animals.json",
+      "sha256": "8212d54dc56f28dd4825c55591e09b18ce5d9c317b647995a3d4b0635b99c5d5",
+      "id": "display-profile:287bde96a0ee72c13658b53c2e24643264325f79ded18ae0cd8d96257a9082b7"
+    }
+  }
 }

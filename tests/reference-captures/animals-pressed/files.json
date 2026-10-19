@@ -1,13 +1,18 @@
 [
   {
+    "path": "acquisition-environment.json",
+    "bytes": 4893,
+    "sha256": "36d6e660b09372dea05fc37f38acee62d1e5c134566eb4eeb5d6f5b5471b5d3e"
+  },
+  {
     "path": "acquisition.json",
     "bytes": 2133,
     "sha256": "acc7b3d35a1b63b70db09d004fa8f489c9d182bd951abb9f7d9eb06a2445a832"
   },
   {
     "path": "candidate.json",
-    "bytes": 2451,
-    "sha256": "c730abf43e83a8732b7e8dcab4ee76d8c4e9056661103ba0cf1bd19633b3c6b6"
+    "bytes": 2832,
+    "sha256": "b5ce394af42fe6fb0a48e15d6d594ed21a7cb93930415b45e6a007905e7c9a83"
   },
   {
     "path": "capture-bindings.json",
@@ -18,6 +23,11 @@
     "path": "capture-log.json",
     "bytes": 17745,
     "sha256": "490f10850dd3ca6f6cf8337bae20b764b01908b04b3d04fdce5590483108964a"
+  },
+  {
+    "path": "configured-scheme.json",
+    "bytes": 341,
+    "sha256": "37da19c5670e42b60926e521817e6d5b6da4ff3ef4ef1776ff0404075fabeaad"
   },
   {
     "path": "configured-source-bindings.json",
@@ -36,8 +46,8 @@
   },
   {
     "path": "environment.json",
-    "bytes": 4893,
-    "sha256": "36d6e660b09372dea05fc37f38acee62d1e5c134566eb4eeb5d6f5b5471b5d3e"
+    "bytes": 8134,
+    "sha256": "8b8e6981c74f20384c75a3592fbc622a28979121e475a406fca7a3e17e3cc71f"
   },
   {
     "path": "face.png",
@@ -60,9 +70,14 @@
     "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
   },
   {
-    "path": "pixel-conditions.json",
+    "path": "pixel-conditions-supplement.json",
     "bytes": 3010,
     "sha256": "13db1845c5540e4e017ffa52af0f57a6b3815a0aaa98d1ce03c659b6104f690b"
+  },
+  {
+    "path": "pixel-conditions.json",
+    "bytes": 2497,
+    "sha256": "cdbf36d123e8468a62837850a79e8bac1acd5a44442b62bce6845cb80207fe5d"
   },
   {
     "path": "port.png",
@@ -80,8 +95,13 @@
     "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
   },
   {
-    "path": "public-invocation.json",
+    "path": "public-invocation-supplement.json",
     "bytes": 518,
     "sha256": "4fbd15fedbc93fd89e01ed07b4568c73f0182a17d9dde599e1ed506985780c47"
+  },
+  {
+    "path": "public-invocation.json",
+    "bytes": 1566,
+    "sha256": "2fb0fdf3d8ad788fde7e9d492b64f2cec69e3b3eae317bf6522f7bd033beaf5f"
   }
 ]

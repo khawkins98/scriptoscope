@@ -1,41 +1,64 @@
 {
-  "procedureId": 0,
-  "variant": 0,
-  "hilite": 0,
-  "value": 0,
-  "enabled": true,
-  "windowActive": true,
-  "api": "NewControl",
-  "drawApi": "Draw1Control",
-  "stateApi": "HiliteControl",
-  "defaultApiInvoked": false,
-  "title": "",
-  "controlRect": [
-    20,
-    20,
-    80,
-    20
-  ],
-  "portOrigin": [
-    0,
-    0
-  ],
-  "portBounds": [
-    0,
-    0,
-    160,
-    80
-  ],
-  "effectiveClipRect": [
-    0,
-    0,
-    160,
-    80
-  ],
-  "backgroundRGB": [
-    255,
-    255,
-    255
-  ],
-  "state": "normal"
+  "controlDefinition": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 0,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "defaultMechanism": "No default API invoked; private default state unknown",
+    "invocation": "NewCWindow(proc0); fresh NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(0); actual GetControlVariant0 and ControlRecord telemetry. Fixed-order state 0 in a shared boot; not a physical mouse gesture or inactive-window observation."
+  },
+  "invocation": {
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "defaultApiInvoked": false,
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "title": "",
+    "state": "normal",
+    "defaultRing": false,
+    "stateApi": "HiliteControl"
+  },
+  "port": {
+    "origin": [
+      0,
+      0
+    ],
+    "bounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "backgroundOpaque": true,
+    "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+  },
+  "fullFrame": {
+    "sha256": "f1c1755ff2adeb5585eb7657ead51ff25bdbcb20433e3219b661984be9b6ad61",
+    "width": 640,
+    "height": 480,
+    "requestImageRect": [
+      80,
+      90,
+      160,
+      80
+    ],
+    "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+  }
 }
