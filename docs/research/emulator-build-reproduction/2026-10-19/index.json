@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "status": "CONSTRUCTIVE_EXACT_REPRODUCTION",
+  "date": "2026-10-19",
+  "scope": "Pinned-source reproduction of preserved JavaScript/WASM; not historical builder or glyph-provider identity",
+  "inputs": {
+    "macemu": {
+      "commit": "b8f4eb889d507551b57090c48f41c8de1db73ed8",
+      "repository": "https://github.com/mihaip/macemu"
+    },
+    "hostContext": {
+      "commit": "30112da0db5d04ff5764d77ae757e73111a6ef12",
+      "repository": "https://github.com/mihaip/infinite-mac"
+    },
+    "sdk": {
+      "emsdkCommit": "0dfff153dc3c596948ac088b8853006c570f2609",
+      "version": "4.0.22",
+      "release": "bebaf7e50e31865b0724f17eaa52e161e2dfef5a",
+      "compilerReportedCommit": "0f3d2e62bccf8e14497ff19e05a1202c51eb0c65"
+    },
+    "dependencyArchives": [
+      {
+        "name": "mpfr-4.1.1.tar.xz",
+        "bytes": 1429836,
+        "sha256": "ffd195bd567dbaffc3b98b23fd00aad0537680c9896171e44fe3ff79e28ac33d"
+      },
+      {
+        "name": "gmp-6.2.1.tar.lz",
+        "bytes": 2020558,
+        "sha256": "2c7f4f0d370801b2849c48c9ef3f59553b5f1d3791d070cffb04599f9fc67b41"
+      }
+    ]
+  },
+  "settings": {
+    "cpu": "uae_cpu_2021",
+    "addressing": "direct",
+    "fpu": "IEEE MPFR",
+    "jit": false,
+    "assemblyOptimizations": false,
+    "VOSF": false,
+    "linkLTO": true,
+    "sourceMap": true,
+    "environment": "worker",
+    "moduleFactory": "emulator",
+    "initialMemory": 301989888,
+    "exportedFunctions": [
+      "_malloc",
+      "_free",
+      "_main"
+    ],
+    "exceptionCatchingEnabled": false,
+    "maximumJobs": 4,
+    "sourceDateEpoch": 1767052800,
+    "timestampUnits": [
+      "BasiliskII/src/Unix/main_unix.cpp",
+      "BasiliskII/src/slot_rom.cpp"
+    ],
+    "portability": [
+      "Native config.guess build triplet",
+      "Xcode-only Apple config include guard",
+      "Caller-owned native/WASM cache and dependency prefix",
+      "Consistent canonical physical SDK/cache/include/library/link paths"
+    ]
+  },
+  "outputs": [
+    {
+      "name": "BasiliskII",
+      "bytes": 156114,
+      "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b",
+      "exactPreservedBytes": true
+    },
+    {
+      "name": "BasiliskII.wasm",
+      "bytes": 1713564,
+      "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb",
+      "exactPreservedBytes": true
+    },
+    {
+      "name": "BasiliskII.wasm.map",
+      "bytes": 1233518,
+      "sha256": "fc582790cbf3946bc6dbcc4368c070f97838ab231335332cade4edb91fa4fe14",
+      "exactPreservedBytes": null,
+      "comparison": "New companion; original map unavailable for comparison"
+    }
+  ],
+  "externalReceipts": [
+    {
+      "name": "repro-complete-result.json",
+      "bytes": 20087,
+      "sha256": "6e8a0e2681250c36a1239442a495537693ba035361978443f52d7066b0bdc3f5"
+    },
+    {
+      "name": "root-exact-reproduction-review.json",
+      "bytes": 749,
+      "sha256": "dde3cd91b84e1eb05d5eebf9fe6b7067c282acdeac6d863775f907004d78be08"
+    },
+    {
+      "name": "repro-complete-command.json",
+      "bytes": 32226,
+      "sha256": "d4f8e8556dfe5f46f94f9427629afb657d9e4677853780dc889df6153e6a4457"
+    },
+    {
+      "name": "repro-date-command.json",
+      "bytes": 17847,
+      "sha256": "050a20a8cbfff439c5ad8865c51463976554c439ff04104bc8bbcd3f15d11b81"
+    },
+    {
+      "name": "baseline-complete-receipt.json",
+      "bytes": 4271,
+      "sha256": "344feb70518cebefa1d3a7c6a78f2efd84262e04a57ca8b692e8a507acd167dc"
+    },
+    {
+      "name": "portability-attempt2.patch",
+      "bytes": 2287,
+      "sha256": "ea804fe6247be954079f46cb9c2d297d3dfadac369ee82063013754950a84c30"
+    },
+    {
+      "name": "build-dependencies.sh",
+      "bytes": 974,
+      "sha256": "bc680d2dc8e81e37d19b6023fad71179ba78018404aa8662f38e6186fb394d49"
+    },
+    {
+      "name": "dependency-archives.json",
+      "bytes": 292,
+      "sha256": "60302b94a231556078451c133c78f864de2d5e351abcb744e39a879531053b08"
+    },
+    {
+      "name": "emcc-version.txt",
+      "bytes": 331,
+      "sha256": "012d809c58d5152d9f237a7ed73d3a738381abd852b39e8ca04eb13e2532ed9f"
+    }
+  ],
+  "review": {
+    "reviewer": "Root (AI agent), independent full-byte comparison",
+    "receiptSha256": "dde3cd91b84e1eb05d5eebf9fe6b7067c282acdeac6d863775f907004d78be08",
+    "resultReceiptSha256": "6e8a0e2681250c36a1239442a495537693ba035361978443f52d7066b0bdc3f5"
+  },
+  "limits": {
+    "guestExecuted": false,
+    "instrumentedExecuted": false,
+    "observerIntegrated": false,
+    "wasmObserverArming": "refused pending host-abort integration",
+    "historicalBuilderIdentity": "unknown",
+    "activeGlyphProvider": "unknown",
+    "originalFontIdentity": "unknown",
+    "ledgerOrIntakePromotion": false
+  }
+}

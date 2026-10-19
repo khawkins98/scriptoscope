@@ -671,6 +671,9 @@ separate requirements.
 The [draft acceptance inventory](./docs/spec/acceptance-inventory-proposal.md) proposes
 full-target families, paths and boundary classes; its closure and unresolved evidence remain open.
 
+A [pinned-source emulator build](./docs/research/emulator-build-reproduction/2026-10-19/README.md)
+now reproduces the preserved JS/WASM exactly; glyph-provider tracing remains unresolved.
+
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and the required checks. The
 [fidelity plan](./docs/spec/fidelity-verification-plan.md) and
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221) define the path
