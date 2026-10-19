@@ -146,6 +146,7 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
                 && same(trace.composition?.faceRect, { x: 13, y: 17, w: width, h: height }), 'Actual composition context/face mismatch');
               const offset = variant.family === 'push' && Object.values(theme.manifest.chromeElements).some(v => [10230, 10231, 10232].includes(Math.abs(v.sourceCicnId))) ? 4 : 0;
               check(buffer.width === width + 2 * offset && buffer.height === height + 2 * offset, 'Public size policy mismatch');
+              if (knownPattern) check(!trace.legacyFacePaint, 'Bound known-pattern case entered legacy painter');
               if (trace.legacyFacePaint) { caseRows.push({ size: [width, height], status: 'unknown-legacy-painter', asserted: 0, unassessed: width * height }); continue; }
               const paints = trace.bandPaints ?? [];
               for (const p of paints) {
