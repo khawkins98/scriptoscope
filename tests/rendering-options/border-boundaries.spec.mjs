@@ -68,7 +68,8 @@ for (const mode of ['source', 'built']) for (const choice of boundarySources)
             && selected.providerId === 'owned-cinf0' && selected.providerKind === 'raw-fork'
             && ['forkSha256', 'occurrence', 'signedId', 'byteLength', 'sha256'].every(k => selected[k] === p[k])
             && same(view.attempts[1].resource, selected), 'Foreign cinf exact NULL→0 payload join failed');
-          check(trace.steps.some(s => s.role === 'face' && s.usage === 'admission' && same(s.cinfLookup, lookup)),
+          check(trace.steps.some(s => s.role === 'face' && s.usage === 'admission' && s.action === 'selected'
+            && s.owner?.chainDepth === 0 && s.owner.baseUrl === theme.baseUrl && same(s.cinfLookup, lookup)),
             'Missing actual consumed-view admission');
           return lookup;
         };
