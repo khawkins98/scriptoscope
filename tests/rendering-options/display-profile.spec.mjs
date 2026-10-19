@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
 import {test,expect,openHarness,attachObservations} from './fixtures.mjs';
 for(const mode of ['source','built']) {
- test(`${mode}: measured profile loads both real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
+ test(`${mode}: measured profile loads real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
   info.annotations.push({type:'fidelity-assertion',description:'recorded.empty-face-six'});
   info.annotations.push({type:'fidelity-assertion',description:'recorded.crayon-normal'});
   const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
