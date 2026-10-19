@@ -196,7 +196,7 @@ The kDEF0 FEAE helper takes source width1-to-wider before height1-to-taller path
 
 ### fixture.band-collision-literal
 
-The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.
+The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. For the unchanged ordinary11x16 c3/s1 repeat header, sampled top line x3..7/y0 and left line x0/y3..12 use gray48; the solid union is x3..7/y1..14 plus x1..9/y3..12, all remaining pixels transparent. The full176-pixel literal and actual owned companion joins establish only this current-display sampled-color case.
 
 ## Recorded-condition composed faces
 
@@ -219,3 +219,7 @@ One Crayon v14c empty normal80×20 face at port20,20 is compared over recorded w
 ## Lisa recorded condition (1.7.0)
 
 One Lisa v16 empty normal80×20 face at port20,20 is compared over recorded white using its same-run22-tuple display profile. Normal stopped HFS export contains all34,254 bytes after explicit File Manager checks. Actual selected cicn−10239/cinf−10239 payloads and completed face output join this case; modern ppat0 absence is observed separately. Original private provider/cache/pattern phase, mask and general body behavior remain unknown.
+
+### Sampled whole-header support (ledger 1.8.0)
+
+The existing collision input is unchanged. PACH1305cb8/5d48..5e26/5874/687e supplies the independently reviewed sampler rule; `headerCollisionSampledRows` supplies the literal plane. Root reviewed implementation/source expectations at `f212e4e4`. Only `fill.sampled-line-color` changes from unsupported to verified; all other assessments remain exact. The reversible [transition snapshot](header-sampling-transition.json) retains the prior assessment, assertion and evidence plus the complete previous-ledger hash. No original-capture or device/provider claim is added.

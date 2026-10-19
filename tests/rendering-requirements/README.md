@@ -152,7 +152,7 @@ ordinary-height output paints tokens7/6 there, whereas the list-view output keep
 body RGB48. The negative verifier substitutes those actual ordinary pixels while
 leaving trace metadata unchanged, and separately corrupts the reported height.
 
-The collision header remains explicitly unsupported for sampled-line color.
+At 1.3.0, the collision header was explicitly unsupported for sampled-line color; the reviewed 1.8.0 transition below supersedes only that assessment.
 Its assertion establishes the API's rejection/no-paint policy, not original
 unavailability. The collision push case establishes only two sampled gray pixels
 and an ordinary red corner, with selected dependency joins to actual owning
@@ -229,3 +229,7 @@ mask and broader requirements remain unknown. Existing 31 cases/263 assessments
 and definitions remain exact. Totals: 32 OPEN, 269 obligations, 50 narrow verified,
 1 unsupported,218 unknown. Eight recorded-condition comparisons remain separate
 from SOURCE requirements and never close cases.
+
+## Sampled whole-header support (1.8.0)
+
+The unchanged `synthetic.header.collision.repeat.state1.w11.h16` input now uses its retained owner-bound sampled companion. One `fill.sampled-line-color` obligation moves from unsupported to verified after independent source/literal review; all other assessments and definitions remain exact. Counts: 32 OPEN cases,269 obligations,51 verified,0 unsupported,218 unknown. The prior ledger is exactly reconstructible from [header-sampling-transition.json](header-sampling-transition.json); original observations and request semantic digests are unchanged. Missing-companion rejection remains separately tested. See [the bounded model](../../docs/spec/header-sampled-lines.md).

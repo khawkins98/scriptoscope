@@ -10,7 +10,21 @@ import { fileURLToPath } from 'node:url';
 import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } from './ledger.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const original = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
+const transition = JSON.parse(readFileSync(new URL('./header-sampling-transition.json', import.meta.url)));
+const historicalHeaderLedger = structuredClone(original);
+historicalHeaderLedger.inventoryVersion = transition.priorInventoryVersion;
+for (const [field, prior] of [['assessments', transition.priorAssessment], ['assertions', transition.priorAssertion], ['evidence', transition.priorEvidence]]) {
+  const index = historicalHeaderLedger[field].findIndex(row => prior.id ? row.id === prior.id : row.caseId === prior.caseId && row.requirementId === prior.requirementId);
+  historicalHeaderLedger[field][index] = prior;
+}
 const copy = () => structuredClone(original);
+test('sampled-header transition preserves the complete prior ledger and changes one assessment only', () => {
+  assert.equal(digest(JSON.stringify(historicalHeaderLedger, null, 2) + '\n'), transition.priorLedgerSha256);
+  const changed = original.assessments.filter((row, i) => JSON.stringify(row) !== JSON.stringify(historicalHeaderLedger.assessments[i]));
+  assert.equal(changed.length, 1); assert.equal(changed[0].caseId, transition.priorAssessment.caseId);
+  assert.equal(changed[0].requirementId, 'fill.sampled-line-color'); assert.equal(changed[0].status, 'verified');
+  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified:51, mismatched:0, unsupported:0, unknown:218 });
+});
 function reject(change, pattern, options = {}) {
   const ledger = copy(); change(ledger); ledger.inventorySha256 = inventoryDigest(ledger);
   assert.match(validateLedger(ledger, { root, ...options }).errors.join('\n'), pattern);
@@ -203,10 +217,10 @@ test('1.3.0 preserves all eighteen cases and150 assessments and keeps new scope 
     'e81d1e92719eae4cce474f5a0aa052c3481de3746a625ffa1eba02462831f660');
   assert.equal(digest(JSON.stringify({ cases: original.cases.slice(0,18), assessments: original.assessments.slice(0,150) })),
     'f6de24ff0f27d9c098846cae3d9a2a1052fdc1ed9d189f78689f3d95c0b7b1e8');
-  const historical={...original,cases:original.cases.slice(0,22),assessments:original.assessments.slice(0,195)};
+  const historical={...historicalHeaderLedger,cases:historicalHeaderLedger.cases.slice(0,22),assessments:historicalHeaderLedger.assessments.slice(0,195)};
   assert.deepEqual(makeReport(historical).requirementStatus.counts,{verified:36,mismatched:0,unsupported:1,unknown:158});
   assert(original.cases.every(c=>c.inventoryClosure.status==='open'));
-  const unsupported=original.assessments.slice(150).filter(a=>a.status==='unsupported');
+  const unsupported=historicalHeaderLedger.assessments.slice(150).filter(a=>a.status==='unsupported');
   assert.equal(unsupported.length,1);assert.equal(unsupported[0].caseId,'synthetic.header.collision.repeat.state1.w11.h16');
   assert.match(unsupported[0].rationale,/no output or paint dependency/);
 });

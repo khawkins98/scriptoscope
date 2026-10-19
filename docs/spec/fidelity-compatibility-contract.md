@@ -1,7 +1,7 @@
 # Fidelity compatibility contract
 
-Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.14**,
-2026-10-18. Inventory closure: **OPEN**. Tracked by
+Contract ID: `scriptoscope.kaleidoscope-2.3.1`. Draft version: **0.1.15**,
+2026-10-19. Inventory closure: **OPEN**. Tracked by
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221).
 
 This defines the proposed acceptance boundary and the work needed to close it.
@@ -94,9 +94,9 @@ proves input identity, not decoder correctness. A trace proves actual selection,
 not the historical validity of a fallback policy. A self-golden proves stability,
 not original-engine pixels.
 
-The current [ledger 1.7.0](../../tests/rendering-requirements/ledger.json) contains
-thirty-two OPEN cases and 269 declared obligations: 50 narrowly verified,
-0 mismatched, 1 explicitly unsupported and 218 unknown. Eight of those verified
+The current [ledger 1.8.0](../../tests/rendering-requirements/ledger.json) contains
+thirty-two OPEN cases and 269 declared obligations: 51 narrowly verified,
+0 mismatched, 0 explicitly unsupported and 218 unknown. Eight of those verified
 obligations concern only complete recorded-condition empty80×20 faces under an
 explicit measured profile, including one Crayon normal face with recorded port placement
 and original pattern origin explicitly unknown, plus one Lisa normal face with a
@@ -105,7 +105,10 @@ original alpha/mask, typography, hidden selection, general state/placement or
 default-display fidelity. Six additional SOURCE obligations cover only two caller-declared
 synthetic prepared-strike identities, signed source-metric pens and literal clipped
 mask paint. They do not identify an original glyph provider or establish original
-typography, transfer or caller sizing. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
+typography, transfer or caller sizing. One additional synthetic SOURCE obligation
+now verifies the existing whole-header collision
+[sampled-line color](header-sampled-lines.md); its original-device/provider and
+broader header requirements remain unresolved. The separate [availability inventory 1.0.4](../../tests/control-availability/expectations.json)
 contains 26 reviewed API-policy outcomes and one UNKNOWN. Neither is a completion
 denominator for this proposed 18-scheme target. The overall denominator remains
 **unclosed; no overall fidelity percentage is established**.

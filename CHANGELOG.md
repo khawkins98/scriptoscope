@@ -7,7 +7,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- Support whole-header one-pixel line colors through the existing owner-bound sampled companion, preserving strict missing-data, mask and device-policy limits.
+- Support whole-header one-pixel line colors through the existing owner-bound sampled companion, preserving strict missing-data, mask and device-policy limits. Resolve only the existing collision sampled-color obligation in ledger1.8.0 (51 verified,218 unknown; all32 cases OPEN).
 
 - Qualify the historical chrome QA punchlist and unversioned previews as visual context, preserving its findings without implying current all-type fidelity certification.
 
