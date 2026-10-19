@@ -1,5 +1,14 @@
 # Learnings
 
+## 2026-10-19 — Consumed cinf ownership is separate from the local pair
+
+A face can use cinf from an explicitly declared provider while its static
+same-load cicn/cinf pair remains unchanged. Resolve the role view before the raw
+face sampler is discarded, and carry the selected provider/fork/occurrence into
+consumption diagnostics. A theme-fork marker must bind the actual selected fork
+per load; an environment template ID alone cannot identify it. See
+[declared cinf environments](docs/spec/cinf-environment.md).
+
 
 ## 2026-10-19 — A decoded recipe needs complete list spans
 

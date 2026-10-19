@@ -1,3 +1,4 @@
+import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironment } from '../tools/theme-loader/cinf-environment.js';
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme, ChromeElement } from './types.js';
 import { loadKaleidoscopeScheme } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
@@ -48,9 +49,12 @@ export interface ThemeMeta {
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment } = {},
 ): Promise<LoadedTheme> {
   const displayProfile = opts.displayProfile;
+  const cinfEnvironment = opts.cinfEnvironment;
+  assertCinfEnvironment(cinfEnvironment);
+  if (cinfEnvironment && opts.base) throw new CinfEnvironmentError('Cinf environment requires standalone load', 'UNSUPPORTED_CINF_ENVIRONMENT');
   const base = opts.base;
   displayRealizer(displayProfile);
   assertDisplayProfileChain(base, displayProfile);
@@ -81,6 +85,7 @@ export async function loadTheme(
   const loaded = await loadKaleidoscopeScheme(fileBytes.bytes, {
     meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
+    ...(cinfEnvironment ? { cinfEnvironment } : {}),
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
   });

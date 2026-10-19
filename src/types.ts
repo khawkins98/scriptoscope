@@ -1,3 +1,4 @@
+import type { BodyCinfView, CinfBindingSummary } from '../tools/theme-loader/cinf-environment.js';
 import type { DisplayProfile, DisplayPolicy } from '../tools/theme-loader/display-profile.js';
 import type { ElementByteProvenance, PatternByteProvenance, ThemeByteProvenance, WindowByteProvenance } from './loadProvenance.js';
 // Theme-bundle types — the fields the runtime reads from theme.json. This file
@@ -167,6 +168,8 @@ export type CicnBodyBinding = {
 });
 
 export interface ChromeElement {
+  /** Opt-in role view; common fields below retain their local pairing. */
+  readonly bodyCinf?: BodyCinfView;
   readonly cicnBody?: CicnBodyBinding;
   readonly sampledBandAsset?: CicnSampledBandAsset;
   /** Absent/null is unknown. No raw RGB16, cache/device or selection claim. */
@@ -277,6 +280,7 @@ export interface HeaderColors {
 }
 
 export interface ThemeManifest {
+  readonly cinfEnvironment?: CinfBindingSummary;
   /** Prepared immutable display profile; absent preserves the legacy display policy. */
   readonly displayProfile?: DisplayProfile;
   name: string;

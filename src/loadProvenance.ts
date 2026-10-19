@@ -3,7 +3,8 @@ export interface ElementByteProvenance {
   readonly loadId: string;
   readonly manifestKey: string;
   readonly cicnResourceIndex: number;
-  /** Null means no successfully decoded cinf supplied this entry's metadata. */
+  /** Static same-load pair only. Null means no successfully decoded local cinf;
+   * an opted-in role view records its actual consumed cinf separately. */
   readonly cinfResourceIndex: number | null;
 }
 /** Generated catalog binding only; this does not establish paint usage. */

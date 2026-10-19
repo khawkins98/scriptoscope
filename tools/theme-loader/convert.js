@@ -75,7 +75,7 @@ function asBytes(fork) {
  * @returns {{ theme: object, assets: {path:string,rgba:Uint8Array,width:number,height:number}[],
  *             manifest: { source:string, counts:object, assets:object[] } }}
  */
-export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile } = {}) {
+export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding } = {}) {
   const realizeRgb16 = displayRealizer(displayProfile);
   const policy = displayPolicy(displayProfile);
   const entries = parseResourceFork(asBytes(fork));
@@ -165,7 +165,7 @@ export function convertChrome(fork, { meta = {}, source = 'scheme.rsrc', resourc
     }
   }
 
-  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile });
+  const theme = buildThemeJson({ source, counts, assets: subAssets }, { meta, displayProfile, cinfBinding });
   // Only actual surviving, unambiguous element links may allocate derived URLs.
   const usedCompanions = new Set(Object.values(theme.chromeElements ?? {}).flatMap(e => e.sampledBandAsset ? [e.sampledBandAsset.derivedPath] : []));
   for (let i = assets.length - 1; i >= 0; i--)
@@ -368,9 +368,9 @@ export function convertIcons(fork, { ids, displayProfile } = {}) {
  * @returns {{ theme: object, assets: {path,rgba,width,height}[], iconIndex: object[],
  *             manifest: object }}
  */
-export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile } = {}) {
+export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
-  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile });
+  const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding });
   const icons = convertIcons(bytes, { displayProfile });
   return {
     theme: chrome.theme,

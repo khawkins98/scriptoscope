@@ -23,7 +23,7 @@ export function makeKdefColorSampler(indices, width, height, entries) {
   };
 }
 
-/** Pair only the actual decoded cicn and consumed same-ID cinf. */
+/** Sample the actual decoded cicn using the selected decoded cinf; ownership is bound by the caller. */
 export function controlColorSamples(sample, cinf, profile) {
   if (!sample || !cinf) return null;
   const read = point => {
