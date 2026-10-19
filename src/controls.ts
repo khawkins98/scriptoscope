@@ -725,10 +725,12 @@ export async function composeSliderWithLayout(
   // Native faces can be disposed while a track is decoding. Guard every
   // sequential dependency so resuming cannot start a thumb/fallback read from
   // a theme whose owned URLs have already been revoked.
-  const load = async (id: number): Promise<PixelBuffer | null> => {
+  const load = async (id: number): Promise<{ buffer: PixelBuffer; element: ChromeElement } | null> => {
     if (signal?.aborted) return null;
-    const buffer = await loadByIdSelf(theme, id);
-    return signal?.aborted ? null : buffer;
+    const element = elementById(theme, id);
+    if (!element) return null;
+    const buffer = await loadCicnBuffer(assetUrl(theme, element.asset));
+    return signal?.aborted ? null : { buffer, element };
   };
   const orientation = opts.orientation ?? 'horizontal';
   const length = Math.max(32, opts.length ?? 120);
@@ -751,9 +753,10 @@ export async function composeSliderWithLayout(
   // corner-sprite schemes ship NO slider groove (their -10205..-10208 are the
   // scrollbar thumb / directional indicators, not a groove+thumb pair — verified
   // by pixel-decode), so they fall to platinumSlider rather than the replica's.
-  const track = (await load(tId)) ?? (await load(tA));
-  if (!track) return null;
-  const thumbs = await load(horiz ? 10129 : 10113);
+  const selectedTrack = (await load(tId)) ?? (await load(tA));
+  if (!selectedTrack) return null;
+  const { buffer: track, element: trackEl } = selectedTrack;
+  const thumbs = (await load(horiz ? 10129 : 10113))?.buffer ?? null;
   if (signal?.aborted) return null;
 
   const thickness = horiz ? track.height : track.width;
@@ -765,7 +768,7 @@ export async function composeSliderWithLayout(
   // smear the caps; tiling preserves pixel-rate detail at long lengths.)
   // Read the cinf's slice.corner for the cap thickness; fall back to the
   // historical 6-clamp.
-  const trackEl = elementById(theme, tId);
+  // Metadata belongs to the actual selected groove, including active fallback.
   const end = trackEl?.slice?.corner ?? Math.min(6, Math.floor((longSrc - 1) / 2));
   const tileMid = !!trackEl?.slice?.tile;
   const mid = longSrc - end * 2;
