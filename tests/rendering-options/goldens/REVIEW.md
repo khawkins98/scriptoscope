@@ -125,3 +125,12 @@ AgjpQy checks exclude the current browser glyph ink rather than certifying fonts
 No unexplained delta was identified. Original typography, variant selection,
 pattern-center phase, full layout and device/transfer behavior remain open;
 these snapshots do not certify whole tabs or historical reference equality.
+
+
+## Reviewed mixed CICN selection delta — 2026-10-19
+
+[Capture run 39234502164](https://github.com/khawkins98/scriptoscope/actions/runs/39234502164) records frozen runtime commit `232d56001eaa4ed197541f52d860cc480c32d317`, bundle SHA-256 `95cd7c890607356de85c8c8a6fa6055262b598b4d0f86d3584144984901606a3`. All 36 pages were recorded and passed fresh exact repeat verification in the same pinned Linux environment. The later parser-parent squash rebase preserved the entire capture tree.
+
+Independent frontend and PM review inspected all 26 changed before/after/diff crops. Exactly 1,861 pixels change, entirely within direct mixed checkbox/radio cells; the other 10 PNGs are byte-identical. All card/sheet bounds, cases, fonts, source archives and environment remain unchanged. Prepared artwork and retained output were checked against the pinned archives. Monkey Paradise radio selects a 12×12 mixed image instead of its former 13×13 off image: the unchanged layout policy narrows the canvas from 155×13 to 154×12 and shifts the label left/up by one pixel. Its aligned label mask is exact; antialias differences follow the stationary checkerboard. No unexplained change was found.
+
+Correctness comes from independently reviewed kDEF `7234–7282`: value 2 selects mixed art and a miss retries value 1 in the same kind/state tier. Thirty owned cases per source/built runtime separately pin literal IDs, payload/occurrence identities and complete output, with missing-art and compatibility fallbacks explicit. These sheets expose no checkable paint-resolution trace; expected source artwork is not relabeled as an observed historical provider. Mixed-overrides-checked is modern API mapping, later active-checked/icon fallbacks are compatibility policy, and original provider/cache, decoder/device, typography and whole-control fidelity remain unresolved. This is regression-baseline approval only.

@@ -202,19 +202,9 @@ async function loadGlyphById(theme: LoadedTheme, id: number): Promise<PixelBuffe
   return hit ? loadCicnBuffer(assetUrl(hit.theme, hit.asset)) : null;
 }
 
-/**
- * SELF-ONLY variants of {@link loadById} / {@link loadGlyphById}: resolve a
- * control resource on the scheme ITSELF, never walking the base chain. Used for
- * controls whose art a scheme must OWN to render faithfully (checkbox/radio) —
- * a scheme that ships none falls to the PROCEDURAL Platinum glyph rather than
- * inheriting from an unrelated base bundle. The corner-sprite schemes —
- * apple-platinum-2 / platinum-8 / system7-nostalgia-silver — ship a control-
- * glyph ics4 family (-10197..-10240: scroll arrows, slider/indicator thumb orbs,
- * push-button faces, window-widget boxes) but NO checkbox/radio art in it
- * (verified by pixel-decode; the kDEF 2.3.1 has no -9488..-9504 immediate either
- * — see docs/spec/kdef231-reference.md §2.4), so self-resolution misses →
- * procedural Platinum, which is the faithful look for these Platinum-family
- * schemes. */
+/** Self-only art lookup for checkables; base-theme borrowing is not part of
+ * this compatibility path. CICN state IDs are source-derived at kDEF
+ * 0x7234–0x7282; the icon fallback remains a separate resource channel. */
 async function loadByIdSelf(theme: LoadedTheme, id: number): Promise<PixelBuffer | null> {
   const el = elementById(theme, id);
   return el ? loadCicnBuffer(assetUrl(theme, el.asset)) : null;
@@ -1891,18 +1881,13 @@ export async function composeCheckable(
   kind: 'checkbox' | 'radio',
   opts: { label?: string; checked?: boolean; mixed?: boolean; disabled?: boolean; fg?: string } = {},
 ): Promise<PixelBuffer | null> {
-  // Resolve by RESOURCE ID. radio: on -9488 active / -9489 inactive,
-  // off -9491 active / -9492 inactive · checkbox: checked -9500 active /
-  // -9501 inactive, empty -9503 active / -9504 inactive. (Schemes that ship
-  // no themed checkbox/radio — e.g. apple-platinum-2 — return null → baseline.)
-  let wantId: number, activeId: number;
-  if (kind === 'radio') {
-    activeId = opts.checked ? 9488 : 9491;
-    wantId = opts.disabled ? (opts.checked ? 9489 : 9492) : activeId;
-  } else {
-    activeId = opts.checked ? 9500 : 9503;
-    wantId = opts.disabled ? (opts.checked ? 9501 : 9504) : activeId;
-  }
+  // kDEF 0x7234–0x7282: -9504 + 12*kind + 3*value + tier.
+  // Public mixed maps to value2 ahead of checked/value1; this API has no pressed
+  // tier. A missing mixed CICN retries checked at the SAME tier (0x7264).
+  const checked = !!(opts.mixed || opts.checked);
+  const activeId = kind === 'radio' ? (checked ? 9488 : 9491) : (checked ? 9500 : 9503);
+  const wantId = activeId + Number(!!opts.disabled);
+  const mixedId = (kind === 'radio' ? 9485 : 9497) + Number(!!opts.disabled);
   // The corner-sprite schemes' OWN ics4 glyph ids for this control+state (the
   // -10214..-10240 family, pixel-verified — see the doc-comment). Tried as ics4
   // glyphs, NEVER walking the base chain. Active-state id is the fallback so a
@@ -1923,12 +1908,14 @@ export async function composeCheckable(
     glyphId = opts.disabled ? (opts.mixed ? 10238 : opts.checked ? 10239 : 10240) : glyphActiveId;
   }
   // SELF-ONLY resolution order (no base-chain hop → no replica borrow):
+  //   0. own mixed cicn, when requested; missing retries checked at same tier
   //   1. own cicn for this state          (texture/cicn schemes, 1990, replica)
-  //   2. own cicn for the active state     (cicn scheme lacking a disabled cell)
+  //   2. own cicn for the active state (modern compatibility fallback)     (cicn scheme lacking a disabled cell)
   //   3. own ics4 glyph at the -1021x..-1024x family for this state  (icon schemes)
   //   4. own ics4 glyph at the active state of that family
   // Falls to null (→ procedural baseline) only when the scheme ships neither.
   const glyph =
+    (opts.mixed ? await loadByIdSelf(theme, mixedId) : null) ??
     (await loadByIdSelf(theme, wantId)) ??
     (await loadByIdSelf(theme, activeId)) ??
     (await loadGlyphByIdSelf(theme, -glyphId)) ??

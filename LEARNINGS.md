@@ -4552,3 +4552,13 @@ pattern origin remains unknown despite output equality; zero-offset modern
 policy is a substitution, not an observed original API value. The new scope
 therefore admits one conditioned output without weakening full-request phase
 requirements or rebinding unrelated existing attestations. Refs #190/#221.
+
+
+### 2026-10-19 — Mixed checkable CICNs use a separate value lane
+
+The kDEF selector adds the literal −9504 at 0x724c/0x7278, then kind×12,
+ControlRecord value×3 and state tier. Value2 missing retries value1 without
+changing the tier. `composeCheckable` previously honored `mixed` only in its
+icon fallback, so a present unchecked CICN hid the mixed art. Public mixed-over-
+checked precedence and the later active-state fallback remain API compatibility
+policy; source arithmetic alone establishes neither resource provider nor pixels.
