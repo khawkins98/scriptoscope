@@ -668,6 +668,9 @@ and painted push/default/bevel faces. It establishes input identity through shar
 conversion; independent decoder correctness and broader control families remain
 separate requirements.
 
+The [draft acceptance inventory](./docs/spec/acceptance-inventory-proposal.md) proposes
+full-target families, paths and boundary classes; its closure and unresolved evidence remain open.
+
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and the required checks. The
 [fidelity plan](./docs/spec/fidelity-verification-plan.md) and
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221) define the path
