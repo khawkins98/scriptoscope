@@ -30,6 +30,10 @@ Data, independent review, source/built comparison, narrow ledger bindings and
 documentation share one coherent batch; missing calibration or pixel
 mismatches remain explicit rather than changing the oracle.
 
+Maintainers: the [private reference environment guide](../../docs/maintainer-reference-environment.md)
+links the Forgejo asset store and explains hash-verified fetch, restore prerequisites
+and acquisition limits. Public intake/CI does not access those private assets.
+
 ## Preserved first-batch requests
 
 | Scheme | Requests | Purpose |
