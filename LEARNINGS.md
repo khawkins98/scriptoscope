@@ -1,5 +1,13 @@
 # Learnings
 
+## 2026-10-19 — A progress painter does not establish progress endpoints
+
+The pinned 2.3.1 PaintRect interceptor receives rectangles already formed by a
+caller. Its resource IDs and geometry guards establish conditional painting
+paths, but not how a control maps value/min/max into segments or omits endpoint
+calls. Keep that caller boundary separate from the modern normalized API; see
+[progress caller evidence](docs/spec/progress-caller-boundary.md).
+
 ## 2026-10-19 — Icon color availability is not mask availability
 
 Checkable icon fallback tests `ics#` before choosing color art. A valid mask can
