@@ -1,11 +1,13 @@
 # Window-chrome glitch punch-list — v3-reset compositor QA
 
+> **Historical QA scope — clarified 2026-10-19.** The findings, “complete”/“faithful” labels and audit counts below record the earlier v3-reset visual QA pass, not current whole-theme or all-type certification. The unversioned period preview PNGs are qualitative context, not matched-input original-engine pixel oracles. Reviewed exact goldens establish regression stability; fidelity requires independently supported source/reference claims with explicit inputs and limits. See the current [compatibility contract](fidelity-compatibility-contract.md) and [fidelity plan](fidelity-verification-plan.md). Original findings and source addresses are retained.
+
 > ✅ **MODEL ALIGNMENT COMPLETE.** The blockers documented below are resolved (all five model-alignment fixes committed against the 2.3.1 kDEF decode). The two benign `diag:audit` warnings noted in the summary table are accepted divergences (recorded in `kdef-faithfulness-ledger.md`), not bugs. This doc is kept as the **glossary of the gotchas that were caught** — useful when the next render regression looks familiar, and cited from CONTRIBUTING.md + multiple spec docs as the QA worked-example for the v3 reset.
 
 QA pass on the v3-reset window-chrome compositor (`src/composeChrome.ts`), after
 the source-of-truth alignment to the 2.3.1 kDEF decode. Native-res frame renders
 (`npm run diag:render -- <slug> <wt> --w … --h …`) eyeballed against the period
-references (`demo/assets/references/<slug>.png`, ground truth) + `npm run
+previews (`demo/assets/references/<slug>.png`, qualitative context) + `npm run
 diag:audit` invariants. Method: per-theme contact sheets at 240×140, spot-checks
 at 360px and reference width.
 
@@ -49,7 +51,8 @@ are gone. `diag:audit` is at 2 warnings (both benign — 3px title-markers).
 | **beos-r503** | ok | ok | ok | ok | wnd--14292 dark patch (minor) | ok |
 
 `apple-platinum-2` ships no recipe-based window types (procedural baseline).
-1990 / evolution / beos render faithfully across **all** types.
+The historical visual QA pass reported 1990 / evolution / beos as faithful across
+the inspected types; this is not a current all-type fidelity certification.
 
 ---
 
