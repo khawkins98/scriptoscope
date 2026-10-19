@@ -57,7 +57,7 @@
     },
     {
       "path": "tools/theme-loader/buildThemeJson.js",
-      "sha256": "e76516e9311a1cc6e3c42cc8976aeb07b0786428c26108070f538475d0617d21"
+      "sha256": "8f765bacd54bbb18966ecfb0803432c221bad984fdb3315c8543aab7b1907f2e"
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
@@ -65,7 +65,7 @@
     },
     {
       "path": "tools/theme-loader/cinf-environment.js",
-      "sha256": "6ef97174ddce4ac92f42e30a6b44c3ca3b3ac41986a276f4fe6c264a1cbf7215"
+      "sha256": "038db75887d1021bc5f9cb74c111c2d3cc0e77de7545bf34e6beec10ed7639f0"
     },
     {
       "path": "tools/theme-loader/classifyResources.js",
@@ -129,7 +129,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "30415816ff1077428b73eade21dcdec8597c4ec185342d4f7c5585c41038a358"
+      "sha256": "9689c4c7f694c6ff1e5bc60aff55f0474f8512fe84c907107b88839aaca6f60f"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",

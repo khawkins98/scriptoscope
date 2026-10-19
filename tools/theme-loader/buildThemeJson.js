@@ -153,7 +153,7 @@ export function buildThemeJson(manifest, options = {}) {
     });
     if (options.cinfBinding && ([-10239, -10238, -10240].includes(cicn.id)
       || (cicn.id >= -10167 && cicn.id <= -10162) || (cicn.id >= -10176 && cicn.id <= -10171))) entry.bodyCinf = bodyCinfView(options.cinfBinding, cicn, ppatSlugById,
-      options.displayProfile, cicnPathCounts.get(cicn.file) > 1);
+      options.displayProfile, cicnPathCounts.get(cicn.file) > 1, entry);
     chromeElements[slug] = entry;
     keyByCicn.set(cicn, slug);
   }

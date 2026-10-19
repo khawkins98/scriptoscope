@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { prepareCinfEnvironment, bindCinfEnvironment, bodyCinfView, isBoundBodyCinfView } from './cinf-environment.js';
+import { prepareCinfEnvironment, bindCinfEnvironment, bodyCinfView, snapshotBodyCinfFace } from './cinf-environment.js';
 import { loadKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
-import { providerFork, themeFork, external, marker, declaration, forkOf } from '../../tests/decoder-fixtures/cinf-environment.mjs';
+import { providerFork, themeFork, external, marker, declaration, forkOf, twinFaceFork } from '../../tests/decoder-fixtures/cinf-environment.mjs';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const load = (bytes, cinfEnvironment, extra = {}) => loadKaleidoscopeScheme(bytes, { encodeAssets: false, cinfEnvironment, ...extra });
 const view = loaded => loaded.manifest.chromeElements.face.bodyCinf;
@@ -23,9 +23,8 @@ test('provider ordering and theme marker select exact occurrence without alterin
   const first = await load(raw, await prepareCinfEnvironment(declaration([a, marker()])));
   const second = await load(raw, await prepareCinfEnvironment(declaration([marker(), a])));
   assert.equal(view(first).selected.providerId, 'other'); assert.equal(view(second).selected.providerId, 'actual-theme');
-  assert.equal(isBoundBodyCinfView(first.manifest.cinfEnvironment,view(first)),true);
-  assert.equal(isBoundBodyCinfView(first.manifest.cinfEnvironment,structuredClone(view(first))),false);
-  assert.equal(isBoundBodyCinfView(structuredClone(first.manifest.cinfEnvironment),view(first)),false);
+  assert.equal(snapshotBodyCinfFace(first.manifest,first.manifest.chromeElements.face).view,view(first));
+  assert.throws(()=>snapshotBodyCinfFace({...first.manifest},first.manifest.chromeElements.face),/actual loaded face/);
   assert.equal(view(second).selected.occurrence, 1); assert.equal(view(second).selected.forkSha256, sha(raw));
   assert.deepEqual(first.manifest.chromeElements.face.bgAnchor, [0,0]); assert.deepEqual(view(first).metadata.bgAnchor, [3,3]);
   const legacy = await load(raw);
@@ -74,4 +73,20 @@ test('selected role samples use the prepared display profile once, including hid
   const loaded=await load(themeFork(),env,{displayProfile}),v=view(loaded);
   assert.equal(v.displayPolicy,displayProfile.id);assert.equal(v.metadata.colorSamples.displayPolicy,displayProfile.id);
   assert.deepEqual(v.metadata.colorSamples.background,{rgb16:[0x2121,0x2121,0x2121],displayRgb:[101,101,101]});
+});
+
+test('same-ID role views are bound to their actual face occurrence, asset and loaded manifest', async () => {
+  const env = await prepareCinfEnvironment(declaration([external('provider',providerFork())]));
+  const loaded = await load(twinFaceFork(), env), { face, other } = loaded.manifest.chromeElements;
+  const original = face.bodyCinf;
+  assert.notDeepEqual(original.metadata.colorSamples.background, other.bodyCinf.metadata.colorSamples.background);
+  face.bodyCinf = other.bodyCinf;
+  assert.throws(()=>snapshotBodyCinfFace(loaded.manifest,face), /actual loaded face/);
+  face.bodyCinf = original;
+  const captured = snapshotBodyCinfFace(loaded.manifest,face);
+  face.bodyCinf = other.bodyCinf;
+  assert.equal(captured.view,original); // Already captured view remains immutable.
+  face.bodyCinf = original;
+  face.asset = other.asset;
+  assert.throws(()=>snapshotBodyCinfFace(loaded.manifest,face), /actual loaded face/);
 });

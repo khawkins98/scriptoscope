@@ -25,6 +25,9 @@ occurrence indices, including invalid and duplicate resources. The optional
 load. No provider is inserted implicitly. The immutable environment ID identifies
 the template; the binding ID additionally identifies that actual fork. Prepared
 handles and role views cannot be reconstructed by serializing their metadata.
+The loader privately binds each view to its actual face element and final asset.
+Composition snapshots that association before face decoding; another same-ID
+occurrence cannot substitute its samples during the await.
 
 ## Lookup and scope
 

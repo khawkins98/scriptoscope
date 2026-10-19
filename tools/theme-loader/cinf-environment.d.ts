@@ -1,4 +1,4 @@
-import type { ChromeElement } from '../../src/types.js';
+import type { ChromeElement, ThemeManifest } from '../../src/types.js';
 export interface CinfEnvironmentInput {
   readonly version: 1; readonly complete: boolean;
   readonly providers: readonly (
@@ -28,5 +28,5 @@ export class CinfEnvironmentError extends Error { readonly code: string; constru
 export function prepareCinfEnvironment(input: CinfEnvironmentInput): Promise<PreparedCinfEnvironment>;
 export function assertCinfEnvironment(value?: PreparedCinfEnvironment): void;
 
-/** Internal role-view admission; serialized declarations are not prepared inputs. */
-export function isBoundBodyCinfView(summary: CinfBindingSummary, view: BodyCinfView | undefined): boolean;
+/** Internal load-bound identity snapshot; serialized declarations are not prepared inputs. */
+export function snapshotBodyCinfFace(theme: ThemeManifest, element: ChromeElement): { environment: CinfBindingSummary; view?: BodyCinfView } | undefined;

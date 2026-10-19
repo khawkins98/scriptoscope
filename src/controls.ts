@@ -1,4 +1,4 @@
-import { CinfEnvironmentError, isBoundBodyCinfView, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
+import { CinfEnvironmentError, snapshotBodyCinfFace, type CinfLookupView } from '../tools/theme-loader/cinf-environment.js';
 import { prepareBitmapGlyphRun, type PreparedBitmapFont, type BitmapGlyphRun } from './preparedBitmapFont.js';
 import { paintBitmapText } from './paintBitmapText.js';
 import { ownerDisplayPolicyMatches } from '../tools/theme-loader/display-profile.js';
@@ -78,7 +78,7 @@ async function loadByKey(theme: LoadedTheme, key: string): Promise<PixelBuffer |
  * diagnostics preserve the actual sign instead of claiming an original alias.
  */
 interface ResolvedFaceMetadata { consumedCinf?: CinfLookupView; theme: LoadedTheme; element: ChromeElement; key: string; chainDepth: number; }
-interface ResolvedControlFace extends ResolvedFaceMetadata { buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
+interface ResolvedControlFace extends ResolvedFaceMetadata { declaredCinf?: NonNullable<ReturnType<typeof snapshotBodyCinfFace>>; buffer: PixelBuffer; loadedIdentity?: Pick<LegacyFacePaint, 'owner' | 'resource'>; }
 type TraceLookup = Pick<ControlResolutionStep, 'role' | 'basis' | 'usage'>;
 const FACE_LOOKUP: TraceLookup = { role: 'face', basis: 'source-dispatch', usage: 'paint' };
 
@@ -126,21 +126,23 @@ function resolveFaceById(theme: LoadedTheme, id: number, trace?: ControlTraceCol
 /** Capture the actual requested asset and scalar identity before its decode
  * await. Diagnostics must not relabel that buffer after consumer metadata edits. */
 async function loadResolvedFace(hit: ResolvedFaceMetadata, trace?: ControlTraceCollector): Promise<ResolvedControlFace> {
+  const declaredCinf = snapshotBodyCinfFace(hit.theme.manifest, hit.element);
+  if (declaredCinf) hit = { ...hit, element: { ...hit.element } };
   const url = assetUrl(hit.theme, hit.element.asset);
   const resource = trace ? resourceIdentity(hit) : undefined;
   const loadedIdentity = resource ? {
     owner: { baseUrl: hit.theme.baseUrl, chainDepth: hit.chainDepth },
     resource: { ...resource, assetUrl: url, ...(resource.byteProvenance ? { byteProvenance: { ...resource.byteProvenance } } : {}) },
   } : undefined;
-  return { ...hit, buffer: await loadCicnBuffer(url), ...(loadedIdentity ? { loadedIdentity } : {}) };
+  return { ...hit, ...(declaredCinf ? { declaredCinf } : {}), buffer: await loadCicnBuffer(url), ...(loadedIdentity ? { loadedIdentity } : {}) };
 }
 
 /** Select a prepared role view without mutating common element/local pair facts. */
 function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requestedId: number, label: string,
   defaultRing: boolean, trace?: ControlTraceCollector): ResolvedControlFace {
-  const environment = root.manifest.cinfEnvironment ?? face.theme.manifest.cinfEnvironment;
+  const environment = face.declaredCinf?.environment ?? root.manifest.cinfEnvironment;
   if (!environment) return face;
-  const view = face.element.bodyCinf;
+  const view = face.declaredCinf?.view;
   const reject = (reason: string): never => {
     trace?.record({ role: 'face', usage: 'admission', basis: 'compatibility-policy', action: 'rejected',
       requestedId, reason, ...(view ? { cinfLookup: lookupOnly(view) } : {}) });
@@ -149,7 +151,7 @@ function declaredBodyFace(root: LoadedTheme, face: ResolvedControlFace, requeste
   if (root.base || face.chainDepth !== 0 || face.theme !== root) reject('cinf-environment-base-inheritance');
   if (defaultRing) reject('cinf-environment-default-ring-unsupported');
   if (face.element.sourceCicnId !== requestedId) reject('cinf-environment-requested-selected-id-mismatch');
-  if (!isBoundBodyCinfView(environment, view) || !view || view.requestedId !== requestedId) reject('cinf-environment-role-binding-missing');
+  if (!view || view.bindingId !== environment.bindingId || view.requestedId !== requestedId) reject('cinf-environment-role-binding-missing');
   const consumed = lookupOnly(view!);
   if (view!.status === 'unsupported') reject(view!.reason ?? 'cinf-environment-unknown');
   if (!ownerDisplayPolicyMatches(face.theme.manifest, view!.displayPolicy)) reject('cinf-environment-display-policy-mismatch');

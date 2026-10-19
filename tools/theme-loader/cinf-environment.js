@@ -4,8 +4,8 @@ import { parseResourceFork } from './resource-fork.js';
 import { decodeCinf } from './decoders/cinf.js';
 import { controlColorSamples } from './kdef-color-samples.js';
 import { displayPolicy } from './display-profile.js';
-const prepared = new WeakSet(), bindings = new WeakSet(), summaries = new WeakSet(), views = new WeakSet();
-const preparedView = value => { const result = freeze(value); views.add(result); return result; };
+const prepared = new WeakSet(), bindings = new WeakSet(), summaries = new WeakMap(), views = new WeakMap(), themes = new WeakMap();
+const preparedView = (value, binding, element) => { const result = freeze(value); views.set(result, { binding, element }); return result; };
 const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
 const digest = async bytes => Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
 const jsonDigest = value => digest(new TextEncoder().encode(JSON.stringify(value)));
@@ -65,11 +65,33 @@ export function cinfBindingSummary(binding) {
   if (!bindings.has(binding)) fail('Unprepared cinf binding');
   const summary = freeze({ environmentId: binding.environmentId, bindingId: binding.id, themeForkSha256: binding.themeForkSha256,
     policy: 'caller-declared-ordered-cinf-only', scope: 'standalone-push-bevel-body' });
-  summaries.add(summary); return summary;
+  summaries.set(summary, binding); return summary;
 }
-/** Internal use guard: serialized metadata cannot stand in for prepared inputs. */
-export function isBoundBodyCinfView(summary, view) {
-  return summaries.has(summary) && views.has(view) && summary.bindingId === view.bindingId;
+/** Finalize identity only after the loader has assigned actual asset URLs. */
+export function finalizeCinfTheme(theme) {
+  if (!theme.cinfEnvironment) return;
+  const binding = summaries.get(theme.cinfEnvironment);
+  if (!binding) fail('Unprepared cinf theme binding');
+  const faces = new Map();
+  for (const element of Object.values(theme.chromeElements)) {
+    const view = element.bodyCinf;
+    if (!view) continue;
+    const origin = views.get(view);
+    if (origin?.binding !== binding || origin.element !== element) fail('Mismatched cinf face origin');
+    faces.set(element, { view, asset: element.asset, width: element.width, height: element.height,
+      sourceCicnId: element.sourceCicnId, sourceCinfId: element.sourceCinfId, byteProvenance: element.byteProvenance });
+  }
+  themes.set(theme, { environment: theme.cinfEnvironment, faces });
+}
+/** Snapshot at the actual face decode boundary, before any await. */
+export function snapshotBodyCinfFace(theme, element) {
+  if (!theme.cinfEnvironment && !themes.has(theme)) return undefined;
+  const loaded = themes.get(theme), saved = loaded?.faces.get(element);
+  const invalid = !loaded || loaded.environment !== theme.cinfEnvironment || (saved
+    ? saved.view !== element.bodyCinf || ['asset', 'width', 'height', 'sourceCicnId', 'sourceCinfId', 'byteProvenance'].some(key => saved[key] !== element[key])
+    : element.bodyCinf !== undefined);
+  if (invalid) throw new CinfEnvironmentError('Cinf view does not belong to the actual loaded face', 'UNSUPPORTED_CINF_ENVIRONMENT');
+  return { environment: loaded.environment, ...(saved ? { view: saved.view } : {}) };
 }
 function lookup(binding, id) {
   if (!binding.complete) return { outcome: 'unknown', reason: 'incomplete-environment' };
@@ -87,20 +109,21 @@ function lookup(binding, id) {
 }
 /** Called while the selected face's transient raw sampler is still alive.
  * Common ChromeElement fields/pairing remain untouched. */
-export function bodyCinfView(binding, cicn, patternKeysById, profile, ambiguousPath) {
+export function bodyCinfView(binding, cicn, patternKeysById, profile, ambiguousPath, element) {
   if (!binding) return undefined;
   const common = { ...cinfBindingSummary(binding), requestedId: cicn.id, body: true, displayPolicy: displayPolicy(profile) };
+  const finish = value => preparedView(value, binding, element);
   const attempts = []; let selected;
   for (const id of [cicn.id, 0]) {
     const result = lookup(binding, id), { data, ...observed } = result;
     attempts.push({ id, ...observed });
     if (result.outcome === 'found') { selected = { resource: result.resource, data }; break; }
-    if (result.outcome !== 'missing') return preparedView({ ...common, attempts, status: 'unsupported', reason: result.reason });
+    if (result.outcome !== 'missing') return finish({ ...common, attempts, status: 'unsupported', reason: result.reason });
   }
-  if (!selected) return preparedView({ ...common, attempts, status: 'no-body-or-border', reason: 'two-explicit-null-results' });
+  if (!selected) return finish({ ...common, attempts, status: 'no-body-or-border', reason: 'two-explicit-null-results' });
   const cd = selected.data;
-  if (ambiguousPath) return preparedView({ ...common, attempts, selected: selected.resource, status: 'unsupported', reason: 'ambiguous-face-asset' });
-  return preparedView({ ...common, attempts, selected: selected.resource, status: 'ready', metadata: {
+  if (ambiguousPath) return finish({ ...common, attempts, selected: selected.resource, status: 'unsupported', reason: 'ambiguous-face-asset' });
+  return finish({ ...common, attempts, selected: selected.resource, status: 'ready', metadata: {
     slice: { corner: cd.cornerSize, side: cd.sideThickness, tile: cd.tileSides !== 0, resizeBehavior: cd.resizeBehavior },
     bodyRequest: { mode: cd.patternAnchor, resourceId: cd.bgPatternId },
     bodyPattern: cd.patternAnchor !== 5 ? patternKeysById[cd.bgPatternId] ?? null : null,

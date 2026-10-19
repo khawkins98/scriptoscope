@@ -9,7 +9,7 @@
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
-import { assertCinfEnvironment, bindCinfEnvironment } from './cinf-environment.js';
+import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
 import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
@@ -99,6 +99,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
     || (typeof document !== 'undefined' && typeof HTMLCanvasElement !== 'undefined');
   const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
+    finalizeCinfTheme(theme);
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
     return { manifest: theme, assets, iconIndex, ...(byteProvenance ? { byteProvenance } : {}) };
   }
@@ -128,6 +129,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // Rewrite every asset-path ref in the manifest to its URL (chrome, sprites, frame
   // proxy, patterns, body pattern — all stored as path strings that match an asset).
   rewriteAssetRefs(theme, urlByPath);
+  finalizeCinfTheme(theme);
 
   // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
   const glyphs = buildGlyphMap(iconIndex, urlByPath);
