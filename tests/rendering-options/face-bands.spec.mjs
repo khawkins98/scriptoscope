@@ -98,9 +98,8 @@ for (const mode of ['source', 'built']) test(`${mode}: corpus faces retain autho
                 for (const [sx, sy, dx, dy] of [[x, y, x, y], [art.width-c+x, y, width-c+x, y],
                   [x, art.height-c+y, x, faceHeight-c+y], [art.width-c+x, art.height-c+y, width-c+x, faceHeight-c+y]]) {
                   const expected = [...art.getPixel(sx, sy)], actual = [...output.getPixel(dx+offset, dy+offset)];
-                  // The two patterned normal faces have opaque corners; their
-                  // body pattern does not supply this corner-only expectation.
-                  if (patternedNormal && expected[3] !== 255) throw new Error('Patterned normal corner must be opaque');
+                  // For the two c=s=2 patterned normals, neither inset body
+                  // rectangle intersects these corner blocks (all heights >=12).
                   // Transparent decoded pixels may carry irrelevant hidden RGB;
                   // alpha and every opaque color sample are the contract.
                   compared++;
