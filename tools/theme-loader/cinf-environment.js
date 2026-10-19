@@ -73,7 +73,7 @@ export function finalizeCinfTheme(theme) {
   const binding = summaries.get(theme.cinfEnvironment);
   if (!binding) fail('Unprepared cinf theme binding');
   const faces = new Map();
-  for (const element of Object.values(theme.chromeElements)) {
+  for (const element of Object.values(theme.chromeElements ?? {})) {
     const view = element.bodyCinf;
     if (!view) continue;
     const origin = views.get(view);

@@ -65,7 +65,7 @@
     },
     {
       "path": "tools/theme-loader/cinf-environment.js",
-      "sha256": "038db75887d1021bc5f9cb74c111c2d3cc0e77de7545bf34e6beec10ed7639f0"
+      "sha256": "5266847c9d0efaa79be4c307eb582fe91f919af89a0b075593e5ed35535665f3"
     },
     {
       "path": "tools/theme-loader/classifyResources.js",

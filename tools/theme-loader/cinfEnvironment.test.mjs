@@ -36,6 +36,9 @@ test('default0 and two NULLs remain distinct; repeated equal request/default att
   assert.deepEqual(view(fallback).attempts.map(a => [a.id,a.outcome]), [[-10239,'missing'],[0,'found']]);
   const empty = await prepareCinfEnvironment(declaration([marker()]));
   assert.equal(view(await load(themeFork(), empty)).status, 'no-body-or-border');
+  const noFace = await load(providerFork(),empty);
+  assert.equal(noFace.manifest.chromeElements,undefined);
+  assert.ok(noFace.manifest.cinfEnvironment);
   const zero = bodyCinfView(await bindCinfEnvironment(empty, themeFork({ id: 0 })), { id: 0 }, {}, undefined, false);
   assert.deepEqual(zero.attempts.map(a => [a.id,a.outcome]), [[0,'missing'],[0,'missing']]);
 });
