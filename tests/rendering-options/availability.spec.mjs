@@ -62,8 +62,8 @@ for (const mode of ['source', 'built']) test(`${mode}: reviewed finite availabil
       }
     }
     complete = true;
-    expect(rows.filter(row => row.status === 'passed')).toHaveLength(26);
-    expect(rows.filter(row => row.status === 'unknown').map(row => row.id)).toEqual(['synthetic.raw-repurposed-only']);
+    expect(rows.filter(row => row.status === 'passed')).toHaveLength(27);
+    expect(rows.filter(row => row.status === 'unknown').map(row => row.id)).toEqual([]);
     expect(failures, JSON.stringify(failures, null, 2)).toEqual([]);
   } catch (error) {
     hasPrimaryFailure = true;

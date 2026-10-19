@@ -1,8 +1,8 @@
 # #228 finite expectation review
 
-**Reviewed finite API-policy inventory. Executable source/built gates compare actual traces against these expectations.**
+**Version 1.0.7 independently reviewed by root. Prior reviews below remain historical records.**
 
-27 exact cases: 26 approved API-policy outcomes and one explicit UNKNOWN. The outcomes below are source/policy expectations, never generated from renderer or matrix outcomes.
+27 exact cases: 27 reviewed API-policy outcomes. The outcomes below are source/policy expectations, never generated from renderer or matrix outcomes.
 
 | Case | Proposed outcome | Painted owner / signed resource / exact key | Policy / source boundary |
 | --- | --- | --- | --- |
@@ -12,8 +12,8 @@
 | system7-nostalgia-silver.push.normal | themed | face: theme.system7-nostalgia-silver@0 / -10239 / `active-push-button` | canonical-push-states, plain-ring-reservation |
 | system7-nostalgia-silver.push.pressed | themed | face: theme.system7-nostalgia-silver@0 / -10238 / `pressed-push-button` | canonical-push-states, plain-ring-reservation |
 | system7-nostalgia-silver.push.disabled | themed | face: theme.system7-nostalgia-silver@0 / -10240 / `inactive-push-button` | canonical-push-states, plain-ring-reservation |
-| animals.push.normal | themed | face: theme.animals@0 / -10238 / `pressed-push-button` | canonical-push-states, anti-role, face-state-substitution, plain-ring-reservation |
-| monkey-paradise.push.normal | themed | face: theme.monkey-paradise@0 / -10238 / `pressed-push-button` | canonical-push-states, anti-role, face-state-substitution, plain-ring-reservation |
+| animals.push.normal | themed | face: theme.animals@0 / -10239 / `solo-menu-background-2` | canonical-first; source numeric dispatch; API-only |
+| monkey-paradise.push.normal | themed | face: theme.monkey-paradise@0 / -10239 / `solo-menu-background-2` | canonical-first; source numeric dispatch; API-only |
 | windows-95.default.normal | themed | face: theme.windows-95@0 / -10239 / `cicn--10239`; default-ring: theme.windows-95@0 / -10231 / `cicn--10231` | canonical-push-states |
 | windows-95.default.pressed | themed | face: theme.windows-95@0 / -10238 / `cicn--10238`; default-ring: theme.windows-95@0 / -10231 / `cicn--10231` | canonical-push-states |
 | windows-95.default.disabled | themed | face: theme.windows-95@0 / -10240 / `cicn--10240`; default-ring: theme.windows-95@0 / -10232 / `cicn--10232` | canonical-push-states |
@@ -22,15 +22,15 @@
 | windows-95.bevel.disabled | themed | face: theme.windows-95@0 / -10167 / `cicn--10167` | canonical-bevel-states |
 | synthetic.child-canonical | themed | face: child@0 / -10239 / `cicn--10239` | self-first |
 | synthetic.child-missing | themed | face: base@1 / -10239 / `push-button-active` | self-first |
-| synthetic.child-repurposed | themed | face: base@1 / -10239 / `push-button-active` | self-first, anti-role |
-| synthetic.named-preference | themed | face: child@0 / -123 / `push-button-active` | named-preference |
+| synthetic.child-repurposed | themed | face: child@0 / -10239 / `cicn--10239` | canonical-first; source numeric dispatch; API-only |
+| synthetic.named-preference | themed | face: child@0 / -10239 / `cicn--10239` | canonical-first; source numeric dispatch; API-only |
 | synthetic.named-unknown-id | themed | face: child@0 / unknown ID / `push-button-active` | named-preference |
-| synthetic.active-to-pressed | themed | face: child@0 / -10238 / `pressed-push-button` | anti-role, face-state-substitution |
+| synthetic.active-to-pressed | themed | face: child@0 / -10239 / `cicn--10239` | canonical-first; source numeric dispatch; API-only |
 | synthetic.inactive-to-active | themed | face: child@0 / -10239 / `cicn--10239` | face-state-substitution |
 | synthetic.empty-chain | unavailable | none / not asserted | direct-missing |
 | synthetic.empty-cycle | unavailable | none / not asserted | direct-missing |
 | synthetic.bevel-child-base | themed | face: child@0 / -10166 / `cicn--10166` | bevel-self-first |
-| synthetic.raw-repurposed-only | unknown / policy-pending | none / not asserted | source ring dispatch or unresolved policy |
+| synthetic.raw-repurposed-only | themed | face: child@0 / -10239 / `cicn--10239` | canonical-first; source numeric dispatch; API-only |
 | synthetic.native-empty.enabled | native-procedural | none / not asserted | native-fallback |
 | synthetic.native-empty.disabled | native-procedural | none / not asserted | native-fallback |
 
@@ -41,7 +41,7 @@ All real cases use explicit no-base input. Synthetic graph/base identity is defi
 - Approve the finite identities and public policy choices independently of current rendering.
 - Source archive entry/fork and signed payload identities are pinned in source-candidates.json and source-choices.json.
 - Windows95 pressed default requests missing -10230 but paints active -10231 under source dispatch; plain-button reservation must not satisfy this paint expectation.
-- Raw-ID-only repurposed art remains unknown even if current rendering returns pixels.
+- Exact negative face IDs are retained despite author labels; missing-ID compatibility remains separate.
 - Missing direct output means no realization; native fallback must be checked as a separate DOM/interaction contract.
 - Unknown signed metadata on a named synthetic resource stays null, never replaced by the requested ID.
 - Original engine identity for ring dispatch: Kaleidoscope 2.3.1 kDEF 0, SHA256 2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342; source reference docs/spec/kdef231-reference.md at 0x76c4. Original engine is not executed.
@@ -89,3 +89,18 @@ The ring dispatch paragraph, address 0x76c4, detailed source evidence and all
 API-policy expectations are unchanged. The previous 1.0.0 review is preserved in
 `expectations.json`; this revision does not widen the approved case set or mark
 any additional historical behavior verified.
+
+## Canonical-ID revision 1.0.7
+
+Six cases change selection/availability under the separately pinned numeric
+dispatch at 0x758e; all original fixture bytes and public options remain exact.
+Animals/Monkey normal, synthetic child-repurposed, named-preference and
+active-to-pressed now select canonical -10239. Historical synthetic IDs are
+retained. Raw-repurposed-only changes UNKNOWN→themed API availability; it
+does not gain an original pixel/provider or ledger assessment. Three ring
+detail-document hashes change mechanically; their dispatch claims are exact.
+Missing canonical art still uses existing named/positive/state/base policies,
+covered by the trace regressions. Root independently checked the numeric dispatch and exact six changed cases
+on 2026-10-19, including all inputs/fixture bytes and the three mechanical hashes.
+Approved digest: `a24bfb8cd11af200467a6efd8880eca4420edc3964e1ed6cdae239c1e69ac523`.
+The full previous review object is retained in expectations.json.

@@ -40,7 +40,7 @@ test('unknown signed metadata cannot be replaced by canonical request ID', () =>
   assert.equal(compareAvailability(c, o).status, 'failed');
 });
 test('UNKNOWN and unreviewed cases remain non-passing, and missing executions remain not run', () => {
-  const unknown = expected('synthetic.raw-repurposed-only');
+  const unknown = {...expected('synthetic.raw-repurposed-only'),proposed:null,effectiveAvailability:'unknown'}; // Unit-only unresolved declaration, not the current reviewed case.
   assert.equal(compareAvailability(unknown, { result: { kind: 'themed' } }).status, 'unknown');
   const draft = { ...readInventory().inventory.cases[0], reviewStatus: 'draft-requires-independent-review', effectiveAvailability: 'unknown' };
   assert.equal(compareAvailability(draft, observation(draft)).status, 'unknown');

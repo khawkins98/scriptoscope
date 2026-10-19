@@ -249,44 +249,22 @@ function resolveControlHeight(face: PixelBuffer, optsHeight?: number): number {
   return face.height <= APPLE_REASONABLE_FACE_MAX ? face.height : APPLE_PUSH_BUTTON_HEIGHT;
 }
 
-/** Runtime named-key preferences for the push-button face, by state. The
- *  list captures the synonyms different Kaleidoscope authoring tools emitted
- *  (`push-button-active` / `active-push-button` / `active-button` / bare
- *  `push-button`). Used by {@link loadPushButtonFace} to resolve via the
- *  manifest's friendly key before the raw kDEF id slot — the
- *  monkey-paradise + animals fix (both authored `solo-menu-background-2` onto
- *  id -10239 leaving no active push-button cicn, just inactive + pressed). */
+/** Compatibility aliases for a push-button face when the owner's exact signed
+ * kDEF resource ID is absent. Author labels and friendly keys cannot override
+ * a present canonical resource (kDEF 0x7572–0x7594). */
 const PUSH_BUTTON_FACE_KEYS = {
   active: ['push-button-active', 'active-push-button', 'active-button', 'push-button'],
   pressed: ['push-button-pressed', 'pressed-push-button', 'pressed-button'],
   inactive: ['push-button-inactive', 'inactive-push-button', 'inactive-button'],
 } as const;
 
-/** Compatibility rejection heuristic for labels/keys on push-button slots.
- * A matching label is observed metadata, not proof that the original engine
- * rejected the resource or that its author intended a different runtime role.
- *
- *  TWO detection paths share this regex:
- *    - PRIMARY: the bundle's `authorLabel` (the verbatim NAMED-resource label;
- *      e.g. animals + monkey-paradise both ship `-10239` with authorLabel
- *      "Solo Menu Background"). It preserves the author's words, while our
- *      interpretation of those words remains a runtime policy.
- *    - FALLBACK: the friendly chromeElement key (decoder-emitted slug). Used
- *      when authorLabel is missing — 9 of 18 bundles (1138, apple-platinum-2,
- *      etc.) ship no labels on the push-button slots.
- *
- *  The substring match is over-broad on the friendly-key path (parked #185:
- *  `dialog-button-active` would false-positive) but is the necessary fallback
- *  shape retained for compatibility with unlabelled bundles. */
+/** Legacy heuristic for positive-ID compatibility aliases only. Labels are
+ * observed metadata, not evidence that kDEF rejects a negative resource ID. */
 const PUSH_BUTTON_FACE_ANTI_KEY_RE = /menu|tab.pane|pull.down|popup|window|dialog|scroll/i;
 
-/** Resolve a push-button face via named keys, then numeric ID with an
- * anti-role label/key rejection heuristic. Walk the base chain self-first,
- * trying both strategies before inheriting. This is a runtime compatibility
- * policy for corpus aliases, not a verified historical role resolver: kDEF
- * 0x7572–0x7594 requests numeric IDs. A source label is evidence to review,
- * not proof of author intent. composeButton handles state fallback separately.
- */
+/** Resolve the exact signed resource ID first within each owner, then named
+ * and positive-ID compatibility aliases. Base traversal and state fallbacks
+ * remain modern policy, not a reconstruction of Resource Manager lookup. */
 export async function loadPushButtonFace(
   theme: LoadedTheme,
   state: keyof typeof PUSH_BUTTON_FACE_KEYS,
@@ -302,11 +280,17 @@ async function resolvePushButtonFace(
   const id = state === 'active' ? 10239 : state === 'pressed' ? 10238 : 10240;
   let chainDepth = -1;
   // Resource ownership outranks lookup spelling: a child's canonical slot wins
-  // over a named base resource. Within each owner, authored role names win.
+  // over a named base resource. Within each owner, exact signed IDs win.
   const found = resolveInChain(theme, (t) => {
     chainDepth++;
     if (chainDepth > 0) traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'fallback', 'base-inheritance');
     const ce = t.manifest.chromeElements ?? {};
+    for (const [k, v] of Object.entries(ce)) {
+      if (v.sourceCicnId !== -id || !v.asset) continue;
+      const hit = { theme: t, element: v, key: k, chainDepth };
+      traceHit(trace, FACE_LOOKUP, id, hit, 'selected', 'resource-id');
+      return hit;
+    }
     for (const k of PUSH_BUTTON_FACE_KEYS[state]) {
       if (ce[k]?.asset) {
         const hit = { theme: t, element: ce[k]!, key: k, chainDepth };
@@ -314,10 +298,9 @@ async function resolvePushButtonFace(
         return hit;
       }
     }
-    // Reject repurposed id slots before considering the next base theme.
-    const ces = t.manifest.chromeElements ?? {};
-    for (const [k, v] of Object.entries(ces)) {
-      if (Math.abs(v.sourceCicnId ?? 0) !== id) continue;
+    // Preserve positive-ID alias policy only after exact signed art and names.
+    for (const [k, v] of Object.entries(ce)) {
+      if (v.sourceCicnId !== id) continue;
       // Prefer the verbatim source label for this rejection heuristic.
       // The label itself is provenance; interpreting its words is policy.
       const hit = { theme: t, element: v, key: k, chainDepth };
@@ -331,8 +314,8 @@ async function resolvePushButtonFace(
         traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' }, id, hit, 'rejected', 'anti-role-key');
         return null;
       }
-      traceHit(trace, v.sourceCicnId! > 0 ? { ...FACE_LOOKUP, basis: 'compatibility-policy' } : FACE_LOOKUP,
-        id, hit, 'selected', v.sourceCicnId! > 0 ? 'positive-id-alias' : 'resource-id');
+      traceHit(trace, { ...FACE_LOOKUP, basis: 'compatibility-policy' },
+        id, hit, 'selected', 'positive-id-alias');
       return hit;
     }
     traceOwner(trace, FACE_LOOKUP, id, t, chainDepth, 'missing', 'missing-resource');
@@ -1650,12 +1633,9 @@ async function composeButtonWithTrace(theme: LoadedTheme, opts: ButtonOptions & 
   assertControlAlive(signal);
   const faceId = opts.disabled ? 10240 : opts.pressed ? 10238 : 10239;
   const state: keyof typeof PUSH_BUTTON_FACE_KEYS = opts.disabled ? 'inactive' : opts.pressed ? 'pressed' : 'active';
-  // Compatibility policy: try named roles/ID slots with anti-role rejection,
-  // then active→pressed or inactive→active when the requested role is missing.
-  // Animals/Monkey repurpose -10239 with a menu label and supply other face
-  // states. These choices handle that corpus convention; they are not proven
-  // original Appearance Manager/kDEF state fallbacks. Keep the final raw-ID
-  // fallback visible to diagnostics rather than inferring historical intent.
+  // Exact requested signed IDs precede aliases within each owner. If no face
+  // resolves, retain the modern active→pressed / inactive→active compatibility
+  // policy and final raw-ID escape; these are not proven native state fallbacks.
   let face = await resolvePushButtonFace(theme, state, trace);
   assertControlAlive(signal);
   if (!face && state === 'active') {

@@ -21,7 +21,7 @@ test('unreviewed activation and reviewed effective/outcome disagreements fail', 
   assert.throws(() => validateInventory(draft), /unreviewed outcome cannot be active/);
   const i = reviewed(); i.cases[0].effectiveAvailability = 'unavailable'; seal(i);
   assert.throws(() => validateInventory(i), /disagrees with declared outcome/);
-  const unknown = reviewed(); unknown.cases.find(c => c.proposed === null).effectiveAvailability = 'themed'; seal(unknown);
+  const unknown = reviewed(); unknown.cases[0].proposed = null; unknown.cases[0].effectiveAvailability = 'themed'; seal(unknown);
   assert.throws(() => validateInventory(unknown), /disagrees with declared outcome/);
 });
 test('stale review digest/version and direct-native conflation fail', () => {

@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Select each owner's exact signed push-button resource before author-name aliases, correcting the Animals normal face mismatch without changing recorded pixels or measured profiles. Preserve explicit compatibility fallback when the canonical art is absent.
+
 - Add Animals normal, logically highlighted and disabled empty-face acquisition evidence from one fixed-order boot, a separately measured 209-tuple display profile, and bounded cross-run calibration joins. Preserve prior capture/request bindings and all broader provider, phase, mask and whole-control unknowns (#221, #190).
 
 - Document the private maintainer reference-asset store, verified fetch workflow, restore limits and separation from public CI; refresh the README to twelve reviewed scoped observations.

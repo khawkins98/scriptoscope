@@ -464,6 +464,12 @@ notification window**.
 
 ## 7 · Misroute candidates — author label hints at a different SF role
 
+**Historical analysis, superseded 2026-10-19:** label differences below do not
+establish native misrouting. The Animals/Monkey −10239 rejection and proposed
+anti-role expansion were based on an incorrect premise: kDEF selects the numeric
+push ID without checking its name. See [the corrected selection contract](push-button-selection.md).
+The following recommendations are retained as history, not current guidance.
+
 These are the **anti-role detection candidates**. A row is a misroute
 candidate when its corpus label maps STRONGLY to a SF role *different
 from* the one its id canonically encodes (per `STR# 128` cross-reference
@@ -496,7 +502,7 @@ than the one the id encodes — the resource is in the wrong slot.
 
 | Bundle | restype | id | author label | canonical SF role | mislabel points at | Severity |
 |---|---|---|---|---|---|---|
-| animals + monkey-paradise (per `LEARNINGS.md`) | cicn | -10239 | "Solo Menu Background" (or `solo-menu-background-2`) | #40 Enabled Push Button | #16 Menu Bar Background / #24 Free Menu Background | **HIGH — already patched** (commit 888826d added anti-role detection in `src/controls.ts:138-155`) |
+| animals + monkey-paradise (per `LEARNINGS.md`) | cicn | -10239 | "Solo Menu Background" (or `solo-menu-background-2`) | #40 Enabled Push Button | #16 Menu Bar Background / #24 Free Menu Background | **Historical patch, superseded** (commit 888826d added anti-role detection in `src/controls.ts:138-155`) |
 
 That's the only one already surfaced and patched in the codebase. The
 remaining corpus rows below MIGHT be misroutes but the corpus aggregate
@@ -591,7 +597,7 @@ other slots that COULD develop the same authoring bug.
   have no corpus author at all — the bevel-button "Mixed" state, the
   "Free Menu" torn-off variant, the "Popup Menu Without Text" variant,
   Placards, Desktop, and the OS 9 Notification Window.
-- **Only one confirmed misroute** so far: the animals + monkey-paradise
+- **Historical misroute claim, superseded above:** the animals + monkey-paradise
   "Solo Menu Background" at cicn -10239 (already patched at
   `src/controls.ts:155`). The cross-correlation surfaces THREE other
   slots (slider tracks, push-button rings, progress-fill) that could

@@ -1,17 +1,16 @@
 # Finite control availability expectations
 
-This directory implements the bounded #228 inventory: **26 independently
-reviewed API-policy outcomes and one explicit UNKNOWN**. Every unlisted
+This directory implements the bounded #228 inventory: **27 finite API-policy outcomes**. Every unlisted
 family/state/size/base combination across the 18 themes remains unknown. Passing
 availability is not a whole-control fidelity certificate.
 
 ## Source evidence and review
 
-`expectations.json` version 1.0.1 declares exact inputs, painted owner/depth,
+`expectations.json` version 1.0.7 declares exact inputs, painted owner/depth,
 manifest key, signed cicn/cinf identities, source references and required policy
 decisions. `REVIEW.md` records independent root/Astra review and the original
-draft digest. Activation changes review state only; the reviewed inputs and
-outcomes are unchanged. `fixtures.json` declares the synthetic graphs and pixels
+draft digest. Root independently reviewed the canonical-ID-first migration; prior review
+history is retained. `fixtures.json` declares the synthetic graphs and pixels
 before any runtime call. Generated `source-candidates.json` remains unreviewed
 shared-decoder evidence; approving an API expectation does not certify decoding.
 
@@ -73,9 +72,10 @@ npx playwright test --config tests/rendering-options/playwright.config.mjs avail
 npm run test:rendering
 ```
 
-The raw-ID-only repurposed fixture executes for observation but remains UNKNOWN
-and is excluded from the 26 successful-availability count. Missing executions
-are not-run. Plain ring layout reservation cannot satisfy painted-ring
+The raw-ID-only fixture now has an explicit themed API expectation: its exact
+negative ID is usable despite its label. This resolves availability only, not
+original pixels or providers. All unlisted cases remain unknown; missing
+executions are not-run. Plain ring layout reservation cannot satisfy painted-ring
 expectations. Equal source/built null cannot pass known-themed expectations.
 Null signed metadata stays null instead of being replaced by a canonical request.
 
