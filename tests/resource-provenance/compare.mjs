@@ -10,7 +10,9 @@ export function compareByteProvenance(step, loaded, pin, expected) {
   check(step.owner?.baseUrl === loaded.baseUrl && step.owner?.baseUrl === expected.baseUrl, 'Selected owner mismatch');
   check(step.owner?.chainDepth === expected.chainDepth, 'Selected base depth mismatch');
   check(step.action === 'selected' && step.usage === expected.usage && step.role === expected.role, 'Selected role/usage mismatch');
-  check(step.resource.type === 'cicn' && step.resource.signedId === expected.signedId, 'Selected signed cicn mismatch');
+  const resourceType = expected.type ?? 'cicn';
+  check(['cicn', 'ppat'].includes(resourceType), 'Unsupported pinned resource type');
+  check(step.resource.type === resourceType && step.resource.signedId === expected.signedId, 'Selected resource type/signed ID mismatch');
   check(step.resource.sourceCinfId === expected.sourceCinfId, 'Selected signed cinf mismatch');
   check(step.resource.manifestKey === expected.manifestKey && ref.manifestKey === expected.manifestKey, 'Generated manifest key mismatch');
   check(evidence.input.sha256 === pin.archive.sha256 && evidence.input.byteLength === pin.archive.byteLength, 'Actual input archive bytes mismatch');
@@ -19,11 +21,15 @@ export function compareByteProvenance(step, loaded, pin, expected) {
   check(actual.policy === (pin.archive.format === 'rsrc' ? 'raw-resource-fork' : 'largest-non-icon-resource-fork'), 'Observed selection policy mismatch');
   for (const name of ['entryIndex', 'entryName', 'forkType']) check(actual[name] === wanted[name], `Selected fork ${name} mismatch`);
   for (const name of ['fileType', 'creator']) check(code(actual[name]) === wanted[name], `Selected fork ${name} mismatch`);
-  for (const [type, id, index] of [['cicn', expected.signedId, ref.cicnResourceIndex], ['cinf', expected.sourceCinfId, ref.cinfResourceIndex]]) {
+  const selectedInputs = resourceType === 'ppat'
+    ? [['ppat', expected.signedId, ref.ppatResourceIndex]]
+    : [['cicn', expected.signedId, ref.cicnResourceIndex], ['cinf', expected.sourceCinfId, ref.cinfResourceIndex]];
+  for (const [type, id, index] of selectedInputs) {
     const sourceId = id ?? expected.signedId;
     const candidates = pin.candidates.filter(r => r.type === type && r.signedId === sourceId);
     if (candidates.length !== 1) { errors.push(`Missing unambiguous independent ${type} pin`); continue; }
     const source = candidates[0];
+    if (source.resourceIndex !== undefined) check(index === source.resourceIndex, `Independent ${type} occurrence mismatch`);
     if (id === null) {
       check(index === null && source.presence === 'absent-from-selected-fork', 'Absent cinf claim lacks independent absence evidence');
       continue;

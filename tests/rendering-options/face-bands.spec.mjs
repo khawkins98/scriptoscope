@@ -60,7 +60,7 @@ for (const mode of ['source', 'built']) test(`${mode}: solid button faces use sq
   } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'solid-face-independent-bands', rows }, error); throw error; }
 });
 
-for (const mode of ['source', 'built']) test(`${mode}: unequal solid corpus faces retain authored corners across state and height`, async ({ page, servers }, testInfo) => {
+for (const mode of ['source', 'built']) test(`${mode}: corpus faces retain authored corners across state and height`, async ({ page, servers }, testInfo) => {
   testInfo.annotations.push({ type: 'fidelity-assertion', description: 'face.corpus-square-corners' });
   await openHarness(page, servers, mode);
   let rows;
@@ -69,14 +69,21 @@ for (const mode of ['source', 'built']) test(`${mode}: unequal solid corpus face
       const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
       const rows = [];
       // Reviewed resource expectations, not a second copy of the resolver:
-      // Animals/Monkey active -10239 is a menu, so the face is -10238.
+      // kDEF 0x7576/0x7582/0x758e selects disabled/pressed/normal IDs.
+      // The normal Animals/Monkey label does not change that numeric branch.
       for (const slug of ['animals', 'monkey-paradise', 'apple-lisa']) {
         const theme = await api.loadTheme(`/themes/${slug}`, { source: 'scheme.sit' });
         try {
           for (const state of ['normal', 'pressed', 'disabled']) {
-            const id = state === 'disabled' ? -10240 : state === 'pressed' || slug !== 'apple-lisa' ? -10238 : -10239;
+            const id = state === 'disabled' ? -10240 : state === 'pressed' ? -10238 : -10239;
             const element = Object.values(theme.manifest.chromeElements).find(el => el.sourceCicnId === id);
-            if (!element?.slice || element.bgPattern) throw new Error(`${slug}/${id}: expected reviewed solid cinf face`);
+            if (!element?.slice) throw new Error(`${slug}/${id}: expected reviewed cinf face`);
+            const patternedNormal = state === 'normal' && slug !== 'apple-lisa';
+            if (patternedNormal) {
+              if (element.bodyRequest?.mode !== 2 || element.bodyRequest.resourceId !== (slug === 'animals' ? -12239 : 128)
+                || !element.bgPattern || element.slice.corner !== 2 || element.slice.side !== 2 || !element.slice.tile)
+                throw new Error(`${slug}/${id}: expected canonical mode2 c2/s2 pattern face`);
+            } else if (element.bgPattern) throw new Error(`${slug}/${id}: expected reviewed solid cinf face`);
             const art = await api.loadCicnBuffer(api.assetUrl(theme, element.asset));
             const c = element.slice.corner;
             for (const height of [undefined, 12, 20, 32]) {
@@ -91,6 +98,9 @@ for (const mode of ['source', 'built']) test(`${mode}: unequal solid corpus face
                 for (const [sx, sy, dx, dy] of [[x, y, x, y], [art.width-c+x, y, width-c+x, y],
                   [x, art.height-c+y, x, faceHeight-c+y], [art.width-c+x, art.height-c+y, width-c+x, faceHeight-c+y]]) {
                   const expected = [...art.getPixel(sx, sy)], actual = [...output.getPixel(dx+offset, dy+offset)];
+                  // The two patterned normal faces have opaque corners; their
+                  // body pattern does not supply this corner-only expectation.
+                  if (patternedNormal && expected[3] !== 255) throw new Error('Patterned normal corner must be opaque');
                   // Transparent decoded pixels may carry irrelevant hidden RGB;
                   // alpha and every opaque color sample are the contract.
                   compared++;
@@ -111,5 +121,5 @@ for (const mode of ['source', 'built']) test(`${mode}: unequal solid corpus face
       expect(row.compared).toBeGreaterThan(0);
       expect(row.mismatched, `all four source corner blocks survive: ${JSON.stringify(row)}`).toBe(0);
     }
-  } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'solid-corpus-corners', rows }, error); throw error; }
+  } catch (error) { await attachCase(page, testInfo, { mode, oracle: 'corpus-corners', rows }, error); throw error; }
 });

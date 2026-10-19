@@ -31,6 +31,18 @@ toolchain requirement.
    acceptance case for the behavior being changed. For fidelity fixes, derive
    expected values independently from source evidence or a reviewed original
    reference with matching inputs; renderer output alone is not an oracle.
+   Prefer correcting the shared drawing or resource model over adding another
+   theme-specific exception. First check whether a mismatch reveals an incorrect
+   selection rule, typed resource identity, coordinate model, or paint operation.
+   Keep verified original behavior distinct from modern compatibility policy.
+
+   Interim overrides are acceptable when they move a demonstrated case toward
+   fidelity while the general rule remains uncertain. Record their evidence,
+   limits and reason for existing; do not present them as original-engine rules.
+   Once independent references establish the common behavior, consolidate those
+   overrides into shared implementations and single points of correction. Preserve
+   the reference cases through consolidation so simplification retains fidelity.
+
    Use the relevant unit/browser test while iterating. For chrome diagnosis,
    `npm run diag:render` and `npm run diag:audit` help inspect the result.
 

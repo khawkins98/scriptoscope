@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "evidence": "Raw selected-fork input identities, not independent decoding or historical provider proof",
+  "themes": [
+    {
+      "slug": "animals",
+      "archiveSha256": "e579b5c52d462ae6c6affa8cb504886b00da7cc15486bf2b84eff9c6360264c3",
+      "forkSha256": "247e134606b1ab6210a7cdef0ab141cf90378e2c29b3fadbd30741123faef0f5",
+      "candidates": [
+        {
+          "type": "ppat",
+          "signedId": -12239,
+          "resourceIndex": 785,
+          "presence": "present",
+          "byteLength": 454,
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f"
+        }
+      ]
+    },
+    {
+      "slug": "monkey-paradise",
+      "archiveSha256": "2694f0b976eb8928e82a55f1509537865776c5dba932d7a9f8446fe2b4fcab42",
+      "forkSha256": "6532ba12cbecfb8b820b9f172f43980de4a4927dd50f0ff6b37c41e5a27d4e70",
+      "candidates": [
+        {
+          "type": "ppat",
+          "signedId": 128,
+          "resourceIndex": 459,
+          "presence": "present",
+          "byteLength": 454,
+          "payloadSha256": "b45c140dc0d8edb45a97860e3d2da3a4ddc576342485cfc8509cec9d8844df7f"
+        }
+      ]
+    }
+  ]
+}
