@@ -159,7 +159,7 @@ in `docs/spec/apple-primary-source.md`.
 
 **The three wnd# gates (service-handler slots 3, 4, 8).** Every themed
 window operation enters the kDEF through one of these three parallel
-`Get1Resource('wnd#', -id)` routers, each scoped to a different window
+`GetResource('wnd#', -id)` routers, each scoped to a different window
 family. On hit they hand off to **slot 6 `0x28e0`** — the master
 compositor that owns the routines tabled below. On miss they fall back to
 either a system `'WDEF'` (slots 3, 8) or a private dispatch (slot 4). Full
@@ -232,7 +232,7 @@ recipe walk + draw). Its 9-entry dispatch fans out to the routines below
 | `0x10472` | **cicn loader / cache** | `GetCIcon` (`$AA1E` at `0x10434` / `0x10698`); an inline `0x148` sparse switch (`0x104ba`) caches specific control IDs in `a4`-relative slots; see the corrected [body dispatch](cinf-resize-behavior.md) | `'cicn'` `#1667851118` | the switch enumerates the cached control cicn families (see §2) |
 | `0x10420` | cicn slot fetch | `GetCIcon`-by-id into a cached slot if empty | `'cicn'` | helper for `0x10472` |
 | `0x10440` | plain ppat load | GetPixPat (`$AA0C` at `0x10460`) | `'ppat'` | mode !=5 body path |
-| `0x116f8` | **cinf loader** | `Get1Resource('cinf', id)` (`#1667853926` at `0x1171a`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; also loads paired `'pWin'` (`#1884776814`) resource for in-range ids | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
+| `0x116f8` | **cinf loader** | `GetResource('cinf', id)` (`#1667853926` at `0x1171a`, trap `$A9A0` at `0x11722`), check size (`#18`/`#56`); cicn→cinf id range check `cmpiw #-12240`/`#-12224`; also loads paired `'pWin'` (`#1884776814`) resource for in-range ids | `'cinf'` `#1667853926` | size>18 ⇒ has extended fields; size==56 ⇒ full record |
 | `0x106e6` | clut loader | loads `'clut'` (`#1668052340` = `0x636c7574`) | `'clut'` | scheme palette |
 | `0x33a8`/`0x3be4` | `'Copl'` tag | `'Copl'` (`#1131376748` = `0x436f706c`) — the kDEF's private GWorld-tagging clut handle, attached to every GWorld it allocates | `'Copl'` | NOT a scheme resource; internal marker |
 
@@ -532,6 +532,15 @@ baselines that shifted when the helper landed):
 
 ### 3.5 cinf byte layout (`0x108a0` + `0x116f8`)
 
+**Lookup before layout:** `0x10860/0x10862` restores the caller’s resource file
+before the cinf lookup. `0x1086e–0x10878` requests the same ID through `0x116f8`;
+a null result retries cinf 0 for body=true or cinf 1 for body=false at
+`0x10880–0x10898`. A second null result branches `0x1089a → 0x10fa8`, skipping
+this body/border stage. The trap is `$A9A0` **GetResource**, not `$A81F`
+**Get1Resource**. The selected cicn owner therefore does not establish the cinf
+provider. See the [conditional lookup contract](cinf-lookup-contract.md); it does
+not infer historical provider order or synthesize runtime defaults.
+
 **Authoritative source:** every bundle in the corpus ships **TMPL 129 `cinf`** — Kaleidoscope's own ResEdit/Resorcerer template that documents the byte layout the kDEF reads. Every "(?)" entry below is now resolved against TMPL 129:
 
 | byte | TMPL 129 field name | kDEF use | evidence |
@@ -645,7 +654,7 @@ rows below are not promoted to verified by that bounded correction.
 | `$AA0C` | **GetPixPat** | request pixel pattern | `0x10460`, `0xef24` |
 | `$AA14` | **RGBForeColor** | set foreground RGB | `0xfe9c`, `0xf836` |
 | `$AA15` | **RGBBackColor** | set background RGB | `0x10998`, `0x109b6` |
-| `$A9A0` | **GetResource / Get1Resource** | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x10490`, `0x11722` |
+| `$A9A0` | **GetResource** | wnd#, cicn, cinf, clut, pWin | `0x3574`, `0x10490`, `0x11722` |
 | `$A9A2` | **ReleaseResource** | free recipe handle | `0x36a6`, `0x1172e` |
 | `$A024` | **SetHandleSize** | resize loaded handle | `0x1174a`, `0x117b6` |
 | `$A01B` | **SetZone** | switch heap zone around resource loads | `0x10458`, `0x1048e` |
