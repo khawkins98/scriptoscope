@@ -346,7 +346,17 @@ hi=-8271). They reveal the control families the kDEF expects:
 >   normal·pressed) — there is NO separate inactive-arrow art;
 >   `ics4` `-14315..-14320` / `-14331..-14336` = utility / document window **widget**
 >   glyphs. These are the scheme-supplied control *pictograms*.
-> `-9488..-9504` are still derived consumer-side (not kDEF immediates). The full
+> The CICN selector at `0x7234–0x7282` explicitly adds `−9504` at `0x724c`/`0x7278`:
+> `id = −9504 + 12×kind + 3×value + tier`. Kind is checkbox0/radio1
+> (`0x6740–0x676a`); value is ControlRecord+18 (`0x71ec–0x71f0`);
+> tier is normal1/pressed2/disabled0 (`0x71f6–0x7208`, disabled wins).
+> Value2 therefore requests mixed CICN checkbox −9497/−9496/−9498 and radio
+> −9485/−9484/−9486 for normal/pressed/disabled. On a missing value2/3 CICN,
+> `0x7264` changes only value to1 before retrying at the same kind/tier.
+> This establishes selector arithmetic, not the actual provider/cache or native
+> pixel result. Public `mixed` takes precedence over `checked`; that Boolean
+> mapping is an API policy. The later active-checked compatibility fallback and
+> existing icon fallback are not certified by this arithmetic. The full
 > two-channel id→role map is the **pictogram ID rubric** rendered in
 > `demo/diagnostic.html` `iconInventory` (and reproduced for authoring in the asset catalog).
 >

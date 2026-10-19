@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Select mixed checkbox/radio CICNs before the source-defined same-tier checked fallback; preserve existing active-state and icon compatibility fallbacks. Add literal public-loader source/built state and ownership checks.
+
 - Reject resource-fork reads beyond declared data/map sections even when trailing file bytes are readable; preserve empty lists, zero-length resources and valid corpus decoding.
 
 - Extend existing push/bevel corpus checks with deduplicated tiny-height corner/side overlap cases at public width anchors, retaining all prior cases and unresolved provider/body limits (#221).
