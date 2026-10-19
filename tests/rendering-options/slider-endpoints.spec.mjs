@@ -1,8 +1,10 @@
+import {verifySliderRows} from '../rendering-requirements/slider-cases.mjs';
 import {createHash} from 'node:crypto';
 import {test,expect,openHarness,attachCase,attachObservations} from './fixtures.mjs';
 import {endpointColors,endpointFork,endpointProvider,endpointIcon} from '../decoder-fixtures/slider-endpoints.mjs';
 const sha=b=>createHash('sha256').update(b).digest('hex');
 for(const mode of ['source','built']) test(`${mode}: declared group2 slider endpoints and committed input mapping`,async({page,servers},info)=>{
+  test.info().annotations.push({type:'fidelity-assertion',description:'slider.declared-group2-endpoints'});
   await openHarness(page,servers,mode);let result;
   try {
     result=await page.evaluate(async mode=>{
@@ -10,12 +12,13 @@ for(const mode of ['source','built']) test(`${mode}: declared group2 slider endp
       const {endpointFork,endpointProvider}=await import('/tests/decoder-fixtures/slider-endpoints.mjs');
       const environment=async corner=>api.prepareCinfEnvironment({version:1,complete:true,providers:[{kind:'raw-fork',id:'layout',complete:true,bytes:endpointProvider(corner)}]});
       const load=async(corner=3,options={})=>api.loadKaleidoscopeScheme(endpointFork(options),{provenance:true,sliderLayoutEnvironment:await environment(corner)});
-      const theme=await load(),plain=await api.loadKaleidoscopeScheme(endpointFork(),{provenance:true});
+      const declared=await environment(3);
+      const theme=await api.loadKaleidoscopeScheme(endpointFork(),{provenance:true,sliderLayoutEnvironment:declared}),plain=await api.loadKaleidoscopeScheme(endpointFork(),{provenance:true});
       const rows=[],calls=[],decode=HTMLImageElement.prototype.decode;
       HTMLImageElement.prototype.decode=function(){calls.push(this.src);return decode.call(this);};
       for(const orientation of ['horizontal','vertical'])for(const state of ['normal','pressed','disabled'])for(const value of [0,.5,1]) {
-        const out=await api.composeSlider(theme,{orientation,state,length:48,value});
-        rows.push({orientation,state,value,size:[out.width,out.height],pixels:Array.from(out.data)});
+        const options={orientation,state,length:48,value},out=await api.composeSlider(theme,options);
+        rows.push({orientation,state,value,options,size:[out.width,out.height],pixels:Array.from(out.data)});
       }
       HTMLImageElement.prototype.decode=decode;
       const quarterTheme=await load(2,{along:10}),quarters=[];
@@ -74,9 +77,12 @@ for(const mode of ['source','built']) test(`${mode}: declared group2 slider endp
       fire(window,'pointermove',r.left+138,r.top+8);fire(window,'pointerup',r.left+138,r.top+8);
       const nativeResult={grabbed,value:native.value,events};handle.disconnect();root.remove();
       const provenance=theme.byteProvenance,thumbs=Object.values(theme.manifest.chromeElements).filter(e=>e.sliderLayoutCinf);
+      const thumbEntries=Object.entries(theme.manifest.chromeElements).filter(([,e])=>e.sliderLayoutCinf),layoutEnvironment=theme.manifest.sliderLayoutEnvironment;
+      const providerData={id:declared.id,data:declared.data},baseInputs=theme.base?['unexpected-base']:[],displayPolicy=theme.manifest.displayProfile?.id??'mac-1.8-to-2.2-high-byte';
       theme.dispose();plain.dispose();
-      return {rows,defaults,errors,zeroPixels,inputs,nativeResult,provenance,thumbs,calls,snapshot,baseCode,quarters};
+      return {thumbEntries,layoutEnvironment,providerData,baseInputs,displayPolicy,rows,defaults,errors,zeroPixels,inputs,nativeResult,provenance,thumbs,calls,snapshot,baseCode,quarters};
     },mode);
+    verifySliderRows(result);
     expect(result.rows).toHaveLength(18);
     const expected=(vertical,pos,state,length=48,extent=7)=>Array.from({length:length*16},(_,i)=>{
       const x=i%(vertical?16:length),y=Math.floor(i/(vertical?16:length)),axis=vertical?y:x,cross=vertical?x:y;

@@ -1,0 +1,259 @@
+{
+  "inputId": "synthetic.slider.declared-group2",
+  "definition": {
+    "fixture": {
+      "path": "tests/decoder-fixtures/slider-endpoints.mjs",
+      "sha256": "894b10cb9778d5c48e5378e8a6fc0837e500969a3d4c2bba974ed0e6972781d5"
+    },
+    "forkBuilder": {
+      "path": "tests/resource-provenance/fixtures.mjs",
+      "sha256": "cb0bbf272d191dc1486700290bef28207bb13e56862f8ba89776e84e925f477a"
+    },
+    "themeFork": {
+      "sha256": "45bd96a2cf00d2d09c3e36251a6a7807aed5dd11031fc25227514af29e5a8b93",
+      "byteLength": 1814
+    },
+    "providerData": {
+      "version": 1,
+      "complete": true,
+      "providers": [
+        {
+          "kind": "raw-fork",
+          "id": "layout",
+          "complete": true,
+          "forkSha256": "137e85cbef5e1190daf260e2cc453d838d79870f87c81690e68fa70cdde2cefe",
+          "forkByteLength": 96,
+          "resources": [
+            {
+              "signedId": -10132,
+              "occurrence": 0,
+              "byteLength": 1,
+              "sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5",
+              "status": "invalid",
+              "reason": "short-cinf"
+            },
+            {
+              "signedId": -10116,
+              "occurrence": 1,
+              "byteLength": 1,
+              "sha256": "084fed08b978af4d7d196a7446a86b58009e636b611db16211b65a9aadff29c5",
+              "status": "invalid",
+              "reason": "short-cinf"
+            }
+          ]
+        }
+      ]
+    },
+    "environmentId": "cinf-environment:de577f609de9b2ed6c4893200cfa1e6c6c6e71d5203173edc46a8d88eb422075",
+    "bindingId": "slider-layout:cinf-binding:d0e2befc9080cc9ef99b900a9c1c82a042a0f03f06662b13fa6e76ae3dd67955",
+    "displayPolicy": "mac-1.8-to-2.2-high-byte",
+    "thumbs": [
+      {
+        "orientation": "horizontal",
+        "resourceIndex": 2,
+        "signedId": -10129,
+        "type": "cicn",
+        "byteLength": 642,
+        "sha256": "3b310e37f4229d85890fc9d1146a3f6122e5871ecdb8e01f8ab648cbd7982894",
+        "size": [
+          7,
+          64
+        ],
+        "manifestKey": "cicn--10129",
+        "cinfId": -10132,
+        "providerOccurrence": 0
+      },
+      {
+        "orientation": "vertical",
+        "resourceIndex": 5,
+        "signedId": -10113,
+        "type": "cicn",
+        "byteLength": 634,
+        "sha256": "92d72faa6d8c8397c2c4cb97486d6720c652f64baf1c806ca9ea52fb2e80e234",
+        "size": [
+          64,
+          7
+        ],
+        "manifestKey": "cicn--10113",
+        "cinfId": -10116,
+        "providerOccurrence": 1
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "synthetic.slider.horizontal.group2.v0",
+      "options": {
+        "orientation": "horizontal",
+        "state": "normal",
+        "length": 48,
+        "value": 0
+      },
+      "size": [
+        48,
+        16
+      ],
+      "thumbRect": [
+        3,
+        0,
+        7,
+        16
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 0,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    },
+    {
+      "id": "synthetic.slider.horizontal.group2.v0_5",
+      "options": {
+        "orientation": "horizontal",
+        "state": "normal",
+        "length": 48,
+        "value": 0.5
+      },
+      "size": [
+        48,
+        16
+      ],
+      "thumbRect": [
+        20,
+        0,
+        7,
+        16
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 1,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    },
+    {
+      "id": "synthetic.slider.horizontal.group2.v1",
+      "options": {
+        "orientation": "horizontal",
+        "state": "normal",
+        "length": 48,
+        "value": 1
+      },
+      "size": [
+        48,
+        16
+      ],
+      "thumbRect": [
+        38,
+        0,
+        7,
+        16
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 2,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    },
+    {
+      "id": "synthetic.slider.vertical.group2.v0",
+      "options": {
+        "orientation": "vertical",
+        "state": "normal",
+        "length": 48,
+        "value": 0
+      },
+      "size": [
+        16,
+        48
+      ],
+      "thumbRect": [
+        0,
+        38,
+        16,
+        7
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 0,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    },
+    {
+      "id": "synthetic.slider.vertical.group2.v0_5",
+      "options": {
+        "orientation": "vertical",
+        "state": "normal",
+        "length": 48,
+        "value": 0.5
+      },
+      "size": [
+        16,
+        48
+      ],
+      "thumbRect": [
+        0,
+        20,
+        16,
+        7
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 1,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    },
+    {
+      "id": "synthetic.slider.vertical.group2.v1",
+      "options": {
+        "orientation": "vertical",
+        "state": "normal",
+        "length": 48,
+        "value": 1
+      },
+      "size": [
+        16,
+        48
+      ],
+      "thumbRect": [
+        0,
+        3,
+        16,
+        7
+      ],
+      "sourceAssumptions": {
+        "group": 2,
+        "corner": 3,
+        "thumbAxis": 7,
+        "cross": 16,
+        "numerator": 2,
+        "denominator": 2,
+        "positiveRange": true,
+        "noDragOverride": true
+      }
+    }
+  ]
+}

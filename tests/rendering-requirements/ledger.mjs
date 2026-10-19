@@ -1,3 +1,5 @@
+import {iconCaseIds,validateIconCase,verifyIconFixtures} from './icon-cases.mjs';
+import {sliderCaseIds,validateSliderCase,verifySliderFixtures} from './slider-cases.mjs';
 import {mixedCaseIds,validateMixedCase,verifyMixedFixtures} from './mixed-cases.mjs';
 import {bitmapCaseIds,validateBitmapCase,verifyBitmapFixtures} from './bitmap-cases.mjs';
 import {readRecordedContext,validateRecordedBinding,REQUIREMENT} from './recorded-face.mjs';
@@ -82,7 +84,15 @@ export function validateLedger(ledger, { root, read = path => readFileSync(path)
     try {verifyMixedFixtures(root);} catch(error) {check(false,error.message);}
   }
   const declared = new Map();
+  if (ledger.cases?.some(c=>sliderCaseIds.includes(c.id))) {
+    try {verifySliderFixtures(root);} catch(error) {check(false,error.message);}
+  }
+  if (ledger.cases?.some(c=>iconCaseIds.includes(c.id))) {
+    try {verifyIconFixtures(root);} catch(error) {check(false,error.message);}
+  }
   for (const c of cases.values()) {
+    if (iconCaseIds.includes(c.id)) {try {validateIconCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
+    if (sliderCaseIds.includes(c.id)) {try {validateSliderCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
     if (mixedCaseIds.includes(c.id)) {try {validateMixedCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
     if (bitmapCaseIds.includes(c.id)) {try {validateBitmapCase(c,inputs.get(c.inputs?.[0]));} catch(error) {check(false,`${c.id}: ${error.message}`);}}
     refs(c.inputs, inputs, `${c.id}.inputs`); refs(c.baseInputs, inputs, `${c.id}.baseInputs`, false);

@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.9.0 declares forty exact direct cases and seven explicit dimensions per
+Inventory 1.10.0 declares sixty-two exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -250,3 +250,54 @@ fidelity are outside this assertion. The five existing broad obligations remain
 unknown for each case. All 32 prior cases and 269 assessments remain exact; eight
 conditional obligations plus 40 unknown obligations bring the inventory to 317.
 No original capture, intake policy, request digest or original artifact changes.
+
+## Conditional group2 slider endpoints
+
+Six owned normal rows reuse the existing endpoint source/built test: horizontal
+and vertical at normalized values 0, 0.5 and 1, length 48, thumb axis 7 and cross
+16, with declared group-base corner 3. Only the conditional CDEF3 inset, direction
+and truncation geometry is verified. Literal positions are H 3/20/38 and V
+38/20/3; odd travel 35 distinguishes truncation order. The registered assertion
+binds actual options, prepared provider data, selected external cinf occurrence,
+loaded fork, exact thumb occurrence/key/decode URL and complete literal pixels.
+The full plane checks the conditional output; it does not establish original
+transfer or decoder behavior.
+
+The six cases assume a positive native range, in-range numerator and no drag
+override. Public normalization and caller range formation are not source-proven.
+The existing Windows 95 default-geometry cases remain unchanged. Actual native
+provider/cache, decoder/device, state, transfer and whole-control obligations
+stay unknown; all case closures remain OPEN. Input pins and verifier negatives
+reuse the existing test without adding compositions.
+
+`conditional-controls-transition.json` retains the exact prior inventory and all
+40 cases/317 assessments through version/digest and complete registry-prefix
+hashes. No authority, capture, catalog or reference-attestation changes apply.
+
+## Conditional checkable icon selection
+
+Sixteen existing owned rows cover checkbox/radio, declared native tier 0 or 2,
+and off, checked, mixed, or missing mixed mask with same-tier checked retry. The
+source table and mask lookup branch establish only conditional ID selection.
+Native tier/value are declared separately from public Boolean options; the
+original mapping between them remains unknown. Actual fork bytes, complete raw
+mask census, selected icon index/type/depth/URL and literal stripe output must
+join. Icons have no per-occurrence resource-observer records: occurrence evidence
+uses the loaded whole-fork hash, exact owned raw list, and actual icon index/mask
+census. Manual themes, incomplete or malformed masks, missing color variants and
+8-bit depth-policy examples remain outside this source registration.
+
+The batch adds 22 narrowly verified obligations and 110 unknown obligations:
+62 OPEN cases, 449 assessments, 81 verified and 368 unknown. No whole-control
+completion is implied. Existing browser cases and outputs supply execution;
+there are no additional render calls or original reference admissions.
+
+## Coherent delivery batches
+
+For a related family or milestone, integrate the implementation, executable
+harness and ledger assertions, and documentation before one freeze, independent
+review and final required check chain. Parallel agents should have explicit file
+ownership. Retain successful receipts when executable inputs are unchanged;
+rerun affected checks after real changes and keep required CI. This does not
+combine unrelated changes or bypass the focused logical-change guidance in
+CONTRIBUTING.

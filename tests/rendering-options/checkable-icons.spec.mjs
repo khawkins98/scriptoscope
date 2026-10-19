@@ -1,3 +1,4 @@
+import { verifyIconRows } from '../rendering-requirements/icon-cases.mjs';
 import { createHash } from 'node:crypto';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 
@@ -6,6 +7,7 @@ const ids = { checkbox: [[-10236,-10235,-10234],[-10240,-10239,-10238],[-10232,-
   radio: [[-10220,-10219,-10218],[-10224,-10223,-10222],[-10216,-10215,-10214]] };
 const sha = bytes => createHash('sha256').update(Uint8Array.from(bytes)).digest('hex');
 for (const mode of ['source','built']) test(`${mode}: checkable icon rows and mask-gated mixed retry`, async ({page,servers}, info) => {
+  test.info().annotations.push({type:'fidelity-assertion',description:'checkable.conditional-icon-selection'});
   await openHarness(page,servers,mode); let rows;
   try {
     rows=await page.evaluate(async ({mode,ids})=>{
@@ -30,7 +32,7 @@ for (const mode of ['source','built']) test(`${mode}: checkable icon rows and ma
           if(scenario==='duplicate-mask') entries.push({type:'ics#',id:mixed,data:new Uint8Array(64).fill(255)});
           if(['mask-without-color','missing-both','manual-active'].includes(scenario)) entries.splice(entries.findIndex(e=>e.id===mixed&&e.type==='ics4'),1);
           if(scenario==='depth8') { const data=new Uint8Array(256);for(let y=0;y<16;y++)data[y*16+12]=255;entries.push({type:'ics8',id:mixed,data}); }
-          const bytes=forkOf(entries), theme=await api.loadKaleidoscopeScheme(bytes);
+          const bytes=forkOf(entries), theme=await api.loadKaleidoscopeScheme(bytes,{provenance:true});
           const originalInspector=theme.inspector;
           if(['manual','manual-active'].includes(scenario)) delete theme.inspector;
           if(scenario==='unknown-census') delete theme.inspector.iconMaskResources;
@@ -40,7 +42,7 @@ for (const mode of ['source','built']) test(`${mode}: checkable icon rows and ma
           try {
             const options={label:'',disabled,checked:scenario==='checked'||scenario==='mixed-over-checked',mixed:!['off','checked'].includes(scenario)};
             const out=await api.composeCheckable(theme,kind,options);
-            rows.push({kind,disabled,scenario,options,size:out?[out.width,out.height]:null,pixels:out?Array.from(out.data):null,calls,
+            rows.push({kind,disabled,scenario,options,baseInputs:theme.base?['unexpected-base']:[],provenance:theme.byteProvenance,hasInspector:!!theme.inspector,hasMaskCensus:Array.isArray(theme.inspector?.iconMaskResources),size:out?[out.width,out.height]:null,pixels:out?Array.from(out.data):null,calls,
               index:originalInspector.iconIndex,maskResources:originalInspector.iconMaskResources,selected:originalInspector.iconIndex.filter(e=>calls.includes(e.url)),
               resources:entries.map((e,i)=>({type:e.type,id:e.id,index:i,bytes:Array.from(e.data)})),fork:Array.from(bytes)});
           } finally {HTMLImageElement.prototype.decode=decode;theme.dispose();}
@@ -66,6 +68,7 @@ for (const mode of ['source','built']) test(`${mode}: checkable icon rows and ma
       expect(row.pixels,`${row.kind}/${row.disabled}/${row.scenario}`).toEqual(expected);
       row.inputSha256=sha(row.fork);row.selectedPayloadSha256=sha(resource.bytes);
     }
+    verifyIconRows(rows);
   } catch(error) {await attachCase(page,info,{mode,rows},error);throw error;}
   // Compact passing evidence retains exact input/payload identities, not repeated fork/pixel planes.
   await attachObservations(info,'checkable-icons',mode,{mode,rows:rows.map(({fork,resources,pixels,index,...r})=>({...r,pixelSha256:pixels?sha(pixels):null})),
