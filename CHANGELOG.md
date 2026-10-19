@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Add an explicit group2 slider layout environment with independently owned cinf metadata, inset horizontal/reversed vertical endpoints and committed pointer geometry; preserve default compatibility behavior and reject unsupported inputs.
+
 - Keep slider groove cap/tile metadata attached to the actual selected resource when a missing requested state falls back to active art; add literal public-loader checks without changing endpoint policy.
 
 - Document the source-bound progress PaintRect interceptor and the unresolved upstream value-to-rectangle connection, without changing runtime behavior or fidelity status.

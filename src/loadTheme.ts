@@ -49,12 +49,14 @@ export interface ThemeMeta {
  */
 export async function loadTheme(
   bundleUrl: string,
-  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment } = {},
+  opts: { base?: LoadedTheme; source?: string; meta?: ThemeMeta; provenance?: boolean; displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment } = {},
 ): Promise<LoadedTheme> {
   const displayProfile = opts.displayProfile;
   const cinfEnvironment = opts.cinfEnvironment;
   assertCinfEnvironment(cinfEnvironment);
-  if (cinfEnvironment && opts.base) throw new CinfEnvironmentError('Cinf environment requires standalone load', 'UNSUPPORTED_CINF_ENVIRONMENT');
+  const sliderLayoutEnvironment = opts.sliderLayoutEnvironment;
+  assertCinfEnvironment(sliderLayoutEnvironment);
+  if ((cinfEnvironment || sliderLayoutEnvironment) && opts.base) throw new CinfEnvironmentError('Cinf environment requires standalone load', 'UNSUPPORTED_CINF_ENVIRONMENT');
   const base = opts.base;
   displayRealizer(displayProfile);
   assertDisplayProfileChain(base, displayProfile);
@@ -86,6 +88,7 @@ export async function loadTheme(
     meta: { name: meta.name ?? slug, ...meta },
     source: `${slug}/${fileBytes.filename}`,
     ...(cinfEnvironment ? { cinfEnvironment } : {}),
+    ...(sliderLayoutEnvironment ? { sliderLayoutEnvironment } : {}),
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
   });

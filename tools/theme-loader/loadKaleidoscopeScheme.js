@@ -9,7 +9,7 @@
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
-import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme } from './cinf-environment.js';
+import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeSliderLayoutTheme } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
 import { notifyAssetUrlReleased } from './assetLifecycle.js';
 import { convertScheme } from './convert.js';
@@ -26,6 +26,7 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  *   browser w/ OffscreenCanvas). When false, returns the raw RGBA assets instead — for
  *   Node tests or a caller doing its own encoding.
  * @property {boolean} [provenance] Opt-in immutable decoder-input byte evidence.
+ * @property {object} [sliderLayoutEnvironment] Prepared explicit standalone group2 slider layout environment.
  * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
@@ -47,11 +48,13 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   const displayProfile = options.displayProfile;
   const cinfEnvironment = options.cinfEnvironment;
   assertCinfEnvironment(cinfEnvironment);
+  const sliderLayoutEnvironment = options.sliderLayoutEnvironment;
+  assertCinfEnvironment(sliderLayoutEnvironment);
   displayRealizer(displayProfile);
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
-  if ((options.provenance || cinfEnvironment) && input instanceof Uint8Array) input = new Uint8Array(input);
-  else if ((options.provenance || cinfEnvironment) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment) && input instanceof Uint8Array) input = new Uint8Array(input);
+  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     input = new Uint8Array(new Uint8Array(input));
   }
   const bytes = await toUint8Array(input);
@@ -75,10 +78,11 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   }
   if (evidence) await evidence.selectedFork(fork, selection);
   const cinfBinding = await bindCinfEnvironment(cinfEnvironment, fork);
+  const sliderLayoutBinding = await bindCinfEnvironment(sliderLayoutEnvironment, fork);
   let converted;
   try {
     converted = convertScheme(fork, {
-      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding,
+      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, sliderLayoutBinding,
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     });
   } catch (error) {
@@ -100,6 +104,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   const encodeAssets = options.encodeAssets ?? canEncode;
   if (!encodeAssets) {
     finalizeCinfTheme(theme);
+    finalizeSliderLayoutTheme(theme);
     // Raw mode: hand back the contract + the un-encoded RGBA assets.
     return { manifest: theme, assets, iconIndex, iconMaskResources, ...(byteProvenance ? { byteProvenance } : {}) };
   }
@@ -130,6 +135,7 @@ export async function loadKaleidoscopeScheme(input, options = {}) {
   // proxy, patterns, body pattern — all stored as path strings that match an asset).
   rewriteAssetRefs(theme, urlByPath);
   finalizeCinfTheme(theme);
+  finalizeSliderLayoutTheme(theme);
 
   // Glyph map (id → URL), highest depth per id — mirrors src/loadTheme.loadGlyphMap.
   const glyphs = buildGlyphMap(iconIndex, urlByPath);
@@ -207,7 +213,7 @@ function rewriteAssetRefs(node, urlByPath) {
   if (node && typeof node === 'object') {
     for (const k of Object.keys(node)) {
       const v = node[k];
-      if (k === 'displayProfile' || k === 'bodyCinf' || k === 'cinfEnvironment') continue; // immutable condition/evidence data, never asset references
+      if (k === 'displayProfile' || k === 'bodyCinf' || k === 'cinfEnvironment' || k === 'sliderLayoutCinf' || k === 'sliderLayoutEnvironment') continue; // immutable condition/evidence data, never asset references
       // Stable derivation identity is not an asset URL. Replace this immutable
       // scalar link as a unit; never recursively rewrite its derivedPath.
       if ((k === 'sampledBandAsset' || k === 'cicnBody') && v && typeof v === 'object') {

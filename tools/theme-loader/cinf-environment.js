@@ -4,6 +4,7 @@ import { parseResourceFork } from './resource-fork.js';
 import { decodeCinf } from './decoders/cinf.js';
 import { controlColorSamples } from './kdef-color-samples.js';
 import { displayPolicy } from './display-profile.js';
+const sliderCorners = new WeakMap(); // Private first-byte observations do not change existing prepared IDs/data.
 const prepared = new WeakSet(), bindings = new WeakSet(), summaries = new WeakMap(), views = new WeakMap(), themes = new WeakMap();
 const preparedView = (value, binding, element) => { const result = freeze(value); views.set(result, { binding, element }); return result; };
 const freeze = value => { if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };
@@ -17,9 +18,14 @@ async function inventory(bytes) {
   const raw = parseResourceFork(bytes);
   const resources = await Promise.all(raw.flatMap((r, occurrence) => r.type === 'cinf' ? [(async () => {
     const common = { signedId: r.id, occurrence, byteLength: r.data.length, sha256: await digest(r.data) };
-    if (r.data.length < 18) return { ...common, status: 'invalid', reason: 'short-cinf' };
-    try { return { ...common, status: 'decoded', data: decodeCinf(r.data) }; }
-    catch { return { ...common, status: 'invalid', reason: 'cinf-decode-error' }; }
+    let resource;
+    if (r.data.length < 18) resource = { ...common, status: 'invalid', reason: 'short-cinf' };
+    else {
+      try { resource = { ...common, status: 'decoded', data: decodeCinf(r.data) }; }
+      catch { resource = { ...common, status: 'invalid', reason: 'cinf-decode-error' }; }
+    }
+    sliderCorners.set(resource, r.data.length ? r.data[0] : null);
+    return resource;
   })()] : []));
   return { forkSha256: await digest(bytes), forkByteLength: bytes.length, resources };
 }
@@ -93,7 +99,7 @@ export function snapshotBodyCinfFace(theme, element) {
   if (invalid) throw new CinfEnvironmentError('Cinf view does not belong to the actual loaded face', 'UNSUPPORTED_CINF_ENVIRONMENT');
   return { environment: loaded.environment, ...(saved ? { view: saved.view } : {}) };
 }
-function lookup(binding, id) {
+function lookup(binding, id, sliderLayout = false) {
   if (!binding.complete) return { outcome: 'unknown', reason: 'incomplete-environment' };
   for (const p of binding.providers) {
     if (!p.complete) return { outcome: 'unknown', reason: 'incomplete-provider', providerId: p.id };
@@ -102,6 +108,11 @@ function lookup(binding, id) {
     if (!matches.length) continue;
     const r = matches[0], resource = { providerId: p.id, providerKind: p.kind, forkSha256: p.forkSha256,
       occurrence: r.occurrence, signedId: r.signedId, byteLength: r.byteLength, sha256: r.sha256 };
+    if (sliderLayout) {
+      const cornerSize = sliderCorners.get(r);
+      return Number.isInteger(cornerSize) ? { outcome: 'found', resource, data: { cornerSize } }
+        : { outcome: 'invalid', reason: 'empty-layout-cinf', resource };
+    }
     return r.status === 'decoded' ? { outcome: 'found', resource, data: r.data }
       : { outcome: 'invalid', reason: r.reason, resource };
   }
@@ -131,4 +142,61 @@ export function bodyCinfView(binding, cicn, patternKeysById, profile, ambiguousP
     bgAnchor: [cd.bgPixel.x, cd.bgPixel.y], textAnchor: [cd.textPixel.x, cd.textPixel.y], embossAnchor: [cd.embossPixel.x, cd.embossPixel.y],
     colorSamples: controlColorSamples(cicn.sampleKdefRgb16, cd, profile),
   } });
+}
+
+// Separate opt-in role: CDEF3 group-base layout metadata belongs to the actual
+// group2 thumb, not the selected groove or the push/bevel body view.
+const sliderSummaries = new WeakMap(), sliderViews = new WeakMap(), sliderThemes = new WeakMap();
+export function sliderLayoutBindingSummary(binding) {
+  if (binding === undefined) return undefined;
+  if (!bindings.has(binding)) fail('Unprepared slider layout binding');
+  const summary = freeze({ environmentId: binding.environmentId, bindingId: `slider-layout:${binding.id}`,
+    themeForkSha256: binding.themeForkSha256, policy: 'caller-declared-ordered-cinf-only', scope: 'standalone-group2-slider-layout' });
+  sliderSummaries.set(summary, binding); return summary;
+}
+export function sliderLayoutCinfView(binding, cicn, ambiguousPath, element) {
+  if (!binding) return undefined;
+  const orientation = cicn.id === -10129 ? 'horizontal' : 'vertical';
+  const common = { ...sliderLayoutBindingSummary(binding), orientation, thumbId: cicn.id };
+  const finish = value => { const result = freeze(value); sliderViews.set(result, { binding, element }); return result; };
+  const attempts = [];
+  for (const id of orientation === 'horizontal' ? [-10132, -10144] : [-10116, -10128]) {
+    const { data, ...observed } = lookup(binding, id, true);
+    attempts.push({ id, ...observed });
+    if (observed.outcome === 'found') return finish({ ...common, attempts, selected: observed.resource,
+      ...(ambiguousPath ? { status: 'unsupported', reason: 'ambiguous-thumb-asset' }
+        : { status: 'ready', corner: data.cornerSize }) });
+    if (observed.outcome !== 'missing') return finish({ ...common, attempts, status: 'unsupported', reason: observed.reason });
+  }
+  // The source leaves the auxiliary field unchanged on two NULL results; there
+  // is no established initialized zero that a new declaration may safely invent.
+  return finish({ ...common, attempts, status: 'unsupported', reason: 'layout-cinf-uninitialized' });
+}
+export function finalizeSliderLayoutTheme(theme) {
+  if (!theme.sliderLayoutEnvironment) return;
+  const binding = sliderSummaries.get(theme.sliderLayoutEnvironment);
+  if (!binding) fail('Unprepared slider layout theme binding');
+  const thumbs = new Map();
+  for (const element of Object.values(theme.chromeElements ?? {})) {
+    const view = element.sliderLayoutCinf;
+    if (!view) continue;
+    const origin = sliderViews.get(view);
+    if (origin?.binding !== binding || origin.element !== element) fail('Mismatched slider thumb origin');
+    thumbs.set(element, { view, asset: element.asset, width: element.width, height: element.height,
+      sourceCicnId: element.sourceCicnId, byteProvenance: element.byteProvenance });
+  }
+  sliderThemes.set(theme, { environment: theme.sliderLayoutEnvironment, displayProfile: theme.displayProfile, thumbs });
+}
+/** Capture before decoding. A view cannot be transferred between equal-ID
+ * occurrences, cloned manifests, renamed assets or differently loaded forks. */
+export function snapshotSliderLayoutCinf(theme, element, orientation) {
+  if (!theme.sliderLayoutEnvironment && !sliderThemes.has(theme)) return undefined;
+  const loaded = sliderThemes.get(theme), saved = loaded?.thumbs.get(element);
+  const expectedId = orientation === 'horizontal' ? -10129 : orientation === 'vertical' ? -10113 : null;
+  if (!loaded || loaded.environment !== theme.sliderLayoutEnvironment || loaded.displayProfile !== theme.displayProfile
+    || !element || !saved || expectedId === null || element.sourceCicnId !== expectedId
+    || saved.view !== element.sliderLayoutCinf || saved.view.orientation !== orientation
+    || ['asset', 'width', 'height', 'sourceCicnId', 'byteProvenance'].some(key => saved[key] !== element[key]))
+    throw new CinfEnvironmentError('Slider layout view does not belong to the actual loaded group2 thumb', 'UNSUPPORTED_CINF_ENVIRONMENT');
+  return saved.view;
 }

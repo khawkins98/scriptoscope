@@ -1,5 +1,13 @@
 # Learnings
 
+## 2026-10-19 — Layout metadata has its own resource role
+
+Slider group-base cinf supplies an endpoint corner independently of selected
+groove cap/tile metadata. Its first byte can be valid when a full body cinf is
+not; two missing resources cannot establish an initialized zero. Bind each role
+to the actual loaded thumb and preserve the distinction through pointer layout.
+See [declared slider layout](docs/spec/slider-layout-cinf.md).
+
 ## 2026-10-19 — Retain metadata with fallback-selected pixels
 
 A successful fallback raster must carry its selected element. Looking metadata
