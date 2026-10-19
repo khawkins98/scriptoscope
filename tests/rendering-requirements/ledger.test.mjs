@@ -11,7 +11,12 @@ import { validateLedger, inventoryDigest, makeReport, loadIssueStates, digest } 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const original = JSON.parse(readFileSync(new URL('./ledger.json', import.meta.url)));
 const transition = JSON.parse(readFileSync(new URL('./header-sampling-transition.json', import.meta.url)));
-const historicalHeaderLedger = structuredClone(original);
+// Reconstruct the unchanged pre-mixed inventory before testing its older header transition.
+const mixedTransition = JSON.parse(readFileSync(new URL('./mixed-selection-transition.json', import.meta.url)));
+const priorMixedLedger = structuredClone(original);
+for (const [field, count] of Object.entries(mixedTransition.counts)) priorMixedLedger[field] = priorMixedLedger[field].slice(0, count);
+Object.assign(priorMixedLedger, { inventoryVersion:mixedTransition.inventoryVersion, inventorySha256:mixedTransition.inventorySha256, scope:mixedTransition.scope });
+const historicalHeaderLedger = structuredClone(priorMixedLedger);
 historicalHeaderLedger.inventoryVersion = transition.priorInventoryVersion;
 for (const [field, prior] of [['assessments', transition.priorAssessment], ['assertions', transition.priorAssertion], ['evidence', transition.priorEvidence]]) {
   const index = historicalHeaderLedger[field].findIndex(row => prior.id ? row.id === prior.id : row.caseId === prior.caseId && row.requirementId === prior.requirementId);
@@ -20,10 +25,10 @@ for (const [field, prior] of [['assessments', transition.priorAssessment], ['ass
 const copy = () => structuredClone(original);
 test('sampled-header transition preserves the complete prior ledger and changes one assessment only', () => {
   assert.equal(digest(JSON.stringify(historicalHeaderLedger, null, 2) + '\n'), transition.priorLedgerSha256);
-  const changed = original.assessments.filter((row, i) => JSON.stringify(row) !== JSON.stringify(historicalHeaderLedger.assessments[i]));
+  const changed = priorMixedLedger.assessments.filter((row, i) => JSON.stringify(row) !== JSON.stringify(historicalHeaderLedger.assessments[i]));
   assert.equal(changed.length, 1); assert.equal(changed[0].caseId, transition.priorAssessment.caseId);
   assert.equal(changed[0].requirementId, 'fill.sampled-line-color'); assert.equal(changed[0].status, 'verified');
-  assert.deepEqual(makeReport(original).requirementStatus.counts, { verified:51, mismatched:0, unsupported:0, unknown:218 });
+  assert.deepEqual(makeReport(priorMixedLedger).requirementStatus.counts, { verified:51, mismatched:0, unsupported:0, unknown:218 });
 });
 function reject(change, pattern, options = {}) {
   const ledger = copy(); change(ledger); ledger.inventorySha256 = inventoryDigest(ledger);
@@ -32,7 +37,7 @@ function reject(change, pattern, options = {}) {
 test('reviewed inventory validates and all open cases remain uncertified', () => {
   assert.deepEqual(validateLedger(original, { root }).errors, []);
   const report = makeReport(original);
-  assert.equal(report.cases.length, 32);
+  assert.equal(report.cases.length, 40);
   assert.equal(report.requirementStatus.denominator, original.assessments.length);
   assert.equal(report.cases.filter(c => c.status === 'verified').length, 0);
   assert(report.execution.assertions.every(a => a.modes.every(m => m.status === 'not run')));
@@ -154,7 +159,7 @@ test('evidence from a wholly unrelated archive or synthetic input cannot support
 });
 test('engine-wide rules and combined source-art evidence retain their bounded valid uses', () => {
   const result = validateLedger(original, { root });
-  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 269);
+  assert.deepEqual(result.errors, []); assert.equal(result.declaredCount, 317);
   assert.deepEqual(original.evidence.find(e => e.id === 'kdef.square-corners').inputs, ['engine.kaleidoscope-2.3.1-kdef0']);
   const shared = original.evidence.find(e => e.id === 'art.tab-crop');
   assert.deepEqual(shared.inputs, ['theme.1138', 'theme.1990']);
