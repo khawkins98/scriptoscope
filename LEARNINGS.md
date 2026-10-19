@@ -4449,3 +4449,12 @@ request digests include the ledger version and full authority document: freeze
 those first, then obtain metadata-only re-attestation and bind comparison evidence.
 Embedding the resulting capture hashes back into that authority would create a
 digest cycle. Original pixels/conditions need not change or be re-audited.
+
+## 2026-10-19 — Default-item selection and a painter-ring request are distinct
+
+Two conditioned System7 dialog sequences changed the public default item while
+the captured port pixels stayed identical. Removing an explicit post-setter
+erase/redraw did not explain the older v6 border. Preserve both observations:
+a successful setter and standard-filter participation do not identify the
+original internal painter or establish equivalence with `composeButton`'s
+kDEF-style ring request. See the [bounded observations](docs/research/default-dialog-transitions/2026-10-19/README.md).

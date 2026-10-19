@@ -15,6 +15,10 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Added (2026-10-19)
 
+- Preserve partial System7 default-item transition observations and clarify that
+  `ButtonOptions.default` requests a kDEF-style painter ring, independently of
+  DialogManager default selection and Return/Enter handling (#277).
+
 - Track six exact recorded-condition empty button comparisons in the requirement
   ledger, with explicit measured-profile/original-intake/paint/execution bindings.
   Original masks, typography, private selection and broad control fidelity remain
