@@ -1,0 +1,25 @@
+{
+  "inventoryVersion": "1.8.0",
+  "inventorySha256": "76c21785db1010621f0a8ec24cfd5b4880a890596c40fa637abc1f206266270c",
+  "scope": {
+    "description": "Thirty-two exact direct composition cases, including eight separately reported recorded-condition composed-pixel comparisons and two declared prepared-strike SOURCE cases; all inventory closures OPEN. Not a whole-control denominator.",
+    "dimensions": [
+      "resourceSelection",
+      "geometry",
+      "fillMask",
+      "typography",
+      "state",
+      "placement",
+      "interaction"
+    ],
+    "review": "Original eight cases and 51 assessments retained unchanged. Independent automated root/Astra review approved eight additional finite cases and 83 obligations at draft scope digest 659a655e87bbb0642aa200cf108671ec93d9e2cd00f48577bfb97cd4df1b30e3 on 2026-10-18; final digest reflects only replacement of pending review labels. All closures remain OPEN; not human capture attestation. The #289 extension preserves those sixteen cases and 134 assessments. Independent automated root/Astra review approved this exact finite #289 case/status extension on 2026-10-18 at draft scope digest 16a76c6c2c2343d378d626ffc8bf954b11a32cb5a2015718cb2ce7dd917893a0; narrow source/sample claim only, not human original-capture attestation. The #301 extension preserves all eighteen cases and150 assessments, adding four exact synthetic cases and45 obligations. Independent automated root/Astra review approved the exact applied four-case, 45-obligation extension and verifiers at commit d02935846fa816411259524b15e9934cd316becb, scope digest 4e563d0e824e9d809f22a14a735d6f64dca501bb1519ba58fc42ab3390c1e066. Final digest reflects only replacement of these review labels. Synthetic source/literal claims only; no original capture attestation."
+  },
+  "counts": {
+    "inputs": 25,
+    "evidence": 31,
+    "requirements": 34,
+    "assertions": 18,
+    "cases": 32,
+    "assessments": 269
+  }
+}

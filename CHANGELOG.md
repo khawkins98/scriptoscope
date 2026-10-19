@@ -7,6 +7,8 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+- Register eight exact owned mixed checkbox/radio selector and same-tier fallback cases in the partial requirement ledger, with actual source/built fork/occurrence/pixel joins and explicit historical-environment limits (#221).
+
 - Select mixed checkbox/radio CICNs before the source-defined same-tier checked fallback; preserve existing active-state and icon compatibility fallbacks. Add literal public-loader source/built state and ownership checks.
 
 - Reject resource-fork reads beyond declared data/map sections even when trailing file bytes are readable; preserve empty lists, zero-length resources and valid corpus decoding.
