@@ -4,6 +4,14 @@ Version **0.1.0 — DRAFT**. Inventory closure **OPEN**. API/source snapshot: `6
 
 This is a reviewable proposal for the full 18-scheme target in the [compatibility contract](fidelity-compatibility-contract.md#surfaces-and-option-classes), not a replacement contract or a claim of exhaustive acceptance. It proposes stable classes and identifies the concrete records still needed to freeze the inventory. No new tests, expected pixels, eligibility rules or verified assessments are registered here. The existing 32 cases / 269 obligations / 50 verified assessments and original-reference bindings are unchanged.
 
+A [machine-readable envelope draft](acceptance-envelope-proposal.json) now
+materializes all 18 source references × 15 families through their 33 currently
+exposed family/path bindings (594 required cells), with a newer explicit API
+snapshot. Its option domains retain omission and its unresolved combinations,
+boundaries and evidence remain OPEN/UNKNOWN. This is planning data, not registered
+tests, an exhaustive option product, or inventory closure; the historical proposal
+snapshot and existing normative/evidence registries are unchanged.
+
 ## Input authority and proposed record identity
 
 The single scheme catalog remains [source-choices.json](../../tests/control-availability/source-choices.json), all **18** `sources` entries, with no filtering by available art or evidence. Snapshot SHA-256: `2d5a74527fa2c9c3bfc2c4c486bbfb2c41b8de2690dff69e7f27145775aca487`. Each proposed cell references the registry slug and its exact archive/entry/fork identity; this document does not duplicate that catalog. Changed source choices require inventory review.
