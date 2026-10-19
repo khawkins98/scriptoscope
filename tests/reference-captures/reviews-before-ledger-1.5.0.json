@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "reviews": [
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 1,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty normal face under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request"
+        ]
+      },
+      "captureId": "windows-95.normal.v9.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+      "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI evidence review against landed scope public-api-empty-face v1 only. Directly checked sealed original artifacts, not merely submitted metadata: source/installed MacBinary resource-fork and component joins; configured Copl/FCB file identities; native invocation/procedure/variant/hilite/value0, empty title, fixed Rect, active/enabled state, full effective clip and white background; compiled source invocation and capture glue; producer build and boot-volume hashes.\n\nOriginal full-frame PNG equals retained 1228800-byte producer RGBA. Submitted160x80 port and96x36 context are exact integer crops at recorded frame coordinates; entire80x20 face retained. Both original frames viewed. Native excerpt/redaction lines and palette/gamma table bytes checked directly. Sanitized package excludes original engine/OS/ROM/emulator/font/app payloads; included binary artifacts are only observed palette and gamma tables. No Scriptoscope rendering or substituted assets generate these original images.\n\nWindows95v9 palette/producer conditions bracket the mapping batch AFTER Draw1Control. This is accepted as recorded post-draw observational context, not a pre-draw/bracketing claim or general color-transform proof.\n\nConfigured scheme is not selected-resource/cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. No public default API was invoked; this does not prove private default flags false. Producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as composited-face observation on the recorded opaque background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, private painter or whole-device fidelity claim. ZERO requirements verified; ALL FIVE request requirements remain unresolved and whole request evidence-incomplete. No renderer comparison or ledger promotion is part of this attestation.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest ec320dd515dd54815d1760eee612692679c01eda902355cad18ac44d9dc358c3; prior captureDigest a7867d6fab504c3c036cec95ae26b00e7247a14d0195b26c6c5e0008d9fa9d33; prior reviewedAt 2026-10-18T22:12:45.683Z; prior review object SHA256 bf7b32cf07f4f973797d1a1a42c31929b01da7bc269b019b8686c865acc5590b (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 1,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 0,
+          "value": 0,
+          "defaultApiInvoked": false
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty normal face under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request"
+        ]
+      },
+      "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+      "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI evidence review against landed scope public-api-empty-face v1 only. Directly checked sealed original artifacts, not merely submitted metadata: source/installed MacBinary resource-fork and component joins; configured Copl/FCB file identities; native invocation/procedure/variant/hilite/value0, empty title, fixed Rect, active/enabled state, full effective clip and white background; compiled source invocation and capture glue; producer build and boot-volume hashes.\n\nOriginal full-frame PNG equals retained 1228800-byte producer RGBA. Submitted160x80 port and96x36 context are exact integer crops at recorded frame coordinates; entire80x20 face retained. Both original frames viewed. Native excerpt/redaction lines and palette/gamma table bytes checked directly. Sanitized package excludes original engine/OS/ROM/emulator/font/app payloads; included binary artifacts are only observed palette and gamma tables. No Scriptoscope rendering or substituted assets generate these original images.\n\nSystem7v7d conditions bracket Draw1Control. Any System7 association with the later v9 profile is CROSS-RUN matching recorded palette/gamma only, not same-run or identical hidden environment.\n\nConfigured scheme is not selected-resource/cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. No public default API was invoked; this does not prove private default flags false. Producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as composited-face observation on the recorded opaque background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, private painter or whole-device fidelity claim. ZERO requirements verified; ALL FIVE request requirements remain unresolved and whole request evidence-incomplete. No renderer comparison or ledger promotion is part of this attestation.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest 3d8e4d9a9b778e9c4bce6784cf0533400343e2977d3656061751267d6ddcd4cc; prior captureDigest d4b659cb023abf44ca7506e4e11a6a2a7f10a516237b5604a793b2e163785816; prior reviewedAt 2026-10-18T22:12:45.683Z; prior review object SHA256 66b2c2560d5de5b19969d531cef1b087dd5a4b33565e41cfc9745381dd7eafec (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 2,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty logically highlighted face after HiliteControl(10) in an active window under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window"
+        ]
+      },
+      "captureId": "windows-95.pressed.v10w.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+      "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI scope/evidence review under public-api-empty-face v2 only. Candidate image, source/installation/configured-file, native invocation/state, clip/palette/gamma and capture bindings match the previously independently reviewed sealed v10 observation. Sanitized retained lines and redaction digests bind to that observation; full frame and exact port/context PNG hashes are unchanged. Original producer RGBA/frame equality and integer crops were established in that prior factual review, not inferred from modern renderer output.\n\nActual public NewControl(proc0), Draw1Control and HiliteControl(10) are recorded with variant/value0, empty fixed80x20 Rect and active window. Hilite10 means logical control highlight, not a physical held mouse gesture. Hilite255 means disabled control in an active window, not an inactive window. No public default API was invoked; private default flags remain unknown.\n\nConditions bracket the public draw. The v9 measured-profile relationship is cross-run equality of recorded palette/gamma bytes only, not identical hidden environment or a universal color-transfer algorithm. Modern comparison files were not used to authenticate original capture pixels or determine this review verdict.\n\nThe inherited System7 subject in the original Win95 wrapper is incorrect and retained with a correction sidecar. Independent visible/native V10W nonce and sequence, public Copl/FCB Windows95 fileID440 and exact stopped canonical scheme fork establish the configured Windows95 environment. The static wrapper label is not theme/state authority.\n\nConfigured file and actual CDEF/WDEF wrapper identities do not establish selected original cicn/cinf/private painter or cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. OS identity is a copied preboot volume hash, not an isolated System-file hash; producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as the recorded composited face on an opaque white background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, physical gesture, inactive-window or whole-device claim. ZERO requirements verified; ALL FIVE target requirements remain unresolved and the whole request remains evidence-incomplete. No ledger promotion. Original engine/OS/ROM/font/emulator/app payloads are excluded from the candidate intake; retained original binary support is limited to palette/gamma tables.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest 2e1a00f7d9ae82095f5b79ace876a7664a9337fbc3638fba538a9f453270efbd; prior captureDigest 76d7a3875c3c3816411bcc4605e83e63b8d578e417cd54ff448d20857e421b66; prior reviewedAt 2026-10-18T23:18:04.872Z; prior review object SHA256 a47a2c930fae0def60a587862460f396920400042a547229d5e667ad147fcdf3 (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 2,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty disabled face after HiliteControl(255) in an active window under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window"
+        ]
+      },
+      "captureId": "windows-95.inactive.v10w.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+      "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI scope/evidence review under public-api-empty-face v2 only. Candidate image, source/installation/configured-file, native invocation/state, clip/palette/gamma and capture bindings match the previously independently reviewed sealed v10 observation. Sanitized retained lines and redaction digests bind to that observation; full frame and exact port/context PNG hashes are unchanged. Original producer RGBA/frame equality and integer crops were established in that prior factual review, not inferred from modern renderer output.\n\nActual public NewControl(proc0), Draw1Control and HiliteControl(255) are recorded with variant/value0, empty fixed80x20 Rect and active window. Hilite10 means logical control highlight, not a physical held mouse gesture. Hilite255 means disabled control in an active window, not an inactive window. No public default API was invoked; private default flags remain unknown.\n\nConditions bracket the public draw. The v9 measured-profile relationship is cross-run equality of recorded palette/gamma bytes only, not identical hidden environment or a universal color-transfer algorithm. Modern comparison files were not used to authenticate original capture pixels or determine this review verdict.\n\nThe inherited System7 subject in the original Win95 wrapper is incorrect and retained with a correction sidecar. Independent visible/native V10W nonce and sequence, public Copl/FCB Windows95 fileID440 and exact stopped canonical scheme fork establish the configured Windows95 environment. The static wrapper label is not theme/state authority.\n\nConfigured file and actual CDEF/WDEF wrapper identities do not establish selected original cicn/cinf/private painter or cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. OS identity is a copied preboot volume hash, not an isolated System-file hash; producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as the recorded composited face on an opaque white background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, physical gesture, inactive-window or whole-device claim. ZERO requirements verified; ALL FIVE target requirements remain unresolved and the whole request remains evidence-incomplete. No ledger promotion. Original engine/OS/ROM/font/emulator/app payloads are excluded from the candidate intake; retained original binary support is limited to palette/gamma tables.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest 935ff2f351c1986568350d1da846f76a56232dba4eebb4455f7ffbac95e19a7e; prior captureDigest 29738c44a05192cb5beed0c929df5357d277ae1e0b64e9b753b2989ea48b9415; prior reviewedAt 2026-10-18T23:18:04.872Z; prior review object SHA256 5d618235a94a9793899ce9c68c60627b3caf574a8660e58212f6b35471eb2341 (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 2,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty logically highlighted face after HiliteControl(10) in an active window under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window"
+        ]
+      },
+      "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+      "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI scope/evidence review under public-api-empty-face v2 only. Candidate image, source/installation/configured-file, native invocation/state, clip/palette/gamma and capture bindings match the previously independently reviewed sealed v10 observation. Sanitized retained lines and redaction digests bind to that observation; full frame and exact port/context PNG hashes are unchanged. Original producer RGBA/frame equality and integer crops were established in that prior factual review, not inferred from modern renderer output.\n\nActual public NewControl(proc0), Draw1Control and HiliteControl(10) are recorded with variant/value0, empty fixed80x20 Rect and active window. Hilite10 means logical control highlight, not a physical held mouse gesture. Hilite255 means disabled control in an active window, not an inactive window. No public default API was invoked; private default flags remain unknown.\n\nConditions bracket the public draw. The v9 measured-profile relationship is cross-run equality of recorded palette/gamma bytes only, not identical hidden environment or a universal color-transfer algorithm. Modern comparison files were not used to authenticate original capture pixels or determine this review verdict.\n\nConfigured file and actual CDEF/WDEF wrapper identities do not establish selected original cicn/cinf/private painter or cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. OS identity is a copied preboot volume hash, not an isolated System-file hash; producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as the recorded composited face on an opaque white background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, physical gesture, inactive-window or whole-device claim. ZERO requirements verified; ALL FIVE target requirements remain unresolved and the whole request remains evidence-incomplete. No ledger promotion. Original engine/OS/ROM/font/emulator/app payloads are excluded from the candidate intake; retained original binary support is limited to palette/gamma tables.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest d10f1260d44304e20d9f787edb9a0dba7960c7c43fb2b28277cdb6f7608d51bd; prior captureDigest 0f5adcd6947e8743a3e8558b54a8c6c326be9db773f87bdffbe66c2c06279359; prior reviewedAt 2026-10-18T23:18:04.872Z; prior review object SHA256 f8670666a1b4e699cf6d9fc772b64faca19aa368c68145791016c7449151a2fc (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 2,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty disabled face after HiliteControl(255) in an active window under the observed public invocation, environment and background.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window"
+        ]
+      },
+      "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+      "verdict": "accepted",
+      "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+      "reviewedAt": "2026-10-18T23:55:43.305Z",
+      "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+      "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
+      "targetRequirementIds": [
+        "geometry.remaining",
+        "fill.remaining"
+      ],
+      "checks": {
+        "originalEnvironment": true,
+        "installationAndConfiguredSource": true,
+        "publicInvocation": true,
+        "recordedPixelConditions": true,
+        "conditionsAndTransform": true,
+        "imageAndArtifacts": true,
+        "independentOfScriptoscope": true,
+        "scopeAndLimits": true
+      },
+      "notes": "Independent AI scope/evidence review under public-api-empty-face v2 only. Candidate image, source/installation/configured-file, native invocation/state, clip/palette/gamma and capture bindings match the previously independently reviewed sealed v10 observation. Sanitized retained lines and redaction digests bind to that observation; full frame and exact port/context PNG hashes are unchanged. Original producer RGBA/frame equality and integer crops were established in that prior factual review, not inferred from modern renderer output.\n\nActual public NewControl(proc0), Draw1Control and HiliteControl(255) are recorded with variant/value0, empty fixed80x20 Rect and active window. Hilite10 means logical control highlight, not a physical held mouse gesture. Hilite255 means disabled control in an active window, not an inactive window. No public default API was invoked; private default flags remain unknown.\n\nConditions bracket the public draw. The v9 measured-profile relationship is cross-run equality of recorded palette/gamma bytes only, not identical hidden environment or a universal color-transfer algorithm. Modern comparison files were not used to authenticate original capture pixels or determine this review verdict.\n\nConfigured file and actual CDEF/WDEF wrapper identities do not establish selected original cicn/cinf/private painter or cache ownership. Font realization, complete patch/base/search order, selected provider/cache and private default state remain explicitly unknown. OS identity is a copied preboot volume hash, not an isolated System-file hash; producer semantic release and clean-shutdown acknowledgment remain unestablished.\n\nAccepted only as the recorded composited face on an opaque white background. No alpha/mask, font independence, automatic sizing, other states, margins/rings, physical gesture, inactive-window or whole-device claim. ZERO requirements verified; ALL FIVE target requirements remain unresolved and the whole request remains evidence-incomplete. No ledger promotion. Original engine/OS/ROM/font/emulator/app payloads are excluded from the candidate intake; retained original binary support is limited to palette/gamma tables.\n\nMetadata-only amendment: compatibility authority0.1.10 and ledger1.4.0 change the bound request identity. Independently confirmed that only capture.requestDigest changes; original image/artifact bytes, conditions, source, scope and all13 request definitions are unchanged. Prior independent factual review is carried forward, not repeated. Prior requestDigest 2a3252be0320ecd42131250ead80f3cdcc0914d16c79079643f7c71650cf1596; prior captureDigest 199ed535b7b515c21edb430a745902da2202a35a0fab3a1d6ddbca4ed8b6c3d3; prior reviewedAt 2026-10-18T23:18:04.872Z; prior review object SHA256 4c5283aa6aac3db0f23b0192c68457e29894208c5dad451190c634be174c2582 (JSON.stringify encoding). The complete preceding review corpus is preserved with SHA256 8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca. ZERO intake requirements are verified and ALL FIVE broader request targets remain unresolved. Separate ledger recorded-output comparisons do not expand this capture attestation."
+    }
+  ]
+}

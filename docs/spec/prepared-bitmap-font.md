@@ -86,5 +86,7 @@ it. It never contains masks or font bytes.
 Repository fixtures are synthetic owned glyphs. The separate
 [quarantined native observation](../research/control-label-observations/2026-10-19/README.md)
 is conditional evidence, not an admitted reference or proof that an original
-control selected the private candidate font/provider. This feature changes no
-reference admission, compatibility authority or requirement-ledger status.
+control selected the private candidate font/provider. The runtime feature does not admit that observation. Ledger 1.5.0 separately
+registers two owned synthetic SOURCE cases for declared identity, source pen and
+literal paint only; original typography/provider/transfer remain unknown. See
+[ledger evidence](../../tests/rendering-requirements/EVIDENCE.md#prepared-synthetic-strike-two-finite-source-cases).

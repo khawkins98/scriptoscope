@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.4.0 declares twenty-eight exact direct cases and seven explicit dimensions per
+Inventory 1.5.0 declares thirty exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -181,3 +181,22 @@ freeze authority text first, recompute requests/capture digests, obtain explicit
 metadata-only review amendments, then bind evidence and inventory hashes. Do not
 put those resulting hashes into the authority document or broad request targets:
 that would create a digest cycle. Original artifact/condition bytes stay unchanged.
+
+## Prepared-strike SOURCE scope (1.5.0)
+
+Two existing direct push renders register three finite obligations each: exact
+caller-declared synthetic strike identity, source-metric signed pen and literal
+mask paint. The X/space DATA and expected coordinates are independent of runtime
+layout helpers. Automatic local sizing is a compatibility policy; the negative
+origin/overhang case uses an explicit synthetic clip. Full clipped nontransparent
+pixels and automatic nonwhite opaque pixels are checked; occupancy records describe
+mask stages before foreground overwrites. No original font/provider, transfer,
+device, port or typography claim follows. Existing lifetime tests remain guards.
+
+All thirty inventories remain OPEN: 257 obligations, 48 narrowly verified, one
+unsupported, 208 unknown. The previous 28 cases/231 assessments and requirement
+definitions retain their semantics; only six recorded-comparison digest bindings
+are refreshed after authority 0.1.11 freezes. Request definitions/artifacts remain
+unchanged. Independent metadata-only amendments are required before intake passes.
+Actual source/built markers, exact test path and clean current execution remain
+necessary; dirty or missing evidence is not run.

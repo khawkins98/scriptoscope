@@ -4468,3 +4468,13 @@ A bitmap strike must preserve signed bearings and overhang until face/port clip;
 allocating only advance×lineHeight loses valid pixels. A content-derived prepared
 font ID binds caller data, not the original selected provider. The opt-in path
 keeps browser glyph defaults unchanged; see [the finite contract](docs/spec/prepared-bitmap-font.md).
+
+## Prepared-strike identity is not original typography
+
+A content-addressed caller strike and successful paint trace can bind an exact
+synthetic mask/metrics declaration. They cannot establish the original font
+provider or transfer policy. Register literal pixel/occupancy expectations and
+source-derived signed pen arithmetic separately, preserving negative bearings
+until face/port clipping. Existing renders supply execution; no extra matrix is
+needed. Authority text must freeze before refreshing capture digests, and an
+independent reviewer owns metadata-only amendments.
