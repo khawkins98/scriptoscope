@@ -1,0 +1,5 @@
+{
+  "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+  "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+  "evidence": "capture-log.json same-run Copl/FCB volume-2,parent2,file19; configured-source-bindings.json stopped canonical fork equality. Configured file, not private selected-paint ownership."
+}

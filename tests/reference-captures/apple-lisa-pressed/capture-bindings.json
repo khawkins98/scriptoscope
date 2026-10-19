@@ -1,0 +1,55 @@
+{
+  "originalIndexSha256": "4cc736c2379428363e0c111b38e153328972ca4884dc2c1c2b90623044bd0998",
+  "originalCaptureReceiptSha256": "51a95d3eb7cd80fdf19041c78c8d9ef3c5509648a1fc59812c8c73f241c610e9",
+  "finalAcquisitionResultSha256": "c28bce3391463629bfc84788ff73324435fa2cdaed36e5787a6d3836f3c7fa25",
+  "rawProducer": {
+    "bytes": 1228800,
+    "sha256": "2454d0b1bcc72ca7d79ef4400e58e5917c0976aeffc291c94c7bd407a5dfd78b"
+  },
+  "rawPngEqualityBytes": 1228800,
+  "rawRepeatedChangedBytes": 0,
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "faceFrameBoxLTRB": [
+    100,
+    110,
+    180,
+    130
+  ],
+  "nonce": "L18H-6afc37e6e0",
+  "sequence": 1,
+  "nativeFilename": "L18H-000000e3-001.txt",
+  "exportMethod": "Normal stopped HFS data-fork export; no carving",
+  "actualExportBytes": 19656,
+  "fileManagerStatuses": {
+    "write": 0,
+    "short": 0,
+    "close": 0,
+    "flush": 0,
+    "reopen": 0,
+    "GetEOF": 0,
+    "readClose": 0,
+    "expectedBytes": 19656,
+    "writtenBytes": 19656,
+    "readbackEOF": 19656
+  },
+  "fileManagerStatusImageSha256": "c1302a7b01cbfdfb7e996f23ffd3afff2f862602a9fdcbe6210abd41bdbb6f3c",
+  "shutdown": {
+    "normalGuestShutdownMenuRequested": true,
+    "workerExitConfirmation": "UNKNOWN; no explicit worker exit event",
+    "browserServerClosed": true,
+    "hfsUnmounted": true
+  },
+  "initialCapturePendingFields": "Original private frame receipt retains exportPending; final acquisition result supplies later stopped export/crop joins.",
+  "noNewMappingQueries": true
+}

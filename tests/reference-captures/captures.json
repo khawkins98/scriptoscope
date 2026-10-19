@@ -2828,6 +2828,1570 @@
           }
         ]
       }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "crayon-os.pressed.c18h",
+      "kind": "independent-original",
+      "requestId": "crayon-os.pressed",
+      "requestDigest": "3a06217803f11c88c7cef75c97b388b0feace06f9cc53f3b9d68e5b4397df63d",
+      "source": {
+        "slug": "crayon-os",
+        "path": "themes/crayon-os/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+        "entryIndex": 0,
+        "entryName": "Crayon OS Folder/Crayon OS",
+        "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"Crayon OS Folder/Crayon OS\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "crayon-os"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "pressed",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "1f15cf68b4042d08064f2ceea19fb99e95855129c21b579f6d09ffb6d5f6ee25",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "enabled": true,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(10); actual GetControlVariant0 and ControlRecord telemetry. Logical HiliteControl(10) highlight, not a physical held mouse gesture."
+        },
+        "captureMethod": "Direct private BasiliskII producer RGBA plane, unchanged canvasPNG, exact integer port crop; no resampling/color conversion; raw plane comparison and native nonce bound.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics observed with an empty title; actual glyph/provider realization not established.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+            "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+            "evidence": "capture-log.json same-run Copl/FCB volume-2,parent2,file18; configured-source-bindings.json stopped canonical fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "pressed",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "BasiliskII.js",
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "reference.ts",
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "sha256": "aa2fcd669db72ee6f47fd34837c2cebddc79cede76f4f6c085995aec97ea5b01"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "emulator-worker-types.ts",
+                "sha256": "0d5e297cba8c7d74ae9c477e8b675935e67edda5d609371d7b347943ff1791f5"
+              },
+              {
+                "name": "ethernet.ts",
+                "sha256": "dbf2023b7b6ae1112ca79875cb9dba3bcd848e00fe72b881c4cafa7a8ccfcb8c"
+              },
+              {
+                "name": "capture-frame.mjs",
+                "sha256": "eafd58b18f8fbc1d40c79d89ab644e628cba5922ead21ad05d5285d855b32a68"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Recorded indexed8 device ColorTable and actual status8 gamma table, with same-run GetCPixel body/edge/RGBWK observations. No color-mapping queries or universal conversion formula; no original painter/provider attribution.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl; fixed state already established before this observed redraw.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "ee174db0d5153691af0a479935744d51e765837a32bc5a704db8f60ee696ac1d",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "crayon-os-pressed/port.png",
+        "sha256": "9bc5586e8dbd8eab86ee4262da07e8c429a32911d87cc26f1b7765787223bcc9",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex frontend agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T12:32:52.894Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas/full-frame and integer crops, complete normal stopped HFS telemetry export. AI capture/preparation and independent automated acquisition review; scope attestation remains separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "crayon-os-pressed/capture-log.json",
+            "sha256": "aeefd53875c9ee002d2b9b2a86c3f6ec0894f36c4af003e2142799f3ff3d4df7"
+          },
+          {
+            "role": "source-bindings",
+            "path": "crayon-os-pressed/configured-source-bindings.json",
+            "sha256": "dc30090d399f395fb30f46f36991654bde522f70cd0b04e4c0c64f695e5a394b"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "crayon-os-pressed/configured-scheme.json",
+            "sha256": "e3e9eacf366fec3f31921eb01b29de79599d210d6422cc0b8c677fb074eb15a9"
+          },
+          {
+            "role": "public-invocation",
+            "path": "crayon-os-pressed/public-invocation.json",
+            "sha256": "3d242e6d7683582f261e71ddd45bebadea83a8e69850d06d4fd9bd299c97ce12"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "crayon-os-pressed/public-invocation-supplement.json",
+            "sha256": "80fd1a00d7f5b8be8a5eebd0e9cc15c42a744264bc2afeb3841ba071c965b525"
+          },
+          {
+            "role": "producer-identities",
+            "path": "crayon-os-pressed/producer-identities.json",
+            "sha256": "34e6f0c644ef04f0736196643d7699ed001a2a6439bb4ab57109a40207a3ed8d"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "crayon-os-pressed/pixel-conditions.json",
+            "sha256": "e41c2f1a139f1f4680113d8373ad0f9a477224bd4cc6d39a4f7796930b76e1d1"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "crayon-os-pressed/pixel-conditions-supplement.json",
+            "sha256": "7ab066d539f971c811edde9f134d3c762719dca9bfe8061732c73dfd296e112a"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "crayon-os-pressed/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "crayon-os-pressed/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "crayon-os-pressed/full-frame.png",
+            "sha256": "ee174db0d5153691af0a479935744d51e765837a32bc5a704db8f60ee696ac1d"
+          },
+          {
+            "role": "context-crop",
+            "path": "crayon-os-pressed/context.png",
+            "sha256": "5cb78d9bb29a87d6b873543fd92c78c970690712d808d9946f5914d9abfa39e7"
+          },
+          {
+            "role": "face-crop",
+            "path": "crayon-os-pressed/face.png",
+            "sha256": "2845344e552ed2011c51488c40ba3885e616f7b59f6b084d6e908a0c4cf064a6"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "crayon-os-pressed/capture-bindings.json",
+            "sha256": "287c1b6b89391583fececed9a3f70c743bf0df0d7a257c3a52b59321e45f5424"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "crayon-os-pressed/environment.json",
+            "sha256": "a59ee582eabfc4bf5a3f0e8f76435cd4f03ecc8829f45b544fa0f9de93c7d874"
+          },
+          {
+            "role": "durability-status",
+            "path": "crayon-os-pressed/durable-status.png",
+            "sha256": "d69433d4d7c63cd677a114ccb55da45e20da731a47e775822e74c5ba0abc3ee5"
+          },
+          {
+            "role": "fixture-source-excerpt",
+            "path": "crayon-os-pressed/fixture-source-excerpt.json",
+            "sha256": "46927f8ae5ad7241b00defdc5bd79e69c54a70544a08d68e8930c32276223a04"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "four-state-profile-calibration.json",
+            "sha256": "d614da8bf908c1a0fd59f5d9be124269fadb2f3d3bab005e03535ffd66040317"
+          }
+        ]
+      }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "crayon-os.inactive.c18d",
+      "kind": "independent-original",
+      "requestId": "crayon-os.inactive",
+      "requestDigest": "bbbf3adf5ceb1f9efa017ac61605aede355e58840671a69d6dedfaba1ad7dbca",
+      "source": {
+        "slug": "crayon-os",
+        "path": "themes/crayon-os/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+        "entryIndex": 0,
+        "entryName": "Crayon OS Folder/Crayon OS",
+        "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"Crayon OS Folder/Crayon OS\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "crayon-os"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "inactive",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": false,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "685544b445e3e3039ee160c71d6f4fd1118820529dceb56fa71ac5cf0117457a",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "enabled": false,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(255); actual GetControlVariant0 and ControlRecord telemetry. HiliteControl(255) disables the control in an active window; not an inactive-window observation."
+        },
+        "captureMethod": "Direct private BasiliskII producer RGBA plane, unchanged canvasPNG, exact integer port crop; no resampling/color conversion; raw plane comparison and native nonce bound.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics observed with an empty title; actual glyph/provider realization not established.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+            "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+            "evidence": "capture-log.json same-run Copl/FCB volume-2,parent2,file18; configured-source-bindings.json stopped canonical fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "inactive",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "BasiliskII.js",
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "reference.ts",
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "sha256": "fea15d5b39035600adaf46dbff1ae5ff989c511c2613b43bf1ab0c5edc1de113"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "emulator-worker-types.ts",
+                "sha256": "0d5e297cba8c7d74ae9c477e8b675935e67edda5d609371d7b347943ff1791f5"
+              },
+              {
+                "name": "ethernet.ts",
+                "sha256": "dbf2023b7b6ae1112ca79875cb9dba3bcd848e00fe72b881c4cafa7a8ccfcb8c"
+              },
+              {
+                "name": "capture-frame.mjs",
+                "sha256": "05bff2603958bc9d5f6883a6f1155d6d4067468b54d8d62751a65251cee01814"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Recorded indexed8 device ColorTable and actual status8 gamma table, with same-run GetCPixel body/edge/RGBWK observations. No color-mapping queries or universal conversion formula; no original painter/provider attribution.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl; fixed state already established before this observed redraw.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "6e3c200d865fa81ab057390f8792e688d8dc06ef84721a43abbb6ac148fac81a",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "crayon-os-inactive/port.png",
+        "sha256": "ebbafb5a165e2401d2149208383653942d3c31486962aa807f4eeb38b159a61b",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex frontend agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T12:41:05.401Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas/full-frame and integer crops, complete normal stopped HFS telemetry export. AI capture/preparation and independent automated acquisition review; scope attestation remains separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "crayon-os-inactive/capture-log.json",
+            "sha256": "4f04d2b8c7f15e0efa542040634a36016fd14be445e96e2b7e1ef91921d81168"
+          },
+          {
+            "role": "source-bindings",
+            "path": "crayon-os-inactive/configured-source-bindings.json",
+            "sha256": "dc30090d399f395fb30f46f36991654bde522f70cd0b04e4c0c64f695e5a394b"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "crayon-os-inactive/configured-scheme.json",
+            "sha256": "e3e9eacf366fec3f31921eb01b29de79599d210d6422cc0b8c677fb074eb15a9"
+          },
+          {
+            "role": "public-invocation",
+            "path": "crayon-os-inactive/public-invocation.json",
+            "sha256": "32d99de32cfaffaddf32eb4b4ced1e561c9d546134a1bbe4705864df09e90cac"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "crayon-os-inactive/public-invocation-supplement.json",
+            "sha256": "4f2b96688724dcd0e3b092d218afdc9da9696b8893e99e7f7b38394248b210ee"
+          },
+          {
+            "role": "producer-identities",
+            "path": "crayon-os-inactive/producer-identities.json",
+            "sha256": "181da937cbe2a67bb476edfc6660f1365e85d9fbc95d2e4ccbeaefcf62d0128a"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "crayon-os-inactive/pixel-conditions.json",
+            "sha256": "d46bcf6221b33251804ab834d16d6ec4cf575476b17e7922c8f3c30925faade1"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "crayon-os-inactive/pixel-conditions-supplement.json",
+            "sha256": "02eb0fcf16b1282da7a1dd01a37b471bb5582e0263db94c5b2eddbef445bb75d"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "crayon-os-inactive/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "crayon-os-inactive/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "crayon-os-inactive/full-frame.png",
+            "sha256": "6e3c200d865fa81ab057390f8792e688d8dc06ef84721a43abbb6ac148fac81a"
+          },
+          {
+            "role": "context-crop",
+            "path": "crayon-os-inactive/context.png",
+            "sha256": "e582237b0813acb6aaee2d695a22acd3f487411dcff5a293cbbdabf5d70dd94f"
+          },
+          {
+            "role": "face-crop",
+            "path": "crayon-os-inactive/face.png",
+            "sha256": "9175a1b13a3ed433146f52045ca3b9138a91890708179eb2ad74474ad75f27b8"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "crayon-os-inactive/capture-bindings.json",
+            "sha256": "b9bc96187378a676f7087a06dcc67b6dc5045c434ae3ac7bf295472dfeac00e1"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "crayon-os-inactive/environment.json",
+            "sha256": "8ee64c229cdd5c17acc7d8e13c9b84cff62abac77b4fdd5397d94b3b8f7fe2ac"
+          },
+          {
+            "role": "durability-status",
+            "path": "crayon-os-inactive/durable-status.png",
+            "sha256": "ab763094b901044cb231bb95f30154b63149e305c50ccb4cae3f20551172db50"
+          },
+          {
+            "role": "fixture-source-excerpt",
+            "path": "crayon-os-inactive/fixture-source-excerpt.json",
+            "sha256": "3e524ff5cb1d9963259215c342aaf6da4eb7290c4cb56839ebc7523d4e7bd5c0"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "four-state-profile-calibration.json",
+            "sha256": "d614da8bf908c1a0fd59f5d9be124269fadb2f3d3bab005e03535ffd66040317"
+          }
+        ]
+      }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": true,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "apple-lisa.pressed.l18h",
+      "kind": "independent-original",
+      "requestId": "apple-lisa.pressed",
+      "requestDigest": "863ab9b718c50864f9f985647b1898540985e3c54626c64a4e49661508226c95",
+      "source": {
+        "slug": "apple-lisa",
+        "path": "themes/apple-lisa/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+        "entryIndex": 0,
+        "entryName": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+        "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "apple-lisa"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "pressed",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": true,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "5bc191f408a6ec754db95eb549c9703c7c748bdfb1056c32c723a30800d43ec7",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 10,
+          "value": 0,
+          "enabled": true,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(10); actual GetControlVariant0 and ControlRecord telemetry. Logical HiliteControl(10) highlight, not a physical held mouse gesture."
+        },
+        "captureMethod": "Direct private BasiliskII producer RGBA plane, unchanged canvasPNG, exact integer port crop; no resampling/color conversion; raw plane comparison and native nonce bound.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics observed with an empty title; actual glyph/provider realization not established.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+            "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+            "evidence": "capture-log.json same-run Copl/FCB volume-2,parent2,file19; configured-source-bindings.json stopped canonical fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "pressed",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "BasiliskII.js",
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "reference.ts",
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "sha256": "f7a09702a3516fa0db3416e349ec07671304006a1db7d330cc9c996b2cd7d02d"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "emulator-worker-types.ts",
+                "sha256": "0d5e297cba8c7d74ae9c477e8b675935e67edda5d609371d7b347943ff1791f5"
+              },
+              {
+                "name": "ethernet.ts",
+                "sha256": "dbf2023b7b6ae1112ca79875cb9dba3bcd848e00fe72b881c4cafa7a8ccfcb8c"
+              },
+              {
+                "name": "capture-frame.mjs",
+                "sha256": "fd5a89338d77699ddbdd411d6df2cb0459d3f5dbc5bc8d801f0adfc0fca49f4b"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Recorded indexed8 device ColorTable and actual status8 gamma table, with same-run GetCPixel body/edge/RGBWK observations. No color-mapping queries or universal conversion formula; no original painter/provider attribution.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl; fixed state already established before this observed redraw.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "d9ccced9ea63f5f38bb8937861d10fc10ca30c3e64c75ea59921534345e3cbca",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "apple-lisa-pressed/port.png",
+        "sha256": "bd1540ee42dc7701fbed9e88863c00fc016cd386f73b2cb4fd7880341346e42f",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex frontend agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T12:43:19.286Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas/full-frame and integer crops, complete normal stopped HFS telemetry export. AI capture/preparation and independent automated acquisition review; scope attestation remains separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "apple-lisa-pressed/capture-log.json",
+            "sha256": "f6724b4a39c07dc71430e92567cd302c0eb40bbe6f7f6b0f42ad7b9052084c2b"
+          },
+          {
+            "role": "source-bindings",
+            "path": "apple-lisa-pressed/configured-source-bindings.json",
+            "sha256": "5f354f73833a46da0d2f2509c1a9ddc3d1dd370159100561730e049323a9d5aa"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "apple-lisa-pressed/configured-scheme.json",
+            "sha256": "a3cfb9ebb984b11c0e290ccdbcaeba85f50c0d49150e89da443b66b085a92cc8"
+          },
+          {
+            "role": "public-invocation",
+            "path": "apple-lisa-pressed/public-invocation.json",
+            "sha256": "74873144dd2e3a42866ff87e1d633480d2de4c26f62064d1d26ff870502fc308"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "apple-lisa-pressed/public-invocation-supplement.json",
+            "sha256": "ff0e3807d67b9adb63a5c76b4bfe2c882706e531b1ed3549bf929f8406f0148d"
+          },
+          {
+            "role": "producer-identities",
+            "path": "apple-lisa-pressed/producer-identities.json",
+            "sha256": "c8fb4d30b67d4509e72f93bfdb79cc2cdc4606f1335bdb5dc97a0b04edca3b0c"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "apple-lisa-pressed/pixel-conditions.json",
+            "sha256": "25d2cd7f502084314ec250df2cd233351a2889fdec571b235dafdc74c30669a3"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "apple-lisa-pressed/pixel-conditions-supplement.json",
+            "sha256": "f3d361038fa9c7095f55bbd0705fd74e5f2d965ea5e13b75935f8ea091eb94c0"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "apple-lisa-pressed/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "apple-lisa-pressed/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "apple-lisa-pressed/full-frame.png",
+            "sha256": "d9ccced9ea63f5f38bb8937861d10fc10ca30c3e64c75ea59921534345e3cbca"
+          },
+          {
+            "role": "context-crop",
+            "path": "apple-lisa-pressed/context.png",
+            "sha256": "a725bd5b1889fb7d02d7dd8aa7cbe020bf927bbd5f2bc78a453c44ea7993eb45"
+          },
+          {
+            "role": "face-crop",
+            "path": "apple-lisa-pressed/face.png",
+            "sha256": "15c9e88c94a32347b60f631100ff5579b61cf917ff1d2f07312f4c4a0da203fb"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "apple-lisa-pressed/capture-bindings.json",
+            "sha256": "2ef1008d0f7d72f44510773b079b36f3d33073e15c8afbaa773de3ab4be65bfc"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "apple-lisa-pressed/environment.json",
+            "sha256": "b99fba6bf5fe5dc54b54dd757fd42352fe5908dd48c1c80f25f81a7f4307d47b"
+          },
+          {
+            "role": "durability-status",
+            "path": "apple-lisa-pressed/durable-status.png",
+            "sha256": "c1302a7b01cbfdfb7e996f23ffd3afff2f862602a9fdcbe6210abd41bdbb6f3c"
+          },
+          {
+            "role": "fixture-source-excerpt",
+            "path": "apple-lisa-pressed/fixture-source-excerpt.json",
+            "sha256": "3fa3f75b35b0764519b5dddf33316ba5fa13e887ec19ad33c085b15e0aa6186a"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "four-state-profile-calibration.json",
+            "sha256": "d614da8bf908c1a0fd59f5d9be124269fadb2f3d3bab005e03535ffd66040317"
+          }
+        ]
+      }
+    },
+    {
+      "reviewScope": {
+        "id": "public-api-empty-face",
+        "version": 5,
+        "comparisonLayer": "composited-face-pixels",
+        "facePortRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicInvocation": {
+          "api": "NewControl",
+          "drawApi": "Draw1Control",
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "defaultApiInvoked": false,
+          "stateApi": "HiliteControl",
+          "enabled": false,
+          "windowActive": true
+        },
+        "associatedRequirementIds": [
+          "geometry.remaining",
+          "fill.remaining"
+        ],
+        "claim": "Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.",
+        "excludedClaims": [
+          "alpha-or-mask",
+          "font-independence",
+          "automatic-sizing",
+          "other-states",
+          "outside-face-or-margins",
+          "default-ring",
+          "private-resource-or-painter-selection",
+          "provider-cache-or-search-order",
+          "whole-requirements",
+          "whole-request",
+          "physical-mouse-gesture",
+          "inactive-window",
+          "original-pattern-phase",
+          "general-body-paint",
+          "pattern-mask",
+          "private-pattern-provider"
+        ]
+      },
+      "id": "apple-lisa.inactive.l18d",
+      "kind": "independent-original",
+      "requestId": "apple-lisa.inactive",
+      "requestDigest": "0e8eae73399aca705c4fc88f907f2cb3263becefff4a2a3be68c1c2f98aa38a2",
+      "source": {
+        "slug": "apple-lisa",
+        "path": "themes/apple-lisa/scheme.sit",
+        "format": "sit",
+        "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+        "entryIndex": 0,
+        "entryName": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+        "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+        "selectionReviewStatus": "reviewed-contract-input",
+        "selectionReason": "Explicit scheme-named Colr entry \"Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System\"; readme/icon/font forks excluded by this declared choice, never by size.",
+        "selectionReviewEvidence": "apple-lisa"
+      },
+      "engineComponent": {
+        "id": "engine.kaleidoscope-2.3.1-kdef0",
+        "kind": "engine",
+        "version": "Kaleidoscope 2.3.1 kDEF 0 68k",
+        "bytes": 107726,
+        "sha256": "2c027276dae2355964a0dde1ace31f60ba845ab2c5fbf0496fd34ab2afe7c342",
+        "extractionReference": "docs/spec/kdef-binary-inventory.md",
+        "redistributed": false
+      },
+      "conditions": {
+        "surface": "push-button",
+        "state": "inactive",
+        "defaultRing": false,
+        "controlRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "text": "",
+        "portOrigin": [
+          0,
+          0
+        ],
+        "portBounds": [
+          0,
+          0,
+          160,
+          80
+        ],
+        "imageSize": [
+          160,
+          80
+        ],
+        "scale": [
+          1,
+          1
+        ],
+        "cropPortRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "cropImageRect": [
+          12,
+          12,
+          96,
+          36
+        ],
+        "coordinateTransform": "imageXY = portXY - portOrigin; no scaling, rotation, resampling or color conversion",
+        "backgroundRGB": [
+          255,
+          255,
+          255
+        ],
+        "enabled": false,
+        "windowActive": true
+      },
+      "observed": {
+        "os": {
+          "name": "Mac OS System",
+          "version": "7.5.5",
+          "sha256": "cbf2c9d48a8771100e45ea17c78fc5501b8a38e9f4b3298707736fcb54f11746",
+          "identityScope": "Exact preboot copied boot-volume image; version from actual same-run Gestalt sysv=0x755; not an isolated System-file digest"
+        },
+        "engineInstallation": {
+          "name": "Kaleidoscope",
+          "version": "2.3.1",
+          "sha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+          "identityScope": "Installed resource fork; stopped-file equality and actual CDEF/WDEF wrapper handles; not full active patch order"
+        },
+        "patchStack": null,
+        "baseChain": null,
+        "resourceSearchOrder": null,
+        "font": null,
+        "palette": {
+          "depth": 8,
+          "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+          "description": "Actual indexed main-device ColorTable,2056 bytes,seed1023,flags32768,lastIndex255; no inferred palette or inverse-map algorithm."
+        },
+        "controlDefinition": {
+          "procedureId": 0,
+          "variant": 0,
+          "hilite": 255,
+          "value": 0,
+          "enabled": false,
+          "windowActive": true,
+          "defaultMechanism": "No default API invoked; private default state unknown",
+          "invocation": "NewCWindow(proc0); NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(255); actual GetControlVariant0 and ControlRecord telemetry. HiliteControl(255) disables the control in an active window; not an inactive-window observation."
+        },
+        "captureMethod": "Direct private BasiliskII producer RGBA plane, unchanged canvasPNG, exact integer port crop; no resampling/color conversion; raw plane comparison and native nonce bound.",
+        "baseChainReason": null,
+        "patchStackReason": null,
+        "selectedProvider": null,
+        "resourceCache": null,
+        "privateDefaultState": null,
+        "unknownConditions": {
+          "font": "Port font number0/Chicago/size12/style0 and metrics observed with an empty title; actual glyph/provider realization not established.",
+          "patchStack": "Installed Kaleidoscope components identified, but complete active extension/trap patch ordering unobserved.",
+          "baseChain": "Configured scheme file identified; original private base-resource chain not observed.",
+          "resourceSearchOrder": "Public Copl and caller refs observed, not complete transient original resource search order.",
+          "selectedProvider": "Configured public Copl file is not proof of actual cicn/cinf/private cache owner.",
+          "resourceCache": "Original private resource cache contents and hits not observed.",
+          "privateDefaultState": "No public default API invoked; private default flags not queried or inferred.",
+          "patternOriginState": "No original pattern-origin API/state measured. Port origin0 is observed; it does not establish private/global pattern phase."
+        },
+        "publicApiFace": {
+          "configuredScheme": {
+            "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+            "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+            "evidence": "capture-log.json same-run Copl/FCB volume-2,parent2,file19; configured-source-bindings.json stopped canonical fork equality. Configured file, not private selected-paint ownership."
+          },
+          "invocation": {
+            "api": "NewControl",
+            "drawApi": "Draw1Control",
+            "defaultApiInvoked": false,
+            "controlRect": [
+              20,
+              20,
+              80,
+              20
+            ],
+            "title": "",
+            "state": "inactive",
+            "defaultRing": false,
+            "stateApi": "HiliteControl"
+          },
+          "port": {
+            "origin": [
+              0,
+              0
+            ],
+            "bounds": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "effectiveClipRect": [
+              0,
+              0,
+              160,
+              80
+            ],
+            "backgroundRGB": [
+              255,
+              255,
+              255
+            ],
+            "backgroundOpaque": true,
+            "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+          },
+          "producer": {
+            "name": "Private copied BasiliskII WebAssembly with bound worker/canvas/capture glue",
+            "buildArtifacts": [
+              {
+                "name": "BasiliskII.js",
+                "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+              },
+              {
+                "name": "BasiliskII.wasm",
+                "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+              },
+              {
+                "name": "reference.ts",
+                "sha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601"
+              },
+              {
+                "name": "vite.config.mjs",
+                "sha256": "44a6a2d66eba6b3c51385ec763c4dfb69dc268dbaa58da9df9da22e367de8551"
+              },
+              {
+                "name": "emulator-worker.ts",
+                "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+              },
+              {
+                "name": "emulator-input.ts",
+                "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+              },
+              {
+                "name": "emulator-worker-types.ts",
+                "sha256": "0d5e297cba8c7d74ae9c477e8b675935e67edda5d609371d7b347943ff1791f5"
+              },
+              {
+                "name": "ethernet.ts",
+                "sha256": "dbf2023b7b6ae1112ca79875cb9dba3bcd848e00fe72b881c4cafa7a8ccfcb8c"
+              },
+              {
+                "name": "capture-frame.mjs",
+                "sha256": "93cc4be1be77027dffbc5565ee7834f6ff0f078257b0f73f15fc0de006167472"
+              }
+            ],
+            "tableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+            "pixelEncoding": "rgba8",
+            "colorRealization": "Recorded indexed8 device ColorTable and actual status8 gamma table, with same-run GetCPixel body/edge/RGBWK observations. No color-mapping queries or universal conversion formula; no original painter/provider attribution.",
+            "timing": "Conditions bracket Draw1Control + HiliteControl; fixed state already established before this observed redraw.",
+            "version": {
+              "status": "unknown",
+              "reason": "Exact external JS/WASM and glue build hashes recorded; semantic emulator release version not independently established."
+            }
+          },
+          "fullFrame": {
+            "sha256": "4cb9bd82efa91d90dae1d755f27b2bb53f1021042bd6148476a32d577e22b3e9",
+            "width": 640,
+            "height": 480,
+            "requestImageRect": [
+              80,
+              90,
+              160,
+              80
+            ],
+            "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+          }
+        },
+        "patternOriginState": null
+      },
+      "image": {
+        "path": "apple-lisa-inactive/port.png",
+        "sha256": "6667c2d5dbbb019ff0f32d0baf3196b341a5647b0773ec73d9eaac35abb6ec39",
+        "width": 160,
+        "height": 80
+      },
+      "provenance": {
+        "producer": "Automated Codex frontend agent, isolated copied original environment",
+        "capturedAt": "2026-10-19T12:45:03.053Z",
+        "originalEnvironment": true,
+        "method": "Public Control Manager execution; exact producer/canvas/full-frame and integer crops, complete normal stopped HFS telemetry export. AI capture/preparation and independent automated acquisition review; scope attestation remains separate.",
+        "artifacts": [
+          {
+            "role": "capture-log",
+            "path": "apple-lisa-inactive/capture-log.json",
+            "sha256": "0a4a7ff503417c14e01030bba92f46ce2b8e87b8d38bcc55c384f85f1084f264"
+          },
+          {
+            "role": "source-bindings",
+            "path": "apple-lisa-inactive/configured-source-bindings.json",
+            "sha256": "5f354f73833a46da0d2f2509c1a9ddc3d1dd370159100561730e049323a9d5aa"
+          },
+          {
+            "role": "configured-scheme",
+            "path": "apple-lisa-inactive/configured-scheme.json",
+            "sha256": "a3cfb9ebb984b11c0e290ccdbcaeba85f50c0d49150e89da443b66b085a92cc8"
+          },
+          {
+            "role": "public-invocation",
+            "path": "apple-lisa-inactive/public-invocation.json",
+            "sha256": "43a3f4ef73e982db371e322303a97f7782c11a54a517d7c56b15f02673e233d2"
+          },
+          {
+            "role": "public-invocation-supplement",
+            "path": "apple-lisa-inactive/public-invocation-supplement.json",
+            "sha256": "54d54de41465d32a1b3d3f45be2e4e5c7ae03422b7c1beaf92ac434ecb5b2e61"
+          },
+          {
+            "role": "producer-identities",
+            "path": "apple-lisa-inactive/producer-identities.json",
+            "sha256": "b071daca6080f79a8bbb744a5ce3598ff6f64998fa100cb616e362919efb9078"
+          },
+          {
+            "role": "pixel-conditions",
+            "path": "apple-lisa-inactive/pixel-conditions.json",
+            "sha256": "3bde9be0377968d71167b8891932061dbcf0ab0192b02490fb7aa472208fdbdc"
+          },
+          {
+            "role": "pixel-conditions-supplement",
+            "path": "apple-lisa-inactive/pixel-conditions-supplement.json",
+            "sha256": "fa48e6497b8b728ff3e03359b742656248d24e666353baa1131ceb60926fc96d"
+          },
+          {
+            "role": "indexed-palette",
+            "path": "apple-lisa-inactive/indexed-palette.bin",
+            "sha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b"
+          },
+          {
+            "role": "producer-table",
+            "path": "apple-lisa-inactive/producer-table.bin",
+            "sha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b"
+          },
+          {
+            "role": "full-frame",
+            "path": "apple-lisa-inactive/full-frame.png",
+            "sha256": "4cb9bd82efa91d90dae1d755f27b2bb53f1021042bd6148476a32d577e22b3e9"
+          },
+          {
+            "role": "context-crop",
+            "path": "apple-lisa-inactive/context.png",
+            "sha256": "df19193d41140a7fab93783913f2835891cf26aef2ba172918feea7df57a40c9"
+          },
+          {
+            "role": "face-crop",
+            "path": "apple-lisa-inactive/face.png",
+            "sha256": "206fc3f065f208b9949bc1ef34721af6cd66f72d11670578d1a9fe7eb71fa08a"
+          },
+          {
+            "role": "capture-bindings",
+            "path": "apple-lisa-inactive/capture-bindings.json",
+            "sha256": "58d10f49a73b8229e2ca8e54268df29f3232a9dd498724c73ada1699e41de563"
+          },
+          {
+            "role": "environment-manifest",
+            "path": "apple-lisa-inactive/environment.json",
+            "sha256": "d6e307fe622060717cc148359302d13a841f306965d2fd8683b830dd6d51a45f"
+          },
+          {
+            "role": "durability-status",
+            "path": "apple-lisa-inactive/durable-status.png",
+            "sha256": "9e729d80b14f20b65ad7f9125e45dc50ecb8a2d37d48febc7abe984549fd0a22"
+          },
+          {
+            "role": "fixture-source-excerpt",
+            "path": "apple-lisa-inactive/fixture-source-excerpt.json",
+            "sha256": "dd36935b33a6a9ca72c1ac320b36821743c7be4426f031601625078ef566f27c"
+          },
+          {
+            "role": "cross-run-profile-calibration",
+            "path": "four-state-profile-calibration.json",
+            "sha256": "d614da8bf908c1a0fd59f5d9be124269fadb2f3d3bab005e03535ffd66040317"
+          }
+        ]
+      }
     }
   ]
 }

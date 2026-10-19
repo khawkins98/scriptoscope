@@ -1,0 +1,25 @@
+{
+  "canonicalSource": {
+    "slug": "apple-lisa",
+    "path": "themes/apple-lisa/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+    "entryIndex": 0,
+    "entryName": "Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System",
+    "forkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Apple Lisa for K2.1/Apple Lisa for K2.1/Apple Lisa Office System\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "apple-lisa"
+  },
+  "configuredFCB": {
+    "volumeRef": -2,
+    "parentDir": 2,
+    "fileID": 19
+  },
+  "stoppedConfiguredFileSha256": "e0c3cb2a2ff57701da1c1c07ca791667920148a2e068bb7e0959357baa1eb621",
+  "resourceForkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+  "resourceForkBytes": 390320,
+  "scope": "Configured source only; actual private selected/cache/provider ordering UNKNOWN.",
+  "installedEngineResourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+  "transferScope": "Stopped copied transfer is the actual loaded seed; no claim of guest transfer-write persistence."
+}

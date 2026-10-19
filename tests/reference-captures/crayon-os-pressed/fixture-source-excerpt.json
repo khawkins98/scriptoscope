@@ -1,0 +1,38 @@
+{
+  "origin": "Caller-owned acquisition fixture; no original engine/app/font code",
+  "originalSource": {
+    "bytes": 16788,
+    "sha256": "944b632c82387b4aab29fa8d011de54654a9ffd960f46da286b48cecd9ffe151"
+  },
+  "lineNumberBasis": "1-based original UTF-8 source",
+  "lines": [
+    {
+      "line": 49,
+      "text": "static short requestedHilite=10;"
+    },
+    {
+      "line": 51,
+      "text": "static const char *fixtureNonce=\"C18H-6afc37e6e0\";"
+    },
+    {
+      "line": 83,
+      "text": "static void face(void){RGBColor white={65535,65535,65535};SetPort(target);TextFont(0);TextSize(12);TextFace(0);RGBBackColor(&white);EraseRect(&target->portRect);Draw1Control(control);HiliteControl(control,requestedHilite);}"
+    },
+    {
+      "line": 115,
+      "text": " line(\"activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN\");publicResourceContext(\"before-condition-queries\");conditions(\"before-public-draw\");line(\"immediateBeforePublicFace.CurResFile=%d\",CurResFile());face();line(\"immediateAfterPublicFace.CurResFile=%d\",CurResFile());publicResourceContext(\"after-public-draw\");conditions(\"after-public-draw\");"
+    },
+    {
+      "line": 127,
+      "text": "int main(void){EventRecord e;Rect tr={90,80,170,240},ir={230,20,350,630},cr={20,20,40,100},br={410,450,470,630};unsigned char label[1]={0};Boolean quit=false;"
+    },
+    {
+      "line": 129,
+      "text": " board=NewCWindow(0,&br,\"\\pRGBWK C18H\",true,0,(WindowPtr)-1,false,0);info=NewCWindow(0,&ir,\"\\pLabeled Conditions C18H\",true,0,(WindowPtr)-1,false,0);target=NewCWindow(0,&tr,\"\\pOriginal empty label C18H\",true,0,(WindowPtr)-1,true,0);if(!target||!info||!board)return 2;SetPort(target);TextFont(0);TextSize(12);TextFace(0);control=NewControl(target,&cr,label,true,0,0,1,0,0);if(!control)return 3;SelectWindow(target);sentinel();face();metadata();"
+    }
+  ],
+  "compiledAppSha256": "3f9201170427d7cd4db2a6966075a5ef07ba1b5c4d8ca1607fad7c72c39935ec",
+  "compiledResourceForkSha256": "349110230ea2e60a4fd074a244df9b6f821219eff640143220a9e2c0d412818b",
+  "stoppedInstalledResourceForkSha256": "349110230ea2e60a4fd074a244df9b6f821219eff640143220a9e2c0d412818b",
+  "scope": "Exact caller/source binding, not proof of private selected painter/provider."
+}

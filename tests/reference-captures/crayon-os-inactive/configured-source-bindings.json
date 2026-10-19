@@ -1,0 +1,25 @@
+{
+  "canonicalSource": {
+    "slug": "crayon-os",
+    "path": "themes/crayon-os/scheme.sit",
+    "format": "sit",
+    "archiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+    "entryIndex": 0,
+    "entryName": "Crayon OS Folder/Crayon OS",
+    "forkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+    "selectionReviewStatus": "reviewed-contract-input",
+    "selectionReason": "Explicit scheme-named Colr entry \"Crayon OS Folder/Crayon OS\"; readme/icon/font forks excluded by this declared choice, never by size.",
+    "selectionReviewEvidence": "crayon-os"
+  },
+  "configuredFCB": {
+    "volumeRef": -2,
+    "parentDir": 2,
+    "fileID": 18
+  },
+  "stoppedConfiguredFileSha256": "8084e51aa4990fa553cd1ac527c6f560c92f84cdb6e09e31123b79ff212b022a",
+  "resourceForkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+  "resourceForkBytes": 1575180,
+  "scope": "Configured source only; actual private selected/cache/provider ordering UNKNOWN.",
+  "installedEngineResourceForkSha256": "cb903bef4410feb096d65b5a4c9383fa2a3c943e6afef6d3c13463b48267d333",
+  "transferScope": "Stopped copied transfer is the actual loaded seed; no claim of guest transfer-write persistence."
+}

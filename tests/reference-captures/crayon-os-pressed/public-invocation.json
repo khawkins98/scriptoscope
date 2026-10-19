@@ -1,0 +1,64 @@
+{
+  "controlDefinition": {
+    "procedureId": 0,
+    "variant": 0,
+    "hilite": 10,
+    "value": 0,
+    "enabled": true,
+    "windowActive": true,
+    "defaultMechanism": "No default API invoked; private default state unknown",
+    "invocation": "NewCWindow(proc0); NewControl(proc0, empty title, visible, value0/min0/max1); Draw1Control; HiliteControl(10); actual GetControlVariant0 and ControlRecord telemetry. Logical HiliteControl(10) highlight, not a physical held mouse gesture."
+  },
+  "invocation": {
+    "api": "NewControl",
+    "drawApi": "Draw1Control",
+    "defaultApiInvoked": false,
+    "controlRect": [
+      20,
+      20,
+      80,
+      20
+    ],
+    "title": "",
+    "state": "pressed",
+    "defaultRing": false,
+    "stateApi": "HiliteControl"
+  },
+  "port": {
+    "origin": [
+      0,
+      0
+    ],
+    "bounds": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "effectiveClipRect": [
+      0,
+      0,
+      160,
+      80
+    ],
+    "backgroundRGB": [
+      255,
+      255,
+      255
+    ],
+    "backgroundOpaque": true,
+    "originMeaning": "Local port origin, distinct from observed frame globalOrigin80,90; opaque describes recorded white composited background, not source mask."
+  },
+  "fullFrame": {
+    "sha256": "ee174db0d5153691af0a479935744d51e765837a32bc5a704db8f60ee696ac1d",
+    "width": 640,
+    "height": 480,
+    "requestImageRect": [
+      80,
+      90,
+      160,
+      80
+    ],
+    "transform": "requestImageXY = fullFrameXY - requestImageRect.xy; no resampling or color conversion"
+  }
+}
