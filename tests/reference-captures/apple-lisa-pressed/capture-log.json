@@ -1,0 +1,579 @@
+{
+  "status": "SANITIZED_EXCERPT_PENDING_SCOPE_REVIEW",
+  "nonce": "L18H-6afc37e6e0",
+  "originalRawLog": {
+    "bytes": 19656,
+    "sha256": "7ff481e2b2b62e6a215f5ac24e43d977196d34eb785ebd4bf16b225d76c37017"
+  },
+  "readableDerivative": {
+    "bytes": 19656,
+    "sha256": "90446cecc403a0c604ed39ebea9b1134061af67ef10ef43f437c0a995314fd5e"
+  },
+  "lineNumberBasis": "1-based CR-to-LF derivative only",
+  "redactionHashEncoding": "UTF-8 of the indicated LF-joined lines without a trailing LF",
+  "retainedLines": [
+    {
+      "line": 1,
+      "text": "status=QUARANTINED_PARTIAL fixture=L18H-6afc37e6e0 launchDate=3875265754 launchTicks=227 sequence=1"
+    },
+    {
+      "line": 2,
+      "text": "telemetryFile.volumeRef=-32653 directoryID=2"
+    },
+    {
+      "line": 3,
+      "text": "activePrivateProviderOrder=UNKNOWN;activePatchOrder=UNKNOWN;deviceGammaConfiguration=UNKNOWN"
+    },
+    {
+      "line": 4,
+      "text": "resourceContext.phase=before-condition-queries callerCurResFile=2634 queryHasOSErr=0"
+    },
+    {
+      "line": 5,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 6,
+      "text": "callerResourceFile.file.name=Push State L18H volumeRef=-1 parentDir=384 fileID=507 flags=768 logicalEOF=68275 physicalEOF=68608"
+    },
+    {
+      "line": 7,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=000005e2 callerAfterGetter=2634"
+    },
+    {
+      "line": 8,
+      "text": "resourceContext.Copl.signedLow16Ref=1506"
+    },
+    {
+      "line": 9,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 10,
+      "text": "CoplResourceFile.file.name=Apple Lisa Office System volumeRef=-2 parentDir=2 fileID=19 flags=512 logicalEOF=390320 physicalEOF=390656"
+    },
+    {
+      "line": 11,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 12,
+      "text": "phase=before-public-draw ticks=2083"
+    },
+    {
+      "line": 13,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 14,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 15,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 16,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 17,
+      "text": "control.hilite=10 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 18,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 19,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=0000e100 actualWindowDefinitionHandle=0000e14c"
+    },
+    {
+      "line": 20,
+      "text": "control.title.expectedEmpty=1 actualLength=0"
+    },
+    {
+      "line": 21,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 22,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 23,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 24,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 25,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 29,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 30,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 31,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 32,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 36,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 37,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 38,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 40,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 41,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 43,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 44,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 45,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 46,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 48,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 49,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 50,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 51,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 52,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 86,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 87,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 88,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 90,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 91,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 97,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 98,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 99,
+      "text": "body.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 100,
+      "text": "edge.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 101,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 102,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 103,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 104,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 105,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 106,
+      "text": "immediateBeforePublicFace.CurResFile=2634"
+    },
+    {
+      "line": 107,
+      "text": "immediateAfterPublicFace.CurResFile=2634"
+    },
+    {
+      "line": 108,
+      "text": "resourceContext.phase=after-public-draw callerCurResFile=2634 queryHasOSErr=0"
+    },
+    {
+      "line": 109,
+      "text": "callerResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 110,
+      "text": "callerResourceFile.file.name=Push State L18H volumeRef=-1 parentDir=384 fileID=507 flags=768 logicalEOF=68275 physicalEOF=68608"
+    },
+    {
+      "line": 111,
+      "text": "resourceContext.Copl.status=0 fullResponseHex=000005e2 callerAfterGetter=2634"
+    },
+    {
+      "line": 112,
+      "text": "resourceContext.Copl.signedLow16Ref=1506"
+    },
+    {
+      "line": 113,
+      "text": "CoplResourceFile.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 114,
+      "text": "CoplResourceFile.file.name=Apple Lisa Office System volumeRef=-2 parentDir=2 fileID=19 flags=512 logicalEOF=390320 physicalEOF=390656"
+    },
+    {
+      "line": 115,
+      "text": "resourceContext.meaning=public-ref-observation-only;not-selected-cicn-cinf-ownership;private-cache-order-UNKNOWN"
+    },
+    {
+      "line": 116,
+      "text": "phase=after-public-draw ticks=2084"
+    },
+    {
+      "line": 117,
+      "text": "systemVersionHex=755 machineGestalt=36"
+    },
+    {
+      "line": 118,
+      "text": "portRect=0,0,160,80"
+    },
+    {
+      "line": 119,
+      "text": "globalOrigin=80,90 portVersion=-16384"
+    },
+    {
+      "line": 120,
+      "text": "controlRect=20,20,100,40"
+    },
+    {
+      "line": 121,
+      "text": "control.hilite=10 visible=255 value=0 min=0 max=1 titleLength=0 active=1 windowKind=8"
+    },
+    {
+      "line": 122,
+      "text": "invocation=NewCWindow(proc0);NewControl(proc0);Draw1Control;HiliteControl(requestedHilite);no-default-API"
+    },
+    {
+      "line": 123,
+      "text": "requestedControlProc=0 actualControlDefinitionHandle=0000e100 actualWindowDefinitionHandle=0000e14c"
+    },
+    {
+      "line": 124,
+      "text": "control.title.expectedEmpty=1 actualLength=0"
+    },
+    {
+      "line": 125,
+      "text": "control.variant.query=GetControlVariant actual=0 queryHasOSErr=0"
+    },
+    {
+      "line": 126,
+      "text": "actualControlDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=43444546 id=0 name="
+    },
+    {
+      "line": 127,
+      "text": "actualControlDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 128,
+      "text": "actualControlDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 129,
+      "text": "actualControlDefinition.bytes=174"
+    },
+    {
+      "line": 133,
+      "text": "actualWindowDefinition.resourceInfoError=0 homeRef=1130 homeResourceError=0 typeHex=57444546 id=0 name="
+    },
+    {
+      "line": 134,
+      "text": "actualWindowDefinition.fileQuery=PBGetFCBInfoSync error=0 ioResult=0"
+    },
+    {
+      "line": 135,
+      "text": "actualWindowDefinition.file.name=Kaleidoscope volumeRef=-1 parentDir=176 fileID=435 flags=768 logicalEOF=1005535 physicalEOF=1005568"
+    },
+    {
+      "line": 136,
+      "text": "actualWindowDefinition.bytes=176"
+    },
+    {
+      "line": 140,
+      "text": "font.number=0 name=Chicago size=12 face=0 mode=1 ascent=12 descent=3 widMax=14 leading=1"
+    },
+    {
+      "line": 141,
+      "text": "clipBounds=-32767,-32767,32767,32767"
+    },
+    {
+      "line": 142,
+      "text": "clipRegion.bytes=10"
+    },
+    {
+      "line": 144,
+      "text": "visibleBounds=0,0,160,80"
+    },
+    {
+      "line": 145,
+      "text": "visibleRegion.bytes=10"
+    },
+    {
+      "line": 147,
+      "text": "portPixMap.bounds=-80,-90,560,390"
+    },
+    {
+      "line": 148,
+      "text": "effectiveClip.method=owned-SectRgn(clip,visible,portRect,portPixMap.bounds);IM-QuickDraw-2-12/Color-QuickDraw"
+    },
+    {
+      "line": 149,
+      "text": "effectiveClipBounds=0,0,160,80"
+    },
+    {
+      "line": 150,
+      "text": "effectiveClipRegion.bytes=10"
+    },
+    {
+      "line": 152,
+      "text": "device.ref=-49 id=0 type=0 flags=47137 mode=131"
+    },
+    {
+      "line": 153,
+      "text": "pixMap.depth=8 rowBytes=33408 pixelType=0"
+    },
+    {
+      "line": 154,
+      "text": "pixMap.bounds=0,0,640,480"
+    },
+    {
+      "line": 155,
+      "text": "colorTable.seed=1023 flags=32768 lastIndex=255"
+    },
+    {
+      "line": 156,
+      "text": "colorTable.bytes=2056"
+    },
+    {
+      "line": 190,
+      "text": "gamma.query=PBStatusSync csCode=8 actualDeviceRef=-49 status=0 ioResult=0 returnedPointer=0000d110"
+    },
+    {
+      "line": 191,
+      "text": "gamma.header.version=0 type=0 formulaBytes=0 channels=1 count=256 bitsPerEntry=8"
+    },
+    {
+      "line": 192,
+      "text": "gammaFixedPrefix.bytes=12"
+    },
+    {
+      "line": 194,
+      "text": "gamma.table=observed-version0-bounded-bytes;not-color-transform-proof"
+    },
+    {
+      "line": 195,
+      "text": "gammaTable.bytes=268"
+    },
+    {
+      "line": 201,
+      "text": "port.backgroundRGB16=ffff,ffff,ffff"
+    },
+    {
+      "line": 202,
+      "text": "port.foregroundRGB16=0000,0000,0000"
+    },
+    {
+      "line": 203,
+      "text": "body.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 204,
+      "text": "edge.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 205,
+      "text": "sentinel.0.GetCPixel=ffff,0000,0000"
+    },
+    {
+      "line": 206,
+      "text": "sentinel.1.GetCPixel=0000,ffff,0000"
+    },
+    {
+      "line": 207,
+      "text": "sentinel.2.GetCPixel=0000,0000,ffff"
+    },
+    {
+      "line": 208,
+      "text": "sentinel.3.GetCPixel=ffff,ffff,ffff"
+    },
+    {
+      "line": 209,
+      "text": "sentinel.4.GetCPixel=0000,0000,0000"
+    },
+    {
+      "line": 210,
+      "text": "observedLabel=EMPTY requestedHilite=10 callerFont=0 callerSize=12 callerFace=0"
+    },
+    {
+      "line": 211,
+      "text": "captureComplete=1"
+    }
+  ],
+  "redactedRanges": [
+    {
+      "firstLine": 26,
+      "lastLine": 28,
+      "lineTextSha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 33,
+      "lastLine": 35,
+      "lineTextSha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 39,
+      "lastLine": 39,
+      "lineTextSha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 42,
+      "lastLine": 42,
+      "lineTextSha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 47,
+      "lastLine": 47,
+      "lineTextSha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 53,
+      "lastLine": 85,
+      "lineTextSha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 89,
+      "lastLine": 89,
+      "lineTextSha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 92,
+      "lastLine": 96,
+      "lineTextSha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 130,
+      "lastLine": 132,
+      "lineTextSha256": "fdd8bb11a5e05902ca6059626cc056e013847f9005ad20164e1272081fd3fa57",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 137,
+      "lastLine": 139,
+      "lineTextSha256": "7ae4bba33b80e4176e17e85b5619cd373219dc10a5b34cf81aa96c36da5079a1",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 143,
+      "lastLine": 143,
+      "lineTextSha256": "d88f18ce62fc05ce1a7afede38525defae4c90336ff14debf80d7ca9af0b9d28",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 146,
+      "lastLine": 146,
+      "lineTextSha256": "59418cdd1a9d7270821e9e1ac0810bda82f378ceec72dc4b985994f53a17dd35",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 151,
+      "lastLine": 151,
+      "lineTextSha256": "4c22d10caafb7cedfebd6b574d3299791b9aa2f9a0d94c212ff5897217fc17c8",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 157,
+      "lastLine": 189,
+      "lineTextSha256": "546b2339a25ccaf2a16620208fe03526bce18d92fc115df5229c7462079c7c45",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 193,
+      "lastLine": 193,
+      "lineTextSha256": "ed4f34221dc34e3d22ca01743fee97446cfdefd6240e22e94c3e76596ccfca55",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    },
+    {
+      "firstLine": 196,
+      "lastLine": 200,
+      "lineTextSha256": "f441220c0096db15fcaec00d75bc8fbe185a482f58e8d4a69f6da30b20700baf",
+      "reason": "Payload hex omitted. Original executable/resource bytes remain private; permitted palette/table data are supplied separately."
+    }
+  ],
+  "fixtureSourceSha256": "32667e2922e2e7c76ef727bf33b54062f631263997635e3179c2e37b194aa954",
+  "fixtureAppSha256": "46c3768701f496d00ad4f78baf8007d2266f7af2ae8a6dfd62c956c39e47c74c",
+  "launchTicks": 227,
+  "launchDateMacSeconds": 3875265754,
+  "sequence": 1
+}

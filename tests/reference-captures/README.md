@@ -1,19 +1,36 @@
-# Independent reference capture intake (request draft 0.2.0)
+# Independent reference capture intake (request draft 0.3.0)
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Six original observations have independent AI review under the narrow
-`public-api-empty-face` scope.** They do not satisfy any whole request or
-verify any requirement. Seven requests remain missing; all six observed
-requests remain evidence-incomplete. See [original observations and limits](./ORIGINALS.md).
-[Six quarantined v4/v5 observations](../../docs/research/original-observations/2026-10-18/README.md)
-and [four v6 default-dialog observations](../../docs/research/default-dialog-observations/2026-10-18/README.md)
-are preserved separately. They are not admitted here and do not satisfy any request.
-The thirteen requests are provisional experiments, not historical default sizes,
-complete control coverage, or an acceptance denominator. Intake never runs the
-original engine, invokes Scriptoscope to produce references, or certifies fidelity.
+**Twelve original observations have independent AI review under the narrow
+`public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
+no intake target. The fixed empty-push campaign now plans all 18 canonical
+sources × normal/logically highlighted/disabled states: 54 requests, including
+those eight existing observations. Five earlier default/shift experiments remain
+separate, for 59 requests total. The four new Crayon/Lisa state observations bring the stored corpus to twelve
+reviewed scoped records; 47 requests have no capture (42 campaign states and
+five older experiments). All twelve scoped requests remain evidence-incomplete.
 
-## Requested first batch
+Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
+same fixed port, face, background and full-image evidence, actual public
+HiliteControl state and explicit unknown original pattern phase. It does not
+change old scopes, request objects, record/review digests or full-request
+requirements. A campaign request is a research gap, never a fabricated capture.
+The four new records retain their actual full frames, port/context/face crops,
+ordinary stopped HFS export checks and sanitized invocation/condition bindings.
+Separate independent automated root review approved their exact v5 scope.
+Acquisition and calibration review alone do not approve intake.
+
+See [original observations and limits](./ORIGINALS.md). Quarantined research
+observations remain separate from admitted intake. Public comparison requires
+actual source/state dependency pins and complete measured RGB16 input coverage,
+with reviewed cross-run palette/gamma/device/producer joins. Matching opaque
+pixels does not establish original masks, providers, font independence or phase.
+Data, independent review, source/built comparison, narrow ledger bindings and
+documentation share one coherent batch; missing calibration or pixel
+mismatches remain explicit rather than changing the oracle.
+
+## Preserved first-batch requests
 
 | Scheme | Requests | Purpose |
 |---|---|---|

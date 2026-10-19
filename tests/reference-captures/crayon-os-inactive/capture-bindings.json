@@ -1,0 +1,55 @@
+{
+  "originalIndexSha256": "4cc736c2379428363e0c111b38e153328972ca4884dc2c1c2b90623044bd0998",
+  "originalCaptureReceiptSha256": "41515475a6f2c0f58c54294ad85b4040506d286e5897c457a269db23100d1a95",
+  "finalAcquisitionResultSha256": "ea1a907a7239ff2abe93b6eadf8a9672b691527c07b8d0c3ea02961da86dc159",
+  "rawProducer": {
+    "bytes": 1228800,
+    "sha256": "936501a9cebbb4757fe2f120acc3fc4c4945b02b03e8f5af529b7e20d405cd64"
+  },
+  "rawPngEqualityBytes": 1228800,
+  "rawRepeatedChangedBytes": 0,
+  "portFrameBoxLTRB": [
+    80,
+    90,
+    240,
+    170
+  ],
+  "contextFrameBoxLTRB": [
+    92,
+    102,
+    188,
+    138
+  ],
+  "faceFrameBoxLTRB": [
+    100,
+    110,
+    180,
+    130
+  ],
+  "nonce": "C18D-6afc37e6e0",
+  "sequence": 1,
+  "nativeFilename": "C18D-00000122-001.txt",
+  "exportMethod": "Normal stopped HFS data-fork export; no carving",
+  "actualExportBytes": 19633,
+  "fileManagerStatuses": {
+    "write": 0,
+    "short": 0,
+    "close": 0,
+    "flush": 0,
+    "reopen": 0,
+    "GetEOF": 0,
+    "readClose": 0,
+    "expectedBytes": 19633,
+    "writtenBytes": 19633,
+    "readbackEOF": 19633
+  },
+  "fileManagerStatusImageSha256": "ab763094b901044cb231bb95f30154b63149e305c50ccb4cae3f20551172db50",
+  "shutdown": {
+    "normalGuestShutdownMenuRequested": true,
+    "workerExitConfirmation": "UNKNOWN; no explicit worker exit event",
+    "browserServerClosed": true,
+    "hfsUnmounted": true
+  },
+  "initialCapturePendingFields": "Original private frame receipt retains exportPending; final acquisition result supplies later stopped export/crop joins.",
+  "noNewMappingQueries": true
+}

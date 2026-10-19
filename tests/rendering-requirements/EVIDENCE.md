@@ -223,3 +223,15 @@ One Lisa v16 empty normal80×20 face at port20,20 is compared over recorded whit
 ### Sampled whole-header support (ledger 1.8.0)
 
 The existing collision input is unchanged. PACH1305cb8/5d48..5e26/5874/687e supplies the independently reviewed sampler rule; `headerCollisionSampledRows` supplies the literal plane. Root reviewed implementation/source expectations at `f212e4e4`. Only `fill.sampled-line-color` changes from unsupported to verified; all other assessments remain exact. The reversible [transition snapshot](header-sampling-transition.json) retains the prior assessment, assertion and evidence plus the complete previous-ledger hash. No original-capture or device/provider claim is added.
+
+## Four conditioned Crayon/Lisa state comparisons
+
+Independent automated root review approved the following claims at 8600ff04; frontend review confirmed shared bindings and retention. The clean development source/built pair matched every face. The claims require the independently reviewed capture bindings and current clean registered execution. Original provider, mask, phase and whole-control obligations remain unknown.
+
+One crayon-os pressed empty 80×20 face from crayon-os.pressed.c18h, with original public HiliteControl(10), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
+
+One crayon-os inactive empty 80×20 face from crayon-os.inactive.c18d, with original public HiliteControl(255), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
+
+One apple-lisa pressed empty 80×20 face from apple-lisa.pressed.l18h, with original public HiliteControl(10), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.
+
+One apple-lisa inactive empty 80×20 face from apple-lisa.inactive.l18d, with original public HiliteControl(255), is compared over recorded white using the retained measured profile and explicit port (20,20) with unknown pattern origin. Exact selected face/cinf and same-owner ppat selection or ppat 0 absence are joined to actual load and completed face paint; no original private selection or pattern-write occupancy claim.

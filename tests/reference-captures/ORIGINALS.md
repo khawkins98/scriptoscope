@@ -1,9 +1,11 @@
 # Reviewed original face observations
 
-The corpus contains six `reviewed-scoped-observation` records under
-[`public-api-empty-face` versions 1 and 2](../../docs/spec/scoped-reference-observations.md).
-An independent Astra AI agent reviewed the original artifacts and wrote the
-separate [review records](./reviews.json). This is explicitly automated review,
+The corpus contains twelve `reviewed-scoped-observation` records under
+[`public-api-empty-face` versions 1–5](../../docs/spec/scoped-reference-observations.md).
+An independent Astra AI agent reviewed the eight earlier observations. A separate independent automated root reviewer approved the four
+new records under v5. Its [byte review](./four-state-independent-byte-review.json)
+is hash-bound in the [scope attestations](./reviews.json); acquisition review
+alone is not intake approval. This is explicitly automated review,
 not human or maintainer attestation. The capture/preparation producer is also
 identified as AI in [captures.json](./captures.json).
 
@@ -16,6 +18,13 @@ identified as AI in [captures.json](./captures.json).
 | `system7-nostalgia-silver.pressed` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-highlighted/full-frame.png), [port](./system7-nostalgia-silver-highlighted/port.png), [context](./system7-nostalgia-silver-highlighted/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 | `system7-nostalgia-silver.inactive` | `V10S-20261019-01` | [Full frame](./system7-nostalgia-silver-disabled/full-frame.png), [port](./system7-nostalgia-silver-disabled/port.png), [context](./system7-nostalgia-silver-disabled/context.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
 
+| `crayon-os.normal` | `V14C` | [Full frame](./crayon-os/full-frame.png), [port](./crayon-os/port.png), [context](./crayon-os/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
+| `apple-lisa.normal` | `V16L` | [Full frame](./apple-lisa/full-frame.png), [port](./apple-lisa/port.png), [context](./apple-lisa/context.png) | Palette/producer measurements bracket the mapping batch after drawing |
+| `crayon-os.pressed` | `C18H` | [Full frame](./crayon-os-pressed/full-frame.png), [port](./crayon-os-pressed/port.png), [context](./crayon-os-pressed/context.png), [face](./crayon-os-pressed/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `crayon-os.inactive` | `C18D` | [Full frame](./crayon-os-inactive/full-frame.png), [port](./crayon-os-inactive/port.png), [context](./crayon-os-inactive/context.png), [face](./crayon-os-inactive/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `apple-lisa.pressed` | `L18H` | [Full frame](./apple-lisa-pressed/full-frame.png), [port](./apple-lisa-pressed/port.png), [context](./apple-lisa-pressed/context.png), [face](./apple-lisa-pressed/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+| `apple-lisa.inactive` | `L18D` | [Full frame](./apple-lisa-inactive/full-frame.png), [port](./apple-lisa-inactive/port.png), [context](./apple-lisa-inactive/context.png), [face](./apple-lisa-inactive/face.png) | Conditions bracket `Draw1Control` + `HiliteControl` |
+
 Each record retains the complete unaltered 640×480 native frame, exact 160×80
 port and 96×36 context. The entire 80×20 face is at port/image (20,20), with
 frame origin (80,90). Review checked full-frame RGBA against the native producer
@@ -26,7 +35,7 @@ Review checked the configured scheme file/fork, installed Kaleidoscope 2.3.1
 components, native public invocation and observed state/geometry/clip/background,
 palette/gamma bytes, capture glue and external producer build identities.
 Configured-file identity does not prove which private resource or painter ran.
-The original capture IDs retain their preparation suffix `.draft` as stable
+Some original capture IDs retain their preparation suffix `.draft` as stable
 identifiers; eligibility comes from the bound reviews, not the ID text.
 
 Each subject directory includes a sanitized capture log with original log
@@ -37,8 +46,8 @@ System-file hash. No original engine, emulator, OS, ROM, app or font payload is
 included; binary supporting artifacts contain only observed palette/gamma
 tables. Original font/cache byte dumps were omitted.
 
-For the normal records, the measured display profile links to Windows 95 in the same run. System
-7's link is cross-run equality of the recorded palette and gamma, not proof of
+For Windows 95 normal, the measured display profile was recorded in the same run.
+System 7's link is cross-run equality of the recorded palette and gamma, not proof of
 identical hidden conditions or a universal transfer algorithm. Windows 95's
 post-draw measurements must not be relabeled as pre-draw observations. Producer
 semantic release and clean-shutdown acknowledgment remain unestablished.
@@ -49,9 +58,9 @@ invoked. One opaque white background cannot prove mask/alpha behavior; an empty
 label cannot prove typography or font independence. Other states, automatic
 sizing, margins/rings and private painter selection remain outside this scope.
 
-Run `npm run test:references` for the current report: six scoped observations,
-seven missing requests, all six observed requests evidence-incomplete, zero
-verified requirements and all five broader targets unresolved for each record.
+Run `npm run test:references` for current eligibility: twelve stored records and
+47 requests without captures. Scoped-only requests remain evidence-incomplete,
+with zero verified intake requirements and all five broader targets unresolved.
 Admission performs no Scriptoscope pixel comparison and changes no ledger
 assessment. The declared target still has no overall fidelity percentage.
 
@@ -70,3 +79,30 @@ the configured Copl/FCB identity and exact Windows95 fork establish the configur
 scheme. A wrapper label is not selected-provider authority. The original normal
 v1 records and review attestations are unchanged. Separate published renderer
 comparisons are not used as original pixels or intake authentication.
+
+
+## New Crayon/Lisa state batch
+
+C18H/C18D/L18H/L18D record the actual public hilite 10/255 state with an empty
+80×20 control and active window. Ordinary stopped HFS exports contain exactly
+19,630 / 19,633 / 19,656 / 19,659 bytes, matching the guest expected, written
+and reopened EOF counts; all seven File Manager statuses are zero. The original
+full producer RGBA matches each full PNG and each exact crop. Eight before/after
+payload pairs per capture are stable. Shutdown was requested; explicit worker
+exit/poweroff acknowledgment remains unknown. The transfer-volume fork join
+identifies the loaded seed, not proof of persisted guest transfer writes.
+
+[four-state-profile-calibration.json](./four-state-profile-calibration.json)
+binds the exact retained Crayon and Lisa measured profiles to the new observed
+palette, gamma, device fields and producer builds. Existing mappings cover all
+2,224 Crayon and 22 Lisa whole-load RGB16 inputs, including the new state-specific
+face/cinf/ppat inputs. No mapping was interpolated or remeasured. The new capture
+observes the selected device fields; it does not issue a fresh current-versus-main
+device-handle query. This is explicit cross-run reuse under recorded matching
+conditions, not proof of hidden-state identity or a universal transfer model.
+
+The public comparison supplies control origin (20,20), port origin (0,0), full
+160×80 clip and explicitly unknown pattern origin. Its 80×20 face begins at
+buffer (4,4), whereas the composition trace uses port (20,20). Only the complete
+face composited over white is compared; original masks, private cinf provider,
+pattern cache/phase, typography and full control behavior remain unestablished.

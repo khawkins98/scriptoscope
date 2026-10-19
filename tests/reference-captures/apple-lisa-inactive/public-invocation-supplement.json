@@ -1,0 +1,8 @@
+{
+  "stateMeaning": "HiliteControl(255) disables the control in an active window; not an inactive-window observation.",
+  "nativeSource": {
+    "sha256": "24604e25a176eae7279c8cd26899d91e6edc6eaf2b0596dfe5c14b7268f859d9",
+    "excerpt": "fixture-source-excerpt.json"
+  },
+  "stateIsFixedPerRun": true
+}

@@ -37,20 +37,35 @@ const requestDigestModel = 'request-semantic-v1';
 const scopedUnknownFields = ['font', 'patchStack', 'baseChain', 'resourceSearchOrder', 'selectedProvider', 'resourceCache', 'privateDefaultState'];
 const scopedChecks = ['originalEnvironment', 'installationAndConfiguredSource', 'publicInvocation', 'recordedPixelConditions',
   'conditionsAndTransform', 'imageAndArtifacts', 'independentOfScriptoscope', 'scopeAndLimits'];
+// Finite campaign membership; adding future sources requires a scoped policy review.
+const campaignSources = ['1138', '1984', '1990', 'animals', 'apple-lisa', 'apple-platinum-2', 'beos-r503',
+  'black-platinum', 'crayon-os', 'dolphin-som', 'evolution', 'floppies', 'monkey-paradise', 'platinum-8',
+  'slimes', 'system7-nostalgia-silver', 'windows-31', 'windows-95'];
 export function publicFaceScope(request) {
   const c = request?.conditions;
   const state = c?.state;
   const crayon = request?.sourceSlug === 'crayon-os' && request.id === 'crayon-os.normal' && state === 'normal';
   const lisa = request?.sourceSlug === 'apple-lisa' && request.id === 'apple-lisa.normal' && state === 'normal';
-  const supported = lisa || crayon || (['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
+  const campaign = campaignSources.includes(request?.sourceSlug) && ['normal', 'pressed', 'inactive'].includes(state)
+    && request.id === `${request.sourceSlug}.${state}`;
+  const legacy = lisa || crayon || (['windows-95', 'system7-nostalgia-silver'].includes(request?.sourceSlug)
     && ['normal', 'pressed', 'inactive'].includes(state) && request.id === `${request.sourceSlug}.${state}`);
   const enabled = state !== 'inactive';
-  if (!(supported && c.surface === 'push-button' && c.text === '' && c.defaultRing === false
+  if (!((legacy || campaign) && c.surface === 'push-button' && c.text === '' && c.defaultRing === false
     && c.enabled === enabled && c.windowActive === true
     && isDeepStrictEqual(c.controlRect, [20, 20, 80, 20]) && isDeepStrictEqual(c.portOrigin, [0, 0])
     && isDeepStrictEqual(c.portBounds, [0, 0, 160, 80]) && isDeepStrictEqual(c.imageSize, [160, 80])
     && isDeepStrictEqual(c.scale, [1, 1]) && isDeepStrictEqual(c.backgroundRGB, [255, 255, 255])
     && isDeepStrictEqual(c.cropPortRect, [12, 12, 96, 36]) && isDeepStrictEqual(c.cropImageRect, [12, 12, 96, 36]))) return null;
+  if (!legacy) {
+    const hilite = state === 'normal' ? 0 : state === 'pressed' ? 10 : 255;
+    return { ...structuredClone(faceScope), version: 5,
+      publicInvocation: { ...faceScope.publicInvocation, stateApi: 'HiliteControl', hilite, enabled, windowActive: true },
+      claim: 'Recorded composited pixels of the complete fixed empty face in the requested public state under the observed invocation, environment and white background; original pattern phase remains unknown.',
+      excludedClaims: [...faceScope.excludedClaims, 'physical-mouse-gesture', 'inactive-window',
+        'original-pattern-phase', 'general-body-paint', 'pattern-mask', 'private-pattern-provider'],
+    };
+  }
   if (crayon) return { ...structuredClone(faceScope), version: 3,
     claim: 'Recorded composited pixels of the complete fixed empty Crayon normal face under the observed public invocation, environment and background; original pattern phase remains unknown.',
     excludedClaims: [...faceScope.excludedClaims, 'original-pattern-phase', 'general-body-paint', 'pattern-mask', 'private-pattern-provider'],
@@ -273,9 +288,9 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     if (typeof o.controlDefinition?.[field] === 'boolean') equal(o.controlDefinition[field], request.conditions[field], `observed.controlDefinition.${field}`);
   }
   for (const field of ['defaultMechanism', 'invocation']) need(text(o.controlDefinition?.[field]), `observed.controlDefinition.${field}`);
-  if (scoped && allowedScope?.version === 3) {
-    need(Object.hasOwn(o, 'patternOriginState'), 'observed.patternOriginState (v3 explicit unknown)');
-    if (o.patternOriginState !== null) rejected.push('observed.patternOriginState: v3 requires explicit unknown');
+  if (scoped && [3, 5].includes(allowedScope?.version)) {
+    need(Object.hasOwn(o, 'patternOriginState'), 'observed.patternOriginState (scoped explicit unknown)');
+    if (o.patternOriginState !== null) rejected.push('observed.patternOriginState: scope requires explicit unknown');
     need(text(o.unknownConditions?.patternOriginState), 'observed.unknownConditions.patternOriginState');
     unresolvedConditions.push({ field: 'patternOriginState', reason: o.unknownConditions?.patternOriginState ?? null });
   } else if (Object.hasOwn(request.toObserve, 'patternOriginState')) {
@@ -295,7 +310,7 @@ export function assessCapture(capture, request, reviews, { intakeRoot, known = [
     equal(f?.configuredScheme?.forkSha256, request.source.forkSha256, 'configuredScheme.forkSha256');
     need(text(f?.configuredScheme?.evidence), 'configuredScheme.evidence (configured file, not selected provider)');
     const invocation = (allowedScope ?? faceScope).publicInvocation;
-    for (const field of ['api', 'drawApi', 'defaultApiInvoked', ...(allowedScope?.version === 2 ? ['stateApi'] : [])])
+    for (const field of ['api', 'drawApi', 'defaultApiInvoked', ...([2, 5].includes(allowedScope?.version) ? ['stateApi'] : [])])
       equal(f?.invocation?.[field], invocation[field], `publicInvocation.${field}`);
     for (const field of ['procedureId', 'variant', 'hilite', 'value'])
       equal(o.controlDefinition?.[field], invocation[field], `scoped controlDefinition.${field}`);

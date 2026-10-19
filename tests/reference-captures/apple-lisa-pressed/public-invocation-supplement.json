@@ -1,0 +1,8 @@
+{
+  "stateMeaning": "Logical HiliteControl(10) highlight, not a physical held mouse gesture.",
+  "nativeSource": {
+    "sha256": "32667e2922e2e7c76ef727bf33b54062f631263997635e3179c2e37b194aa954",
+    "excerpt": "fixture-source-excerpt.json"
+  },
+  "stateIsFixedPerRun": true
+}

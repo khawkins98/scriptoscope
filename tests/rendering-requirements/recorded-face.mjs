@@ -9,6 +9,8 @@ export const PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile.
 const CRAYON_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/crayon-recorded-source-pins.json', import.meta.url)));
 export const CRAYON_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-crayon.json', id: 'display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0', sha256: 'fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a' };
 const LISA_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/lisa-recorded-source-pins.json', import.meta.url)));
+export const STATE_SOURCE_PINS = JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json', import.meta.url)));
+export const sourcePinsFor = (slug,state) => state === 'normal' ? (slug === 'crayon-os' ? CRAYON_SOURCE_PINS : LISA_SOURCE_PINS) : STATE_SOURCE_PINS[slug]?.[state];
 export const LISA_PROFILE = { path: 'tests/decoder-fixtures/measured-display-profile-lisa.json', id: 'display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2', sha256: 'f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6' };
 export const profileFor = slug => slug === 'apple-lisa' ? LISA_PROFILE : slug === 'crayon-os' ? CRAYON_PROFILE : PROFILE;
 export const CRAYON_CONTEXT = { controlOrigin: [20,20], portOrigin: [0,0], patternOrigin: {status:'unknown'}, clip: {kind:'rect',rect:{x:0,y:0,w:160,h:80}} };
@@ -36,7 +38,7 @@ export function validateRecordedBinding(c, binding, context) {
   check(assessed?.status === 'reviewed-scoped-observation', 'capture is not currently reviewed scoped evidence');
   check(same(binding, captureBinding(capture)), 'stale or wrong capture/profile/crop binding');
   const slug = capture.source.slug, state = capture.conditions.state;
-  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (['crayon-os','apple-lisa'].includes(slug) && state === 'normal'), 'outside finite recorded cases');
+  check((['windows-95', 'system7-nostalgia-silver'].includes(slug) && ['normal', 'pressed', 'inactive'].includes(state)) || (['crayon-os','apple-lisa'].includes(slug) && ['normal','pressed','inactive'].includes(state)), 'outside finite recorded cases');
   check(c.mode === 'direct' && c.family === 'push', 'wrong exact mode/family');
   check(c.id === caseId(slug, state) && same(c.options, exactOptions(state, slug)), 'wrong exact case/options');
   check(same(c.inputs, ['theme.' + slug]) && same(c.baseInputs, []), 'wrong exact source/base inputs');
@@ -78,28 +80,35 @@ export function validateRecordedExecution(row, binding, capture) {
   check(s.resource.sourceCinfId === row.selectedCinfId && row.source.manifestKey === row.selectedKey, 'wrong paired metadata/key');
   const paints = row.slug === 'system7-nostalgia-silver' ? [row.legacyFacePaint] : row.bandPaints.filter(p => p.role === 'face');
   check(paints.length > 0 && paints.every(p => p && same(p.owner, s.owner) && same(p.resource, s.resource)), 'missing or wrong completed paint dependency');
+  const sourcePins=sourcePinsFor(row.slug,row.state);
+  if (STATE_SOURCE_PINS[row.slug]?.[row.state]) {
+    check(row.selectedKey===sourcePins.emittedKey && row.profileInput===sourcePins.sourceArchiveSha256 && row.profileFork===sourcePins.sourceForkSha256, 'wrong state source/key pins');
+    check(same(row.selectedBodyRequest,sourcePins.bodyRequest), 'wrong actual state body request');
+    check(resource?.byteLength===sourcePins.face.bytes && cinf?.byteLength===sourcePins.cinf.bytes, 'wrong state payload lengths');
+  }
   if (row.slug === 'crayon-os') {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}), 'wrong port face placement');
     check(same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) && row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong actual port context');
     const pins = row.recordedSourcePins;
-    check(same(pins, CRAYON_SOURCE_PINS), 'wrong independently pinned payloads');
+    check(same(pins, sourcePins), 'wrong independently pinned payloads');
     for (const [actual, pin] of [[resource,pins.face],[cinf,pins.cinf]])
       check(actual?.resourceIndex === pin.resourceIndex && actual.signedId === pin.signedId && actual.sha256 === pin.payloadSha256, 'wrong face/cinf payload');
     const patterns = row.paintSelectionSteps.filter(p=>p.role==='body-fill' && p.resource?.type==='ppat');
     check(patterns.length===1, 'missing exact selected pattern');
     const p=patterns[0], proof=p.resource.byteProvenance;
     const actual=row.resources.find(r=>r.resourceIndex===proof?.ppatResourceIndex);
-    check(same(p.owner,s.owner) && proof?.loadId===row.loadId && p.resource.signedId===17 &&
+    check(same(p.owner,s.owner) && proof?.loadId===row.loadId && p.resource.signedId===pins.pattern.signedId &&
       proof.manifestKey===p.resource.manifestKey && p.resource.assetUrl===row.patternAsset &&
       actual?.type==='ppat' && actual.status==='decoded' && actual.resourceIndex===pins.pattern.resourceIndex &&
-      actual.signedId===pins.pattern.signedId && actual.sha256===pins.pattern.payloadSha256, 'wrong selected pattern owner/payload');
+      actual.signedId===pins.pattern.signedId && actual.sha256===pins.pattern.payloadSha256 &&
+      (row.state==='normal' || actual.byteLength===pins.pattern.bytes), 'wrong selected pattern owner/payload');
   }
   if (row.slug === 'apple-lisa') {
     check(same(row.composition?.faceRect, {x:20,y:20,w:80,h:20}) &&
       same(row.composition?.context, {...CRAYON_CONTEXT,basis:'caller-declared'}) &&
       row.composition.appliedUnknownPatternOffset === true && row.composition.originalPortState === 'unverified', 'wrong Lisa port context');
-    check(same(row.recordedSourcePins,LISA_SOURCE_PINS), 'wrong Lisa source pins');
-    for(const [actual,pin] of [[resource,LISA_SOURCE_PINS.face],[cinf,LISA_SOURCE_PINS.cinf]])
+    check(same(row.recordedSourcePins,sourcePins), 'wrong Lisa source pins');
+    for(const [actual,pin] of [[resource,sourcePins.face],[cinf,sourcePins.cinf]])
       check(actual?.resourceIndex===pin.resourceIndex && actual.signedId===pin.signedId && actual.sha256===pin.payloadSha256, 'wrong Lisa face/cinf payload');
     const missing=row.bodyFillSteps?.filter(p=>p.usage==='paint' && p.action==='missing' && p.requestedResourceType==='ppat' && p.requestedId===0 && p.bodyMode===0);
     check(missing?.length===1 && same(missing[0].owner,s.owner) && missing[0].reason==='same-face-owner-pattern-unavailable' &&

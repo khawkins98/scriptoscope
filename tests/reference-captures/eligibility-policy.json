@@ -71,6 +71,15 @@
         "Only apple-lisa.normal qualifies: empty80x20 at20,20, origin0, full160x80 effective clip, normal hilite0/enabled/active, no default API. Existing v1/v2/v3 scopes remain unchanged.",
         "Claim only the complete conditioned composited face. No original provider/cache, pattern phase, alpha/mask or general body-paint claim. This scope does not alter full-request requirements or prior capture eligibility."
       ]
+    },
+    "publicFaceV5": {
+      "version": 1,
+      "rules": [
+        "Only the finite 18-source fixed empty-push campaign IDs newly admitted by publicFaceScope v5 qualify; existing v1/v2/v3/v4 scopes and requests remain unchanged. The 54 source/state combinations are planned observations, not evidence of captures or fidelity.",
+        "Require NewControl(proc0)/Draw1Control and HiliteControl0 normal/enabled,10 logical highlight/enabled, or255 disabled, always value0/variant0/active window, empty80x20 at20,20, origin0, full160x80 effective clip and no default API. Physical gestures and inactive-window behavior are excluded.",
+        "Require explicit null patternOriginState with a nonempty unknown reason. Neither port origin0 nor matching pixels establishes original pattern phase or API availability. Full-request pattern-origin requirements remain strict.",
+        "Claim only the complete conditioned white-composited face. Original provider/cache/search order, pattern phase/mask/general body paint, font independence, automatic sizing, rings, shifted placement and all broad request targets remain unresolved."
+      ]
     }
   },
   "maintenance": {

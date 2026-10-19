@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "status": "REVIEWED_ACQUISITION_AND_OFFLINE_COVERAGE_CANDIDATE_COMPARISON_PENDING",
+  "acquisitionReviewSha256": "a5eedd488a11399d4b0468de4328655a2928b65c2de4deae6af0669a2857db6d",
+  "mappingReuse": "Existing exact joint RGB16 tables only; no new measurements, interpolation or profile edits.",
+  "conditions": "New before/after conditions bracket Draw1Control + HiliteControl; retained measurements bracket their mapping batch after drawing. Cross-run compatibility is explicitly conditioned on recorded source/device/palette/gamma/producer joins, not proof of every historical transfer path.",
+  "rows": [
+    {
+      "requestId": "crayon-os.pressed",
+      "profile": {
+        "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+        "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a",
+        "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+        "mappingCount": 2263
+      },
+      "sourceForkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "actualConditions": {
+        "pixelConditionsPath": "crayon-os-pressed/pixel-conditions.json",
+        "pixelConditionsSha256": "e41c2f1a139f1f4680113d8373ad0f9a477224bd4cc6d39a4f7796930b76e1d1",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "producerTableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "device": {
+          "ref": -49,
+          "id": 0,
+          "type": 0,
+          "flags": 47137,
+          "mode": 131,
+          "depth": 8,
+          "pixelType": 0,
+          "bounds": [
+            0,
+            0,
+            640,
+            480
+          ]
+        },
+        "deviceJoinLimit": "Current device fields equal the retained measured main-device configuration; this fixture did not call GetMainDevice for a fresh handle-equality query."
+      },
+      "producerBuilds": [
+        {
+          "name": "BasiliskII.js",
+          "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+        },
+        {
+          "name": "BasiliskII.wasm",
+          "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+        },
+        {
+          "name": "emulator-worker.ts",
+          "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+        },
+        {
+          "name": "emulator-input.ts",
+          "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+        }
+      ],
+      "canvasCopySha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+      "wholeLoadCoverage": {
+        "exactRgb16Tuples": 2224,
+        "covered": 2224,
+        "missing": 0,
+        "unsafeInputs": 0,
+        "currentStrictPreparedConversion": "completed without fallback",
+        "inputInventorySha256": "e900f86ba1e0f6f8a4ec22262863846d2badaf751ba3f45edf26327d2a20b0ce"
+      },
+      "stateDependencies": {
+        "state": "pressed",
+        "expectedFaceId": -10238,
+        "emittedKey": "push-button-pressed",
+        "asset": "cicns/cicn-n10238-push-button-pressed.png",
+        "face": {
+          "resourceIndex": 128,
+          "payloadSha256": "89d26790e39cbe875fd245a16f37b950436cfb986b3ad69dc1045e834cae078e",
+          "bytes": 8018
+        },
+        "cinf": [
+          {
+            "resourceIndex": 263,
+            "type": "cinf",
+            "signedId": -10238,
+            "bytes": 18,
+            "payloadSha256": "88694e7a62994d7eef26b6ab43b85c4ac0741e554bb0a045f280793b9b50f13b"
+          }
+        ],
+        "bodyRequest": {
+          "mode": 0,
+          "resourceId": -10238
+        },
+        "patterns": [
+          {
+            "resourceIndex": 193,
+            "type": "ppat",
+            "signedId": -10238,
+            "bytes": 4582,
+            "payloadSha256": "32fd8e7323e68df932f6f723b1bdf97dcbf7206fce5b4b382616836fd900f97f"
+          }
+        ],
+        "rawColorSamples": {
+          "model": "kdef-2.3.1-color",
+          "displayPolicy": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+          "background": {
+            "rgb16": [
+              59367,
+              57054,
+              50886
+            ],
+            "displayRgb": [
+              255,
+              218,
+              218
+            ]
+          },
+          "text": {
+            "rgb16": [
+              8481,
+              8481,
+              8481
+            ],
+            "displayRgb": [
+              63,
+              63,
+              63
+            ]
+          },
+          "emboss": null,
+          "embossDecision": "absent-coordinates"
+        },
+        "faceRgb16TupleCount": 66,
+        "sourcePinOnly": "Current converter binding, not an executed public paint selection. Actual browser completed paint remains pending."
+      },
+      "timing": "Cross-run mapping reuse candidate only: old measurements bracket mapping after draw; new conditions bracket draw. Same palette/gamma/device fields and producer bytes; no new Color2Index queries or provider identity proof."
+    },
+    {
+      "requestId": "crayon-os.inactive",
+      "profile": {
+        "path": "tests/decoder-fixtures/measured-display-profile-crayon.json",
+        "sha256": "fbd0eb8abb9e5e153fa4ddb0d825a2fea045a6f4a19baca445d12b449ff47b5a",
+        "id": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+        "mappingCount": 2263
+      },
+      "sourceForkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "actualConditions": {
+        "pixelConditionsPath": "crayon-os-inactive/pixel-conditions.json",
+        "pixelConditionsSha256": "d46bcf6221b33251804ab834d16d6ec4cf575476b17e7922c8f3c30925faade1",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "producerTableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "device": {
+          "ref": -49,
+          "id": 0,
+          "type": 0,
+          "flags": 47137,
+          "mode": 131,
+          "depth": 8,
+          "pixelType": 0,
+          "bounds": [
+            0,
+            0,
+            640,
+            480
+          ]
+        },
+        "deviceJoinLimit": "Current device fields equal the retained measured main-device configuration; this fixture did not call GetMainDevice for a fresh handle-equality query."
+      },
+      "producerBuilds": [
+        {
+          "name": "BasiliskII.js",
+          "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+        },
+        {
+          "name": "BasiliskII.wasm",
+          "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+        },
+        {
+          "name": "emulator-worker.ts",
+          "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+        },
+        {
+          "name": "emulator-input.ts",
+          "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+        }
+      ],
+      "canvasCopySha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+      "wholeLoadCoverage": {
+        "exactRgb16Tuples": 2224,
+        "covered": 2224,
+        "missing": 0,
+        "unsafeInputs": 0,
+        "currentStrictPreparedConversion": "completed without fallback",
+        "inputInventorySha256": "e900f86ba1e0f6f8a4ec22262863846d2badaf751ba3f45edf26327d2a20b0ce"
+      },
+      "stateDependencies": {
+        "state": "inactive",
+        "expectedFaceId": -10240,
+        "emittedKey": "push-button-inactive",
+        "asset": "cicns/cicn-n10240-push-button-inactive.png",
+        "face": {
+          "resourceIndex": 127,
+          "payloadSha256": "d589b4d03879d97547f0874cae779657f2f17bbaed00077ba2979f3666095618",
+          "bytes": 7818
+        },
+        "cinf": [
+          {
+            "resourceIndex": 265,
+            "type": "cinf",
+            "signedId": -10240,
+            "bytes": 18,
+            "payloadSha256": "ea18f707f13b5fe0f28cc5274ebc716db3befc174550b79da701fe0fc245401f"
+          }
+        ],
+        "bodyRequest": {
+          "mode": 0,
+          "resourceId": 17
+        },
+        "patterns": [
+          {
+            "resourceIndex": 178,
+            "type": "ppat",
+            "signedId": 17,
+            "bytes": 2198,
+            "payloadSha256": "35c7aa22b9da7e01f83fa5dbd6443e5c93459a3450401ab2c18050f37cdcfea4"
+          }
+        ],
+        "rawColorSamples": {
+          "model": "kdef-2.3.1-color",
+          "displayPolicy": "display-profile:d4e4f9ffb69f1292f2c86b3fb2914561c58f8b38a5aeb53336e6cf914b10a1a0",
+          "background": {
+            "rgb16": [
+              59367,
+              57054,
+              50886
+            ],
+            "displayRgb": [
+              255,
+              218,
+              218
+            ]
+          },
+          "text": {
+            "rgb16": [
+              34952,
+              34952,
+              34952
+            ],
+            "displayRgb": [
+              165,
+              165,
+              165
+            ]
+          },
+          "emboss": null,
+          "embossDecision": "absent-coordinates"
+        },
+        "faceRgb16TupleCount": 41,
+        "sourcePinOnly": "Current converter binding, not an executed public paint selection. Actual browser completed paint remains pending."
+      },
+      "timing": "Cross-run mapping reuse candidate only: old measurements bracket mapping after draw; new conditions bracket draw. Same palette/gamma/device fields and producer bytes; no new Color2Index queries or provider identity proof."
+    },
+    {
+      "requestId": "apple-lisa.pressed",
+      "profile": {
+        "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+        "sha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6",
+        "id": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+        "mappingCount": 22
+      },
+      "sourceForkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "actualConditions": {
+        "pixelConditionsPath": "apple-lisa-pressed/pixel-conditions.json",
+        "pixelConditionsSha256": "25d2cd7f502084314ec250df2cd233351a2889fdec571b235dafdc74c30669a3",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "producerTableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "device": {
+          "ref": -49,
+          "id": 0,
+          "type": 0,
+          "flags": 47137,
+          "mode": 131,
+          "depth": 8,
+          "pixelType": 0,
+          "bounds": [
+            0,
+            0,
+            640,
+            480
+          ]
+        },
+        "deviceJoinLimit": "Current device fields equal the retained measured main-device configuration; this fixture did not call GetMainDevice for a fresh handle-equality query."
+      },
+      "producerBuilds": [
+        {
+          "name": "BasiliskII.js",
+          "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+        },
+        {
+          "name": "BasiliskII.wasm",
+          "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+        },
+        {
+          "name": "emulator-worker.ts",
+          "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+        },
+        {
+          "name": "emulator-input.ts",
+          "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+        }
+      ],
+      "canvasCopySha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+      "wholeLoadCoverage": {
+        "exactRgb16Tuples": 22,
+        "covered": 22,
+        "missing": 0,
+        "unsafeInputs": 0,
+        "currentStrictPreparedConversion": "completed without fallback",
+        "inputInventorySha256": "2a268ba9f689d5bb1b4dd2b2629bf68424121de00f4cb897b4802ec61937e4b7"
+      },
+      "stateDependencies": {
+        "state": "pressed",
+        "expectedFaceId": -10238,
+        "emittedKey": "cicn--10238",
+        "asset": "cicns/cicn-n10238-unnamed.png",
+        "face": {
+          "resourceIndex": 5,
+          "payloadSha256": "7cc131e6c0aa9913d705e845cd0eddf2325a6f90a615be78b42932ea57157bfc",
+          "bytes": 160
+        },
+        "cinf": [
+          {
+            "resourceIndex": 481,
+            "type": "cinf",
+            "signedId": -10238,
+            "bytes": 18,
+            "payloadSha256": "575160d52d947deac2ca0c128f1b3e27f20e47eb67b8178e50e9362053c75610"
+          }
+        ],
+        "bodyRequest": {
+          "mode": 0,
+          "resourceId": 0
+        },
+        "patterns": [],
+        "rawColorSamples": {
+          "model": "kdef-2.3.1-color",
+          "displayPolicy": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+          "background": {
+            "rgb16": [
+              0,
+              0,
+              0
+            ],
+            "displayRgb": [
+              0,
+              0,
+              0
+            ]
+          },
+          "text": {
+            "rgb16": [
+              65535,
+              65535,
+              65535
+            ],
+            "displayRgb": [
+              255,
+              255,
+              255
+            ]
+          },
+          "emboss": {
+            "rgb16": [
+              0,
+              0,
+              0
+            ],
+            "displayRgb": [
+              0,
+              0,
+              0
+            ]
+          },
+          "embossDecision": "same-as-background"
+        },
+        "faceRgb16TupleCount": 2,
+        "sourcePinOnly": "Current converter binding, not an executed public paint selection. Actual browser completed paint remains pending."
+      },
+      "timing": "Cross-run mapping reuse candidate only: old measurements bracket mapping after draw; new conditions bracket draw. Same palette/gamma/device fields and producer bytes; no new Color2Index queries or provider identity proof."
+    },
+    {
+      "requestId": "apple-lisa.inactive",
+      "profile": {
+        "path": "tests/decoder-fixtures/measured-display-profile-lisa.json",
+        "sha256": "f48d2807c6b881b0a3fdd851b866a47116e2df2b998201b95c6c5854befdd1d6",
+        "id": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+        "mappingCount": 22
+      },
+      "sourceForkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "actualConditions": {
+        "pixelConditionsPath": "apple-lisa-inactive/pixel-conditions.json",
+        "pixelConditionsSha256": "3bde9be0377968d71167b8891932061dbcf0ab0192b02490fb7aa472208fdbdc",
+        "paletteSha256": "6987f8e5bc61a7da95ed03f229cc3ecbee463bb6245965fdc2eddbd86a31ef9b",
+        "gammaSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "producerTableSha256": "c2eeb81da5ffc2bd502834d80d850f6f085813ab1cec8d9fb89ca36c2474125b",
+        "device": {
+          "ref": -49,
+          "id": 0,
+          "type": 0,
+          "flags": 47137,
+          "mode": 131,
+          "depth": 8,
+          "pixelType": 0,
+          "bounds": [
+            0,
+            0,
+            640,
+            480
+          ]
+        },
+        "deviceJoinLimit": "Current device fields equal the retained measured main-device configuration; this fixture did not call GetMainDevice for a fresh handle-equality query."
+      },
+      "producerBuilds": [
+        {
+          "name": "BasiliskII.js",
+          "sha256": "4fd750e202686a7b7c3bd0055dbe33d21dd6b3ce2639da8da814ef1036d1c66b"
+        },
+        {
+          "name": "BasiliskII.wasm",
+          "sha256": "0be9b5ba1179b65d9d1bd30b3cc35ee56daf6713ba1353048c03229f641680bb"
+        },
+        {
+          "name": "emulator-worker.ts",
+          "sha256": "c514467afe561487a83b87ee2440e63914a16e2c79db75ef7f8ba9160b9d3ecc"
+        },
+        {
+          "name": "emulator-input.ts",
+          "sha256": "b69f0527aabd322e8cf0d0840d6faef769cd53a717a6d3d6e7cf36118a1dc0c5"
+        }
+      ],
+      "canvasCopySha256": "d15caeebcdf989bb65cc0ca5a61bb0969fc143ab63447a38f1f37a9ac3dc8601",
+      "wholeLoadCoverage": {
+        "exactRgb16Tuples": 22,
+        "covered": 22,
+        "missing": 0,
+        "unsafeInputs": 0,
+        "currentStrictPreparedConversion": "completed without fallback",
+        "inputInventorySha256": "2a268ba9f689d5bb1b4dd2b2629bf68424121de00f4cb897b4802ec61937e4b7"
+      },
+      "stateDependencies": {
+        "state": "inactive",
+        "expectedFaceId": -10240,
+        "emittedKey": "cicn--10240",
+        "asset": "cicns/cicn-n10240-unnamed.png",
+        "face": {
+          "resourceIndex": 3,
+          "payloadSha256": "a81708013028e48b9f6abf291b381b3c5baea04cbb4a3ead1d1f3c8de61a4252",
+          "bytes": 160
+        },
+        "cinf": [
+          {
+            "resourceIndex": 479,
+            "type": "cinf",
+            "signedId": -10240,
+            "bytes": 18,
+            "payloadSha256": "575160d52d947deac2ca0c128f1b3e27f20e47eb67b8178e50e9362053c75610"
+          }
+        ],
+        "bodyRequest": {
+          "mode": 0,
+          "resourceId": 0
+        },
+        "patterns": [],
+        "rawColorSamples": {
+          "model": "kdef-2.3.1-color",
+          "displayPolicy": "display-profile:9bbdfe3464638676c8c8aac27d1b316a3f6bd21837be19f937e59fa5df4730a2",
+          "background": {
+            "rgb16": [
+              65535,
+              65535,
+              65535
+            ],
+            "displayRgb": [
+              255,
+              255,
+              255
+            ]
+          },
+          "text": {
+            "rgb16": [
+              0,
+              0,
+              0
+            ],
+            "displayRgb": [
+              0,
+              0,
+              0
+            ]
+          },
+          "emboss": {
+            "rgb16": [
+              65535,
+              65535,
+              65535
+            ],
+            "displayRgb": [
+              255,
+              255,
+              255
+            ]
+          },
+          "embossDecision": "same-as-background"
+        },
+        "faceRgb16TupleCount": 2,
+        "sourcePinOnly": "Current converter binding, not an executed public paint selection. Actual browser completed paint remains pending."
+      },
+      "timing": "Cross-run mapping reuse candidate only: old measurements bracket mapping after draw; new conditions bracket draw. Same palette/gamma/device fields and producer bytes; no new Color2Index queries or provider identity proof."
+    }
+  ],
+  "limits": [
+    "Finite whole-load decoder input coverage is not independent decoder correctness.",
+    "No actual public paint/comparison result is supplied by this metadata; state dependencies are converter inputs awaiting execution joins.",
+    "Original pattern origin, private painter/provider/cache, font and complete patch search order remain unknown.",
+    "One opaque-background equality cannot establish original alpha/mask truth."
+  ]
+}

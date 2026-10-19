@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.10.0 declares sixty-two exact direct cases and seven explicit dimensions per
+Inventory 1.11.0 declares sixty-six exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -301,3 +301,28 @@ ownership. Retain successful receipts when executable inputs are unchanged;
 rerun affected checks after real changes and keep required CI. This does not
 combine unrelated changes or bypass the focused logical-change guidance in
 CONTRIBUTING.
+
+
+## Four conditioned Crayon/Lisa state comparisons (1.11.0)
+
+Four additional fixed empty 80×20 cases reuse the existing measured-profile
+source/built loop: logical highlight and disabled state for Crayon OS and Apple
+Lisa. The reviewed output obligation compares all 1,600 face pixels over the
+recorded white background. Source archive/fork, exact face/cinf occurrences,
+selected same-owner ppat or ppat 0 absence, prepared profile, port context and
+completed composition must join the independently reviewed capture. This does
+not observe an original private provider or a separate pattern-write event.
+
+The retained profiles cover all 2,224 Crayon and 22 Lisa whole-load RGB16 inputs;
+actual new palette/gamma/device/producer bindings support their explicit
+cross-run reuse. Calibration coverage is a prerequisite, not pixel equality.
+The capture remains valid evidence if comparison fails; its pixels and the
+expected oracle must not be adjusted to the renderer.
+
+`four-state-recorded-transition.json` preserves the complete prior inventory,
+including all 62 cases and 449 assessments. The reviewed inventory is 66 OPEN
+cases and 473 obligations (85 narrow verified, 388 unknown). Independent automated
+root and frontend review approved the bounded integration at 8600ff04; the clean
+development source/built pair matched all 1,600 pixels per face. Final registered
+execution remains separately required. No historical provider,
+alpha/mask, original phase, font, whole request or whole-control claim is added.
