@@ -138,8 +138,8 @@
     "runtime": "built-public-entry"
   },
   "provenance": {
-    "gitCommit": "e3036225f9e04a7e43563f243fb52fe9250f356e",
-    "bundleSha256": "5a902fad8582f9802c1fd6b1d89dc55c8d77d1a998a60451fc21593a01ebbc7a",
+    "gitCommit": "e3480b9dc6a67c4b54ad63ef34ee7a8fcbc20a29",
+    "bundleSha256": "d3e23f97698cff6ec331beab04bb4c6255efe2e67f817317abac6b97529bea55",
     "stylesheetSha256": "d26aeda7849189c2d33e5a0b56ab62795973da0b5533bd0cca9ba904220f8a34",
     "packageLockSha256": "cc6b55e4d9f1b4b2de8285041d048ad874730c405da908bbdca42e4f2e1bbe17"
   }
