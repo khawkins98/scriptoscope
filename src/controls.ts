@@ -1184,7 +1184,7 @@ async function loadCicnBody(face: ResolvedControlFace, opts: FaceOptions, width:
   return { kind: 'ready', buffer, sourceRect, side: inset, step, copy, sourceAssetUrl: url, ...(derivedPath ? { derivedPath } : {}) };
 }
 
-async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usage: 'paint' | 'admission' = 'paint'): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean }> {
+async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usage: 'paint' | 'admission' = 'paint'): Promise<{ buffer: PixelBuffer | null; solidFallback: boolean; selection?: ControlResolutionStep }> {
   const request = face.element.bodyRequest;
   if (!request) return { buffer: null, solidFallback: false }; // Legacy manifests have no observed raw request.
   const common = { role: 'body-fill' as const, requestedId: request.resourceId, bodyMode: request.mode,
@@ -1237,13 +1237,16 @@ async function loadBodyPattern(face: ResolvedControlFace, opts: FaceOptions, usa
   }
   assertControlAlive(opts.signal);
   const url = assetUrl(face.theme, pattern.asset);
+  // Capture actual owner/occurrence at the load boundary for completed header
+  // paint reporting, without repeating resolution after asynchronous decoding.
+  const selection: ControlResolutionStep | undefined = opts.trace ? { ...common, action: 'selected',
+    reason: usage === 'admission' ? selectionReason.replace(/-paint$/, '-admission') : selectionReason,
+    resource: { type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
+      ...(pattern.byteProvenance ? { byteProvenance: { ...pattern.byteProvenance } } : {}) } } : undefined;
   const buffer = await loadCicnBuffer(url);
   assertControlAlive(opts.signal);
-  opts.trace?.record({ ...common, action: 'selected', reason: usage === 'admission' ? selectionReason.replace(/-paint$/, '-admission') : selectionReason, resource: {
-    type: 'ppat', signedId: pattern.sourcePpatId ?? null, sourceCinfId: null, manifestKey: key!, assetUrl: url,
-    ...(pattern.byteProvenance ? { byteProvenance: pattern.byteProvenance } : {}),
-  } });
-  return { buffer, solidFallback: false };
+  if (selection) opts.trace?.record(selection);
+  return { buffer, solidFallback: false, ...(selection ? { selection } : {}) };
 }
 
 /**
@@ -1717,7 +1720,7 @@ export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfa
     state: opts?.drawState === 0 ? 'inactive' : 'active', pressed: false, disabled: false,
   }, async trace => {
     const plan = planHeaderSurface(opts);
-    const finish = (value: HeaderSurfaceResult, extra: Partial<Pick<HeaderSurfaceTrace, 'backgroundPolicy' | 'lineSampling' | 'painted'>> = {}): PixelBuffer | null => {
+    const finish = (value: HeaderSurfaceResult, extra: Partial<Pick<HeaderSurfaceTrace, 'backgroundPolicy' | 'lineSampling' | 'painted' | 'patternBody'>> = {}): PixelBuffer | null => {
       result = value;
       trace?.headerSurface({ ...plan, admission: value.status, ...(value.status === 'rendered' ? {} : { reason: value.reason }),
         geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility', ...extra });
@@ -1744,22 +1747,25 @@ export async function composeHeaderSurface(theme: LoadedTheme, opts: HeaderSurfa
       // A selected ppat (including ID0) takes priority. Keep real decode errors
       // as errors, not a manufactured NULL lookup/solid fallback.
       const body = await loadBodyPattern(face, { trace }, 'admission');
-      if (body.buffer) return finish({ status: 'unsupported', reason: 'pattern-body' });
-      if (!body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
+      if (body.buffer && plan.context.patternOrigin.status === 'unknown')
+        return finish({ status: 'unsupported', reason: 'unknown-pattern-origin' });
+      if (!body.buffer && !body.solidFallback) return finish({ status: 'unsupported', reason: 'ambiguous-body-selection' });
       const background = headerBackground(face.buffer, face.element, face.theme.manifest);
-      if (!background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
+      if (!body.buffer && !background) return finish({ status: 'unsupported', reason: 'missing-background-sample' });
       const companion = face.element.sampledBandAsset;
       const companionUrl = companion ? assetUrl(face.theme, companion.asset) : null;
-      const painted = await paintHeaderSurface(face.buffer, face.element, plan, background, face.theme.manifest,
-        companionUrl ? () => loadCicnBuffer(companionUrl) : undefined);
+      const painted = await paintHeaderSurface(face.buffer, face.element, plan, background ?? [], face.theme.manifest,
+        companionUrl ? () => loadCicnBuffer(companionUrl) : undefined, body.buffer ?? undefined);
       if (identity && companion && companionUrl) for (const band of painted.sampledRegions ?? []) trace?.bandPaint({
         ...identity, role: 'face', ...band, policy: 'sampled-companion',
         derived: { path: companion.derivedPath, assetUrl: companionUrl, model: companion.model, displayPolicy: companion.displayPolicy },
       });
+      if (painted.patternBody && body.selection) trace?.record({ ...body.selection, usage: 'paint', reason: 'completed-header-pattern-inset-union' });
       if (painted.painted && identity) trace?.record({ ...identity, role: 'face', requestedId: -id,
         action: 'selected', basis: 'compatibility-policy', usage: 'paint', reason: 'admitted-header-surface-paint' });
       return finish(painted.result, { ...(painted.result.status === 'rendered' ? { painted: painted.painted,
-        ...(painted.painted ? { backgroundPolicy: 'raw-sample-current-display' as const } : {}) } : {}), lineSampling: painted.lineSampling });
+        ...(painted.patternBody ? { patternBody: painted.patternBody } : {}),
+        ...(painted.painted && !body.buffer ? { backgroundPolicy: 'raw-sample-current-display' as const } : {}) } : {}), lineSampling: painted.lineSampling });
     } catch (error) {
       trace?.headerSurface({ ...plan, admission: 'error', geometry: 'pach130-ordinary-full-color', sourceSelection: 'current-manifest-compatibility' });
       throw error;

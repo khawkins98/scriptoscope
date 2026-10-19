@@ -126,7 +126,7 @@ for (const mode of ['source', 'built']) test(`${mode}: header admission keeps mi
         return {rows,errorTrace,errorText,invalid};
       } finally {owner.dispose();}
     },mode);
-    const expected={'unknown-clip':'unknown-clip','special-origin':'special-window-origin','missing-face':'missing-face','missing-slice':'missing-slice','invalid-slice':'invalid-slice','missing-request':'missing-body-request','invalid-request':'invalid-body-request',mode5:'cicn-body',pattern0:'pattern-body',pattern17:'pattern-body','ambiguous-pattern':'ambiguous-body-selection','missing-bg':'missing-background-sample','ambiguous-bg':'missing-background-sample','unsafe-source':'unsafe-source-geometry',nonbinary:'nonbinary-mask'};
+    const expected={'unknown-clip':'unknown-clip','special-origin':'special-window-origin','missing-face':'missing-face','missing-slice':'missing-slice','invalid-slice':'invalid-slice','missing-request':'missing-body-request','invalid-request':'invalid-body-request',mode5:'cicn-body',pattern0:'unknown-pattern-origin',pattern17:'unknown-pattern-origin','ambiguous-pattern':'ambiguous-body-selection','missing-bg':'missing-background-sample','ambiguous-bg':'missing-background-sample','unsafe-source':'unsafe-source-geometry',nonbinary:'nonbinary-mask'};
     for(const row of result.rows) {
       expect(row.reason,row.variant).toBe(expected[row.variant]??'unverified-line-sampling');
       expect(row.status).toBe(row.variant==='missing-face'?'unavailable':'unsupported');
