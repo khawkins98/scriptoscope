@@ -2,21 +2,24 @@
 
 This is a finite request and review contract for [#190](https://github.com/khawkins98/scriptoscope/issues/190),
 under the [draft compatibility target](../../docs/spec/fidelity-compatibility-contract.md).
-**Eight original observations have independent AI review under the narrow
-`public-api-empty-face` scopes v1–v4.** They satisfy no whole request and verify
+**Twelve original observations have independent AI review under the narrow
+`public-api-empty-face` scopes v1–v5.** They satisfy no whole request and verify
 no intake target. The fixed empty-push campaign now plans all 18 canonical
 sources × normal/logically highlighted/disabled states: 54 requests, including
 those eight existing observations. Five earlier default/shift experiments remain
-separate, for 59 requests total. At this scaffold stage 51 requests have no
-capture; the eight scoped-only requests remain evidence-incomplete.
+separate, for 59 requests total. The four new Crayon/Lisa state observations bring the stored corpus to twelve
+reviewed scoped records; 47 requests have no capture (42 campaign states and
+five older experiments). All twelve scoped requests remain evidence-incomplete.
 
 Scope v5 applies only to the 46 newly appended campaign IDs. It requires the
 same fixed port, face, background and full-image evidence, actual public
 HiliteControl state and explicit unknown original pattern phase. It does not
 change old scopes, request objects, record/review digests or full-request
 requirements. A campaign request is a research gap, never a fabricated capture.
-Four Crayon/Lisa state observations are being acquired and reviewed separately;
-no new capture or attestation is included in this scaffold.
+The four new records retain their actual full frames, port/context/face crops,
+ordinary stopped HFS export checks and sanitized invocation/condition bindings.
+Separate independent automated root review approved their exact v5 scope.
+Acquisition and calibration review alone do not approve intake.
 
 See [original observations and limits](./ORIGINALS.md). Quarantined research
 observations remain separate from admitted intake. Public comparison requires
@@ -24,7 +27,7 @@ actual source/state dependency pins and complete measured RGB16 input coverage,
 with reviewed cross-run palette/gamma/device/producer joins. Matching opaque
 pixels does not establish original masks, providers, font independence or phase.
 Data, independent review, source/built comparison, narrow ledger bindings and
-documentation will share one coherent final batch; missing calibration or pixel
+documentation share one coherent batch; missing calibration or pixel
 mismatches remain explicit rather than changing the oracle.
 
 ## Preserved first-batch requests

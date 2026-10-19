@@ -2,8 +2,9 @@
 
 Scope ID `public-api-empty-face` is an additive eligibility path
 within the [existing reference intake](../../tests/reference-captures/README.md).
-It admits no records itself. Request draft **0.2.0** preserves all thirteen exact
-request objects and the existing compatibility authority; its digest also binds
+It admits no records itself. Request draft **0.3.0** preserves all thirteen earlier exact
+request objects and the existing compatibility authority, and appends 46 fixed
+campaign requests. Each request digest binds
 the applicable scope definition, claim, associated IDs and exclusions.
 
 Version **1** remains unchanged for `windows-95.normal` and
@@ -31,10 +32,36 @@ Neither state establishes a physical mouse gesture or an inactive window; v2
 explicitly excludes both claims. `invocation.stateApi` must be `HiliteControl`,
 and the observed control-definition hilite must match the request's v2 scope.
 The public normal v1 scope, its request digests and existing records remain exact.
-Catalog version0.2.0, all thirteen request objects, compatibility authority and
-ledger are unchanged. Only these four requests gain new scope-bound digests;
+The original v2 addition retained catalog version 0.2.0 and all thirteen request
+objects. Only those four requests gained v2 scope-bound digests;
 previous attestations cannot silently acquire v2 eligibility. Four existing v10 observations are separately reviewed under this scope;
 the validator does not generate original evidence.
+
+## Later finite scopes and the fixed-state campaign
+
+Version **3** remains limited to `crayon-os.normal`; version **4** remains
+limited to `apple-lisa.normal`. These conditioned observations retain an explicit
+unknown original pattern origin. They do not establish original pattern phase,
+provider or cache state. Their earlier capture/review/request bindings remain
+unchanged.
+
+Version **5** applies only to the 46 new IDs enumerated by the contract across
+18 canonical sources and three fixed empty-push states. Together with the eight
+old requests this makes 54 campaign requests; five older default/shift requests
+remain separate. V5 requires actual `HiliteControl` and hilite 0/10/255 for
+normal/logically highlighted/disabled controls, procedure/variant/value 0, an
+active window, no default API, full port clip and explicit unknown original
+pattern origin. Every case has face (20,20,80,20) in port (0,0,160,80), an empty
+title and opaque white background. No physical gesture or inactive window is
+inferred. Missing future captures stay missing.
+
+The semantic digest includes only the applicable scope and policy section;
+adding v5 preserves every old request object, eight capture/review records and
+their digests. `campaign-retention.json` and focused rejection/retention tests
+pin that boundary. Full admission, earlier v1–v4 scopes and the compatibility
+authority are unchanged. Capture approval and renderer equality remain separate
+steps: palette/gamma/device/producer joins and whole-load mapping coverage must
+justify profile reuse before comparison, without interpolating new mappings.
 
 ## Fixed comparison extent and limits
 
@@ -75,7 +102,7 @@ required. The scoped path additionally records `observed.publicApiFace`:
 | Field | Required observation |
 |---|---|
 | `configuredScheme` | Matching archive/fork hashes and evidence of the configured scheme file; this is not selected-provider attribution |
-| `invocation` | Actual public creation/draw APIs, exact control Rect, empty title, matching request state, v2 `stateApi:HiliteControl`, and `defaultRing:false` |
+| `invocation` | Actual public creation/draw APIs, exact control Rect, empty title, matching request state, v2/v5 `stateApi:HiliteControl`, and `defaultRing:false` |
 | `port` | Exact origin/bounds, effective full-port clip, recorded RGB background and opaque composited-background condition |
 | `producer` | Name, exact external build identities, producer table hash, RGBA8 encoding, recorded color realization and measurement timing |
 | `fullFrame` | Original complete frame hash/dimensions and request-image extraction Rect/transform |
@@ -127,8 +154,7 @@ visible instead of becoming a completion percentage.
 Omitting `reviewScope` retains the old full-admission path. Explicit
 `{id:"full",version:1}` uses that same strict path. Both still require font,
 patch/base/provider and all prior review checks, including for pressed/inactive
-requests. Default-ring, Crayon and nonzero-origin gates are unchanged. Unknown scope IDs, expanded face
+requests. Default-ring and nonzero-origin full-admission gates are unchanged. Unknown scope IDs, expanded face
 regions/claims, stale versions or a review with different scope reject intake.
 Actual capture/review additions require a separate evidence review. The
-[current corpus](../../tests/reference-captures/ORIGINALS.md) contains six such
-separately reviewed scoped observations, with every broader target unresolved.
+[current corpus](../../tests/reference-captures/ORIGINALS.md) lists the separately reviewed scoped observations and new candidates, with every broader target unresolved.

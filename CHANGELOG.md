@@ -7,7 +7,7 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
-- Prepare the fixed empty-push reference campaign across 18 sources and three public states with one new conditioned-output scope, preserving prior request/capture/review bindings and leaving unacquired observations and all broad fidelity claims unresolved.
+- Add four independently reviewed Crayon/Lisa highlighted and disabled empty-face observations, calibrated measured-profile comparisons and narrow recorded-output ledger bindings. Define one fixed empty-push campaign across 18 sources and three states, preserving prior bindings and leaving 42 unacquired campaign states and all broad fidelity claims unresolved (#221, #190).
 
 - Register existing conditional slider endpoint and checkable icon selector assertions in the partial requirement ledger, binding owned inputs and actual source/built output while preserving all historical provider, decoder and whole-control unknowns (#221). Document coherent implementation/harness/ledger/documentation batches with one reviewed final check chain and retained unchanged-input receipts.
 

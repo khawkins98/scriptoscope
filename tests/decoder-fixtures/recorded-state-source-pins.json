@@ -1,0 +1,104 @@
+{
+  "crayon-os": {
+    "pressed": {
+      "sourceArchiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "sourceForkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "emittedKey": "push-button-pressed",
+      "face": {
+        "resourceIndex": 128,
+        "payloadSha256": "89d26790e39cbe875fd245a16f37b950436cfb986b3ad69dc1045e834cae078e",
+        "bytes": 8018,
+        "signedId": -10238
+      },
+      "cinf": {
+        "resourceIndex": 263,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "88694e7a62994d7eef26b6ab43b85c4ac0741e554bb0a045f280793b9b50f13b"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": -10238
+      },
+      "pattern": {
+        "resourceIndex": 193,
+        "signedId": -10238,
+        "bytes": 4582,
+        "payloadSha256": "32fd8e7323e68df932f6f723b1bdf97dcbf7206fce5b4b382616836fd900f97f"
+      }
+    },
+    "inactive": {
+      "sourceArchiveSha256": "df2a57487c4ee86033e7cf143337c9a0407a3186141966c276d2dcfbbcbdd74f",
+      "sourceForkSha256": "79de4e29aebf5e6dd2d5b70554469cb8dfb5897f16aa4b5f8cb232523571f1de",
+      "emittedKey": "push-button-inactive",
+      "face": {
+        "resourceIndex": 127,
+        "payloadSha256": "d589b4d03879d97547f0874cae779657f2f17bbaed00077ba2979f3666095618",
+        "bytes": 7818,
+        "signedId": -10240
+      },
+      "cinf": {
+        "resourceIndex": 265,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "ea18f707f13b5fe0f28cc5274ebc716db3befc174550b79da701fe0fc245401f"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 17
+      },
+      "pattern": {
+        "resourceIndex": 178,
+        "signedId": 17,
+        "bytes": 2198,
+        "payloadSha256": "35c7aa22b9da7e01f83fa5dbd6443e5c93459a3450401ab2c18050f37cdcfea4"
+      }
+    }
+  },
+  "apple-lisa": {
+    "pressed": {
+      "sourceArchiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "sourceForkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "emittedKey": "cicn--10238",
+      "face": {
+        "resourceIndex": 5,
+        "payloadSha256": "7cc131e6c0aa9913d705e845cd0eddf2325a6f90a615be78b42932ea57157bfc",
+        "bytes": 160,
+        "signedId": -10238
+      },
+      "cinf": {
+        "resourceIndex": 481,
+        "signedId": -10238,
+        "bytes": 18,
+        "payloadSha256": "575160d52d947deac2ca0c128f1b3e27f20e47eb67b8178e50e9362053c75610"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    },
+    "inactive": {
+      "sourceArchiveSha256": "22ce015a371c187db7c7ab112a4f59b089f21c9433144e3b9021bd61579ab93d",
+      "sourceForkSha256": "8eee0776811b5b5b1fa251507e70e8c4a4fd6228eb702e0e583bc40b9f06a2bb",
+      "emittedKey": "cicn--10240",
+      "face": {
+        "resourceIndex": 3,
+        "payloadSha256": "a81708013028e48b9f6abf291b381b3c5baea04cbb4a3ead1d1f3c8de61a4252",
+        "bytes": 160,
+        "signedId": -10240
+      },
+      "cinf": {
+        "resourceIndex": 479,
+        "signedId": -10240,
+        "bytes": 18,
+        "payloadSha256": "575160d52d947deac2ca0c128f1b3e27f20e47eb67b8178e50e9362053c75610"
+      },
+      "bodyRequest": {
+        "mode": 0,
+        "resourceId": 0
+      },
+      "missingPatternId": 0
+    }
+  }
+}

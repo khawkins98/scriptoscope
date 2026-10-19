@@ -1,0 +1,51 @@
+{
+  "captureDataCommit": "72b46c0f16e18a7d4aecdc6b7bfbf3a536a4c763",
+  "reviewer": "root",
+  "rows": [
+    {
+      "captureId": "crayon-os.pressed.c18h",
+      "nativeBytes": 19630,
+      "hilite": 10,
+      "allPrivateResultAndPublicArtifactHashesExact": true,
+      "actualSourceStateGeometryAndDurabilityChecked": true,
+      "installedFixtureAndEngineAndConfiguredSourceForksExact": true,
+      "prebootAndArchiveHashesExact": true,
+      "full307200PixelsAndCropsExact": true,
+      "environmentExact": true
+    },
+    {
+      "captureId": "crayon-os.inactive.c18d",
+      "nativeBytes": 19633,
+      "hilite": 255,
+      "allPrivateResultAndPublicArtifactHashesExact": true,
+      "actualSourceStateGeometryAndDurabilityChecked": true,
+      "installedFixtureAndEngineAndConfiguredSourceForksExact": true,
+      "prebootAndArchiveHashesExact": true,
+      "full307200PixelsAndCropsExact": true,
+      "environmentExact": true
+    },
+    {
+      "captureId": "apple-lisa.pressed.l18h",
+      "nativeBytes": 19656,
+      "hilite": 10,
+      "allPrivateResultAndPublicArtifactHashesExact": true,
+      "actualSourceStateGeometryAndDurabilityChecked": true,
+      "installedFixtureAndEngineAndConfiguredSourceForksExact": true,
+      "prebootAndArchiveHashesExact": true,
+      "full307200PixelsAndCropsExact": true,
+      "environmentExact": true
+    },
+    {
+      "captureId": "apple-lisa.inactive.l18d",
+      "nativeBytes": 19659,
+      "hilite": 255,
+      "allPrivateResultAndPublicArtifactHashesExact": true,
+      "actualSourceStateGeometryAndDurabilityChecked": true,
+      "installedFixtureAndEngineAndConfiguredSourceForksExact": true,
+      "prebootAndArchiveHashesExact": true,
+      "full307200PixelsAndCropsExact": true,
+      "environmentExact": true
+    }
+  ],
+  "scope": "Independent original public empty-face evidence review only; no public renderer comparison or whole-control/provider/mask/font proof."
+}

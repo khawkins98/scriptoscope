@@ -47,7 +47,7 @@ test('completed modern paint joins reject wrong owners, occurrences, profile and
 test('recorded comparisons remain execution-unverified when the registered source/built marker is absent or stale',async()=>{
  const {makeReport}=await import('./ledger.mjs');
  const report=makeReport(ledger,{executionCommit:'current',workingTreeDirty:false,execution:{executionCommit:'older',workingTreeDirty:false,assertions:[{id:'recorded.empty-face-six',mode:'source',path:'tests/rendering-options/display-profile.spec.mjs',status:'passed'}]}});
- assert.equal(report.recordedConditionComparisons.cases.length,8);
+ assert.equal(report.recordedConditionComparisons.cases.length,12);
  assert(report.recordedConditionComparisons.cases.every(c=>c.status==='unknown'&&c.execution.every(m=>m.status==='not run')));
 });
 
@@ -87,5 +87,40 @@ test('Lisa requires its exact profile/context/payloads and actual no-ppat0 obser
   [r=>r.resources[0].sha256='bad',/Lisa face\/cinf/],[r=>r.bodyFillSteps=[],/no-ppat0/],
   [r=>r.resources.push({type:'ppat',signedId:0,status:'decoded'}),/no-ppat0/]]){
   const row=make();change(row);assert.throws(()=>validateRecordedExecution(row,binding,capture),re);
+ }
+});
+
+test('four new state joins require their own face/cinf/body/pattern pins and completed paint',()=>{
+ const statePins=JSON.parse(readFileSync(new URL('../decoder-fixtures/recorded-state-source-pins.json',import.meta.url)));
+ for(const slug of ['crayon-os','apple-lisa'])for(const state of ['pressed','inactive']){
+  // Synthetic trace structure isolates verifier failures; original PNGs remain the browser oracle.
+  const capture=structuredClone(captures.find(c=>c.requestId===slug+'.normal'));
+  capture.conditions.state=state;capture.requestId=slug+'.'+state;
+  const binding=captureBinding(capture),pins=statePins[slug][state];
+  const make=()=>{
+   const r=execution().row,options=exactOptions(state,slug),owner=r.paintSelectionSteps[0].owner;
+   Object.assign(r,{slug,state,options,requested:{state,pressed:options.pressed,disabled:options.disabled,default:false},profile:binding.profile.id,policy:binding.profile.id,
+    profileInput:capture.source.archiveSha256,profileFork:capture.source.forkSha256,originalComparison:{binding,differentPixels:0,comparedPixels:1600},
+    selectedKey:pins.emittedKey,selectedCinfId:pins.cinf.signedId,selectedBodyRequest:structuredClone(pins.bodyRequest),recordedSourcePins:structuredClone(pins),
+    composition:{faceRect:{x:20,y:20,w:80,h:20},context:{...options.compositionContext,basis:'caller-declared'},appliedUnknownPatternOffset:true,originalPortState:'unverified'},patternAsset:pins.pattern?'unit:pattern':null});
+   Object.assign(r.source,{manifestKey:pins.emittedKey,cicnResourceIndex:pins.face.resourceIndex,cinfResourceIndex:pins.cinf.resourceIndex});
+   Object.assign(r.paintSelectionSteps[0].resource,{signedId:pins.face.signedId,manifestKey:pins.emittedKey,sourceCinfId:pins.cinf.signedId});
+   r.resources=['face','cinf',...(pins.pattern?['pattern']:[])].map(k=>({resourceIndex:pins[k].resourceIndex,signedId:pins[k].signedId,sha256:pins[k].payloadSha256,byteLength:pins[k].bytes,status:'decoded',type:k==='face'?'cicn':k==='pattern'?'ppat':'cinf'}));
+   if(pins.pattern)r.paintSelectionSteps.push({role:'body-fill',usage:'paint',action:'selected',owner,resource:{type:'ppat',signedId:pins.pattern.signedId,manifestKey:'unit-pattern',assetUrl:r.patternAsset,byteProvenance:{loadId:r.loadId,manifestKey:'unit-pattern',ppatResourceIndex:pins.pattern.resourceIndex}}});
+   else r.bodyFillSteps=[{role:'body-fill',usage:'paint',action:'missing',owner,requestedResourceType:'ppat',requestedId:0,bodyMode:0,reason:'same-face-owner-pattern-unavailable'}];
+   return r;
+  };
+  validateRecordedExecution(make(),binding,capture);
+  for(const [mutate,reason]of [
+   [r=>r.state='normal',/execution case/],
+   [r=>r.selectedKey='wrong-state-key',/face identity/],
+   [r=>r.selectedBodyRequest.resourceId=999,/body request/],
+   [r=>r.resources[0].sha256='wrong-face',/payload/],
+   [r=>r.resources[1].sha256='wrong-cinf',/payload/],
+   [r=>r.resources[1].byteLength=1,/lengths/],
+   [r=>r.bandPaints=[],/paint dependency/],
+  ]){const r=make();mutate(r);assert.throws(()=>validateRecordedExecution(r,binding,capture),reason);}
+  if(pins.pattern){const r=make();r.paintSelectionSteps[1].resource.signedId=pins.pattern.signedId===17?-10238:17;assert.throws(()=>validateRecordedExecution(r,binding,capture),/pattern owner\/payload/);}
+  else {const r=make();r.resources.push({type:'ppat',signedId:0});assert.throws(()=>validateRecordedExecution(r,binding,capture),/no-ppat0/);}
  }
 });
