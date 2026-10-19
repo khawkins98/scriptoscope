@@ -33,7 +33,7 @@
 //   │   uint16    typeListOffset (from start of map)                │
 //   │   uint16    nameListOffset (from start of map)                │
 //   │   At typeListOffset:                                          │
-//   │     uint16  numTypes-1   (i.e. 0 means 1 type, 0xFFFF = 65536)│
+//   │     uint16  numTypes-1   (i.e. 0 means 1 type, 0xFFFF = empty)│
 //   │     For each type:                                            │
 //   │       char[4] typeCode                                        │
 //   │       uint16  numResources-1                                  │
@@ -95,6 +95,12 @@ export function parseResourceFork(bytes) {
     );
   }
 
+  const dataEnd = dataOffset + dataLength;
+  const mapEnd = mapOffset + mapLength;
+  if (mapLength < MAP_HEADER_SIZE) {
+    throw new Error(`parseResourceFork: map section too short (${mapLength} bytes; need ≥${MAP_HEADER_SIZE})`);
+  }
+
   // Map header is 16 bytes (reserved copy of file header, zeros on disk),
   // then 8 reserved bytes, then 4 control bytes — totaling 24 bytes
   // before the typeList/nameList offsets at relative bytes 24-27. Many
@@ -111,12 +117,12 @@ export function parseResourceFork(bytes) {
   const typeListAbs = mapOffset + typeListOffset;
   const nameListAbs = mapOffset + nameListOffset;
 
-  if (typeListAbs >= bytes.length) {
-    throw new Error(`parseResourceFork: typeList offset out of bounds (${typeListAbs} >= ${bytes.length})`);
+  if (typeListAbs + 2 > mapEnd) {
+    throw new Error(`parseResourceFork: typeList count outside map section (${typeListAbs} + 2 > ${mapEnd})`);
   }
 
   const numTypesM1 = view.getUint16(typeListAbs, false);
-  const numTypes = (numTypesM1 + 1) & 0xffff; // wrap-aware: 0xFFFF + 1 = 0 → 0x10000
+  const numTypes = (numTypesM1 + 1) & 0xffff; // 0xFFFF is the empty-list sentinel
 
   /** @type {ResourceForkEntry[]} */
   const entries = [];
@@ -124,8 +130,8 @@ export function parseResourceFork(bytes) {
   // Type list starts right after the count (typeListAbs + 2)
   for (let t = 0; t < numTypes; t++) {
     const typeEntryAbs = typeListAbs + 2 + t * TYPE_ENTRY_SIZE;
-    if (typeEntryAbs + TYPE_ENTRY_SIZE > bytes.length) {
-      throw new Error(`parseResourceFork: type entry ${t} out of bounds`);
+    if (typeEntryAbs + TYPE_ENTRY_SIZE > mapEnd) {
+      throw new Error(`parseResourceFork: type entry ${t} outside map section`);
     }
     const typeCode = String.fromCharCode(
       bytes[typeEntryAbs],
@@ -141,8 +147,8 @@ export function parseResourceFork(bytes) {
 
     for (let r = 0; r < numResources; r++) {
       const refEntryAbs = refListAbs + r * REF_ENTRY_SIZE;
-      if (refEntryAbs + REF_ENTRY_SIZE > bytes.length) {
-        throw new Error(`parseResourceFork: ref entry ${t}/${r} out of bounds`);
+      if (refEntryAbs + REF_ENTRY_SIZE > mapEnd) {
+        throw new Error(`parseResourceFork: ref entry ${t}/${r} outside map section`);
       }
       const id = view.getInt16(refEntryAbs, false);
       const nameOffset = view.getUint16(refEntryAbs + 2, false);
@@ -156,23 +162,23 @@ export function parseResourceFork(bytes) {
       let name = '';
       if (nameOffset !== 0xffff) {
         const nameAbs = nameListAbs + nameOffset;
-        if (nameAbs >= bytes.length) {
-          throw new Error(`parseResourceFork: name offset ${nameOffset} out of bounds`);
+        if (nameAbs >= mapEnd) {
+          throw new Error(`parseResourceFork: name offset ${nameOffset} outside map section`);
         }
         const nameLen = bytes[nameAbs];
-        if (nameAbs + 1 + nameLen > bytes.length) {
-          throw new Error(`parseResourceFork: name overruns end of file`);
+        if (nameAbs + 1 + nameLen > mapEnd) {
+          throw new Error(`parseResourceFork: name overruns map section`);
         }
         // MacRoman fallback to latin-1; most chrome resource names are ASCII.
         name = String.fromCharCode(...bytes.subarray(nameAbs + 1, nameAbs + 1 + nameLen));
       }
 
       const dataAbs = dataOffset + dataOff;
-      if (dataAbs + 4 > bytes.length) {
-        throw new Error(`parseResourceFork: data offset out of bounds for ${typeCode} ${id}`);
+      if (dataAbs + 4 > dataEnd) {
+        throw new Error(`parseResourceFork: data length word outside data section for ${typeCode} ${id}`);
       }
       const rsrcLen = view.getUint32(dataAbs, false);
-      if (dataAbs + 4 + rsrcLen > bytes.length) {
+      if (dataAbs + 4 + rsrcLen > dataEnd) {
         throw new Error(
           `parseResourceFork: resource ${typeCode} ${id} overruns data section (offset=${dataAbs}, len=${rsrcLen})`,
         );

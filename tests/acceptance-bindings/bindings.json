@@ -141,7 +141,7 @@
     },
     {
       "path": "tools/theme-loader/resource-fork.js",
-      "sha256": "b7ee1950661303ec0cee1afc0e312948ded660b0c135a2d4bb1a41498f5b16b4"
+      "sha256": "d7c382d770c8bbd51924150629dc0707d3169d3ac4d22a3dd66ff40dcf3e9a42"
     },
     {
       "path": "tools/theme-loader/sampling-equivalence.js",

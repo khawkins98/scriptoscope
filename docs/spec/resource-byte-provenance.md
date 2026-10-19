@@ -21,6 +21,16 @@ try {
 } finally { theme.dispose?.(); }
 ```
 
+## Declared resource-fork sections
+
+The portable parser bounds the map header, type count/entries, reference entries
+and Pascal names by the declared map section. Each resource length word and
+payload must fit the declared data section. Readable trailing file bytes cannot
+satisfy either bound. Existing whole-file bounds remain in force. Empty-list
+`0xffff` sentinels, zero-byte resource payloads and unused name-list pointers at
+the map end retain their existing behavior. These are structural checks, not
+independent decoding or historical resource-selection evidence.
+
 ## Data flow and identity
 
 The loader snapshots caller-owned byte inputs synchronously before its first
