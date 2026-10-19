@@ -1,0 +1,67 @@
+{
+  "status": "METADATA_ONLY_AMENDMENTS_APPROVED",
+  "reviewer": "Independent Astra AI architecture reviewer (/root/theme_architecture_review; automated metadata-only amendment, not human or maintainer attestation)",
+  "reviewedAt": "2026-10-18T23:55:43.305Z",
+  "authorityVersion": "0.1.10",
+  "ledgerVersion": "1.4.0",
+  "authoritySha256": "317f175e986737aff912ea0cfc8793844f1f063fc20fdb2f25d36de53f5e4026",
+  "priorReviewsFileSha256": "8b5c1536648ae686b91d2cde6127a4bdae6aff693d7633011991723db3d970ca",
+  "amendedReviewsFileSha256": "ccf18dd5d231a9206849af25f2fa5dab655a0ff9d504b6320389bc533466b3ee",
+  "amendments": [
+    {
+      "captureId": "windows-95.normal.v9.draft",
+      "priorRequestDigest": "ec320dd515dd54815d1760eee612692679c01eda902355cad18ac44d9dc358c3",
+      "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
+      "priorCaptureDigest": "a7867d6fab504c3c036cec95ae26b00e7247a14d0195b26c6c5e0008d9fa9d33",
+      "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+      "priorReviewSha256": "bf7b32cf07f4f973797d1a1a42c31929b01da7bc269b019b8686c865acc5590b",
+      "priorReviewedAt": "2026-10-18T22:12:45.683Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+      "priorRequestDigest": "3d8e4d9a9b778e9c4bce6784cf0533400343e2977d3656061751267d6ddcd4cc",
+      "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
+      "priorCaptureDigest": "d4b659cb023abf44ca7506e4e11a6a2a7f10a516237b5604a793b2e163785816",
+      "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+      "priorReviewSha256": "66b2c2560d5de5b19969d531cef1b087dd5a4b33565e41cfc9745381dd7eafec",
+      "priorReviewedAt": "2026-10-18T22:12:45.683Z"
+    },
+    {
+      "captureId": "windows-95.pressed.v10w.draft",
+      "priorRequestDigest": "2e1a00f7d9ae82095f5b79ace876a7664a9337fbc3638fba538a9f453270efbd",
+      "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
+      "priorCaptureDigest": "76d7a3875c3c3816411bcc4605e83e63b8d578e417cd54ff448d20857e421b66",
+      "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+      "priorReviewSha256": "a47a2c930fae0def60a587862460f396920400042a547229d5e667ad147fcdf3",
+      "priorReviewedAt": "2026-10-18T23:18:04.872Z"
+    },
+    {
+      "captureId": "windows-95.inactive.v10w.draft",
+      "priorRequestDigest": "935ff2f351c1986568350d1da846f76a56232dba4eebb4455f7ffbac95e19a7e",
+      "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
+      "priorCaptureDigest": "29738c44a05192cb5beed0c929df5357d277ae1e0b64e9b753b2989ea48b9415",
+      "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+      "priorReviewSha256": "5d618235a94a9793899ce9c68c60627b3caf574a8660e58212f6b35471eb2341",
+      "priorReviewedAt": "2026-10-18T23:18:04.872Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+      "priorRequestDigest": "d10f1260d44304e20d9f787edb9a0dba7960c7c43fb2b28277cdb6f7608d51bd",
+      "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
+      "priorCaptureDigest": "0f5adcd6947e8743a3e8558b54a8c6c326be9db773f87bdffbe66c2c06279359",
+      "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+      "priorReviewSha256": "f8670666a1b4e699cf6d9fc772b64faca19aa368c68145791016c7449151a2fc",
+      "priorReviewedAt": "2026-10-18T23:18:04.872Z"
+    },
+    {
+      "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+      "priorRequestDigest": "2a3252be0320ecd42131250ead80f3cdcc0914d16c79079643f7c71650cf1596",
+      "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
+      "priorCaptureDigest": "199ed535b7b515c21edb430a745902da2202a35a0fab3a1d6ddbca4ed8b6c3d3",
+      "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+      "priorReviewSha256": "4c5283aa6aac3db0f23b0192c68457e29894208c5dad451190c634be174c2582",
+      "priorReviewedAt": "2026-10-18T23:18:04.872Z"
+    }
+  ],
+  "limits": "No new original artifact audit or broad tests. Six capture requestDigest updates only; prior evidence review carried forward. Separate ledger integration guard/final execution remain pending."
+}

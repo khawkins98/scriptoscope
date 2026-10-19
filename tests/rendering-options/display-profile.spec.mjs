@@ -1,9 +1,17 @@
+import {readRecordedContext,captureBinding,validateRecordedExecution,validateRecordedBinding,compareRecordedPixels} from '../rendering-requirements/recorded-face.mjs';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {literalCicn,faceInfo} from '../decoder-fixtures/mode5.mjs';
 import {test,expect,openHarness,attachObservations} from './fixtures.mjs';
 for(const mode of ['source','built']) {
  test(`${mode}: measured profile loads both real themes without asset overrides and isolates default pixels`,async({page,servers},info)=>{
+  info.annotations.push({type:'fidelity-assertion',description:'recorded.empty-face-six'});
+  const referenceContext=readRecordedContext(fileURLToPath(new URL('../../',import.meta.url)));
+  const bindings=referenceContext.captures.map(c=>captureBinding(c));
+  const ledger=JSON.parse(readFileSync(new URL('../rendering-requirements/ledger.json',import.meta.url)));
+  for(const binding of bindings)validateRecordedBinding(ledger.cases.find(c=>c.recordedComparison?.captureId===binding.captureId),binding,referenceContext);
   await openHarness(page,servers,mode);
-  const result=await page.evaluate(async mode=>{
+  const result=await page.evaluate(async ({mode,bindings})=>{
    const api=await import(mode==='built'?'/dist/scriptoscope.js':'/src/index.ts');
    const data=await(await fetch('/tests/decoder-fixtures/measured-display-profile.json')).json(),profile=await api.prepareDisplayProfile(data),rows=[];
    // Eligibility/digests are checked by the reference gate; these independent
@@ -26,8 +34,8 @@ for(const mode of ['source','built']) {
     let differentPixels=0;for(let i=0;i<faceRgba.length;i+=4){const alpha=faceRgba[i+3];
      if(original[i+3]!==255||[0,1,2].some(c=>Math.round((faceRgba[i+c]*alpha+255*(255-alpha))/255)!==original[i+c]))differentPixels++;
     }
-    rows.push({slug,state,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
-     originalComparison:{captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
+    rows.push({slug,state,options,loadId:b.byteProvenance.loadId,profileFork:b.byteProvenance.fork.sha256,selectedKey:selected.resource.manifestKey,selectedAsset:el.asset,selectedCinfId:el.sourceCinfId??null,outcome:trace.outcome,requested:trace.requested,profile:b.manifest.displayProfile.id,baseUrl:a.baseUrl,profileBaseUrl:b.baseUrl,input:a.byteProvenance.input.sha256,profileInput:b.byteProvenance.input.sha256,
+     originalComparison:{binding:bindings.find(b=>b.captureId===reference.id),comparedPixels:1600,originalRgba:btoa(String.fromCharCode(...original)),captureId:reference.id,requestDigest:reference.requestDigest,imageSha256,imageSize:[canvas.width,canvas.height],sourceArchiveSha256:reference.source.archiveSha256,
       layer:'composited-face-pixels',background:[255,255,255],differentPixels,verifiedRequirementIds:[]},
      source:el.byteProvenance,resources:b.byteProvenance.resources,selected,facePlane:{rect:[4,4,80,20],encoding:'base64-rgba8',rgba:btoa(String.fromCharCode(...faceRgba))},paintSelectionSteps:trace.steps.filter(s=>s.usage==='paint'&&s.action==='selected'),bandPaints:trace.bandPaints??[],legacyFacePaint:trace.legacyFacePaint??null,policy:el.colorSamples?.displayPolicy??el.samplingEquivalence?.displayPolicy,
      different:normal.data.some((v,i)=>v!==legacy.data[i]),size:[normal.width,normal.height],body:[...normal.getPixel(44,14)],
@@ -35,7 +43,12 @@ for(const mode of ['source','built']) {
     }
     a.dispose();b.dispose();
    }return rows;
-  },mode);
+  },{mode,bindings});
+  for(const row of result){
+   const capture=referenceContext.captures.find(c=>c.id===row.originalComparison.captureId);
+   validateRecordedExecution(row,captureBinding(capture),capture);
+   expect(compareRecordedPixels(Buffer.from(row.facePlane.rgba,'base64'),Buffer.from(row.originalComparison.originalRgba,'base64'))).toBe(0);
+  }
   for(const row of result){expect(row.profileInput).toBe(row.input);expect(row.profileBaseUrl).toBe(row.baseUrl);expect(row.urlsDistinct).toBe(true);if(row.state==='normal')expect(row.different).toBe(true);expect(row.policy).toBe(row.profile);expect(row.selected.resource.byteProvenance).toBeTruthy();
    expect(row.requested).toMatchObject({state:row.state==='normal'?'active':row.state,pressed:row.state==='pressed',disabled:row.state==='inactive',default:false});
    expect(row.originalComparison.imageSize).toEqual([160,80]);expect(row.originalComparison.sourceArchiveSha256).toBe(row.profileInput);expect(row.originalComparison.differentPixels).toBe(0);

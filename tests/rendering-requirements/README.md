@@ -1,7 +1,7 @@
 # Partial rendering requirement ledger
 
 `ledger.json` is reviewed acceptance data, separate from rendering and screenshots.
-Inventory 1.3.0 declares twenty-two exact direct cases and seven explicit dimensions per
+Inventory 1.4.0 declares twenty-eight exact direct cases and seven explicit dimensions per
 case. **Every case has OPEN inventory closure.** The declared obligation
 count is a finite bookkeeping denominator, not an exhaustive denominator of
 historical control behavior. No whole-control completion percentage is reported.
@@ -165,3 +165,19 @@ occurrence, payload/fork, missing/duplicate rows, sampler branch and false paint
 claims. Other renderer matrix observations do not extend these obligations.
 Original font, broader state/fill/geometry, port conditions, device conversion
 and native interaction remain unknown even for empty/direct synthetic cases.
+
+## Recorded-condition comparisons
+
+Six additional OPEN cases pin explicit measured-profile DATA/id, source bytes,
+80×20 empty nondefault options and original intake/crop/white background. Only
+`output.recorded-composited-face` is verified; five broad original obligations
+per case remain unknown. The existing six-render source/built test compares all
+1600 pixels and joins actual completed modern paint, including System7 legacy
+compatibility paint. That trace is not original painter attribution.
+
+`scoped-original` evidence is accepted only through current reviewed-scoped
+reference intake and exact case bindings. When authority/ledger versions change,
+freeze authority text first, recompute requests/capture digests, obtain explicit
+metadata-only review amendments, then bind evidence and inventory hashes. Do not
+put those resulting hashes into the authority document or broad request targets:
+that would create a digest cycle. Original artifact/condition bytes stay unchanged.

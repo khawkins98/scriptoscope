@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "inventoryVersion": "1.3.0",
+  "inventoryVersion": "1.4.0",
   "scope": {
-    "description": "Twenty-two exact direct composition cases; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
+    "description": "Twenty-eight exact direct composition cases, including six separately reported recorded-condition composed-pixel comparisons; partial original-fidelity obligations, all inventory closures OPEN. Not the smoke matrix or a whole-control denominator.",
     "dimensions": [
       "resourceSelection",
       "geometry",
@@ -1079,6 +1079,12 @@
         ]
       },
       "sha256": "b59e1d4715b401c30e42481c72af60a1be149ef49a40c4c5dbfa33e41632f585"
+    },
+    {
+      "id": "theme.system7-nostalgia-silver",
+      "kind": "theme-archive",
+      "path": "themes/system7-nostalgia-silver/scheme.rsrc",
+      "sha256": "693915a19b9f3111abd73fe4af9025403e4ad9eab107b72953e3731b624c9beb"
     }
   ],
   "evidence": [
@@ -1501,6 +1507,300 @@
       ],
       "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API.",
       "limits": "Exact band/corner observations only; no complete body/border/mask proof for push case."
+    },
+    {
+      "id": "recorded.windows-95.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "windows-95.normal.v9.draft",
+        "requestId": "windows-95.normal",
+        "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
+        "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+        "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 1,
+          "digest": "b60fff95f617510806d691c2f69d112df597a2cfbe024cdfe46b5b34b559c1c8"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.windows-95.pressed",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "windows-95.pressed.v10w.draft",
+        "requestId": "windows-95.pressed",
+        "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
+        "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+        "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "c94e709b630ddfa558c1ce178031ab99bd8a0b35df65c3b59d282ccd1590a9db"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.windows-95.inactive",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "windows-95.inactive.v10w.draft",
+        "requestId": "windows-95.inactive",
+        "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
+        "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+        "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "849e17176a282750a8d12304c81fc39bf7d673e23d042378df9054f96de45515"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.normal",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+        "requestId": "system7-nostalgia-silver.normal",
+        "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
+        "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+        "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 1,
+          "digest": "b60fff95f617510806d691c2f69d112df597a2cfbe024cdfe46b5b34b559c1c8"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.pressed",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+        "requestId": "system7-nostalgia-silver.pressed",
+        "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
+        "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+        "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "c94e709b630ddfa558c1ce178031ab99bd8a0b35df65c3b59d282ccd1590a9db"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.inactive",
+      "kind": "scoped-original",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "document": "tests/rendering-requirements/EVIDENCE.md",
+      "locator": "Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.",
+      "excerptSha256": "adba113a84f02143e49481bea831f9e3df1a12250e0a9c70fb427b6f54c35535",
+      "claim": "Only the complete recorded-condition composited face pixels.",
+      "limits": "Reviewed scope and exact profile/case/image binding required. No broad requirement or original mask/font/provider/gesture claim.",
+      "requirementIds": [
+        "output.recorded-composited-face"
+      ],
+      "reference": {
+        "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+        "requestId": "system7-nostalgia-silver.inactive",
+        "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
+        "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+        "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "849e17176a282750a8d12304c81fc39bf7d673e23d042378df9054f96de45515"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
     }
   ],
   "requirements": [
@@ -1653,6 +1953,11 @@
       "id": "fill.sampled-line-color",
       "dimension": "fillMask",
       "claim": "Required raw indexed sampled-line color agrees with the exact literal current-display samples, or remains explicitly unsupported by the bounded API."
+    },
+    {
+      "id": "output.recorded-composited-face",
+      "dimension": "fillMask",
+      "claim": "Every pixel of the exact empty80×20 face, composited over recorded white under the explicit measured v9 profile, equals its reviewed original observation. Does not establish source alpha/mask, hidden painter, other conditions or broad requirements."
     }
   ],
   "assertions": [
@@ -1841,6 +2146,24 @@
         "synthetic.band.collision.push.repeat.empty.w29.h17"
       ],
       "claim": "Pin exact request and tile=true; compare independent literal band/corner RGBA; join selected band dependency to actual owning load resource occurrence and independent cicn+cinf hashes; require exact sampled model/derived path. The standalone registered assertion checks those exact request, byte and derived-dependency boundaries.",
+      "modes": [
+        "source",
+        "built"
+      ]
+    },
+    {
+      "id": "recorded.empty-face-six",
+      "path": "tests/rendering-options/display-profile.spec.mjs",
+      "marker": "description:'recorded.empty-face-six'",
+      "caseIds": [
+        "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+        "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+        "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+        "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+        "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+        "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile"
+      ],
+      "claim": "Six exact full80×20 composited RGBA comparisons with reviewed original intake, actual measured-profile/source/paint joins.",
       "modes": [
         "source",
         "built"
@@ -3094,6 +3417,516 @@
         "RGB16 high-byte plus current display LUT is a declared display policy, not original-device equivalence.",
         "Context/options are synthetic declared inputs, not reconstructed original invocation conditions."
       ]
+    },
+    {
+      "id": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "windows-95.normal.v9.draft",
+        "requestId": "windows-95.normal",
+        "requestDigest": "41813d6b9986862495a76b5921e86a1de985681f9945805043e3c2858d7f82a5",
+        "captureDigest": "d36cb72becd1fdd4115d2558f3e772b8bc7109ca55ac41a1ccbe8e76ceb523e5",
+        "imageSha256": "cb65c967bb8a9937be40ebf9b428b02f8bc18351a04b76d1803221efbbce34eb",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 1,
+          "digest": "b60fff95f617510806d691c2f69d112df597a2cfbe024cdfe46b5b34b559c1c8"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": true,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "windows-95.pressed.v10w.draft",
+        "requestId": "windows-95.pressed",
+        "requestDigest": "d99c52198acc77a92649e6b483f9b451acc40d57899be025a8c3b2963003f34d",
+        "captureDigest": "6b63151d86e75edf182a1db874edcea505ff7ddf75cbfd9191c133c179e2678e",
+        "imageSha256": "1dd9583e8c1f56066a1a4ea440158d349a75ac4678852e5a2f4efd2077f72c00",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "c94e709b630ddfa558c1ce178031ab99bd8a0b35df65c3b59d282ccd1590a9db"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.windows-95"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": true
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "windows-95.inactive.v10w.draft",
+        "requestId": "windows-95.inactive",
+        "requestDigest": "b976e4ad816c1103245dac98f83ee7a8f2ef19fb423beb6fd96052baff72f6ae",
+        "captureDigest": "62a0d75e30d0da29d5acbef43d3a1808c43123693ff5aa7dad9e715555ea069e",
+        "imageSha256": "e9a8520fd1bf6725fe2811379d5a62339c538b09f41d90014359530465b35e0c",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "849e17176a282750a8d12304c81fc39bf7d673e23d042378df9054f96de45515"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "system7-nostalgia-silver.normal.v7d.draft",
+        "requestId": "system7-nostalgia-silver.normal",
+        "requestDigest": "ba0dbac9c4581b2bb7ccdf25989045eae2b006f5491111e79c10c013a208bcd3",
+        "captureDigest": "a681e07ecaeb703a925ca6e0b8a7b8342fa299b8ff5251738f98650205c86807",
+        "imageSha256": "76e282aeed9467ba13ce108c8b0cb70bb08e2bc6be1f39698652920c095a50ac",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 1,
+          "digest": "b60fff95f617510806d691c2f69d112df597a2cfbe024cdfe46b5b34b559c1c8"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": true,
+        "disabled": false
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "system7-nostalgia-silver.pressed.v10s.draft",
+        "requestId": "system7-nostalgia-silver.pressed",
+        "requestDigest": "1b97808af5540051217656181f53011c0f60f64dfa065a9429c8e916da1a91a2",
+        "captureDigest": "affcde4a4c9624ea2798ff2abaaaa5d2f189b22681e0404c62798d7babab1ccf",
+        "imageSha256": "556365efafb06d4641c8e73152169b8d5c7cb66200d91853ca3b7453203213ad",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "c94e709b630ddfa558c1ce178031ab99bd8a0b35df65c3b59d282ccd1590a9db"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
+    },
+    {
+      "id": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "inputs": [
+        "theme.system7-nostalgia-silver"
+      ],
+      "baseInputs": [],
+      "mode": "direct",
+      "family": "push",
+      "options": {
+        "label": "",
+        "minWidth": 80,
+        "height": 20,
+        "default": false,
+        "pressed": false,
+        "disabled": true
+      },
+      "dimensions": {
+        "resourceSelection": [
+          "selection.original"
+        ],
+        "geometry": [
+          "geometry.remaining"
+        ],
+        "fillMask": [
+          "output.recorded-composited-face",
+          "fill.remaining"
+        ],
+        "typography": {
+          "excluded": "No label raster in this exact direct case.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        },
+        "state": [
+          "state.original"
+        ],
+        "placement": [
+          "placement.original"
+        ],
+        "interaction": {
+          "excluded": "Direct pixel composition only. DOM focus, names, actions and teardown require separate cases.",
+          "review": "Proposed bounded empty-label/direct-composition exclusion; independent integration review pending."
+        }
+      },
+      "inventoryClosure": {
+        "status": "open",
+        "reason": "Only the exact recorded-condition composed output is claimed; broad original requirements remain unknown."
+      },
+      "substitutions": [
+        "Explicit measured v9 profile; same recorded palette/gamma across reference runs, not full hidden environment equivalence.",
+        "Public face rectangle[4,4,80,20] is composited over recorded white. Original alpha/mask and original internal painter are not certified."
+      ],
+      "recordedComparison": {
+        "captureId": "system7-nostalgia-silver.inactive.v10s.draft",
+        "requestId": "system7-nostalgia-silver.inactive",
+        "requestDigest": "e68b01508f4a4d21fd297dc631793cc6ea88b6b92a7c9667f48bb09af25e4f5e",
+        "captureDigest": "f638fb3a4bd92313318153f5948e2fa02e41f07bec48ba0f4da8c7c8fc6b4d6e",
+        "imageSha256": "fb0e5013e3a3a8015331405f22e517de531ed10cccb5e18a16566967721c401f",
+        "reviewScope": {
+          "id": "public-api-empty-face",
+          "version": 2,
+          "digest": "849e17176a282750a8d12304c81fc39bf7d673e23d042378df9054f96de45515"
+        },
+        "faceImageRect": [
+          20,
+          20,
+          80,
+          20
+        ],
+        "publicFaceRect": [
+          4,
+          4,
+          80,
+          20
+        ],
+        "background": [
+          255,
+          255,
+          255
+        ],
+        "profile": {
+          "path": "tests/decoder-fixtures/measured-display-profile.json",
+          "id": "display-profile:506eb4e615f81385b6143c63a9612f4c899b14e2c93c60b67358b436777f772d",
+          "sha256": "d8c495d980029f857633652c5e1abd3bc4f289fb8705e03fd750bc9bdff96d00"
+        }
+      }
     }
   ],
   "assessments": [
@@ -5504,7 +6337,391 @@
       "issues": [
         221
       ]
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.windows-95.normal"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.normal.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.windows-95.pressed"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.windows-95.inactive"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.windows-95.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.system7-nostalgia-silver.normal"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.normal.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.system7-nostalgia-silver.pressed"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.pressed.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "selection.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "geometry.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "output.recorded-composited-face",
+      "status": "verified",
+      "evidence": [
+        "recorded.system7-nostalgia-silver.inactive"
+      ],
+      "assertions": [
+        "recorded.empty-face-six"
+      ],
+      "issues": [],
+      "rationale": "Exact observed composited pixels only, using independently reviewed original observations and explicit profile. Execution remains separately required.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "fill.remaining",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "state.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
+    },
+    {
+      "caseId": "recorded.system7-nostalgia-silver.inactive.empty.w80.h20.v9-profile",
+      "requirementId": "placement.original",
+      "status": "unknown",
+      "evidence": [],
+      "assertions": [],
+      "issues": [],
+      "rationale": "This broad original obligation is not established by equality of the single recorded-condition face.",
+      "review": "Proposed bounded assessment; independent integration review pending."
     }
   ],
-  "inventorySha256": "2ff11886825ff9ff046862c614c22eb1eb924fbabf77273487ef724d2755ed76"
+  "inventorySha256": "3893dd45071ede118f15cf00405dcfb9167c4bb1fdc8f00cdbe590c9dfa26569"
 }

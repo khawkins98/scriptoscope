@@ -197,3 +197,9 @@ The kDEF0 FEAE helper takes source width1-to-wider before height1-to-taller path
 ### fixture.band-collision-literal
 
 The independently encoded7x7 indexed8 collision has ctFlags32768 and ColorSpec values7,0,3. Ordinary raster index0 is red255,0,0; the raw sampler chooses gray RGB16(8481,8481,8481), mapped once to current-display48,48,48. For the exact repeat push case, (4,0) and(0,4) are gray while ordinary corner(0,0) remains red. The separate whole-header collision case returns unsupported without output or painted dependency; no sampled companion is claimed for it.
+
+## Recorded-condition composed faces
+
+Six exact Windows95/System7 empty80×20 normal, logically highlighted and disabled-active observations supply opaque-white composed-pixel references under the explicit v9 measured profile. Original source alpha, font realization, private painter/provider, physical gesture and other conditions remain unverified.
+
+The scoped-original evidence kind reuses reference intake review, never the renderer as its expected-image authority. Exact capture/request/image/profile bindings and actual source/built execution are separate obligations. Metadata-only re-attestation binds changed authority versions without recapturing or changing original image/condition bytes.
